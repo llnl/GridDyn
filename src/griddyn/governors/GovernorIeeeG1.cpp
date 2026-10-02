@@ -447,20 +447,16 @@ void GovernorIeeeG1::rootTest(const IOdata& inputs,
         roots[rootOffset + 1] = opFlags[POWER_LIMIT_HIGH] ?
             -limitedRate - (2.0 * positionLimitTolerance) :
             limitedRate - (2.0 * positionLimitTolerance);
-    } else if (((state[valveState] >= (Pmax - positionLimitTolerance)) && (limitedRate < 0.0)) ||
-               ((state[valveState] <= (Pmin + positionLimitTolerance)) && (limitedRate > 0.0))) {
-        // A state exactly on a bound with an inward rate is not a limiter
-        // event.  Avoid presenting its geometric distance as an exact zero
-        // root to IDA.
-        roots[rootOffset + 1] = positionLimitTolerance;
-    } else if ((std::abs(limitedRate) <= positionLimitTolerance) &&
-               (((state[valveState] >= (Pmax - positionLimitTolerance)) &&
-                 (state[valveState] <= (Pmax + positionLimitTolerance))) ||
-                ((state[valveState] >= (Pmin - positionLimitTolerance)) &&
-                 (state[valveState] <= (Pmin + positionLimitTolerance))))) {
-        // A zero-rate operating point on a valve bound is not a crossing.
-        // Wait until the rate gives a definite direction for a real limiter
-        // entry or release.
+    } else if ((((state[valveState] >= (Pmax - positionLimitTolerance)) && (limitedRate < 0.0)) ||
+                ((state[valveState] <= (Pmin + positionLimitTolerance)) && (limitedRate > 0.0))) ||
+               ((std::abs(limitedRate) <= positionLimitTolerance) &&
+                (((state[valveState] >= (Pmax - positionLimitTolerance)) &&
+                  (state[valveState] <= (Pmax + positionLimitTolerance))) ||
+                 ((state[valveState] >= (Pmin - positionLimitTolerance)) &&
+                  (state[valveState] <= (Pmin + positionLimitTolerance)))))) {
+        // A state on a valve bound with an inward or zero rate is not a
+        // limiter crossing.  Avoid presenting its geometric distance as an
+        // exact zero root to IDA.
         roots[rootOffset + 1] = positionLimitTolerance;
     } else {
         roots[rootOffset + 1] = std::min(Pmax - state[valveState], state[valveState] - Pmin);
@@ -519,8 +515,8 @@ void GovernorIeeeG1::set(std::string_view param, std::string_view val)
 void GovernorIeeeG1::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "k") || (param == "droop")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("IEEEG1 gain must be positive and finite");
+        if (!std::isfinite(val) || (val < 0.0)) {
+            throw InvalidParameterValue("IEEEG1 gain must be nonnegative and finite");
         }
         Governor::set(param, val, unitType);
     } else if (param == "r") {

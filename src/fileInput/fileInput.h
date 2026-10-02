@@ -116,6 +116,9 @@ void loadDyd(CoreObject* parentObject,
 void loadEpc(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& readerOptions = defInfo);
+void loadSav(CoreObject* parentObject,
+             const std::string& fileName,
+             const BasicReaderInfo& readerOptions = defInfo);
 
 // wrapper function to detect m file format for matpower or PSAT
 void loadMatlabFile(CoreObject* parentObject,

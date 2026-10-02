@@ -106,6 +106,7 @@ namespace {
     void loadGovernorVariant(CoreObject* parentObject, stringVec& tokens, std::string_view model);
     void loadGGOV1(CoreObject* parentObject, stringVec& tokens);
     void loadGAST(CoreObject* parentObject, stringVec& tokens);
+    void loadGPWSCC(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEG1(CoreObject* parentObject, stringVec& tokens);
     void loadIEESGO(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEST(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
@@ -224,6 +225,8 @@ namespace detail {
             loadGGOV1(parentObject, lineTokens);
         } else if (type == "'GAST'") {
             loadGAST(parentObject, lineTokens);
+        } else if (type == "'GPWSCC'") {
+            loadGPWSCC(parentObject, lineTokens);
         } else if (type == "'IEEEG1'") {
             loadIEEEG1(parentObject, lineTokens);
         } else if (type == "'IEESGO'") {
@@ -247,6 +250,8 @@ namespace detail {
         } else if (type == "'REGCV1'" || type == "'REGCV2'" || type == "'REGF1'" ||
                    type == "'REGF2'" || type == "'REGF3'") {
             loadRenewable(parentObject, lineTokens, gmlc::utilities::stringOps::removeQuotes(type));
+        } else if (type == "'EPCGEN'") {
+            loadRenewable(parentObject, lineTokens, "EPCGEN");
         } else if (type == "'REECA1'") {
             loadRenewable(parentObject, lineTokens, "REECA1");
         } else if (type == "'REECA1E'") {
@@ -561,6 +566,18 @@ namespace {
                                                                              "iqrmax",
                                                                              "iqrmin",
                                                                              "accel"});
+        static constexpr auto epcgenFields = std::to_array<std::string_view>({"rsrc",
+                                                                              "xsrc",
+                                                                              "tfrq",
+                                                                              "ofpdb",
+                                                                              "ufpdb",
+                                                                              "ofpdroop",
+                                                                              "ufpdroop",
+                                                                              "vbreak",
+                                                                              "imax",
+                                                                              "pmax",
+                                                                              "pmin",
+                                                                              "pref"});
         static constexpr auto reecaFields = std::to_array<std::string_view>(
             {"pfflag", "vflag", "qflag", "pflag", "pqflag", "vdip",  "vup",   "trv",   "dbd1",
              "dbd2",   "kqv",   "iqh1",  "iql1",  "vref0",  "iqfrz", "thld",  "thld2", "tp",
@@ -670,6 +687,8 @@ namespace {
             expected = 3U + regfFields.size();
         } else if (modelName == "REGF2") {
             expected = 6U + regfFields.size();
+        } else if (modelName == "EPCGEN") {
+            expected = 3U + epcgenFields.size();
         } else if (modelName == "REPCA1") {
             expected = 37U;
         } else if (modelName == "WTDTA1") {
@@ -755,6 +774,8 @@ namespace {
                 setFields(vsmFields, 3U + regfFields.size());
                 model->set("pll", gmlc::utilities::stringOps::removeQuotes(tokens.back()));
             }
+        } else if (modelName == "EPCGEN") {
+            setFields(epcgenFields, 3);
         } else if (modelName == "REPCA1") {
             if (params[3] != 0.0 || params[4] != 0.0 || params[5] != 0.0) {
                 throw InvalidParameterValue(
@@ -1768,6 +1789,40 @@ namespace {
         for (std::size_t ii = 0; ii < names.size(); ++ii) {
             model->set(names[ii], params[ii + 3]);
         }
+        gen->add(model);
+    }
+
+    void loadGPWSCC(CoreObject* parentObject, stringVec& tokens)
+    {
+        // PSLF GPWSCC order after the machine identifier is:
+        // MWCap, Pmax, Pmin, R, Td, Tf, Tp, Velopen, Velclose, Kp, Kd,
+        // Ki, Kg, Tturb, Aturb, Bturb, Tt, db1, Eps, db2, then Gv/Pgv 1..6.
+        if (tokens.size() != 35U) {
+            throw InvalidParameterValue("GPWSCC DYR record must contain 35 fields");
+        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "GPWSCC");
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* model = static_cast<Governor*>(
+            CoreObjectFactory::instance()->createObject("governor", "gpwscc"));
+        if (model == nullptr) {
+            throw InvalidParameterValue("GPWSCC governor factory registration");
+        }
+        static constexpr std::array<std::string_view, 32> names{
+            "mwcap",    "gmax", "gmin", "r",    "td",  "tf",    "tp",    "velopen",
+            "velclose", "kp",   "kd",   "ki",   "kg",  "tturb", "aturb", "bturb",
+            "tt",       "db1",  "eps",  "db2",  "gv1", "pgv1",  "gv2",   "pgv2",
+            "gv3",      "pgv3", "gv4",  "pgv4", "gv5", "pgv5",  "gv6",   "pgv6"};
+        for (std::size_t index = 0; index < names.size(); ++index) {
+            if (!std::isfinite(params[index + 3U]) || (params[index + 3U] == kNullVal)) {
+                delete model;
+                throw InvalidParameterValue("GPWSCC DYR record has a nonnumeric field");
+            }
+            model->set(names[index], params[index + 3U]);
+        }
+        // GPWSCC's MWCap is converted to the same machine base used by the
+        // dynamic generator.  The static SAVE/EPC reader establishes MBASE
+        // before the dynamic model is attached.
+        model->set("mvabase", gen->get("mbase", units::MVAR));
         gen->add(model);
     }
 

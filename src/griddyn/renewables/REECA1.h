@@ -11,7 +11,7 @@
 
 namespace griddyn {
 
-/** REECA1 electrical control: constant-Q branch with active reference filtering. */
+/** REECA1/REECB1 electrical control with selectable reactive-control branches. */
 class REECA1: public RenewableComponent {
   public:
     explicit REECA1(const std::string& name = "REECA1_#");
@@ -104,14 +104,21 @@ class REECA1: public RenewableComponent {
     double heldPowerOrder = 0.0;
     bool voltageDip(double v) const { return v < Vdip || v > Vup; }
     bool dipMode(double v) const { return Thld2 > 0.0 ? voltageDipActive : voltageDip(v); }
+    bool cascadedVoltageControl() const { return QFLAG != 0 && VFLAG != 0; }
+    index_t speedInputIndex() const { return cascadedVoltageControl() ? 5 : 4; }
+    void updateInputSize();
     static double curve(double voltage,
                         const std::array<double, 4>& points,
                         const std::array<double, 4>& currents);
-    double activeLimit(double voltage, const double state[]) const;
-    void transition(CoreTime time, double voltage, bool entering);
-    std::array<double, 2> commands(double v, const double state[]) const;
+    double voltageReference(const IOdata& inputs, const double state[]) const;
+    double reactivePowerReference(const IOdata& inputs) const;
+    double reactivePowerFeedback(const IOdata& inputs) const;
+    double reactiveControl(const IOdata& inputs, const double state[]) const;
+    double activeLimit(const IOdata& inputs, const double state[]) const;
+    void transition(CoreTime time, const IOdata& inputs, bool entering);
+    std::array<double, 2> commands(const IOdata& inputs, const double state[]) const;
     double generatorSpeed(const IOdata& inputs) const;
-    std::array<double, 4> rates(const IOdata& inputs, const double state[]) const;
+    std::array<double, 5> rates(const IOdata& inputs, const double state[]) const;
 };
 
 }  // namespace griddyn

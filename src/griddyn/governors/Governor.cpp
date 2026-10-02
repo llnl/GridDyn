@@ -51,6 +51,8 @@ namespace governors {
         gFgov7("governor", std::to_array<std::string_view>({"ggov1"}));
     static ChildTypeFactory<GovernorGast, Governor>
         gFgov8("governor", std::to_array<std::string_view>({"gast", "pssegast"}));
+    static ChildTypeFactory<GovernorGPWSCC, Governor>
+        gFgov9("governor", std::to_array<std::string_view>({"gpwscc"}));
 
 }  // namespace governors
 using units::convert;

@@ -683,6 +683,11 @@ if(TARGET yaml-cpp)
 endif()
 
 # ------------------------------------------------------------
+# create bundled SQLite target
+# ------------------------------------------------------------
+add_subdirectory(ThirdParty/sqlite EXCLUDE_FROM_ALL)
+
+# ------------------------------------------------------------
 # load the required subdirectories
 # ------------------------------------------------------------
 add_subdirectory(src)

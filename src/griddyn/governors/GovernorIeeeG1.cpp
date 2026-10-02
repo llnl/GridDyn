@@ -447,10 +447,8 @@ void GovernorIeeeG1::rootTest(const IOdata& inputs,
         roots[rootOffset + 1] = opFlags[POWER_LIMIT_HIGH] ?
             -limitedRate - (2.0 * positionLimitTolerance) :
             limitedRate - (2.0 * positionLimitTolerance);
-    } else if ((((state[valveState] >= (Pmax - positionLimitTolerance)) &&
-                 (limitedRate < 0.0)) ||
-                ((state[valveState] <= (Pmin + positionLimitTolerance)) &&
-                 (limitedRate > 0.0))) ||
+    } else if ((((state[valveState] >= (Pmax - positionLimitTolerance)) && (limitedRate < 0.0)) ||
+                ((state[valveState] <= (Pmin + positionLimitTolerance)) && (limitedRate > 0.0))) ||
                ((std::abs(limitedRate) <= positionLimitTolerance) &&
                 (((state[valveState] >= (Pmax - positionLimitTolerance)) &&
                   (state[valveState] <= (Pmax + positionLimitTolerance))) ||

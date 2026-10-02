@@ -289,8 +289,7 @@ void AGControl::updateA(CoreTime time)
     }
     regChange();
     ace = measuredACE();
-    filteredAce += (tf <= 0.0 ? 1.0 : deltaTime / (tf + deltaTime)) *
-        (ace - filteredAce);
+    filteredAce += (tf <= 0.0 ? 1.0 : deltaTime / (tf + deltaTime)) * (ace - filteredAce);
     const double controlError =
         std::copysign(std::max(0.0, std::abs(filteredAce) - deadband), filteredAce);
     const double candidateIntegral = integralAce + (controlError * deltaTime);
@@ -302,8 +301,7 @@ void AGControl::updateA(CoreTime time)
         integralAce = candidateIntegral;
     }
     const double rawReg = -((kp * controlError) + (ki * integralAce)) / baseMW;
-    requestedReg += (tr <= 0.0 ? 1.0 : deltaTime / (tr + deltaTime)) *
-        (rawReg - requestedReg);
+    requestedReg += (tr <= 0.0 ? 1.0 : deltaTime / (tr + deltaTime)) * (rawReg - requestedReg);
     reg = std::clamp(requestedReg, -regDownAvailable, regUpAvailable);
     dispatch();
     prevTime = time;

@@ -25,10 +25,7 @@ namespace {
         CoreTime nextUpdateTime;
     };
 
-    double boundedRampRate(double difference,
-                           double rate,
-                           double rampLimitUp,
-                           double rampLimitDown)
+    double boundedRampRate(double difference, double rate, double rampLimitUp, double rampLimitDown)
     {
         if (difference > 0.0) {
             if (!std::isfinite(rate) || rate <= 0.0) {
@@ -83,8 +80,8 @@ namespace {
             case SchedulerRamp::MID_POINT:
                 if (targetDeltaTime >= rampTime) {
                     if (remainingPower != 0.0) {
-                        rampRate = boundedRampRate(
-                            remainingPower, rampRate, rampLimitUp, rampLimitDown);
+                        rampRate =
+                            boundedRampRate(remainingPower, rampRate, rampLimitUp, rampLimitDown);
                         remainingTime = rampCompletionDelay(remainingPower, rampRate);
                         if (!std::isfinite(remainingTime)) {
                             rampRate = 0.0;
@@ -108,8 +105,10 @@ namespace {
                                 }
                                 nextUpdateTime = rampEndTime;
                             } else {
-                                rampRate = boundedRampRate(
-                                    powerDifference, rampRate, rampLimitUp, rampLimitDown);
+                                rampRate = boundedRampRate(powerDifference,
+                                                           rampRate,
+                                                           rampLimitUp,
+                                                           rampLimitDown);
                                 remainingTime = rampCompletionDelay(powerDifference, rampRate);
                                 nextUpdateTime = std::isfinite(remainingTime) ?
                                     previousTime + remainingTime :
@@ -126,8 +125,8 @@ namespace {
                     const CoreTime rampEndTime =
                         lastTargetTime + ((targetSpan - rampTime) / 2.0) + rampTime;
                     if (previousTime >= rampEndTime) {
-                        rampRate = boundedRampRate(
-                            powerDifference, rampRate, rampLimitUp, rampLimitDown);
+                        rampRate =
+                            boundedRampRate(powerDifference, rampRate, rampLimitUp, rampLimitDown);
                         remainingTime = rampCompletionDelay(powerDifference, rampRate);
                         nextUpdateTime = std::isfinite(remainingTime) ?
                             previousTime + remainingTime :
@@ -151,8 +150,8 @@ namespace {
             case SchedulerRamp::DELAYED:
                 if (remainingPower != 0.0) {
                     const double rate = (remainingPower > 0.0) ? rampLimitUp : rampLimitDown;
-                    remainingTime = (rate > 0.0) ? std::abs(remainingPower) / rate :
-                                                   targetDeltaTime;
+                    remainingTime =
+                        (rate > 0.0) ? std::abs(remainingPower) / rate : targetDeltaTime;
                     remainingTime = std::max(remainingTime, rampTime);
                     remainingTime = std::min(remainingTime, targetDeltaTime);
                     rampRate = (remainingTime > 0.0) ? remainingPower / remainingTime : 0.0;
@@ -555,7 +554,6 @@ void SchedulerRamp::updatePTarget()
     CoreTime time;
     const double rampLimitUp = getRampLimitUp();
     const double rampLimitDown = getRampLimitDown();
-
 
     if (rampCompletionPending) {
         if (prevTime >= rampCompletionTime) {

@@ -12,8 +12,8 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
-#include <cstddef>
 #include <complex>
+#include <cstddef>
 #include <string>
 
 namespace griddyn::genmodels {
@@ -79,10 +79,10 @@ void GenModel5::algebraicUpdate(const IOdata& inputs,
                               (Xqp),
                               -(Xdp),
                               Rs,
-                               locations.diffStateLoc[4] - Vd,
-                               locations.diffStateLoc[3] - Vq,
-                               locations.destLoc[0],
-                               locations.destLoc[1]);
+                              locations.diffStateLoc[4] - Vd,
+                              locations.diffStateLoc[3] - Vq,
+                              locations.destLoc[0],
+                              locations.destLoc[1]);
     m_output = -((locations.destLoc[1] * Vq) + (locations.destLoc[0] * Vd));
 }
 

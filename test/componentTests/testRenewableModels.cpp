@@ -1029,9 +1029,7 @@ TEST(RenewableModels, REECB1QFlagVoltageControlInitializes)
     cascaded.set("vflag", 1.0);
     cascaded.set("pqflag", 1.0);
     cascaded.dynInitializeA(0.0, 0);
-    cascaded.dynInitializeB({1.0, kNullVal, kNullVal, kNullVal, 0.1},
-                            {0.5, 0.1},
-                            fields);
+    cascaded.dynInitializeB({1.0, kNullVal, kNullVal, kNullVal, 0.1}, {0.5, 0.1}, fields);
     ASSERT_EQ(fields.size(), 2U);
     EXPECT_NEAR(fields[0], 0.5, 1e-12);
     EXPECT_NEAR(fields[1], -0.1, 1e-12);

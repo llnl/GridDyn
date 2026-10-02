@@ -44,18 +44,14 @@ namespace {
         inputPortMap[1],
         inputPortMap[2],
         inputPortMap[3],
-        {.signal = RenewableSignal::reactivePower,
-         .ioIndex = 4,
-         .base = RenewableBase::machine},
+        {.signal = RenewableSignal::reactivePower, .ioIndex = 4, .base = RenewableBase::machine},
     }};
     constexpr std::array<RenewablePort, 6> inputPortMapWithReactivePowerAndSpeed{{
         inputPortMap[0],
         inputPortMap[1],
         inputPortMap[2],
         inputPortMap[3],
-        {.signal = RenewableSignal::reactivePower,
-         .ioIndex = 4,
-         .base = RenewableBase::machine},
+        {.signal = RenewableSignal::reactivePower, .ioIndex = 4, .base = RenewableBase::machine},
         {.signal = RenewableSignal::generatorSpeed, .ioIndex = 5},
     }};
     constexpr std::array<RenewablePort, 3> outputPortMap{{
@@ -584,11 +580,7 @@ std::array<double, 5> REECA1::rates(const IOdata& inputs, const double state[]) 
     const double qref = std::clamp(reactivePowerReference(inputs), QMin, QMax);
     const double pRate = std::clamp((pref - state[powerFilter]) / Tpfilt, dPmin, dPmax);
     if (dipMode(voltage)) {
-        return {(voltage - state[voltageFilter]) / Trv,
-                pRate,
-                0.0,
-                0.0,
-                0.0};
+        return {(voltage - state[voltageFilter]) / Trv, pRate, 0.0, 0.0, 0.0};
     }
     if (QFLAG != 0) {
         const double qError = qref - reactivePowerFeedback(inputs);
@@ -840,9 +832,7 @@ void REECA1::jacobianElements(const IOdata& inputs,
             const double qRaw = reactivePowerReference(inputs);
             const bool qFree = qRaw > QMin && qRaw < QMax;
             matrixData.assign(diff + reactiveFilter, diff + reactiveFilter, -stateData.cj);
-            matrixData.assign(diff + reactiveFilter,
-                              diff + voltageFilter,
-                              -Kvi);
+            matrixData.assign(diff + reactiveFilter, diff + voltageFilter, -Kvi);
             if (cascadedVoltageControl()) {
                 const double qError = std::clamp(qRaw, QMin, QMax) - reactivePowerFeedback(inputs);
                 const double qPiRaw = Kqp * qError + state[reactivePowerIntegrator];
@@ -850,31 +840,21 @@ void REECA1::jacobianElements(const IOdata& inputs,
                 matrixData.assign(diff + reactivePowerIntegrator,
                                   diff + reactivePowerIntegrator,
                                   -stateData.cj);
-                if (qFree && inputLocs.size() > 2 && inputs.size() > 2 &&
-                    inputs[2] != kNullVal) {
-                    matrixData.assignCheckCol(
-                        diff + reactivePowerIntegrator, inputLocs[2], Kqi);
+                if (qFree && inputLocs.size() > 2 && inputs.size() > 2 && inputs[2] != kNullVal) {
+                    matrixData.assignCheckCol(diff + reactivePowerIntegrator, inputLocs[2], Kqi);
                 }
-                if (qFree && inputLocs.size() > 4 && inputs.size() > 4 &&
-                    inputs[4] != kNullVal) {
-                    matrixData.assignCheckCol(
-                        diff + reactivePowerIntegrator, inputLocs[4], -Kqi);
+                if (qFree && inputLocs.size() > 4 && inputs.size() > 4 && inputs[4] != kNullVal) {
+                    matrixData.assignCheckCol(diff + reactivePowerIntegrator, inputLocs[4], -Kqi);
                 }
                 if (qPiFree) {
-                    matrixData.assign(diff + reactiveFilter,
-                                      diff + reactivePowerIntegrator,
-                                      Kvi);
+                    matrixData.assign(diff + reactiveFilter, diff + reactivePowerIntegrator, Kvi);
                     if (qFree && inputLocs.size() > 2 && inputs.size() > 2 &&
                         inputs[2] != kNullVal) {
-                        matrixData.assignCheckCol(diff + reactiveFilter,
-                                                  inputLocs[2],
-                                                  Kvi * Kqp);
+                        matrixData.assignCheckCol(diff + reactiveFilter, inputLocs[2], Kvi * Kqp);
                     }
                     if (qFree && inputLocs.size() > 4 && inputs.size() > 4 &&
                         inputs[4] != kNullVal) {
-                        matrixData.assignCheckCol(diff + reactiveFilter,
-                                                  inputLocs[4],
-                                                  -Kvi * Kqp);
+                        matrixData.assignCheckCol(diff + reactiveFilter, inputLocs[4], -Kvi * Kqp);
                     }
                 }
             } else if (inputLocs.size() > 2 && inputs.size() > 2 && inputs[2] != kNullVal) {

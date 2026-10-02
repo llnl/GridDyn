@@ -305,8 +305,7 @@ TEST(ExampleReaderTests, LoadGPWSCCDydRecordWithNamedMWCap)
         std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
     const auto genrouPath =
         std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests" / "ieee14_genrou.dyd";
-    const auto dydPath =
-        std::filesystem::temp_directory_path() / "griddyn_gpwscc_named_mwcap.dyd";
+    const auto dydPath = std::filesystem::temp_directory_path() / "griddyn_gpwscc_named_mwcap.dyd";
     {
         std::ofstream output(dydPath);
         ASSERT_TRUE(output.is_open());
@@ -327,8 +326,7 @@ TEST(ExampleReaderTests, LoadGPWSCCDydRecordWithNamedMWCap)
     ASSERT_NE(bus, nullptr);
     auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
     ASSERT_NE(generator, nullptr);
-    auto* governor =
-        dynamic_cast<griddyn::governors::GovernorGPWSCC*>(generator->find("governor"));
+    auto* governor = dynamic_cast<griddyn::governors::GovernorGPWSCC*>(generator->find("governor"));
     ASSERT_NE(governor, nullptr);
     EXPECT_DOUBLE_EQ(governor->get("mwcap"), 51.9);
     EXPECT_DOUBLE_EQ(governor->get("gmax"), 0.85);

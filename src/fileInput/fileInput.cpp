@@ -206,7 +206,7 @@ void loadFile(CoreObject* parentObject,
         loadPsp(parentObject, fileName, *readerInf);
     } else if (ext == "epc") {
         loadEpc(parentObject, fileName, *readerInf);
-    } else if (ext == "sav") {
+    } else if (ext == "save") {
         loadSav(parentObject, fileName, *readerInf);
     } else if (ext == "json") {
         if (!loadAndesJson(parentObject, fileName)) {

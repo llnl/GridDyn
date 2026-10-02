@@ -131,8 +131,7 @@ TEST(EPCGENReference, DaeJacobianMatchesFiniteDifference)
             return values;
         }();
         for (std::size_t row = 0; row < state.size(); ++row) {
-            EXPECT_NEAR(jacobian.at(static_cast<index_t>(row),
-                                    static_cast<index_t>(40U + column)),
+            EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), static_cast<index_t>(40U + column)),
                         (shifted[row] - base[row]) / perturbation,
                         1.0e-4)
                 << "input " << column << ", row " << row;
@@ -143,8 +142,8 @@ TEST(EPCGENReference, DaeJacobianMatchesFiniteDifference)
 
 TEST(EPCGENReference, NamedV7DydRecordAttaches)
 {
-    const auto epcPath = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" /
-        "IEEE 14 bus.epc";
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
     const auto dydPath = std::filesystem::temp_directory_path() / "griddyn_epcgen_v7.dyd";
     {
         std::ofstream output(dydPath);

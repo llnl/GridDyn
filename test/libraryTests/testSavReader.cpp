@@ -30,7 +30,8 @@ void executeSql(sqlite3* database, const char* sql)
 
 std::filesystem::path makeSavFixture()
 {
-    const auto filePath = std::filesystem::temp_directory_path() / "griddyn_pslf_sqlite_reader.sav";
+    const auto filePath =
+        std::filesystem::temp_directory_path() / "griddyn_pslf_sqlite_reader.save";
     std::error_code removeError;
     std::filesystem::remove(filePath, removeError);
 
@@ -42,36 +43,37 @@ std::filesystem::path makeSavFixture()
         }
         return {};
     }
-    executeSql(database,
-               "CREATE TABLE pslf_database_metadata (schema_version integer, last_save_client string);"
-               "INSERT INTO pslf_database_metadata VALUES (4, 'PSLF Version 23.0.9');"
-               "CREATE TABLE casepar (_idx integer, sbase real, nbus integer, nbrsec integer, ngen integer, ntran integer, nload integer, nshunt integer, narea integer, nzone integer);"
-               "INSERT INTO casepar VALUES (0, 100.0, 2, 1, 1, 1, 1, 1, 0, 0);"
-               "CREATE TABLE area (_idx integer, arnum integer, arname text);"
-               "CREATE TABLE zone (_idx integer, zonum integer, zonam text);"
-               "CREATE TABLE busd (_idx integer, extnum integer, busnam text, basekv real, type integer, area integer, zone integer, vsched real, vmax real, vmin real);"
-               "INSERT INTO busd VALUES (0, 101, 'BUS_A', 230.0, 0, 0, 0, 1.02, 1.1, 0.9);"
-               "INSERT INTO busd VALUES (1, 102, 'BUS_B', 230.0, 1, 0, 0, 1.0, 1.1, 0.9);"
-               "CREATE TABLE volt (_idx integer, vr real, vi real, vm real, va real);"
-               "INSERT INTO volt VALUES (0, 1.0198, 0.0204, 1.02, 0.02);"
-               "INSERT INTO volt VALUES (1, 0.99, -0.0173, 0.99, -0.0175);"
-               "CREATE TABLE gens (_idx integer, ibgen integer, id text, st integer, mbase real, pgen real, qgen real, qmax real, qmin real, pmax real, pmin real, vcsched real);"
-               "INSERT INTO gens VALUES (0, 0, '1', 1, 100.0, 0.3, 0.01, 0.5, -0.5, 0.8, 0.0, 1.02);"
-               "CREATE TABLE load (_idx integer, lbus integer, id text, st integer, p real, q real, ip real, iq real, g real, b real);"
-               "INSERT INTO load VALUES (0, 1, '1', 1, 0.1, 0.03, 0.0, 0.0, 0.0, 0.0);"
-               "CREATE TABLE secdd (_idx integer, ifrom integer, ito integer, ck text, st integer, zsecr real, zsecx real, bsec real, rate0 real);"
-               "INSERT INTO secdd VALUES (0, 0, 1, '1', 1, 0.01, 0.1, 0.02, 100.0);"
-               "CREATE TABLE tran (_idx integer, ifrom integer, ito integer, ck text, st integer, type integer, kreg integer, tbase real, zpsr real, zpsx real, zptr real, zptx real, ztsr real, ztsx real, rate0 real, tmax real, tmin real, vtmax real, vtmin real, stepp real, tapp real, midbus_t integer);"
-               "INSERT INTO tran VALUES (0, 0, 1, '1', 1, 2, 1, 50.0, 0.02, 0.08, 0.0, 0.0, 0.0, 0.0, 100.0, 1.1, 0.9, 1.03, 0.99, 0.01, 1.0, NULL);"
-               "CREATE TABLE shunt (_idx integer, ifrom integer, id text, st integer, g real, b real);"
-               "INSERT INTO shunt VALUES (0, 1, '1', 1, 0.001, 0.002);");
+    executeSql(
+        database,
+        "CREATE TABLE pslf_database_metadata (schema_version integer, last_save_client string);"
+        "INSERT INTO pslf_database_metadata VALUES (4, 'PSLF Version 23.0.9');"
+        "CREATE TABLE casepar (_idx integer, sbase real, nbus integer, nbrsec integer, ngen integer, ntran integer, nload integer, nshunt integer, narea integer, nzone integer);"
+        "INSERT INTO casepar VALUES (0, 100.0, 2, 1, 1, 1, 1, 1, 0, 0);"
+        "CREATE TABLE area (_idx integer, arnum integer, arname text);"
+        "CREATE TABLE zone (_idx integer, zonum integer, zonam text);"
+        "CREATE TABLE busd (_idx integer, extnum integer, busnam text, basekv real, type integer, area integer, zone integer, vsched real, vmax real, vmin real);"
+        "INSERT INTO busd VALUES (0, 101, 'BUS_A', 230.0, 0, 0, 0, 1.02, 1.1, 0.9);"
+        "INSERT INTO busd VALUES (1, 102, 'BUS_B', 230.0, 1, 0, 0, 1.0, 1.1, 0.9);"
+        "CREATE TABLE volt (_idx integer, vr real, vi real, vm real, va real);"
+        "INSERT INTO volt VALUES (0, 1.0198, 0.0204, 1.02, 0.02);"
+        "INSERT INTO volt VALUES (1, 0.99, -0.0173, 0.99, -0.0175);"
+        "CREATE TABLE gens (_idx integer, ibgen integer, id text, st integer, mbase real, pgen real, qgen real, qmax real, qmin real, pmax real, pmin real, vcsched real);"
+        "INSERT INTO gens VALUES (0, 0, '1', 1, 100.0, 0.3, 0.01, 0.5, -0.5, 0.8, 0.0, 1.02);"
+        "CREATE TABLE load (_idx integer, lbus integer, id text, st integer, p real, q real, ip real, iq real, g real, b real);"
+        "INSERT INTO load VALUES (0, 1, '1', 1, 0.1, 0.03, 0.0, 0.0, 0.0, 0.0);"
+        "CREATE TABLE secdd (_idx integer, ifrom integer, ito integer, ck text, st integer, zsecr real, zsecx real, bsec real, rate0 real);"
+        "INSERT INTO secdd VALUES (0, 0, 1, '1', 1, 0.01, 0.1, 0.02, 100.0);"
+        "CREATE TABLE tran (_idx integer, ifrom integer, ito integer, ck text, st integer, type integer, kreg integer, tbase real, zpsr real, zpsx real, zptr real, zptx real, ztsr real, ztsx real, rate0 real, tmax real, tmin real, vtmax real, vtmin real, stepp real, tapp real, midbus_t integer);"
+        "INSERT INTO tran VALUES (0, 0, 1, '1', 1, 2, 1, 50.0, 0.02, 0.08, 0.0, 0.0, 0.0, 0.0, 100.0, 1.1, 0.9, 1.03, 0.99, 0.01, 1.0, NULL);"
+        "CREATE TABLE shunt (_idx integer, ifrom integer, id text, st integer, g real, b real);"
+        "INSERT INTO shunt VALUES (0, 1, '1', 1, 0.001, 0.002);");
     EXPECT_EQ(sqlite3_close(database), SQLITE_OK);
     return filePath;
 }
 
 TEST(SavReaderTests, RejectsLegacyOrMalformedSavBeforeObjectCreation)
 {
-    const auto filePath = std::filesystem::temp_directory_path() / "griddyn_not_a_pslf_sqlite.sav";
+    const auto filePath = std::filesystem::temp_directory_path() / "griddyn_not_a_pslf_sqlite.save";
     {
         std::ofstream output(filePath, std::ios::binary);
         ASSERT_TRUE(output.is_open());
@@ -96,7 +98,8 @@ TEST(SavReaderTests, LoadsValidatedPslfSqlitePowerFlowCase)
     EXPECT_EQ(simulation->getInt("totallinkcount"), 2);
     EXPECT_EQ(simulation->getInt("gencount"), 1);
     EXPECT_EQ(simulation->getInt("loadcount"), 2);
-    auto* transformer = dynamic_cast<griddyn::links::AdjustableTransformer*>(simulation->getLink(1));
+    auto* transformer =
+        dynamic_cast<griddyn::links::AdjustableTransformer*>(simulation->getLink(1));
     ASSERT_NE(transformer, nullptr);
     EXPECT_NEAR(transformer->get("r"), 0.04, 1.0e-12);
     EXPECT_NEAR(transformer->get("x"), 0.16, 1.0e-12);

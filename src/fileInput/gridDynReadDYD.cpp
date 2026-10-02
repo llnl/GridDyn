@@ -117,10 +117,11 @@ namespace {
             // Vfemax Vemin Ke Kc Kd Kf1 Kf2 Kf3 Tf E1 SE1 E2 SE2 spdmlt
             // GridDyn's AC7B loader uses the IEEE/PSS/E order and has no
             // spdmlt input.
-            static constexpr std::array<std::size_t, 27> ac7bOrder{
-                0U,  1U,  2U,  3U,  4U,  5U,  6U,  7U,  8U,  9U,
-                10U, 11U, 12U, 13U, 17U, 18U, 16U, 19U, 20U, 21U,
-                22U, 15U, 14U, 23U, 24U, 25U, 26U};
+            static constexpr std::array<std::size_t, 27> ac7bOrder{0U,  1U,  2U,  3U,  4U,  5U,
+                                                                   6U,  7U,  8U,  9U,  10U, 11U,
+                                                                   12U, 13U, 17U, 18U, 16U, 19U,
+                                                                   20U, 21U, 22U, 15U, 14U, 23U,
+                                                                   24U, 25U, 26U};
             if (sourcePayload.size() != 28U) {
                 return false;
             }
@@ -136,8 +137,7 @@ namespace {
             // the end.  GridDyn's Thetap corresponds to Angp; Vgmax is not
             // part of its ESST4B implementation.
             static constexpr std::array<std::size_t, 17> esst4bOrder{
-                0U,  1U,  2U,  4U,  5U,  3U,  6U,  7U,  8U,
-                9U,  10U, 11U, 13U, 16U, 14U, 15U, 12U};
+                0U, 1U, 2U, 4U, 5U, 3U, 6U, 7U, 8U, 9U, 10U, 11U, 13U, 16U, 14U, 15U, 12U};
             if (sourcePayload.size() != 18U) {
                 return false;
             }
@@ -220,12 +220,30 @@ namespace {
 
     bool prepareEpcgenPayload(const stringVec& rawPayload, stringVec& payload)
     {
-        static constexpr std::array<std::string_view, 12> fieldNames{
-            "rsrc", "xsrc", "tfrq", "ofpdb", "ufpdb", "ofpdroop", "ufpdroop", "vbreak",
-            "imax", "pmax", "pmin", "pref"};
-        static constexpr std::array<std::string_view, 12> defaults{
-            "0.0", "0.0", "0.1", "60.1", "59.9", "1.67", "1.67", "0.7", "1.0", "1.0",
-            "-1.0", "0.0"};
+        static constexpr std::array<std::string_view, 12> fieldNames{"rsrc",
+                                                                     "xsrc",
+                                                                     "tfrq",
+                                                                     "ofpdb",
+                                                                     "ufpdb",
+                                                                     "ofpdroop",
+                                                                     "ufpdroop",
+                                                                     "vbreak",
+                                                                     "imax",
+                                                                     "pmax",
+                                                                     "pmin",
+                                                                     "pref"};
+        static constexpr std::array<std::string_view, 12> defaults{"0.0",
+                                                                   "0.0",
+                                                                   "0.1",
+                                                                   "60.1",
+                                                                   "59.9",
+                                                                   "1.67",
+                                                                   "1.67",
+                                                                   "0.7",
+                                                                   "1.0",
+                                                                   "1.0",
+                                                                   "-1.0",
+                                                                   "0.0"};
         std::array<std::string, fieldNames.size()> values;
         for (std::size_t index = 0; index < fieldNames.size(); ++index) {
             values[index] = defaults[index];
@@ -355,8 +373,10 @@ void loadDyd(CoreObject* parentObject,
             continue;
         }
         if (isDydIgnoredNonessentialModel(sourceModelName)) {
-            addUnsupportedModel(
-                ignoredNonessentialModels, displayModelName, lineTokens, recordLineNumber);
+            addUnsupportedModel(ignoredNonessentialModels,
+                                displayModelName,
+                                lineTokens,
+                                recordLineNumber);
             continue;
         }
 
@@ -412,8 +432,7 @@ void loadDyd(CoreObject* parentObject,
                     positionalPayload.insert(positionalPayload.begin(), gpwsccMWCap);
                 }
             }
-            payloadIsSupported =
-                !hasUnsupportedField &&
+            payloadIsSupported = !hasUnsupportedField &&
                 prepareDydPayload(sourceModelName,
                                   canonicalModelName,
                                   positionalPayload,
@@ -434,8 +453,10 @@ void loadDyd(CoreObject* parentObject,
             if (!payloadIsSupported || !directModel ||
                 !detail::loadDyrModelRecord(
                     parentObject, lineTokens, disableStabilizers, zeroGainStabilizers)) {
-                addUnsupportedModel(
-                    unsupportedModels, displayModelName, lineTokens, recordLineNumber);
+                addUnsupportedModel(unsupportedModels,
+                                    displayModelName,
+                                    lineTokens,
+                                    recordLineNumber);
             }
         }
         catch (const InvalidParameterValue& error) {
@@ -452,8 +473,8 @@ void loadDyd(CoreObject* parentObject,
     }
 
     if (!ignoredNonessentialModels.empty()) {
-        std::string message = fileName +
-            ": ignored nonessential DYD models (not loaded into the dynamic system):";
+        std::string message =
+            fileName + ": ignored nonessential DYD models (not loaded into the dynamic system):";
         for (const auto& [modelName, summary] : ignoredNonessentialModels) {
             message += "\n  " + modelName + " (warning): " + std::to_string(summary.mCount) +
                 " record(s); first at line " + std::to_string(summary.mFirstLine) + ", bus " +

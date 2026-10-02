@@ -115,7 +115,7 @@ bool GovernorGPWSCC::hasUsableCurve() const
 }
 
 GovernorGPWSCC::DeadbandEvaluation GovernorGPWSCC::evaluateDeadband(double value,
-                                                                      double width) const
+                                                                    double width) const
 {
     if (value > width) {
         return {value - width, 1.0};
@@ -201,19 +201,19 @@ void GovernorGPWSCC::updateOutputLimits()
 
 void GovernorGPWSCC::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
-    const std::array<double, 25> parameters{MWCap, MVABase, R,      Td,      Tf,
-                                            Tp,    Velopen, Velclose, Kp,     Kd,
-                                            Ki,    Kg,      Tturb,  Aturb,   Bturb,
-                                            Tt,    db1,     eps,    db2,     gateMaximum,
-                                            gateMinimum, Paux, Pmin, Pmax, initializedInputReference};
-    if (std::any_of(parameters.begin(), parameters.end(), [](double value) {
-            return !std::isfinite(value);
-        }) ||
+    const std::array<double, 25> parameters{
+        MWCap,       MVABase, R,        Td,    Tf,
+        Tp,          Velopen, Velclose, Kp,    Kd,
+        Ki,          Kg,      Tturb,    Aturb, Bturb,
+        Tt,          db1,     eps,      db2,   gateMaximum,
+        gateMinimum, Paux,    Pmin,     Pmax,  initializedInputReference};
+    if (std::any_of(parameters.begin(),
+                    parameters.end(),
+                    [](double value) { return !std::isfinite(value); }) ||
         !hasUsableCurve() || (MWCap <= 0.0) || (MVABase <= 0.0) || (R < 0.0) || (Td <= 0.0) ||
-        (Tf <= 0.0) || (Tp <= 0.0) || (Velopen < 0.0) || (Velclose > 0.0) ||
-        (Velopen < Velclose) || (Kg < 0.0) || (Tturb < 0.0) || (Tt < 0.0) ||
-        ((Tturb > 0.0) && (Bturb <= 0.0)) || (db1 < 0.0) || (eps < 0.0) || (db2 < 0.0) ||
-        (gateMaximum < gateMinimum)) {
+        (Tf <= 0.0) || (Tp <= 0.0) || (Velopen < 0.0) || (Velclose > 0.0) || (Velopen < Velclose) ||
+        (Kg < 0.0) || (Tturb < 0.0) || (Tt < 0.0) || ((Tturb > 0.0) && (Bturb <= 0.0)) ||
+        (db1 < 0.0) || (eps < 0.0) || (db2 < 0.0) || (gateMaximum < gateMinimum)) {
         throw InvalidParameterValue("GPWSCC parameters, curve, or gate limits");
     }
     updateOutputLimits();
@@ -229,8 +229,8 @@ void GovernorGPWSCC::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 }
 
 void GovernorGPWSCC::dynObjectInitializeB(const IOdata& inputs,
-                                           const IOdata& desiredOutput,
-                                           IOdata& fieldSet)
+                                          const IOdata& desiredOutput,
+                                          IOdata& fieldSet)
 {
     if (desiredOutput.empty() || !std::isfinite(desiredOutput[pmechState]) ||
         (inputs.size() <= govElectricalPowerInLocation) ||
@@ -271,8 +271,7 @@ void GovernorGPWSCC::dynObjectInitializeB(const IOdata& inputs,
     std::fill(m_dstate_dt.begin(), m_dstate_dt.end(), 0.0);
 }
 
-GovernorGPWSCC::Signals GovernorGPWSCC::evaluate(const IOdata& inputs,
-                                                  const double state[]) const
+GovernorGPWSCC::Signals GovernorGPWSCC::evaluate(const IOdata& inputs, const double state[]) const
 {
     const double scale = powerScale();
     const double omega = inputs[govOmegaInLocation];
@@ -283,7 +282,8 @@ GovernorGPWSCC::Signals GovernorGPWSCC::evaluate(const IOdata& inputs,
     const double setpointChange = inputs[govpSetInLocation] / scale - initializedInputReference;
     const double error = speed.value + Paux + setpointChange - R * feedback;
     const double rawRate = state[valveState];
-    const double limitedRate = std::clamp(rawRate, static_cast<double>(Velclose), static_cast<double>(Velopen));
+    const double limitedRate =
+        std::clamp(rawRate, static_cast<double>(Velclose), static_cast<double>(Velopen));
     const bool gateAtUpper = state[gateState] >= gateMaximum;
     const bool gateAtLower = state[gateState] <= gateMinimum;
     const bool gateRateActive =
@@ -315,14 +315,14 @@ double GovernorGPWSCC::mechanicalPower(const Signals& signals) const
 }
 
 void GovernorGPWSCC::residual(const IOdata& inputs,
-                               const StateData& stateData,
-                               double resid[],
-                               const SolverMode& sMode)
+                              const StateData& stateData,
+                              double resid[],
+                              const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, resid, sMode, this);
     if (hasAlgebraic(sMode)) {
-        loc.destLoc[pmechState] = mechanicalPower(evaluate(inputs, loc.diffStateLoc)) -
-            loc.algStateLoc[pmechState];
+        loc.destLoc[pmechState] =
+            mechanicalPower(evaluate(inputs, loc.diffStateLoc)) - loc.algStateLoc[pmechState];
     }
     if (!hasDifferential(sMode)) {
         return;
@@ -334,9 +334,9 @@ void GovernorGPWSCC::residual(const IOdata& inputs,
 }
 
 void GovernorGPWSCC::derivative(const IOdata& inputs,
-                                 const StateData& stateData,
-                                 double deriv[],
-                                 const SolverMode& sMode)
+                                const StateData& stateData,
+                                double deriv[],
+                                const SolverMode& sMode)
 {
     if (!hasDifferential(sMode)) {
         return;
@@ -348,11 +348,9 @@ void GovernorGPWSCC::derivative(const IOdata& inputs,
     stateDerivative[filterState] = (signals.error - state[filterState]) / Td;
     stateDerivative[integratorState] = signals.integralBlocked ? 0.0 : Ki * state[filterState];
     stateDerivative[derivativeState] = (state[filterState] - state[derivativeState]) / Tf;
-    stateDerivative[electricalPowerState] =
-        (Tt > 0.0) ? (inputs[govElectricalPowerInLocation] / powerScale() -
-                       state[electricalPowerState]) /
-                Tt :
-                     0.0;
+    stateDerivative[electricalPowerState] = (Tt > 0.0) ?
+        (inputs[govElectricalPowerInLocation] / powerScale() - state[electricalPowerState]) / Tt :
+        0.0;
     stateDerivative[valveState] =
         (Kg * (signals.controllerOutput - state[gateState]) - state[valveState]) / Tp;
     stateDerivative[gateState] = signals.gateRateActive ? signals.gateRate : 0.0;
@@ -361,10 +359,10 @@ void GovernorGPWSCC::derivative(const IOdata& inputs,
 }
 
 void GovernorGPWSCC::algebraicUpdate(const IOdata& inputs,
-                                      const StateData& stateData,
-                                      double update[],
-                                      const SolverMode& sMode,
-                                      double /*alpha*/)
+                                     const StateData& stateData,
+                                     double update[],
+                                     const SolverMode& sMode,
+                                     double /*alpha*/)
 {
     if (hasAlgebraic(sMode)) {
         const auto loc = offsets.getLocations(stateData, update, sMode, this);
@@ -373,10 +371,10 @@ void GovernorGPWSCC::algebraicUpdate(const IOdata& inputs,
 }
 
 void GovernorGPWSCC::jacobianElements(const IOdata& inputs,
-                                       const StateData& stateData,
-                                       MatrixData<double>& matrixData,
-                                       const IOlocs& inputLocs,
-                                       const SolverMode& sMode)
+                                      const StateData& stateData,
+                                      MatrixData<double>& matrixData,
+                                      const IOlocs& inputLocs,
+                                      const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
     const index_t alg = loc.algOffset;
@@ -397,9 +395,9 @@ void GovernorGPWSCC::jacobianElements(const IOdata& inputs,
     if (hasAlgebraic(sMode)) {
         matrixData.assign(alg, alg, -1.0);
         if (!isAlgebraicOnly(sMode)) {
-            const double gateOutputDerivative =
-                (Tturb > 0.0) ? scale * (Aturb / Bturb) * signals.gatePowerDerivative :
-                                scale * signals.gatePowerDerivative;
+            const double gateOutputDerivative = (Tturb > 0.0) ?
+                scale * (Aturb / Bturb) * signals.gatePowerDerivative :
+                scale * signals.gatePowerDerivative;
             matrixData.assign(alg, diff + gateState, gateOutputDerivative);
             if (Tturb > 0.0) {
                 matrixData.assign(alg, diff + turbineState, scale * (1.0 - Aturb / Bturb));
@@ -413,21 +411,15 @@ void GovernorGPWSCC::jacobianElements(const IOdata& inputs,
     matrixData.assign(diff + filterState,
                       diff + filterState,
                       (errorFilterDerivative - 1.0) / Td - stateData.cj);
-    matrixData.assign(diff + filterState,
-                      diff + integratorState,
-                      errorIntegratorDerivative / Td);
-    matrixData.assign(diff + filterState,
-                      diff + derivativeState,
-                      errorDerivativeDerivative / Td);
+    matrixData.assign(diff + filterState, diff + integratorState, errorIntegratorDerivative / Td);
+    matrixData.assign(diff + filterState, diff + derivativeState, errorDerivativeDerivative / Td);
     if (filteredFeedback) {
         matrixData.assign(diff + filterState, diff + electricalPowerState, -R / Td);
     }
     matrixData.assignCheckCol(diff + filterState,
                               inputLocs[govOmegaInLocation],
                               signals.speedDerivative / Td);
-    matrixData.assignCheckCol(diff + filterState,
-                              inputLocs[govpSetInLocation],
-                              1.0 / (scale * Td));
+    matrixData.assignCheckCol(diff + filterState, inputLocs[govpSetInLocation], 1.0 / (scale * Td));
 
     if (signals.integralBlocked) {
         matrixData.assign(diff + integratorState, diff + integratorState, -stateData.cj);
@@ -436,9 +428,7 @@ void GovernorGPWSCC::jacobianElements(const IOdata& inputs,
         matrixData.assign(diff + integratorState, diff + integratorState, -stateData.cj);
     }
     matrixData.assign(diff + derivativeState, diff + filterState, 1.0 / Tf);
-    matrixData.assign(diff + derivativeState,
-                      diff + derivativeState,
-                      -1.0 / Tf - stateData.cj);
+    matrixData.assign(diff + derivativeState, diff + derivativeState, -1.0 / Tf - stateData.cj);
 
     matrixData.assign(diff + electricalPowerState,
                       diff + electricalPowerState,
@@ -449,9 +439,7 @@ void GovernorGPWSCC::jacobianElements(const IOdata& inputs,
                                   1.0 / (scale * Tt));
     }
 
-    matrixData.assign(diff + valveState,
-                      diff + filterState,
-                      Kg * controllerFilterDerivative / Tp);
+    matrixData.assign(diff + valveState, diff + filterState, Kg * controllerFilterDerivative / Tp);
     matrixData.assign(diff + valveState,
                       diff + integratorState,
                       Kg * controllerIntegratorDerivative / Tp);
@@ -462,8 +450,7 @@ void GovernorGPWSCC::jacobianElements(const IOdata& inputs,
     matrixData.assign(diff + valveState, diff + gateState, -Kg / Tp);
 
     matrixData.assign(diff + gateState, diff + gateState, -stateData.cj);
-    if (signals.gateRateActive && (state[valveState] > Velclose) &&
-        (state[valveState] < Velopen)) {
+    if (signals.gateRateActive && (state[valveState] > Velclose) && (state[valveState] < Velopen)) {
         matrixData.assign(diff + gateState, diff + valveState, 1.0);
     }
 
@@ -486,8 +473,8 @@ void GovernorGPWSCC::timestep(CoreTime time, const IOdata& inputs, const SolverM
         m_state[diffOffset + index] += timeStep * m_dstate_dt[diffOffset + index];
     }
     m_state[diffOffset + gateState] = std::clamp(m_state[diffOffset + gateState],
-                                                  static_cast<double>(gateMinimum),
-                                                  static_cast<double>(gateMaximum));
+                                                 static_cast<double>(gateMinimum),
+                                                 static_cast<double>(gateMaximum));
     m_state[pmechState] = mechanicalPower(evaluate(inputs, m_state.data() + diffOffset));
     prevTime = time;
 }
@@ -650,8 +637,14 @@ double GovernorGPWSCC::get(std::string_view param, units::unit unitType) const
 
 stringVec GovernorGPWSCC::localStateNames() const
 {
-    return {"pmech", "td_filter", "pid_integral", "derivative_filter", "pelec_filter",
-            "valve", "gate", "turbine"};
+    return {"pmech",
+            "td_filter",
+            "pid_integral",
+            "derivative_filter",
+            "pelec_filter",
+            "valve",
+            "gate",
+            "turbine"};
 }
 
 index_t GovernorGPWSCC::findIndex(std::string_view field, const SolverMode& sMode) const

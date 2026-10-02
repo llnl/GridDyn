@@ -81,9 +81,19 @@ class EPCGEN final: public TerminalElectricalModel {
     stringVec localStateNames() const override;
 
   private:
-    enum State : index_t { qIntegrator, voltageFilter, governor, leadLag,
-                           reactiveCurrent, activeCurrent, internalD, internalQ,
-                           activeCorrection, reactiveCorrection, stateCount };
+    enum State : index_t {
+        qIntegrator,
+        voltageFilter,
+        governor,
+        leadLag,
+        reactiveCurrent,
+        activeCurrent,
+        internalD,
+        internalQ,
+        activeCorrection,
+        reactiveCorrection,
+        stateCount
+    };
 
     struct Evaluation {
         std::array<double, 2> power{};

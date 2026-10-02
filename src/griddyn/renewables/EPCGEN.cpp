@@ -24,12 +24,8 @@ namespace {
         {.signal = RenewableSignal::terminalFrequency, .ioIndex = 1},
     }};
     constexpr std::array<RenewablePort, 2> terminalOutputPorts{{
-        {.signal = RenewableSignal::electricalPower,
-         .ioIndex = 0,
-         .base = RenewableBase::machine},
-        {.signal = RenewableSignal::reactivePower,
-         .ioIndex = 1,
-         .base = RenewableBase::machine},
+        {.signal = RenewableSignal::electricalPower, .ioIndex = 0, .base = RenewableBase::machine},
+        {.signal = RenewableSignal::reactivePower, .ioIndex = 1, .base = RenewableBase::machine},
     }};
 
     constexpr double nominalFrequency = 60.0;
@@ -174,9 +170,9 @@ void EPCGEN::set(std::string_view param, double val, units::unit unitType)
 double EPCGEN::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-#define EPCGEN_GET(name, value) \
-    if (key == (name)) {          \
-        return (value);           \
+#define EPCGEN_GET(name, value)                                                                    \
+    if (key == (name)) {                                                                           \
+        return (value);                                                                            \
     }
     EPCGEN_GET("rsrc", rsrc)
     EPCGEN_GET("xsrc", xsrc)
@@ -217,11 +213,11 @@ void EPCGEN::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
     if (!std::isfinite(rsrc) || !std::isfinite(xsrc) || !finitePositive(tfrq) ||
         !std::isfinite(ofpdb) || !std::isfinite(ufpdb) || !finitePositive(ofpdroop) ||
         !finitePositive(ufpdroop) || !std::isfinite(vbreak) || !finitePositive(imax) ||
-        !std::isfinite(pmax) || !std::isfinite(pmin) || pmin > pmax ||
-        !std::isfinite(pref) || !finitePositive(kp) || !finitePositive(ki) ||
-        !finitePositive(tq) || !finitePositive(tg) || t1 < 0.0 || !finitePositive(t2) ||
-        !finitePositive(td) || !finitePositive(ted) || !finitePositive(teq) ||
-        qmin > qmax || !finitePositive(voltageTripTime) || voltageTripDelta < 0.0) {
+        !std::isfinite(pmax) || !std::isfinite(pmin) || pmin > pmax || !std::isfinite(pref) ||
+        !finitePositive(kp) || !finitePositive(ki) || !finitePositive(tq) || !finitePositive(tg) ||
+        t1 < 0.0 || !finitePositive(t2) || !finitePositive(td) || !finitePositive(ted) ||
+        !finitePositive(teq) || qmin > qmax || !finitePositive(voltageTripTime) ||
+        voltageTripDelta < 0.0) {
         throw InvalidParameterValue("EPCGEN limits, gains, or time constants");
     }
     auto& local = offsets.local().local;
@@ -246,9 +242,10 @@ double EPCGEN::reactiveLimit(double voltage, double activePower) const
     if (voltage <= 0.0) {
         return 0.0;
     }
-    const double currentPowerLimit = std::sqrt(
-        std::max(0.0, (imax * voltage) * (imax * voltage) - activePower * activePower));
-    const double voltageFactor = vbreak >= 1.0 ? 1.0 :
+    const double currentPowerLimit =
+        std::sqrt(std::max(0.0, (imax * voltage) * (imax * voltage) - activePower * activePower));
+    const double voltageFactor = vbreak >= 1.0 ?
+        1.0 :
         std::clamp((voltage - vbreak) / std::max(1.0 - vbreak, minimumVoltage), 0.0, 1.0);
     return std::min(qmax, currentPowerLimit) * voltageFactor;
 }
@@ -260,21 +257,18 @@ EPCGEN::Evaluation EPCGEN::evaluate(const IOdata& inputs, const double state[]) 
     const double activePower = voltage * state[activeCurrent];
     const double reactivePower = -voltage * state[reactiveCurrent];
     result.power = tripped ? std::array<double, 2>{0.0, 0.0} :
-                              std::array<double, 2>{activePower, reactivePower};
+                             std::array<double, 2>{activePower, reactivePower};
 
     const double frequency = frequencyHz(inputs);
-    const double underFrequencyPower = frequency < ufpdb ?
-        (ufpdb - frequency) / ufpdroop : 0.0;
-    const double overFrequencyPower = frequency > ofpdb ?
-        (frequency - ofpdb) / ofpdroop : 0.0;
+    const double underFrequencyPower = frequency < ufpdb ? (ufpdb - frequency) / ufpdroop : 0.0;
+    const double overFrequencyPower = frequency > ofpdb ? (frequency - ofpdb) / ofpdroop : 0.0;
     const double commandedActivePower =
         std::clamp(pref + underFrequencyPower - overFrequencyPower, pmin, pmax);
     const double filteredVoltage = state[voltageFilter];
     const double voltageError = initialVoltageReference - filteredVoltage - rq * reactivePower;
-    const double reactiveCommand = std::clamp(
-        (kp * voltageError) + state[qIntegrator],
-        -reactiveLimit(voltage, commandedActivePower),
-        reactiveLimit(voltage, commandedActivePower));
+    const double reactiveCommand = std::clamp((kp * voltageError) + state[qIntegrator],
+                                              -reactiveLimit(voltage, commandedActivePower),
+                                              reactiveLimit(voltage, commandedActivePower));
     const double activeCurrentCommand = commandedActivePower / voltage + state[activeCorrection];
     const double reactiveCurrentCommand = -reactiveCommand / voltage + state[reactiveCorrection];
 
@@ -288,16 +282,12 @@ EPCGEN::Evaluation EPCGEN::evaluate(const IOdata& inputs, const double state[]) 
     result.rates[qIntegrator] = ki * (voltageError + (qCommand - reactiveCommand));
     result.rates[voltageFilter] = (voltage - filteredVoltage) / tfrq;
     result.rates[governor] = (commandedActivePower - state[governor]) / tg;
-    result.rates[leadLag] =
-        (state[governor] - state[leadLag] - state[governor] * t1 / t2) / t2;
-    result.rates[reactiveCurrent] =
-        (limitedReactiveCurrent - state[reactiveCurrent]) / tq;
+    result.rates[leadLag] = (state[governor] - state[leadLag] - state[governor] * t1 / t2) / t2;
+    result.rates[reactiveCurrent] = (limitedReactiveCurrent - state[reactiveCurrent]) / tq;
     result.rates[activeCurrent] = (limitedActiveCurrent - state[activeCurrent]) / td;
 
-    const double ed = voltage + (state[activeCurrent] * rsrc) -
-        (state[reactiveCurrent] * xsrc);
-    const double eq = (state[reactiveCurrent] * rsrc) +
-        (state[activeCurrent] * xsrc);
+    const double ed = voltage + (state[activeCurrent] * rsrc) - (state[reactiveCurrent] * xsrc);
+    const double eq = (state[reactiveCurrent] * rsrc) + (state[activeCurrent] * xsrc);
     result.rates[internalD] = (ed - state[internalD]) / ted;
     result.rates[internalQ] = (eq - state[internalQ]) / teq;
     result.rates[activeCorrection] = kip * (pCommand - activePower);
@@ -330,10 +320,8 @@ void EPCGEN::dynObjectInitializeB(const IOdata& inputs,
     state[leadLag] = initialP * (1.0 - t1 / t2);
     state[reactiveCurrent] = -initialQ / voltage;
     state[activeCurrent] = initialP / voltage;
-    state[internalD] = voltage + (state[activeCurrent] * rsrc) -
-        (state[reactiveCurrent] * xsrc);
-    state[internalQ] = (state[reactiveCurrent] * rsrc) +
-        (state[activeCurrent] * xsrc);
+    state[internalD] = voltage + (state[activeCurrent] * rsrc) - (state[reactiveCurrent] * xsrc);
+    state[internalQ] = (state[reactiveCurrent] * rsrc) + (state[activeCurrent] * xsrc);
     state[activeCorrection] = 0.0;
     state[reactiveCorrection] = 0.0;
     tripped = false;
@@ -415,24 +403,24 @@ void EPCGEN::jacobianElements(const IOdata& inputs,
     std::array<double, stateCount> states{};
     std::copy_n(loc.diffStateLoc, stateCount, states.begin());
     const auto base = evaluate(inputs, states.data());
-    const auto addColumn = [&](index_t column,
-                               const Evaluation& value,
-                               double step,
-                               const Evaluation& reference) {
-        if (hasAlgebraic(sMode)) {
-            matrixData.assignCheckCol(loc.algOffset, column,
-                                      (value.power[0] - reference.power[0]) / step);
-            matrixData.assignCheckCol(loc.algOffset + 1, column,
-                                      (value.power[1] - reference.power[1]) / step);
-        }
-        if (hasDifferential(sMode)) {
-            for (index_t row = 0; row < stateCount; ++row) {
-                matrixData.assignCheckCol(loc.diffOffset + row,
+    const auto addColumn =
+        [&](index_t column, const Evaluation& value, double step, const Evaluation& reference) {
+            if (hasAlgebraic(sMode)) {
+                matrixData.assignCheckCol(loc.algOffset,
                                           column,
-                                          (value.rates[row] - reference.rates[row]) / step);
+                                          (value.power[0] - reference.power[0]) / step);
+                matrixData.assignCheckCol(loc.algOffset + 1,
+                                          column,
+                                          (value.power[1] - reference.power[1]) / step);
             }
-        }
-    };
+            if (hasDifferential(sMode)) {
+                for (index_t row = 0; row < stateCount; ++row) {
+                    matrixData.assignCheckCol(loc.diffOffset + row,
+                                              column,
+                                              (value.rates[row] - reference.rates[row]) / step);
+                }
+            }
+        };
     if (hasAlgebraic(sMode)) {
         matrixData.assign(loc.algOffset, loc.algOffset, -1.0);
         matrixData.assign(loc.algOffset + 1, loc.algOffset + 1, -1.0);
@@ -445,8 +433,7 @@ void EPCGEN::jacobianElements(const IOdata& inputs,
             addColumn(loc.diffOffset + index, shifted, step, base);
             matrixData.assign(loc.diffOffset + index,
                               loc.diffOffset + index,
-                              ((shifted.rates[index] - base.rates[index]) / step) -
-                                  stateData.cj);
+                              ((shifted.rates[index] - base.rates[index]) / step) - stateData.cj);
             states[index] -= step;
         }
     }
@@ -486,8 +473,8 @@ void EPCGEN::rootTest(const IOdata& inputs,
                       const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
-    const double current = std::hypot(loc.diffStateLoc[activeCurrent],
-                                      loc.diffStateLoc[reactiveCurrent]);
+    const double current =
+        std::hypot(loc.diffStateLoc[activeCurrent], loc.diffStateLoc[reactiveCurrent]);
     roots[offsets.getRootOffset(sMode)] = current - imax;
     roots[offsets.getRootOffset(sMode) + 1] =
         (inputs.empty() ? 1.0 : inputs[0]) - initialVoltageReference - voltageTripDelta;
@@ -509,8 +496,8 @@ ChangeCode EPCGEN::rootCheck(const IOdata& inputs,
                              CheckLevel /*level*/)
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
-    const double current = std::hypot(loc.diffStateLoc[activeCurrent],
-                                      loc.diffStateLoc[reactiveCurrent]);
+    const double current =
+        std::hypot(loc.diffStateLoc[activeCurrent], loc.diffStateLoc[reactiveCurrent]);
     const bool limitExceeded = current > imax ||
         (!inputs.empty() && inputs[0] > initialVoltageReference + voltageTripDelta);
     if (limitExceeded && !tripped) {

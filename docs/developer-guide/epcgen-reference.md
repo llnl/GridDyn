@@ -3,8 +3,8 @@
 GridDyn's EPCGEN implementation is based on the ASU reference supplied with the
 case-development materials:
 
-> Deepak Ramasubramanian, *Impact of Converter Interfaced Generation and Load on
-> Grid Performance*, doctoral dissertation, Arizona State University, May 2017.
+> Deepak Ramasubramanian, _Impact of Converter Interfaced Generation and Load on
+> Grid Performance_, doctoral dissertation, Arizona State University, May 2017.
 
 The source PDF is not vendored in this repository. The working source artifact is
 currently:

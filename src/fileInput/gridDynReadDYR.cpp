@@ -248,7 +248,7 @@ namespace detail {
         } else if (type == "'REGCP1'") {
             loadRenewable(parentObject, lineTokens, "REGCP1");
         } else if (type == "'REGCV1'" || type == "'REGCV2'" || type == "'REGF1'" ||
-         type == "'REGF2'" || type == "'REGF3'") {
+                   type == "'REGF2'" || type == "'REGF3'") {
             loadRenewable(parentObject, lineTokens, gmlc::utilities::stringOps::removeQuotes(type));
         } else if (type == "'EPCGEN'") {
             loadRenewable(parentObject, lineTokens, "EPCGEN");
@@ -565,10 +565,19 @@ namespace {
                                                                              "khv",
                                                                              "iqrmax",
                                                                              "iqrmin",
-                                                                              "accel"});
-        static constexpr auto epcgenFields = std::to_array<std::string_view>({
-            "rsrc", "xsrc", "tfrq", "ofpdb", "ufpdb", "ofpdroop", "ufpdroop", "vbreak",
-            "imax", "pmax", "pmin", "pref"});
+                                                                             "accel"});
+        static constexpr auto epcgenFields = std::to_array<std::string_view>({"rsrc",
+                                                                              "xsrc",
+                                                                              "tfrq",
+                                                                              "ofpdb",
+                                                                              "ufpdb",
+                                                                              "ofpdroop",
+                                                                              "ufpdroop",
+                                                                              "vbreak",
+                                                                              "imax",
+                                                                              "pmax",
+                                                                              "pmin",
+                                                                              "pref"});
         static constexpr auto reecaFields = std::to_array<std::string_view>(
             {"pfflag", "vflag", "qflag", "pflag", "pqflag", "vdip",  "vup",   "trv",   "dbd1",
              "dbd2",   "kqv",   "iqh1",  "iql1",  "vref0",  "iqfrz", "thld",  "thld2", "tp",
@@ -1799,10 +1808,10 @@ namespace {
             throw InvalidParameterValue("GPWSCC governor factory registration");
         }
         static constexpr std::array<std::string_view, 32> names{
-            "mwcap", "gmax", "gmin", "r",   "td",    "tf",    "tp",   "velopen",
-            "velclose", "kp",   "kd",   "ki",  "kg",    "tturb", "aturb", "bturb",
-            "tt",    "db1",  "eps",  "db2", "gv1",   "pgv1",  "gv2",  "pgv2",
-            "gv3",   "pgv3", "gv4",  "pgv4", "gv5",   "pgv5",  "gv6",  "pgv6"};
+            "mwcap",    "gmax", "gmin", "r",    "td",  "tf",    "tp",    "velopen",
+            "velclose", "kp",   "kd",   "ki",   "kg",  "tturb", "aturb", "bturb",
+            "tt",       "db1",  "eps",  "db2",  "gv1", "pgv1",  "gv2",   "pgv2",
+            "gv3",      "pgv3", "gv4",  "pgv4", "gv5", "pgv5",  "gv6",   "pgv6"};
         for (std::size_t index = 0; index < names.size(); ++index) {
             if (!std::isfinite(params[index + 3U]) || (params[index + 3U] == kNullVal)) {
                 delete model;
@@ -1811,7 +1820,7 @@ namespace {
             model->set(names[index], params[index + 3U]);
         }
         // GPWSCC's MWCap is converted to the same machine base used by the
-        // dynamic generator.  The static SAV/EPC reader establishes MBASE
+        // dynamic generator.  The static SAVE/EPC reader establishes MBASE
         // before the dynamic model is attached.
         model->set("mvabase", gen->get("mbase", units::MVAR));
         gen->add(model);

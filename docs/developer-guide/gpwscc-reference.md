@@ -3,7 +3,7 @@
 GridDyn's `GPWSCC` governor implementation is based on the PSLF model
 description supplied with the case-development materials:
 
-> *Governor Model: GPWSCC*, PID Governor-Turbine Model, Powertech Labs.
+> _Governor Model: GPWSCC_, PID Governor-Turbine Model, Powertech Labs.
 
 The source PDF is not vendored in this repository. The working source artifact
 is currently:
@@ -41,7 +41,7 @@ turbine quantities on `MWCap`.
 
 The DYD reader accepts `GPWSCC`, retains the named `MWCap=<value>` field, and
 maps the 31 following positional fields in documented order. The generator
-machine base comes from the static SAV/EPC data and is supplied to the model as
+machine base comes from the static SAVE/EPC data and is supplied to the model as
 `MVABase`.
 
 The supplied `base080626.dyd` records have every `Gv1/Pgv1` through

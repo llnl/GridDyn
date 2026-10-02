@@ -1565,7 +1565,15 @@ static void rawReadGen(Generator* gen,
     // imports the corresponding fields; leaving them at +/-infinity in RAW
     // gives slack and recovery adjustments an unbounded participation range.
     const auto pmax = numeric_conversion<double>(strvec[16 + generatorFieldOffset], 0.0);
-    const auto pmin = numeric_conversion<double>(strvec[17 + generatorFieldOffset], 0.0);
+    auto pmin = numeric_conversion<double>(strvec[17 + generatorFieldOffset], 0.0);
+    if ((realPower < 0.0) && (pmin == 0.0)) {
+        const auto message = "RAW generator on bus " +
+            std::to_string(gen->getParent()->getUserID()) + " (ID " + temp +
+            ") has negative real-power dispatch " + std::to_string(realPower) +
+            " MW with PB = 0 MW; treating PB as no minimum generation limit";
+        gen->log(gen, PrintLevel::WARNING, message);
+        pmin = -kBigNum;
+    }
     gen->set("pmax", pmax, MW);
     gen->set("pmin", pmin, MW);
 

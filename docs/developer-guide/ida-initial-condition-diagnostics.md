@@ -225,6 +225,40 @@ the same integration path.
   a bounded `0.1 s` run within the same wall-time budget, so relaxing tolerance is not yet
   a useful workaround.
 
+## Australian 14-bus case 05 and case 06 startup probe
+
+The Australian cases 05 and 06 both show the same recoverable first-pass IDA result. GridDyn
+first calls `IDACalcIC` in `FIXED_MASKED_AND_DERIV` mode (`IDA_Y_INIT`), which asks IDA to
+correct `y` while holding the supplied `yp` fixed. That pass returns `-6` (`IDA_LSETUP_FAIL`).
+GridDyn then retries through `generateDaeDynamicInitialConditions`, which uses
+`FIXED_DIFF` (`IDA_YA_YDP_INIT`) to correct algebraic state values and differential
+derivatives while holding the differential state values fixed. That retry succeeds and the
+simulation continues. SUNDIALS documents the two `IDACalcIC` options and the meaning of
+`IDA_LSETUP_FAIL` in its [IDA initial-condition calculation reference](https://sundials.readthedocs.io/en/v7.0.0/idas/Usage/SIM.html).
+
+The results below use each case's RAW file and a diagnostic DYR copy with its unsupported
+`IEELAL` record removed. They isolate this IDA startup path; they are not a full run of every
+original DYR record.
+
+| Case | First pass | Successful retry | Simulation result |
+| --- | --- | --- | --- |
+| 05 | State size 385; max residual `4.6770e-8`, all algebraic; max differential residual `4.3410e-12`; no nonfinite residuals. | `FIXED_DIFF` returns `IDA_SUCCESS` with the same residual norms. | Reached 30 s; 11 steps, 0 error-test failures, 0 nonlinear-convergence failures; maximum state drift `2.59e-6`. |
+| 06 | State size 381; max residual `1.0586e-7`, all algebraic; max differential residual `3.8192e-12`; no nonfinite residuals. | `FIXED_DIFF` returns `IDA_SUCCESS` with the same residual norms. | Reached 2 s; 11 steps, 0 error-test failures, 0 nonlinear-convergence failures; maximum state drift `1.03e-8`. |
+
+These runs reached their requested stop times with small residuals and no subsequent IDA
+integration failures. The first-pass setup error is therefore a failed initialization strategy
+that GridDyn recovers from for these inputs; it is not evidence that the later time integration
+or the initialized trajectory failed. The residuals are dominated by algebraic entries, while
+the differential residuals are near machine precision. The logs do not identify a specific
+singular row or KLU pivot, so the precise linear-system cause remains unproven. No further
+solver change is indicated by these two runs unless a full-record run fails, state drift becomes
+material, or a future case fails the `FIXED_DIFF` retry.
+
+The captured console logs are `build-ninja/csvgn1-diagnostics/case05_ida_diagnostics_console.log`
+and `build-ninja/csvgn1-diagnostics/case06_ida_diagnostics_console.log`. They predate the
+logging cleanup: unsuccessful IC-attempt details now use warning severity, while GridDyn still
+reports an error if the recovery sequence itself cannot produce initial conditions.
+
 ### Planned reusable capability
 
 The solver should provide an opt-in IC diagnostic mode that automatically performs steps 6--8

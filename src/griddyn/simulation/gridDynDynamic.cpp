@@ -245,10 +245,8 @@ int GridDynSimulation::dynamicDAEStartupConditions(std::shared_ptr<SolverInterfa
                                  SolverInterface::IcModes::FIXED_MASKED_AND_DERIV,
                                  false);
         if (retval != FUNCTION_EXECUTION_SUCCESS) {
-            // for (size_t kk = 0; kk < dynData->getSize(); ++kk)
-            //  {
-            //  printf("%d : deriv=%f\n", kk, dynData->derivData()[kk]);
-            //  }
+            // The fixed-masked IDA_Y_INIT pass is a preliminary strategy. Retry with
+            // the fixed-differential IC solve and the normal recovery sequence.
             retval = generateDaeDynamicInitialConditions(sMode);
             if (retval != FUNCTION_EXECUTION_SUCCESS) {
 #if JAC_CHECK_ENABLED > 0

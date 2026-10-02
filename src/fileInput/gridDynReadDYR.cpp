@@ -76,6 +76,7 @@ namespace {
 
     void loadGENCLS(CoreObject* parentObject, stringVec& tokens);
     void loadGENROU(CoreObject* parentObject, stringVec& tokens);
+    void loadCSVGN1(CoreObject* parentObject, stringVec& tokens);
     void loadGENTPJ(CoreObject* parentObject, stringVec& tokens);
     void loadGENROE(CoreObject* parentObject, stringVec& tokens);
     void loadGENSAE(CoreObject* parentObject, stringVec& tokens);
@@ -153,6 +154,8 @@ namespace detail {
             loadGENCLS(parentObject, lineTokens);
         } else if (type == "'GENROU'") {
             loadGENROU(parentObject, lineTokens);
+        } else if (type == "'CSVGN1'") {
+            loadCSVGN1(parentObject, lineTokens);
         } else if (type == "'GENTPJ'") {
             loadGENTPJ(parentObject, lineTokens);
         } else if (type == "'GENROE'") {
@@ -891,6 +894,35 @@ namespace {
         genModel->set("s12", params[16]);
     }
 
+    void loadCSVGN1(CoreObject* parentObject, stringVec& tokens)
+    {
+        // PSS/E order: bus, model, machine ID, K, T1, T2, T3, T4, T5,
+        // RMIN, VMAX, VMIN, CBASE.
+        if (tokens.size() != 13U) {
+            throw InvalidParameterValue("CSVGN1 DYR record must contain 13 fields");
+        }
+
+        auto* gen = requireDyrGenerator(parentObject, tokens, "CSVGN1");
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* model = static_cast<GenModel*>(
+            CoreObjectFactory::instance()->createObject("genmodel", "csvgn1"));
+
+        // CSVGN1 replaces the synchronous machine on this PSS/E generator
+        // record. Preserve the RAW generator's MBASE for the SVC reactor base.
+        gen->add(model);
+        model->set("base", gen->get("mbase", units::MVAR));
+        model->set("k", params[3]);
+        model->set("t1", params[4]);
+        model->set("t2", params[5]);
+        model->set("t3", params[6]);
+        model->set("t4", params[7]);
+        model->set("t5", params[8]);
+        model->set("rmin", params[9]);
+        model->set("vmax", params[10]);
+        model->set("vmin", params[11]);
+        model->set("cbase", params[12]);
+    }
+
     void loadGENTPJ(CoreObject* parentObject, stringVec& tokens)
     {
         if (tokens.size() != 19U) {
@@ -1231,29 +1263,30 @@ namespace {
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto* model =
             static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "esst1a"));
-        // PSS/E order follows the ANDES psse-dyr.yaml schema. UEL and VOS
-        // are selectors, not continuous signals; the standard vss interface
-        // provides the selected VOS source.
+        // PSS/E order: UEL, VOS, TR, VIMAX, VIMIN, TC, TB, TC1, TB1,
+        // KA, TA, VAMAX, VAMIN, VRMAX, VRMIN, KC, KF, TF, KLR, ILR.
+        // UEL and VOS are selectors, not continuous signals; the standard
+        // vss interface provides the selected VOS source.
         model->set("uel", params[3]);
         model->set("vos", params[4]);
         model->set("tr", params[5]);
         model->set("vimax", params[6]);
         model->set("vimin", params[7]);
-        model->set("tb", params[8]);
-        model->set("tc", params[9]);
-        model->set("tb1", params[10]);
-        model->set("tc1", params[11]);
-        model->set("vamax", params[12]);
-        model->set("vamin", params[13]);
-        model->set("ka", params[14]);
-        model->set("ta", params[15]);
-        model->set("ilr", params[16]);
-        model->set("klr", params[17]);
-        model->set("vrmax", params[18]);
-        model->set("vrmin", params[19]);
-        model->set("kf", params[20]);
-        model->set("tf", params[21]);
-        model->set("kc", params[22]);
+        model->set("tc", params[8]);
+        model->set("tb", params[9]);
+        model->set("tc1", params[10]);
+        model->set("tb1", params[11]);
+        model->set("ka", params[12]);
+        model->set("ta", params[13]);
+        model->set("vamax", params[14]);
+        model->set("vamin", params[15]);
+        model->set("vrmax", params[16]);
+        model->set("vrmin", params[17]);
+        model->set("kc", params[18]);
+        model->set("kf", params[19]);
+        model->set("tf", params[20]);
+        model->set("klr", params[21]);
+        model->set("ilr", params[22]);
         gen->add(model);
     }
 

@@ -98,9 +98,9 @@ validation-pending, then prioritize remaining transmission-side models:
 
 1. Capture OpenIPSL/GridKit trajectories for the implemented conventional and
    renewable models.
-2. Capture external trajectories for the newly implemented `GENTPJ` and
-   `CIM5/6`, then add the remaining source-backed conventional gaps:
-   `IEEEG2`, `IEEEVC`, `CSVGN1`, and the PSS/E exciter/stabilizer families.
+2. Capture external trajectories for the newly implemented `GENTPJ`, `CIM5/6`,
+   and `CSVGN1`, then add the remaining source-backed conventional gaps:
+   `IEEEG2`, `IEEEVC`, and the PSS/E exciter/stabilizer families.
 3. Complete the coupled `WT3G1`/`WT3E1`/`WT3P1`/`WT3T1` system by adding the
    remaining `WT3T1` turbine/shaft and `WT3P1` pitch-controller models.
 4. Keep distribution, EMT, DQ microgrid/circuit, native three-phase, and
@@ -225,7 +225,8 @@ This is the principal new high-value OpenIPSL family. GridDyn's `GenModelInverte
 
 | OpenIPSL model(s)                                                                                                  | GridDyn analogue                                                         | Priority / status               | Notes                                                                                                                                 |
 | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| PSS/e `CSVGN1`, `SVC`; PSAT `STATCOM`                                                                              | `Svd` / `VSCShunt` are candidates                                        | **P1/P2 — New models**          | Start (**P1**) with an SVC controlled-susceptance interface and limits; STATCOM and its converter current/limit controls are **P2**.  |
+| PSS/e `CSVGN1`                                                                                                    | `GenModelCSVGN1` machine-model interface; controlled shunt behavior     | **Implemented; P1 validation**  | Native DYR mapping and model regression exist. Validate against an external PSS/E trajectory and confirm high-side voltage / `VOTHSG` handling. |
+| PSS/e `SVC`; PSAT `STATCOM`                                                                                       | `Svd` / `VSCShunt` are candidates                                        | **P1/P2 — New models**          | Add the SVC controlled-susceptance interface and limits; STATCOM and its converter current/limit controls are **P2**.                  |
 | PSAT `TCSC`                                                                                                        | No exact model                                                           | **P2 — New model**              | Add thyristor firing/reactance control and series-compensation limits.                                                                |
 | `Branches.Generic.ULTC`, PSAT `ULTC_VoltageControl`, Simulink `LTC`                                                | `AdjustableTransformer` is a building block                              | **P1 — Structural extension**   | Add discrete tap position, deadband, delay, and event/root behavior.                                                                  |
 | `Branches.PSAT.PhaseShiftingTransformer`                                                                           | Existing transformer links are candidates                                | **P2 — Structural extension**   | Add controlled phase-shift logic after tap-control infrastructure exists.                                                             |
@@ -261,6 +262,6 @@ Solver differences can justify reviewed numeric tolerance. They do not justify a
 
 1. Capture single-machine/infinite-bus OpenIPSL trajectories for implemented conventional models (`GENCLS`, `GENROU`, `GENROE`, `GENSAE`, `GENSAL`, `HYGOV`, `GGOV1`, `IEEET1`, `IEEET2`, `IEEET3`, `ESST1A`, `AC8B`, `ESAC5A`, and `ESST4B`), then add the corresponding validation fixtures.
 2. Add the captured OpenIPSL initialization and trajectory references to GridDyn tests; do not run Modelica as part of the C++ suite. Include coupled GENSAL/HYGOV and GENSAL/ESST4B cases and GGOV1 parameter-mode coverage.
-3. Add the remaining transmission-side reader/model gaps, starting with `IEEEG2`, `IEEEVC`, `CSVGN1`, and source-backed stabilizers/limiters. Existing implementations, including `IEEET2`, `GENTPJ`, and `CIM5/6`, need trajectory and case-variant validation rather than a new architecture.
+3. Add the remaining transmission-side reader/model gaps, starting with `IEEEG2`, `IEEEVC`, and source-backed stabilizers/limiters. Existing implementations, including `IEEET2`, `GENTPJ`, `CIM5/6`, and `CSVGN1`, need trajectory and case-variant validation rather than a new architecture.
 4. Finish external trajectory and large-case validation for the implemented `REGCA1` + `REECA1`/`REECB1` + `REPCA1` and current WECC wind chain; keep the coupled `WT3*` implementation as the next renewable addition.
 5. Defer distribution-oriented DQ/circuit models, three-phase/mono-tri/VSD work, and EMT until a later scope decision.

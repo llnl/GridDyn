@@ -6,10 +6,10 @@
 
 #pragma once
 
+#include "LoadTemplateManager.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/Load.h"
-#include "LoadTemplateManager.h"
 #include <memory>
 #include <string>
 #include <string_view>
@@ -23,14 +23,14 @@ inline void warnIfStaticNetworkMissing(CoreObject* parentObject,
                                        std::string_view modelFileType,
                                        std::string_view fileName)
 {
-    const auto* simulation =
-        dynamic_cast<const GridDynSimulation*>(parentObject->getRoot());
+    const auto* simulation = dynamic_cast<const GridDynSimulation*>(parentObject->getRoot());
     if ((simulation != nullptr) && (simulation->getInt("totalbuscount") == 0)) {
         parentObject->log(parentObject,
                           PrintLevel::WARNING,
                           std::string{modelFileType} +
-                              " model file loaded before a static network; load a SAV, EPC, "
-                              "RAW, M, or PY case first: " + std::string{fileName});
+                              " model file loaded before a static network; load a SAVE, EPC, "
+                              "RAW, M, or PY case first: " +
+                              std::string{fileName});
     }
 }
 

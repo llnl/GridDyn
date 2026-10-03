@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "LoadTemplateManager.h"
 #include "ReaderInfo.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObject.h"
@@ -14,8 +15,6 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewConversion.h"
 #include "gridDynReadDyrModels.h"
-#include "LoadTemplateManager.h"
-#include "loadModelReaderHelper.h"
 #include "griddyn/Exciter.h"
 #include "griddyn/GenModel.h"
 #include "griddyn/Generator.h"
@@ -25,11 +24,11 @@
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/Stabilizer.h"
 #include "griddyn/generators/DynamicGenerator.h"
-#include "griddyn/loads/LoadTemplateAdapters.h"
 #include "griddyn/generators/RenewableGenerator.h"
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorReheat.h"
+#include "griddyn/loads/LoadTemplateAdapters.h"
 #include "griddyn/relays/BusMeasurementSensor.h"
 #include "griddyn/renewables/REECA1.h"
 #include "griddyn/renewables/REECA1E.h"
@@ -49,6 +48,7 @@
 #include "griddyn/renewables/WTTQA1.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
+#include "loadModelReaderHelper.h"
 #include <array>
 #include <charconv>
 #include <cmath>
@@ -491,12 +491,12 @@ namespace {
         IEELParameters parameters;
         for (std::size_t index = 0; index < 14U; ++index) {
             const auto& token = tokens[index + 3U];
-            const std::string errorMessage = "IEELAL parameter " +
-                std::to_string(index + 1U) + " must be a finite number";
+            const std::string errorMessage =
+                "IEELAL parameter " + std::to_string(index + 1U) + " must be a finite number";
             double value = std::numeric_limits<double>::quiet_NaN();
             try {
-                value = gmlc::utilities::numeric_conversionComplete<double>(
-                    std::string_view{token}, value);
+                value = gmlc::utilities::numeric_conversionComplete<double>(std::string_view{token},
+                                                                            value);
             }
             catch (const std::out_of_range&) {
                 throw InvalidParameterValue(errorMessage);

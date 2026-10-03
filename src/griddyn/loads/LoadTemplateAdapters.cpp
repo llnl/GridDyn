@@ -32,8 +32,7 @@ bool supportsCharacteristicReplacement(const GridLoad& load)
     }
     if (typeid(load) == typeid(FDepLoad)) {
         const auto& fdep = static_cast<const FDepLoad&>(load);
-        return (fdep.getFrequencyFilter() == nullptr) &&
-            (fdep.getFrequencyBus() == nullptr);
+        return (fdep.getFrequencyFilter() == nullptr) && (fdep.getFrequencyBus() == nullptr);
     }
     return (typeid(load) == typeid(IEELLoad)) || (typeid(load) == typeid(WSCCLoad));
 }
@@ -45,7 +44,7 @@ namespace {
     };
 
     std::vector<IEELVoltageTerm> getIEELVoltageTerms(const IEELParameters& parameters,
-                                                      std::size_t firstTerm)
+                                                     std::size_t firstTerm)
     {
         constexpr double tolerance = 1e-12;
         std::vector<IEELVoltageTerm> terms;
@@ -64,14 +63,12 @@ namespace {
                 existing->coefficient += coefficient;
             }
         }
-        std::erase_if(terms, [](const auto& term) {
-            return std::abs(term.coefficient) <= tolerance;
-        });
+        std::erase_if(terms,
+                      [](const auto& term) { return std::abs(term.coefficient) <= tolerance; });
         return terms;
     }
 
-    std::pair<double, double> getCharacteristicReferencePower(const GridLoad& load,
-                                                               double voltage)
+    std::pair<double, double> getCharacteristicReferencePower(const GridLoad& load, double voltage)
     {
         const GridLoad* reference = &load;
         std::unique_ptr<GridLoad> connectedCopy;
@@ -80,8 +77,8 @@ namespace {
             // connected copy so the replacement retains its stored demand.
             connectedCopy.reset(dynamic_cast<GridLoad*>(load.clone()));
             if (connectedCopy == nullptr) {
-                throw InvalidParameterValue("cannot clone disconnected load '" +
-                                            load.getName() + "' for characteristic assignment");
+                throw InvalidParameterValue("cannot clone disconnected load '" + load.getName() +
+                                            "' for characteristic assignment");
             }
             connectedCopy->reconnect();
             reference = connectedCopy.get();
@@ -133,8 +130,7 @@ namespace {
         if ((parameters.vmin > 0.0) && (voltage < parameters.vmin)) {
             const double voltageRatio = voltage / parameters.vmin;
             const double minimumPolynomial =
-                ((first * parameters.vmin) * parameters.vmin) +
-                (second * parameters.vmin) + third;
+                ((first * parameters.vmin) * parameters.vmin) + (second * parameters.vmin) + third;
             const double minimumCharacteristic = extended ?
                 minimumPolynomial + (fourth * frequencyFactor) :
                 minimumPolynomial * frequencyFactor;
@@ -198,20 +194,18 @@ LoadTemplateFactory makeIEELALLoadTemplate(IEELParameters parameters)
             zipLoad->setFlag("no_pqvoltage_limit", true);
         } else if (representation == IEELRepresentation::FDEP) {
             auto* fdepLoad = static_cast<FDepLoad*>(replacement.get());
-            const auto setSide = [&parameters](FDepLoad* target,
-                                               std::size_t firstTerm,
-                                               bool reactive) {
-                const auto terms = getIEELVoltageTerms(parameters, firstTerm);
-                const char* alpha = reactive ? "alphaq" : "alphap";
-                const char* scale = reactive ? "q_scale" : "p_scale";
-                const char* beta = reactive ? "betaq" : "betap";
-                const std::size_t frequencyIndex = reactive ? 7U : 6U;
-                target->set(alpha, terms.empty() ? 0.0 : terms.front().exponent);
-                target->set(scale, terms.empty() ? 0.0 : terms.front().coefficient);
-                const double frequencyCoefficient = parameters.coefficients[frequencyIndex];
-                target->set(beta,
-                            (std::abs(frequencyCoefficient - 1.0) <= 1e-12) ? 1.0 : 0.0);
-            };
+            const auto setSide =
+                [&parameters](FDepLoad* target, std::size_t firstTerm, bool reactive) {
+                    const auto terms = getIEELVoltageTerms(parameters, firstTerm);
+                    const char* alpha = reactive ? "alphaq" : "alphap";
+                    const char* scale = reactive ? "q_scale" : "p_scale";
+                    const char* beta = reactive ? "betaq" : "betap";
+                    const std::size_t frequencyIndex = reactive ? 7U : 6U;
+                    target->set(alpha, terms.empty() ? 0.0 : terms.front().exponent);
+                    target->set(scale, terms.empty() ? 0.0 : terms.front().coefficient);
+                    const double frequencyCoefficient = parameters.coefficients[frequencyIndex];
+                    target->set(beta, (std::abs(frequencyCoefficient - 1.0) <= 1e-12) ? 1.0 : 0.0);
+                };
             setSide(fdepLoad, 0U, false);
             setSide(fdepLoad, 3U, true);
         } else {
@@ -243,13 +237,12 @@ LoadTemplateFactory makeWSCCLoadTemplate(WSCCParameters parameters)
             getWSCCCharacteristic(parameters, false, initialVoltage, initialFrequency);
         const double qFactor =
             getWSCCCharacteristic(parameters, true, initialVoltage, initialFrequency);
-        const auto [initialP, initialQ] =
-            getCharacteristicReferencePower(load, initialVoltage);
-        if (((pFactor == 0.0) && (initialP != 0.0)) ||
-            ((qFactor == 0.0) && (initialQ != 0.0))) {
-            throw InvalidParameterValue("WSCC characteristic is zero at the initial operating point "
-                                        "for load '" +
-                                        load.getName() + "'");
+        const auto [initialP, initialQ] = getCharacteristicReferencePower(load, initialVoltage);
+        if (((pFactor == 0.0) && (initialP != 0.0)) || ((qFactor == 0.0) && (initialQ != 0.0))) {
+            throw InvalidParameterValue(
+                "WSCC characteristic is zero at the initial operating point "
+                "for load '" +
+                load.getName() + "'");
         }
         const double baseP = (pFactor == 0.0) ? 0.0 : initialP / pFactor;
         const double baseQ = (qFactor == 0.0) ? 0.0 : initialQ / qFactor;
@@ -270,12 +263,10 @@ LoadTemplateFactory makeWSCCLoadTemplate(WSCCParameters parameters)
             auto* zipLoad = static_cast<ZipLoad*>(replacement.get());
             const bool extended =
                 (std::abs(parameters.p4) > 1e-12) || (std::abs(parameters.q4) > 1e-12);
-            const double pConstant =
-                baseP * (parameters.p3 + (extended ? parameters.p4 : 0.0));
+            const double pConstant = baseP * (parameters.p3 + (extended ? parameters.p4 : 0.0));
             const double pCurrent = baseP * parameters.p2;
             const double pImpedance = baseP * parameters.p1;
-            const double qConstant =
-                baseQ * (parameters.q3 + (extended ? parameters.q4 : 0.0));
+            const double qConstant = baseQ * (parameters.q3 + (extended ? parameters.q4 : 0.0));
             const double qCurrent = baseQ * parameters.q2;
             const double qImpedance = baseQ * parameters.q1;
             zipLoad->set("p", pConstant, units::puMW);

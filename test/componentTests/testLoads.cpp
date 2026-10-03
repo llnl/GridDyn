@@ -64,9 +64,7 @@ TEST(IEELLoadTests, SelectsTheSimplestEquivalentLoadAndEvaluatesItsEquation)
         simulation->add(bus);
 
         LoadTemplateManager templates;
-        templates.setTemplate(LoadTemplateScope::System,
-                              0,
-                              makeIEELALLoadTemplate(parameters));
+        templates.setTemplate(LoadTemplateScope::System, 0, makeIEELALLoadTemplate(parameters));
         applyLoadTemplatesFromReader(*simulation, templates);
         auto* load = bus->getLoad(0);
         ASSERT_NE(load, nullptr);
@@ -94,11 +92,11 @@ TEST(IEELLoadTests, SelectsTheSimplestEquivalentLoadAndEvaluatesItsEquation)
     EXPECT_EQ(classifyIEEL(zipParameters), IEELRepresentation::ZIP);
     checkConversion(
         zipParameters,
-                    IEELRepresentation::ZIP,
-                    [](double voltage, double) {
-                        return 0.6 * (0.2 + (0.3 * voltage) + (0.5 * voltage * voltage));
-                    },
-                    [](double voltage, double) { return 0.25 * voltage * voltage; });
+        IEELRepresentation::ZIP,
+        [](double voltage, double) {
+            return 0.6 * (0.2 + (0.3 * voltage) + (0.5 * voltage * voltage));
+        },
+        [](double voltage, double) { return 0.25 * voltage * voltage; });
 
     IEELParameters fdepParameters;
     fdepParameters.coefficients = {1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0};
@@ -106,9 +104,9 @@ TEST(IEELLoadTests, SelectsTheSimplestEquivalentLoadAndEvaluatesItsEquation)
     EXPECT_EQ(classifyIEEL(fdepParameters), IEELRepresentation::FDEP);
     checkConversion(
         fdepParameters,
-                    IEELRepresentation::FDEP,
+        IEELRepresentation::FDEP,
         [](double voltage, double frequency) { return 0.6 * std::pow(voltage, 1.5) * frequency; },
-                    [](double voltage, double) { return 0.25 * std::pow(voltage, 2.5); });
+        [](double voltage, double) { return 0.25 * std::pow(voltage, 2.5); });
 
     IEELParameters generalParameters;
     generalParameters.coefficients = {0.4, 0.6, 0.0, 0.3, 0.7, 0.0, 0.25, 0.4};
@@ -116,17 +114,15 @@ TEST(IEELLoadTests, SelectsTheSimplestEquivalentLoadAndEvaluatesItsEquation)
     EXPECT_EQ(classifyIEEL(generalParameters), IEELRepresentation::IEEL);
     checkConversion(
         generalParameters,
-                    IEELRepresentation::IEEL,
-                    [](double voltage, double frequency) {
-                        return 0.6 * ((0.4 * std::pow(voltage, 0.5)) +
-                                      (0.6 * std::pow(voltage, 1.5))) *
-                            (1.0 + (0.25 * (frequency - 1.0)));
-                    },
-                    [](double voltage, double frequency) {
-                        return 0.25 * ((0.3 * std::pow(voltage, 0.2)) +
-                                       (0.7 * std::pow(voltage, 2.5))) *
-                            (1.0 + (0.4 * (frequency - 1.0)));
-                    });
+        IEELRepresentation::IEEL,
+        [](double voltage, double frequency) {
+            return 0.6 * ((0.4 * std::pow(voltage, 0.5)) + (0.6 * std::pow(voltage, 1.5))) *
+                (1.0 + (0.25 * (frequency - 1.0)));
+        },
+        [](double voltage, double frequency) {
+            return 0.25 * ((0.3 * std::pow(voltage, 0.2)) + (0.7 * std::pow(voltage, 2.5))) *
+                (1.0 + (0.4 * (frequency - 1.0)));
+        });
 }
 
 TEST(LoadTemplateTests, KeepsFixedAndControlledShunts)

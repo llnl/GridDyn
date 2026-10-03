@@ -139,10 +139,8 @@ void IEELLoad::ioPartialDerivatives(const IOdata& inputs,
         bus->getFreq(stateData, sMode);
     const double pFrequencyCoefficient = frequencyCoefficient(false);
     const double qFrequencyCoefficient = frequencyCoefficient(true);
-    const double pFrequencyFactor =
-        1.0 + (pFrequencyCoefficient * (frequency - 1.0));
-    const double qFrequencyFactor =
-        1.0 + (qFrequencyCoefficient * (frequency - 1.0));
+    const double pFrequencyFactor = 1.0 + (pFrequencyCoefficient * (frequency - 1.0));
+    const double qFrequencyFactor = 1.0 + (qFrequencyCoefficient * (frequency - 1.0));
 
     if (inputLocs[VOLTAGE_IN_LOCATION] != kNullLocation) {
         matrixData.assign(POUT_LOCATION,

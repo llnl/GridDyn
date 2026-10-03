@@ -52,9 +52,7 @@ inline IEELRepresentation classifyIEEL(const IEELParameters& parameters)
                 existing->first += coefficient;
             }
         }
-        std::erase_if(result, [](const Term& term) {
-            return std::abs(term.first) <= tolerance;
-        });
+        std::erase_if(result, [](const Term& term) { return std::abs(term.first) <= tolerance; });
         return result;
     };
     const auto pTerms = terms(0U);

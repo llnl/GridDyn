@@ -64,8 +64,13 @@ set(fileInput_headers
     loadModelReaderHelper.h
 )
 
-set(fileInput_sources ${xml_sources} ${reader_sources} ${elementReader_sources}
-                      ${formattedfileInput_sources} LoadTemplateManager.cpp ${fileInput_headers}
+set(fileInput_sources
+    ${xml_sources}
+    ${reader_sources}
+    ${elementReader_sources}
+    ${formattedfileInput_sources}
+    LoadTemplateManager.cpp
+    ${fileInput_headers}
 )
 add_library(fileInput STATIC ${fileInput_sources})
 

@@ -401,26 +401,26 @@ TEST(ExampleReaderTests, SparseEPCBusIDResolvesDYDModelsAndESAC1ATrailer)
     EXPECT_NE(generator->find("genmodel"), nullptr);
     auto* exciter = dynamic_cast<griddyn::exciters::ExciterESAC1A*>(generator->find("exciter"));
     ASSERT_NE(exciter, nullptr);
-    const std::array<std::pair<std::string_view, double>, 19> expectedParameters{{
-        {"tr", 0.01},
-        {"tb", 0.1},
-        {"tc", 0.2},
-        {"ka", 400.0},
-        {"ta", 0.05},
-        {"vamax", 5.5},
-        {"vamin", -5.5},
-        {"te", 0.75},
-        {"kf", 0.03},
-        {"tf", 1.2},
-        {"kc", 0.2},
-        {"kd", 0.4},
-        {"ke", 1.1},
-        {"e1", 2.0},
-        {"se1", 0.1},
-        {"e2", 4.0},
-        {"se2", 0.2},
-        {"vrmax", 99.0},
-        {"vrmin", -99.0}}};
+    const std::array<std::pair<std::string_view, double>, 19> expectedParameters{
+        {{"tr", 0.01},
+         {"tb", 0.1},
+         {"tc", 0.2},
+         {"ka", 400.0},
+         {"ta", 0.05},
+         {"vamax", 5.5},
+         {"vamin", -5.5},
+         {"te", 0.75},
+         {"kf", 0.03},
+         {"tf", 1.2},
+         {"kc", 0.2},
+         {"kd", 0.4},
+         {"ke", 1.1},
+         {"e1", 2.0},
+         {"se1", 0.1},
+         {"e2", 4.0},
+         {"se2", 0.2},
+         {"vrmax", 99.0},
+         {"vrmin", -99.0}}};
     for (const auto& [parameter, value] : expectedParameters) {
         EXPECT_DOUBLE_EQ(exciter->get(parameter), value) << parameter;
     }

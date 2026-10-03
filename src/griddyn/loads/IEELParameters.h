@@ -42,8 +42,8 @@ inline IEELRepresentation classifyIEEL(const IEELParameters& parameters)
             if (std::abs(coefficient) <= tolerance) {
                 continue;
             }
-            auto existing = std::find_if(
-                result.begin(), result.end(), [exponent, tolerance](const Term& term) {
+            auto existing =
+                std::find_if(result.begin(), result.end(), [exponent, tolerance](const Term& term) {
                     return std::abs(term.second - exponent) <= tolerance;
                 });
             if (existing == result.end()) {
@@ -52,24 +52,22 @@ inline IEELRepresentation classifyIEEL(const IEELParameters& parameters)
                 existing->first += coefficient;
             }
         }
-        std::erase_if(result, [tolerance](const Term& term) {
-            return std::abs(term.first) <= tolerance;
-        });
+        std::erase_if(result,
+                      [tolerance](const Term& term) { return std::abs(term.first) <= tolerance; });
         return result;
     };
     const auto pTerms = terms(0U);
     const auto qTerms = terms(3U);
     const auto isZipExponent = [tolerance](double exponent) {
-        return (std::abs(exponent) <= tolerance) ||
-            (std::abs(exponent - 1.0) <= tolerance) ||
+        return (std::abs(exponent) <= tolerance) || (std::abs(exponent - 1.0) <= tolerance) ||
             (std::abs(exponent - 2.0) <= tolerance);
     };
     const bool noFrequency = (std::abs(parameters.coefficients[6]) <= tolerance) &&
         (std::abs(parameters.coefficients[7]) <= tolerance);
     const bool zipExponents =
-        std::all_of(pTerms.begin(), pTerms.end(), [&isZipExponent](const Term& term) {
-            return isZipExponent(term.second);
-        }) &&
+        std::all_of(pTerms.begin(),
+                    pTerms.end(),
+                    [&isZipExponent](const Term& term) { return isZipExponent(term.second); }) &&
         std::all_of(qTerms.begin(), qTerms.end(), [&isZipExponent](const Term& term) {
             return isZipExponent(term.second);
         });
@@ -78,9 +76,9 @@ inline IEELRepresentation classifyIEEL(const IEELParameters& parameters)
     }
 
     const auto frequencyPowerFits = [tolerance](const std::vector<Term>& side, double a) {
-        return side.empty() || ((side.size() == 1U) &&
-                                ((std::abs(a) <= tolerance) ||
-                                 (std::abs(a - 1.0) <= tolerance)));
+        return side.empty() ||
+            ((side.size() == 1U) &&
+             ((std::abs(a) <= tolerance) || (std::abs(a - 1.0) <= tolerance)));
     };
     if ((pTerms.size() <= 1U) && (qTerms.size() <= 1U) &&
         frequencyPowerFits(pTerms, parameters.coefficients[6]) &&

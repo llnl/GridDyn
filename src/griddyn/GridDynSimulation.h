@@ -11,10 +11,10 @@
 @brief define the simulation object itself and several helper classes and enumerations*/
 
 // header files
-#include "simulation/GridDynActions.h"
-#include "simulation/GridSimulation.h"
 #include "loads/IEELParameters.h"
 #include "loads/WSCCParameters.h"
+#include "simulation/GridDynActions.h"
+#include "simulation/GridSimulation.h"
 // libraries
 #include "griddyn/griddyn-config.h"
 #include <functional>

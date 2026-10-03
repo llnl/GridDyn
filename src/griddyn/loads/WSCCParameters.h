@@ -42,38 +42,35 @@ struct WSCCFDepSide {
 };
 
 /** Select the simplest existing load model that exactly represents a WSCC curve. */
-inline WSCCRepresentation classifyWSCC(const WSCCParameters& parameters,
-                                       WSCCFDepSide& pSide,
-                                       WSCCFDepSide& qSide)
+inline WSCCRepresentation
+    classifyWSCC(const WSCCParameters& parameters, WSCCFDepSide& pSide, WSCCFDepSide& qSide)
 {
     constexpr double tolerance = 1e-12;
     const auto isZero = [tolerance](double value) { return std::abs(value) <= tolerance; };
     const bool extended = !isZero(parameters.p4) || !isZero(parameters.q4);
     if (isZero(parameters.vmin)) {
         const bool pHasVoltageCurve = extended ?
-            (!isZero(parameters.p1) || !isZero(parameters.p2) ||
-             !isZero(parameters.p3) || !isZero(parameters.p4)) :
+            (!isZero(parameters.p1) || !isZero(parameters.p2) || !isZero(parameters.p3) ||
+             !isZero(parameters.p4)) :
             (!isZero(parameters.p1) || !isZero(parameters.p2) || !isZero(parameters.p3));
         const bool qHasVoltageCurve = extended ?
-            (!isZero(parameters.q1) || !isZero(parameters.q2) ||
-             !isZero(parameters.q3) || !isZero(parameters.q4)) :
+            (!isZero(parameters.q1) || !isZero(parameters.q2) || !isZero(parameters.q3) ||
+             !isZero(parameters.q4)) :
             (!isZero(parameters.q1) || !isZero(parameters.q2) || !isZero(parameters.q3));
-        const bool pFrequencyDependent = extended ?
-            !isZero(parameters.p4 * parameters.lpd) :
-            (!isZero(parameters.lpd) && pHasVoltageCurve);
-        const bool qFrequencyDependent = extended ?
-            !isZero(parameters.q4 * parameters.lqd) :
-            (!isZero(parameters.lqd) && qHasVoltageCurve);
+        const bool pFrequencyDependent = extended ? !isZero(parameters.p4 * parameters.lpd) :
+                                                    (!isZero(parameters.lpd) && pHasVoltageCurve);
+        const bool qFrequencyDependent = extended ? !isZero(parameters.q4 * parameters.lqd) :
+                                                    (!isZero(parameters.lqd) && qHasVoltageCurve);
         if (!pFrequencyDependent && !qFrequencyDependent) {
             return WSCCRepresentation::ZIP;
         }
 
         const auto setFDepSide = [isZero, extended](double z,
-                                                     double i,
-                                                     double constant,
-                                                     double p4,
-                                                     double frequencyCoefficient,
-                                                     WSCCFDepSide& side) {
+                                                    double i,
+                                                    double constant,
+                                                    double p4,
+                                                    double frequencyCoefficient,
+                                                    WSCCFDepSide& side) {
             const double curveConstant = extended ? (constant + p4) : constant;
             const double frequencyDelta = extended ? (p4 * frequencyCoefficient) : 0.0;
             double scale = 0.0;
@@ -120,18 +117,10 @@ inline WSCCRepresentation classifyWSCC(const WSCCParameters& parameters,
             return true;
         };
 
-        const bool pFits = setFDepSide(parameters.p1,
-                                       parameters.p2,
-                                       parameters.p3,
-                                       parameters.p4,
-                                       parameters.lpd,
-                                       pSide);
-        const bool qFits = setFDepSide(parameters.q1,
-                                       parameters.q2,
-                                       parameters.q3,
-                                       parameters.q4,
-                                       parameters.lqd,
-                                       qSide);
+        const bool pFits = setFDepSide(
+            parameters.p1, parameters.p2, parameters.p3, parameters.p4, parameters.lpd, pSide);
+        const bool qFits = setFDepSide(
+            parameters.q1, parameters.q2, parameters.q3, parameters.q4, parameters.lqd, qSide);
         if (pFits && qFits) {
             return WSCCRepresentation::FDEP;
         }

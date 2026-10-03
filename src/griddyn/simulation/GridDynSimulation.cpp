@@ -7,8 +7,8 @@
 #include "../GridDynSimulation.h"
 
 #include "../GridBus.h"
-#include "../Load.h"
 #include "../Link.h"
+#include "../Load.h"
 #include "../events/Event.h"
 #include "../events/EventQueue.h"
 #include "../events/ParameterOperator.h"
@@ -19,8 +19,8 @@
 #include "../loads/ZipLoad.h"
 #include "../solvers/SolverInterface.h"
 #include "Contingency.h"
-#include "GridDynSimulationFileOps.h"
 #include "GridArea.h"
+#include "GridDynSimulationFileOps.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
@@ -33,14 +33,14 @@
 #endif
 #include <algorithm>
 #include <cassert>
-#include <compare>
 #include <cmath>
+#include <compare>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
-#include <limits>
 #include <queue>
 #include <string>
 #include <tuple>
@@ -95,61 +95,60 @@ GridDynSimulation* GridDynSimulation::getInstance()
 }
 
 namespace {
-struct IEELVoltageTerm {
-    double coefficient;
-    double exponent;
-};
+    struct IEELVoltageTerm {
+        double coefficient;
+        double exponent;
+    };
 
-std::vector<IEELVoltageTerm> getIEELVoltageTerms(const IEELParameters& parameters,
-                                                 std::size_t firstTerm)
-{
-    constexpr double tolerance = 1e-12;
-    std::vector<IEELVoltageTerm> terms;
-    for (std::size_t index = 0; index < 3U; ++index) {
-        const auto coefficient = parameters.coefficients[firstTerm + index];
-        const auto exponent = parameters.exponents[firstTerm + index];
-        if (std::abs(coefficient) <= tolerance) {
-            continue;
+    std::vector<IEELVoltageTerm> getIEELVoltageTerms(const IEELParameters& parameters,
+                                                     std::size_t firstTerm)
+    {
+        constexpr double tolerance = 1e-12;
+        std::vector<IEELVoltageTerm> terms;
+        for (std::size_t index = 0; index < 3U; ++index) {
+            const auto coefficient = parameters.coefficients[firstTerm + index];
+            const auto exponent = parameters.exponents[firstTerm + index];
+            if (std::abs(coefficient) <= tolerance) {
+                continue;
+            }
+            auto existing =
+                std::find_if(terms.begin(), terms.end(), [exponent, tolerance](const auto& term) {
+                    return std::abs(term.exponent - exponent) <= tolerance;
+                });
+            if (existing == terms.end()) {
+                terms.push_back({coefficient, exponent});
+            } else {
+                existing->coefficient += coefficient;
+            }
         }
-        auto existing = std::find_if(
-            terms.begin(), terms.end(), [exponent, tolerance](const auto& term) {
-                return std::abs(term.exponent - exponent) <= tolerance;
-            });
-        if (existing == terms.end()) {
-            terms.push_back({coefficient, exponent});
-        } else {
-            existing->coefficient += coefficient;
-        }
+        std::erase_if(terms, [tolerance](const auto& term) {
+            return std::abs(term.coefficient) <= tolerance;
+        });
+        return terms;
     }
-    std::erase_if(terms, [tolerance](const auto& term) {
-        return std::abs(term.coefficient) <= tolerance;
-    });
-    return terms;
-}
 
-double getWSCCCharacteristic(const WSCCParameters& parameters,
-                             bool reactive,
-                             double voltage,
-                             double frequency)
-{
-    const double first = reactive ? parameters.q1 : parameters.p1;
-    const double second = reactive ? parameters.q2 : parameters.p2;
-    const double third = reactive ? parameters.q3 : parameters.p3;
-    const double fourth = reactive ? parameters.q4 : parameters.p4;
-    const double frequencyCoefficient = reactive ? parameters.lqd : parameters.lpd;
-    const bool extended = (parameters.p4 != 0.0) || (parameters.q4 != 0.0);
-    const double polynomial = ((first * voltage) * voltage) + (second * voltage) + third;
-    const double frequencyFactor = 1.0 + (frequencyCoefficient * (frequency - 1.0));
-    const double characteristic = extended ?
-        polynomial + (fourth * frequencyFactor) :
-        polynomial * frequencyFactor;
-    if ((parameters.vmin > 0.0) && (voltage < parameters.vmin)) {
-        const double voltageRatio = voltage / parameters.vmin;
-        return getWSCCCharacteristic(parameters, reactive, parameters.vmin, frequency) *
-            voltageRatio * voltageRatio;
+    double getWSCCCharacteristic(const WSCCParameters& parameters,
+                                 bool reactive,
+                                 double voltage,
+                                 double frequency)
+    {
+        const double first = reactive ? parameters.q1 : parameters.p1;
+        const double second = reactive ? parameters.q2 : parameters.p2;
+        const double third = reactive ? parameters.q3 : parameters.p3;
+        const double fourth = reactive ? parameters.q4 : parameters.p4;
+        const double frequencyCoefficient = reactive ? parameters.lqd : parameters.lpd;
+        const bool extended = (parameters.p4 != 0.0) || (parameters.q4 != 0.0);
+        const double polynomial = ((first * voltage) * voltage) + (second * voltage) + third;
+        const double frequencyFactor = 1.0 + (frequencyCoefficient * (frequency - 1.0));
+        const double characteristic =
+            extended ? polynomial + (fourth * frequencyFactor) : polynomial * frequencyFactor;
+        if ((parameters.vmin > 0.0) && (voltage < parameters.vmin)) {
+            const double voltageRatio = voltage / parameters.vmin;
+            return getWSCCCharacteristic(parameters, reactive, parameters.vmin, frequency) *
+                voltageRatio * voltageRatio;
+        }
+        return characteristic;
     }
-    return characteristic;
-}
 }  // namespace
 
 std::unique_ptr<GridLoad> GridDynSimulation::makeIEELALLoad(const GridLoad& load) const
@@ -221,19 +220,18 @@ std::unique_ptr<GridLoad> GridDynSimulation::makeIEELALLoad(const GridLoad& load
         zipLoad->setFlag("no_pqvoltage_limit", true);
     } else if (representation == IEELRepresentation::FDEP) {
         auto* fdepLoad = static_cast<loads::FDepLoad*>(replacement.get());
-        const auto setSide = [&parameters](loads::FDepLoad* target,
-                                           std::size_t firstTerm,
-                                           bool reactive) {
-            const auto terms = getIEELVoltageTerms(parameters, firstTerm);
-            const char* alpha = reactive ? "alphaq" : "alphap";
-            const char* scale = reactive ? "q_scale" : "p_scale";
-            const char* beta = reactive ? "betaq" : "betap";
-            const std::size_t frequencyIndex = reactive ? 7U : 6U;
-            target->set(alpha, terms.empty() ? 0.0 : terms.front().exponent);
-            target->set(scale, terms.empty() ? 0.0 : terms.front().coefficient);
-            const double frequencyCoefficient = parameters.coefficients[frequencyIndex];
-            target->set(beta, (std::abs(frequencyCoefficient - 1.0) <= 1e-12) ? 1.0 : 0.0);
-        };
+        const auto setSide =
+            [&parameters](loads::FDepLoad* target, std::size_t firstTerm, bool reactive) {
+                const auto terms = getIEELVoltageTerms(parameters, firstTerm);
+                const char* alpha = reactive ? "alphaq" : "alphap";
+                const char* scale = reactive ? "q_scale" : "p_scale";
+                const char* beta = reactive ? "betaq" : "betap";
+                const std::size_t frequencyIndex = reactive ? 7U : 6U;
+                target->set(alpha, terms.empty() ? 0.0 : terms.front().exponent);
+                target->set(scale, terms.empty() ? 0.0 : terms.front().coefficient);
+                const double frequencyCoefficient = parameters.coefficients[frequencyIndex];
+                target->set(beta, (std::abs(frequencyCoefficient - 1.0) <= 1e-12) ? 1.0 : 0.0);
+            };
         setSide(fdepLoad, 0U, false);
         setSide(fdepLoad, 3U, true);
     } else {
@@ -315,10 +313,10 @@ std::unique_ptr<GridLoad> GridDynSimulation::makeWSCCLoad(const GridLoad& load) 
         getWSCCCharacteristic(*parameters, true, initialVoltage, initialFrequency);
     const double initialP = load.getRealPower();
     const double initialQ = load.getReactivePower();
-    if (((pFactor == 0.0) && (initialP != 0.0)) ||
-        ((qFactor == 0.0) && (initialQ != 0.0))) {
+    if (((pFactor == 0.0) && (initialP != 0.0)) || ((qFactor == 0.0) && (initialQ != 0.0))) {
         throw InvalidParameterValue("WSCC characteristic is zero at the initial operating point "
-                                    "for load '" + load.getName() + "'");
+                                    "for load '" +
+                                    load.getName() + "'");
     }
     const double baseP = (pFactor == 0.0) ? 0.0 : initialP / pFactor;
     const double baseQ = (qFactor == 0.0) ? 0.0 : initialQ / qFactor;
@@ -337,8 +335,8 @@ std::unique_ptr<GridLoad> GridDynSimulation::makeWSCCLoad(const GridLoad& load) 
 
     if (representation == WSCCRepresentation::ZIP) {
         auto* zipLoad = static_cast<ZipLoad*>(replacement.get());
-        const bool extended = (std::abs(parameters->p4) > 1e-12) ||
-            (std::abs(parameters->q4) > 1e-12);
+        const bool extended =
+            (std::abs(parameters->p4) > 1e-12) || (std::abs(parameters->q4) > 1e-12);
         const double pConstant = baseP * (parameters->p3 + (extended ? parameters->p4 : 0.0));
         const double pCurrent = baseP * parameters->p2;
         const double pImpedance = baseP * parameters->p1;

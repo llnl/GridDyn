@@ -125,8 +125,7 @@ namespace {
                 (parseEnd != payload[index].c_str() + payload[index].size()) ||
                 !std::isfinite(values[index])) {
                 throw InvalidParameterValue(std::string{modelName} + " parameter " +
-                                            std::to_string(index + 1U) +
-                                            " is not a finite number");
+                                            std::to_string(index + 1U) + " is not a finite number");
             }
         }
         return WSCCParameters{values[0],
@@ -291,9 +290,25 @@ namespace {
             // KF, TF, KC, KD, KE, E1, SE1, E2, SE2, VRMAX, VRMIN, Spdmlt.
             // The shared PSS/E DYR loader expects VRMAX/VRMIN before TE and
             // VAMAX/VAMIN at the end. Spdmlt is not part of the PSS/E record.
-            static constexpr std::array<std::size_t, 19> esac1aOrder{
-                0U,  1U,  2U,  3U,  4U,  17U, 18U, 7U,  8U,  9U,
-                10U, 11U, 12U, 13U, 14U, 15U, 16U, 5U,  6U};
+            static constexpr std::array<std::size_t, 19> esac1aOrder{0U,
+                                                                     1U,
+                                                                     2U,
+                                                                     3U,
+                                                                     4U,
+                                                                     17U,
+                                                                     18U,
+                                                                     7U,
+                                                                     8U,
+                                                                     9U,
+                                                                     10U,
+                                                                     11U,
+                                                                     12U,
+                                                                     13U,
+                                                                     14U,
+                                                                     15U,
+                                                                     16U,
+                                                                     5U,
+                                                                     6U};
             if (sourcePayload.size() < esac1aOrder.size()) {
                 return false;
             }
@@ -546,8 +561,10 @@ void loadDyd(CoreObject* parentObject,
             }
             if ((sourceModelName == "ieeest") && (positionalPayload.size() > 19U) &&
                 !isZeroDydParameter(positionalPayload[19U])) {
-                addIgnoredDydParameter(
-                    ignoredIeeestTdelay, lineTokens, recordLineNumber, positionalPayload[19U]);
+                addIgnoredDydParameter(ignoredIeeestTdelay,
+                                       lineTokens,
+                                       recordLineNumber,
+                                       positionalPayload[19U]);
             }
             if ((canonicalModelName == "gpwscc") && !hasUnsupportedField) {
                 if (gpwsccMWCap.empty()) {
@@ -568,8 +585,7 @@ void loadDyd(CoreObject* parentObject,
                     throw InvalidParameterValue(displayModelName +
                                                 " contains an unsupported named parameter");
                 }
-                auto* mutableSimulation =
-                    dynamic_cast<GridDynSimulation*>(parentObject->getRoot());
+                auto* mutableSimulation = dynamic_cast<GridDynSimulation*>(parentObject->getRoot());
                 if (mutableSimulation == nullptr) {
                     throw InvalidParameterValue(displayModelName +
                                                 " requires a GridDynSimulation root");
@@ -585,8 +601,8 @@ void loadDyd(CoreObject* parentObject,
                     }
                     if (*wsccScope == WSCCLoadScope::Zone) {
                         if (selector > static_cast<index_t>(std::numeric_limits<int>::max())) {
-                            throw InvalidParameterValue(displayModelName +
-                                                        " zone selector exceeds the supported range");
+                            throw InvalidParameterValue(
+                                displayModelName + " zone selector exceeds the supported range");
                         }
                         std::vector<GridBus*> buses;
                         mutableSimulation->getBusVector(buses);

@@ -200,6 +200,10 @@ namespace {
             payloadLimit = 12U;
         } else if (modelName == "genrou") {
             payloadLimit = 14U;
+        } else if (modelName == "esac1a") {
+            // PSLF ESAC1A appends a final field after the 19 parameters used
+            // by the PSS/E-compatible ESAC1A implementation.
+            payloadLimit = 19U;
         } else if (modelName == "exac1") {
             payloadLimit = 17U;
         } else if (modelName == "gast") {
@@ -503,7 +507,8 @@ void loadDyd(CoreObject* parentObject,
     }
     if (!ignoredLoadModels.empty()) {
         std::string message = fileName +
-            ": ignored DYD load-characteristic models (using DYR-equivalent static loads):";
+            ": ignored DYD load-characteristic models (using static network load data; "
+            "characteristic behavior is not applied):";
         for (const auto& [modelName, summary] : ignoredLoadModels) {
             message += "\n  " + modelName + ": " + std::to_string(summary.mCount) +
                 " record(s); first at line " + std::to_string(summary.mFirstLine) + ", bus " +

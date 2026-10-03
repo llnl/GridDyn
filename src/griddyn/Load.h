@@ -26,6 +26,7 @@ class GridLoad: public GridSecondary {
     double P = 0.0;  //!< [pu] real component of the load (constant Power)
     double Q = 0.0;  //!< [pu] imaginary component of the load (constant Power)
     model_parameter pfq = 0.0;  //!< power factor multiply  sqrt((1-pf*pf)/pf*pf)
+    bool fixedShunt = false;  //!< true for a fixed shunt imported from a power-flow case
   public:
     /** constructor which takes the object name*/
     explicit GridLoad(const std::string& objName = "load_$");
@@ -43,6 +44,10 @@ class GridLoad: public GridSecondary {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
+
+    /** Mark this load as a fixed shunt, which is not part of an IEELAL load template. */
+    void setFixedShunt(bool val = true) { fixedShunt = val; }
+    bool isFixedShunt() const { return fixedShunt; }
 
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;

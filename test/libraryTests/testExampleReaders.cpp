@@ -8,6 +8,7 @@
 #include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
+#include "griddyn/exciters/ExciterESAC1A.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/generators/RenewableGenerator.h"
 #include "griddyn/governors/GovernorGPWSCC.h"
@@ -336,6 +337,71 @@ TEST(ExampleReaderTests, LoadGPWSCCDydRecordWithNamedMWCap)
 
     std::error_code removeError;
     std::filesystem::remove(dydPath, removeError);
+}
+
+TEST(ExampleReaderTests, SparseEPCBusIDResolvesDYDModelsAndESAC1ATrailer)
+{
+    const auto tempDirectory = std::filesystem::temp_directory_path();
+    const auto epcPath = tempDirectory / "griddyn_sparse_epc_bus_id.epc";
+    const auto dydPath = tempDirectory / "griddyn_sparse_epc_bus_id.dyd";
+    struct TempFileCleanup {
+        std::filesystem::path epc;
+        std::filesystem::path dyd;
+        ~TempFileCleanup()
+        {
+            std::error_code error;
+            std::filesystem::remove(epc, error);
+            std::filesystem::remove(dyd, error);
+        }
+    } cleanup{epcPath, dydPath};
+
+    {
+        std::ofstream output(epcPath);
+        ASSERT_TRUE(output.is_open());
+        output << "title\n"
+                  "Sparse EPC bus-ID regression fixture\n"
+                  "comments\n!\n"
+                  "solution parameters\nsbase 100.0\n!\n"
+                  "bus data [1]\n"
+                  "101 \"Bus 101\" 15.0 : 0 1.0 1.0 0.0 1 1 1.1 0.9 "
+                  "400101 391231 0 0 1 0 0.0 0.0 0 0.0 0.0 0.0\n"
+                  "branch data [0]\n"
+                  "transformer data [0]\n"
+                  "generator data [1]\n"
+                  "101 \"1_MACH\" 15.0 \"1\" \"\" : 1 101 \"1_MACH\" 15.0 "
+                  "0.0 0.0 1 1 100.0 200.0 0.0 10.0 50.0 -50.0 100.0 "
+                  "0.0 0.0 0.0 0.0 -1 \"\" 0.0 -1 \"\" 0.0 0.0 /\n"
+                  "load data [0]\n"
+                  "shunt data [0]\n"
+                  "svd data [0]\n"
+                  "area data [0]\n"
+                  "zone data [0]\n"
+                  "interface data [0]\n";
+    }
+    {
+        std::ofstream output(dydPath);
+        ASSERT_TRUE(output.is_open());
+        output << "models\n"
+                  "gensal 101 \"1_MACH\" 15.0 \"1\" : #9 mva=100.0 "
+                  "8.5 0.05 0.2 3.6 0 1.1 0.65 0.25 0.25 0.14 0 0 0 0 0 /\n"
+                  "esac1a 101 \"1_MACH\" 15.0 \"1\" : #9 "
+                  "0 0 0 400 0.02 5.5 -5.5 1 0.029 1 0 0 1 0 0 0 0 99 -99 0 /\n";
+    }
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(simulation.get(), epcPath.string()));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 101));
+    ASSERT_NE(bus, nullptr);
+    ASSERT_NO_THROW(griddyn::loadFile(simulation.get(), dydPath.string()));
+
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    EXPECT_NE(generator->find("genmodel"), nullptr);
+    auto* exciter = dynamic_cast<griddyn::exciters::ExciterESAC1A*>(generator->find("exciter"));
+    ASSERT_NE(exciter, nullptr);
+    EXPECT_DOUBLE_EQ(exciter->get("ka"), 400.0);
+    EXPECT_DOUBLE_EQ(exciter->get("vamax"), 99.0);
+    EXPECT_DOUBLE_EQ(exciter->get("vamin"), -99.0);
 }
 
 TEST(ExampleReaderTests, IgnoreNonessentialDydModelsWithWarning)

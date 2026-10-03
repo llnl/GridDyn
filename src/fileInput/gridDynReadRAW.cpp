@@ -760,6 +760,7 @@ void loadRaw(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& readerOptions)
 {
+    auto* simulation = dynamic_cast<GridDynSimulation*>(parentObject->getRoot());
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;  // line storage
     std::string temp1;  // temporary storage for substrings
@@ -823,6 +824,15 @@ void loadRaw(CoreObject* parentObject,
                             loadObject = gLdfactory->makeTypeObject();
                             bus->add(loadObject);
                             rawReadLoad(loadObject, line, opt);
+                            if (simulation != nullptr) {
+                                auto replacement = simulation->makeIEELALLoad(*loadObject);
+                                if (replacement) {
+                                    auto* newLoad = replacement.get();
+                                    bus->replaceLoad(loadObject, newLoad);
+                                    replacement.release();
+                                    loadObject = newLoad;
+                                }
+                            }
                         } else {
                             std::cerr << "Invalid bus number for load " << line.substr(0, 30)
                                       << '\n';
@@ -1507,6 +1517,7 @@ static void
     auto temp = trim(removeQuotes(strvec[1]));
     auto name = loadObject->getParent()->getName() + "_shunt_" + temp;
     loadObject->setName(name);
+    loadObject->setFixedShunt();
 
     // get the status
     auto status = gmlc::utilities::numConv<int>(strvec[2]);

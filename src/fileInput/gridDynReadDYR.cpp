@@ -116,6 +116,7 @@ namespace {
     void loadSEXS(CoreObject* parentObject, stringVec& tokens);
     void loadRenewable(CoreObject* parentObject, stringVec& tokens, std::string_view modelName);
     void loadMeasurement(CoreObject* parentObject, stringVec& tokens, std::string_view modelName);
+    void loadIEELAL(CoreObject* parentObject, const stringVec& tokens);
 
     struct UnsupportedDyrModelSummary {
         std::size_t mCount = 0;
@@ -156,6 +157,8 @@ namespace detail {
             loadGENROU(parentObject, lineTokens);
         } else if (type == "'CSVGN1'") {
             loadCSVGN1(parentObject, lineTokens);
+        } else if (type == "'IEELAL'") {
+            loadIEELAL(parentObject, lineTokens);
         } else if (type == "'GENTPJ'") {
             loadGENTPJ(parentObject, lineTokens);
         } else if (type == "'GENROE'") {
@@ -462,6 +465,38 @@ namespace {
                                         tokens[0] + " and machine " + tokens[2]);
         }
         return generator;
+    }
+
+    void loadIEELAL(CoreObject* parentObject, const stringVec& tokens)
+    {
+        if (tokens.size() != 17U) {
+            throw InvalidParameterValue("IEELAL DYR record must contain 14 parameters");
+        }
+        if (tokens[0] != "0" || gmlc::utilities::stringOps::removeQuotes(tokens[2]) != "*") {
+            throw InvalidParameterValue("IEELAL requires bus 0 and load ID *");
+        }
+        auto* simulation = dynamic_cast<GridDynSimulation*>(parentObject->getRoot());
+        if (simulation == nullptr) {
+            throw InvalidParameterValue("IEELAL requires a GridDynSimulation root");
+        }
+
+        IEELParameters parameters;
+        for (std::size_t index = 0; index < 14U; ++index) {
+            double value = 0.0;
+            const auto& token = tokens[index + 3U];
+            const auto parsed = std::from_chars(token.data(), token.data() + token.size(), value);
+            if ((parsed.ec != std::errc{}) || (parsed.ptr != token.data() + token.size()) ||
+                !std::isfinite(value)) {
+                throw InvalidParameterValue("IEELAL parameter " + std::to_string(index + 1U) +
+                                            " must be a finite number");
+            }
+            if (index < parameters.coefficients.size()) {
+                parameters.coefficients[index] = value;
+            } else {
+                parameters.exponents[index - parameters.coefficients.size()] = value;
+            }
+        }
+        simulation->setIEELALParameters(parameters);
     }
 
     void loadMeasurement(CoreObject* parentObject, stringVec& tokens, std::string_view modelName)

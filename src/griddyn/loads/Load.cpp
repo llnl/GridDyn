@@ -50,6 +50,7 @@ CoreObject* GridLoad::clone(CoreObject* obj) const
                   Q);  // use the set load function in case we are cloning from a basic object to a
                        // higher level object
     nobj->pfq = pfq;
+    nobj->fixedShunt = fixedShunt;
     return nobj;
 }
 

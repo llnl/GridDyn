@@ -118,6 +118,8 @@ class GridBus: public GridPrimary {
     virtual void add(GridLoad* loadObject);
     /** @brief  add a gridGenerator object*/
     virtual void add(Generator* gen);
+    /** Replace an attached load without changing its bus position. */
+    virtual void replaceLoad(GridLoad* previous, GridLoad* replacement);
     /** Replace an attached generator without changing its machine position. */
     virtual void replaceGenerator(Generator* previous, Generator* replacement);
     /** @brief  add a Link object*/

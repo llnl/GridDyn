@@ -13,10 +13,12 @@
 // header files
 #include "simulation/GridDynActions.h"
 #include "simulation/GridSimulation.h"
+#include "loads/IEELParameters.h"
 // libraries
 #include "griddyn/griddyn-config.h"
 #include <functional>
 #include <memory>
+#include <optional>
 #include <queue>
 #include <string>
 #include <string_view>
@@ -32,6 +34,7 @@ class Contingency;
 class ContinuationSequence;
 class SolverInterface;
 class ParameterSet;
+class GridLoad;
 
 /** additional flags for the controlFlags bitset*/
 enum GridDynFlags {
@@ -204,6 +207,7 @@ class GridDynSimulation: public GridSimulation {
     //!< step
     ResidualParallelMode residualParallelMode =
         ResidualParallelMode::AUTO;  //!< Residual parallelism policy.
+    std::optional<IEELParameters> ieelAllLoadParameters;  //!< IEELAL template for RAW loads
 
     /** @brief Select the residual thread count from the configured policy and network size.
      *
@@ -230,6 +234,11 @@ class GridDynSimulation: public GridSimulation {
     /** @brief get the master instance of a GridDynSimulation
     @return a pointer to the master GridDynSimulation object*/
     static GridDynSimulation* getInstance(void);
+
+    /** Create a load configured with the current IEELAL template, if one is active. */
+    std::unique_ptr<GridLoad> makeIEELALLoad(const GridLoad& load) const;
+    /** Store a system-wide IEELAL record and apply it to loads already in the model. */
+    void setIEELALParameters(const IEELParameters& parameters);
 
     // simulation
     /** @brief define an enumeration for the network check level*/

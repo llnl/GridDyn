@@ -7,11 +7,15 @@
 #include "../GridDynSimulation.h"
 
 #include "../GridBus.h"
+#include "../Load.h"
 #include "../Link.h"
 #include "../events/Event.h"
 #include "../events/EventQueue.h"
 #include "../events/ParameterOperator.h"
+#include "../loads/FDepLoad.h"
 #include "../loads/GridLabDLoad.h"
+#include "../loads/IEELLoad.h"
+#include "../loads/ZipLoad.h"
 #include "../solvers/SolverInterface.h"
 #include "Contingency.h"
 #include "GridDynSimulationFileOps.h"
@@ -28,6 +32,7 @@
 #include <algorithm>
 #include <cassert>
 #include <compare>
+#include <cmath>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -85,6 +90,165 @@ GridDynSimulation* GridDynSimulation::getInstance()
     return s_instance;
 }
 
+namespace {
+struct IEELVoltageTerm {
+    double coefficient;
+    double exponent;
+};
+
+std::vector<IEELVoltageTerm> getIEELVoltageTerms(const IEELParameters& parameters,
+                                                 std::size_t firstTerm)
+{
+    constexpr double tolerance = 1e-12;
+    std::vector<IEELVoltageTerm> terms;
+    for (std::size_t index = 0; index < 3U; ++index) {
+        const auto coefficient = parameters.coefficients[firstTerm + index];
+        const auto exponent = parameters.exponents[firstTerm + index];
+        if (std::abs(coefficient) <= tolerance) {
+            continue;
+        }
+        auto existing = std::find_if(
+            terms.begin(), terms.end(), [exponent, tolerance](const auto& term) {
+                return std::abs(term.exponent - exponent) <= tolerance;
+            });
+        if (existing == terms.end()) {
+            terms.push_back({coefficient, exponent});
+        } else {
+            existing->coefficient += coefficient;
+        }
+    }
+    std::erase_if(terms, [tolerance](const auto& term) {
+        return std::abs(term.coefficient) <= tolerance;
+    });
+    return terms;
+}
+}  // namespace
+
+std::unique_ptr<GridLoad> GridDynSimulation::makeIEELALLoad(const GridLoad& load) const
+{
+    if (!ieelAllLoadParameters || load.isFixedShunt()) {
+        return {};
+    }
+    if (load.checkFlag(DYN_INITIALIZED)) {
+        throw InvalidParameterValue("IEEL cannot be assigned after dynamic initialization");
+    }
+    if ((dynamic_cast<const ZipLoad*>(&load) == nullptr) &&
+        (dynamic_cast<const loads::FDepLoad*>(&load) == nullptr) &&
+        (dynamic_cast<const loads::IEELLoad*>(&load) == nullptr)) {
+        throw InvalidParameterValue("IEELAL cannot replace load '" + load.getName() +
+                                    "' because its existing dynamic load model is not a ZIP, "
+                                    "FDep, or IEEL model");
+    }
+
+    const auto& parameters = *ieelAllLoadParameters;
+    const auto representation = classifyIEEL(parameters);
+    const double baseP = load.getRealPower(1.0);
+    const double baseQ = load.getReactivePower(1.0);
+    std::unique_ptr<GridLoad> replacement;
+    if (representation == IEELRepresentation::ZIP) {
+        replacement = std::make_unique<ZipLoad>(load.getName());
+    } else if (representation == IEELRepresentation::FDEP) {
+        replacement = std::make_unique<loads::FDepLoad>(load.getName());
+    } else {
+        replacement = std::make_unique<loads::IEELLoad>(load.getName());
+    }
+
+    load.GridLoad::clone(replacement.get());
+    replacement->setLoad(baseP, baseQ, units::puMW);
+    replacement->setFlag("usepowerfactor", false);
+
+    if (representation == IEELRepresentation::ZIP) {
+        auto* zipLoad = static_cast<ZipLoad*>(replacement.get());
+        double pConstant = 0.0;
+        double pCurrent = 0.0;
+        double pImpedance = 0.0;
+        double qConstant = 0.0;
+        double qCurrent = 0.0;
+        double qImpedance = 0.0;
+        for (const auto& term : getIEELVoltageTerms(parameters, 0U)) {
+            if (std::abs(term.exponent) <= 1e-12) {
+                pConstant += baseP * term.coefficient;
+            } else if (std::abs(term.exponent - 1.0) <= 1e-12) {
+                pCurrent += baseP * term.coefficient;
+            } else {
+                pImpedance += baseP * term.coefficient;
+            }
+        }
+        for (const auto& term : getIEELVoltageTerms(parameters, 3U)) {
+            if (std::abs(term.exponent) <= 1e-12) {
+                qConstant += baseQ * term.coefficient;
+            } else if (std::abs(term.exponent - 1.0) <= 1e-12) {
+                qCurrent += baseQ * term.coefficient;
+            } else {
+                qImpedance += baseQ * term.coefficient;
+            }
+        }
+        zipLoad->set("p", pConstant, units::puMW);
+        zipLoad->set("ip", pCurrent, units::puA);
+        zipLoad->set("yp", pImpedance, units::puMW);
+        zipLoad->set("q", qConstant, units::puMW);
+        zipLoad->set("iq", qCurrent, units::puA);
+        zipLoad->set("yq", qImpedance, units::puMW);
+        zipLoad->setFlag("no_pqvoltage_limit", true);
+    } else if (representation == IEELRepresentation::FDEP) {
+        auto* fdepLoad = static_cast<loads::FDepLoad*>(replacement.get());
+        const auto setSide = [&parameters](loads::FDepLoad* target,
+                                           std::size_t firstTerm,
+                                           bool reactive) {
+            const auto terms = getIEELVoltageTerms(parameters, firstTerm);
+            const char* alpha = reactive ? "alphaq" : "alphap";
+            const char* scale = reactive ? "q_scale" : "p_scale";
+            const char* beta = reactive ? "betaq" : "betap";
+            const std::size_t frequencyIndex = reactive ? 7U : 6U;
+            target->set(alpha, terms.empty() ? 0.0 : terms.front().exponent);
+            target->set(scale, terms.empty() ? 0.0 : terms.front().coefficient);
+            const double frequencyCoefficient = parameters.coefficients[frequencyIndex];
+            target->set(beta, (std::abs(frequencyCoefficient - 1.0) <= 1e-12) ? 1.0 : 0.0);
+        };
+        setSide(fdepLoad, 0U, false);
+        setSide(fdepLoad, 3U, true);
+    } else {
+        static_cast<loads::IEELLoad*>(replacement.get())->setIEELParameters(parameters);
+    }
+    return replacement;
+}
+
+void GridDynSimulation::setIEELALParameters(const IEELParameters& parameters)
+{
+    std::vector<GridBus*> buses;
+    getBusVector(buses);
+    for (auto* bus : buses) {
+        for (index_t index = 0; bus->getLoad(index) != nullptr; ++index) {
+            auto* load = bus->getLoad(index);
+            if (!load->isFixedShunt()) {
+                if (load->checkFlag(DYN_INITIALIZED)) {
+                    throw InvalidParameterValue(
+                        "IEEL cannot be assigned after dynamic initialization");
+                }
+                if ((dynamic_cast<ZipLoad*>(load) == nullptr) &&
+                    (dynamic_cast<loads::FDepLoad*>(load) == nullptr) &&
+                    (dynamic_cast<loads::IEELLoad*>(load) == nullptr)) {
+                    throw InvalidParameterValue("IEELAL cannot replace load '" + load->getName() +
+                                                "' because its existing dynamic load model is not "
+                                                "a ZIP, FDep, or IEEL model");
+                }
+            }
+        }
+    }
+    ieelAllLoadParameters = parameters;
+    for (auto* bus : buses) {
+        for (index_t index = 0; bus->getLoad(index) != nullptr; ++index) {
+            auto* load = bus->getLoad(index);
+            auto replacement = makeIEELALLoad(*load);
+            if (replacement) {
+                auto* newLoad = replacement.get();
+                bus->replaceLoad(load, newLoad);
+                replacement.release();
+            }
+        }
+    }
+}
+
 CoreObject* GridDynSimulation::clone(CoreObject* obj) const
 {
     auto* sim = cloneBase<GridDynSimulation, GridSimulation>(this, obj);
@@ -92,6 +256,7 @@ CoreObject* GridDynSimulation::clone(CoreObject* obj) const
         return obj;
     }
     sim->controlFlags = controlFlags;
+    sim->ieelAllLoadParameters = ieelAllLoadParameters;
     sim->max_Vadjust_iterations = max_Vadjust_iterations;
     sim->max_Padjust_iterations = max_Padjust_iterations;
 

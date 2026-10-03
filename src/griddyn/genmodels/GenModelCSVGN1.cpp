@@ -186,14 +186,12 @@ GenModelCSVGN1::RegulatorSignals GenModelCSVGN1::getRegulatorSignals(double volt
     RegulatorSignals signals;
     signals.error = voltage - voltageReference();
     signals.firstOutput = ((T1 / T3) * signals.error) + ((1.0 - (T1 / T3)) * state[0]);
-    signals.secondOutput =
-        ((T2 / T4) * signals.firstOutput) + ((1.0 - (T2 / T4)) * state[1]);
+    signals.secondOutput = ((T2 / T4) * signals.firstOutput) + ((1.0 - (T2 / T4)) * state[1]);
     const double rawOutput = K * signals.secondOutput;
     signals.limitedOutput = std::clamp(rawOutput, VMIN, VMAX);
     // The clamp is nondifferentiable at its limits. Use its right-sided slope,
     // matching the forward perturbations used by the GridDyn Jacobian checker.
-    signals.limitedOutputGain =
-        ((rawOutput >= VMIN) && (rawOutput < VMAX)) ? K : 0.0;
+    signals.limitedOutputGain = ((rawOutput >= VMIN) && (rawOutput < VMAX)) ? K : 0.0;
     return signals;
 }
 
@@ -237,8 +235,8 @@ void GenModelCSVGN1::residual(const IOdata& inputs,
 }
 
 IOdata GenModelCSVGN1::getOutputs(const IOdata& inputs,
-                                 const StateData& stateDataValue,
-                                 const SolverMode& sMode) const
+                                  const StateData& stateDataValue,
+                                  const SolverMode& sMode) const
 {
     const auto locations = offsets.getLocations(stateDataValue, sMode, this);
     IOdata outputs(2, 0.0);
@@ -250,9 +248,9 @@ IOdata GenModelCSVGN1::getOutputs(const IOdata& inputs,
 }
 
 double GenModelCSVGN1::getOutput(const IOdata& inputs,
-                                const StateData& stateDataValue,
-                                const SolverMode& sMode,
-                                index_t outNum) const
+                                 const StateData& stateDataValue,
+                                 const SolverMode& sMode,
+                                 index_t outNum) const
 {
     if (outNum == POUT_LOCATION) {
         return 0.0;
@@ -325,9 +323,9 @@ void GenModelCSVGN1::jacobianElements(const IOdata& inputs,
 }
 
 void GenModelCSVGN1::outputPartialDerivatives(const IOdata& inputs,
-                                             const StateData& stateDataValue,
-                                             MatrixData<double>& matrixDataValue,
-                                             const SolverMode& sMode)
+                                              const StateData& stateDataValue,
+                                              MatrixData<double>& matrixDataValue,
+                                              const SolverMode& sMode)
 {
     if (!hasDifferential(sMode)) {
         return;

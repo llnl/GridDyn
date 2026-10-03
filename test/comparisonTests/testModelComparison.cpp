@@ -284,10 +284,10 @@ TEST(DyrReaderComparisonTests, MapsCsvgn1ParametersAndRunsAsMachineModel)
     const auto states = model->getStates();
     const double voltage = svcBus->getVoltage();
     const double error = voltage - (voltage - states[0]);
-    const double firstOutput = (model->get("t1") / model->get("t3")) * error +
-        (1.0 - (model->get("t1") / model->get("t3"))) * states[0];
-    const double secondOutput = (model->get("t2") / model->get("t4")) * firstOutput +
-        (1.0 - (model->get("t2") / model->get("t4"))) * states[1];
+    const double firstOutput = ((model->get("t1") / model->get("t3")) * error) +
+        ((1.0 - (model->get("t1") / model->get("t3"))) * states[0]);
+    const double secondOutput = ((model->get("t2") / model->get("t4")) * firstOutput) +
+        ((1.0 - (model->get("t2") / model->get("t4"))) * states[1]);
     const double regulatorOutput = model->get("k") * secondOutput;
     ASSERT_GT(regulatorOutput, model->get("vmin"));
     ASSERT_LT(regulatorOutput, model->get("vmax"));

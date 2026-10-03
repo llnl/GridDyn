@@ -354,7 +354,7 @@ TEST(ExampleReaderTests, SparseEPCBusIDResolvesDYDModelsAndESAC1ATrailer)
             std::filesystem::remove(epc, error);
             std::filesystem::remove(dyd, error);
         }
-    } cleanup{epcPath, dydPath};
+    } cleanup{.epc = epcPath, .dyd = dydPath};
 
     {
         std::ofstream output(epcPath);

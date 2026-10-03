@@ -22,11 +22,13 @@
 #include "mpi.h"
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <functional>
 #include <iostream>
 #include <list>
+#include <limits>
 #include <memory>
-#include <sstream>
+#include <stdexcept>
 #include <string>
 
 namespace griddyn::braid {
@@ -48,7 +50,6 @@ using std::cerr;
 using std::cout;
 using std::endl;
 using std::ifstream;
-using std::istringstream;
 using std::list;
 using std::make_unique;
 using std::max;
@@ -90,11 +91,23 @@ void buildGrid(ODEProblem* ode, const MapParam& param, int& Nsteps, Real*& timeg
         list<Real> timelist;
         ifstream infile(gridfile);
         string line;
-        Real t;
+        std::size_t lineNumber = 0;
         Nsteps = 0;
         while (getline(infile, line)) {
-            istringstream ss(line);
-            ss >> t;
+            ++lineNumber;
+            Real t = std::numeric_limits<Real>::quiet_NaN();
+            const auto timeValue = gmlc::utilities::string_viewOps::trim(line);
+            try {
+                t = gmlc::utilities::numeric_conversionComplete<Real>(timeValue, t);
+            }
+            catch (const std::out_of_range&) {
+                // Treat out-of-range numeric values like other invalid time-grid entries.
+            }
+            if (!std::isfinite(t)) {
+                cerr << "Error reading the file " << gridfile << " for time grid at line "
+                     << lineNumber << ": expected a finite time value." << endl;
+                abort();
+            }
             timelist.push_back(t);
         }
         Nsteps = timelist.size();

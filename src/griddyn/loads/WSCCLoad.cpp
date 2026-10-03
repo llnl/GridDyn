@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <string>
 #include <string_view>
 
 namespace griddyn::loads {
@@ -115,8 +116,12 @@ double WSCCLoad::powerAtVoltage(bool reactive, double voltage, double frequency)
     }
     if ((parameters.vmin > 0.0) && (voltage < parameters.vmin)) {
         const double voltageRatio = voltage / parameters.vmin;
-        value = powerAtVoltage(reactive, parameters.vmin, frequency) * voltageRatio *
-            voltageRatio;
+        const double minimumPolynomial = voltagePolynomial(reactive, parameters.vmin);
+        const double minimumValue = extended ?
+            basePower *
+                (minimumPolynomial + (fourth * frequencyCoefficient * (frequency - 1.0))) :
+            basePower * minimumPolynomial * frequencyFactor;
+        value = minimumValue * voltageRatio * voltageRatio;
     }
     return value;
 }
@@ -141,9 +146,14 @@ double WSCCLoad::powerFrequencyDerivative(bool reactive, double voltage, double 
 {
     const double basePower = reactive ? getQ() : getP();
     if ((parameters.vmin > 0.0) && (voltage < parameters.vmin)) {
+        const double fourth = reactive ? parameters.q4 : parameters.p4;
+        const double frequencyCoefficient = reactive ? parameters.lqd : parameters.lpd;
+        const bool extended = (parameters.p4 != 0.0) || (parameters.q4 != 0.0);
+        const double minimumFrequencyDerivative = extended ?
+            fourth * frequencyCoefficient :
+            voltagePolynomial(reactive, parameters.vmin) * frequencyCoefficient;
         const double voltageRatio = voltage / parameters.vmin;
-        return powerFrequencyDerivative(reactive, parameters.vmin, frequency) * voltageRatio *
-            voltageRatio;
+        return basePower * minimumFrequencyDerivative * voltageRatio * voltageRatio;
     }
     return basePower * frequencyDerivative(reactive, voltage);
 }

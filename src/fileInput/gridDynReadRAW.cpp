@@ -36,6 +36,7 @@
 #include <iostream>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -756,6 +757,37 @@ static void readRawCaseDescription(std::ifstream& file,
     }
 }
 
+static void readRawLoadSection(std::ifstream& file,
+                               std::string& line,
+                               std::vector<GridBus*>& busList,
+                               GridDynSimulation* simulation,
+                               BasicReaderInfo& opt)
+{
+    while (checkNextLine(file, line)) {
+        auto* bus = findBus(busList, line);
+        if (bus == nullptr) {
+            std::cerr << "Invalid bus number for load " << line.substr(0, 30) << '\n';
+            continue;
+        }
+
+        auto* loadObject = gLdfactory->makeTypeObject();
+        bus->add(loadObject);
+        rawReadLoad(loadObject, line, opt);
+        if (simulation == nullptr) {
+            continue;
+        }
+        auto replacement = simulation->makeIEELALLoad(*loadObject);
+        if (!replacement) {
+            replacement = simulation->makeWSCCLoad(*loadObject);
+        }
+        if (replacement) {
+            auto* newLoad = replacement.get();
+            bus->replaceLoad(loadObject, newLoad);
+            std::ignore = replacement.release();
+        }
+    }
+}
+
 void loadRaw(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& readerOptions)
@@ -775,7 +807,6 @@ void loadRaw(CoreObject* parentObject,
     std::unordered_map<int, loads::Svd*> remoteSwitchedShunts;
     BasicReaderInfo readerOptionsCopy(readerOptions);
     auto& opt = readerOptionsCopy;
-    GridLoad* loadObject;
     Generator* gen;
     GridBus* bus;
 
@@ -817,33 +848,7 @@ void loadRaw(CoreObject* parentObject,
         bool moreData = true;
         switch (currSection) {
             case SectionType::LOAD:
-                while (moreData) {
-                    if (checkNextLine(file, line)) {
-                        bus = findBus(busList, line);
-                        if (bus != nullptr) {
-                            loadObject = gLdfactory->makeTypeObject();
-                            bus->add(loadObject);
-                            rawReadLoad(loadObject, line, opt);
-                            if (simulation != nullptr) {
-                                auto replacement = simulation->makeIEELALLoad(*loadObject);
-                                if (!replacement) {
-                                    replacement = simulation->makeWSCCLoad(*loadObject);
-                                }
-                                if (replacement) {
-                                    auto* newLoad = replacement.get();
-                                    bus->replaceLoad(loadObject, newLoad);
-                                    replacement.release();
-                                    loadObject = newLoad;
-                                }
-                            }
-                        } else {
-                            std::cerr << "Invalid bus number for load " << line.substr(0, 30)
-                                      << '\n';
-                        }
-                    } else {
-                        moreData = false;
-                    }
-                }
+                readRawLoadSection(file, line, busList, simulation, opt);
                 break;
             case SectionType::GENERATOR:
                 while (moreData) {

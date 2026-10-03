@@ -110,13 +110,13 @@ TEST(IEELLoadTests, SelectsTheSimplestEquivalentLoadAndEvaluatesItsEquation)
     checkConversion(generalParameters,
                     IEELRepresentation::IEEL,
                     [](double voltage, double frequency) {
-                        return 0.6 * (0.4 * std::pow(voltage, 0.5) +
-                                      0.6 * std::pow(voltage, 1.5)) *
+                        return 0.6 * ((0.4 * std::pow(voltage, 0.5)) +
+                                      (0.6 * std::pow(voltage, 1.5))) *
                             (1.0 + (0.25 * (frequency - 1.0)));
                     },
                     [](double voltage, double frequency) {
-                        return 0.25 * (0.3 * std::pow(voltage, 0.2) +
-                                       0.7 * std::pow(voltage, 2.5)) *
+                        return 0.25 * ((0.3 * std::pow(voltage, 0.2)) +
+                                       (0.7 * std::pow(voltage, 2.5))) *
                             (1.0 + (0.4 * (frequency - 1.0)));
                     });
 }

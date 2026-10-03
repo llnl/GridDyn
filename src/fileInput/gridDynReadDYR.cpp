@@ -10,8 +10,8 @@
 #include "core/ObjectFactory.hpp"
 #include "core/coreDefinitions.hpp"
 #include "fileInput.h"
-#include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
+#include "gmlc/utilities/string_viewConversion.h"
 #include "gridDynReadDyrModels.h"
 #include "griddyn/Exciter.h"
 #include "griddyn/GenModel.h"
@@ -50,9 +50,11 @@
 #include <cmath>
 #include <cstddef>
 #include <fstream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <span>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 
@@ -482,13 +484,19 @@ namespace {
 
         IEELParameters parameters;
         for (std::size_t index = 0; index < 14U; ++index) {
-            double value = 0.0;
             const auto& token = tokens[index + 3U];
-            const auto parsed = std::from_chars(token.data(), token.data() + token.size(), value);
-            if ((parsed.ec != std::errc{}) || (parsed.ptr != token.data() + token.size()) ||
-                !std::isfinite(value)) {
-                throw InvalidParameterValue("IEELAL parameter " + std::to_string(index + 1U) +
-                                            " must be a finite number");
+            const std::string errorMessage = "IEELAL parameter " +
+                std::to_string(index + 1U) + " must be a finite number";
+            double value = std::numeric_limits<double>::quiet_NaN();
+            try {
+                value = gmlc::utilities::numeric_conversionComplete<double>(
+                    std::string_view{token}, value);
+            }
+            catch (const std::out_of_range&) {
+                throw InvalidParameterValue(errorMessage);
+            }
+            if (!std::isfinite(value)) {
+                throw InvalidParameterValue(errorMessage);
             }
             if (index < parameters.coefficients.size()) {
                 parameters.coefficients[index] = value;

@@ -8,6 +8,7 @@
 
 #include "../Load.h"
 #include "WSCCParameters.h"
+#include <string>
 
 namespace griddyn::loads {
 /** Load implementing the full WSCC voltage and frequency characteristic.

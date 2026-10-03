@@ -34,7 +34,7 @@ inline IEELRepresentation classifyIEEL(const IEELParameters& parameters)
 {
     constexpr double tolerance = 1e-12;
     using Term = std::pair<double, double>;
-    const auto terms = [&parameters, tolerance](std::size_t start) {
+    const auto terms = [&parameters](std::size_t start) {
         std::vector<Term> result;
         for (std::size_t index = 0; index < 3U; ++index) {
             const double coefficient = parameters.coefficients[start + index];
@@ -42,8 +42,8 @@ inline IEELRepresentation classifyIEEL(const IEELParameters& parameters)
             if (std::abs(coefficient) <= tolerance) {
                 continue;
             }
-            auto existing = std::find_if(
-                result.begin(), result.end(), [exponent, tolerance](const Term& term) {
+            auto existing =
+                std::find_if(result.begin(), result.end(), [exponent](const Term& term) {
                     return std::abs(term.second - exponent) <= tolerance;
                 });
             if (existing == result.end()) {
@@ -52,14 +52,14 @@ inline IEELRepresentation classifyIEEL(const IEELParameters& parameters)
                 existing->first += coefficient;
             }
         }
-        std::erase_if(result, [tolerance](const Term& term) {
+        std::erase_if(result, [](const Term& term) {
             return std::abs(term.first) <= tolerance;
         });
         return result;
     };
     const auto pTerms = terms(0U);
     const auto qTerms = terms(3U);
-    const auto isZipExponent = [tolerance](double exponent) {
+    const auto isZipExponent = [](double exponent) {
         return (std::abs(exponent) <= tolerance) ||
             (std::abs(exponent - 1.0) <= tolerance) ||
             (std::abs(exponent - 2.0) <= tolerance);
@@ -77,7 +77,7 @@ inline IEELRepresentation classifyIEEL(const IEELParameters& parameters)
         return IEELRepresentation::ZIP;
     }
 
-    const auto frequencyPowerFits = [tolerance](const std::vector<Term>& side, double a) {
+    const auto frequencyPowerFits = [](const std::vector<Term>& side, double a) {
         return side.empty() || ((side.size() == 1U) &&
                                 ((std::abs(a) <= tolerance) ||
                                  (std::abs(a - 1.0) <= tolerance)));

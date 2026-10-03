@@ -96,8 +96,8 @@ GridDynSimulation* GridDynSimulation::getInstance()
 
 namespace {
 struct IEELVoltageTerm {
-    double coefficient;
-    double exponent;
+    double mCoefficient;
+    double mExponent;
 };
 
 std::vector<IEELVoltageTerm> getIEELVoltageTerms(const IEELParameters& parameters,
@@ -112,17 +112,18 @@ std::vector<IEELVoltageTerm> getIEELVoltageTerms(const IEELParameters& parameter
             continue;
         }
         auto existing = std::find_if(
-            terms.begin(), terms.end(), [exponent, tolerance](const auto& term) {
-                return std::abs(term.exponent - exponent) <= tolerance;
+            terms.begin(), terms.end(), [exponent](const auto& term) {
+                return std::abs(term.mExponent - exponent) <= tolerance;
             });
         if (existing == terms.end()) {
-            terms.push_back({coefficient, exponent});
+            terms.push_back(
+                IEELVoltageTerm{.mCoefficient = coefficient, .mExponent = exponent});
         } else {
-            existing->coefficient += coefficient;
+            existing->mCoefficient += coefficient;
         }
     }
-    std::erase_if(terms, [tolerance](const auto& term) {
-        return std::abs(term.coefficient) <= tolerance;
+    std::erase_if(terms, [](const auto& term) {
+        return std::abs(term.mCoefficient) <= tolerance;
     });
     return terms;
 }
@@ -145,8 +146,12 @@ double getWSCCCharacteristic(const WSCCParameters& parameters,
         polynomial * frequencyFactor;
     if ((parameters.vmin > 0.0) && (voltage < parameters.vmin)) {
         const double voltageRatio = voltage / parameters.vmin;
-        return getWSCCCharacteristic(parameters, reactive, parameters.vmin, frequency) *
-            voltageRatio * voltageRatio;
+        const double minimumPolynomial =
+            ((first * parameters.vmin) * parameters.vmin) + (second * parameters.vmin) + third;
+        const double minimumCharacteristic = extended ?
+            minimumPolynomial + (fourth * frequencyFactor) :
+            minimumPolynomial * frequencyFactor;
+        return minimumCharacteristic * voltageRatio * voltageRatio;
     }
     return characteristic;
 }
@@ -195,21 +200,21 @@ std::unique_ptr<GridLoad> GridDynSimulation::makeIEELALLoad(const GridLoad& load
         double qCurrent = 0.0;
         double qImpedance = 0.0;
         for (const auto& term : getIEELVoltageTerms(parameters, 0U)) {
-            if (std::abs(term.exponent) <= 1e-12) {
-                pConstant += baseP * term.coefficient;
-            } else if (std::abs(term.exponent - 1.0) <= 1e-12) {
-                pCurrent += baseP * term.coefficient;
+            if (std::abs(term.mExponent) <= 1e-12) {
+                pConstant += baseP * term.mCoefficient;
+            } else if (std::abs(term.mExponent - 1.0) <= 1e-12) {
+                pCurrent += baseP * term.mCoefficient;
             } else {
-                pImpedance += baseP * term.coefficient;
+                pImpedance += baseP * term.mCoefficient;
             }
         }
         for (const auto& term : getIEELVoltageTerms(parameters, 3U)) {
-            if (std::abs(term.exponent) <= 1e-12) {
-                qConstant += baseQ * term.coefficient;
-            } else if (std::abs(term.exponent - 1.0) <= 1e-12) {
-                qCurrent += baseQ * term.coefficient;
+            if (std::abs(term.mExponent) <= 1e-12) {
+                qConstant += baseQ * term.mCoefficient;
+            } else if (std::abs(term.mExponent - 1.0) <= 1e-12) {
+                qCurrent += baseQ * term.mCoefficient;
             } else {
-                qImpedance += baseQ * term.coefficient;
+                qImpedance += baseQ * term.mCoefficient;
             }
         }
         zipLoad->set("p", pConstant, units::puMW);
@@ -229,8 +234,8 @@ std::unique_ptr<GridLoad> GridDynSimulation::makeIEELALLoad(const GridLoad& load
             const char* scale = reactive ? "q_scale" : "p_scale";
             const char* beta = reactive ? "betaq" : "betap";
             const std::size_t frequencyIndex = reactive ? 7U : 6U;
-            target->set(alpha, terms.empty() ? 0.0 : terms.front().exponent);
-            target->set(scale, terms.empty() ? 0.0 : terms.front().coefficient);
+            target->set(alpha, terms.empty() ? 0.0 : terms.front().mExponent);
+            target->set(scale, terms.empty() ? 0.0 : terms.front().mCoefficient);
             const double frequencyCoefficient = parameters.coefficients[frequencyIndex];
             target->set(beta, (std::abs(frequencyCoefficient - 1.0) <= 1e-12) ? 1.0 : 0.0);
         };
@@ -277,7 +282,7 @@ void GridDynSimulation::setIEELALParameters(const IEELParameters& parameters)
             if (replacement) {
                 auto* newLoad = replacement.get();
                 bus->replaceLoad(load, newLoad);
-                replacement.release();
+                std::ignore = replacement.release();
             }
         }
     }
@@ -409,7 +414,7 @@ void GridDynSimulation::setWSCCLoadParameters(const WSCCParameters& parameters,
         throw InvalidParameterValue("WSCC parameters must be finite and VMIN must be nonnegative");
     }
 
-    std::optional<WSCCParameters> previousSystemParameters = wsccAllLoadParameters;
+    const std::optional<WSCCParameters> previousSystemParameters = wsccAllLoadParameters;
     std::optional<WSCCParameters> previousScopedParameters;
     const auto previousIeelParameters = ieelAllLoadParameters;
     bool hadPreviousScopedParameters = false;
@@ -501,7 +506,7 @@ void GridDynSimulation::setWSCCLoadParameters(const WSCCParameters& parameters,
     for (auto& [bus, oldLoad, replacement] : replacements) {
         auto* newLoad = replacement.get();
         bus->replaceLoad(oldLoad, newLoad);
-        replacement.release();
+        std::ignore = replacement.release();
     }
 }
 

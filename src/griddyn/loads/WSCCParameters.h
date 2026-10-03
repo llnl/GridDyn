@@ -47,7 +47,7 @@ inline WSCCRepresentation classifyWSCC(const WSCCParameters& parameters,
                                        WSCCFDepSide& qSide)
 {
     constexpr double tolerance = 1e-12;
-    const auto isZero = [tolerance](double value) { return std::abs(value) <= tolerance; };
+    const auto isZero = [](double value) { return std::abs(value) <= tolerance; };
     const bool extended = !isZero(parameters.p4) || !isZero(parameters.q4);
     if (isZero(parameters.vmin)) {
         const bool pHasVoltageCurve = extended ?

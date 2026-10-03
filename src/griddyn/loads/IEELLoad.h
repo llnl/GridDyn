@@ -8,6 +8,7 @@
 
 #include "../Load.h"
 #include "IEELParameters.h"
+#include <string>
 
 namespace griddyn::loads {
 /** Load implementing the full PSS/E IEEL voltage and frequency characteristic. */

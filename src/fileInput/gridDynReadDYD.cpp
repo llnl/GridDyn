@@ -19,6 +19,7 @@
 #include <charconv>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <fstream>
 #include <limits>
@@ -129,17 +130,17 @@ namespace {
                                             " is not a finite number");
             }
         }
-        return WSCCParameters{values[0],
-                              values[1],
-                              values[2],
-                              values[3],
-                              values[4],
-                              values[5],
-                              values[6],
-                              values[7],
-                              values[8],
-                              values[9],
-                              values[10]};
+        return WSCCParameters{.p1 = values[0],
+                              .q1 = values[1],
+                              .p2 = values[2],
+                              .q2 = values[3],
+                              .p3 = values[4],
+                              .q3 = values[5],
+                              .p4 = values[6],
+                              .q4 = values[7],
+                              .lpd = values[8],
+                              .lqd = values[9],
+                              .vmin = values[10]};
     }
 
     index_t parseDydSelector(std::string_view value, std::string_view modelName)
@@ -148,7 +149,7 @@ namespace {
             throw InvalidParameterValue(std::string{modelName} +
                                         " selector must be a nonnegative integer");
         }
-        unsigned long long parsedValue = 0;
+        std::uint64_t parsedValue = 0;
         const auto result = std::from_chars(value.data(), value.data() + value.size(), parsedValue);
         if ((result.ec != std::errc{}) || (result.ptr != value.data() + value.size()) ||
             (parsedValue > std::numeric_limits<index_t>::max())) {
@@ -663,7 +664,7 @@ void loadDyd(CoreObject* parentObject,
         parentObject->log(parentObject, PrintLevel::WARNING, message);
     }
     if (ignoredIeeestTdelay.mCount > 0U) {
-        std::string message = fileName +
+        const std::string message = fileName +
             ": ignored nonzero or invalid PSLF IEEEST Tdelay values (time delay is not modeled): " +
             std::to_string(ignoredIeeestTdelay.mCount) + " record(s); first at line " +
             std::to_string(ignoredIeeestTdelay.mFirstLine) + ", bus " +

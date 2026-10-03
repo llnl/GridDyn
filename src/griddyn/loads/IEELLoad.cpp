@@ -14,6 +14,7 @@
 #include <charconv>
 #include <cmath>
 #include <optional>
+#include <string>
 
 namespace griddyn::loads {
 static ChildTypeFactory<IEELLoad, GridLoad> gIEELLoadFactory("load", "ieel");
@@ -138,10 +139,12 @@ void IEELLoad::ioPartialDerivatives(const IOdata& inputs,
     const double frequency = (inputs.size() > FREQUENCY_IN_LOCATION) ?
         inputs[FREQUENCY_IN_LOCATION] :
         bus->getFreq(stateData, sMode);
-    const double aP = frequencyCoefficient(false);
-    const double aQ = frequencyCoefficient(true);
-    const double pFrequencyFactor = 1.0 + (aP * (frequency - 1.0));
-    const double qFrequencyFactor = 1.0 + (aQ * (frequency - 1.0));
+    const double pFrequencyCoefficient = frequencyCoefficient(false);
+    const double qFrequencyCoefficient = frequencyCoefficient(true);
+    const double pFrequencyFactor =
+        1.0 + (pFrequencyCoefficient * (frequency - 1.0));
+    const double qFrequencyFactor =
+        1.0 + (qFrequencyCoefficient * (frequency - 1.0));
 
     if (inputLocs[VOLTAGE_IN_LOCATION] != kNullLocation) {
         matrixData.assign(POUT_LOCATION,
@@ -153,9 +156,9 @@ void IEELLoad::ioPartialDerivatives(const IOdata& inputs,
     }
     if (inputLocs[FREQUENCY_IN_LOCATION] != kNullLocation) {
         matrixData.assign(POUT_LOCATION, inputLocs[FREQUENCY_IN_LOCATION],
-                          getP() * voltageFactor(false, voltage) * aP);
+                          getP() * voltageFactor(false, voltage) * pFrequencyCoefficient);
         matrixData.assign(QOUT_LOCATION, inputLocs[FREQUENCY_IN_LOCATION],
-                          getQ() * voltageFactor(true, voltage) * aQ);
+                          getQ() * voltageFactor(true, voltage) * qFrequencyCoefficient);
     }
 }
 

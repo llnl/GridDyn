@@ -47,11 +47,8 @@ class WSCCLoad: public GridLoad {
 
     void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     void set(std::string_view param, std::string_view val) override;
-    void set(std::string_view param,
-             double val,
-             units::unit unitType = units::defunit) override;
-    double get(std::string_view param,
-               units::unit unitType = units::defunit) const override;
+    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
     void ioPartialDerivatives(const IOdata& inputs,
                               const StateData& stateData,

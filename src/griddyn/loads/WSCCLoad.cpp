@@ -21,18 +21,18 @@ namespace griddyn::loads {
 static ChildTypeFactory<WSCCLoad, GridLoad> gWSCCLoadFactory("load", "wscc");
 
 namespace {
-constexpr std::array<std::string_view, 11> parameterNames{
-    "p1", "q1", "p2", "q2", "p3", "q3", "p4", "q4", "lpd", "lqd", "vmin"};
+    constexpr std::array<std::string_view, 11>
+        parameterNames{"p1", "q1", "p2", "q2", "p3", "q3", "p4", "q4", "lpd", "lqd", "vmin"};
 
-bool allFinite(const WSCCParameters& parameters)
-{
+    bool allFinite(const WSCCParameters& parameters)
+    {
     return std::isfinite(parameters.p1) && std::isfinite(parameters.q1) &&
         std::isfinite(parameters.p2) && std::isfinite(parameters.q2) &&
         std::isfinite(parameters.p3) && std::isfinite(parameters.q3) &&
         std::isfinite(parameters.p4) && std::isfinite(parameters.q4) &&
         std::isfinite(parameters.lpd) && std::isfinite(parameters.lqd) &&
         std::isfinite(parameters.vmin);
-}
+    }
 }  // namespace
 
 WSCCLoad::WSCCLoad(const std::string& objName): GridLoad(objName) {}
@@ -281,8 +281,8 @@ double WSCCLoad::getRealPower(const IOdata& inputs,
                               const StateData& stateData,
                               const SolverMode& sMode) const
 {
-    const double voltage = inputs.empty() ? bus->getVoltage(stateData, sMode) :
-                                            inputs[VOLTAGE_IN_LOCATION];
+    const double voltage =
+        inputs.empty() ? bus->getVoltage(stateData, sMode) : inputs[VOLTAGE_IN_LOCATION];
     const double frequency = (inputs.size() > FREQUENCY_IN_LOCATION) ?
         inputs[FREQUENCY_IN_LOCATION] :
         bus->getFreq(stateData, sMode);
@@ -293,8 +293,8 @@ double WSCCLoad::getReactivePower(const IOdata& inputs,
                                   const StateData& stateData,
                                   const SolverMode& sMode) const
 {
-    const double voltage = inputs.empty() ? bus->getVoltage(stateData, sMode) :
-                                            inputs[VOLTAGE_IN_LOCATION];
+    const double voltage =
+        inputs.empty() ? bus->getVoltage(stateData, sMode) : inputs[VOLTAGE_IN_LOCATION];
     const double frequency = (inputs.size() > FREQUENCY_IN_LOCATION) ?
         inputs[FREQUENCY_IN_LOCATION] :
         bus->getFreq(stateData, sMode);

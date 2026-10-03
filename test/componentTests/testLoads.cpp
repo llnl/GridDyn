@@ -85,7 +85,8 @@ TEST(IEELLoadTests, SelectsTheSimplestEquivalentLoadAndEvaluatesItsEquation)
     zipParameters.coefficients = {0.2, 0.3, 0.5, 0.0, 0.0, 1.0, 0.0, 0.0};
     zipParameters.exponents = {0.0, 1.0, 2.0, 0.0, 0.0, 2.0};
     EXPECT_EQ(classifyIEEL(zipParameters), IEELRepresentation::ZIP);
-    checkConversion(zipParameters,
+    checkConversion(
+        zipParameters,
                     IEELRepresentation::ZIP,
                     [](double voltage, double) {
                         return 0.6 * (0.2 + (0.3 * voltage) + (0.5 * voltage * voltage));
@@ -96,18 +97,18 @@ TEST(IEELLoadTests, SelectsTheSimplestEquivalentLoadAndEvaluatesItsEquation)
     fdepParameters.coefficients = {1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0};
     fdepParameters.exponents = {1.5, 0.0, 0.0, 2.5, 0.0, 0.0};
     EXPECT_EQ(classifyIEEL(fdepParameters), IEELRepresentation::FDEP);
-    checkConversion(fdepParameters,
+    checkConversion(
+        fdepParameters,
                     IEELRepresentation::FDEP,
-                    [](double voltage, double frequency) {
-                        return 0.6 * std::pow(voltage, 1.5) * frequency;
-                    },
+        [](double voltage, double frequency) { return 0.6 * std::pow(voltage, 1.5) * frequency; },
                     [](double voltage, double) { return 0.25 * std::pow(voltage, 2.5); });
 
     IEELParameters generalParameters;
     generalParameters.coefficients = {0.4, 0.6, 0.0, 0.3, 0.7, 0.0, 0.25, 0.4};
     generalParameters.exponents = {0.5, 1.5, 0.0, 0.2, 2.5, 0.0};
     EXPECT_EQ(classifyIEEL(generalParameters), IEELRepresentation::IEEL);
-    checkConversion(generalParameters,
+    checkConversion(
+        generalParameters,
                     IEELRepresentation::IEEL,
                     [](double voltage, double frequency) {
                         return 0.6 * ((0.4 * std::pow(voltage, 0.5)) +

@@ -33,8 +33,8 @@ CoreObject* IEELLoad::clone(CoreObject* obj) const
 void IEELLoad::setIEELParameters(const IEELParameters& newParameters)
 {
     parameters = newParameters;
-    const bool frequencyDependent = (parameters.coefficients[6] != 0.0) ||
-        (parameters.coefficients[7] != 0.0);
+    const bool frequencyDependent =
+        (parameters.coefficients[6] != 0.0) || (parameters.coefficients[7] != 0.0);
     opFlags.set(USES_BUS_FREQUENCY, frequencyDependent);
 }
 
@@ -70,9 +70,8 @@ double IEELLoad::frequencyCoefficient(bool reactive) const
     return parameters.coefficients[reactive ? 7U : 6U];
 }
 
-static std::optional<std::size_t> parameterIndex(std::string_view param,
-                                                 char prefix,
-                                                 std::size_t maxIndex)
+static std::optional<std::size_t>
+    parameterIndex(std::string_view param, char prefix, std::size_t maxIndex)
 {
     if ((param.size() < 2U) || (param.front() != prefix)) {
         return std::nullopt;
@@ -89,8 +88,7 @@ static std::optional<std::size_t> parameterIndex(std::string_view param,
 void IEELLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     static constexpr std::array<std::string_view, 14> parameterNames{
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8",
-        "n1", "n2", "n3", "n4", "n5", "n6"};
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "n1", "n2", "n3", "n4", "n5", "n6"};
     if (pstype == ParamStringType::LOCAL_NUM) {
         pstr.assign(parameterNames.begin(), parameterNames.end());
         return;
@@ -155,9 +153,11 @@ void IEELLoad::ioPartialDerivatives(const IOdata& inputs,
                           getQ() * voltageDerivative(true, voltage) * qFrequencyFactor);
     }
     if (inputLocs[FREQUENCY_IN_LOCATION] != kNullLocation) {
-        matrixData.assign(POUT_LOCATION, inputLocs[FREQUENCY_IN_LOCATION],
+        matrixData.assign(POUT_LOCATION,
+                          inputLocs[FREQUENCY_IN_LOCATION],
                           getP() * voltageFactor(false, voltage) * pFrequencyCoefficient);
-        matrixData.assign(QOUT_LOCATION, inputLocs[FREQUENCY_IN_LOCATION],
+        matrixData.assign(QOUT_LOCATION,
+                          inputLocs[FREQUENCY_IN_LOCATION],
                           getQ() * voltageFactor(true, voltage) * qFrequencyCoefficient);
     }
 }
@@ -166,8 +166,8 @@ double IEELLoad::getRealPower(const IOdata& inputs,
                               const StateData& stateData,
                               const SolverMode& sMode) const
 {
-    const double voltage = inputs.empty() ? bus->getVoltage(stateData, sMode) :
-                                            inputs[VOLTAGE_IN_LOCATION];
+    const double voltage =
+        inputs.empty() ? bus->getVoltage(stateData, sMode) : inputs[VOLTAGE_IN_LOCATION];
     const double frequency = (inputs.size() > FREQUENCY_IN_LOCATION) ?
         inputs[FREQUENCY_IN_LOCATION] :
         bus->getFreq(stateData, sMode);
@@ -180,8 +180,8 @@ double IEELLoad::getReactivePower(const IOdata& inputs,
                                   const StateData& stateData,
                                   const SolverMode& sMode) const
 {
-    const double voltage = inputs.empty() ? bus->getVoltage(stateData, sMode) :
-                                            inputs[VOLTAGE_IN_LOCATION];
+    const double voltage =
+        inputs.empty() ? bus->getVoltage(stateData, sMode) : inputs[VOLTAGE_IN_LOCATION];
     const double frequency = (inputs.size() > FREQUENCY_IN_LOCATION) ?
         inputs[FREQUENCY_IN_LOCATION] :
         bus->getFreq(stateData, sMode);

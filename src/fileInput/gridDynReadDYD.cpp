@@ -13,6 +13,7 @@
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gridDynReadDyrModels.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/loads/LoadTemplateAdapters.h"
@@ -21,6 +22,7 @@
 #include <array>
 #include <charconv>
 #include <cmath>
+#include <cctype>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -323,6 +325,31 @@ namespace {
             payload.push_back(sourcePayload[12U]);
             payload.push_back(sourcePayload[13U]);
             payload.push_back(sourcePayload[9U]);
+            return true;
+        }
+
+        if (source == "ggov1") {
+            // PSLF GGOV1 stores the governor parameters as R, RSEL, TP, MXE,
+            // MNE, ... Tc, Flag, Teng, Tfld, ... Kimw, Pmwset, Aset, Ka,
+            // Ta, Db, Tsa, Tsb, Rup, Rdown.  The shared PSS/E loader expects
+            // RSELECT and Flag at the front, followed by the remaining
+            // compatible parameters.  Pmwset has no corresponding GridDyn
+            // state and Trate is retained only for DYR compatibility.
+            if (sourcePayload.size() != 35U) {
+                return false;
+            }
+            static constexpr std::array<std::size_t, 29> leadingOrder{
+                1U, 16U, 0U, 2U,  3U,  4U,  5U,  6U,  7U,  8U,
+                9U, 10U, 11U, 12U, 13U, 14U, 15U, 17U, 18U, 19U,
+                20U, 21U, 22U, 23U, 24U, 25U, 27U, 28U, 29U};
+            payload.reserve(35U);
+            for (const auto index : leadingOrder) {
+                payload.push_back(sourcePayload[index]);
+            }
+            payload.emplace_back("0.0");  // PSLF has no Trate field.
+            for (std::size_t index = 30U; index < sourcePayload.size(); ++index) {
+                payload.push_back(sourcePayload[index]);
+            }
             return true;
         }
 
@@ -1128,7 +1155,76 @@ namespace {
             gmlc::utilities::stringOps::removeQuotes(record.mHeader[0]));
         const auto canonicalModelName = canonicalDydModelName(sourceModelName);
         const auto displayModelName = gmlc::utilities::convertToUpperCase(sourceModelName);
-        const stringVec lineTokens{gmlc::utilities::stringOps::removeQuotes(record.mHeader[1]),
+        const bool directModel = isDydDirectModel(canonicalModelName);
+        auto busToken = gmlc::utilities::stringOps::removeQuotes(record.mHeader[1]);
+        int busNumber = 0;
+        const auto busNumberResult =
+            std::from_chars(busToken.data(), busToken.data() + busToken.size(), busNumber);
+        const bool hasNumericBus = (busNumberResult.ec == std::errc{}) &&
+            (busNumberResult.ptr == busToken.data() + busToken.size());
+        const auto* simulation = dynamic_cast<const GridDynSimulation*>(context.mParentObject);
+        if (simulation == nullptr) {
+            simulation = dynamic_cast<const GridDynSimulation*>(context.mParentObject->getRoot());
+        }
+        const auto* const network = (simulation != nullptr) ?
+            static_cast<const GridArea*>(simulation) :
+            dynamic_cast<const GridArea*>(context.mParentObject->getRoot());
+        bool busResolved = hasNumericBus && (network != nullptr) &&
+            (network->findByUserID("bus", busNumber) != nullptr);
+        if (!busResolved && network != nullptr) {
+            // PSLF DYD records retain the bus name as well as the model-file
+            // bus number. The latter need not equal the static network's
+            // external bus ID, notably when a SAV database was renumbered.
+            auto busName = gmlc::utilities::stringOps::removeQuotes(record.mHeader[2]);
+            gmlc::utilities::stringOps::trimString(busName);
+            const auto normalizedBusName = gmlc::utilities::convertToLowerCase(busName);
+            std::vector<GridBus*> buses;
+            network->getBusVector(buses);
+            for (auto* candidate : buses) {
+                auto candidateName = candidate->getName();
+                gmlc::utilities::stringOps::trimString(candidateName);
+                const auto normalizedCandidateName =
+                    gmlc::utilities::convertToLowerCase(candidateName);
+                const bool exactNameMatch = normalizedCandidateName == normalizedBusName;
+                const bool generatedSuffixMatch =
+                    normalizedCandidateName.starts_with(normalizedBusName) &&
+                    (normalizedCandidateName.size() > normalizedBusName.size() + 1U) &&
+                    (normalizedCandidateName[normalizedBusName.size()] == '-') &&
+                    std::all_of(normalizedCandidateName.begin() +
+                                    static_cast<std::ptrdiff_t>(normalizedBusName.size() + 1U),
+                                normalizedCandidateName.end(),
+                                [](unsigned char character) { return std::isdigit(character) != 0; });
+                if (exactNameMatch || generatedSuffixMatch) {
+                    busToken = std::to_string(candidate->getUserID());
+                    busResolved = true;
+                    break;
+                }
+            }
+        }
+        if (directModel && !busResolved) {
+            std::string message = context.mFileName + ":" + std::to_string(record.mLineNumber) +
+                " " + displayModelName + " cannot match DYD bus " + record.mHeader[1] +
+                " named '" + record.mHeader[2] + "' to the static network";
+            if (network != nullptr) {
+                std::vector<GridBus*> buses;
+                network->getBusVector(buses);
+                message += "; static network exposes " + std::to_string(buses.size()) +
+                    " bus(es)";
+                const auto appendCandidate = [&message, &buses](std::size_t index) {
+                    if (index < buses.size()) {
+                        message += "; static bus index " + std::to_string(index) + " is " +
+                            std::to_string(buses[index]->getUserID()) + " ('" +
+                            buses[index]->getName() + "')";
+                    }
+                };
+                if (busNumber > 0) {
+                    appendCandidate(static_cast<std::size_t>(busNumber - 1));
+                }
+                appendCandidate(static_cast<std::size_t>(std::max(busNumber, 0)));
+            }
+            throw InvalidParameterValue(message);
+        }
+        const stringVec lineTokens{std::move(busToken),
                                    "'" + gmlc::utilities::convertToUpperCase(canonicalModelName) +
                                        "'",
                                    gmlc::utilities::stringOps::removeQuotes(record.mHeader[4])};

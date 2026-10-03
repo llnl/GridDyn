@@ -422,7 +422,11 @@ std::shared_ptr<CLI::App>
     savestateGroup->callback([this, ssdata]() {
         m_gds->set("statefile", ssdata->second);
         if (ssdata->first > 0) {
-            m_gds->set("state_record_period", ssdata->first);
+            // The command-line option is expressed in milliseconds while the
+            // simulation property is stored in seconds.  Use the property's
+            // canonical spelling so this works independently of reader-side
+            // parameter normalization.
+            m_gds->set("staterecordperiod", 0.001 * ssdata->first);
         }
     });
 
@@ -539,6 +543,19 @@ std::shared_ptr<CLI::App>
             EventInfo gdEI;
             gdEI.loadString(event, m_gds->getRoot());
             std::shared_ptr<Event> gdE = makeEvent(gdEI, m_gds->getRoot());
+            if (!gdE) {
+                m_gds->log(m_gds.get(),
+                           PrintLevel::WARNING,
+                           "unable to create command-line event '" + event + "'");
+                return;
+            }
+            if (!gdE->isArmed()) {
+                m_gds->log(m_gds.get(),
+                           PrintLevel::WARNING,
+                           "command-line event target was not resolved; ignoring event '" + event +
+                               "'");
+                return;
+            }
             m_gds->add(std::move(gdE));
         });
 
@@ -576,6 +593,7 @@ std::shared_ptr<CLI::App>
         for (auto& field : std::get<2>(*acdata)) {
             autorec->add(field, m_gds.get());
         }
+        m_gds->add(autorec);
     });
     return ptr;
 }

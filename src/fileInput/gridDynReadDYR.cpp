@@ -506,7 +506,9 @@ namespace {
                 break;
             }
             const auto candidateName = candidate->getName();
-            const auto suffixPosition = candidateName.rfind("_Gen_");
+            const auto normalizedCandidateName =
+                gmlc::utilities::convertToLowerCase(candidateName);
+            const auto suffixPosition = normalizedCandidateName.rfind("_gen_");
             if (suffixPosition == std::string::npos) {
                 continue;
             }
@@ -538,6 +540,20 @@ namespace {
     {
         auto* generator = findDyrGenerator(parentObject, tokens[0], tokens[2]);
         if (generator == nullptr) {
+            int busId = 0;
+            const auto busResult =
+                std::from_chars(tokens[0].data(), tokens[0].data() + tokens[0].size(), busId);
+            if ((busResult.ec == std::errc{}) &&
+                (busResult.ptr == tokens[0].data() + tokens[0].size())) {
+                auto* bus = dynamic_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+                if (bus == nullptr) {
+                    throw InvalidParameterValue(std::string{modelName} + " requires existing bus " +
+                                                tokens[0] + " for machine " + tokens[2]);
+                }
+                throw InvalidParameterValue(std::string{modelName} + " requires generator machine " +
+                                            tokens[2] + " at bus " + tokens[0] + "; the bus contains " +
+                                            std::to_string(bus->getInt("gencount")) + " generator(s)");
+            }
             throw InvalidParameterValue(std::string{modelName} +
                                         " requires an existing generator matching bus " +
                                         tokens[0] + " and machine " + tokens[2]);

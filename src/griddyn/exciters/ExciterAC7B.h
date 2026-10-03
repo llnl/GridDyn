@@ -32,7 +32,8 @@ namespace griddyn::exciters {
  * V_A=\operatorname{lim}(V_A^*,V_{AMIN},V_{AMAX}),\quad \dot x_A=K_{IA}e_A,
  * \f]
  * \f[
- * I_C=\max(K_PV_TV_A,-K_LV_{FE}),\quad
+ * I_C=\max(V_SV_A,-K_LV_{FE}),\quad V_S=K_PV_T\ (K_P\ne0),
+ * \quad V_S=1\ (K_P=0\text{ PSLF compatibility mode}),
  * T_E\dot V_E=I_C-\{(K_E+S_E(V_E))V_E+K_DI_f\},\quad
  * E_{fd}=V_EF_{EX}(K_CI_f/V_E).
  * \f]

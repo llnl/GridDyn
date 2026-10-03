@@ -12,6 +12,7 @@
 #include "griddyn/exciters/ExciterESAC1A.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/generators/RenewableGenerator.h"
+#include "griddyn/governors/GovernorGgov1.h"
 #include "griddyn/governors/GovernorGPWSCC.h"
 #include "griddyn/links/AcLine.h"
 #include <algorithm>
@@ -395,6 +396,49 @@ TEST(ExampleReaderTests, LoadGPWSCCDydRecordWithNamedMWCap)
     EXPECT_DOUBLE_EQ(governor->get("tturb"), 1.0);
     EXPECT_DOUBLE_EQ(governor->get("aturb"), 0.8);
     EXPECT_DOUBLE_EQ(governor->get("bturb"), 1.0);
+
+    std::error_code removeError;
+    std::filesystem::remove(dydPath, removeError);
+}
+
+TEST(ExampleReaderTests, MapsPslfGgov1DydOrderAndBypassedTemperatureLeadLag)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto genrouPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests" / "ieee14_genrou.dyd";
+    const auto dydPath = std::filesystem::temp_directory_path() / "griddyn_pslf_ggov1.dyd";
+    {
+        std::ofstream output(dydPath);
+        ASSERT_TRUE(output.is_open());
+        // PSLF GGOV1 order: R, RSEL, TP, ..., Flag, ..., Pmwset, Aset, ... .
+        // Tsa=Tsb=0 requests a bypass of the optional temperature lead-lag.
+        output << "ggov1 1 ! ! \"1 \" : #1 mwcap=100.0 "
+                  "0.10 1.0 1.0 0.2 -0.2 5.3 1.9 4.9 1.0 0.692 0.09 0.2 1.916 "
+                  "0.17 0.1 0.0 0.0 0.0 0.0167 10.0 0.0 2.0 0.0 3.3 -3.3 0.0 "
+                  "123.0 1.0 10.0 0.0167 0.0 0.0 0.0 1.0 -1.0 /\n";
+    }
+
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(gds, epcPath.string()));
+    ASSERT_NO_THROW(griddyn::loadFile(gds, genrouPath.string()));
+    ASSERT_NO_THROW(griddyn::loadFile(gds, dydPath.string()));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* governor =
+        dynamic_cast<griddyn::governors::GovernorGgov1*>(generator->find("governor"));
+    ASSERT_NE(governor, nullptr);
+    EXPECT_DOUBLE_EQ(governor->get("rselect"), 1.0);
+    EXPECT_DOUBLE_EQ(governor->get("fswitch"), 0.0);
+    EXPECT_DOUBLE_EQ(governor->get("r"), 0.10);
+    EXPECT_DOUBLE_EQ(governor->get("tpelec"), 1.0);
+    EXPECT_DOUBLE_EQ(governor->get("aset"), 1.0);
+    EXPECT_DOUBLE_EQ(governor->get("trate"), 0.0);
+    EXPECT_DOUBLE_EQ(governor->get("tsb"), 0.0);
+    EXPECT_NO_THROW(gds->dynInitialize());
 
     std::error_code removeError;
     std::filesystem::remove(dydPath, removeError);

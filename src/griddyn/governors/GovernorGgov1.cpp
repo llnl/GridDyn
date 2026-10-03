@@ -126,7 +126,8 @@ void GovernorGgov1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     }
     if (((Rselect != -2) && (Rselect != -1) && (Rselect != 0) && (Rselect != 1)) ||
         ((fuelFlag != 0) && (fuelFlag != 1)) || (Tpelec <= 0.0) || (Tdgov <= 0.0) ||
-        (Tact <= 0.0) || (Tb <= 0.0) || (Tfload <= 0.0) || (TaAccel <= 0.0) || (Tsb <= 0.0) ||
+        (Tact <= 0.0) || (Tb <= 0.0) || (Tfload <= 0.0) || (TaAccel <= 0.0) || (Tsb < 0.0) ||
+        ((Tsb == 0.0) && (Tsa != 0.0)) ||
         (Kturb <= 0.0) || (R < 0.0) || (Kpgov < 0.0) || (Kdgov < 0.0) || (Pmax < Pmin) ||
         (maxerr < minerr) || (Ropen < 0.0) || (Rclose > 0.0)) {
         throw InvalidParameterValue("GGOV1 selectors, gains, time constants, or limits");
@@ -261,8 +262,9 @@ GovernorGgov1::Signals GovernorGgov1::evaluate(const IOdata& inputs, const doubl
         state[turbineState] + (Tc / Tb) * (signals.mTurbineInput - state[turbineState]);
     const double speedFactor = (Dm < 0.0) ? std::pow(omega, Dm) : 1.0;
     signals.mTemperatureInput = signals.mFuelFlow * speedFactor;
-    signals.mTemperatureLeadOutput = state[temperatureLeadState] +
-        (Tsa / Tsb) * (signals.mTemperatureInput - state[temperatureLeadState]);
+    signals.mTemperatureLeadOutput = (Tsb == 0.0) ?
+        signals.mTemperatureInput :
+        state[temperatureLeadState] + (Tsa / Tsb) * (signals.mTemperatureInput - state[temperatureLeadState]);
     signals.mMechanicalPower = (Dm >= 0.0) ? signals.mTurbineOutput - Dm * signals.mSpeedDeviation :
                                              signals.mTurbineOutput;
     return signals;
@@ -314,7 +316,8 @@ void GovernorGgov1::derivative(const IOdata& inputs,
     }
     stateDerivative[valveState] = rate;
     stateDerivative[turbineState] = (signals.mTurbineInput - state[turbineState]) / Tb;
-    stateDerivative[temperatureLeadState] =
+    stateDerivative[temperatureLeadState] = (Tsb == 0.0) ?
+        0.0 :
         (signals.mTemperatureInput - state[temperatureLeadState]) / Tsb;
     stateDerivative[temperatureState] =
         (signals.mTemperatureLeadOutput - state[temperatureState]) / Tfload;
@@ -544,27 +547,45 @@ void GovernorGgov1::jacobianElements(const IOdata& inputs,
     if (Dm < 0.0) {
         temperatureOmegaDerivative += signals.mFuelFlow * Dm * std::pow(omega, Dm - 1.0);
     }
-    matrixData.assign(differentialRow + temperatureLeadState,
-                      differentialRow + temperatureLeadState,
-                      -1.0 / Tsb - stateData.cj);
-    matrixData.assign(differentialRow + temperatureLeadState,
-                      differentialRow + valveState,
-                      temperatureValveDerivative / Tsb);
-    matrixData.assignCheckCol(differentialRow + temperatureLeadState,
-                              inputLocs[govOmegaInLocation],
-                              temperatureOmegaDerivative / Tsb);
-    matrixData.assign(differentialRow + temperatureState,
-                      differentialRow + temperatureState,
-                      -1.0 / Tfload - stateData.cj);
-    matrixData.assign(differentialRow + temperatureState,
-                      differentialRow + temperatureLeadState,
-                      (1.0 - Tsa / Tsb) / Tfload);
-    matrixData.assign(differentialRow + temperatureState,
-                      differentialRow + valveState,
-                      (Tsa / Tsb) * temperatureValveDerivative / Tfload);
-    matrixData.assignCheckCol(differentialRow + temperatureState,
-                              inputLocs[govOmegaInLocation],
-                              (Tsa / Tsb) * temperatureOmegaDerivative / Tfload);
+    if (Tsb == 0.0) {
+        // PSLF uses Tsa=Tsb=0 to bypass this optional lead-lag block.
+        // Retain its allocated state as a constant to preserve the model's
+        // established state layout while connecting temperature input directly.
+        matrixData.assign(differentialRow + temperatureLeadState,
+                          differentialRow + temperatureLeadState,
+                          -stateData.cj);
+        matrixData.assign(differentialRow + temperatureState,
+                          differentialRow + temperatureState,
+                          -1.0 / Tfload - stateData.cj);
+        matrixData.assign(differentialRow + temperatureState,
+                          differentialRow + valveState,
+                          temperatureValveDerivative / Tfload);
+        matrixData.assignCheckCol(differentialRow + temperatureState,
+                                  inputLocs[govOmegaInLocation],
+                                  temperatureOmegaDerivative / Tfload);
+    } else {
+        matrixData.assign(differentialRow + temperatureLeadState,
+                          differentialRow + temperatureLeadState,
+                          -1.0 / Tsb - stateData.cj);
+        matrixData.assign(differentialRow + temperatureLeadState,
+                          differentialRow + valveState,
+                          temperatureValveDerivative / Tsb);
+        matrixData.assignCheckCol(differentialRow + temperatureLeadState,
+                                  inputLocs[govOmegaInLocation],
+                                  temperatureOmegaDerivative / Tsb);
+        matrixData.assign(differentialRow + temperatureState,
+                          differentialRow + temperatureState,
+                          -1.0 / Tfload - stateData.cj);
+        matrixData.assign(differentialRow + temperatureState,
+                          differentialRow + temperatureLeadState,
+                          (1.0 - Tsa / Tsb) / Tfload);
+        matrixData.assign(differentialRow + temperatureState,
+                          differentialRow + valveState,
+                          (Tsa / Tsb) * temperatureValveDerivative / Tfload);
+        matrixData.assignCheckCol(differentialRow + temperatureState,
+                                  inputLocs[govOmegaInLocation],
+                                  (Tsa / Tsb) * temperatureOmegaDerivative / Tfload);
+    }
     matrixData.assign(differentialRow + loadIntegralState,
                       differentialRow + loadIntegralState,
                       -stateData.cj);

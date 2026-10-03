@@ -7,6 +7,7 @@
 #include "../gtestHelper.h"
 #include "core/CoreExceptions.h"
 #include "fileInput/fileInput.h"
+#include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/Load.h"
@@ -17,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace {
 
@@ -31,7 +33,7 @@ void executeSql(sqlite3* database, const char* sql)
 
 std::filesystem::path makeSavFixture()
 {
-    auto filePath = std::filesystem::temp_directory_path() / "griddyn_pslf_sqlite_reader.save";
+    auto filePath = std::filesystem::temp_directory_path() / "griddyn_pslf_sqlite_reader.sav";
     std::error_code removeError;
     std::filesystem::remove(filePath, removeError);
 
@@ -58,7 +60,7 @@ std::filesystem::path makeSavFixture()
         "INSERT INTO volt VALUES (0, 1.0198, 0.0204, 1.02, 0.02);"
         "INSERT INTO volt VALUES (1, 0.99, -0.0173, 0.99, -0.0175);"
         "CREATE TABLE gens (_idx integer, ibgen integer, id text, st integer, mbase real, pgen real, qgen real, qmax real, qmin real, pmax real, pmin real, vcsched real);"
-        "INSERT INTO gens VALUES (0, 0, '1', 1, 100.0, 0.3, 0.01, 0.5, -0.5, 0.8, 0.0, 1.02);"
+        "INSERT INTO gens VALUES (0, 0, 'UnitA', 1, 100.0, 0.3, 0.01, 0.5, -0.5, 0.8, 0.0, 1.02);"
         "CREATE TABLE load (_idx integer, lbus integer, id text, st integer, p real, q real, ip real, iq real, g real, b real);"
         "INSERT INTO load VALUES (0, 1, '1', 1, 0.1, 0.03, 0.0, 0.0, 0.0, 0.0);"
         "CREATE TABLE secdd (_idx integer, ifrom integer, ito integer, ck text, st integer, zsecr real, zsecx real, bsec real, rate0 real);"
@@ -125,6 +127,38 @@ TEST(SavReaderTests, LoadsValidatedPslfSqlitePowerFlowCase)
 
     std::error_code removeError;
     std::filesystem::remove(filePath, removeError);
+}
+
+TEST(SavReaderTests, MatchesSavGeneratorMachineIdentifierWhenLoadingDyd)
+{
+    const auto savPath = makeSavFixture();
+    const auto dydPath = std::filesystem::temp_directory_path() / "griddyn_sav_machine_id.dyd";
+    {
+        std::ofstream output(dydPath);
+        ASSERT_TRUE(output.is_open());
+        // The DYD number is deliberately different from busd.extnum. PSLF
+        // supplies BUS_A as the stable cross-file identifier in this case.
+        output << "gencls 1 \"BUS_A\" 230.0 \"UnitA\" : #9 mva=100.0 3.0 0.0 /\n";
+    }
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, savPath.string()));
+    std::vector<griddyn::GridBus*> buses;
+    simulation->getBusVector(buses);
+    ASSERT_EQ(buses.size(), 2U);
+    ASSERT_NE(buses[0], nullptr);
+    EXPECT_TRUE(buses[0]->getName().starts_with("BUS_A"));
+    EXPECT_NO_THROW(griddyn::loadFile(simulation, dydPath.string()));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 101));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    EXPECT_NE(generator->find("genmodel"), nullptr);
+
+    std::error_code removeError;
+    std::filesystem::remove(savPath, removeError);
+    std::filesystem::remove(dydPath, removeError);
 }
 
 }  // namespace

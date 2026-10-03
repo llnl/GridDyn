@@ -34,6 +34,7 @@
 #include "griddyn/exciters/ExciterIEEEtype2.h"
 #include "griddyn/exciters/ExciterSCRX.h"
 #include "griddyn/generators/DynamicGenerator.h"
+#include "griddyn/genmodels/GenModelCSVGN1.h"
 #include "griddyn/genmodels/GenModelClassical.h"
 #include "griddyn/genmodels/GenModelGENROE.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
@@ -233,6 +234,73 @@ TEST(DyrReaderComparisonTests, LoadsGentpjAndInitializesIeee14)
     EXPECT_EQ(simulation->dynInitialize(), 0);
     EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    simulation->run(0.1);
+    EXPECT_EQ(simulation->getSimulationTime(), 0.1);
+}
+
+TEST(DyrReaderComparisonTests, MapsCsvgn1ParametersAndRunsAsMachineModel)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 14));
+    ASSERT_NE(bus, nullptr);
+
+    // Use a zero-real-power machine record like the Australian SVC records,
+    // while leaving the IEEE 14 generator at the slack bus untouched.
+    auto svcGenerator = std::make_unique<griddyn::DynamicGenerator>(bus->getName() + "_Gen_2");
+    svcGenerator->set("q", 20.0, units::MVAR);
+    bus->add(svcGenerator.get());
+    auto* svcGeneratorPtr = svcGenerator.release();
+    ASSERT_NE(svcGeneratorPtr, nullptr);
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_gentpj.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_csvgn1.dyr"));
+
+    auto* svcBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 14));
+    ASSERT_NE(svcBus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(svcBus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* model = dynamic_cast<griddyn::genmodels::GenModelCSVGN1*>(generator->find("genmodel"));
+    ASSERT_NE(model, nullptr);
+
+    EXPECT_DOUBLE_EQ(model->get("k"), 23.5);
+    EXPECT_DOUBLE_EQ(model->get("t1"), 0.02);
+    EXPECT_DOUBLE_EQ(model->get("t2"), 0.04);
+    EXPECT_DOUBLE_EQ(model->get("t3"), 0.07);
+    EXPECT_DOUBLE_EQ(model->get("t4"), 0.09);
+    EXPECT_DOUBLE_EQ(model->get("t5"), 0.03);
+    EXPECT_DOUBLE_EQ(model->get("rmin"), 1.5);
+    EXPECT_DOUBLE_EQ(model->get("vmax"), 0.98);
+    EXPECT_DOUBLE_EQ(model->get("vmin"), 0.02);
+    EXPECT_DOUBLE_EQ(model->get("cbase"), 80.0);
+
+    EXPECT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_NEAR(model->getOutput(griddyn::QOUT_LOCATION), -0.20, 1.0e-8);
+    EXPECT_EQ(model->getStates().size(), 3U);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+
+    // Check both one-sided branches of the regulator output clamp. The lower-limit
+    // Jacobian uses the interior slope; the upper-limit Jacobian uses the saturated slope.
+    const auto states = model->getStates();
+    const double voltage = svcBus->getVoltage();
+    const double error = voltage - (voltage - states[0]);
+    const double firstOutput = ((model->get("t1") / model->get("t3")) * error) +
+        ((1.0 - (model->get("t1") / model->get("t3"))) * states[0]);
+    const double secondOutput = ((model->get("t2") / model->get("t4")) * firstOutput) +
+        ((1.0 - (model->get("t2") / model->get("t4"))) * states[1]);
+    const double regulatorOutput = model->get("k") * secondOutput;
+    ASSERT_GT(regulatorOutput, model->get("vmin"));
+    ASSERT_LT(regulatorOutput, model->get("vmax"));
+
+    model->set("vmin", regulatorOutput);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0)
+        << "CSVGN1 Jacobian at the lower regulator limit";
+
+    model->set("vmin", 0.02);
+    model->set("vmax", regulatorOutput);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0)
+        << "CSVGN1 Jacobian at the upper regulator limit";
+
     simulation->run(0.1);
     EXPECT_EQ(simulation->getSimulationTime(), 0.1);
 }
@@ -473,12 +541,25 @@ TEST(DyrReaderComparisonTests, MapsGensaeAndEsst1aParametersInPsseDyrOrder)
     EXPECT_DOUBLE_EQ(machine->get("s10"), 0.11);
     EXPECT_DOUBLE_EQ(machine->get("s12"), 0.39);
     EXPECT_DOUBLE_EQ(exciter->get("uel"), 1.0);
-    EXPECT_DOUBLE_EQ(exciter->get("vos"), 1.0);
-    EXPECT_DOUBLE_EQ(exciter->get("tb1"), 0.10);
+    EXPECT_DOUBLE_EQ(exciter->get("vos"), 2.0);
+    EXPECT_DOUBLE_EQ(exciter->get("tr"), 0.10);
+    EXPECT_DOUBLE_EQ(exciter->get("vimax"), 0.30);
+    EXPECT_DOUBLE_EQ(exciter->get("vimin"), -0.30);
+    EXPECT_DOUBLE_EQ(exciter->get("tc"), 0.05);
+    EXPECT_DOUBLE_EQ(exciter->get("tb"), 0.20);
     EXPECT_DOUBLE_EQ(exciter->get("tc1"), 0.02);
-    EXPECT_DOUBLE_EQ(exciter->get("ilr"), 0.3);
+    EXPECT_DOUBLE_EQ(exciter->get("tb1"), 0.10);
+    EXPECT_DOUBLE_EQ(exciter->get("ka"), 20.0);
+    EXPECT_DOUBLE_EQ(exciter->get("ta"), 0.25);
+    EXPECT_DOUBLE_EQ(exciter->get("vamax"), 7.0);
+    EXPECT_DOUBLE_EQ(exciter->get("vamin"), -7.0);
+    EXPECT_DOUBLE_EQ(exciter->get("vrmax"), 5.0);
+    EXPECT_DOUBLE_EQ(exciter->get("vrmin"), -5.0);
+    EXPECT_DOUBLE_EQ(exciter->get("kc"), 0.20);
+    EXPECT_DOUBLE_EQ(exciter->get("kf"), 0.10);
+    EXPECT_DOUBLE_EQ(exciter->get("tf"), 0.50);
     EXPECT_DOUBLE_EQ(exciter->get("klr"), 2.0);
-    EXPECT_DOUBLE_EQ(exciter->get("kc"), 0.2);
+    EXPECT_DOUBLE_EQ(exciter->get("ilr"), 0.30);
     ASSERT_EQ(simulation->dynInitialize(), 0);
     EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);

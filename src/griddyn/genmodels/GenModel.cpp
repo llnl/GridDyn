@@ -6,6 +6,7 @@
 
 #include "../Generator.h"
 #include "../GridBus.h"
+#include "GenModelCSVGN1.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
@@ -43,6 +44,8 @@ static TypeFactory<GenModel> gGenModelFactory("genmodel",
                                               std::to_array<std::string_view>({"trivial"}));
 static ChildTypeFactory<griddyn::genmodels::GenModelInverter, GenModel>
     gInverterGenModelFactory("genmodel", std::to_array<std::string_view>({"inverter"}));
+static ChildTypeFactory<griddyn::genmodels::GenModelCSVGN1, GenModel>
+    gCSVGN1GenModelFactory("genmodel", std::to_array<std::string_view>({"csvgn1"}));
 static ChildTypeFactory<griddyn::genmodels::GenModelClassical, GenModel> gClassicalGenModelFactory(
     "genmodel",
     std::to_array<std::string_view>(

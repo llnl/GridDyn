@@ -416,7 +416,10 @@ void IdaInterface::logInitialConditionDiagnostics(
         return;
     }
 
-    const auto diagnosticLevel = (retval == IDA_SUCCESS) ? PrintLevel::SUMMARY : PrintLevel::ERROR;
+    // A failed IC attempt can be followed by a successful GridDyn recovery pass. Keep
+    // the attempt diagnostic visible without presenting it as a terminal simulation error.
+    const auto diagnosticLevel =
+        (retval == IDA_SUCCESS) ? PrintLevel::SUMMARY : PrintLevel::WARNING;
     logSolverStats(diagnosticLevel, true);
 
     std::vector<double> residual(svsize, 0.0);
@@ -829,9 +832,6 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
                 t0, tstep0, initCondMode, retval, &initialState, &initialDerivative);
         }
 
-        // retval = IDACalcIC (solverMem, IDA_YA_YDP_INIT, t0 + tstep0); //IDA_YA_YDP_INIT
-        //   getCurrentData();
-        //  printStates(true);
         if (retval != 0) {
             // if the solver failed with error code -14 then we probably have a singular matrix
             // then locate the singular elements and fix them so the problem is valid
@@ -894,7 +894,6 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
         if (constraints) {
             setConstraints();
         }
-        //  printStates();
         retval = IDACalcIC(solverMem, IDA_YA_YDP_INIT, t0 + tstep0);  // IDA_YA_YDP_INIT
         if ((retval != IDA_SUCCESS) && flags[IDA_IC_DIAGNOSTICS]) {
             logInitialConditionDiagnostics(

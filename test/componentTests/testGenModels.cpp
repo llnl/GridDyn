@@ -80,6 +80,13 @@ void checkGenrouInitialization(const std::vector<double>& expectedState,
     EXPECT_NEAR(fieldSet[genModelEftInLocation], expectedFieldVoltage, 2e-8);
     EXPECT_NEAR(fieldSet[genModelPmechInLocation], 7.268029078708958 / 9.0, 2e-8);
 }
+
+bool matchesTestModel1ActivePowerSetpoint(const std::string& modelName)
+{
+    // test_model1.xml schedules 1.2 pu of generator active power. CSVGN1 is
+    // an SVC model and correctly injects no active power.
+    return modelName != "csvgn1";
+}
 }  // namespace
 
 class GenModelTests: public GridDynSimulationTestFixture, public ::testing::Test {};
@@ -693,6 +700,9 @@ TEST_F(GenModelTests, ModelTest2)
     auto genlist = cof->getTypeNames("genmodel");
 
     for (auto& gname : genlist) {
+        if (!matchesTestModel1ActivePowerSetpoint(gname)) {
+            continue;
+        }
         // skip any fmi model
         if (gname.starts_with("fmi")) {
             continue;
@@ -728,6 +738,9 @@ TEST_F(GenModelTests, ModelTest2WithR)
     auto genlist = cof->getTypeNames("genmodel");
 
     for (auto& gname : genlist) {
+        if (!matchesTestModel1ActivePowerSetpoint(gname)) {
+            continue;
+        }
         if (gname.starts_with("fmi")) {
             continue;
         }
@@ -761,6 +774,9 @@ TEST_F(GenModelTests, ModelTest2AlgDiffTests)
     auto genlist = cof->getTypeNames("genmodel");
 
     for (auto& gname : genlist) {
+        if (!matchesTestModel1ActivePowerSetpoint(gname)) {
+            continue;
+        }
         if (gname.starts_with("fmi")) {
             continue;
         }

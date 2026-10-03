@@ -28,6 +28,12 @@ using namespace griddyn;
 
 static constexpr const char fault_test_directory[] = GRIDDYN_TEST_DIRECTORY "/fault_tests/";
 
+static bool usesSynchronousMachineBehavior(const std::string& modelName)
+{
+    // CSVGN1 uses the generator-model interface for an SVC and has no active-power output.
+    return modelName != "csvgn1";
+}
+
 class FaultTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(FaultTests, FaultTest1)  // NOLINT(readability-function-cognitive-complexity)
@@ -40,6 +46,9 @@ TEST_F(FaultTests, FaultTest1)  // NOLINT(readability-function-cognitive-complex
     auto genlist = cof->getTypeNames("genmodel");
 
     for (auto& gname : genlist) {
+        if (!usesSynchronousMachineBehavior(gname)) {
+            continue;
+        }
         gds = readSimXMLFile(fileName);
         gds->consolePrintLevel = PrintLevel::NO_PRINT;
         obj = cof->createObject("genmodel", gname);
@@ -88,6 +97,9 @@ TEST_F(FaultTests, FaultTest2)  // NOLINT(readability-function-cognitive-complex
     auto genlist = cof->getTypeNames("genmodel");
 
     for (auto& gname : genlist) {
+        if (!usesSynchronousMachineBehavior(gname)) {
+            continue;
+        }
         gds = readSimXMLFile(fileName);
         gds->consolePrintLevel = PrintLevel::NO_PRINT;
         auto obj = cof->createObject("genmodel", gname);
@@ -136,6 +148,9 @@ TEST_F(FaultTests, FaultTest3)  // NOLINT(readability-function-cognitive-complex
     auto genlist = cof->getTypeNames("genmodel");
 
     for (auto& gname : genlist) {
+        if (!usesSynchronousMachineBehavior(gname)) {
+            continue;
+        }
         gds = readSimXMLFile(fileName);
         gds->consolePrintLevel = PrintLevel::NO_PRINT;
         auto obj = cof->createObject("genmodel", gname);

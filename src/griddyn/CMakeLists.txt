@@ -10,6 +10,7 @@
 set(genmodel_headers
     ControllerSignals.h
     GenModel.h
+    genmodels/GenModelCSVGN1.h
     genmodels/GenModelClassical.h
     genmodels/GenModel3.h
     genmodels/GenModel4.h
@@ -32,6 +33,7 @@ set(genmodel_sources
     ${genmodel_headers}
     genmodels/GeneratorControllerSignals.cpp
     genmodels/GenModel.cpp
+    genmodels/GenModelCSVGN1.cpp
     genmodels/GenModelClassical.cpp
     genmodels/GenModel3.cpp
     genmodels/GenModel4.cpp

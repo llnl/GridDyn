@@ -551,6 +551,18 @@ double ExciterESST1A::get(std::string_view param, units::unit unitType) const
     if (param == "vamin") {
         return Vamin;
     }
+    if (param == "ka") {
+        return Ka;
+    }
+    if (param == "ta") {
+        return Ta;
+    }
+    if ((param == "vrmax") || (param == "urmax")) {
+        return Vrmax;
+    }
+    if ((param == "vrmin") || (param == "urmin")) {
+        return Vrmin;
+    }
     if (param == "ilr") {
         return Ilr;
     }

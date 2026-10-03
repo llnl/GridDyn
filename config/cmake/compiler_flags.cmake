@@ -181,15 +181,10 @@ include(CheckLatestCXXStandardOption)
 
 message(STATUS "setting ${PROJECT_NAME} C++ standard build option to \"${CXX_STANDARD_FLAG}\"")
 if(CXX_STANDARD_FLAG)
-    if(MSVC)
-        add_compile_options(${CXX_STANDARD_FLAG})
-        target_compile_options(build_flags_target INTERFACE ${CXX_STANDARD_FLAG})
-    else(MSVC)
-        add_compile_options($<$<COMPILE_LANGUAGE:CXX>:${CXX_STANDARD_FLAG}>)
-        target_compile_options(
-            build_flags_target INTERFACE $<$<COMPILE_LANGUAGE:CXX>:${CXX_STANDARD_FLAG}>
-        )
-    endif(MSVC)
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:${CXX_STANDARD_FLAG}>)
+    target_compile_options(
+        build_flags_target INTERFACE $<$<COMPILE_LANGUAGE:CXX>:${CXX_STANDARD_FLAG}>
+    )
 endif(CXX_STANDARD_FLAG)
 
 # remove potential duplicates from the flags

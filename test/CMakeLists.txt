@@ -45,6 +45,7 @@ set(file_reader_gtest_sources
     libraryTests/testJsonReader.cpp
     libraryTests/testElementReaders.cpp
     libraryTests/testGridDynRunner.cpp
+    ../src/runner/gridDynRunner.cpp
 )
 
 set(model_comparison_gtest_sources gtestHelperFunctions.cpp comparisonTests/testModelComparison.cpp)

@@ -615,6 +615,9 @@ void RenewableGenerator::guessState(CoreTime time,
                                     double dstateDt[],
                                     const SolverMode& sMode)
 {
+    if (!isEnabled()) {
+        return;
+    }
     Generator::guessState(time, state, dstateDt, sMode);
     for (auto* component : components) {
         if (component != nullptr && component->isEnabled()) {

@@ -12,9 +12,13 @@
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gridDynReadDyrModels.h"
+#include "griddyn/GridArea.h"
+#include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
 #include <algorithm>
 #include <array>
+#include <charconv>
+#include <cctype>
 #include <cstddef>
 #include <fstream>
 #include <map>
@@ -192,6 +196,34 @@ namespace {
             return true;
         }
 
+        if (source == "ggov1") {
+            // PSLF GGOV1 stores the governor parameters as
+            // R, RSEL, TP, MXE, MNE, ... Tc, Flag, Teng, Tfld, ...,
+            // Kimw, Pmwset, Aset, Ka, Ta, Db, Tsa, Tsb, Rup, Rdown.
+            // The shared PSS/E loader instead expects RSELECT and Flag at
+            // the front, followed by R, Tpelec, ..., Aset, Ka, Ta, Trate,
+            // Db, Tsa, Tsb, Rup, and Rdown.  Pmwset has no corresponding
+            // state in GridDyn's GGOV1 implementation, and Trate is retained
+            // only for DYR compatibility, so discard the former and use the
+            // latter's harmless default of zero.
+            if (sourcePayload.size() != 35U) {
+                return false;
+            }
+            static constexpr std::array<std::size_t, 29> leadingOrder{
+                1U, 16U, 0U, 2U,  3U,  4U,  5U,  6U,  7U,  8U,
+                9U, 10U, 11U, 12U, 13U, 14U, 15U, 17U, 18U, 19U,
+                20U, 21U, 22U, 23U, 24U, 25U, 27U, 28U, 29U};
+            payload.reserve(35U);
+            for (const auto index : leadingOrder) {
+                payload.push_back(sourcePayload[index]);
+            }
+            payload.emplace_back("0.0");  // PSLF has no Trate field.
+            for (std::size_t index = 30U; index < sourcePayload.size(); ++index) {
+                payload.push_back(sourcePayload[index]);
+            }
+            return true;
+        }
+
         std::size_t payloadLimit = 0U;
         // GENSAL and HYGOV consume 12-field prefixes. Extended HYGOV records
         // append options (trip, deadband, curves, and blade control) that
@@ -316,9 +348,15 @@ void loadDyd(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& /*readerOptions*/)
 {
-    const auto* simulation = dynamic_cast<const GridDynSimulation*>(parentObject->getRoot());
+    const auto* simulation = dynamic_cast<const GridDynSimulation*>(parentObject);
+    if (simulation == nullptr) {
+        simulation = dynamic_cast<const GridDynSimulation*>(parentObject->getRoot());
+    }
     const bool disableStabilizers =
         (simulation != nullptr) && simulation->isFlagSet(DISABLE_STABILIZERS_FOR_DIAGNOSTICS);
+    const auto* const network = (simulation != nullptr) ?
+        static_cast<const GridArea*>(simulation) :
+        dynamic_cast<const GridArea*>(parentObject->getRoot());
     count_t zeroGainStabilizers = 0;
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;
@@ -375,7 +413,71 @@ void loadDyd(CoreObject* parentObject,
             gmlc::utilities::stringOps::removeQuotes(header[0]));
         const auto canonicalModelName = canonicalDydModelName(sourceModelName);
         const auto displayModelName = gmlc::utilities::convertToUpperCase(sourceModelName);
-        stringVec lineTokens{gmlc::utilities::stringOps::removeQuotes(header[1]),
+        const bool directModel = isDydDirectModel(canonicalModelName);
+        auto busToken = gmlc::utilities::stringOps::removeQuotes(header[1]);
+        int busNumber = 0;
+        const auto busNumberResult =
+            std::from_chars(busToken.data(), busToken.data() + busToken.size(), busNumber);
+        const bool hasNumericBus = (busNumberResult.ec == std::errc{}) &&
+            (busNumberResult.ptr == busToken.data() + busToken.size());
+        bool busResolved = hasNumericBus &&
+            (network != nullptr) && (network->findByUserID("bus", busNumber) != nullptr);
+        if (!busResolved) {
+            // PSLF DYD records retain the bus name as well as the model-file
+            // bus number.  The latter need not equal the static network's
+            // external bus ID (notably when a .save database was renumbered),
+            // so use an unambiguous matching static bus name as a fallback.
+            auto busName = gmlc::utilities::stringOps::removeQuotes(header[2]);
+            gmlc::utilities::stringOps::trimString(busName);
+            const auto normalizedBusName = gmlc::utilities::convertToLowerCase(busName);
+            if (network != nullptr) {
+                std::vector<GridBus*> buses;
+                network->getBusVector(buses);
+                for (auto* candidate : buses) {
+                    auto candidateName = candidate->getName();
+                    gmlc::utilities::stringOps::trimString(candidateName);
+                    const auto normalizedCandidateName =
+                        gmlc::utilities::convertToLowerCase(candidateName);
+                    const bool exactNameMatch = normalizedCandidateName == normalizedBusName;
+                    const bool generatedSuffixMatch =
+                        normalizedCandidateName.starts_with(normalizedBusName) &&
+                        (normalizedCandidateName.size() > normalizedBusName.size() + 1U) &&
+                        (normalizedCandidateName[normalizedBusName.size()] == '-') &&
+                        std::all_of(normalizedCandidateName.begin() +
+                                        static_cast<std::ptrdiff_t>(normalizedBusName.size() + 1U),
+                                    normalizedCandidateName.end(),
+                                    [](unsigned char character) { return std::isdigit(character) != 0; });
+                    if (exactNameMatch || generatedSuffixMatch) {
+                        busToken = std::to_string(candidate->getUserID());
+                        busResolved = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (directModel && !busResolved) {
+            std::string message = fileName + ":" + std::to_string(recordLineNumber) + " " +
+                displayModelName + " cannot match DYD bus " + header[1] + " named '" + header[2] +
+                "' to the static network";
+            if (network != nullptr) {
+                std::vector<GridBus*> buses;
+                network->getBusVector(buses);
+                message += "; static network exposes " + std::to_string(buses.size()) + " bus(es)";
+                const auto appendCandidate = [&message, &buses](std::size_t index) {
+                    if (index < buses.size()) {
+                        message += "; static bus index " + std::to_string(index) + " is " +
+                            std::to_string(buses[index]->getUserID()) + " ('" + buses[index]->getName() +
+                            "')";
+                    }
+                };
+                if (busNumber > 0) {
+                    appendCandidate(static_cast<std::size_t>(busNumber - 1));
+                }
+                appendCandidate(static_cast<std::size_t>(std::max(busNumber, 0)));
+            }
+            throw InvalidParameterValue(message);
+        }
+        stringVec lineTokens{std::move(busToken),
                              "'" + gmlc::utilities::convertToUpperCase(canonicalModelName) + "'",
                              gmlc::utilities::stringOps::removeQuotes(header[4])};
         if (isDydIgnoredLoadModel(sourceModelName)) {
@@ -448,7 +550,6 @@ void loadDyd(CoreObject* parentObject,
                                   positionalPayload,
                                   normalizedPayload);
         }
-        const bool directModel = isDydDirectModel(canonicalModelName);
         if (payloadIsSupported && directModel) {
             if (sourceModelName == "ieeeg1") {
                 // PSLF IEEEG1 is a single-generator record. The DYR loader

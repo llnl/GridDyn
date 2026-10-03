@@ -2778,6 +2778,20 @@ TEST(ExciterModelTests, Ac7bMatchesNestedRegulatorEquations)
     exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
     exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
     EXPECT_NEAR(derivative[6], 4.72, 1e-12);
+
+    // PSLF ESAC7B uses Kp=0 for the unity-source option.  It must not
+    // propagate a zero potential-source multiplier into initialization or
+    // the rotating-exciter control input.
+    exciter.set("kp", 0.0);
+    exciter.set("kf1", 0.0);
+    exciter.set("kf2", 0.0);
+    inputs[exciterVoltageInLocation] = 0.5;
+    initializationInputs = inputs;
+    ASSERT_NO_THROW(exciter.dynInitializeB(initializationInputs, {0.8}, fieldSet));
+    state = {0.8, 0.5, 0.8, 0.0, 0.6, 0.8, 0.8};
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[6], 4.4, 1e-12);
 }
 
 TEST(ExciterModelTests, Ac8bUsesScaledSaturationAndFullPidAntiWindup)

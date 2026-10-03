@@ -638,6 +638,7 @@ void IdaInterface::logInitialConditionDiagnostics(
     std::vector<bool> rowPresent(svsize, false);
     std::vector<bool> columnPresent(svsize, false);
     std::vector<bool> diagonalPresent(svsize, false);
+    std::vector<index_t> zeroDiagonalIndices;
     count_t nonFiniteJacobian = 0;
     count_t zeroDiagonal = 0;
     for (const auto& entry : jacobian) {
@@ -654,6 +655,7 @@ void IdaInterface::logInitialConditionDiagnostics(
             diagonalPresent[entry.row] = true;
             if (entry.data == 0.0) {
                 ++zeroDiagonal;
+                zeroDiagonalIndices.push_back(entry.row);
             }
         }
     }
@@ -677,6 +679,117 @@ void IdaInterface::logInitialConditionDiagnostics(
                    missingColumns,
                    missingDiagonals,
                    zeroDiagonal);
+    for (const auto index : zeroDiagonalIndices) {
+        const auto stateName = (static_cast<size_t>(index) < stateNames.size()) ?
+            stateNames[index] :
+            std::string{"<unnamed>"};
+        logging::logTo(m_gds,
+                       m_gds,
+                       diagnosticLevel,
+                       "IDA IC Jacobian zero diagonal[{}] {}",
+                       index,
+                       stateName);
+    }
+
+    // KLU reports an unrecoverable setup error when the Jacobian is singular,
+    // but its error path does not identify the involved equations.  The IC
+    // diagnostic is explicitly opt-in and the systems are normally modest in
+    // size, so use complete-pivot elimination here to make that failure
+    // actionable.  This is intentionally diagnostic-only: it does not alter
+    // the matrix passed to IDA or the solver's pivoting behaviour.
+    std::vector<double> denseJacobian(static_cast<size_t>(svsize) * svsize, 0.0);
+    double largestJacobianElement = 0.0;
+    for (const auto& entry : jacobian) {
+        if ((entry.row < 0) || (entry.col < 0) || (entry.row >= static_cast<index_t>(svsize)) ||
+            (entry.col >= static_cast<index_t>(svsize)) || !std::isfinite(entry.data)) {
+            continue;
+        }
+        denseJacobian[static_cast<size_t>(entry.row) * svsize + entry.col] = entry.data;
+        largestJacobianElement = (std::max)(largestJacobianElement, std::abs(entry.data));
+    }
+    const double rankTolerance = (std::max)(1.0e-12 * largestJacobianElement, 1.0e-14);
+    std::vector<index_t> rowOrder(svsize);
+    std::vector<index_t> columnOrder(svsize);
+    std::iota(rowOrder.begin(), rowOrder.end(), index_t{0});
+    std::iota(columnOrder.begin(), columnOrder.end(), index_t{0});
+    count_t numericalRank = 0;
+    double smallestPivot = std::numeric_limits<double>::infinity();
+    for (index_t pivot = 0; pivot < svsize; ++pivot) {
+        index_t pivotRow = pivot;
+        index_t pivotColumn = pivot;
+        double pivotMagnitude = 0.0;
+        for (index_t row = pivot; row < svsize; ++row) {
+            for (index_t column = pivot; column < svsize; ++column) {
+                const double candidate =
+                    std::abs(denseJacobian[static_cast<size_t>(row) * svsize + column]);
+                if (candidate > pivotMagnitude) {
+                    pivotMagnitude = candidate;
+                    pivotRow = row;
+                    pivotColumn = column;
+                }
+            }
+        }
+        if (pivotMagnitude <= rankTolerance) {
+            break;
+        }
+        if (pivotRow != pivot) {
+            for (index_t column = pivot; column < svsize; ++column) {
+                std::swap(denseJacobian[static_cast<size_t>(pivot) * svsize + column],
+                          denseJacobian[static_cast<size_t>(pivotRow) * svsize + column]);
+            }
+            std::swap(rowOrder[pivot], rowOrder[pivotRow]);
+        }
+        if (pivotColumn != pivot) {
+            for (index_t row = 0; row < svsize; ++row) {
+                std::swap(denseJacobian[static_cast<size_t>(row) * svsize + pivot],
+                          denseJacobian[static_cast<size_t>(row) * svsize + pivotColumn]);
+            }
+            std::swap(columnOrder[pivot], columnOrder[pivotColumn]);
+        }
+        const double pivotValue = denseJacobian[static_cast<size_t>(pivot) * svsize + pivot];
+        smallestPivot = (std::min)(smallestPivot, std::abs(pivotValue));
+        for (index_t row = pivot + 1; row < svsize; ++row) {
+            const auto rowOffset = static_cast<size_t>(row) * svsize;
+            const double factor = denseJacobian[rowOffset + pivot] / pivotValue;
+            if (factor == 0.0) {
+                continue;
+            }
+            denseJacobian[rowOffset + pivot] = 0.0;
+            const auto pivotOffset = static_cast<size_t>(pivot) * svsize;
+            for (index_t column = pivot + 1; column < svsize; ++column) {
+                denseJacobian[rowOffset + column] -=
+                    factor * denseJacobian[pivotOffset + column];
+            }
+        }
+        ++numericalRank;
+    }
+    logging::logTo(m_gds,
+                   m_gds,
+                   diagnosticLevel,
+                   "IDA IC Jacobian full-pivot rank: {} of {}, tolerance={}, smallest_pivot={}",
+                   numericalRank,
+                   svsize,
+                   rankTolerance,
+                   smallestPivot);
+    const auto deficientCount = (std::min)(count_t{8}, svsize - numericalRank);
+    for (count_t offset = 0; offset < deficientCount; ++offset) {
+        const auto reducedIndex = numericalRank + offset;
+        const auto row = rowOrder[reducedIndex];
+        const auto column = columnOrder[reducedIndex];
+        const auto rowName = (static_cast<size_t>(row) < stateNames.size()) ? stateNames[row] :
+                                                                              std::string{"<unnamed>"};
+        const auto columnName = (static_cast<size_t>(column) < stateNames.size()) ?
+            stateNames[column] :
+            std::string{"<unnamed>"};
+        logging::logTo(m_gds,
+                       m_gds,
+                       diagnosticLevel,
+                       "IDA IC Jacobian deficient pair: residual[{}] {}, state[{}] {}",
+                       row,
+                       rowName,
+                       column,
+                       columnName);
+    }
 }
 
 void IdaInterface::logIntegrationFailureDiagnostics(CoreTime time, int retval) const
@@ -816,6 +929,37 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
     if (initCondMode ==
         IcModes::FIXED_MASKED_AND_DERIV)  // mainly for use upon startup from steady state
     {
+        // A power-flow solution with model states initialized from the same
+        // operating point is already a valid DAE initial condition.  Running
+        // IDACalcIC in this case only replaces the network equations with
+        // fixed voltage/angle rows and can introduce an artificial singular
+        // masked system.  Preserve a finite state whose residuals are already
+        // below IDA's configured absolute tolerance; the normal, unmasked
+        // Jacobian will still be used for the first integration step.
+        std::vector<double> initialResidual(svsize, 0.0);
+        const int initialResidualStatus =
+            m_gds->residualFunction(t0, stateData(), derivData(), initialResidual.data(), mode);
+        double maxInitialResidual = 0.0;
+        bool initialResidualIsFinite = (initialResidualStatus >= FUNCTION_EXECUTION_SUCCESS);
+        for (const auto residual : initialResidual) {
+            if (!std::isfinite(residual)) {
+                initialResidualIsFinite = false;
+                break;
+            }
+            maxInitialResidual = (std::max)(maxInitialResidual, std::abs(residual));
+        }
+        if (initialResidualIsFinite && (maxInitialResidual <= tolerance)) {
+            if (flags[IDA_IC_DIAGNOSTICS]) {
+                logging::logTo(m_gds,
+                               m_gds,
+                               PrintLevel::SUMMARY,
+                               "IDA initial-condition correction skipped: initial residual {} is within "
+                               "absolute tolerance {}",
+                               maxInitialResidual,
+                               tolerance);
+            }
+            return FUNCTION_EXECUTION_SUCCESS;
+        }
         // do a series of steps to ensure the original algebraic states are fixed and the
         // derivatives are fixed
         flags.set(USE_MASK_FLAG);

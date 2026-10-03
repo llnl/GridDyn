@@ -9,6 +9,7 @@
 #include "fileInput/fileInput.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
+#include "griddyn/Load.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include "sqlite3.h"
 #include <filesystem>
@@ -114,6 +115,13 @@ TEST(SavReaderTests, LoadsValidatedPslfSqlitePowerFlowCase)
     EXPECT_EQ(bus->getType(), griddyn::GridBus::BusType::SLK);
     EXPECT_NEAR(bus->getVoltage(), 1.02, 1.0e-3);
     EXPECT_NEAR(bus->getAngle(), 0.02, 1.0e-3);
+    auto* shuntBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 102));
+    ASSERT_NE(shuntBus, nullptr);
+    bool foundFixedShunt = false;
+    for (int index = 0; shuntBus->getLoad(index) != nullptr; ++index) {
+        foundFixedShunt |= shuntBus->getLoad(index)->isFixedShunt();
+    }
+    EXPECT_TRUE(foundFixedShunt);
 
     std::error_code removeError;
     std::filesystem::remove(filePath, removeError);

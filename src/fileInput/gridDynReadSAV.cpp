@@ -1143,6 +1143,7 @@ namespace {
         auto shuntId = shuntData.mId.empty() ? std::to_string(shuntData.mIndex) : shuntData.mId;
         auto* shunt =
             new ZipLoad(prefixedName(readerOptions, bus->getName() + "_shunt_" + shuntId));
+        shunt->setFixedShunt();
         shunt->set("basepower", bus->get("basepower", units::MW), units::MW);
         shunt->set("basevoltage", bus->get("basevoltage", units::kV), units::kV);
         shunt->set("yp", shuntData.mConductance, units::puMW);

@@ -12,8 +12,11 @@
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gridDynReadDyrModels.h"
+#include "LoadTemplateManager.h"
+#include "loadModelReaderHelper.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
+#include "griddyn/loads/LoadTemplateAdapters.h"
 #include <algorithm>
 #include <array>
 #include <charconv>
@@ -24,6 +27,7 @@
 #include <fstream>
 #include <limits>
 #include <map>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -86,19 +90,19 @@ namespace {
         });
     }
 
-    std::optional<WSCCLoadScope> getDydWSCCLoadScope(std::string_view modelName)
+    std::optional<LoadTemplateScope> getDydWSCCLoadScope(std::string_view modelName)
     {
         if (modelName == "wlwscc") {
-            return WSCCLoadScope::System;
+            return LoadTemplateScope::System;
         }
         if (modelName == "alwscc") {
-            return WSCCLoadScope::Area;
+            return LoadTemplateScope::Area;
         }
         if (modelName == "zlwscc") {
-            return WSCCLoadScope::Zone;
+            return LoadTemplateScope::Zone;
         }
         if (modelName == "blwscc") {
-            return WSCCLoadScope::Bus;
+            return LoadTemplateScope::Bus;
         }
         return std::nullopt;
     }
@@ -455,11 +459,16 @@ void loadDyd(CoreObject* parentObject,
     std::map<std::string, UnsupportedDydModelSummary> unsupportedModels;
     std::map<std::string, UnsupportedDydModelSummary> ignoredNonessentialModels;
     IgnoredDydParameterSummary ignoredIeeestTdelay;
+    IgnoredDydParameterSummary ignoredEsac1aSpdmlt;
+    LoadTemplateManager wsccLoadTemplates;
+    bool hasWsccLoadTemplates = false;
 
     if (!file.is_open()) {
         parentObject->log(parentObject, PrintLevel::ERROR, "Unable to open file " + fileName);
         return;
     }
+
+    warnIfStaticNetworkMissing(parentObject, "DYD", fileName);
 
     std::vector<std::pair<std::size_t, std::string>> inputLines;
     while (std::getline(file, line)) {
@@ -567,6 +576,13 @@ void loadDyd(CoreObject* parentObject,
                                        recordLineNumber,
                                        positionalPayload[19U]);
             }
+            if ((sourceModelName == "esac1a") && (positionalPayload.size() > 19U) &&
+                !isZeroDydParameter(positionalPayload[19U])) {
+                addIgnoredDydParameter(ignoredEsac1aSpdmlt,
+                                       lineTokens,
+                                       recordLineNumber,
+                                       positionalPayload[19U]);
+            }
             if ((canonicalModelName == "gpwscc") && !hasUnsupportedField) {
                 if (gpwsccMWCap.empty()) {
                     hasUnsupportedField = true;
@@ -593,14 +609,14 @@ void loadDyd(CoreObject* parentObject,
                 }
                 const auto parameters = parseWSCCParameters(positionalPayload, displayModelName);
                 index_t selector = 0;
-                if (*wsccScope != WSCCLoadScope::System) {
+                if (*wsccScope != LoadTemplateScope::System) {
                     selector = parseDydSelector(header[1], displayModelName);
-                    if ((*wsccScope == WSCCLoadScope::Area) &&
+                    if ((*wsccScope == LoadTemplateScope::Area) &&
                         (mutableSimulation->findByUserID("area", selector) == nullptr)) {
                         throw InvalidParameterValue(displayModelName + " area selector " +
                                                     std::to_string(selector) + " was not found");
                     }
-                    if (*wsccScope == WSCCLoadScope::Zone) {
+                    if (*wsccScope == LoadTemplateScope::Zone) {
                         if (selector > static_cast<index_t>(std::numeric_limits<int>::max())) {
                             throw InvalidParameterValue(
                                 displayModelName + " zone selector exceeds the supported range");
@@ -616,13 +632,16 @@ void loadDyd(CoreObject* parentObject,
                                                         " was not found");
                         }
                     }
-                    if ((*wsccScope == WSCCLoadScope::Bus) &&
+                    if ((*wsccScope == LoadTemplateScope::Bus) &&
                         (mutableSimulation->findByUserID("bus", selector) == nullptr)) {
                         throw InvalidParameterValue(displayModelName + " bus selector " +
                                                     std::to_string(selector) + " was not found");
                     }
                 }
-                mutableSimulation->setWSCCLoadParameters(parameters, *wsccScope, selector);
+                wsccLoadTemplates.setTemplate(*wsccScope,
+                                              selector,
+                                              loads::makeWSCCLoadTemplate(parameters));
+                hasWsccLoadTemplates = true;
             }
             catch (const InvalidParameterValue& error) {
                 std::string message{fileName};
@@ -688,6 +707,17 @@ void loadDyd(CoreObject* parentObject,
             ", Tdelay=" + ignoredIeeestTdelay.mFirstValue;
         parentObject->log(parentObject, PrintLevel::WARNING, message);
     }
+    if (ignoredEsac1aSpdmlt.mCount > 0U) {
+        const std::string message = fileName +
+            ": ignored nonzero or invalid PSLF ESAC1A Spdmlt values (generator-speed output "
+            "scaling is not modeled): " +
+            std::to_string(ignoredEsac1aSpdmlt.mCount) + " record(s); first at line " +
+            std::to_string(ignoredEsac1aSpdmlt.mFirstLine) + ", bus " +
+            ignoredEsac1aSpdmlt.mFirstBus + " machine " +
+            ignoredEsac1aSpdmlt.mFirstMachine + ", Spdmlt=" +
+            ignoredEsac1aSpdmlt.mFirstValue;
+        parentObject->log(parentObject, PrintLevel::WARNING, message);
+    }
     if (!unsupportedModels.empty()) {
         std::string message = fileName + ": unsupported DYD models:";
         for (const auto& [modelName, summary] : unsupportedModels) {
@@ -696,6 +726,12 @@ void loadDyd(CoreObject* parentObject,
                 summary.mFirstBus + " machine " + summary.mFirstMachine;
         }
         throw InvalidParameterValue(message);
+    }
+    if (hasWsccLoadTemplates) {
+        if (auto* mutableSimulation = dynamic_cast<GridDynSimulation*>(parentObject->getRoot());
+            mutableSimulation != nullptr) {
+            applyLoadTemplatesFromReader(*mutableSimulation, wsccLoadTemplates);
+        }
     }
     if (disableStabilizers) {
         parentObject->log(parentObject,

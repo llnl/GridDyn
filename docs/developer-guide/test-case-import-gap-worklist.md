@@ -164,12 +164,19 @@ Relevant source: `src/fileInput/fileInput.cpp`.
 - Current behavior: `.dyd` is dispatched through its own reader and attaches
   records whose schemas map directly to existing DYR model loaders. Unsupported
   model families are summarized and reported as an import error.
+- Read the static `.save`, `.epc`, `.raw`, `.m`, or `.py` network before its
+  `.dyd` or `.dyr` models. Both dynamic readers warn when the network has no
+  buses yet. Load templates apply to the existing loads when their records are
+  read. If several dynamic files set a characteristic on the same load, later
+  files replace earlier ones; scope precedence is resolved within each file.
 - Deliberate compatibility boundary:
   - `WLWSCC`, `ALWSCC`, `ZLWSCC`, and `BLWSCC` select system, area, zone, and
     bus scopes, respectively. More specific scopes override broader ones in
     that order, independent of the order of records in the DYD file.
   - Exact ZIP and frequency-dependent cases use those existing load models;
     other parameter sets use the dedicated WSCC load.
+  - Fixed shunts and controlled load devices such as switched shunts retain
+    their static-network behavior when scoped load characteristics are applied.
   - `BLWSCC` is bus-scoped in DYD files, including when PowerWorld writes it
     for a model assigned to a particular load. If a bus has multiple loads,
     the DYD record cannot distinguish them and is applied to the bus loads.
@@ -249,6 +256,14 @@ Relevant source: `src/fileInput/fileInput.cpp`.
     tests when delay support is implemented.
 - Exercised by: `test\test_files\texas_am\ACTIVSg500\ACTIVSg500_dynamics.dyd`
   (IEEEST at buses 144 and 145).
+
+### [ ] DYD-003: Handle PSLF ESAC1A speed multiplier
+
+- Current behavior: the DYD adapter maps the 19 PSS/E-compatible fields to
+  ESAC1A and warns when the trailing PSLF `Spdmlt` is nonzero or invalid.
+  The output scaling by generator speed is not implemented.
+- Work needed: implement the speed-dependent Efd scaling and add a disturbed
+  trajectory with nonzero `Spdmlt`.
 
 ### [ ] FILE-005: Add diagnostics for unsupported binary/container formats
 

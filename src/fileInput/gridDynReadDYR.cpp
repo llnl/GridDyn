@@ -10,9 +10,12 @@
 #include "core/ObjectFactory.hpp"
 #include "core/coreDefinitions.hpp"
 #include "fileInput.h"
+#include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewConversion.h"
 #include "gridDynReadDyrModels.h"
+#include "LoadTemplateManager.h"
+#include "loadModelReaderHelper.h"
 #include "griddyn/Exciter.h"
 #include "griddyn/GenModel.h"
 #include "griddyn/Generator.h"
@@ -22,6 +25,7 @@
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/Stabilizer.h"
 #include "griddyn/generators/DynamicGenerator.h"
+#include "griddyn/loads/LoadTemplateAdapters.h"
 #include "griddyn/generators/RenewableGenerator.h"
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
@@ -320,6 +324,8 @@ void loadDyr(CoreObject* parentObject,
     if (!(file.is_open())) {
         parentObject->log(parentObject, PrintLevel::ERROR, "Unable to open file " + fileName);
         //    return;
+    } else {
+        warnIfStaticNetworkMissing(parentObject, "DYR", fileName);
     }
     while (std::getline(file, line)) {
         ++lineNumber;
@@ -504,7 +510,11 @@ namespace {
                 parameters.exponents[index - parameters.coefficients.size()] = value;
             }
         }
-        simulation->setIEELALParameters(parameters);
+        LoadTemplateManager templates;
+        templates.setTemplate(LoadTemplateScope::System,
+                              0,
+                              loads::makeIEELALLoadTemplate(parameters));
+        applyLoadTemplatesFromReader(*simulation, templates);
     }
 
     void loadMeasurement(CoreObject* parentObject, stringVec& tokens, std::string_view modelName)

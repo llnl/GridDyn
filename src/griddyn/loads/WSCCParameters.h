@@ -32,9 +32,6 @@ struct WSCCParameters {
 
 enum class WSCCRepresentation { ZIP, FDEP, WSCC };
 
-/** Scope of a WSCC characteristic in a PSLF DYD file, from broad to specific. */
-enum class WSCCLoadScope { System, Area, Zone, Bus };
-
 struct WSCCFDepSide {
     double scale = 0.0;
     double voltageExponent = 0.0;

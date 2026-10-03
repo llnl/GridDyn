@@ -8,16 +8,19 @@
 #include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
+#include "griddyn/Load.h"
 #include "griddyn/exciters/ExciterESAC1A.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/generators/RenewableGenerator.h"
 #include "griddyn/governors/GovernorGPWSCC.h"
 #include "griddyn/links/AcLine.h"
+#include <algorithm>
 #include <array>
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
 #include <memory>
+#include <ranges>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -245,7 +248,26 @@ TEST(ExampleReaderTests, LoadEpcDydDynamicModels)
 
     auto gds = std::make_unique<griddyn::GridDynSimulation>();
     griddyn::loadFile(gds, epcPath.string());
+    auto* shuntBus = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 9));
+    ASSERT_NE(shuntBus, nullptr);
+    griddyn::GridLoad* fixedShunt = nullptr;
+    for (int index = 0; shuntBus->getLoad(index) != nullptr; ++index) {
+        if (shuntBus->getLoad(index)->isFixedShunt()) {
+            fixedShunt = shuntBus->getLoad(index);
+            break;
+        }
+    }
+    ASSERT_NE(fixedShunt, nullptr);
+    const double shuntReactivePower = fixedShunt->getReactivePower(1.0);
     griddyn::loadFile(gds, dydPath.string());
+
+    EXPECT_TRUE(fixedShunt->isFixedShunt());
+    EXPECT_NEAR(fixedShunt->getReactivePower(1.0), shuntReactivePower, 1e-12);
+    bool shuntRetained = false;
+    for (int index = 0; shuntBus->getLoad(index) != nullptr; ++index) {
+        shuntRetained |= (shuntBus->getLoad(index) == fixedShunt);
+    }
+    EXPECT_TRUE(shuntRetained);
 
     EXPECT_EQ(gds->getInt("gencount"), 5);
     for (const auto busId : {1, 2, 3, 6, 8}) {
@@ -255,6 +277,46 @@ TEST(ExampleReaderTests, LoadEpcDydDynamicModels)
         ASSERT_NE(generator, nullptr) << "dynamic generator at bus " << busId;
         EXPECT_NE(generator->find("genmodel"), nullptr) << "GENROU at bus " << busId;
     }
+}
+
+TEST(ExampleReaderTests, WarnsWhenDynamicFilesPrecedeStaticNetwork)
+{
+    const auto tempDirectory = std::filesystem::temp_directory_path();
+    const auto dyrPath = tempDirectory / "griddyn_models_before_static.dyr";
+    const auto dydPath = tempDirectory / "griddyn_models_before_static.dyd";
+    struct TempFileCleanup {
+        std::filesystem::path dyr;
+        std::filesystem::path dyd;
+        ~TempFileCleanup()
+        {
+            std::error_code error;
+            std::filesystem::remove(dyr, error);
+            std::filesystem::remove(dyd, error);
+        }
+    } cleanup{.dyr = dyrPath, .dyd = dydPath};
+    {
+        std::ofstream dyr(dyrPath);
+        ASSERT_TRUE(dyr.is_open());
+        dyr << "0 'IEELAL' '*' 1 0 0 1 0 0 0 0 2 0 0 2 0 0 /\n";
+        std::ofstream dyd(dydPath);
+        ASSERT_TRUE(dyd.is_open());
+        dyd << "models\nwlwscc 0 ! ! \"1\" : #9 0 1 1 0 0 0 0 0 0 0 0 /\n";
+    }
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    std::vector<std::string> logMessages;
+    simulation->setLogger(
+        [&logMessages](int, const std::string& message) { logMessages.push_back(message); });
+    EXPECT_NO_THROW(griddyn::loadFile(simulation.get(), dyrPath.string()));
+    EXPECT_NO_THROW(griddyn::loadFile(simulation.get(), dydPath.string()));
+    EXPECT_TRUE(std::ranges::any_of(logMessages, [](const auto& message) {
+        return message.find("DYR model file loaded before a static network") !=
+            std::string::npos;
+    }));
+    EXPECT_TRUE(std::ranges::any_of(logMessages, [](const auto& message) {
+        return message.find("DYD model file loaded before a static network") !=
+            std::string::npos;
+    }));
 }
 
 TEST(ExampleReaderTests, LoadDydAliasesAndContinuationRecords)
@@ -387,14 +449,21 @@ TEST(ExampleReaderTests, SparseEPCBusIDResolvesDYDModelsAndESAC1ATrailer)
                   "8.5 0.05 0.2 3.6 0 1.1 0.65 0.25 0.25 0.14 0 0 0 0 0 /\n"
                   "esac1a 101 \"1_MACH\" 15.0 \"1\" : #9 "
                   "0.01 0.1 0.2 400 0.05 5.5 -5.5 0.75 0.03 1.2 "
-                  "0.2 0.4 1.1 2.0 0.1 4.0 0.2 99 -99 0 /\n";
+                  "0.2 0.4 1.1 2.0 0.1 4.0 0.2 99 -99 0.25 /\n";
     }
 
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
     ASSERT_NO_THROW(griddyn::loadFile(simulation.get(), epcPath.string()));
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 101));
     ASSERT_NE(bus, nullptr);
+    std::vector<std::string> logMessages;
+    simulation->setLogger(
+        [&logMessages](int, const std::string& message) { logMessages.push_back(message); });
     ASSERT_NO_THROW(griddyn::loadFile(simulation.get(), dydPath.string()));
+
+    EXPECT_TRUE(std::ranges::any_of(logMessages, [](const auto& message) {
+        return message.find("Spdmlt=0.25") != std::string::npos;
+    }));
 
     auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
     ASSERT_NE(generator, nullptr);

@@ -294,6 +294,8 @@ set(load_headers
     loads/GridLabDLoad.h
     loads/IEELLoad.h
     loads/IEELParameters.h
+    loads/LoadFactory.h
+    loads/LoadTemplateAdapters.h
     loads/WSCCLoad.h
     loads/WSCCParameters.h
     loads/Svd.h
@@ -320,6 +322,7 @@ set(load_sources
     loads/SourceLoad.cpp
     loads/ZipLoad.cpp
     loads/IEELLoad.cpp
+    loads/LoadTemplateAdapters.cpp
     loads/WSCCLoad.cpp
     loads/Svd.cpp
     loads/ThreePhaseLoad.cpp

@@ -1009,6 +1009,8 @@ namespace {
             return;
         }
 
+        load->setFixedShunt();
+
         // get the load index and name
         std::string prefix = load->getParent()->getName() + "_Shunt";
         if (!strvec[7].empty()) {

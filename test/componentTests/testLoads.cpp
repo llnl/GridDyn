@@ -7,6 +7,7 @@
 #include "../gtestHelper.h"
 #include "core/CoreExceptions.h"
 #include "fileInput/fileInput.h"
+#include "fileInput/loadModelReaderHelper.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/blocks/LeadLagBlock.h"
@@ -18,6 +19,7 @@
 #include "griddyn/loads/FileLoad.h"
 #include "griddyn/loads/GridLabDLoad.h"
 #include "griddyn/loads/IEELLoad.h"
+#include "griddyn/loads/LoadTemplateAdapters.h"
 #include "griddyn/loads/MotorLoad5.h"
 #include "griddyn/loads/SourceLoad.h"
 #include "griddyn/loads/Svd.h"
@@ -31,6 +33,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 using namespace griddyn;
@@ -60,7 +63,11 @@ TEST(IEELLoadTests, SelectsTheSimplestEquivalentLoadAndEvaluatesItsEquation)
         bus->add(new ZipLoad(0.6, 0.25, "raw_load"));
         simulation->add(bus);
 
-        simulation->setIEELALParameters(parameters);
+        LoadTemplateManager templates;
+        templates.setTemplate(LoadTemplateScope::System,
+                              0,
+                              makeIEELALLoadTemplate(parameters));
+        applyLoadTemplatesFromReader(*simulation, templates);
         auto* load = bus->getLoad(0);
         ASSERT_NE(load, nullptr);
         EXPECT_EQ(load->getName(), "raw_load");
@@ -120,6 +127,66 @@ TEST(IEELLoadTests, SelectsTheSimplestEquivalentLoadAndEvaluatesItsEquation)
                                        (0.7 * std::pow(voltage, 2.5))) *
                             (1.0 + (0.4 * (frequency - 1.0)));
                     });
+}
+
+TEST(LoadTemplateTests, KeepsFixedAndControlledShunts)
+{
+    auto simulation = std::make_unique<GridDynSimulation>();
+    auto* bus = new AcBus("bus");
+    auto* ordinaryLoad = new ZipLoad(0.6, 0.25, "ordinary");
+    auto* fixedShunt = new ZipLoad(0.0, 0.15, "fixed_shunt");
+    fixedShunt->setFixedShunt();
+    auto* switchedShunt = new Svd("switched_shunt");
+    bus->add(ordinaryLoad);
+    bus->add(fixedShunt);
+    bus->add(switchedShunt);
+    simulation->add(bus);
+
+    IEELParameters parameters;
+    parameters.coefficients = {0.5, 0.5, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
+    parameters.exponents = {0.5, 1.5, 0.0, 1.0, 0.0, 0.0};
+    LoadTemplateManager templates;
+    templates.setTemplate(LoadTemplateScope::System, 0, makeIEELALLoadTemplate(parameters));
+
+    ASSERT_NO_THROW(applyLoadTemplatesFromReader(*simulation, templates));
+    EXPECT_NE(dynamic_cast<IEELLoad*>(bus->getLoad(0)), nullptr);
+    EXPECT_EQ(bus->getLoad(1), fixedShunt);
+    EXPECT_EQ(bus->getLoad(2), switchedShunt);
+}
+
+TEST(LoadTemplateTests, PreservesDemandOfDisconnectedLoads)
+{
+    const auto checkConversion = [](LoadTemplateFactory factory) {
+        auto simulation = std::make_unique<GridDynSimulation>();
+        auto* bus = new AcBus("bus");
+        auto* original = new ZipLoad(0.6, 0.25, "offline_load");
+        original->disable();
+        original->disconnect();
+        bus->add(original);
+        simulation->add(bus);
+
+        LoadTemplateManager templates;
+        templates.setTemplate(LoadTemplateScope::System, 0, std::move(factory));
+        applyLoadTemplatesFromReader(*simulation, templates);
+
+        auto* replacement = bus->getLoad(0);
+        ASSERT_NE(replacement, nullptr);
+        EXPECT_FALSE(replacement->isEnabled());
+        EXPECT_FALSE(replacement->isConnected());
+        replacement->enable();
+        replacement->reconnect();
+        EXPECT_NEAR(replacement->getRealPower(1.0), 0.6, 1e-12);
+        EXPECT_NEAR(replacement->getReactivePower(1.0), 0.25, 1e-12);
+    };
+
+    IEELParameters ieel;
+    ieel.coefficients = {1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
+    checkConversion(makeIEELALLoadTemplate(ieel));
+
+    WSCCParameters wscc;
+    wscc.p3 = 1.0;
+    wscc.q3 = 1.0;
+    checkConversion(makeWSCCLoadTemplate(wscc));
 }
 
 class LoadTests: public GridLoadTestFixture, public ::testing::Test {};

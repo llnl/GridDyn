@@ -760,7 +760,6 @@ static void readRawCaseDescription(std::ifstream& file,
 static void readRawLoadSection(std::ifstream& file,
                                std::string& line,
                                std::vector<GridBus*>& busList,
-                               GridDynSimulation* simulation,
                                BasicReaderInfo& opt)
 {
     while (checkNextLine(file, line)) {
@@ -773,18 +772,6 @@ static void readRawLoadSection(std::ifstream& file,
         auto* loadObject = gLdfactory->makeTypeObject();
         bus->add(loadObject);
         rawReadLoad(loadObject, line, opt);
-        if (simulation == nullptr) {
-            continue;
-        }
-        auto replacement = simulation->makeIEELALLoad(*loadObject);
-        if (!replacement) {
-            replacement = simulation->makeWSCCLoad(*loadObject);
-        }
-        if (replacement) {
-            auto* newLoad = replacement.get();
-            bus->replaceLoad(loadObject, newLoad);
-            std::ignore = replacement.release();
-        }
     }
 }
 
@@ -792,7 +779,6 @@ void loadRaw(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& readerOptions)
 {
-    auto* simulation = dynamic_cast<GridDynSimulation*>(parentObject->getRoot());
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;  // line storage
     std::string temp1;  // temporary storage for substrings
@@ -848,7 +834,7 @@ void loadRaw(CoreObject* parentObject,
         bool moreData = true;
         switch (currSection) {
             case SectionType::LOAD:
-                readRawLoadSection(file, line, busList, simulation, opt);
+                readRawLoadSection(file, line, busList, opt);
                 break;
             case SectionType::GENERATOR:
                 while (moreData) {
@@ -881,7 +867,7 @@ void loadRaw(CoreObject* parentObject,
                     if (checkNextLine(file, line)) {
                         bus = findBus(busList, line);
                         if (bus != nullptr) {
-                            loadObject = gLdfactory->makeTypeObject();
+                            auto* loadObject = gLdfactory->makeTypeObject();
                             bus->add(loadObject);
                             rawReadFixedShunt(loadObject, line, opt);
                         } else {

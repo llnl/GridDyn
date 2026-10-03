@@ -165,15 +165,15 @@ Relevant source: `src/fileInput/fileInput.cpp`.
   records whose schemas map directly to existing DYR model loaders. Unsupported
   model families are summarized and reported as an import error.
 - Deliberate compatibility boundary:
-  - PSLF generalized-load records (`ALWSCC`, `BLWSCC`, `WLWSCC`, and `ZLWSCC`)
-    are accepted and summarized as ignored. Until generalized-load behavior is
-    implemented, the EPC loads retain the existing DYR-equivalent static-load
-    behavior.
-  - This is an intentional temporary approximation, not a claim of full PSLF
-    load-model equivalence.
+  - `WLWSCC`, `ALWSCC`, `ZLWSCC`, and `BLWSCC` select system, area, zone, and
+    bus scopes, respectively. More specific scopes override broader ones in
+    that order, independent of the order of records in the DYD file.
+  - Exact ZIP and frequency-dependent cases use those existing load models;
+    other parameter sets use the dedicated WSCC load.
+  - `BLWSCC` is bus-scoped in DYD files, including when PowerWorld writes it
+    for a model assigned to a particular load. If a bus has multiple loads,
+    the DYD record cannot distinguish them and is applied to the bus loads.
 - Work remaining:
-  - Add generalized-load equations and validation when PSLF load behavior is
-    required.
   - Extend the direct-model mapping as additional DYD model families are
     implemented.
 - Exercised by:
@@ -234,18 +234,19 @@ Relevant source: `src/fileInput/fileInput.cpp`.
 ### [ ] DYD-002: Handle PSLF IEEEST input delay
 
 - Current behavior: the DYD adapter passes the 19 PSS/E-compatible IEEEST
-  parameters to the existing DYR loader and discards the trailing PSLF
-  `Tdelay` parameter. The ACTIVSg500 records for buses 144 and 145 set
-  `Tdelay=0`, so discarding it permits import without changing those records'
-  delay behavior; nonzero delays are not modeled.
+  parameters to the existing DYR loader and does not model the trailing PSLF
+  `Tdelay` parameter. Nonzero or invalid `Tdelay` values now produce a warning
+  with the count and first source record location; zero values remain quiet.
+  The ACTIVSg500 records for buses 144 and 145 set `Tdelay=0`, so ignoring the
+  parameter does not change those records' delay behavior.
 - PowerWorld's model reference identifies `Tdelay` as the final IEEEST parameter
   and notes PSLF support for the time delay. See [PowerWorld IEEEST reference](https://www.powerworld.com/WebHelp/Content/TransientModels_HTML/Stabilizer%20IEEEST.htm)
   and the [PSLF-supported model diagram](https://www.powerworld.com/files/Block-Diagrams-17.pdf).
 - Work needed:
-  - Confirm the PSLF version/schema and map the delay into the stabilizer when
-    implemented.
-  - Until then, emit an explicit diagnostic for nonzero `Tdelay` values.
-  - Add import and delayed-signal behavior tests.
+  - Implement the transport delay in the stabilizer using delayed-signal history;
+    do not substitute a first-order lag.
+  - Confirm the PSLF version/schema and add import and delayed-signal behavior
+    tests when delay support is implemented.
 - Exercised by: `test\test_files\texas_am\ACTIVSg500\ACTIVSg500_dynamics.dyd`
   (IEEEST at buses 144 and 145).
 

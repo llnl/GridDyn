@@ -133,9 +133,10 @@ must not be enabled as partially interpreted models.
 `ACTIVSg25k_dynamics.dyd` has the same 16 synchronous model counts. Its
 renewable records are `regc_a` and `reec_a` (614 each), plus `wt3e`, `wt3t`,
 and `wt3p` (119 each). `WT3G1` is present in DYR and AUX but absent from DYD.
-DYD also has one `wlwscc` load-characteristic record. The current
-GridDyn DYD reader does not convert the five renewable DYD names and explicitly
-ignores `wlwscc`. Loading DYD instead of DYR therefore does not close the
+DYD also has one `wlwscc` load-characteristic record. GridDyn now applies this
+all-load WSCC characteristic to non-fixed-shunt loads, reducing exact ZIP and
+frequency-dependent cases to those existing models. The five renewable DYD
+names remain unconverted, so loading DYD instead of DYR does not close the
 coverage gap. The `ACTIVSg25k_dynamics.aux` file contains all 22 DYR model
 families with the same per-family record counts, plus transient options and
 network data. Its field order
@@ -161,9 +162,9 @@ found in `ACTIVSg25k_dynamics.aux` for REPCA1 or the newer WTDTA1 wind family.
    eight-/nine-field DYR fixtures above, then require and test the full
    four-record bundle before running an ACTIVSg Type-3 plant.
 4. Add explicit DYD adapters for `regc_a`/`reec_a` and `wt3*`, with
-   cross-format parameter equivalence tests against DYR. Decide whether the
-   lone `wlwscc` record maps to an existing GridDyn load characteristic or
-   needs a new adapter. Do not silently ignore it in a full-fidelity study.
+   cross-format parameter equivalence checks against DYR. Validate the
+   implemented `wlwscc` behavior against the source case and a trusted
+   simulator before relying on it for a full-fidelity study.
 5. Run the full RAW+DYR case through power flow, dynamic initialization,
    residual/Jacobian checks, and at least one bus-voltage disturbance. Compare
    P, Q, voltage, and representative converter/turbine states to PowerWorld

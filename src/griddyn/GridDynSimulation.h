@@ -14,6 +14,7 @@
 #include "simulation/GridDynActions.h"
 #include "simulation/GridSimulation.h"
 #include "loads/IEELParameters.h"
+#include "loads/WSCCParameters.h"
 // libraries
 #include "griddyn/griddyn-config.h"
 #include <functional>
@@ -22,6 +23,7 @@
 #include <queue>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 namespace griddyn {
 #define SINGLE (1)
@@ -208,6 +210,10 @@ class GridDynSimulation: public GridSimulation {
     ResidualParallelMode residualParallelMode =
         ResidualParallelMode::AUTO;  //!< Residual parallelism policy.
     std::optional<IEELParameters> ieelAllLoadParameters;  //!< IEELAL template for RAW loads
+    std::optional<WSCCParameters> wsccAllLoadParameters;  //!< WLWSCC template for all loads
+    std::unordered_map<index_t, WSCCParameters> wsccAreaLoadParameters;  //!< ALWSCC records
+    std::unordered_map<int, WSCCParameters> wsccZoneLoadParameters;  //!< ZLWSCC records
+    std::unordered_map<index_t, WSCCParameters> wsccBusLoadParameters;  //!< BLWSCC records
 
     /** @brief Select the residual thread count from the configured policy and network size.
      *
@@ -239,6 +245,14 @@ class GridDynSimulation: public GridSimulation {
     std::unique_ptr<GridLoad> makeIEELALLoad(const GridLoad& load) const;
     /** Store a system-wide IEELAL record and apply it to loads already in the model. */
     void setIEELALParameters(const IEELParameters& parameters);
+    /** Create a load configured with the current WLWSCC template, if one is active. */
+    std::unique_ptr<GridLoad> makeWSCCLoad(const GridLoad& load) const;
+    /** Store a system-wide WLWSCC record and apply it to loads already in the model. */
+    void setWSCCLoadParameters(const WSCCParameters& parameters);
+    /** Store a scoped WSCC record and apply it with system/area/zone/bus precedence. */
+    void setWSCCLoadParameters(const WSCCParameters& parameters,
+                               WSCCLoadScope scope,
+                               index_t selector);
 
     // simulation
     /** @brief define an enumeration for the network check level*/
@@ -791,6 +805,7 @@ class GridDynSimulation: public GridSimulation {
     bool checkEventsForDynamicReset(CoreTime cTime, const SolverMode& sMode);
 
   private:
+    const WSCCParameters* getWSCCLoadParameters(const GridBus* bus) const;
     void setupDynamicDAE();
     void setupDynamicPartitioned();
 

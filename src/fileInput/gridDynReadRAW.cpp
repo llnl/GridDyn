@@ -826,6 +826,9 @@ void loadRaw(CoreObject* parentObject,
                             rawReadLoad(loadObject, line, opt);
                             if (simulation != nullptr) {
                                 auto replacement = simulation->makeIEELALLoad(*loadObject);
+                                if (!replacement) {
+                                    replacement = simulation->makeWSCCLoad(*loadObject);
+                                }
                                 if (replacement) {
                                     auto* newLoad = replacement.get();
                                     bus->replaceLoad(loadObject, newLoad);
@@ -1398,7 +1401,8 @@ static int rawReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& op
     bus->set("type", temp);
     if (opt.version >= 31) {
         area = numeric_conversion<int>(strvec[4], 0);
-        // skip the loss zone for now
+        const auto zone = numeric_conversion<double>(strvec[5], 1.0);
+        bus->set("zone", zone);
         // skip the owner information
         // get the voltage and angle specifications
         voltageMagnitude = numeric_conversion<double>(strvec[7], 0.0);

@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -385,7 +386,8 @@ TEST(ExampleReaderTests, SparseEPCBusIDResolvesDYDModelsAndESAC1ATrailer)
                   "gensal 101 \"1_MACH\" 15.0 \"1\" : #9 mva=100.0 "
                   "8.5 0.05 0.2 3.6 0 1.1 0.65 0.25 0.25 0.14 0 0 0 0 0 /\n"
                   "esac1a 101 \"1_MACH\" 15.0 \"1\" : #9 "
-                  "0 0 0 400 0.02 5.5 -5.5 1 0.029 1 0 0 1 0 0 0 0 99 -99 0 /\n";
+                  "0.01 0.1 0.2 400 0.05 5.5 -5.5 0.75 0.03 1.2 "
+                  "0.2 0.4 1.1 2.0 0.1 4.0 0.2 99 -99 0 /\n";
     }
 
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
@@ -399,9 +401,29 @@ TEST(ExampleReaderTests, SparseEPCBusIDResolvesDYDModelsAndESAC1ATrailer)
     EXPECT_NE(generator->find("genmodel"), nullptr);
     auto* exciter = dynamic_cast<griddyn::exciters::ExciterESAC1A*>(generator->find("exciter"));
     ASSERT_NE(exciter, nullptr);
-    EXPECT_DOUBLE_EQ(exciter->get("ka"), 400.0);
-    EXPECT_DOUBLE_EQ(exciter->get("vamax"), 99.0);
-    EXPECT_DOUBLE_EQ(exciter->get("vamin"), -99.0);
+    const std::array<std::pair<std::string_view, double>, 19> expectedParameters{{
+        {"tr", 0.01},
+        {"tb", 0.1},
+        {"tc", 0.2},
+        {"ka", 400.0},
+        {"ta", 0.05},
+        {"vamax", 5.5},
+        {"vamin", -5.5},
+        {"te", 0.75},
+        {"kf", 0.03},
+        {"tf", 1.2},
+        {"kc", 0.2},
+        {"kd", 0.4},
+        {"ke", 1.1},
+        {"e1", 2.0},
+        {"se1", 0.1},
+        {"e2", 4.0},
+        {"se2", 0.2},
+        {"vrmax", 99.0},
+        {"vrmin", -99.0}}};
+    for (const auto& [parameter, value] : expectedParameters) {
+        EXPECT_DOUBLE_EQ(exciter->get(parameter), value) << parameter;
+    }
 }
 
 TEST(ExampleReaderTests, IgnoreNonessentialDydModelsWithWarning)

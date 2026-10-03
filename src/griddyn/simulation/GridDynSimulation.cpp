@@ -15,10 +15,12 @@
 #include "../loads/FDepLoad.h"
 #include "../loads/GridLabDLoad.h"
 #include "../loads/IEELLoad.h"
+#include "../loads/WSCCLoad.h"
 #include "../loads/ZipLoad.h"
 #include "../solvers/SolverInterface.h"
 #include "Contingency.h"
 #include "GridDynSimulationFileOps.h"
+#include "GridArea.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
@@ -38,8 +40,10 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <limits>
 #include <queue>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -122,6 +126,30 @@ std::vector<IEELVoltageTerm> getIEELVoltageTerms(const IEELParameters& parameter
     });
     return terms;
 }
+
+double getWSCCCharacteristic(const WSCCParameters& parameters,
+                             bool reactive,
+                             double voltage,
+                             double frequency)
+{
+    const double first = reactive ? parameters.q1 : parameters.p1;
+    const double second = reactive ? parameters.q2 : parameters.p2;
+    const double third = reactive ? parameters.q3 : parameters.p3;
+    const double fourth = reactive ? parameters.q4 : parameters.p4;
+    const double frequencyCoefficient = reactive ? parameters.lqd : parameters.lpd;
+    const bool extended = (parameters.p4 != 0.0) || (parameters.q4 != 0.0);
+    const double polynomial = ((first * voltage) * voltage) + (second * voltage) + third;
+    const double frequencyFactor = 1.0 + (frequencyCoefficient * (frequency - 1.0));
+    const double characteristic = extended ?
+        polynomial + (fourth * frequencyFactor) :
+        polynomial * frequencyFactor;
+    if ((parameters.vmin > 0.0) && (voltage < parameters.vmin)) {
+        const double voltageRatio = voltage / parameters.vmin;
+        return getWSCCCharacteristic(parameters, reactive, parameters.vmin, frequency) *
+            voltageRatio * voltageRatio;
+    }
+    return characteristic;
+}
 }  // namespace
 
 std::unique_ptr<GridLoad> GridDynSimulation::makeIEELALLoad(const GridLoad& load) const
@@ -134,10 +162,11 @@ std::unique_ptr<GridLoad> GridDynSimulation::makeIEELALLoad(const GridLoad& load
     }
     if ((dynamic_cast<const ZipLoad*>(&load) == nullptr) &&
         (dynamic_cast<const loads::FDepLoad*>(&load) == nullptr) &&
-        (dynamic_cast<const loads::IEELLoad*>(&load) == nullptr)) {
+        (dynamic_cast<const loads::IEELLoad*>(&load) == nullptr) &&
+        (dynamic_cast<const loads::WSCCLoad*>(&load) == nullptr)) {
         throw InvalidParameterValue("IEELAL cannot replace load '" + load.getName() +
                                     "' because its existing dynamic load model is not a ZIP, "
-                                    "FDep, or IEEL model");
+                                    "FDep, IEEL, or WSCC model");
     }
 
     const auto& parameters = *ieelAllLoadParameters;
@@ -227,14 +256,19 @@ void GridDynSimulation::setIEELALParameters(const IEELParameters& parameters)
                 }
                 if ((dynamic_cast<ZipLoad*>(load) == nullptr) &&
                     (dynamic_cast<loads::FDepLoad*>(load) == nullptr) &&
-                    (dynamic_cast<loads::IEELLoad*>(load) == nullptr)) {
+                    (dynamic_cast<loads::IEELLoad*>(load) == nullptr) &&
+                    (dynamic_cast<loads::WSCCLoad*>(load) == nullptr)) {
                     throw InvalidParameterValue("IEELAL cannot replace load '" + load->getName() +
                                                 "' because its existing dynamic load model is not "
-                                                "a ZIP, FDep, or IEEL model");
+                                                "a ZIP, FDep, IEEL, or WSCC model");
                 }
             }
         }
     }
+    wsccAllLoadParameters.reset();
+    wsccAreaLoadParameters.clear();
+    wsccZoneLoadParameters.clear();
+    wsccBusLoadParameters.clear();
     ieelAllLoadParameters = parameters;
     for (auto* bus : buses) {
         for (index_t index = 0; bus->getLoad(index) != nullptr; ++index) {
@@ -249,6 +283,228 @@ void GridDynSimulation::setIEELALParameters(const IEELParameters& parameters)
     }
 }
 
+std::unique_ptr<GridLoad> GridDynSimulation::makeWSCCLoad(const GridLoad& load) const
+{
+    const auto* parameters = getWSCCLoadParameters(load.getBus());
+    if (parameters == nullptr || load.isFixedShunt()) {
+        return {};
+    }
+    if (load.checkFlag(DYN_INITIALIZED)) {
+        throw InvalidParameterValue("WSCC load characteristics cannot be assigned after dynamic "
+                                    "initialization");
+    }
+    if ((dynamic_cast<const ZipLoad*>(&load) == nullptr) &&
+        (dynamic_cast<const loads::FDepLoad*>(&load) == nullptr) &&
+        (dynamic_cast<const loads::IEELLoad*>(&load) == nullptr) &&
+        (dynamic_cast<const loads::WSCCLoad*>(&load) == nullptr)) {
+        throw InvalidParameterValue("WSCC load characteristic cannot replace load '" +
+                                    load.getName() +
+                                    "' because its existing dynamic load model is not a ZIP, "
+                                    "FDep, IEEL, or WSCC model");
+    }
+
+    WSCCFDepSide pSide;
+    WSCCFDepSide qSide;
+    const auto representation = classifyWSCC(*parameters, pSide, qSide);
+    const auto* bus = load.getBus();
+    const double initialVoltage = (bus == nullptr) ? 1.0 : bus->getVoltage();
+    const double initialFrequency = (bus == nullptr) ? 1.0 : bus->getFreq();
+    const double pFactor =
+        getWSCCCharacteristic(*parameters, false, initialVoltage, initialFrequency);
+    const double qFactor =
+        getWSCCCharacteristic(*parameters, true, initialVoltage, initialFrequency);
+    const double initialP = load.getRealPower();
+    const double initialQ = load.getReactivePower();
+    if (((pFactor == 0.0) && (initialP != 0.0)) ||
+        ((qFactor == 0.0) && (initialQ != 0.0))) {
+        throw InvalidParameterValue("WSCC characteristic is zero at the initial operating point "
+                                    "for load '" + load.getName() + "'");
+    }
+    const double baseP = (pFactor == 0.0) ? 0.0 : initialP / pFactor;
+    const double baseQ = (qFactor == 0.0) ? 0.0 : initialQ / qFactor;
+    std::unique_ptr<GridLoad> replacement;
+    if (representation == WSCCRepresentation::ZIP) {
+        replacement = std::make_unique<ZipLoad>(load.getName());
+    } else if (representation == WSCCRepresentation::FDEP) {
+        replacement = std::make_unique<loads::FDepLoad>(load.getName());
+    } else {
+        replacement = std::make_unique<loads::WSCCLoad>(load.getName());
+    }
+
+    load.GridLoad::clone(replacement.get());
+    replacement->setLoad(baseP, baseQ, units::puMW);
+    replacement->setFlag("usepowerfactor", false);
+
+    if (representation == WSCCRepresentation::ZIP) {
+        auto* zipLoad = static_cast<ZipLoad*>(replacement.get());
+        const bool extended = (std::abs(parameters->p4) > 1e-12) ||
+            (std::abs(parameters->q4) > 1e-12);
+        const double pConstant = baseP * (parameters->p3 + (extended ? parameters->p4 : 0.0));
+        const double pCurrent = baseP * parameters->p2;
+        const double pImpedance = baseP * parameters->p1;
+        const double qConstant = baseQ * (parameters->q3 + (extended ? parameters->q4 : 0.0));
+        const double qCurrent = baseQ * parameters->q2;
+        const double qImpedance = baseQ * parameters->q1;
+        zipLoad->set("p", pConstant, units::puMW);
+        zipLoad->set("ip", pCurrent, units::puA);
+        zipLoad->set("yp", pImpedance, units::puMW);
+        zipLoad->set("q", qConstant, units::puMW);
+        zipLoad->set("iq", qCurrent, units::puA);
+        zipLoad->set("yq", qImpedance, units::puMW);
+        zipLoad->setFlag("no_pqvoltage_limit", true);
+    } else if (representation == WSCCRepresentation::FDEP) {
+        auto* fdepLoad = static_cast<loads::FDepLoad*>(replacement.get());
+        fdepLoad->set("alphap", pSide.voltageExponent);
+        fdepLoad->set("p_scale", pSide.scale);
+        fdepLoad->set("betap", pSide.frequencyExponent);
+        fdepLoad->set("alphaq", qSide.voltageExponent);
+        fdepLoad->set("q_scale", qSide.scale);
+        fdepLoad->set("betaq", qSide.frequencyExponent);
+    } else {
+        static_cast<loads::WSCCLoad*>(replacement.get())->setWSCCParameters(*parameters);
+    }
+    return replacement;
+}
+
+const WSCCParameters* GridDynSimulation::getWSCCLoadParameters(const GridBus* bus) const
+{
+    if (bus == nullptr) {
+        return wsccAllLoadParameters ? &*wsccAllLoadParameters : nullptr;
+    }
+    // DYD precedence is system, then area, zone, and bus; resolve from the
+    // most specific record so file ordering does not affect the selected model.
+    const auto busParameters = wsccBusLoadParameters.find(bus->getUserID());
+    if (busParameters != wsccBusLoadParameters.end()) {
+        return &busParameters->second;
+    }
+    const auto zoneParameters = wsccZoneLoadParameters.find(bus->zone);
+    if (zoneParameters != wsccZoneLoadParameters.end()) {
+        return &zoneParameters->second;
+    }
+    const auto* area = dynamic_cast<const GridArea*>(bus->getParent());
+    if ((area != nullptr) && (area != this)) {
+        const auto areaParameters = wsccAreaLoadParameters.find(area->getUserID());
+        if (areaParameters != wsccAreaLoadParameters.end()) {
+            return &areaParameters->second;
+        }
+    }
+    return wsccAllLoadParameters ? &*wsccAllLoadParameters : nullptr;
+}
+
+void GridDynSimulation::setWSCCLoadParameters(const WSCCParameters& parameters)
+{
+    setWSCCLoadParameters(parameters, WSCCLoadScope::System, 0);
+}
+
+void GridDynSimulation::setWSCCLoadParameters(const WSCCParameters& parameters,
+                                              WSCCLoadScope scope,
+                                              index_t selector)
+{
+    if (!std::isfinite(parameters.p1) || !std::isfinite(parameters.q1) ||
+        !std::isfinite(parameters.p2) || !std::isfinite(parameters.q2) ||
+        !std::isfinite(parameters.p3) || !std::isfinite(parameters.q3) ||
+        !std::isfinite(parameters.p4) || !std::isfinite(parameters.q4) ||
+        !std::isfinite(parameters.lpd) || !std::isfinite(parameters.lqd) ||
+        !std::isfinite(parameters.vmin) || (parameters.vmin < 0.0)) {
+        throw InvalidParameterValue("WSCC parameters must be finite and VMIN must be nonnegative");
+    }
+
+    std::optional<WSCCParameters> previousSystemParameters = wsccAllLoadParameters;
+    std::optional<WSCCParameters> previousScopedParameters;
+    const auto previousIeelParameters = ieelAllLoadParameters;
+    bool hadPreviousScopedParameters = false;
+    int zoneSelector = 0;
+    switch (scope) {
+        case WSCCLoadScope::System:
+            wsccAllLoadParameters = parameters;
+            ieelAllLoadParameters.reset();
+            break;
+        case WSCCLoadScope::Area: {
+            auto entry = wsccAreaLoadParameters.find(selector);
+            hadPreviousScopedParameters = (entry != wsccAreaLoadParameters.end());
+            if (hadPreviousScopedParameters) {
+                previousScopedParameters = entry->second;
+            }
+            wsccAreaLoadParameters[selector] = parameters;
+            break;
+        }
+        case WSCCLoadScope::Zone:
+            if (selector > static_cast<index_t>(std::numeric_limits<int>::max())) {
+                throw InvalidParameterValue("ZLWSCC zone selector exceeds the supported range");
+            }
+            zoneSelector = static_cast<int>(selector);
+            if (auto entry = wsccZoneLoadParameters.find(zoneSelector);
+                entry != wsccZoneLoadParameters.end()) {
+                hadPreviousScopedParameters = true;
+                previousScopedParameters = entry->second;
+            }
+            wsccZoneLoadParameters[zoneSelector] = parameters;
+            break;
+        case WSCCLoadScope::Bus: {
+            auto entry = wsccBusLoadParameters.find(selector);
+            hadPreviousScopedParameters = (entry != wsccBusLoadParameters.end());
+            if (hadPreviousScopedParameters) {
+                previousScopedParameters = entry->second;
+            }
+            wsccBusLoadParameters[selector] = parameters;
+            break;
+        }
+    }
+
+    std::vector<GridBus*> buses;
+    getBusVector(buses);
+    std::vector<std::tuple<GridBus*, GridLoad*, std::unique_ptr<GridLoad>>> replacements;
+    try {
+        for (auto* bus : buses) {
+            for (index_t index = 0; bus->getLoad(index) != nullptr; ++index) {
+                auto* load = bus->getLoad(index);
+                if (getWSCCLoadParameters(bus) == nullptr || load->isFixedShunt()) {
+                    continue;
+                }
+                auto replacement = makeWSCCLoad(*load);
+                if (replacement) {
+                    replacements.emplace_back(bus, load, std::move(replacement));
+                }
+            }
+        }
+    }
+    catch (...) {
+        wsccAllLoadParameters = previousSystemParameters;
+        switch (scope) {
+            case WSCCLoadScope::System:
+                ieelAllLoadParameters = previousIeelParameters;
+                break;
+            case WSCCLoadScope::Area:
+                if (hadPreviousScopedParameters) {
+                    wsccAreaLoadParameters[selector] = *previousScopedParameters;
+                } else {
+                    wsccAreaLoadParameters.erase(selector);
+                }
+                break;
+            case WSCCLoadScope::Zone:
+                if (hadPreviousScopedParameters) {
+                    wsccZoneLoadParameters[zoneSelector] = *previousScopedParameters;
+                } else {
+                    wsccZoneLoadParameters.erase(zoneSelector);
+                }
+                break;
+            case WSCCLoadScope::Bus:
+                if (hadPreviousScopedParameters) {
+                    wsccBusLoadParameters[selector] = *previousScopedParameters;
+                } else {
+                    wsccBusLoadParameters.erase(selector);
+                }
+                break;
+        }
+        throw;
+    }
+    for (auto& [bus, oldLoad, replacement] : replacements) {
+        auto* newLoad = replacement.get();
+        bus->replaceLoad(oldLoad, newLoad);
+        replacement.release();
+    }
+}
+
 CoreObject* GridDynSimulation::clone(CoreObject* obj) const
 {
     auto* sim = cloneBase<GridDynSimulation, GridSimulation>(this, obj);
@@ -257,6 +513,10 @@ CoreObject* GridDynSimulation::clone(CoreObject* obj) const
     }
     sim->controlFlags = controlFlags;
     sim->ieelAllLoadParameters = ieelAllLoadParameters;
+    sim->wsccAllLoadParameters = wsccAllLoadParameters;
+    sim->wsccAreaLoadParameters = wsccAreaLoadParameters;
+    sim->wsccZoneLoadParameters = wsccZoneLoadParameters;
+    sim->wsccBusLoadParameters = wsccBusLoadParameters;
     sim->max_Vadjust_iterations = max_Vadjust_iterations;
     sim->max_Padjust_iterations = max_Padjust_iterations;
 

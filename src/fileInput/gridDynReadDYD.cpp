@@ -12,11 +12,16 @@
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gridDynReadDyrModels.h"
+#include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
 #include <algorithm>
 #include <array>
+#include <charconv>
+#include <cmath>
 #include <cstddef>
+#include <cstdlib>
 #include <fstream>
+#include <limits>
 #include <map>
 #include <string>
 #include <string_view>
@@ -31,6 +36,38 @@ namespace {
         std::string mFirstBus;
         std::string mFirstMachine;
     };
+
+    struct IgnoredDydParameterSummary {
+        std::size_t mCount = 0;
+        std::size_t mFirstLine = 0;
+        std::string mFirstBus;
+        std::string mFirstMachine;
+        std::string mFirstValue;
+    };
+
+    bool isZeroDydParameter(std::string_view value)
+    {
+        const std::string valueString{value};
+        char* parseEnd = nullptr;
+        const double parsedValue = std::strtod(valueString.c_str(), &parseEnd);
+        return (parseEnd != valueString.c_str()) &&
+            (parseEnd == valueString.c_str() + valueString.size()) && std::isfinite(parsedValue) &&
+            (parsedValue == 0.0);
+    }
+
+    void addIgnoredDydParameter(IgnoredDydParameterSummary& summary,
+                                const stringVec& lineTokens,
+                                std::size_t recordLineNumber,
+                                std::string_view value)
+    {
+        ++summary.mCount;
+        if (summary.mFirstLine == 0U) {
+            summary.mFirstLine = recordLineNumber;
+            summary.mFirstBus = lineTokens.empty() ? "<missing>" : lineTokens[0];
+            summary.mFirstMachine = (lineTokens.size() > 2U) ? lineTokens[2] : "<missing>";
+            summary.mFirstValue = value;
+        }
+    }
 
     bool isDydDirectModel(std::string_view modelName)
     {
@@ -48,12 +85,21 @@ namespace {
         });
     }
 
-    bool isDydIgnoredLoadModel(std::string_view modelName)
+    std::optional<WSCCLoadScope> getDydWSCCLoadScope(std::string_view modelName)
     {
-        static constexpr std::array ignoredLoadModels{"alwscc", "blwscc", "wlwscc", "zlwscc"};
-        return std::ranges::any_of(ignoredLoadModels, [modelName](const char* ignoredModel) {
-            return modelName == ignoredModel;
-        });
+        if (modelName == "wlwscc") {
+            return WSCCLoadScope::System;
+        }
+        if (modelName == "alwscc") {
+            return WSCCLoadScope::Area;
+        }
+        if (modelName == "zlwscc") {
+            return WSCCLoadScope::Zone;
+        }
+        if (modelName == "blwscc") {
+            return WSCCLoadScope::Bus;
+        }
+        return std::nullopt;
     }
 
     bool isDydIgnoredNonessentialModel(std::string_view modelName)
@@ -62,6 +108,54 @@ namespace {
         return std::ranges::any_of(ignoredModels, [modelName](const char* ignoredModel) {
             return modelName == ignoredModel;
         });
+    }
+
+    WSCCParameters parseWSCCParameters(const stringVec& payload, std::string_view modelName)
+    {
+        if ((payload.size() != 10U) && (payload.size() != 11U)) {
+            throw InvalidParameterValue(std::string{modelName} +
+                                        " requires 10 documented parameters and an optional "
+                                        "11th VMIN parameter");
+        }
+        std::array<double, 11> values{};
+        for (std::size_t index = 0; index < payload.size(); ++index) {
+            char* parseEnd = nullptr;
+            values[index] = std::strtod(payload[index].c_str(), &parseEnd);
+            if ((parseEnd == payload[index].c_str()) ||
+                (parseEnd != payload[index].c_str() + payload[index].size()) ||
+                !std::isfinite(values[index])) {
+                throw InvalidParameterValue(std::string{modelName} + " parameter " +
+                                            std::to_string(index + 1U) +
+                                            " is not a finite number");
+            }
+        }
+        return WSCCParameters{values[0],
+                              values[1],
+                              values[2],
+                              values[3],
+                              values[4],
+                              values[5],
+                              values[6],
+                              values[7],
+                              values[8],
+                              values[9],
+                              values[10]};
+    }
+
+    index_t parseDydSelector(std::string_view value, std::string_view modelName)
+    {
+        if (value.empty() || value.starts_with('-')) {
+            throw InvalidParameterValue(std::string{modelName} +
+                                        " selector must be a nonnegative integer");
+        }
+        unsigned long long parsedValue = 0;
+        const auto result = std::from_chars(value.data(), value.data() + value.size(), parsedValue);
+        if ((result.ec != std::errc{}) || (result.ptr != value.data() + value.size()) ||
+            (parsedValue > std::numeric_limits<index_t>::max())) {
+            throw InvalidParameterValue(std::string{modelName} +
+                                        " selector must be a nonnegative integer");
+        }
+        return static_cast<index_t>(parsedValue);
     }
 
     bool isDydSectionHeader(std::string_view line)
@@ -192,6 +286,24 @@ namespace {
             return true;
         }
 
+        if (source == "esac1a") {
+            // PSLF ESAC1A order is TR, TB, TC, KA, TA, VAMAX, VAMIN, TE,
+            // KF, TF, KC, KD, KE, E1, SE1, E2, SE2, VRMAX, VRMIN, Spdmlt.
+            // The shared PSS/E DYR loader expects VRMAX/VRMIN before TE and
+            // VAMAX/VAMIN at the end. Spdmlt is not part of the PSS/E record.
+            static constexpr std::array<std::size_t, 19> esac1aOrder{
+                0U,  1U,  2U,  3U,  4U,  17U, 18U, 7U,  8U,  9U,
+                10U, 11U, 12U, 13U, 14U, 15U, 16U, 5U,  6U};
+            if (sourcePayload.size() < esac1aOrder.size()) {
+                return false;
+            }
+            payload.reserve(esac1aOrder.size());
+            for (const auto index : esac1aOrder) {
+                payload.push_back(sourcePayload[index]);
+            }
+            return true;
+        }
+
         std::size_t payloadLimit = 0U;
         // GENSAL and HYGOV consume 12-field prefixes. Extended HYGOV records
         // append options (trip, deadband, curves, and blade control) that
@@ -200,10 +312,6 @@ namespace {
             payloadLimit = 12U;
         } else if (modelName == "genrou") {
             payloadLimit = 14U;
-        } else if (modelName == "esac1a") {
-            // PSLF ESAC1A appends a final field after the 19 parameters used
-            // by the PSS/E-compatible ESAC1A implementation.
-            payloadLimit = 19U;
         } else if (modelName == "exac1") {
             payloadLimit = 17U;
         } else if (modelName == "gast") {
@@ -214,7 +322,8 @@ namespace {
             payloadLimit = 20U;
         } else if (modelName == "ieeest") {
             // PSLF IEEEST appends Tdelay after the 19 PSS/E parameters;
-            // StabilizerIEEEST does not currently implement that delay.
+            // StabilizerIEEEST does not currently implement that delay. The
+            // DYD reader warns when this trailing parameter is nonzero.
             payloadLimit = 19U;
         } else if (modelName == "gpwscc") {
             payloadLimit = 32U;
@@ -328,8 +437,8 @@ void loadDyd(CoreObject* parentObject,
     std::string line;
     std::size_t lineNumber = 0;
     std::map<std::string, UnsupportedDydModelSummary> unsupportedModels;
-    std::map<std::string, UnsupportedDydModelSummary> ignoredLoadModels;
     std::map<std::string, UnsupportedDydModelSummary> ignoredNonessentialModels;
+    IgnoredDydParameterSummary ignoredIeeestTdelay;
 
     if (!file.is_open()) {
         parentObject->log(parentObject, PrintLevel::ERROR, "Unable to open file " + fileName);
@@ -382,10 +491,6 @@ void loadDyd(CoreObject* parentObject,
         stringVec lineTokens{gmlc::utilities::stringOps::removeQuotes(header[1]),
                              "'" + gmlc::utilities::convertToUpperCase(canonicalModelName) + "'",
                              gmlc::utilities::stringOps::removeQuotes(header[4])};
-        if (isDydIgnoredLoadModel(sourceModelName)) {
-            addUnsupportedModel(ignoredLoadModels, displayModelName, lineTokens, recordLineNumber);
-            continue;
-        }
         if (isDydIgnoredNonessentialModel(sourceModelName)) {
             addUnsupportedModel(ignoredNonessentialModels,
                                 displayModelName,
@@ -439,6 +544,11 @@ void loadDyd(CoreObject* parentObject,
                 }
                 positionalPayload.push_back(token);
             }
+            if ((sourceModelName == "ieeest") && (positionalPayload.size() > 19U) &&
+                !isZeroDydParameter(positionalPayload[19U])) {
+                addIgnoredDydParameter(
+                    ignoredIeeestTdelay, lineTokens, recordLineNumber, positionalPayload[19U]);
+            }
             if ((canonicalModelName == "gpwscc") && !hasUnsupportedField) {
                 if (gpwsccMWCap.empty()) {
                     hasUnsupportedField = true;
@@ -451,6 +561,62 @@ void loadDyd(CoreObject* parentObject,
                                   canonicalModelName,
                                   positionalPayload,
                                   normalizedPayload);
+        }
+        if (const auto wsccScope = getDydWSCCLoadScope(sourceModelName)) {
+            try {
+                if (hasUnsupportedField) {
+                    throw InvalidParameterValue(displayModelName +
+                                                " contains an unsupported named parameter");
+                }
+                auto* mutableSimulation =
+                    dynamic_cast<GridDynSimulation*>(parentObject->getRoot());
+                if (mutableSimulation == nullptr) {
+                    throw InvalidParameterValue(displayModelName +
+                                                " requires a GridDynSimulation root");
+                }
+                const auto parameters = parseWSCCParameters(positionalPayload, displayModelName);
+                index_t selector = 0;
+                if (*wsccScope != WSCCLoadScope::System) {
+                    selector = parseDydSelector(header[1], displayModelName);
+                    if ((*wsccScope == WSCCLoadScope::Area) &&
+                        (mutableSimulation->findByUserID("area", selector) == nullptr)) {
+                        throw InvalidParameterValue(displayModelName + " area selector " +
+                                                    std::to_string(selector) + " was not found");
+                    }
+                    if (*wsccScope == WSCCLoadScope::Zone) {
+                        if (selector > static_cast<index_t>(std::numeric_limits<int>::max())) {
+                            throw InvalidParameterValue(displayModelName +
+                                                        " zone selector exceeds the supported range");
+                        }
+                        std::vector<GridBus*> buses;
+                        mutableSimulation->getBusVector(buses);
+                        const auto zone = static_cast<int>(selector);
+                        if (std::ranges::none_of(buses, [zone](const GridBus* bus) {
+                                return bus->zone == zone;
+                            })) {
+                            throw InvalidParameterValue(displayModelName + " zone selector " +
+                                                        std::to_string(selector) +
+                                                        " was not found");
+                        }
+                    }
+                    if ((*wsccScope == WSCCLoadScope::Bus) &&
+                        (mutableSimulation->findByUserID("bus", selector) == nullptr)) {
+                        throw InvalidParameterValue(displayModelName + " bus selector " +
+                                                    std::to_string(selector) + " was not found");
+                    }
+                }
+                mutableSimulation->setWSCCLoadParameters(parameters, *wsccScope, selector);
+            }
+            catch (const InvalidParameterValue& error) {
+                std::string message{fileName};
+                message.push_back(':');
+                message.append(std::to_string(recordLineNumber));
+                message.append(" ").append(displayModelName).append(" selector ");
+                message.append(header.size() > 1U ? header[1] : "<missing>");
+                message.append(": ").append(error.what());
+                throw InvalidParameterValue(message);
+            }
+            continue;
         }
         const bool directModel = isDydDirectModel(canonicalModelName);
         if (payloadIsSupported && directModel) {
@@ -496,6 +662,15 @@ void loadDyd(CoreObject* parentObject,
         }
         parentObject->log(parentObject, PrintLevel::WARNING, message);
     }
+    if (ignoredIeeestTdelay.mCount > 0U) {
+        std::string message = fileName +
+            ": ignored nonzero or invalid PSLF IEEEST Tdelay values (time delay is not modeled): " +
+            std::to_string(ignoredIeeestTdelay.mCount) + " record(s); first at line " +
+            std::to_string(ignoredIeeestTdelay.mFirstLine) + ", bus " +
+            ignoredIeeestTdelay.mFirstBus + " machine " + ignoredIeeestTdelay.mFirstMachine +
+            ", Tdelay=" + ignoredIeeestTdelay.mFirstValue;
+        parentObject->log(parentObject, PrintLevel::WARNING, message);
+    }
     if (!unsupportedModels.empty()) {
         std::string message = fileName + ": unsupported DYD models:";
         for (const auto& [modelName, summary] : unsupportedModels) {
@@ -504,17 +679,6 @@ void loadDyd(CoreObject* parentObject,
                 summary.mFirstBus + " machine " + summary.mFirstMachine;
         }
         throw InvalidParameterValue(message);
-    }
-    if (!ignoredLoadModels.empty()) {
-        std::string message = fileName +
-            ": ignored DYD load-characteristic models (using static network load data; "
-            "characteristic behavior is not applied):";
-        for (const auto& [modelName, summary] : ignoredLoadModels) {
-            message += "\n  " + modelName + ": " + std::to_string(summary.mCount) +
-                " record(s); first at line " + std::to_string(summary.mFirstLine) + ", bus " +
-                summary.mFirstBus + " machine " + summary.mFirstMachine;
-        }
-        parentObject->log(parentObject, PrintLevel::SUMMARY, message);
     }
     if (disableStabilizers) {
         parentObject->log(parentObject,

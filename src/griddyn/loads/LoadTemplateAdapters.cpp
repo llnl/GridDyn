@@ -44,7 +44,7 @@ namespace {
     };
 
     std::vector<IEELVoltageTerm> getIEELVoltageTerms(const IEELParameters& parameters,
-                                                      std::size_t firstTerm)
+                                                     std::size_t firstTerm)
     {
         constexpr double tolerance = 1e-12;
         std::vector<IEELVoltageTerm> terms;
@@ -64,9 +64,8 @@ namespace {
                 existing->mCoefficient += coefficient;
             }
         }
-        std::erase_if(terms, [](const auto& term) {
-            return std::abs(term.mCoefficient) <= tolerance;
-        });
+        std::erase_if(terms,
+                      [](const auto& term) { return std::abs(term.mCoefficient) <= tolerance; });
         return terms;
     }
 
@@ -198,16 +197,16 @@ LoadTemplateFactory makeIEELALLoadTemplate(IEELParameters parameters)
             auto* fdepLoad = static_cast<FDepLoad*>(replacement.get());
             const auto setSide =
                 [&parameters](FDepLoad* target, std::size_t firstTerm, bool reactive) {
-                const auto terms = getIEELVoltageTerms(parameters, firstTerm);
-                const char* alpha = reactive ? "alphaq" : "alphap";
-                const char* scale = reactive ? "q_scale" : "p_scale";
-                const char* beta = reactive ? "betaq" : "betap";
-                const std::size_t frequencyIndex = reactive ? 7U : 6U;
-                target->set(alpha, terms.empty() ? 0.0 : terms.front().mExponent);
-                target->set(scale, terms.empty() ? 0.0 : terms.front().mCoefficient);
-                const double frequencyCoefficient = parameters.coefficients[frequencyIndex];
+                    const auto terms = getIEELVoltageTerms(parameters, firstTerm);
+                    const char* alpha = reactive ? "alphaq" : "alphap";
+                    const char* scale = reactive ? "q_scale" : "p_scale";
+                    const char* beta = reactive ? "betaq" : "betap";
+                    const std::size_t frequencyIndex = reactive ? 7U : 6U;
+                    target->set(alpha, terms.empty() ? 0.0 : terms.front().mExponent);
+                    target->set(scale, terms.empty() ? 0.0 : terms.front().mCoefficient);
+                    const double frequencyCoefficient = parameters.coefficients[frequencyIndex];
                     target->set(beta, (std::abs(frequencyCoefficient - 1.0) <= 1e-12) ? 1.0 : 0.0);
-            };
+                };
             setSide(fdepLoad, 0U, false);
             setSide(fdepLoad, 3U, true);
         } else {
@@ -243,8 +242,8 @@ LoadTemplateFactory makeWSCCLoadTemplate(WSCCParameters parameters)
         if (((pFactor == 0.0) && (initialP != 0.0)) || ((qFactor == 0.0) && (initialQ != 0.0))) {
             throw InvalidParameterValue(
                 "WSCC characteristic is zero at the initial operating point "
-                                        "for load '" +
-                                        load.getName() + "'");
+                "for load '" +
+                load.getName() + "'");
         }
         const double baseP = (pFactor == 0.0) ? 0.0 : initialP / pFactor;
         const double baseQ = (qFactor == 0.0) ? 0.0 : initialQ / qFactor;

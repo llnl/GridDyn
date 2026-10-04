@@ -40,8 +40,8 @@ bool supportsCharacteristicReplacement(const GridLoad& load)
 
 namespace {
     struct IEELVoltageTerm {
-        double coefficient;
-        double exponent;
+        double mCoefficient;
+        double mExponent;
     };
 
     std::vector<IEELVoltageTerm> getIEELVoltageTerms(const IEELParameters& parameters,
@@ -56,16 +56,17 @@ namespace {
                 continue;
             }
             auto existing = std::find_if(terms.begin(), terms.end(), [exponent](const auto& term) {
-                return std::abs(term.exponent - exponent) <= tolerance;
+                return std::abs(term.mExponent - exponent) <= tolerance;
             });
             if (existing == terms.end()) {
-                terms.push_back({coefficient, exponent});
+                terms.push_back(
+                    IEELVoltageTerm{.mCoefficient = coefficient, .mExponent = exponent});
             } else {
-                existing->coefficient += coefficient;
+                existing->mCoefficient += coefficient;
             }
         }
         std::erase_if(terms, [](const auto& term) {
-            return std::abs(term.coefficient) <= tolerance;
+            return std::abs(term.mCoefficient) <= tolerance;
         });
         return terms;
     }
@@ -146,7 +147,7 @@ namespace {
 
 LoadTemplateFactory makeIEELALLoadTemplate(IEELParameters parameters)
 {
-    return [parameters = std::move(parameters)](const GridLoad& load) {
+    return [parameters](const GridLoad& load) {
         validateIEELTarget(load);
         const auto representation = classifyIEEL(parameters);
         const auto [baseP, baseQ] = getCharacteristicReferencePower(load, 1.0);
@@ -172,21 +173,21 @@ LoadTemplateFactory makeIEELALLoadTemplate(IEELParameters parameters)
             double qCurrent = 0.0;
             double qImpedance = 0.0;
             for (const auto& term : getIEELVoltageTerms(parameters, 0U)) {
-                if (std::abs(term.exponent) <= 1e-12) {
-                    pConstant += baseP * term.coefficient;
-                } else if (std::abs(term.exponent - 1.0) <= 1e-12) {
-                    pCurrent += baseP * term.coefficient;
+                if (std::abs(term.mExponent) <= 1e-12) {
+                    pConstant += baseP * term.mCoefficient;
+                } else if (std::abs(term.mExponent - 1.0) <= 1e-12) {
+                    pCurrent += baseP * term.mCoefficient;
                 } else {
-                    pImpedance += baseP * term.coefficient;
+                    pImpedance += baseP * term.mCoefficient;
                 }
             }
             for (const auto& term : getIEELVoltageTerms(parameters, 3U)) {
-                if (std::abs(term.exponent) <= 1e-12) {
-                    qConstant += baseQ * term.coefficient;
-                } else if (std::abs(term.exponent - 1.0) <= 1e-12) {
-                    qCurrent += baseQ * term.coefficient;
+                if (std::abs(term.mExponent) <= 1e-12) {
+                    qConstant += baseQ * term.mCoefficient;
+                } else if (std::abs(term.mExponent - 1.0) <= 1e-12) {
+                    qCurrent += baseQ * term.mCoefficient;
                 } else {
-                    qImpedance += baseQ * term.coefficient;
+                    qImpedance += baseQ * term.mCoefficient;
                 }
             }
             zipLoad->set("p", pConstant, units::puMW);
@@ -206,8 +207,8 @@ LoadTemplateFactory makeIEELALLoadTemplate(IEELParameters parameters)
                 const char* scale = reactive ? "q_scale" : "p_scale";
                 const char* beta = reactive ? "betaq" : "betap";
                 const std::size_t frequencyIndex = reactive ? 7U : 6U;
-                target->set(alpha, terms.empty() ? 0.0 : terms.front().exponent);
-                target->set(scale, terms.empty() ? 0.0 : terms.front().coefficient);
+                target->set(alpha, terms.empty() ? 0.0 : terms.front().mExponent);
+                target->set(scale, terms.empty() ? 0.0 : terms.front().mCoefficient);
                 const double frequencyCoefficient = parameters.coefficients[frequencyIndex];
                 target->set(beta,
                             (std::abs(frequencyCoefficient - 1.0) <= 1e-12) ? 1.0 : 0.0);
@@ -231,7 +232,7 @@ LoadTemplateFactory makeWSCCLoadTemplate(WSCCParameters parameters)
         !std::isfinite(parameters.vmin) || (parameters.vmin < 0.0)) {
         throw InvalidParameterValue("WSCC parameters must be finite and VMIN must be nonnegative");
     }
-    return [parameters = std::move(parameters)](const GridLoad& load) {
+    return [parameters](const GridLoad& load) {
         validateWSCCTarget(load);
         WSCCFDepSide pSide;
         WSCCFDepSide qSide;

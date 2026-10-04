@@ -9,6 +9,7 @@
 #include "core/coreDefinitions.hpp"
 #include "griddyn/loads/LoadFactory.h"
 #include <cstdint>
+#include <memory>
 #include <unordered_map>
 
 namespace griddyn {

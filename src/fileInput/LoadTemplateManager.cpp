@@ -12,6 +12,7 @@
 #include "griddyn/loads/LoadTemplateAdapters.h"
 #include "core/CoreExceptions.h"
 #include <limits>
+#include <memory>
 #include <utility>
 
 namespace griddyn {

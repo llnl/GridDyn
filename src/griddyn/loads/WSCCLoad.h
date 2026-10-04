@@ -36,7 +36,7 @@ class WSCCLoad: public GridLoad {
     double frequencyDerivative(bool reactive, double voltage) const;
     double powerAtVoltage(bool reactive, double voltage, double frequency) const;
     double powerVoltageDerivative(bool reactive, double voltage, double frequency) const;
-    double powerFrequencyDerivative(bool reactive, double voltage, double frequency) const;
+    double powerFrequencyDerivative(bool reactive, double voltage) const;
 
   public:
     explicit WSCCLoad(const std::string& objName = "wsccLoad_$");

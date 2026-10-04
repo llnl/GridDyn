@@ -142,7 +142,7 @@ double WSCCLoad::powerVoltageDerivative(bool reactive, double voltage, double fr
                       (basePower * polynomialDerivative * frequencyFactor);
 }
 
-double WSCCLoad::powerFrequencyDerivative(bool reactive, double voltage, double frequency) const
+double WSCCLoad::powerFrequencyDerivative(bool reactive, double voltage) const
 {
     const double basePower = reactive ? getQ() : getP();
     if ((parameters.vmin > 0.0) && (voltage < parameters.vmin)) {
@@ -270,10 +270,10 @@ void WSCCLoad::ioPartialDerivatives(const IOdata& inputs,
     if (inputLocs[FREQUENCY_IN_LOCATION] != kNullLocation) {
         matrixData.assign(POUT_LOCATION,
                           inputLocs[FREQUENCY_IN_LOCATION],
-                          powerFrequencyDerivative(false, voltage, frequency));
+                          powerFrequencyDerivative(false, voltage));
         matrixData.assign(QOUT_LOCATION,
                           inputLocs[FREQUENCY_IN_LOCATION],
-                          powerFrequencyDerivative(true, voltage, frequency));
+                          powerFrequencyDerivative(true, voltage));
     }
 }
 

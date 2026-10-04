@@ -65,11 +65,12 @@ EPC and MATPOWER solved states. At a minimum, verify:
    transformer flows, DC terminal transfers, and shunt injections against the
    chosen reference with declared tolerances.
 
-The current command-line import test accepted the RAW and proceeded into the
-large-case solve, so it did not fail at an unsupported-section boundary. Two
-unmodified Debug runs were stopped after several minutes of CPU time without a
-final solver status (each used roughly 0.7--0.9 GB of working memory). This is
-not a convergence or numerical-parity result. Profile the large-case
+The command-line import result recorded in this snapshot accepted the RAW and
+proceeded into the large-case solve, so it did not fail at an unsupported-
+section boundary. Two unmodified Debug runs were stopped after several
+minutes of CPU time without a final solver status (each used roughly
+0.7--0.9 GB of working memory). This is not a convergence or numerical-parity
+result. Profile the large-case
 initialization/solve path and complete a controlled rerun that captures the
 final solver status and comparison values before adopting the case as a
 regression reference.

@@ -11,7 +11,7 @@ and `test/`. Generated SWIG wrapper outputs are excluded from this report.
 
 It should not be read as the current source of truth after the merged
 campaign closeout. See
-[naming-migration-plan.md](C:\Users\phlpt\Documents\griddyn\docs\developer-guide\naming-migration-plan.md:1)
+[naming-migration-plan.md](naming-migration-plan.md)
 for the final completion record.
 
 Historical late-stage findings at that checkpoint: **1108**

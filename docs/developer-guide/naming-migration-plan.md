@@ -30,7 +30,7 @@ Explicitly out of scope:
 ## Target Standard
 
 The target naming standard is defined in
-[style.md](C:\Users\phlpt\Documents\griddyn\docs\developer-guide\style.md:1).
+[style.md](style.md).
 
 The required end state is:
 
@@ -121,7 +121,7 @@ Goal: establish the measurable list of remaining work.
 - First-party source file count observed during initial planning: about 769
   files
 - Baseline naming inventory report:
-  [naming-inventory.md](C:\Users\phlpt\Documents\griddyn\docs\developer-guide\naming-inventory.md:1)
+  [naming-inventory.md](naming-inventory.md)
 - Historical initial heuristic finding total: 13,907
 - Historical initial findings by category:
   - `class_type`: 576
@@ -153,7 +153,7 @@ Goal: establish the measurable list of remaining work.
   Phase 9 cleanup batches, including the canonical `MatrixData*` / `TxLifeSpan`
   filename cleanup and follow-on `clang-tidy` fallout fixes.
 - That 2026-05-31 snapshot is preserved as a historical late-campaign baseline
-  in [naming-inventory.md](C:\Users\phlpt\Documents\griddyn\docs\developer-guide\naming-inventory.md:1).
+  in [naming-inventory.md](naming-inventory.md).
 - Historical late-stage heuristic finding total at that checkpoint: 1,108
 - Historical late-stage findings by category:
   - `class_type`: 66

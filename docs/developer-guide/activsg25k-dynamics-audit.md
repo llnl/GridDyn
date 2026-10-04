@@ -6,6 +6,10 @@ this case. Counts are records, not unique generators. A reader dispatch proves
 that a model name is recognized; it does not prove initialization or matching
 disturbance trajectories.
 
+Model/import status below was reviewed against the GridDyn working tree on
+2026-10-04. The source-case inventory and parameter counts remain the
+2026-09-25 snapshot described above.
+
 ## Model inventory
 
 `ACTIVSg25k.dyr` has 18,108 records in 22 model families. The 16 synchronous
@@ -33,10 +37,10 @@ parameters and initial conditions are not yet certified by this audit.
 | --------------- | ----------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | REGCA1          |         614 | Reader and converter exist. `Accel=0.8` is accepted as a numerical parameter. Zero reactive recovery limits are treated as disabled. Trajectories need validation.                                                     |
 | REECA1          |         614 | Reader, constant-Q branch, zeroed VDL tables, `Tpord=0`, and the `Thld2=0.5` active-current hold are implemented. The case profile initializes in a reader test; disturbance trajectories still need validation.       |
-| WT3G1           |         119 | Dedicated Type-3 electrical interface, PSS/E DYR mapping, PLL/equivalent-reactance path, steady-state initialization, and host-Jacobian tests are implemented. Full-plant validation remains blocked by WT3T1/WT3P1.   |
-| WT3E1           |         119 | Dedicated Type-3 electrical controller, PSS/E DYR mapping, initialization-command handoff, steady-state initialization, and host-Jacobian tests are implemented. Full-plant validation remains blocked by WT3T1/WT3P1. |
-| WT3T1           |         119 | No reader or Type-3 turbine implementation.                                                                                                                                                                            |
-| WT3P1           |         119 | No reader or Type-3 pitch implementation.                                                                                                                                                                              |
+| WT3G1           |         119 | Dedicated Type-3 electrical interface, PSS/E DYR mapping, PLL/equivalent-reactance path, steady-state initialization, and host-Jacobian tests are implemented. Full-plant validation remains open because WT3T1/WT3P1 adapters are provisional. |
+| WT3E1           |         119 | Dedicated Type-3 electrical controller, PSS/E DYR mapping, initialization-command handoff, steady-state initialization, and host-Jacobian tests are implemented. Full-plant validation remains open because WT3T1/WT3P1 adapters are provisional. |
+| WT3T1           |         119 | DYR adapter splits the record into `WTARA1` plus `WTDS`/`WTDTA1`; the mapping is not verified against authoritative `WT3T1` equations or trajectories.                                                                       |
+| WT3P1           |         119 | DYR adapter translates the record to `WTPTA1`; the mapping is not verified against authoritative `WT3P1` equations or trajectories.                                                                                     |
 
 The 614 `REGCA1`/`REECA1` pairs represent one renewable family and the 119
 four-record `WT3*` bundles represent a separate Type-3 wind family. The
@@ -44,13 +48,15 @@ existing `WTDTA1`/`WTARA1`/`WTPTA1`/`WTTQA1` classes describe a different
 WECC wind assembly. They must not be substituted for `WT3*` based on name or
 role alone.
 
-`WT3G1` and `WT3E1` now use the renewable host and typed-signal
-infrastructure. The generator model retains its separate Type-3 electrical
-interface, effective reactance, and PLL behavior; the controller retains the
-reactive-voltage and active-power paths and receives initialization commands
-through explicit initialization-only signals. `WT3T1` still needs the turbine
-and shaft dynamics driven by pitch, and `WT3P1` still needs the speed/power
-pitch controller and limits. PowerWorld documents the PSS/E
+`WT3G1` and `WT3E1` use dedicated models with the renewable host and
+typed-signal infrastructure. The generator model retains its separate Type-3
+electrical interface, effective reactance, and PLL behavior; the controller
+retains the reactive-voltage and active-power paths and receives
+initialization commands through explicit initialization-only signals. The
+DYR reader now accepts `WT3T1` and `WT3P1` by translating them to existing
+`WTARA1`/`WTDS`/`WTDTA1` and `WTPTA1` components. Those adapters permit import,
+but do not establish equation or parameter equivalence with the legacy PSS/E
+models. PowerWorld documents the PSS/E
 `WT3E1`/`WT3T1`/`WT3P1` relationship to older `WT3E`/`WT3T`/`WT3P` models,
 which may help source the remaining equations. That relationship does not
 justify mapping them to the newer WECC `WTDTA1` family.
@@ -96,10 +102,11 @@ parameter takes `1.65`, `2.2`, or `2.75`. `WT3E1` has 37 positional
 parameters, `WT3T1` has eight, and `WT3P1` has nine. They have multiple
 parameter variants, so one representative record is not enough for tests.
 
-### WT3P1/WT3T1 source-acquisition status (2026-09-30)
+### WT3P1/WT3T1 adapter and model-fidelity status (reviewed 2026-10-04)
 
-The deferred investigation is tracked in
-[`wt3p1-wt3t1-source-investigation.md`](wt3p1-wt3t1-source-investigation.md).
+The adapters currently use the parameter interpretation described below.
+Import support must not be reported as a dedicated implementation or as
+validated compatibility.
 
 The local test corpus at
 `C:\data\Documents\codeProjects\tests` supplies canonical PSS/E record
@@ -121,12 +128,11 @@ GridKit contains an exact `WT3P1` implementation. `WTDTA1`, `WTPTA1`, GE, and
 PSAT models remain non-authoritative alternatives and must not be mapped into
 these records by position or by role.
 
-Implementation is therefore still blocked on an authoritative PSS/E
-WT3P1/WT3T1 specification (or a vendor/reference implementation) that names
-every field and defines the equations, signal connections, initialization,
-limiter/flag behavior, and sign/base conventions. The discovered DYR records
-should be retained as parser and eventual full-bundle regression fixtures, but
-must not be enabled as partially interpreted models.
+Dedicated model fidelity is still blocked on an authoritative PSS/E WT3P1/WT3T1
+specification (or a vendor/reference implementation) that names every field
+and defines the equations, signal connections, initialization, limiter/flag
+behavior, and sign/base conventions. Keep the adapters explicitly provisional
+until that comparison is complete; do not claim a validated full Type-3 plant.
 
 ## Other formats in this directory
 
@@ -170,10 +176,11 @@ found in `ACTIVSg25k_dynamics.aux` for REPCA1 or the newer WTDTA1 wind family.
    P, Q, voltage, and representative converter/turbine states to PowerWorld
    or another trusted reference. Repeat with EPC+DYD after adapters exist.
 
-Until steps 1 and 3 are complete, the case is not dynamically supported in
-full. The DYR reader accepts `WT3G1` and `WT3E1`; `WT3T1` and `WT3P1` remain
-unsupported, so a full Type-3 plant cannot be run. For supported records,
-failures identify file line, bus, and machine.
+The DYR reader dispatches all four `WT3*` names, but `WT3T1`/`WT3P1` use
+provisional translations and the full Type-3 case has not been validated.
+Treat ACTIVSg25k as import-recognized but not yet certified for full dynamics.
+The separate DYD path still does not translate its `wt3*` records. For
+supported DYR records, failures identify file line, bus, and machine.
 
 ## Model references
 

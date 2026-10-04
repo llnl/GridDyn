@@ -29,6 +29,7 @@ building
 :caption: Maintainer notes
 
 documentation-release-plan
+developer-guide/wecc-model-coverage-audit
 ```
 
 The Doxygen API reference is generated from the C++ source separately. Its

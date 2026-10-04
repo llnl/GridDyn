@@ -58,6 +58,7 @@ enum class RenewableSignal {
     pitchAngle,
     initialPitchAngle,
     rotorResistance,
+    stateOfCharge,
 };
 
 enum class RenewableBase { none, system, machine, turbine };

@@ -3,6 +3,8 @@
 This document records the work required for GridDyn to load and solve ANDES
 cases. It is intentionally a living checklist: a model is not complete until
 its importer mapping and a numerical regression test are both present.
+Model status was reviewed against the GridDyn working tree on 2026-10-04;
+source-case scan counts explicitly labeled as historical remain unchanged.
 
 ## Status terms
 
@@ -55,7 +57,7 @@ There are two separate compatibility axes:
 | Motors (`Motor3`/`Motor5`)                     | Planned | State-name/initialization mapping plus disturbance trajectory comparisons.                                    |
 | Switched shunts                                | Planned | Block selection and switching-event comparisons.                                                              |
 | Fortescue interface                            | Planned | New GridDyn component and unbalanced/interface regression cases.                                              |
-| Remaining ANDES dynamic families               | Planned | Maintain a model-by-model inventory before adding importer mappings.                                          |
+| Remaining ANDES dynamic families and modes     | Partial | The inventory below tracks implemented paths; continue work on unsupported models/modes and external trajectory validation. |
 
 ## PSS/e DYR compatibility baseline
 
@@ -298,15 +300,12 @@ equations.
   exact numeric-ID precedence. Continue adding cases for continuation lines,
   comments, malformed records, unsupported models, and model conflicts.
 
-## Six-PR IEEE 14 dynamic compatibility execution plan
+## Historical six-PR IEEE 14 dynamic compatibility plan
 
-This is the authoritative implementation order for fully exercising
+This section preserves the original implementation order for exercising
 `GenModelGENROU` with the complete ANDES IEEE 14-bus RAW/DYR case. It is
-written as a handoff contract: after any PR is merged, a new developer or LLM
-should be able to start the next PR using only this document, the GridDyn
-repository, and the frozen ANDES source identified below. Do not silently move
-work between PRs. If a prerequisite defect is found, fix it in the PR that owns
-that subsystem and record the change here.
+historical planning context, not the current work queue. Use the model
+inventory and current case audits below for present implementation status.
 
 This six-PR sequence covers the PSS/e RAW/DYR path and the models required by
 this case. Native ANDES JSON/XLSX dynamic-model import and unrelated ANDES
@@ -354,7 +353,10 @@ seconds, and continuing through 2.0 seconds. The five controller chains are:
 | 6             | `GENROU` | `ESST3A` | `TGOV1`  | none       |
 | 8             | `GENROU` | `ESST3A` | `TGOV1`  | none       |
 
-### PR status and dependency order
+### Historical PR status at the plan checkpoint
+
+The table records statuses from the original sequence and is retained to
+explain its dependencies; it is not a live progress table.
 
 | PR  | Deliverable                                                                                                   | Status                                              | Depends on |
 | --- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | ---------- |
@@ -808,9 +810,9 @@ repository workaround for the same target:
 cmd /v:on /c "set PATH=& set Path=& ""C:\Program Files\CMake\bin\cmake.exe"" --build build --config Debug --parallel 4"
 ```
 
-## GENROU first-target plan
+## GENROU equation and implementation notes
 
-### Current state
+### Implementation status (reviewed 2026-10-04)
 
 - `GenModelGENROU` is registered as `genrou` and implements the ANDES gamma
   coefficients, algebraic current equations, six differential equations,
@@ -855,8 +857,8 @@ cmd /v:on /c "set PATH=& set Path=& ""C:\Program Files\CMake\bin\cmake.exe"" --b
 
 ### GENROU implementation status
 
-The six-PR plan above is the authoritative merge sequence. This checklist only
-records the lower-level GENROU work already completed or assigned to PR 2.
+The original six-PR sequence above is historical. This checklist records
+equation, reader, and validation status for the native implementation.
 
 1. **Done:** Create equation-level reference notes from ANDES `GENROU`, including its
    `gd1`, `gq1`, `gd2`, `gq2`, and `gqd` coefficients, air-gap flux magnitude,
@@ -900,13 +902,14 @@ records the lower-level GENROU work already completed or assigned to PR 2.
 
 ## Dynamic-model inventory
 
-This inventory is based on the 100 registered models in the local ANDES
-installation. Rows intentionally retain the ANDES class names so that a row
-can be split and checked off as soon as models in the same family diverge. A
-model is not compatible merely because a similarly named GridDyn model exists:
-it also needs native-input mapping, initialization, and a trajectory test.
+This inventory starts from the 100 registered models in the local ANDES
+installation and adds case-driven PSS/E records where they expose related
+GridDyn coverage gaps. Rows retain the source model names so a family can be
+split when its variants diverge. A model is not compatible merely because a
+similarly named GridDyn model exists: it also needs input mapping,
+initialization, and a trajectory test.
 
-| ANDES model(s)                                                                                                        | GridDyn mapping / next action                                                                                                                                                                                           | Status                                |
+| ANDES model or case record(s)                                                                                         | GridDyn mapping / next action                                                                                                                                                                                           | Status                                |
 | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
 | `GENCLS`                                                                                                              | `GenModelClassical`; corrected standard equations, DYR/RAW parameter transfer, initialization, reader, residual, and Jacobian tests are present. A captured external trajectory remains.                                | Implemented                           |
 | `GENROU`                                                                                                              | `GenModelGENROU` equations, DYR mapping, exact alphanumeric machine identity, and five-machine initialization match ANDES references; verify base handling, native ANDES import, and trajectory parity.                 | Partial                               |
@@ -935,11 +938,15 @@ it also needs native-input mapping, initialization, and a trajectory test.
 | `SCRX`, `ESAC6A`                                                                                                      | `ExciterSCRX` and `ExciterESAC6A`; native equations, exact DYR adapters, initialization, parameter mapping, residual, and Jacobian coverage are present. Capture independent disturbed trajectories.                    | Implemented; external trajectory open |
 | `ST2CUT`                                                                                                              | `StabilizerST2CUT`; local input modes, exact filters, limits, DYR mapping, and dynamic load-step coverage are implemented. Remote/frequency-derivative measurements and captured ANDES trajectories remain.             | Partial                               |
 | `IEEEST`                                                                                                              | `StabilizerIEEEST`; local input modes, exact ANDES zero-bypass filters, limits, DYR mapping, and dynamic load-step coverage are implemented. Remote/frequency-derivative measurements and captured trajectories remain. | Partial                               |
-| `BusFreq`, `BusROCOF`, `PMU`, `PLL1`, `PLL2`, `FreqDiv`                                                               | Measurement and frequency-estimation models.                                                                                                                                                                            | Untriaged                             |
-| `REGCA1`, `REGCP1`, `REECA1`, `REECA1E`, `REECA1G`, `REECB1`, `REPCA1`, `REGCV1`, `REGCV2`, `REGF1`, `REGF2`, `REGF3` | Native renewable converter/controller paths now exist for the supported chain; complete remote-mode, variant, and case-level validation.                                                                                | Implemented; validation pending       |
-| `WTDTA1`, `WTDS`, `WTARA1`, `WTPTA1`, `WTTQA1`, `WTARV1`                                                              | Native WECC wind drive-train, aerodynamic, pitch, torque, and renewable-voltage paths are available; validate the coupled assembly and remaining variants.                                                              | Implemented; validation pending       |
+| `BusFreq`                                                                                                              | Local ANDES JSON bus-frequency records are imported and connected where supported; remote/missing bus references are rejected. Validate additional case variants.                                                      | Implemented; validation pending       |
+| `BUSROCOF`, `PLL1`, `PLL2`, `FREQDIV`                                                                                 | Native DYR measurement sensors and named outputs exist; validate additional ANDES mappings and unsupported network/source configurations.                                                                                | Implemented; validation pending       |
+| `PMU`                                                                                                                  | No dedicated PMU model or importer mapping is recorded in the current source.                                                                                                                                           | Untriaged                             |
+| `REGCA1`, `REGCP1`, `REECA1`, `REECA1E`, `REECA1G`, `REECB1`, `REECC1`, `REPCA1`, `REGCV1`, `REGCV2`, `REGF1`, `REGF2`, `REGF3` | Native renewable converter/controller paths and DYR mappings exist for these models; remote modes, parameter variants, and case-level validation remain.                                                        | Implemented; validation pending       |
+| `WTDTA1`, `WTDS`, `WTARA1`, `WTPTA1`, `WTTQA1`                                                                        | Native WECC wind drive-train, aerodynamic, pitch, and torque paths are available; validate the coupled assembly and remaining variants. `WTARV1` remains unimplemented pending an equation source.                         | Implemented; validation pending       |
+| `WT3P1`, `WT3T1`                                                                                                      | DYR adapters translate these legacy records to `WTPTA1` and `WTARA1` plus `WTDS`/`WTDTA1`; dedicated equation equivalence is unverified.                                                                                  | Partial                               |
 | `USRBUS`, `USRMDL`                                                                                                    | PSS/E user-written model records require the supplied compiled-model equations or equivalent documentation. The Texas7k records reference `PLNTBU1`, `REAX3BU1`, and `REAX4BU1`; DYR parameters alone are insufficient. | External dependency                   |
-| `PVD1`, `ESD1`, `EV1`, `EV2`, `DGPRCT1`, `DGPRCTExt`                                                                  | Distributed energy-resource and protection models.                                                                                                                                                                      | Untriaged                             |
+| `PVD1`, `ESD1`, `EV1`, `EV2`                                                                                          | Native distributed-converter models and ANDES JSON import exist; no PSS/E DYR mapping is provided. Validate parameter variants and external trajectories.                                                                | Implemented; validation pending       |
+| `DGPRCT1`, `DGPRCTExt`                                                                                                | Native protection relays and ANDES JSON import exist; validate remaining protection modes and trajectories.                                                                                                             | Implemented; validation pending       |
 | `Fault`, `Alter`, `TimeSeries`, `Toggle`                                                                              | Event/action semantics and time-series input mapping.                                                                                                                                                                   | Untriaged                             |
 | `Summary`, `Output`                                                                                                   | Reporting configuration; define output-channel mapping after model compatibility.                                                                                                                                       | Untriaged                             |
 
@@ -954,7 +961,8 @@ records (`GENROU`,
 `GENSAL`, `HYGOV`, `IEEET1`, `EXPIC1`, `SCRX`, and `ESAC6A`); the scan reported
 916 records requiring additional support.
 
-The largest missing demands in that pre-renewable-integration scan were the
+This paragraph records a pre-renewable-integration scan, not current importer
+status. Its largest missing demands were the
 coupled renewable groups: `REGCA1` (189), `REECA1` (182), `REPCA1` (174),
 `WTARA1` (121), `WTTQA1` (121), and `WTPTA1` (105). Those model paths now
 exist and move to coupled-case/external-trajectory validation. The remaining
@@ -1034,23 +1042,24 @@ ordinary AC-network elements.
 
 `C:\Users\phlpt\Downloads\ACTIVSg70k\ACTIVSg70k_dynamics.dyr` was inspected
 statically and was not loaded or run. It has 40,418 records in 22 model
-families. The pre-renewable-integration scan recognized 34,790 records in `GENROU`,
+families. The record counts below describe the pre-renewable-integration
+scan; they are a historical baseline, not current importer status. That scan
+recognized 34,790 records in `GENROU`,
 `IEEEST`, `IEEEG1`, `ESDC1A`, `ESDC2A`, `EXAC1`, `EXAC2`, `GGOV1`, `ESST4B`,
 `GENSAL`, `HYGOV`, `IEEET1`, `EXPIC1`, `SCRX`, and `ESAC6A`; the scan reported
-3,992 records as unsupported. The coupled renewable requirement in that scan was
-`REGCA1` and `REECA1` (571 each) plus `WT3G1`, `WT3E1`, `WT3P1`, and `WT3T1`
-(576 each).
+3,992 records as unsupported. The coupled renewable demand was `REGCA1` and
+`REECA1` (571 each) plus `WT3G1`, `WT3E1`, `WT3P1`, and `WT3T1` (576 each).
+The first pair has native DYR support; `WT3P1`/`WT3T1` now have provisional
+DYR translations whose equation fidelity is still open.
 
 For an executable full-dynamics reference, treat the DYR as plant assemblies,
 not independent records: `GENSAL` and `HYGOV` must be available together;
 `REGCA1` and `REECA1` must be available together; and all four `WT3*` models
 must be available together. `GGOV1` must retain its selectable governor and
-turbine modes and must not be replaced with `TGOV1`. The remaining
-model-family gap is the coupled `WT3P1`, `WT3T1`, `WT3E1`, `WT3G1` system;
-`REGCA1`, `REECA1`, and `ESAC1A` have native paths and need case-level
-validation. Reject a full
-DYR run until all are supported rather
-than silently dropping a controller. The companion `.PWB`, `.aux`, `.pwd`,
+turbine modes and must not be replaced with `TGOV1`. The coupled Type-3 plant
+is recognized by the DYR reader, but its `WT3P1`/`WT3T1` translations still
+need equation and whole-case validation. `REGCA1`, `REECA1`, and `ESAC1A` also
+need case-level validation. The companion `.PWB`, `.aux`, `.pwd`,
 and `.EPC` files are PowerWorld references, while the GridDyn import/validation
 pair is `ACTIVSg70k.RAW` plus `ACTIVSg70k_dynamics.dyr`.
 

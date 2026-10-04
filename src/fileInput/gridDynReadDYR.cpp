@@ -54,6 +54,7 @@
 #include <cmath>
 #include <cstddef>
 #include <fstream>
+#include <format>
 #include <limits>
 #include <map>
 #include <memory>
@@ -272,6 +273,8 @@ namespace detail {
             loadRenewable(parentObject, lineTokens, "REECA1G");
         } else if (type == "'REECB1'") {
             loadRenewable(parentObject, lineTokens, "REECB1");
+        } else if (type == "'REECCU1'" || type == "'REECC1'") {
+            loadRenewable(parentObject, lineTokens, "REECC1");
         } else if (type == "'REPCA1'") {
             loadRenewable(parentObject, lineTokens, "REPCA1");
         } else if (type == "'WTDTA1'") {
@@ -292,6 +295,60 @@ namespace detail {
             loadRenewable(parentObject, lineTokens, "WTPTA1");
         } else if (type == "'WTTQA1'") {
             loadRenewable(parentObject, lineTokens, "WTTQA1");
+        } else if (type == "'WT3P1'") {
+            // The first-generation PSS/E WT3P1 pitch controller is the
+            // WTPTA1 core without its Kcc cross term. Preserve its fixed Pset
+            // while translating the parameter order to the existing model.
+            if (lineTokens.size() != 12U) {
+                throw InvalidParameterValue("WT3P1 DYR record must contain 9 parameters");
+            }
+            const auto params = gmlc::utilities::str2vector(lineTokens, kNullVal);
+            if (std::any_of(params.begin() + 3, params.end(), [](double value) {
+                    return !std::isfinite(value) || value == kNullVal;
+                })) {
+                throw InvalidParameterValue("WT3P1 DYR record has a nonnumeric parameter");
+            }
+            stringVec pitchTokens{lineTokens[0], "'WTPTA1'", lineTokens[2], lineTokens[4],
+                                  lineTokens[3], lineTokens[6], lineTokens[5], "0",
+                                  lineTokens[10], lineTokens[7], lineTokens[8], lineTokens[9],
+                                  std::format("{:.17g}", -params[9]), lineTokens[11]};
+            loadRenewable(parentObject, pitchTokens, "WTPTA1");
+        } else if (type == "'WT3T1'") {
+            // WT3T1 combines the legacy aerodynamic and shaft dynamics. Split
+            // it into the existing WTARA1 and WTDS/WTDTA1 role components.
+            if (lineTokens.size() != 11U) {
+                throw InvalidParameterValue("WT3T1 DYR record must contain 8 parameters");
+            }
+            const auto params = gmlc::utilities::str2vector(lineTokens, kNullVal);
+            if (std::any_of(params.begin() + 3, params.end(), [](double value) {
+                    return !std::isfinite(value) || value == kNullVal;
+                })) {
+                throw InvalidParameterValue("WT3T1 DYR record has a nonnumeric parameter");
+            }
+            const double windSpeed = params[3];
+            const double turbineInertiaFraction = params[8];
+            if (windSpeed <= 0.0 || params[4] <= 0.0 || turbineInertiaFraction < 0.0 ||
+                turbineInertiaFraction >= 1.0) {
+                throw InvalidParameterValue("WT3T1 has invalid wind speed or inertia data");
+            }
+            const double theta0 = (windSpeed > 1.0) ?
+                (params[7] / 0.75) * (1.0 - (1.0 / (windSpeed * windSpeed))) :
+                0.0;
+            stringVec aeroTokens{lineTokens[0], "'WTARA1'", lineTokens[2], lineTokens[6],
+                                 std::format("{:.17g}", theta0)};
+            loadRenewable(parentObject, aeroTokens, "WTARA1");
+
+            stringVec shaftTokens{lineTokens[0], "'WTDS'", lineTokens[2], lineTokens[4],
+                                  lineTokens[5], "1"};
+            if (turbineInertiaFraction != 0.0) {
+                shaftTokens[1] = "'WTDTA1'";
+                shaftTokens.emplace_back(lineTokens[8]);
+                shaftTokens.emplace_back(lineTokens[9]);
+                shaftTokens.emplace_back(lineTokens[10]);
+            }
+            loadRenewable(parentObject,
+                          shaftTokens,
+                          (turbineInertiaFraction == 0.0) ? "WTDS" : "WTDTA1");
         } else if (type == "'WT3G1'") {
             loadRenewable(parentObject, lineTokens, "WT3G1");
         } else if (type == "'WT3E1'") {
@@ -650,6 +707,12 @@ namespace {
             {"pfflag", "vflag", "qflag", "pqflag", "vdip",  "vup",  "trv",  "dbd1", "dbd2", "kqv",
              "iqh1",   "iql1",  "vref0", "tp",     "qmax",  "qmin", "vmax", "vmin", "kqp",  "kqi",
              "kvp",    "kvi",   "tiq",   "dpmax",  "dpmin", "pmax", "pmin", "imax", "tpord"});
+        static constexpr auto reeccFields = std::to_array<std::string_view>(
+            {"pfflag", "vflag", "qflag", "pqflag", "vdip", "vup", "trv", "dbd1", "dbd2", "kqv",
+             "iqh1", "iql1", "vref0", "tp", "qmax", "qmin", "vmax", "vmin", "kqp", "kqi",
+             "kvp", "kvi", "tiq", "dpmax", "dpmin", "pmax", "pmin", "imax", "tpord",
+             "vq1", "iq1", "vq2", "iq2", "vq3", "iq3", "vq4", "iq4", "vp1", "ip1", "vp2",
+             "ip2", "vp3", "ip3", "vp4", "ip4", "t", "socini", "socmax", "socmin"});
         static constexpr auto wtdtaFields =
             std::to_array<std::string_view>({"h", "damp", "htfrac", "freq1", "dshaft"});
         static constexpr auto wt3gFields =
@@ -734,6 +797,8 @@ namespace {
             expected = 56U;
         } else if (modelName == "REECB1") {
             expected = 33U;
+        } else if (modelName == "REECC1") {
+            expected = 4U + reeccFields.size();
         } else if (modelName == "REGCV1") {
             expected = 3U + regcv1Fields.size();
         } else if (modelName == "REGCV2") {
@@ -820,6 +885,11 @@ namespace {
                 throw InvalidParameterValue("REECB1 remote BUSR is not yet supported");
             }
             setFields(reecbFields, 4);
+        } else if (modelName == "REECC1") {
+            if (params[3] != 0.0) {
+                throw InvalidParameterValue("REECC1 remote BUSR is not yet supported");
+            }
+            setFields(reeccFields, 4);
         } else if (modelName == "REGCV1") {
             setFields(regcv1Fields, 3);
         } else if (modelName == "REGCV2") {

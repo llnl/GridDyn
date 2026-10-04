@@ -1,10 +1,15 @@
 # Power-flow validation follow-ups
 
-## Current status (2026-09-05)
+## Status snapshot (2026-09-05)
 
 This log collects the unresolved or bounded outcomes from large-case
 power-flow validation. A timeout or an incomplete solver report is not a
 convergence result.
+
+This is a historical result log, not a live status page. No later
+system-scale solve result is recorded here; see the
+[RAW model coverage worklist](raw-model-coverage-worklist.md) for current
+import/coverage follow-ups.
 
 ### Texas 7k synthetic grid
 

@@ -8,12 +8,14 @@
 
 #include "../GridBus.h"
 #include "../Link.h"
+#include "../Load.h"
 #include "../events/Event.h"
 #include "../events/EventQueue.h"
 #include "../events/ParameterOperator.h"
 #include "../loads/GridLabDLoad.h"
 #include "../solvers/SolverInterface.h"
 #include "Contingency.h"
+#include "GridArea.h"
 #include "GridDynSimulationFileOps.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
@@ -27,6 +29,7 @@
 #endif
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <compare>
 #include <cstdio>
 #include <fstream>

@@ -36,6 +36,7 @@
 #include <iostream>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -756,6 +757,24 @@ static void readRawCaseDescription(std::ifstream& file,
     }
 }
 
+static void readRawLoadSection(std::ifstream& file,
+                               std::string& line,
+                               std::vector<GridBus*>& busList,
+                               BasicReaderInfo& opt)
+{
+    while (checkNextLine(file, line)) {
+        auto* bus = findBus(busList, line);
+        if (bus == nullptr) {
+            std::cerr << "Invalid bus number for load " << line.substr(0, 30) << '\n';
+            continue;
+        }
+
+        auto* loadObject = gLdfactory->makeTypeObject();
+        bus->add(loadObject);
+        rawReadLoad(loadObject, line, opt);
+    }
+}
+
 void loadRaw(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& readerOptions)
@@ -774,7 +793,6 @@ void loadRaw(CoreObject* parentObject,
     std::unordered_map<int, loads::Svd*> remoteSwitchedShunts;
     BasicReaderInfo readerOptionsCopy(readerOptions);
     auto& opt = readerOptionsCopy;
-    GridLoad* loadObject;
     Generator* gen;
     GridBus* bus;
 
@@ -816,21 +834,7 @@ void loadRaw(CoreObject* parentObject,
         bool moreData = true;
         switch (currSection) {
             case SectionType::LOAD:
-                while (moreData) {
-                    if (checkNextLine(file, line)) {
-                        bus = findBus(busList, line);
-                        if (bus != nullptr) {
-                            loadObject = gLdfactory->makeTypeObject();
-                            bus->add(loadObject);
-                            rawReadLoad(loadObject, line, opt);
-                        } else {
-                            std::cerr << "Invalid bus number for load " << line.substr(0, 30)
-                                      << '\n';
-                        }
-                    } else {
-                        moreData = false;
-                    }
-                }
+                readRawLoadSection(file, line, busList, opt);
                 break;
             case SectionType::GENERATOR:
                 while (moreData) {
@@ -863,7 +867,7 @@ void loadRaw(CoreObject* parentObject,
                     if (checkNextLine(file, line)) {
                         bus = findBus(busList, line);
                         if (bus != nullptr) {
-                            loadObject = gLdfactory->makeTypeObject();
+                            auto* loadObject = gLdfactory->makeTypeObject();
                             bus->add(loadObject);
                             rawReadFixedShunt(loadObject, line, opt);
                         } else {
@@ -1388,7 +1392,8 @@ static int rawReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& op
     bus->set("type", temp);
     if (opt.version >= 31) {
         area = numeric_conversion<int>(strvec[4], 0);
-        // skip the loss zone for now
+        const auto zone = numeric_conversion<double>(strvec[5], 1.0);
+        bus->set("zone", zone);
         // skip the owner information
         // get the voltage and angle specifications
         voltageMagnitude = numeric_conversion<double>(strvec[7], 0.0);
@@ -1507,6 +1512,7 @@ static void
     auto temp = trim(removeQuotes(strvec[1]));
     auto name = loadObject->getParent()->getName() + "_shunt_" + temp;
     loadObject->setName(name);
+    loadObject->setFixedShunt();
 
     // get the status
     auto status = gmlc::utilities::numConv<int>(strvec[2]);

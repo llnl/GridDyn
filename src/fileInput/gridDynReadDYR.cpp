@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "LoadTemplateManager.h"
 #include "ReaderInfo.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObject.h"
@@ -12,6 +13,7 @@
 #include "fileInput.h"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
+#include "gmlc/utilities/string_viewConversion.h"
 #include "gridDynReadDyrModels.h"
 #include "griddyn/Exciter.h"
 #include "griddyn/GenModel.h"
@@ -26,6 +28,7 @@
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorReheat.h"
+#include "griddyn/loads/LoadTemplateAdapters.h"
 #include "griddyn/relays/BusMeasurementSensor.h"
 #include "griddyn/renewables/REECA1.h"
 #include "griddyn/renewables/REECA1E.h"
@@ -45,14 +48,17 @@
 #include "griddyn/renewables/WTTQA1.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
+#include "loadModelReaderHelper.h"
 #include <array>
 #include <charconv>
 #include <cmath>
 #include <cstddef>
 #include <fstream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <span>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 
@@ -116,6 +122,7 @@ namespace {
     void loadSEXS(CoreObject* parentObject, stringVec& tokens);
     void loadRenewable(CoreObject* parentObject, stringVec& tokens, std::string_view modelName);
     void loadMeasurement(CoreObject* parentObject, stringVec& tokens, std::string_view modelName);
+    void loadIEELAL(CoreObject* parentObject, const stringVec& tokens);
 
     struct UnsupportedDyrModelSummary {
         std::size_t mCount = 0;
@@ -156,6 +163,8 @@ namespace detail {
             loadGENROU(parentObject, lineTokens);
         } else if (type == "'CSVGN1'") {
             loadCSVGN1(parentObject, lineTokens);
+        } else if (type == "'IEELAL'") {
+            loadIEELAL(parentObject, lineTokens);
         } else if (type == "'GENTPJ'") {
             loadGENTPJ(parentObject, lineTokens);
         } else if (type == "'GENROE'") {
@@ -315,6 +324,8 @@ void loadDyr(CoreObject* parentObject,
     if (!(file.is_open())) {
         parentObject->log(parentObject, PrintLevel::ERROR, "Unable to open file " + fileName);
         //    return;
+    } else {
+        warnIfStaticNetworkMissing(parentObject, "DYR", fileName);
     }
     while (std::getline(file, line)) {
         ++lineNumber;
@@ -462,6 +473,48 @@ namespace {
                                         tokens[0] + " and machine " + tokens[2]);
         }
         return generator;
+    }
+
+    void loadIEELAL(CoreObject* parentObject, const stringVec& tokens)
+    {
+        if (tokens.size() != 17U) {
+            throw InvalidParameterValue("IEELAL DYR record must contain 14 parameters");
+        }
+        if (tokens[0] != "0" || gmlc::utilities::stringOps::removeQuotes(tokens[2]) != "*") {
+            throw InvalidParameterValue("IEELAL requires bus 0 and load ID *");
+        }
+        auto* simulation = dynamic_cast<GridDynSimulation*>(parentObject->getRoot());
+        if (simulation == nullptr) {
+            throw InvalidParameterValue("IEELAL requires a GridDynSimulation root");
+        }
+
+        IEELParameters parameters;
+        for (std::size_t index = 0; index < 14U; ++index) {
+            const auto& token = tokens[index + 3U];
+            const std::string errorMessage =
+                "IEELAL parameter " + std::to_string(index + 1U) + " must be a finite number";
+            double value = std::numeric_limits<double>::quiet_NaN();
+            try {
+                value = gmlc::utilities::numeric_conversionComplete<double>(std::string_view{token},
+                                                                            value);
+            }
+            catch (const std::out_of_range&) {
+                throw InvalidParameterValue(errorMessage);
+            }
+            if (!std::isfinite(value)) {
+                throw InvalidParameterValue(errorMessage);
+            }
+            if (index < parameters.coefficients.size()) {
+                parameters.coefficients[index] = value;
+            } else {
+                parameters.exponents[index - parameters.coefficients.size()] = value;
+            }
+        }
+        LoadTemplateManager templates;
+        templates.setTemplate(LoadTemplateScope::System,
+                              0,
+                              loads::makeIEELALLoadTemplate(parameters));
+        applyLoadTemplatesFromReader(*simulation, templates);
     }
 
     void loadMeasurement(CoreObject* parentObject, stringVec& tokens, std::string_view modelName)

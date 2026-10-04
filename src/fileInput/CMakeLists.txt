@@ -60,10 +60,17 @@ set(fileInput_headers
     GridParameter.h
     readElementFile.h
     gridDynReadDyrModels.h
+    LoadTemplateManager.h
+    loadModelReaderHelper.h
 )
 
-set(fileInput_sources ${xml_sources} ${reader_sources} ${elementReader_sources}
-                      ${formattedfileInput_sources} ${fileInput_headers}
+set(fileInput_sources
+    ${xml_sources}
+    ${reader_sources}
+    ${elementReader_sources}
+    ${formattedfileInput_sources}
+    LoadTemplateManager.cpp
+    ${fileInput_headers}
 )
 add_library(fileInput STATIC ${fileInput_sources})
 

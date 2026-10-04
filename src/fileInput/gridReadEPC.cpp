@@ -562,6 +562,11 @@ void loadEpc(CoreObject* parentObject,
                 }
                 if (busList[index - 1] == nullptr) {
                     busList[index - 1] = new AcBus();
+                    // EPC stores bus numbers directly, and unlike many IEEE
+                    // fixtures these numbers are not necessarily a dense
+                    // 1-based sequence. Preserve the external number so DYD
+                    // records and other user-ID lookups resolve to this bus.
+                    busList[index - 1]->setUserID(static_cast<index_t>(index));
                     busList[index - 1]->set("basepower", base);
                     const auto areaId = epcReadBus(busList[index - 1], line, base, bri);
                     auto* busParent = parentObject;
@@ -1003,6 +1008,8 @@ namespace {
             std::cerr << "invalid epc shunt record\n";
             return;
         }
+
+        load->setFixedShunt();
 
         // get the load index and name
         std::string prefix = load->getParent()->getName() + "_Shunt";

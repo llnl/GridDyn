@@ -32,6 +32,7 @@ class Contingency;
 class ContinuationSequence;
 class SolverInterface;
 class ParameterSet;
+class GridLoad;
 
 /** additional flags for the controlFlags bitset*/
 enum GridDynFlags {
@@ -204,7 +205,6 @@ class GridDynSimulation: public GridSimulation {
     //!< step
     ResidualParallelMode residualParallelMode =
         ResidualParallelMode::AUTO;  //!< Residual parallelism policy.
-
     /** @brief Select the residual thread count from the configured policy and network size.
      *
      * When internal OpenMP support is available, AUTO mode enables parallel

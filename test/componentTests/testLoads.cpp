@@ -7,7 +7,9 @@
 #include "../gtestHelper.h"
 #include "core/CoreExceptions.h"
 #include "fileInput/fileInput.h"
+#include "fileInput/loadModelReaderHelper.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/GridDynSimulation.h"
 #include "griddyn/blocks/LeadLagBlock.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/links/AcLine.h"
@@ -16,6 +18,8 @@
 #include "griddyn/loads/FDepLoad.h"
 #include "griddyn/loads/FileLoad.h"
 #include "griddyn/loads/GridLabDLoad.h"
+#include "griddyn/loads/IEELLoad.h"
+#include "griddyn/loads/LoadTemplateAdapters.h"
 #include "griddyn/loads/MotorLoad5.h"
 #include "griddyn/loads/SourceLoad.h"
 #include "griddyn/loads/Svd.h"
@@ -24,10 +28,12 @@
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/simulation/Diagnostics.h"
 #include <cmath>
+#include <functional>
 #include <gtest/gtest.h>
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 using namespace griddyn;
@@ -44,6 +50,139 @@ static std::string makeLoadTestPath(std::string_view fileName)
 static std::string makeGridlabdTestPath(std::string_view fileName)
 {
     return std::string{gridlabdTestDirectory} + std::string{fileName};
+}
+
+TEST(IEELLoadTests, SelectsTheSimplestEquivalentLoadAndEvaluatesItsEquation)
+{
+    const auto checkConversion = [](const IEELParameters& parameters,
+                                    IEELRepresentation expectedRepresentation,
+                                    const std::function<double(double, double)>& expectedP,
+                                    const std::function<double(double, double)>& expectedQ) {
+        auto simulation = std::make_unique<GridDynSimulation>();
+        auto* bus = new AcBus("bus");
+        bus->add(new ZipLoad(0.6, 0.25, "raw_load"));
+        simulation->add(bus);
+
+        LoadTemplateManager templates;
+        templates.setTemplate(LoadTemplateScope::System, 0, makeIEELALLoadTemplate(parameters));
+        applyLoadTemplatesFromReader(*simulation, templates);
+        auto* load = bus->getLoad(0);
+        ASSERT_NE(load, nullptr);
+        EXPECT_EQ(load->getName(), "raw_load");
+        if (expectedRepresentation == IEELRepresentation::ZIP) {
+            EXPECT_NE(dynamic_cast<ZipLoad*>(load), nullptr);
+        } else if (expectedRepresentation == IEELRepresentation::FDEP) {
+            EXPECT_NE(dynamic_cast<FDepLoad*>(load), nullptr);
+        } else {
+            EXPECT_NE(dynamic_cast<IEELLoad*>(load), nullptr);
+        }
+
+        const IOdata inputs{1.1, 0.0, 1.04};
+        EXPECT_NEAR(load->getRealPower(inputs, emptyStateData, cLocalSolverMode),
+                    expectedP(1.1, 1.04),
+                    1e-12);
+        EXPECT_NEAR(load->getReactivePower(inputs, emptyStateData, cLocalSolverMode),
+                    expectedQ(1.1, 1.04),
+                    1e-12);
+    };
+
+    IEELParameters zipParameters;
+    zipParameters.coefficients = {0.2, 0.3, 0.5, 0.0, 0.0, 1.0, 0.0, 0.0};
+    zipParameters.exponents = {0.0, 1.0, 2.0, 0.0, 0.0, 2.0};
+    EXPECT_EQ(classifyIEEL(zipParameters), IEELRepresentation::ZIP);
+    checkConversion(
+        zipParameters,
+        IEELRepresentation::ZIP,
+        [](double voltage, double) {
+            return 0.6 * (0.2 + (0.3 * voltage) + (0.5 * voltage * voltage));
+        },
+        [](double voltage, double) { return 0.25 * voltage * voltage; });
+
+    IEELParameters fdepParameters;
+    fdepParameters.coefficients = {1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0};
+    fdepParameters.exponents = {1.5, 0.0, 0.0, 2.5, 0.0, 0.0};
+    EXPECT_EQ(classifyIEEL(fdepParameters), IEELRepresentation::FDEP);
+    checkConversion(
+        fdepParameters,
+        IEELRepresentation::FDEP,
+        [](double voltage, double frequency) { return 0.6 * std::pow(voltage, 1.5) * frequency; },
+        [](double voltage, double) { return 0.25 * std::pow(voltage, 2.5); });
+
+    IEELParameters generalParameters;
+    generalParameters.coefficients = {0.4, 0.6, 0.0, 0.3, 0.7, 0.0, 0.25, 0.4};
+    generalParameters.exponents = {0.5, 1.5, 0.0, 0.2, 2.5, 0.0};
+    EXPECT_EQ(classifyIEEL(generalParameters), IEELRepresentation::IEEL);
+    checkConversion(
+        generalParameters,
+        IEELRepresentation::IEEL,
+        [](double voltage, double frequency) {
+            return 0.6 * ((0.4 * std::pow(voltage, 0.5)) + (0.6 * std::pow(voltage, 1.5))) *
+                (1.0 + (0.25 * (frequency - 1.0)));
+        },
+        [](double voltage, double frequency) {
+            return 0.25 * ((0.3 * std::pow(voltage, 0.2)) + (0.7 * std::pow(voltage, 2.5))) *
+                (1.0 + (0.4 * (frequency - 1.0)));
+        });
+}
+
+TEST(LoadTemplateTests, KeepsFixedAndControlledShunts)
+{
+    auto simulation = std::make_unique<GridDynSimulation>();
+    auto* bus = new AcBus("bus");
+    auto* ordinaryLoad = new ZipLoad(0.6, 0.25, "ordinary");
+    auto* fixedShunt = new ZipLoad(0.0, 0.15, "fixed_shunt");
+    fixedShunt->setFixedShunt();
+    auto* switchedShunt = new Svd("switched_shunt");
+    bus->add(ordinaryLoad);
+    bus->add(fixedShunt);
+    bus->add(switchedShunt);
+    simulation->add(bus);
+
+    IEELParameters parameters;
+    parameters.coefficients = {0.5, 0.5, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
+    parameters.exponents = {0.5, 1.5, 0.0, 1.0, 0.0, 0.0};
+    LoadTemplateManager templates;
+    templates.setTemplate(LoadTemplateScope::System, 0, makeIEELALLoadTemplate(parameters));
+
+    ASSERT_NO_THROW(applyLoadTemplatesFromReader(*simulation, templates));
+    EXPECT_NE(dynamic_cast<IEELLoad*>(bus->getLoad(0)), nullptr);
+    EXPECT_EQ(bus->getLoad(1), fixedShunt);
+    EXPECT_EQ(bus->getLoad(2), switchedShunt);
+}
+
+TEST(LoadTemplateTests, PreservesDemandOfDisconnectedLoads)
+{
+    const auto checkConversion = [](LoadTemplateFactory factory) {
+        auto simulation = std::make_unique<GridDynSimulation>();
+        auto* bus = new AcBus("bus");
+        auto* original = new ZipLoad(0.6, 0.25, "offline_load");
+        original->disable();
+        original->disconnect();
+        bus->add(original);
+        simulation->add(bus);
+
+        LoadTemplateManager templates;
+        templates.setTemplate(LoadTemplateScope::System, 0, std::move(factory));
+        applyLoadTemplatesFromReader(*simulation, templates);
+
+        auto* replacement = bus->getLoad(0);
+        ASSERT_NE(replacement, nullptr);
+        EXPECT_FALSE(replacement->isEnabled());
+        EXPECT_FALSE(replacement->isConnected());
+        replacement->enable();
+        replacement->reconnect();
+        EXPECT_NEAR(replacement->getRealPower(1.0), 0.6, 1e-12);
+        EXPECT_NEAR(replacement->getReactivePower(1.0), 0.25, 1e-12);
+    };
+
+    IEELParameters ieel;
+    ieel.coefficients = {1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
+    checkConversion(makeIEELALLoadTemplate(ieel));
+
+    WSCCParameters wscc;
+    wscc.p3 = 1.0;
+    wscc.q3 = 1.0;
+    checkConversion(makeWSCCLoadTemplate(wscc));
 }
 
 class LoadTests: public GridLoadTestFixture, public ::testing::Test {};

@@ -94,8 +94,9 @@ static TypeFactory<ESD1> gESD1Factory("renewable_model", "esd1");
 static TypeFactory<EV1> gEV1Factory("renewable_model", "ev1");
 static TypeFactory<EV2> gEV2Factory("renewable_model", "ev2");
 static TypeFactory<REECB1> gREECB1Factory("renewable_model", "reecb1");
-static TypeFactory<REECC1> gREECC1Factory(
-    "renewable_model", std::to_array<std::string_view>({"reecc1", "reeccu1", "reec_c"}));
+static TypeFactory<REECC1>
+    gREECC1Factory("renewable_model",
+                   std::to_array<std::string_view>({"reecc1", "reeccu1", "reec_c"}));
 static TypeFactory<REPCA1> gREPCA1Factory("renewable_model", "repca1");
 static TypeFactory<WT3G1> gWT3G1Factory("renewable_model", "wt3g1");
 static TypeFactory<WT3E1> gWT3E1Factory("renewable_model", "wt3e1");

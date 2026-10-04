@@ -24,8 +24,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
-#include <fstream>
 #include <format>
+#include <fstream>
 #include <limits>
 #include <map>
 #include <numbers>
@@ -83,18 +83,14 @@ namespace {
 
     bool isDydDirectModel(std::string_view modelName)
     {
-        static constexpr std::array directModels{"gencls", "genrou", "genroe", "gensae", "gensal",
-                                                 "esdc1a", "esdc2a", "ieeet1", "ieeet3", "ieeex1",
-                                                 "ac7b",   "ac8b",   "esst1a", "esst2a", "esst3a",
-                                                 "esst4b", "expic1", "scrx",   "esac6a", "exst1",
-                                                 "exac1",  "esac1a", "exac2",  "exac4",  "exdc2",
-                                                 "tgov1",  "hygov",  "gast",   "ggov1",  "ieeeg1",
-                                                 "ieesgo", "ieeest", "sexs",   "regca1", "regcp1",
-                                                 "reeca1", "reeca1e", "reeca1g", "reecb1", "repca1",
-                                                 "regcv1", "regcv2", "regf1", "regf2", "regf3",
-                                                 "wtdta1", "wtara1", "wtpta1", "wttqa1", "wtds",
-                                                 "wt3g1", "wt3e1", "wt4g1", "wt4e1", "epcgen",
-                                                 "gpwscc"};
+        static constexpr std::array directModels{
+            "gencls", "genrou", "genroe", "gensae", "gensal",  "esdc1a",  "esdc2a", "ieeet1",
+            "ieeet3", "ieeex1", "ac7b",   "ac8b",   "esst1a",  "esst2a",  "esst3a", "esst4b",
+            "expic1", "scrx",   "esac6a", "exst1",  "exac1",   "esac1a",  "exac2",  "exac4",
+            "exdc2",  "tgov1",  "hygov",  "gast",   "ggov1",   "ieeeg1",  "ieesgo", "ieeest",
+            "sexs",   "regca1", "regcp1", "reeca1", "reeca1e", "reeca1g", "reecb1", "repca1",
+            "regcv1", "regcv2", "regf1",  "regf2",  "regf3",   "wtdta1",  "wtara1", "wtpta1",
+            "wttqa1", "wtds",   "wt3g1",  "wt3e1",  "wt4g1",   "wt4e1",   "epcgen", "gpwscc"};
         const auto normalized = gmlc::utilities::convertToLowerCase(modelName);
         return std::ranges::any_of(directModels, [normalized](const char* directModel) {
             return normalized == directModel;
@@ -337,16 +333,13 @@ namespace {
             // REECA1's shared DYR loader expects BUSR, all five flags, then
             // the control parameters and curves.  A zero MVAB means the
             // generator's static machine base, which is GridDyn's convention.
-            if (sourcePayload.size() != 51U ||
-                !isZeroDydParameter(sourcePayload.front())) {
+            if (sourcePayload.size() != 51U || !isZeroDydParameter(sourcePayload.front())) {
                 return false;
             }
             payload.reserve(51U);
             payload.emplace_back("0");  // local BUSR
-            payload.insert(payload.end(), sourcePayload.begin() + 30U,
-                           sourcePayload.begin() + 35U);
-            payload.insert(payload.end(), sourcePayload.begin() + 1U,
-                           sourcePayload.begin() + 30U);
+            payload.insert(payload.end(), sourcePayload.begin() + 30U, sourcePayload.begin() + 35U);
+            payload.insert(payload.end(), sourcePayload.begin() + 1U, sourcePayload.begin() + 30U);
             payload.insert(payload.end(), sourcePayload.begin() + 35U, sourcePayload.end());
             return true;
         }
@@ -354,8 +347,7 @@ namespace {
         if (source == "repc_a") {
             // PSLF REPC_A starts with MVAB.  Its single reactive deadband is
             // represented by the lower and upper deadbands of REPCA1.
-            if (sourcePayload.size() != 30U ||
-                !isZeroDydParameter(sourcePayload.front())) {
+            if (sourcePayload.size() != 30U || !isZeroDydParameter(sourcePayload.front())) {
                 return false;
             }
             payload.reserve(34U);
@@ -363,14 +355,17 @@ namespace {
             // options.  The local PSLF form uses zero for all four.
             payload.insert(payload.end(), 4U, "0");
             payload.push_back(sourcePayload[11U]);  // VcompFlag
-            payload.push_back(sourcePayload[6U]);   // RefFlag
+            payload.push_back(sourcePayload[6U]);  // RefFlag
             payload.push_back(sourcePayload[29U]);  // FreqFlag
-            payload.insert(payload.end(), sourcePayload.begin() + 1U,
+            payload.insert(payload.end(),
+                           sourcePayload.begin() + 1U,
                            sourcePayload.begin() + 6U);  // Tfltr through Tfv
-            payload.insert(payload.end(), sourcePayload.begin() + 7U,
+            payload.insert(payload.end(),
+                           sourcePayload.begin() + 7U,
                            sourcePayload.begin() + 14U);  // Vfrz through Dbd
             payload.push_back(sourcePayload[14U]);  // Dbd upper limit
-            payload.insert(payload.end(), sourcePayload.begin() + 15U,
+            payload.insert(payload.end(),
+                           sourcePayload.begin() + 15U,
                            sourcePayload.begin() + 29U);  // remaining controller values
             return true;
         }
@@ -396,11 +391,10 @@ namespace {
             const double hg = params[2];
             const double totalInertia = ht + hg;
             const double w0 = (params.size() > 5U) ? params[5] : 1.0;
-            if (!std::isfinite(sourceBase) || !std::isfinite(ht) ||
-                !std::isfinite(hg) || !std::isfinite(params[3]) ||
-                !std::isfinite(params[4]) || !std::isfinite(w0) || ht <= 0.0 || hg < 0.0 ||
-                !std::isfinite(totalInertia) || totalInertia <= 0.0 || params[3] < 0.0 ||
-                w0 <= 0.0) {
+            if (!std::isfinite(sourceBase) || !std::isfinite(ht) || !std::isfinite(hg) ||
+                !std::isfinite(params[3]) || !std::isfinite(params[4]) || !std::isfinite(w0) ||
+                ht <= 0.0 || hg < 0.0 || !std::isfinite(totalInertia) || totalInertia <= 0.0 ||
+                params[3] < 0.0 || w0 <= 0.0) {
                 return false;
             }
             if (hg == 0.0 || params[4] <= 0.0) {
@@ -411,8 +405,7 @@ namespace {
             }
             const double htFraction = ht / totalInertia;
             const double freq1 =
-                std::sqrt(params[4] * totalInertia / (2.0 * ht * hg)) /
-                (2.0 * std::numbers::pi);
+                std::sqrt(params[4] * totalInertia / (2.0 * ht * hg)) / (2.0 * std::numbers::pi);
             if (!std::isfinite(htFraction) || !std::isfinite(freq1) || htFraction <= 0.0 ||
                 htFraction >= 1.0 || freq1 <= 0.0) {
                 return false;
@@ -431,8 +424,7 @@ namespace {
 
         if (source == "wtga_a" || source == "wtgar_a") {
             // The leading PSLF MVAB field is zero for machine-base data.
-            if (sourcePayload.size() != 3U ||
-                !isZeroDydParameter(sourcePayload.front())) {
+            if (sourcePayload.size() != 3U || !isZeroDydParameter(sourcePayload.front())) {
                 return false;
             }
             payload.assign(sourcePayload.begin() + 1U, sourcePayload.end());
@@ -441,8 +433,7 @@ namespace {
 
         if (source == "wtgp_a" || source == "wtgpt_a") {
             // WTGPT_A and WTPTA1 share the same ten control parameters.
-            if (sourcePayload.size() != 11U ||
-                !isZeroDydParameter(sourcePayload.front())) {
+            if (sourcePayload.size() != 11U || !isZeroDydParameter(sourcePayload.front())) {
                 return false;
             }
             payload.assign(sourcePayload.begin() + 1U, sourcePayload.end());
@@ -462,8 +453,8 @@ namespace {
             const auto offset = hasModelBase ? 1U : 0U;
             payload.reserve(15U);
             payload.push_back(sourcePayload[offset + 14U]);  // Tflag
-            payload.push_back(sourcePayload[offset + 2U]);   // Kpp
-            payload.push_back(sourcePayload[offset + 1U]);   // Kip
+            payload.push_back(sourcePayload[offset + 2U]);  // Kpp
+            payload.push_back(sourcePayload[offset + 1U]);  // Kip
             payload.insert(payload.end(),
                            sourcePayload.begin() + static_cast<std::ptrdiff_t>(offset + 3U),
                            sourcePayload.begin() + static_cast<std::ptrdiff_t>(offset + 15U));
@@ -488,10 +479,11 @@ namespace {
             payload.push_back(sourcePayload[0U]);  // VARFLG
             payload.push_back(sourcePayload[1U]);  // VLTFLG
             payload.insert(payload.end(), 4U, "0");
-            static constexpr std::array<std::size_t, 30> wt3eOrder{
-                31U, 29U, 28U, 25U, 2U, 3U, 4U, 6U, 7U, 18U,
-                19U, 9U, 26U, 8U, 5U, 16U, 21U, 20U, 17U, 23U,
-                22U, 30U, 24U, 27U, 10U, 11U, 12U, 13U, 14U, 15U};
+            static constexpr std::array<std::size_t, 30> wt3eOrder{31U, 29U, 28U, 25U, 2U,  3U,
+                                                                   4U,  6U,  7U,  18U, 19U, 9U,
+                                                                   26U, 8U,  5U,  16U, 21U, 20U,
+                                                                   17U, 23U, 22U, 30U, 24U, 27U,
+                                                                   10U, 11U, 12U, 13U, 14U, 15U};
             for (std::size_t index = 0; index < wt3eOrder.size(); ++index) {
                 payload.push_back(sourcePayload[wt3eOrder[index]]);
                 if (index == 13U) {
@@ -514,10 +506,17 @@ namespace {
                 })) {
                 return false;
             }
-            payload = {sourcePayload[1U], sourcePayload[0U], sourcePayload[3U],
-                       sourcePayload[2U], "0", sourcePayload[7U], sourcePayload[4U],
-                       sourcePayload[5U], sourcePayload[6U],
-                       formatDydNumber(-sourceValues[6U]), sourcePayload[8U]};
+            payload = {sourcePayload[1U],
+                       sourcePayload[0U],
+                       sourcePayload[3U],
+                       sourcePayload[2U],
+                       "0",
+                       sourcePayload[7U],
+                       sourcePayload[4U],
+                       sourcePayload[5U],
+                       sourcePayload[6U],
+                       formatDydNumber(-sourceValues[6U]),
+                       sourcePayload[8U]};
             return true;
         }
 
@@ -940,8 +939,8 @@ void loadDyd(CoreObject* parentObject,
                 const double hg = params[2];
                 const double totalInertia = ht + hg;
                 const double w0 = params.size() > 5U ? params[5] : 1.0;
-                if (ht <= 0.0 || hg < 0.0 || !std::isfinite(totalInertia) ||
-                    totalInertia <= 0.0 || params[3] < 0.0 || w0 <= 0.0) {
+                if (ht <= 0.0 || hg < 0.0 || !std::isfinite(totalInertia) || totalInertia <= 0.0 ||
+                    params[3] < 0.0 || w0 <= 0.0) {
                     throw InvalidParameterValue("WTGT_A has invalid inertia, damping, or speed");
                 }
 
@@ -964,7 +963,8 @@ void loadDyd(CoreObject* parentObject,
                     }
                 } else {
                     shaftTokens[1] = "'WTDTA1'";
-                    shaftTokens.insert(shaftTokens.end(), normalizedPayload.begin(),
+                    shaftTokens.insert(shaftTokens.end(),
+                                       normalizedPayload.begin(),
                                        normalizedPayload.end());
                 }
                 if (!detail::loadDyrModelRecord(
@@ -1000,8 +1000,7 @@ void loadDyd(CoreObject* parentObject,
                     })) {
                     throw InvalidParameterValue("WT3T requires eight finite parameters");
                 }
-                if (params[0] <= 0.0 || params[1] <= 0.0 || params[5] < 0.0 ||
-                    params[5] >= 1.0) {
+                if (params[0] <= 0.0 || params[1] <= 0.0 || params[5] < 0.0 || params[5] >= 1.0) {
                     throw InvalidParameterValue("WT3T has invalid wind speed or inertia data");
                 }
 
@@ -1118,10 +1117,10 @@ void loadDyd(CoreObject* parentObject,
     if (singleMassWtgtFallbacks.mCount > 0U) {
         const std::string message = fileName +
             ": WTGT_A records with Hg=0 or KShaft<=0 were loaded as the documented single-mass "
-            "WTDS form: " + std::to_string(singleMassWtgtFallbacks.mCount) +
-            " record(s); first at line " + std::to_string(singleMassWtgtFallbacks.mFirstLine) +
-            ", bus " + singleMassWtgtFallbacks.mFirstBus + " machine " +
-            singleMassWtgtFallbacks.mFirstMachine;
+            "WTDS form: " +
+            std::to_string(singleMassWtgtFallbacks.mCount) + " record(s); first at line " +
+            std::to_string(singleMassWtgtFallbacks.mFirstLine) + ", bus " +
+            singleMassWtgtFallbacks.mFirstBus + " machine " + singleMassWtgtFallbacks.mFirstMachine;
         parentObject->log(parentObject, PrintLevel::WARNING, message);
     }
     if (!unsupportedModels.empty()) {

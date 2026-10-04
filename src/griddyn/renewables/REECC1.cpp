@@ -109,9 +109,8 @@ double REECC1::storageSocRate(const IOdata& inputs) const
     return -inputs[powerIndex] / T;
 }
 
-std::pair<double, double> REECC1::activeCurrentBounds(const IOdata& /*inputs*/,
-                                                      const double state[],
-                                                      double ipCap) const
+std::pair<double, double>
+    REECC1::activeCurrentBounds(const IOdata& /*inputs*/, const double state[], double ipCap) const
 {
     const double soc = state[storageSocStateIndex()];
     const double lower = (soc >= SOCmax) ? 0.0 : -ipCap;

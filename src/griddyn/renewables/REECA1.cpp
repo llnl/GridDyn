@@ -56,38 +56,37 @@ namespace {
         {.signal = RenewableSignal::generatorSpeed, .ioIndex = 5},
     }};
     constexpr std::array<RenewablePort, 5> inputPortMapWithElectricalPower{{
-        inputPortMap[0], inputPortMap[1], inputPortMap[2], inputPortMap[3],
-        {.signal = RenewableSignal::electricalPower,
-         .ioIndex = 4,
-         .base = RenewableBase::machine},
+        inputPortMap[0],
+        inputPortMap[1],
+        inputPortMap[2],
+        inputPortMap[3],
+        {.signal = RenewableSignal::electricalPower, .ioIndex = 4, .base = RenewableBase::machine},
     }};
     constexpr std::array<RenewablePort, 6> inputPortMapWithSpeedAndElectricalPower{{
-        inputPortMapWithSpeed[0], inputPortMapWithSpeed[1], inputPortMapWithSpeed[2],
-        inputPortMapWithSpeed[3], inputPortMapWithSpeed[4],
-        {.signal = RenewableSignal::electricalPower,
-         .ioIndex = 5,
-         .base = RenewableBase::machine},
+        inputPortMapWithSpeed[0],
+        inputPortMapWithSpeed[1],
+        inputPortMapWithSpeed[2],
+        inputPortMapWithSpeed[3],
+        inputPortMapWithSpeed[4],
+        {.signal = RenewableSignal::electricalPower, .ioIndex = 5, .base = RenewableBase::machine},
     }};
     constexpr std::array<RenewablePort, 6> inputPortMapWithReactivePowerAndElectricalPower{{
-        inputPortMapWithReactivePower[0], inputPortMapWithReactivePower[1],
-        inputPortMapWithReactivePower[2], inputPortMapWithReactivePower[3],
+        inputPortMapWithReactivePower[0],
+        inputPortMapWithReactivePower[1],
+        inputPortMapWithReactivePower[2],
+        inputPortMapWithReactivePower[3],
         inputPortMapWithReactivePower[4],
-        {.signal = RenewableSignal::electricalPower,
-         .ioIndex = 5,
-         .base = RenewableBase::machine},
+        {.signal = RenewableSignal::electricalPower, .ioIndex = 5, .base = RenewableBase::machine},
     }};
-    constexpr std::array<RenewablePort, 7>
-        inputPortMapWithReactivePowerSpeedAndElectricalPower{{
-            inputPortMapWithReactivePowerAndSpeed[0],
-            inputPortMapWithReactivePowerAndSpeed[1],
-            inputPortMapWithReactivePowerAndSpeed[2],
-            inputPortMapWithReactivePowerAndSpeed[3],
-            inputPortMapWithReactivePowerAndSpeed[4],
-            inputPortMapWithReactivePowerAndSpeed[5],
-            {.signal = RenewableSignal::electricalPower,
-             .ioIndex = 6,
-             .base = RenewableBase::machine},
-        }};
+    constexpr std::array<RenewablePort, 7> inputPortMapWithReactivePowerSpeedAndElectricalPower{{
+        inputPortMapWithReactivePowerAndSpeed[0],
+        inputPortMapWithReactivePowerAndSpeed[1],
+        inputPortMapWithReactivePowerAndSpeed[2],
+        inputPortMapWithReactivePowerAndSpeed[3],
+        inputPortMapWithReactivePowerAndSpeed[4],
+        inputPortMapWithReactivePowerAndSpeed[5],
+        {.signal = RenewableSignal::electricalPower, .ioIndex = 6, .base = RenewableBase::machine},
+    }};
     constexpr std::array<RenewablePort, 3> outputPortMap{{
         {.signal = RenewableSignal::activeCurrentCommand,
          .ioIndex = 0,
@@ -98,7 +97,9 @@ namespace {
         {.signal = RenewableSignal::orderedPower, .ioIndex = 2, .base = RenewableBase::machine},
     }};
     constexpr std::array<RenewablePort, 4> outputPortMapWithSoc{{
-        outputPortMap[0], outputPortMap[1], outputPortMap[2],
+        outputPortMap[0],
+        outputPortMap[1],
+        outputPortMap[2],
         {.signal = RenewableSignal::stateOfCharge, .ioIndex = 3},
     }};
     constexpr index_t ipCommand = 0, iqCommand = 1;
@@ -132,8 +133,8 @@ REECA1::REECA1(const std::string& name): RenewableComponent(name)
 
 void REECA1::updateInputSize()
 {
-    m_inputSize = 4 + (PFLAG == 1 ? 1 : 0) + (cascadedVoltageControl() ? 1 : 0) +
-        (hasStorageSoc() ? 1 : 0);
+    m_inputSize =
+        4 + (PFLAG == 1 ? 1 : 0) + (cascadedVoltageControl() ? 1 : 0) + (hasStorageSoc() ? 1 : 0);
 }
 
 CoreObject* REECA1::clone(CoreObject* obj) const
@@ -199,7 +200,8 @@ std::span<const RenewablePort> REECA1::inputPorts() const
     if (hasStorageSoc()) {
         if (cascadedVoltageControl()) {
             return PFLAG == 1 ?
-                std::span<const RenewablePort>{inputPortMapWithReactivePowerSpeedAndElectricalPower} :
+                std::span<const RenewablePort>{
+                    inputPortMapWithReactivePowerSpeedAndElectricalPower} :
                 std::span<const RenewablePort>{inputPortMapWithReactivePowerAndElectricalPower};
         }
         return PFLAG == 1 ?
@@ -659,7 +661,8 @@ std::array<double, 7> REECA1::rates(const IOdata& inputs, const double state[]) 
         }
         return result;
     }
-    result[2] = Tpord == 0.0 ? 0.0 :
+    result[2] = Tpord == 0.0 ?
+        0.0 :
         (std::clamp(speed * state[powerFilter], PMIN, PMAX) - state[powerOrder]) / Tpord;
     if (QFLAG != 0) {
         const double qError = qref - reactivePowerFeedback(inputs);
@@ -697,7 +700,8 @@ void REECA1::dynObjectInitializeB(const IOdata& inputs,
             pfaref;
         if (!std::isfinite(initialPowerFactorAngle) ||
             std::abs(initialPowerFactorAngle) >= 1.5707963267948966) {
-            throw InvalidParameterValue("REECC1 initial power-factor angle must be within +/- pi/2");
+            throw InvalidParameterValue(
+                "REECC1 initial power-factor angle must be within +/- pi/2");
         }
     }
     if (Thld2 > 0.0 && voltageDip(inputs[0])) {
@@ -982,13 +986,9 @@ void REECA1::jacobianElements(const IOdata& inputs,
     if (PFFLAG == 1 && supportsPowerFactorControl()) {
         const auto filterIndex = powerFactorFilterStateIndex();
         const auto powerIndex = electricalPowerInputIndex();
-        matrixData.assign(diff + filterIndex,
-                          diff + filterIndex,
-                          (-1.0 / Tpfilt) - stateData.cj);
+        matrixData.assign(diff + filterIndex, diff + filterIndex, (-1.0 / Tpfilt) - stateData.cj);
         if (std::cmp_greater(inputLocs.size(), powerIndex)) {
-            matrixData.assignCheckCol(diff + filterIndex,
-                                      inputLocs[powerIndex],
-                                      1.0 / Tpfilt);
+            matrixData.assignCheckCol(diff + filterIndex, inputLocs[powerIndex], 1.0 / Tpfilt);
         }
     }
 }
@@ -1085,9 +1085,7 @@ void REECA1::outputPartialDerivatives(const IOdata& /*inputs*/,
                           1.0);
     }
     if (hasStorageSoc()) {
-        matrixData.assign(3,
-                          offsets.getDiffOffset(sMode) + storageSocStateIndex(),
-                          1.0);
+        matrixData.assign(3, offsets.getDiffOffset(sMode) + storageSocStateIndex(), 1.0);
     }
 }
 

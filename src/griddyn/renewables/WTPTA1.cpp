@@ -172,8 +172,8 @@ void WTPTA1::dynObjectInitializeB(const IOdata& inputs,
 
 std::array<double, 3> WTPTA1::rates(const IOdata& inputs, const double state[]) const
 {
-    const double activeReference = hasFixedPset ? Pset :
-        (inputs.size() > 2 && inputs[2] != kNullVal ? inputs[2] : 0.0);
+    const double activeReference =
+        hasFixedPset ? Pset : (inputs.size() > 2 && inputs[2] != kNullVal ? inputs[2] : 0.0);
     const double powerError = inputs[1] - activeReference;
     const double speedRef = inputs.size() > 3 && inputs[3] != kNullVal ? inputs[3] : initialSpeed;
     const double speedError = (Kcc * powerError) + inputs[0] - speedRef;

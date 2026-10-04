@@ -80,9 +80,8 @@ class REECA1: public RenewableComponent {
     virtual double initialStorageSoc() const { return 0.0; }
     virtual double storageSocTimeConstant() const { return 1.0; }
     virtual double storageSocRate(const IOdata&) const { return 0.0; }
-    virtual std::pair<double, double> activeCurrentBounds(const IOdata&,
-                                                          const double[],
-                                                          double ipCap) const
+    virtual std::pair<double, double>
+        activeCurrentBounds(const IOdata&, const double[], double ipCap) const
     {
         return {0.0, ipCap};
     }

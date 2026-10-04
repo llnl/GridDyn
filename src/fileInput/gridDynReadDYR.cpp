@@ -53,8 +53,8 @@
 #include <charconv>
 #include <cmath>
 #include <cstddef>
-#include <fstream>
 #include <format>
+#include <fstream>
 #include <limits>
 #include <map>
 #include <memory>
@@ -308,10 +308,20 @@ namespace detail {
                 })) {
                 throw InvalidParameterValue("WT3P1 DYR record has a nonnumeric parameter");
             }
-            stringVec pitchTokens{lineTokens[0], "'WTPTA1'", lineTokens[2], lineTokens[4],
-                                  lineTokens[3], lineTokens[6], lineTokens[5], "0",
-                                  lineTokens[10], lineTokens[7], lineTokens[8], lineTokens[9],
-                                  std::format("{:.17g}", -params[9]), lineTokens[11]};
+            stringVec pitchTokens{lineTokens[0],
+                                  "'WTPTA1'",
+                                  lineTokens[2],
+                                  lineTokens[4],
+                                  lineTokens[3],
+                                  lineTokens[6],
+                                  lineTokens[5],
+                                  "0",
+                                  lineTokens[10],
+                                  lineTokens[7],
+                                  lineTokens[8],
+                                  lineTokens[9],
+                                  std::format("{:.17g}", -params[9]),
+                                  lineTokens[11]};
             loadRenewable(parentObject, pitchTokens, "WTPTA1");
         } else if (type == "'WT3T1'") {
             // WT3T1 combines the legacy aerodynamic and shaft dynamics. Split
@@ -334,12 +344,15 @@ namespace detail {
             const double theta0 = (windSpeed > 1.0) ?
                 (params[7] / 0.75) * (1.0 - (1.0 / (windSpeed * windSpeed))) :
                 0.0;
-            stringVec aeroTokens{lineTokens[0], "'WTARA1'", lineTokens[2], lineTokens[6],
+            stringVec aeroTokens{lineTokens[0],
+                                 "'WTARA1'",
+                                 lineTokens[2],
+                                 lineTokens[6],
                                  std::format("{:.17g}", theta0)};
             loadRenewable(parentObject, aeroTokens, "WTARA1");
 
-            stringVec shaftTokens{lineTokens[0], "'WTDS'", lineTokens[2], lineTokens[4],
-                                  lineTokens[5], "1"};
+            stringVec shaftTokens{
+                lineTokens[0], "'WTDS'", lineTokens[2], lineTokens[4], lineTokens[5], "1"};
             if (turbineInertiaFraction != 0.0) {
                 shaftTokens[1] = "'WTDTA1'";
                 shaftTokens.emplace_back(lineTokens[8]);
@@ -708,11 +721,12 @@ namespace {
              "iqh1",   "iql1",  "vref0", "tp",     "qmax",  "qmin", "vmax", "vmin", "kqp",  "kqi",
              "kvp",    "kvi",   "tiq",   "dpmax",  "dpmin", "pmax", "pmin", "imax", "tpord"});
         static constexpr auto reeccFields = std::to_array<std::string_view>(
-            {"pfflag", "vflag", "qflag", "pqflag", "vdip", "vup", "trv", "dbd1", "dbd2", "kqv",
-             "iqh1", "iql1", "vref0", "tp", "qmax", "qmin", "vmax", "vmin", "kqp", "kqi",
-             "kvp", "kvi", "tiq", "dpmax", "dpmin", "pmax", "pmin", "imax", "tpord",
-             "vq1", "iq1", "vq2", "iq2", "vq3", "iq3", "vq4", "iq4", "vp1", "ip1", "vp2",
-             "ip2", "vp3", "ip3", "vp4", "ip4", "t", "socini", "socmax", "socmin"});
+            {"pfflag", "vflag",  "qflag",  "pqflag", "vdip", "vup",   "trv",   "dbd1", "dbd2",
+             "kqv",    "iqh1",   "iql1",   "vref0",  "tp",   "qmax",  "qmin",  "vmax", "vmin",
+             "kqp",    "kqi",    "kvp",    "kvi",    "tiq",  "dpmax", "dpmin", "pmax", "pmin",
+             "imax",   "tpord",  "vq1",    "iq1",    "vq2",  "iq2",   "vq3",   "iq3",  "vq4",
+             "iq4",    "vp1",    "ip1",    "vp2",    "ip2",  "vp3",   "ip3",   "vp4",  "ip4",
+             "t",      "socini", "socmax", "socmin"});
         static constexpr auto wtdtaFields =
             std::to_array<std::string_view>({"h", "damp", "htfrac", "freq1", "dshaft"});
         static constexpr auto wt3gFields =
@@ -917,9 +931,10 @@ namespace {
             if (tokens.size() == 10U) {
                 const double modelBase = params[9];
                 const double machineBase = generator->get("mbase", units::MVAR);
-                if (!std::isfinite(modelBase) || modelBase <= 0.0 ||
-                    !std::isfinite(machineBase) || machineBase <= 0.0) {
-                    throw InvalidParameterValue("WTDTA1 requires a positive model and machine base");
+                if (!std::isfinite(modelBase) || modelBase <= 0.0 || !std::isfinite(machineBase) ||
+                    machineBase <= 0.0) {
+                    throw InvalidParameterValue(
+                        "WTDTA1 requires a positive model and machine base");
                 }
                 const double baseRatio = modelBase / machineBase;
                 model->set("h", params[3] * baseRatio);
@@ -931,8 +946,8 @@ namespace {
             if (tokens.size() == 7U) {
                 const double modelBase = params[6];
                 const double machineBase = generator->get("mbase", units::MVAR);
-                if (!std::isfinite(modelBase) || modelBase <= 0.0 ||
-                    !std::isfinite(machineBase) || machineBase <= 0.0) {
+                if (!std::isfinite(modelBase) || modelBase <= 0.0 || !std::isfinite(machineBase) ||
+                    machineBase <= 0.0) {
                     throw InvalidParameterValue("WTDS requires a positive model and machine base");
                 }
                 model->set("h", params[3] * (modelBase / machineBase));

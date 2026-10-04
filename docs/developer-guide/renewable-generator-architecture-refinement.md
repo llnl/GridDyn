@@ -287,12 +287,12 @@ for `REECA1E`, `REECA1G`, and the `REGCP1` PLL path. DYR records preserve
 these model identities; missing or ambiguous measurement/machine references
 fail assembly rather than silently falling back to a different control mode.
 
-| Model/path | Current implementation and remaining validation |
-| --- | --- |
-| `REECA1E` | Uses an area-owned `BUSROCOF` sensor for frequency deviation and ROCOF. Focused DYR-order, response, and Jacobian checks exist; external/full-case validation remains. |
-| `REECA1G` | Resolves a named synchronous-machine speed source. Validate scaling and representative multi-machine case behavior. |
-| `REGCP1` with PLL | Binds a named `PLL1`/`PLL2` sensor while retaining terminal voltage/angle inputs. Focused response/Jacobian checks exist; broader trajectory validation remains. |
-| `BusFreq` | Imported from supported local ANDES JSON references; this is not a standalone PSS/E DYR measurement model. |
+| Model/path        | Current implementation and remaining validation                                                                                                                        |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REECA1E`         | Uses an area-owned `BUSROCOF` sensor for frequency deviation and ROCOF. Focused DYR-order, response, and Jacobian checks exist; external/full-case validation remains. |
+| `REECA1G`         | Resolves a named synchronous-machine speed source. Validate scaling and representative multi-machine case behavior.                                                    |
+| `REGCP1` with PLL | Binds a named `PLL1`/`PLL2` sensor while retaining terminal voltage/angle inputs. Focused response/Jacobian checks exist; broader trajectory validation remains.       |
+| `BusFreq`         | Imported from supported local ANDES JSON references; this is not a standalone PSS/E DYR measurement model.                                                             |
 
 An area-owned `BusROCOFSensor` reads terminal angle and exposes filtered
 frequency deviation and ROCOF as continuous DAE algebraic outputs. `REECA1E`

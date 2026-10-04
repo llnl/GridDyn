@@ -151,8 +151,7 @@ std::array<double, 3> WTDTA1::rates(const IOdata& inputs, const double state[]) 
     const double delta = state[windTurbine] - state[windGenerator];
     const double powerDifference = Dshaft * delta;
     const double shaftAngularFrequency = 2.0 * std::numbers::pi * Freq1;
-    const double stiffness =
-        ht2 * hg2 * 0.5 * shaftAngularFrequency * shaftAngularFrequency / H;
+    const double stiffness = ht2 * hg2 * 0.5 * shaftAngularFrequency * shaftAngularFrequency / H;
     return {(-(electricalPower / std::max(state[windGenerator], 0.01)) + state[shaft] -
              (DAMP * (state[windGenerator] - operatingSpeed)) + powerDifference) /
                 hg2,

@@ -1,6 +1,6 @@
 # WECC model coverage gaps from the Keentel model summary
 
-**Audit date:** 2026-10-04  
+**Audit date:** 2026-10-04
 **Source list:** [Why Dynamic Models Matter for Grid Reliability](https://keentelengineering.com/why-dynamic-models-matter-grid-reliability)
 
 This page records a source-code coverage comparison for the renewable and
@@ -17,16 +17,16 @@ check, not as an independent determination of current WECC approval status.
 
 ## Renewable models
 
-| Model named by the article | GridDyn coverage | Notes |
-|---|---|---|
-| REGC_A | Supported as `REGCA1` | DYR and DYD paths exist. |
-| REGC_B | **Gap** | No REGC_B implementation or import mapping found. `REGCP1` is a distinct GridDyn converter variant, not assumed to be REGC_B. |
-| REEC_A | Supported as `REECA1` | DYR and DYD paths exist. |
-| REEC_C | Supported as `REECC1` | DYR accepts `REECC1` and `REECCU1`; this audit does not find a PSLF DYD mapping for REEC_C. |
-| REEC_D | **Gap** | No REEC_D implementation or import mapping found. |
-| REPC_A | Present as `REPCA1`, with limitations | The implementation covers local plant voltage/reactive control. Remote-bus and monitored-line operation are not supported. |
-| REPC_B, REPC_C, REPC_D | **Gap** | No implementations or import mappings found. |
-| REGFM_A1 | **Gap** | No grid-forming REGFM_A1 implementation or import mapping found. |
+| Model named by the article | GridDyn coverage                      | Notes                                                                                                                         |
+| -------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| REGC_A                     | Supported as `REGCA1`                 | DYR and DYD paths exist.                                                                                                      |
+| REGC_B                     | **Gap**                               | No REGC_B implementation or import mapping found. `REGCP1` is a distinct GridDyn converter variant, not assumed to be REGC_B. |
+| REEC_A                     | Supported as `REECA1`                 | DYR and DYD paths exist.                                                                                                      |
+| REEC_C                     | Supported as `REECC1`                 | DYR accepts `REECC1` and `REECCU1`; this audit does not find a PSLF DYD mapping for REEC_C.                                   |
+| REEC_D                     | **Gap**                               | No REEC_D implementation or import mapping found.                                                                             |
+| REPC_A                     | Present as `REPCA1`, with limitations | The implementation covers local plant voltage/reactive control. Remote-bus and monitored-line operation are not supported.    |
+| REPC_B, REPC_C, REPC_D     | **Gap**                               | No implementations or import mappings found.                                                                                  |
+| REGFM_A1                   | **Gap**                               | No grid-forming REGFM_A1 implementation or import mapping found.                                                              |
 
 The model-name adapters for REGC_A, REEC_A, and REPC_A are in
 `src/fileInput/gridDynReadDYD.cpp`; PSS/E DYR dispatch is in
@@ -38,29 +38,29 @@ REPCA1 limitations are enforced by its implementation and DYR loader.
 
 ### Excitation systems
 
-| Model named by the article | GridDyn coverage | Notes |
-|---|---|---|
-| AC1A | Related implementation: `ESAC1A` | The class documents an IEEE Type AC1A implementation, but the DYR record name accepted by GridDyn is `ESAC1A`; there is no bare `AC1A` DYR alias. |
-| AC2A, AC3A | **Gap** | No matching named implementation or DYR route found. |
-| ESST7B, ST6C | **Gap** | No matching named implementation or DYR route found. Existing ESST1A–ESST4B and ESAC6A models are not treated as equivalents. |
+| Model named by the article | GridDyn coverage                 | Notes                                                                                                                                             |
+| -------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1A                       | Related implementation: `ESAC1A` | The class documents an IEEE Type AC1A implementation, but the DYR record name accepted by GridDyn is `ESAC1A`; there is no bare `AC1A` DYR alias. |
+| AC2A, AC3A                 | **Gap**                          | No matching named implementation or DYR route found.                                                                                              |
+| ESST7B, ST6C               | **Gap**                          | No matching named implementation or DYR route found. Existing ESST1A–ESST4B and ESAC6A models are not treated as equivalents.                     |
 
 The article lists EXAC3 and MEXS as retired/not approved. They are not counted
 as gaps against its current approved-model target.
 
 ### Synchronous machine models
 
-| Model named by the article | GridDyn coverage | Notes |
-|---|---|---|
-| GENQEC | **Gap** | No GENQEC implementation or import mapping found. |
-| GENROU | Supported | Native model and DYR path exist. The article's approval status statements for GENROU are internally inconsistent, so this audit makes no compliance claim. |
-| GENTPJ | Supported, though described as phased out by the article | Native model and DYR path exist; its presence in GridDyn does not establish that it is appropriate for a current compliance study. |
+| Model named by the article | GridDyn coverage                                         | Notes                                                                                                                                                      |
+| -------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GENQEC                     | **Gap**                                                  | No GENQEC implementation or import mapping found.                                                                                                          |
+| GENROU                     | Supported                                                | Native model and DYR path exist. The article's approval status statements for GENROU are internally inconsistent, so this audit makes no compliance claim. |
+| GENTPJ                     | Supported, though described as phased out by the article | Native model and DYR path exist; its presence in GridDyn does not establish that it is appropriate for a current compliance study.                         |
 
 ### Power system stabilizers
 
-| Model named by the article | GridDyn coverage | Notes |
-|---|---|---|
-| PSS2A, PSS2C, PSS3B | **Gap** | No matching named model or DYR route found. GridDyn's IEEEST model is not counted as equivalent without a parameter/equation mapping. |
-| PSS4B, PSS4C | **Gap** | No matching named model or DYR route found. |
+| Model named by the article | GridDyn coverage | Notes                                                                                                                                 |
+| -------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| PSS2A, PSS2C, PSS3B        | **Gap**          | No matching named model or DYR route found. GridDyn's IEEEST model is not counted as equivalent without a parameter/equation mapping. |
+| PSS4B, PSS4C               | **Gap**          | No matching named model or DYR route found.                                                                                           |
 
 PSSSH is identified by the article as proprietary and not approved, so it is
 not counted as a gap against the article's current target. GridDyn currently
@@ -68,18 +68,18 @@ registers IEEEST and ST2CUT stabilizers.
 
 ### Loads and motors
 
-| Model named by the article | GridDyn coverage | Notes |
-|---|---|---|
-| CMPLDW, CMPLDWG | **Gap** | No composite-load model implementation or DYR mapping found. Existing aggregate or individual load classes do not provide CMPLDW behavior by name. |
-| MOTOR1 | Implemented internally; **DYR import gap** | Registered as `motor1`, but the DYR dispatcher has no `MOTOR1` record route. |
-| MOTORW | **Gap** | No MOTORW-specific implementation or import mapping found. Other induction-motor load models are not assumed equivalent. |
+| Model named by the article | GridDyn coverage                           | Notes                                                                                                                                              |
+| -------------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CMPLDW, CMPLDWG            | **Gap**                                    | No composite-load model implementation or DYR mapping found. Existing aggregate or individual load classes do not provide CMPLDW behavior by name. |
+| MOTOR1                     | Implemented internally; **DYR import gap** | Registered as `motor1`, but the DYR dispatcher has no `MOTOR1` record route.                                                                       |
+| MOTORW                     | **Gap**                                    | No MOTORW-specific implementation or import mapping found. Other induction-motor load models are not assumed equivalent.                           |
 
 ### Turbine governors
 
-| Model named by the article | GridDyn coverage | Notes |
-|---|---|---|
-| GGOV1 | Supported | Native implementation and DYR path exist. |
-| GGOV1D, IEEEG1D, HYGOVD, TGOV1D | **Gap** | No exact named implementations or import mappings found. GridDyn has GGOV1, IEEEG1, HYGOV, and TGOV1, plus some DB variants; those are not assumed equivalent to the article's D models without a detailed mapping. |
+| Model named by the article      | GridDyn coverage | Notes                                                                                                                                                                                                               |
+| ------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GGOV1                           | Supported        | Native implementation and DYR path exist.                                                                                                                                                                           |
+| GGOV1D, IEEEG1D, HYGOVD, TGOV1D | **Gap**          | No exact named implementations or import mappings found. GridDyn has GGOV1, IEEEG1, HYGOV, and TGOV1, plus some DB variants; those are not assumed equivalent to the article's D models without a detailed mapping. |
 
 PIDGOV and G2WSCC are listed as retired by the article and are not counted as
 gaps against its current-model target.
@@ -98,10 +98,10 @@ named WECC relay equations or parameter records.
 
 ### Additional models mentioned in the article's FAQ
 
-| Model named by the article | GridDyn coverage | Notes |
-|---|---|---|
-| DER_A | **Gap** | No DER_A-specific model or import mapping found. |
-| CHVDC2, VHVDC1 | **Gap** | No named dynamic controller implementations or import mappings found. Generic DC network elements are not treated as equivalents. |
+| Model named by the article | GridDyn coverage | Notes                                                                                                                             |
+| -------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| DER_A                      | **Gap**          | No DER_A-specific model or import mapping found.                                                                                  |
+| CHVDC2, VHVDC1             | **Gap**          | No named dynamic controller implementations or import mappings found. Generic DC network elements are not treated as equivalents. |
 
 ## Source files checked
 

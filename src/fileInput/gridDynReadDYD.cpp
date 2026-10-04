@@ -25,8 +25,10 @@
 #include <cstdint>
 #include <cstdlib>
 #include <fstream>
+#include <format>
 #include <limits>
 #include <map>
+#include <numbers>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -60,6 +62,11 @@ namespace {
             (parsedValue == 0.0);
     }
 
+    std::string formatDydNumber(double value)
+    {
+        return std::format("{:.17g}", value);
+    }
+
     void addIgnoredDydParameter(IgnoredDydParameterSummary& summary,
                                 const stringVec& lineTokens,
                                 std::size_t recordLineNumber,
@@ -82,8 +89,12 @@ namespace {
                                                  "esst4b", "expic1", "scrx",   "esac6a", "exst1",
                                                  "exac1",  "esac1a", "exac2",  "exac4",  "exdc2",
                                                  "tgov1",  "hygov",  "gast",   "ggov1",  "ieeeg1",
-                                                 "ieesgo", "ieeest", "sexs",   "regca1", "reecb1",
-                                                 "epcgen", "gpwscc"};
+                                                 "ieesgo", "ieeest", "sexs",   "regca1", "regcp1",
+                                                 "reeca1", "reeca1e", "reeca1g", "reecb1", "repca1",
+                                                 "regcv1", "regcv2", "regf1", "regf2", "regf3",
+                                                 "wtdta1", "wtara1", "wtpta1", "wttqa1", "wtds",
+                                                 "wt3g1", "wt3e1", "wt4g1", "wt4e1", "epcgen",
+                                                 "gpwscc"};
         const auto normalized = gmlc::utilities::convertToLowerCase(modelName);
         return std::ranges::any_of(directModels, [normalized](const char* directModel) {
             return normalized == directModel;
@@ -169,6 +180,12 @@ namespace {
             normalized == "end";
     }
 
+    bool isDydOutOfServiceModelsHeader(std::string_view line)
+    {
+        const auto normalized = gmlc::utilities::convertToLowerCase(std::string{line});
+        return normalized == "list of out of service models";
+    }
+
     bool parseDydHeader(const std::string& line, std::size_t& colon, stringVec& header)
     {
         colon = line.find(':');
@@ -194,6 +211,30 @@ namespace {
         }
         if (normalized == "reec_b") {
             return "reecb1";
+        }
+        if (normalized == "reec_a") {
+            return "reeca1";
+        }
+        if (normalized == "repc_a") {
+            return "repca1";
+        }
+        if (normalized == "wtgt_a") {
+            return "wtdta1";
+        }
+        if (normalized == "wtga_a" || normalized == "wtgar_a") {
+            return "wtara1";
+        }
+        if (normalized == "wtgp_a" || normalized == "wtgpt_a") {
+            return "wtpta1";
+        }
+        if (normalized == "wtgq_a" || normalized == "wtgtrq_a") {
+            return "wttqa1";
+        }
+        if (normalized == "wt3e") {
+            return "wt3e1";
+        }
+        if (normalized == "wt3p") {
+            return "wtpta1";
         }
         return normalized;
     }
@@ -287,6 +328,207 @@ namespace {
             payload.push_back(sourcePayload[12U]);
             payload.push_back(sourcePayload[13U]);
             payload.push_back(sourcePayload[9U]);
+            return true;
+        }
+
+        if (source == "reec_a") {
+            // PSLF REEC_A writes MVAB first, then the control parameters,
+            // followed by the five control flags and the P/Q voltage curves.
+            // REECA1's shared DYR loader expects BUSR, all five flags, then
+            // the control parameters and curves.  A zero MVAB means the
+            // generator's static machine base, which is GridDyn's convention.
+            if (sourcePayload.size() != 51U ||
+                !isZeroDydParameter(sourcePayload.front())) {
+                return false;
+            }
+            payload.reserve(51U);
+            payload.emplace_back("0");  // local BUSR
+            payload.insert(payload.end(), sourcePayload.begin() + 30U,
+                           sourcePayload.begin() + 35U);
+            payload.insert(payload.end(), sourcePayload.begin() + 1U,
+                           sourcePayload.begin() + 30U);
+            payload.insert(payload.end(), sourcePayload.begin() + 35U, sourcePayload.end());
+            return true;
+        }
+
+        if (source == "repc_a") {
+            // PSLF REPC_A starts with MVAB.  Its single reactive deadband is
+            // represented by the lower and upper deadbands of REPCA1.
+            if (sourcePayload.size() != 30U ||
+                !isZeroDydParameter(sourcePayload.front())) {
+                return false;
+            }
+            payload.reserve(34U);
+            // REPCA1 has four leading fields for remote-bus/measurement
+            // options.  The local PSLF form uses zero for all four.
+            payload.insert(payload.end(), 4U, "0");
+            payload.push_back(sourcePayload[11U]);  // VcompFlag
+            payload.push_back(sourcePayload[6U]);   // RefFlag
+            payload.push_back(sourcePayload[29U]);  // FreqFlag
+            payload.insert(payload.end(), sourcePayload.begin() + 1U,
+                           sourcePayload.begin() + 6U);  // Tfltr through Tfv
+            payload.insert(payload.end(), sourcePayload.begin() + 7U,
+                           sourcePayload.begin() + 14U);  // Vfrz through Dbd
+            payload.push_back(sourcePayload[14U]);  // Dbd upper limit
+            payload.insert(payload.end(), sourcePayload.begin() + 15U,
+                           sourcePayload.begin() + 29U);  // remaining controller values
+            return true;
+        }
+
+        if (source == "wtgt_a") {
+            // WTGT_A's Ht/Hg/Kshaft form is equivalent to the existing
+            // two-mass WTDTA1 form after deriving total inertia, turbine
+            // inertia fraction, and the shaft-frequency parameter used by
+            // WTDTA1. The leading MVAB field may be zero (machine base) or
+            // explicit; preserve an explicit base so the shared loader can
+            // convert the inertia and damping to the static generator base.
+            if ((sourcePayload.size() != 5U && sourcePayload.size() != 6U)) {
+                return false;
+            }
+            const auto params = gmlc::utilities::str2vector(sourcePayload, kNullVal);
+            if (std::any_of(params.begin(), params.end(), [](double value) {
+                    return !std::isfinite(value) || value == kNullVal;
+                })) {
+                return false;
+            }
+            const double sourceBase = params[0];
+            const double ht = params[1];
+            const double hg = params[2];
+            const double totalInertia = ht + hg;
+            const double w0 = (params.size() > 5U) ? params[5] : 1.0;
+            if (!std::isfinite(sourceBase) || !std::isfinite(ht) ||
+                !std::isfinite(hg) || !std::isfinite(params[3]) ||
+                !std::isfinite(params[4]) || !std::isfinite(w0) || ht <= 0.0 || hg < 0.0 ||
+                !std::isfinite(totalInertia) || totalInertia <= 0.0 || params[3] < 0.0 ||
+                w0 <= 0.0) {
+                return false;
+            }
+            if (hg == 0.0 || params[4] <= 0.0) {
+                // PowerWorld collapses a zero or negative shaft resonance to
+                // its single-mass form. loadDyd selects WTDS for these inputs.
+                payload = sourcePayload;
+                return true;
+            }
+            const double htFraction = ht / totalInertia;
+            const double freq1 =
+                std::sqrt(params[4] * totalInertia / (2.0 * ht * hg)) /
+                (2.0 * std::numbers::pi);
+            if (!std::isfinite(htFraction) || !std::isfinite(freq1) || htFraction <= 0.0 ||
+                htFraction >= 1.0 || freq1 <= 0.0) {
+                return false;
+            }
+            payload = {formatDydNumber(totalInertia),
+                       "0",
+                       formatDydNumber(htFraction),
+                       formatDydNumber(freq1),
+                       formatDydNumber(params[3]),
+                       formatDydNumber(w0)};
+            if (sourceBase > 0.0) {
+                payload.push_back(formatDydNumber(sourceBase));
+            }
+            return true;
+        }
+
+        if (source == "wtga_a" || source == "wtgar_a") {
+            // The leading PSLF MVAB field is zero for machine-base data.
+            if (sourcePayload.size() != 3U ||
+                !isZeroDydParameter(sourcePayload.front())) {
+                return false;
+            }
+            payload.assign(sourcePayload.begin() + 1U, sourcePayload.end());
+            return true;
+        }
+
+        if (source == "wtgp_a" || source == "wtgpt_a") {
+            // WTGPT_A and WTPTA1 share the same ten control parameters.
+            if (sourcePayload.size() != 11U ||
+                !isZeroDydParameter(sourcePayload.front())) {
+                return false;
+            }
+            payload.assign(sourcePayload.begin() + 1U, sourcePayload.end());
+            return true;
+        }
+
+        if (source == "wtgq_a" || source == "wtgtrq_a") {
+            // PSLF DYD order is MVAB, Kip, Kpp, Tp, Twref, Temax, Temin,
+            // four power/speed pairs, and Tflag. WTTQA1 puts Tflag first and
+            // Kpp before Kip. The optional leading MVAB is only equivalent to
+            // the machine base when zero, as used by the supplied DYD cases.
+            const bool hasModelBase = sourcePayload.size() == 16U;
+            if ((!hasModelBase && sourcePayload.size() != 15U) ||
+                (hasModelBase && !isZeroDydParameter(sourcePayload.front()))) {
+                return false;
+            }
+            const auto offset = hasModelBase ? 1U : 0U;
+            payload.reserve(15U);
+            payload.push_back(sourcePayload[offset + 14U]);  // Tflag
+            payload.push_back(sourcePayload[offset + 2U]);   // Kpp
+            payload.push_back(sourcePayload[offset + 1U]);   // Kip
+            payload.insert(payload.end(),
+                           sourcePayload.begin() + static_cast<std::ptrdiff_t>(offset + 3U),
+                           sourcePayload.begin() + static_cast<std::ptrdiff_t>(offset + 15U));
+            return true;
+        }
+
+        if (source == "wt3e") {
+            // PSLF WT3E and PSS/E WT3E1 use the same core controls but order
+            // their fields differently. The final PSLF MWCap is not a WT3E1
+            // parameter; the static generator supplies the machine base.
+            // WT3E1 also has four reserved PSS/E fields before the controls.
+            if (sourcePayload.size() != 33U) {
+                return false;
+            }
+            const auto sourceValues = gmlc::utilities::str2vector(sourcePayload, kNullVal);
+            if (std::any_of(sourceValues.begin(), sourceValues.end(), [](double value) {
+                    return !std::isfinite(value) || value == kNullVal;
+                })) {
+                return false;
+            }
+            payload.reserve(37U);
+            payload.push_back(sourcePayload[0U]);  // VARFLG
+            payload.push_back(sourcePayload[1U]);  // VLTFLG
+            payload.insert(payload.end(), 4U, "0");
+            static constexpr std::array<std::size_t, 30> wt3eOrder{
+                31U, 29U, 28U, 25U, 2U, 3U, 4U, 6U, 7U, 18U,
+                19U, 9U, 26U, 8U, 5U, 16U, 21U, 20U, 17U, 23U,
+                22U, 30U, 24U, 27U, 10U, 11U, 12U, 13U, 14U, 15U};
+            for (std::size_t index = 0; index < wt3eOrder.size(); ++index) {
+                payload.push_back(sourcePayload[wt3eOrder[index]]);
+                if (index == 13U) {
+                    payload.push_back(formatDydNumber(-sourceValues[8U]));  // RPMIN
+                }
+            }
+            return true;
+        }
+
+        if (source == "wt3p") {
+            // WT3P is the first-generation equivalent of WTPTA1 without its
+            // Kcc cross term. Its fixed Pset is carried as an additional
+            // WTPTA1 parameter so it is not silently discarded.
+            if (sourcePayload.size() != 9U) {
+                return false;
+            }
+            const auto sourceValues = gmlc::utilities::str2vector(sourcePayload, kNullVal);
+            if (std::any_of(sourceValues.begin(), sourceValues.end(), [](double value) {
+                    return !std::isfinite(value) || value == kNullVal;
+                })) {
+                return false;
+            }
+            payload = {sourcePayload[1U], sourcePayload[0U], sourcePayload[3U],
+                       sourcePayload[2U], "0", sourcePayload[7U], sourcePayload[4U],
+                       sourcePayload[5U], sourcePayload[6U],
+                       formatDydNumber(-sourceValues[6U]), sourcePayload[8U]};
+            return true;
+        }
+
+        if (source == "wt3t") {
+            // WT3T combines aerodynamics and the shaft. loadDyd splits it into
+            // the existing WTARA1 and WTDS/WTDTA1 components to retain the
+            // renewable-component role boundaries.
+            if (sourcePayload.size() != 8U) {
+                return false;
+            }
+            payload = sourcePayload;
             return true;
         }
 
@@ -458,10 +700,12 @@ void loadDyd(CoreObject* parentObject,
     std::size_t lineNumber = 0;
     std::map<std::string, UnsupportedDydModelSummary> unsupportedModels;
     std::map<std::string, UnsupportedDydModelSummary> ignoredNonessentialModels;
+    UnsupportedDydModelSummary singleMassWtgtFallbacks;
     IgnoredDydParameterSummary ignoredIeeestTdelay;
     IgnoredDydParameterSummary ignoredEsac1aSpdmlt;
     LoadTemplateManager wsccLoadTemplates;
     bool hasWsccLoadTemplates = false;
+    bool inOutOfServiceModels = false;
 
     if (!file.is_open()) {
         parentObject->log(parentObject, PrintLevel::ERROR, "Unable to open file " + fileName);
@@ -482,6 +726,21 @@ void loadDyd(CoreObject* parentObject,
     for (std::size_t lineIndex = 0U; lineIndex < inputLines.size(); ++lineIndex) {
         const auto recordLineNumber = inputLines[lineIndex].first;
         const auto& firstLine = inputLines[lineIndex].second;
+
+        if (isDydOutOfServiceModelsHeader(firstLine)) {
+            inOutOfServiceModels = true;
+            continue;
+        }
+        if (isDydSectionHeader(firstLine)) {
+            inOutOfServiceModels = false;
+            continue;
+        }
+        if (inOutOfServiceModels) {
+            // These records describe dynamic models that are explicitly out
+            // of service. Their abbreviated payloads (commonly just ": 0")
+            // are status markers, not model parameter sets to instantiate.
+            continue;
+        }
 
         // A PSLF DYD model record has a colon separating its identifying fields
         // from the parameter payload. Section headers and NETTING records do not.
@@ -595,6 +854,12 @@ void loadDyd(CoreObject* parentObject,
                                   canonicalModelName,
                                   positionalPayload,
                                   normalizedPayload);
+            if (((sourceModelName == "wt3e") || (sourceModelName == "repc_a")) &&
+                (header.size() > 5U)) {
+                // The local implementations do not yet represent PSLF remote
+                // bus/branch measurements carried in the DYD header.
+                payloadIsSupported = false;
+            }
         }
         if (const auto wsccScope = getDydWSCCLoadScope(sourceModelName)) {
             try {
@@ -649,6 +914,139 @@ void loadDyd(CoreObject* parentObject,
                 message.append(std::to_string(recordLineNumber));
                 message.append(" ").append(displayModelName).append(" selector ");
                 message.append(header.size() > 1U ? header[1] : "<missing>");
+                message.append(": ").append(error.what());
+                throw InvalidParameterValue(message);
+            }
+            continue;
+        }
+
+        if (sourceModelName == "wtgt_a") {
+            if (!payloadIsSupported) {
+                addUnsupportedModel(unsupportedModels,
+                                    displayModelName,
+                                    lineTokens,
+                                    recordLineNumber);
+                continue;
+            }
+            try {
+                const auto params = gmlc::utilities::str2vector(positionalPayload, kNullVal);
+                if ((params.size() != 5U && params.size() != 6U) ||
+                    std::any_of(params.begin(), params.end(), [](double value) {
+                        return !std::isfinite(value) || value == kNullVal;
+                    })) {
+                    throw InvalidParameterValue("WTGT_A requires five or six finite parameters");
+                }
+                const double ht = params[1];
+                const double hg = params[2];
+                const double totalInertia = ht + hg;
+                const double w0 = params.size() > 5U ? params[5] : 1.0;
+                if (ht <= 0.0 || hg < 0.0 || !std::isfinite(totalInertia) ||
+                    totalInertia <= 0.0 || params[3] < 0.0 || w0 <= 0.0) {
+                    throw InvalidParameterValue("WTGT_A has invalid inertia, damping, or speed");
+                }
+
+                stringVec shaftTokens = lineTokens;
+                if (hg == 0.0 || params[4] <= 0.0) {
+                    // PowerWorld treats a nonpositive shaft resonance as the
+                    // single-mass model, with the combined turbine/generator H.
+                    shaftTokens[1] = "'WTDS'";
+                    shaftTokens.emplace_back(formatDydNumber(totalInertia));
+                    shaftTokens.emplace_back("0");
+                    shaftTokens.emplace_back(formatDydNumber(w0));
+                    if (params[0] > 0.0) {
+                        shaftTokens.emplace_back(formatDydNumber(params[0]));
+                    }
+                    ++singleMassWtgtFallbacks.mCount;
+                    if (singleMassWtgtFallbacks.mFirstLine == 0U) {
+                        singleMassWtgtFallbacks.mFirstLine = recordLineNumber;
+                        singleMassWtgtFallbacks.mFirstBus = lineTokens[0];
+                        singleMassWtgtFallbacks.mFirstMachine = lineTokens[2];
+                    }
+                } else {
+                    shaftTokens[1] = "'WTDTA1'";
+                    shaftTokens.insert(shaftTokens.end(), normalizedPayload.begin(),
+                                       normalizedPayload.end());
+                }
+                if (!detail::loadDyrModelRecord(
+                        parentObject, shaftTokens, disableStabilizers, zeroGainStabilizers)) {
+                    throw InvalidParameterValue("WTGT_A drivetrain component is unavailable");
+                }
+            }
+            catch (const InvalidParameterValue& error) {
+                std::string message{fileName};
+                message.push_back(':');
+                message.append(std::to_string(recordLineNumber));
+                message.append(" WTGT_A bus ").append(lineTokens[0]).append(" machine ");
+                message.append(lineTokens.size() > 2U ? lineTokens[2] : "<missing>");
+                message.append(": ").append(error.what());
+                throw InvalidParameterValue(message);
+            }
+            continue;
+        }
+
+        if (sourceModelName == "wt3t") {
+            if (!payloadIsSupported) {
+                addUnsupportedModel(unsupportedModels,
+                                    displayModelName,
+                                    lineTokens,
+                                    recordLineNumber);
+                continue;
+            }
+            try {
+                const auto params = gmlc::utilities::str2vector(normalizedPayload, kNullVal);
+                if (params.size() != 8U ||
+                    std::any_of(params.begin(), params.end(), [](double value) {
+                        return !std::isfinite(value) || value == kNullVal;
+                    })) {
+                    throw InvalidParameterValue("WT3T requires eight finite parameters");
+                }
+                if (params[0] <= 0.0 || params[1] <= 0.0 || params[5] < 0.0 ||
+                    params[5] >= 1.0) {
+                    throw InvalidParameterValue("WT3T has invalid wind speed or inertia data");
+                }
+
+                // WT3T initializes pitch from wind speed and Theta2 above
+                // rated speed; WTARA1 then supplies the matching linear aero
+                // response, while WTDS/WTDTA1 carries the separate shaft role.
+                const double theta0 = (params[0] > 1.0) ?
+                    (params[4] / 0.75) * (1.0 - (1.0 / (params[0] * params[0]))) :
+                    0.0;
+                stringVec aeroTokens = lineTokens;
+                aeroTokens[1] = "'WTARA1'";
+                aeroTokens.emplace_back(normalizedPayload[3U]);
+                aeroTokens.emplace_back(formatDydNumber(theta0));
+                if (!detail::loadDyrModelRecord(
+                        parentObject, aeroTokens, disableStabilizers, zeroGainStabilizers)) {
+                    throw InvalidParameterValue("WT3T aerodynamic component is unavailable");
+                }
+
+                stringVec shaftTokens = lineTokens;
+                if (params[5] == 0.0) {
+                    // A zero turbine inertia fraction selects the documented
+                    // single-mass form; Freq1 and Dshaft are unused there.
+                    shaftTokens[1] = "'WTDS'";
+                    shaftTokens.emplace_back(normalizedPayload[1U]);
+                    shaftTokens.emplace_back(normalizedPayload[2U]);
+                    shaftTokens.emplace_back("1");
+                } else {
+                    shaftTokens[1] = "'WTDTA1'";
+                    shaftTokens.emplace_back(normalizedPayload[1U]);
+                    shaftTokens.emplace_back(normalizedPayload[2U]);
+                    shaftTokens.emplace_back(normalizedPayload[5U]);
+                    shaftTokens.emplace_back(normalizedPayload[6U]);
+                    shaftTokens.emplace_back(normalizedPayload[7U]);
+                }
+                if (!detail::loadDyrModelRecord(
+                        parentObject, shaftTokens, disableStabilizers, zeroGainStabilizers)) {
+                    throw InvalidParameterValue("WT3T shaft component is unavailable");
+                }
+            }
+            catch (const InvalidParameterValue& error) {
+                std::string message{fileName};
+                message.push_back(':');
+                message.append(std::to_string(recordLineNumber));
+                message.append(" WT3T bus ").append(lineTokens[0]).append(" machine ");
+                message.append(lineTokens.size() > 2U ? lineTokens[2] : "<missing>");
                 message.append(": ").append(error.what());
                 throw InvalidParameterValue(message);
             }
@@ -715,6 +1113,15 @@ void loadDyd(CoreObject* parentObject,
             std::to_string(ignoredEsac1aSpdmlt.mFirstLine) + ", bus " +
             ignoredEsac1aSpdmlt.mFirstBus + " machine " + ignoredEsac1aSpdmlt.mFirstMachine +
             ", Spdmlt=" + ignoredEsac1aSpdmlt.mFirstValue;
+        parentObject->log(parentObject, PrintLevel::WARNING, message);
+    }
+    if (singleMassWtgtFallbacks.mCount > 0U) {
+        const std::string message = fileName +
+            ": WTGT_A records with Hg=0 or KShaft<=0 were loaded as the documented single-mass "
+            "WTDS form: " + std::to_string(singleMassWtgtFallbacks.mCount) +
+            " record(s); first at line " + std::to_string(singleMassWtgtFallbacks.mFirstLine) +
+            ", bus " + singleMassWtgtFallbacks.mFirstBus + " machine " +
+            singleMassWtgtFallbacks.mFirstMachine;
         parentObject->log(parentObject, PrintLevel::WARNING, message);
     }
     if (!unsupportedModels.empty()) {

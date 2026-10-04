@@ -697,8 +697,7 @@ namespace {
                                                                              "p3",
                                                                              "spd3",
                                                                              "p4",
-                                                                             "spd4",
-                                                                             "trate"});
+                                                                             "spd4"});
         static constexpr auto regcv1Fields = std::to_array<std::string_view>({"fn",
                                                                               "tc",
                                                                               "kw",
@@ -748,13 +747,15 @@ namespace {
         } else if (modelName == "REPCA1") {
             expected = 37U;
         } else if (modelName == "WTDTA1") {
-            expected = 8U;
+            expected = (tokens.size() == 10U) ? 10U : ((tokens.size() == 9U) ? 9U : 8U);
         } else if (modelName == "WTDS") {
-            expected = 6U;
+            expected = (tokens.size() == 7U) ? 7U : 6U;
         } else if (modelName == "WTARA1") {
             expected = 5U;
         } else if (modelName == "WTPTA1") {
-            expected = 13U;
+            expected = (tokens.size() == 14U) ? 14U : 13U;
+        } else if (modelName == "WTTQA1") {
+            expected = (tokens.size() == 19U) ? 19U : 18U;
         } else if (modelName == "WT3G1") {
             expected = 9U;
         } else if (modelName == "WT3E1") {
@@ -840,13 +841,55 @@ namespace {
             setFields(repcaFields, 7);
         } else if (modelName == "WTDTA1") {
             setFields(wtdtaFields, 3);
+            if (tokens.size() >= 9U) {
+                model->set("w0", params[8]);
+            }
+            if (tokens.size() == 10U) {
+                const double modelBase = params[9];
+                const double machineBase = generator->get("mbase", units::MVAR);
+                if (!std::isfinite(modelBase) || modelBase <= 0.0 ||
+                    !std::isfinite(machineBase) || machineBase <= 0.0) {
+                    throw InvalidParameterValue("WTDTA1 requires a positive model and machine base");
+                }
+                const double baseRatio = modelBase / machineBase;
+                model->set("h", params[3] * baseRatio);
+                model->set("dshaft", params[7] * baseRatio);
+            }
         } else if (modelName == "WTDS") {
             static constexpr auto wtdsFields = std::to_array<std::string_view>({"h", "d", "w0"});
             setFields(wtdsFields, 3);
+            if (tokens.size() == 7U) {
+                const double modelBase = params[6];
+                const double machineBase = generator->get("mbase", units::MVAR);
+                if (!std::isfinite(modelBase) || modelBase <= 0.0 ||
+                    !std::isfinite(machineBase) || machineBase <= 0.0) {
+                    throw InvalidParameterValue("WTDS requires a positive model and machine base");
+                }
+                model->set("h", params[3] * (modelBase / machineBase));
+            }
         } else if (modelName == "WTARA1") {
             setFields(wtaraFields, 3);
         } else if (modelName == "WTPTA1") {
             setFields(wtptaFields, 3);
+            if (tokens.size() == 14U) {
+                model->set("pset", params[13]);
+            }
+        } else if (modelName == "WTTQA1") {
+            setFields(wttqaFields, 3);
+            if (tokens.size() == 19U) {
+                const double rate = params[18];
+                if (rate == 0.0) {
+                    // PSS/E uses TRATE=0 to mean the static machine MVA base.
+                    const double machineBase = generator->get("mbase", units::MVAR);
+                    if (!std::isfinite(machineBase) || machineBase <= 0.0) {
+                        throw InvalidParameterValue(
+                            "WTTQA1 TRATE=0 requires a positive machine MVA base");
+                    }
+                    model->set("trate", machineBase);
+                } else {
+                    model->set("trate", rate);
+                }
+            }
         } else if (modelName == "WT3G1") {
             // WIND_BASE at field 4 belongs to the generator machine base;
             // the WT3G electrical equations start with XEQ.

@@ -10,7 +10,11 @@
 
 namespace griddyn {
 
-/** Two-mass wind turbine and generator shaft. Powers use machine base. */
+/**
+ * Two-mass wind turbine and generator shaft. Powers use machine base.
+ * Freq1 is the first torsional frequency in Hz; its equivalent shaft stiffness
+ * is 2 Ht Hg (2 pi Freq1)^2 / H, with Ht = Htfrac H and Hg = H - Ht.
+ */
 class WTDTA1 final: public RenewableComponent {
   public:
     explicit WTDTA1(const std::string& name = "WTDTA1_#");

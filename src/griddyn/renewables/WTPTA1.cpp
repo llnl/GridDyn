@@ -53,6 +53,8 @@ CoreObject* WTPTA1::clone(CoreObject* obj) const
         out->rateMax = rateMax;
         out->rateMin = rateMin;
         out->initialSpeed = initialSpeed;
+        out->Pset = Pset;
+        out->hasFixedPset = hasFixedPset;
     }
     return out;
 }
@@ -89,6 +91,9 @@ void WTPTA1::set(std::string_view param, double val, units::unit unitType)
         rateMax = val;
     } else if (key == "rtetamin") {
         rateMin = val;
+    } else if (key == "pset") {
+        Pset = val;
+        hasFixedPset = true;
     } else {
         RenewableComponent::set(param, val, unitType);
     }
@@ -127,6 +132,9 @@ double WTPTA1::get(std::string_view param, units::unit unitType) const
     if (key == "rtetamin") {
         return rateMin;
     }
+    if (key == "pset") {
+        return hasFixedPset ? Pset : kNullVal;
+    }
     return RenewableComponent::get(param, unitType);
 }
 
@@ -138,7 +146,7 @@ void WTPTA1::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
                     inputs.end(),
                     [](double stateValue) { return !std::isfinite(stateValue); }) ||
         Kiw < 0 || Kpw < 0 || Kic < 0 || Kpc < 0 || Tp <= 0 || thetaMax <= thetaMin ||
-        rateMax <= 0 || rateMin >= 0) {
+        rateMax <= 0 || rateMin >= 0 || (hasFixedPset && !std::isfinite(Pset))) {
         throw InvalidParameterValue("WTPTA1 invalid pitch controller parameters");
     }
     auto& local = offsets.local().local;
@@ -164,7 +172,9 @@ void WTPTA1::dynObjectInitializeB(const IOdata& inputs,
 
 std::array<double, 3> WTPTA1::rates(const IOdata& inputs, const double state[]) const
 {
-    const double powerError = inputs[1] - inputs[2];
+    const double activeReference = hasFixedPset ? Pset :
+        (inputs.size() > 2 && inputs[2] != kNullVal ? inputs[2] : 0.0);
+    const double powerError = inputs[1] - activeReference;
     const double speedRef = inputs.size() > 3 && inputs[3] != kNullVal ? inputs[3] : initialSpeed;
     const double speedError = (Kcc * powerError) + inputs[0] - speedRef;
     const double speedCommand =

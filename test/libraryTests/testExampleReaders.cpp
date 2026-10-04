@@ -310,12 +310,10 @@ TEST(ExampleReaderTests, WarnsWhenDynamicFilesPrecedeStaticNetwork)
     EXPECT_NO_THROW(griddyn::loadFile(simulation.get(), dyrPath.string()));
     EXPECT_NO_THROW(griddyn::loadFile(simulation.get(), dydPath.string()));
     EXPECT_TRUE(std::ranges::any_of(logMessages, [](const auto& message) {
-        return message.find("DYR model file loaded before a static network") !=
-            std::string::npos;
+        return message.find("DYR model file loaded before a static network") != std::string::npos;
     }));
     EXPECT_TRUE(std::ranges::any_of(logMessages, [](const auto& message) {
-        return message.find("DYD model file loaded before a static network") !=
-            std::string::npos;
+        return message.find("DYD model file loaded before a static network") != std::string::npos;
     }));
 }
 

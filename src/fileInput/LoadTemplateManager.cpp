@@ -6,11 +6,11 @@
 
 #include "LoadTemplateManager.h"
 
+#include "core/CoreExceptions.h"
 #include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/Load.h"
 #include "griddyn/loads/LoadTemplateAdapters.h"
-#include "core/CoreExceptions.h"
 #include <limits>
 #include <memory>
 #include <utility>

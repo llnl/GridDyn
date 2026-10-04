@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "LoadTemplateManager.h"
 #include "ReaderInfo.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObject.h"
@@ -12,11 +13,10 @@
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gridDynReadDyrModels.h"
-#include "LoadTemplateManager.h"
-#include "loadModelReaderHelper.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/loads/LoadTemplateAdapters.h"
+#include "loadModelReaderHelper.h"
 #include <algorithm>
 #include <array>
 #include <charconv>
@@ -713,9 +713,8 @@ void loadDyd(CoreObject* parentObject,
             "scaling is not modeled): " +
             std::to_string(ignoredEsac1aSpdmlt.mCount) + " record(s); first at line " +
             std::to_string(ignoredEsac1aSpdmlt.mFirstLine) + ", bus " +
-            ignoredEsac1aSpdmlt.mFirstBus + " machine " +
-            ignoredEsac1aSpdmlt.mFirstMachine + ", Spdmlt=" +
-            ignoredEsac1aSpdmlt.mFirstValue;
+            ignoredEsac1aSpdmlt.mFirstBus + " machine " + ignoredEsac1aSpdmlt.mFirstMachine +
+            ", Spdmlt=" + ignoredEsac1aSpdmlt.mFirstValue;
         parentObject->log(parentObject, PrintLevel::WARNING, message);
     }
     if (!unsupportedModels.empty()) {

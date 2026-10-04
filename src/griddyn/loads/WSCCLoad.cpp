@@ -26,12 +26,12 @@ namespace {
 
     bool allFinite(const WSCCParameters& parameters)
     {
-    return std::isfinite(parameters.p1) && std::isfinite(parameters.q1) &&
-        std::isfinite(parameters.p2) && std::isfinite(parameters.q2) &&
-        std::isfinite(parameters.p3) && std::isfinite(parameters.q3) &&
-        std::isfinite(parameters.p4) && std::isfinite(parameters.q4) &&
-        std::isfinite(parameters.lpd) && std::isfinite(parameters.lqd) &&
-        std::isfinite(parameters.vmin);
+        return std::isfinite(parameters.p1) && std::isfinite(parameters.q1) &&
+            std::isfinite(parameters.p2) && std::isfinite(parameters.q2) &&
+            std::isfinite(parameters.p3) && std::isfinite(parameters.q3) &&
+            std::isfinite(parameters.p4) && std::isfinite(parameters.q4) &&
+            std::isfinite(parameters.lpd) && std::isfinite(parameters.lqd) &&
+            std::isfinite(parameters.vmin);
     }
 }  // namespace
 
@@ -118,8 +118,7 @@ double WSCCLoad::powerAtVoltage(bool reactive, double voltage, double frequency)
         const double voltageRatio = voltage / parameters.vmin;
         const double minimumPolynomial = voltagePolynomial(reactive, parameters.vmin);
         const double minimumValue = extended ?
-            basePower *
-                (minimumPolynomial + (fourth * frequencyCoefficient * (frequency - 1.0))) :
+            basePower * (minimumPolynomial + (fourth * frequencyCoefficient * (frequency - 1.0))) :
             basePower * minimumPolynomial * frequencyFactor;
         value = minimumValue * voltageRatio * voltageRatio;
     }

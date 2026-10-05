@@ -826,7 +826,13 @@ namespace {
         } else if (modelName == "REPCA1") {
             expected = 37U;
         } else if (modelName == "WTDTA1") {
-            expected = (tokens.size() == 10U) ? 10U : ((tokens.size() == 9U) ? 9U : 8U);
+            if (tokens.size() == 10U) {
+                expected = 10U;
+            } else if (tokens.size() == 9U) {
+                expected = 9U;
+            } else {
+                expected = 8U;
+            }
         } else if (modelName == "WTDS") {
             expected = (tokens.size() == 7U) ? 7U : 6U;
         } else if (modelName == "WTARA1") {

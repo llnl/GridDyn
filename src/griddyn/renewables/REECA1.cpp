@@ -127,7 +127,9 @@ namespace {
 
 REECA1::REECA1(const std::string& name): RenewableComponent(name)
 {
-    updateInputSize();
+    // Base flags start disabled; derived models update their input size after
+    // construction once virtual storage capabilities are available.
+    m_inputSize = 4;
     m_outputSize = 3;
 }
 
@@ -695,9 +697,12 @@ void REECA1::dynObjectInitializeB(const IOdata& inputs,
     initialQ = desiredOutput[1];
     initialVref = Vref0 == 0.0 ? inputs[0] : Vref0;
     if (PFFLAG == 1 && supportsPowerFactorControl()) {
-        initialPowerFactorAngle = (pfaref == kNullVal) ?
-            ((initialP == 0.0) ? 0.0 : std::atan(initialQ / initialP)) :
-            pfaref;
+        if (pfaref == kNullVal) {
+            initialPowerFactorAngle =
+                (initialP == 0.0) ? 0.0 : std::atan(initialQ / initialP);
+        } else {
+            initialPowerFactorAngle = pfaref;
+        }
         if (!std::isfinite(initialPowerFactorAngle) ||
             std::abs(initialPowerFactorAngle) >= 1.5707963267948966) {
             throw InvalidParameterValue(

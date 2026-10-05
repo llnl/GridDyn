@@ -28,7 +28,6 @@
 #include <fstream>
 #include <limits>
 #include <map>
-#include <numbers>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -387,25 +386,26 @@ namespace {
                 return false;
             }
             const double sourceBase = params[0];
-            const double ht = params[1];
-            const double hg = params[2];
-            const double totalInertia = ht + hg;
-            const double w0 = (params.size() > 5U) ? params[5] : 1.0;
-            if (!std::isfinite(sourceBase) || !std::isfinite(ht) || !std::isfinite(hg) ||
-                !std::isfinite(params[3]) || !std::isfinite(params[4]) || !std::isfinite(w0) ||
-                ht <= 0.0 || hg < 0.0 || !std::isfinite(totalInertia) || totalInertia <= 0.0 ||
-                params[3] < 0.0 || w0 <= 0.0) {
+            const double turbineInertia = params[1];
+            const double generatorInertia = params[2];
+            const double totalInertia = turbineInertia + generatorInertia;
+            const double initialSpeed = (params.size() > 5U) ? params[5] : 1.0;
+            if (!std::isfinite(sourceBase) || !std::isfinite(turbineInertia) ||
+                !std::isfinite(generatorInertia) || !std::isfinite(params[3]) ||
+                !std::isfinite(params[4]) || !std::isfinite(initialSpeed) ||
+                turbineInertia <= 0.0 || generatorInertia < 0.0 || !std::isfinite(totalInertia) ||
+                totalInertia <= 0.0 || params[3] < 0.0 || initialSpeed <= 0.0) {
                 return false;
             }
-            if (hg == 0.0 || params[4] <= 0.0) {
+            if (generatorInertia == 0.0 || params[4] <= 0.0) {
                 // PowerWorld collapses a zero or negative shaft resonance to
                 // its single-mass form. loadDyd selects WTDS for these inputs.
                 payload = sourcePayload;
                 return true;
             }
-            const double htFraction = ht / totalInertia;
-            const double freq1 =
-                std::sqrt(params[4] * totalInertia / (2.0 * ht * hg)) / (2.0 * std::numbers::pi);
+            const double htFraction = turbineInertia / totalInertia;
+            const double freq1 = std::sqrt(
+                params[4] * totalInertia / (2.0 * turbineInertia * generatorInertia));
             if (!std::isfinite(htFraction) || !std::isfinite(freq1) || htFraction <= 0.0 ||
                 htFraction >= 1.0 || freq1 <= 0.0) {
                 return false;
@@ -415,7 +415,7 @@ namespace {
                        formatDydNumber(htFraction),
                        formatDydNumber(freq1),
                        formatDydNumber(params[3]),
-                       formatDydNumber(w0)};
+                       formatDydNumber(initialSpeed)};
             if (sourceBase > 0.0) {
                 payload.push_back(formatDydNumber(sourceBase));
             }
@@ -456,8 +456,8 @@ namespace {
             payload.push_back(sourcePayload[offset + 2U]);  // Kpp
             payload.push_back(sourcePayload[offset + 1U]);  // Kip
             payload.insert(payload.end(),
-                           sourcePayload.begin() + static_cast<std::ptrdiff_t>(offset + 3U),
-                           sourcePayload.begin() + static_cast<std::ptrdiff_t>(offset + 15U));
+                           sourcePayload.begin() + static_cast<std::ptrdiff_t>(offset) + 3,
+                           sourcePayload.begin() + static_cast<std::ptrdiff_t>(offset) + 15);
             return true;
         }
 
@@ -684,396 +684,422 @@ namespace {
             summary.mFirstMachine = (lineTokens.size() > 2U) ? lineTokens[2] : "<missing>";
         }
     }
-}  // namespace
 
-void loadDyd(CoreObject* parentObject,
-             const std::string& fileName,
-             const BasicReaderInfo& /*readerOptions*/)
-{
-    const auto* simulation = dynamic_cast<const GridDynSimulation*>(parentObject->getRoot());
-    const bool disableStabilizers =
-        (simulation != nullptr) && simulation->isFlagSet(DISABLE_STABILIZERS_FOR_DIAGNOSTICS);
-    count_t zeroGainStabilizers = 0;
-    std::ifstream file(fileName.c_str(), std::ios::in);
-    std::string line;
-    std::size_t lineNumber = 0;
-    std::map<std::string, UnsupportedDydModelSummary> unsupportedModels;
-    std::map<std::string, UnsupportedDydModelSummary> ignoredNonessentialModels;
-    UnsupportedDydModelSummary singleMassWtgtFallbacks;
-    IgnoredDydParameterSummary ignoredIeeestTdelay;
-    IgnoredDydParameterSummary ignoredEsac1aSpdmlt;
-    LoadTemplateManager wsccLoadTemplates;
-    bool hasWsccLoadTemplates = false;
-    bool inOutOfServiceModels = false;
-
-    if (!file.is_open()) {
-        parentObject->log(parentObject, PrintLevel::ERROR, "Unable to open file " + fileName);
-        return;
-    }
-
-    warnIfStaticNetworkMissing(parentObject, "DYD", fileName);
-
-    std::vector<std::pair<std::size_t, std::string>> inputLines;
-    while (std::getline(file, line)) {
-        ++lineNumber;
-        gmlc::utilities::stringOps::trimString(line);
-        if (!line.empty() && !line.starts_with('#')) {
-            inputLines.emplace_back(lineNumber, line);
-        }
-    }
-
-    for (std::size_t lineIndex = 0U; lineIndex < inputLines.size(); ++lineIndex) {
-        const auto recordLineNumber = inputLines[lineIndex].first;
-        const auto& firstLine = inputLines[lineIndex].second;
-
-        if (isDydOutOfServiceModelsHeader(firstLine)) {
-            inOutOfServiceModels = true;
-            continue;
-        }
-        if (isDydSectionHeader(firstLine)) {
-            inOutOfServiceModels = false;
-            continue;
-        }
-        if (inOutOfServiceModels) {
-            // These records describe dynamic models that are explicitly out
-            // of service. Their abbreviated payloads (commonly just ": 0")
-            // are status markers, not model parameter sets to instantiate.
-            continue;
-        }
-
-        // A PSLF DYD model record has a colon separating its identifying fields
-        // from the parameter payload. Section headers and NETTING records do not.
-        std::size_t colon = 0U;
+    struct DydInputRecord {
+        std::size_t lineNumber;
         stringVec header;
-        if (!parseDydHeader(firstLine, colon, header)) {
-            continue;
+        std::string payloadText;
+    };
+
+    struct DydPayload {
+        stringVec positional;
+        stringVec normalized;
+        bool hasUnsupportedField = false;
+        bool isSupported = false;
+    };
+
+    struct DydLoadContext {
+        CoreObject* parentObject;
+        const std::string& fileName;
+        bool disableStabilizers;
+        count_t zeroGainStabilizers = 0;
+        std::map<std::string, UnsupportedDydModelSummary> unsupportedModels;
+        std::map<std::string, UnsupportedDydModelSummary> ignoredNonessentialModels;
+        UnsupportedDydModelSummary singleMassWtgtFallbacks;
+        IgnoredDydParameterSummary ignoredIeeestTdelay;
+        IgnoredDydParameterSummary ignoredEsac1aSpdmlt;
+        LoadTemplateManager wsccLoadTemplates;
+        bool hasWsccLoadTemplates = false;
+    };
+
+    std::vector<std::pair<std::size_t, std::string>> readDydInputLines(std::ifstream& file)
+    {
+        std::vector<std::pair<std::size_t, std::string>> inputLines;
+        std::string line;
+        std::size_t lineNumber = 0U;
+        while (std::getline(file, line)) {
+            ++lineNumber;
+            gmlc::utilities::stringOps::trimString(line);
+            if (!line.empty() && !line.starts_with('#')) {
+                inputLines.emplace_back(lineNumber, line);
+            }
+        }
+        return inputLines;
+    }
+
+    std::optional<DydInputRecord> nextDydInputRecord(
+        const std::vector<std::pair<std::size_t, std::string>>& inputLines,
+        std::size_t& lineIndex,
+        bool& inOutOfServiceModels)
+    {
+        while (lineIndex < inputLines.size()) {
+            const auto& [recordLineNumber, firstLine] = inputLines[lineIndex];
+            if (isDydOutOfServiceModelsHeader(firstLine)) {
+                inOutOfServiceModels = true;
+                ++lineIndex;
+                continue;
+            }
+            if (isDydSectionHeader(firstLine)) {
+                inOutOfServiceModels = false;
+                ++lineIndex;
+                continue;
+            }
+            if (inOutOfServiceModels) {
+                ++lineIndex;
+                continue;
+            }
+
+            std::size_t colon = 0U;
+            stringVec header;
+            if (!parseDydHeader(firstLine, colon, header)) {
+                ++lineIndex;
+                continue;
+            }
+
+            std::string payloadText = firstLine.substr(colon + 1U);
+            ++lineIndex;
+            while (lineIndex < inputLines.size()) {
+                std::size_t nextColon = 0U;
+                stringVec nextHeader;
+                const auto& nextLine = inputLines[lineIndex].second;
+                if (parseDydHeader(nextLine, nextColon, nextHeader) || isDydSectionHeader(nextLine)) {
+                    break;
+                }
+                payloadText.push_back(' ');
+                payloadText.append(nextLine);
+                ++lineIndex;
+            }
+            return DydInputRecord{recordLineNumber, std::move(header), std::move(payloadText)};
+        }
+        return std::nullopt;
+    }
+
+    DydPayload prepareDydRecordPayload(DydLoadContext& context,
+                                       std::string_view sourceModelName,
+                                       std::string_view canonicalModelName,
+                                       const stringVec& header,
+                                       const stringVec& lineTokens,
+                                       std::size_t recordLineNumber,
+                                       const stringVec& rawPayload)
+    {
+        DydPayload payload;
+        if (sourceModelName == "epcgen") {
+            payload.isSupported = prepareEpcgenPayload(rawPayload, payload.normalized);
+            return payload;
         }
 
-        // DYD continuation lines are not required to end with a slash. In
-        // fact, this file uses slash-separated groups on several lines and
-        // leaves the final group unterminated. Collect through the next model
-        // header or section header, then tokenize the logical record once.
-        std::string payloadText = firstLine.substr(colon + 1U);
-        std::size_t nextLineIndex = lineIndex + 1U;
-        for (; nextLineIndex < inputLines.size(); ++nextLineIndex) {
-            std::size_t nextColon = 0U;
-            stringVec nextHeader;
-            if (parseDydHeader(inputLines[nextLineIndex].second, nextColon, nextHeader) ||
-                isDydSectionHeader(inputLines[nextLineIndex].second)) {
+        std::string gpwsccMWCap;
+        for (const auto& token : rawPayload) {
+            if (token.empty() || token == "/" || token.starts_with('#')) {
+                continue;
+            }
+            const auto lowerToken = gmlc::utilities::convertToLowerCase(token);
+            if (lowerToken.starts_with("mwcap=")) {
+                if (canonicalModelName == "gpwscc") {
+                    if (!gpwsccMWCap.empty()) {
+                        payload.hasUnsupportedField = true;
+                        break;
+                    }
+                    gpwsccMWCap = token.substr(6U);
+                    if (gpwsccMWCap.empty()) {
+                        payload.hasUnsupportedField = true;
+                        break;
+                    }
+                }
+                continue;
+            }
+            if (lowerToken.starts_with("mva=")) {
+                continue;
+            }
+            if (token.contains('=')) {
+                payload.hasUnsupportedField = true;
                 break;
             }
-            payloadText.push_back(' ');
-            payloadText.append(inputLines[nextLineIndex].second);
+            payload.positional.push_back(token);
         }
-        lineIndex = nextLineIndex - 1U;
 
-        const auto sourceModelName = gmlc::utilities::convertToLowerCase(
-            gmlc::utilities::stringOps::removeQuotes(header[0]));
-        const auto canonicalModelName = canonicalDydModelName(sourceModelName);
-        const auto displayModelName = gmlc::utilities::convertToUpperCase(sourceModelName);
-        stringVec lineTokens{gmlc::utilities::stringOps::removeQuotes(header[1]),
-                             "'" + gmlc::utilities::convertToUpperCase(canonicalModelName) + "'",
-                             gmlc::utilities::stringOps::removeQuotes(header[4])};
-        if (isDydIgnoredNonessentialModel(sourceModelName)) {
-            addUnsupportedModel(ignoredNonessentialModels,
+        if ((sourceModelName == "ieeest") && (payload.positional.size() > 19U) &&
+            !isZeroDydParameter(payload.positional[19U])) {
+            addIgnoredDydParameter(context.ignoredIeeestTdelay,
+                                   lineTokens,
+                                   recordLineNumber,
+                                   payload.positional[19U]);
+        }
+        if ((sourceModelName == "esac1a") && (payload.positional.size() > 19U) &&
+            !isZeroDydParameter(payload.positional[19U])) {
+            addIgnoredDydParameter(context.ignoredEsac1aSpdmlt,
+                                   lineTokens,
+                                   recordLineNumber,
+                                   payload.positional[19U]);
+        }
+        if ((canonicalModelName == "gpwscc") && !payload.hasUnsupportedField) {
+            if (gpwsccMWCap.empty()) {
+                payload.hasUnsupportedField = true;
+            } else {
+                payload.positional.insert(payload.positional.begin(), gpwsccMWCap);
+            }
+        }
+        payload.isSupported = !payload.hasUnsupportedField &&
+            prepareDydPayload(sourceModelName,
+                              canonicalModelName,
+                              payload.positional,
+                              payload.normalized);
+        if (((sourceModelName == "wt3e") || (sourceModelName == "repc_a")) &&
+            (header.size() > 5U)) {
+            payload.isSupported = false;
+        }
+        return payload;
+    }
+
+    bool handleWsccLoadRecord(DydLoadContext& context,
+                              std::string_view sourceModelName,
+                              std::string_view displayModelName,
+                              const stringVec& header,
+                              std::size_t recordLineNumber,
+                              const DydPayload& payload)
+    {
+        const auto wsccScope = getDydWSCCLoadScope(sourceModelName);
+        if (!wsccScope) {
+            return false;
+        }
+        try {
+            if (payload.hasUnsupportedField) {
+                throw InvalidParameterValue(std::string{displayModelName} +
+                                            " contains an unsupported named parameter");
+            }
+            auto* simulation = dynamic_cast<GridDynSimulation*>(context.parentObject->getRoot());
+            if (simulation == nullptr) {
+                throw InvalidParameterValue(std::string{displayModelName} +
+                                            " requires a GridDynSimulation root");
+            }
+            const auto parameters = parseWSCCParameters(payload.positional, displayModelName);
+            index_t selector = 0;
+            if (*wsccScope != LoadTemplateScope::System) {
+                selector = parseDydSelector(header[1], displayModelName);
+                if ((*wsccScope == LoadTemplateScope::Area) &&
+                    (simulation->findByUserID("area", selector) == nullptr)) {
+                    throw InvalidParameterValue(std::string{displayModelName} + " area selector " +
+                                                std::to_string(selector) + " was not found");
+                }
+                if (*wsccScope == LoadTemplateScope::Zone) {
+                    if (selector > static_cast<index_t>(std::numeric_limits<int>::max())) {
+                        throw InvalidParameterValue(
+                            std::string{displayModelName} +
+                            " zone selector exceeds the supported range");
+                    }
+                    std::vector<GridBus*> buses;
+                    simulation->getBusVector(buses);
+                    const auto zone = static_cast<int>(selector);
+                    if (std::ranges::none_of(buses, [zone](const GridBus* bus) {
+                            return bus->zone == zone;
+                        })) {
+                        throw InvalidParameterValue(std::string{displayModelName} + " zone selector " +
+                                                    std::to_string(selector) + " was not found");
+                    }
+                }
+                if ((*wsccScope == LoadTemplateScope::Bus) &&
+                    (simulation->findByUserID("bus", selector) == nullptr)) {
+                    throw InvalidParameterValue(std::string{displayModelName} + " bus selector " +
+                                                std::to_string(selector) + " was not found");
+                }
+            }
+            context.wsccLoadTemplates.setTemplate(*wsccScope,
+                                                  selector,
+                                                  loads::makeWSCCLoadTemplate(parameters));
+            context.hasWsccLoadTemplates = true;
+        }
+        catch (const InvalidParameterValue& error) {
+            std::string message{context.fileName};
+            message.push_back(':');
+            message.append(std::to_string(recordLineNumber));
+            message.append(" ").append(displayModelName).append(" selector ");
+            message.append(header.size() > 1U ? header[1] : "<missing>");
+            message.append(": ").append(error.what());
+            throw InvalidParameterValue(message);
+        }
+        return true;
+    }
+
+    bool handleWtgtARecord(DydLoadContext& context,
+                           std::string_view displayModelName,
+                           const stringVec& lineTokens,
+                           std::size_t recordLineNumber,
+                           const DydPayload& payload)
+    {
+        if (displayModelName != "WTGT_A") {
+            return false;
+        }
+        if (!payload.isSupported) {
+            addUnsupportedModel(context.unsupportedModels,
                                 displayModelName,
                                 lineTokens,
                                 recordLineNumber);
-            continue;
-        }
-
-        const auto rawPayload = gmlc::utilities::stringOps::splitlineQuotes(
-            payloadText,
-            " \t\n,/",
-            gmlc::utilities::stringOps::default_quote_chars,
-            gmlc::utilities::stringOps::delimiter_compression::on);
-        stringVec positionalPayload;
-        stringVec normalizedPayload;
-        std::string gpwsccMWCap;
-        bool hasUnsupportedField = false;
-        bool payloadIsSupported = false;
-        if (sourceModelName == "epcgen") {
-            payloadIsSupported = prepareEpcgenPayload(rawPayload, normalizedPayload);
-        } else {
-            for (const auto& token : rawPayload) {
-                if (token.empty() || token == "/" || token.starts_with('#')) {
-                    continue;
-                }
-                const auto lowerToken = gmlc::utilities::convertToLowerCase(token);
-                // Machine bases are supplied by the static network reader. PSLF
-                // uses both named MVA and MW-capacity fields across model families.
-                if (lowerToken.starts_with("mwcap=")) {
-                    if (canonicalModelName == "gpwscc") {
-                        if (!gpwsccMWCap.empty()) {
-                            hasUnsupportedField = true;
-                            break;
-                        }
-                        gpwsccMWCap = token.substr(6);
-                        if (gpwsccMWCap.empty()) {
-                            hasUnsupportedField = true;
-                            break;
-                        }
-                    }
-                    continue;
-                }
-                if (lowerToken.starts_with("mva=")) {
-                    continue;
-                }
-                // Other named fields require a model-specific adapter and must not
-                // be accidentally interpreted as positional numeric parameters.
-                if (token.contains('=')) {
-                    hasUnsupportedField = true;
-                    break;
-                }
-                positionalPayload.push_back(token);
-            }
-            if ((sourceModelName == "ieeest") && (positionalPayload.size() > 19U) &&
-                !isZeroDydParameter(positionalPayload[19U])) {
-                addIgnoredDydParameter(ignoredIeeestTdelay,
-                                       lineTokens,
-                                       recordLineNumber,
-                                       positionalPayload[19U]);
-            }
-            if ((sourceModelName == "esac1a") && (positionalPayload.size() > 19U) &&
-                !isZeroDydParameter(positionalPayload[19U])) {
-                addIgnoredDydParameter(ignoredEsac1aSpdmlt,
-                                       lineTokens,
-                                       recordLineNumber,
-                                       positionalPayload[19U]);
-            }
-            if ((canonicalModelName == "gpwscc") && !hasUnsupportedField) {
-                if (gpwsccMWCap.empty()) {
-                    hasUnsupportedField = true;
-                } else {
-                    positionalPayload.insert(positionalPayload.begin(), gpwsccMWCap);
-                }
-            }
-            payloadIsSupported = !hasUnsupportedField &&
-                prepareDydPayload(sourceModelName,
-                                  canonicalModelName,
-                                  positionalPayload,
-                                  normalizedPayload);
-            if (((sourceModelName == "wt3e") || (sourceModelName == "repc_a")) &&
-                (header.size() > 5U)) {
-                // The local implementations do not yet represent PSLF remote
-                // bus/branch measurements carried in the DYD header.
-                payloadIsSupported = false;
-            }
-        }
-        if (const auto wsccScope = getDydWSCCLoadScope(sourceModelName)) {
-            try {
-                if (hasUnsupportedField) {
-                    throw InvalidParameterValue(displayModelName +
-                                                " contains an unsupported named parameter");
-                }
-                auto* mutableSimulation = dynamic_cast<GridDynSimulation*>(parentObject->getRoot());
-                if (mutableSimulation == nullptr) {
-                    throw InvalidParameterValue(displayModelName +
-                                                " requires a GridDynSimulation root");
-                }
-                const auto parameters = parseWSCCParameters(positionalPayload, displayModelName);
-                index_t selector = 0;
-                if (*wsccScope != LoadTemplateScope::System) {
-                    selector = parseDydSelector(header[1], displayModelName);
-                    if ((*wsccScope == LoadTemplateScope::Area) &&
-                        (mutableSimulation->findByUserID("area", selector) == nullptr)) {
-                        throw InvalidParameterValue(displayModelName + " area selector " +
-                                                    std::to_string(selector) + " was not found");
-                    }
-                    if (*wsccScope == LoadTemplateScope::Zone) {
-                        if (selector > static_cast<index_t>(std::numeric_limits<int>::max())) {
-                            throw InvalidParameterValue(
-                                displayModelName + " zone selector exceeds the supported range");
-                        }
-                        std::vector<GridBus*> buses;
-                        mutableSimulation->getBusVector(buses);
-                        const auto zone = static_cast<int>(selector);
-                        if (std::ranges::none_of(buses, [zone](const GridBus* bus) {
-                                return bus->zone == zone;
-                            })) {
-                            throw InvalidParameterValue(displayModelName + " zone selector " +
-                                                        std::to_string(selector) +
-                                                        " was not found");
-                        }
-                    }
-                    if ((*wsccScope == LoadTemplateScope::Bus) &&
-                        (mutableSimulation->findByUserID("bus", selector) == nullptr)) {
-                        throw InvalidParameterValue(displayModelName + " bus selector " +
-                                                    std::to_string(selector) + " was not found");
-                    }
-                }
-                wsccLoadTemplates.setTemplate(*wsccScope,
-                                              selector,
-                                              loads::makeWSCCLoadTemplate(parameters));
-                hasWsccLoadTemplates = true;
-            }
-            catch (const InvalidParameterValue& error) {
-                std::string message{fileName};
-                message.push_back(':');
-                message.append(std::to_string(recordLineNumber));
-                message.append(" ").append(displayModelName).append(" selector ");
-                message.append(header.size() > 1U ? header[1] : "<missing>");
-                message.append(": ").append(error.what());
-                throw InvalidParameterValue(message);
-            }
-            continue;
-        }
-
-        if (sourceModelName == "wtgt_a") {
-            if (!payloadIsSupported) {
-                addUnsupportedModel(unsupportedModels,
-                                    displayModelName,
-                                    lineTokens,
-                                    recordLineNumber);
-                continue;
-            }
-            try {
-                const auto params = gmlc::utilities::str2vector(positionalPayload, kNullVal);
-                if ((params.size() != 5U && params.size() != 6U) ||
-                    std::any_of(params.begin(), params.end(), [](double value) {
-                        return !std::isfinite(value) || value == kNullVal;
-                    })) {
-                    throw InvalidParameterValue("WTGT_A requires five or six finite parameters");
-                }
-                const double ht = params[1];
-                const double hg = params[2];
-                const double totalInertia = ht + hg;
-                const double w0 = params.size() > 5U ? params[5] : 1.0;
-                if (ht <= 0.0 || hg < 0.0 || !std::isfinite(totalInertia) || totalInertia <= 0.0 ||
-                    params[3] < 0.0 || w0 <= 0.0) {
-                    throw InvalidParameterValue("WTGT_A has invalid inertia, damping, or speed");
-                }
-
-                stringVec shaftTokens = lineTokens;
-                if (hg == 0.0 || params[4] <= 0.0) {
-                    // PowerWorld treats a nonpositive shaft resonance as the
-                    // single-mass model, with the combined turbine/generator H.
-                    shaftTokens[1] = "'WTDS'";
-                    shaftTokens.emplace_back(formatDydNumber(totalInertia));
-                    shaftTokens.emplace_back("0");
-                    shaftTokens.emplace_back(formatDydNumber(w0));
-                    if (params[0] > 0.0) {
-                        shaftTokens.emplace_back(formatDydNumber(params[0]));
-                    }
-                    ++singleMassWtgtFallbacks.mCount;
-                    if (singleMassWtgtFallbacks.mFirstLine == 0U) {
-                        singleMassWtgtFallbacks.mFirstLine = recordLineNumber;
-                        singleMassWtgtFallbacks.mFirstBus = lineTokens[0];
-                        singleMassWtgtFallbacks.mFirstMachine = lineTokens[2];
-                    }
-                } else {
-                    shaftTokens[1] = "'WTDTA1'";
-                    shaftTokens.insert(shaftTokens.end(),
-                                       normalizedPayload.begin(),
-                                       normalizedPayload.end());
-                }
-                if (!detail::loadDyrModelRecord(
-                        parentObject, shaftTokens, disableStabilizers, zeroGainStabilizers)) {
-                    throw InvalidParameterValue("WTGT_A drivetrain component is unavailable");
-                }
-            }
-            catch (const InvalidParameterValue& error) {
-                std::string message{fileName};
-                message.push_back(':');
-                message.append(std::to_string(recordLineNumber));
-                message.append(" WTGT_A bus ").append(lineTokens[0]).append(" machine ");
-                message.append(lineTokens.size() > 2U ? lineTokens[2] : "<missing>");
-                message.append(": ").append(error.what());
-                throw InvalidParameterValue(message);
-            }
-            continue;
-        }
-
-        if (sourceModelName == "wt3t") {
-            if (!payloadIsSupported) {
-                addUnsupportedModel(unsupportedModels,
-                                    displayModelName,
-                                    lineTokens,
-                                    recordLineNumber);
-                continue;
-            }
-            try {
-                const auto params = gmlc::utilities::str2vector(normalizedPayload, kNullVal);
-                if (params.size() != 8U ||
-                    std::any_of(params.begin(), params.end(), [](double value) {
-                        return !std::isfinite(value) || value == kNullVal;
-                    })) {
-                    throw InvalidParameterValue("WT3T requires eight finite parameters");
-                }
-                if (params[0] <= 0.0 || params[1] <= 0.0 || params[5] < 0.0 || params[5] >= 1.0) {
-                    throw InvalidParameterValue("WT3T has invalid wind speed or inertia data");
-                }
-
-                // WT3T initializes pitch from wind speed and Theta2 above
-                // rated speed; WTARA1 then supplies the matching linear aero
-                // response, while WTDS/WTDTA1 carries the separate shaft role.
-                const double theta0 = (params[0] > 1.0) ?
-                    (params[4] / 0.75) * (1.0 - (1.0 / (params[0] * params[0]))) :
-                    0.0;
-                stringVec aeroTokens = lineTokens;
-                aeroTokens[1] = "'WTARA1'";
-                aeroTokens.emplace_back(normalizedPayload[3U]);
-                aeroTokens.emplace_back(formatDydNumber(theta0));
-                if (!detail::loadDyrModelRecord(
-                        parentObject, aeroTokens, disableStabilizers, zeroGainStabilizers)) {
-                    throw InvalidParameterValue("WT3T aerodynamic component is unavailable");
-                }
-
-                stringVec shaftTokens = lineTokens;
-                if (params[5] == 0.0) {
-                    // A zero turbine inertia fraction selects the documented
-                    // single-mass form; Freq1 and Dshaft are unused there.
-                    shaftTokens[1] = "'WTDS'";
-                    shaftTokens.emplace_back(normalizedPayload[1U]);
-                    shaftTokens.emplace_back(normalizedPayload[2U]);
-                    shaftTokens.emplace_back("1");
-                } else {
-                    shaftTokens[1] = "'WTDTA1'";
-                    shaftTokens.emplace_back(normalizedPayload[1U]);
-                    shaftTokens.emplace_back(normalizedPayload[2U]);
-                    shaftTokens.emplace_back(normalizedPayload[5U]);
-                    shaftTokens.emplace_back(normalizedPayload[6U]);
-                    shaftTokens.emplace_back(normalizedPayload[7U]);
-                }
-                if (!detail::loadDyrModelRecord(
-                        parentObject, shaftTokens, disableStabilizers, zeroGainStabilizers)) {
-                    throw InvalidParameterValue("WT3T shaft component is unavailable");
-                }
-            }
-            catch (const InvalidParameterValue& error) {
-                std::string message{fileName};
-                message.push_back(':');
-                message.append(std::to_string(recordLineNumber));
-                message.append(" WT3T bus ").append(lineTokens[0]).append(" machine ");
-                message.append(lineTokens.size() > 2U ? lineTokens[2] : "<missing>");
-                message.append(": ").append(error.what());
-                throw InvalidParameterValue(message);
-            }
-            continue;
-        }
-        const bool directModel = isDydDirectModel(canonicalModelName);
-        if (payloadIsSupported && directModel) {
-            if (sourceModelName == "ieeeg1") {
-                // PSLF IEEEG1 is a single-generator record. The DYR loader
-                // also supports the PSS/E two-generator form, so provide a
-                // zero secondary bus and a harmless ID.
-                lineTokens.emplace_back("0");
-                lineTokens.emplace_back("'1'");
-            }
-            lineTokens.insert(lineTokens.end(), normalizedPayload.begin(), normalizedPayload.end());
+            return true;
         }
         try {
-            if (!payloadIsSupported || !directModel ||
-                !detail::loadDyrModelRecord(
-                    parentObject, lineTokens, disableStabilizers, zeroGainStabilizers)) {
-                addUnsupportedModel(unsupportedModels,
+            const auto params = gmlc::utilities::str2vector(payload.positional, kNullVal);
+            if ((params.size() != 5U && params.size() != 6U) ||
+                std::any_of(params.begin(), params.end(), [](double value) {
+                    return !std::isfinite(value) || value == kNullVal;
+                })) {
+                throw InvalidParameterValue("WTGT_A requires five or six finite parameters");
+            }
+            const double turbineInertia = params[1];
+            const double generatorInertia = params[2];
+            const double totalInertia = turbineInertia + generatorInertia;
+            const double initialSpeed = params.size() > 5U ? params[5] : 1.0;
+            if (turbineInertia <= 0.0 || generatorInertia < 0.0 ||
+                !std::isfinite(totalInertia) || totalInertia <= 0.0 || params[3] < 0.0 ||
+                initialSpeed <= 0.0) {
+                throw InvalidParameterValue("WTGT_A has invalid inertia, damping, or speed");
+            }
+
+            stringVec shaftTokens = lineTokens;
+            if (generatorInertia == 0.0 || params[4] <= 0.0) {
+                shaftTokens[1] = "'WTDS'";
+                shaftTokens.emplace_back(formatDydNumber(totalInertia));
+                shaftTokens.emplace_back("0");
+                shaftTokens.emplace_back(formatDydNumber(initialSpeed));
+                if (params[0] > 0.0) {
+                    shaftTokens.emplace_back(formatDydNumber(params[0]));
+                }
+                ++context.singleMassWtgtFallbacks.mCount;
+                if (context.singleMassWtgtFallbacks.mFirstLine == 0U) {
+                    context.singleMassWtgtFallbacks.mFirstLine = recordLineNumber;
+                    context.singleMassWtgtFallbacks.mFirstBus = lineTokens[0];
+                    context.singleMassWtgtFallbacks.mFirstMachine = lineTokens[2];
+                }
+            } else {
+                shaftTokens[1] = "'WTDTA1'";
+                shaftTokens.insert(shaftTokens.end(),
+                                   payload.normalized.begin(),
+                                   payload.normalized.end());
+            }
+            if (!detail::loadDyrModelRecord(context.parentObject,
+                                            shaftTokens,
+                                            context.disableStabilizers,
+                                            context.zeroGainStabilizers)) {
+                throw InvalidParameterValue("WTGT_A drivetrain component is unavailable");
+            }
+        }
+        catch (const InvalidParameterValue& error) {
+            std::string message{context.fileName};
+            message.push_back(':');
+            message.append(std::to_string(recordLineNumber));
+            message.append(" WTGT_A bus ").append(lineTokens[0]).append(" machine ");
+            message.append(lineTokens.size() > 2U ? lineTokens[2] : "<missing>");
+            message.append(": ").append(error.what());
+            throw InvalidParameterValue(message);
+        }
+        return true;
+    }
+
+    bool handleWt3tRecord(DydLoadContext& context,
+                          std::string_view displayModelName,
+                          const stringVec& lineTokens,
+                          std::size_t recordLineNumber,
+                          const DydPayload& payload)
+    {
+        if (displayModelName != "WT3T") {
+            return false;
+        }
+        if (!payload.isSupported) {
+            addUnsupportedModel(context.unsupportedModels,
+                                displayModelName,
+                                lineTokens,
+                                recordLineNumber);
+            return true;
+        }
+        try {
+            const auto params = gmlc::utilities::str2vector(payload.normalized, kNullVal);
+            if (params.size() != 8U ||
+                std::any_of(params.begin(), params.end(), [](double value) {
+                    return !std::isfinite(value) || value == kNullVal;
+                })) {
+                throw InvalidParameterValue("WT3T requires eight finite parameters");
+            }
+            if (params[0] <= 0.0 || params[1] <= 0.0 || params[5] < 0.0 || params[5] >= 1.0) {
+                throw InvalidParameterValue("WT3T has invalid wind speed or inertia data");
+            }
+
+            const double theta0 = (params[0] > 1.0) ?
+                (params[4] / 0.75) * (1.0 - (1.0 / (params[0] * params[0]))) :
+                0.0;
+            stringVec aeroTokens = lineTokens;
+            aeroTokens[1] = "'WTARA1'";
+            aeroTokens.emplace_back(payload.normalized[3U]);
+            aeroTokens.emplace_back(formatDydNumber(theta0));
+            if (!detail::loadDyrModelRecord(context.parentObject,
+                                            aeroTokens,
+                                            context.disableStabilizers,
+                                            context.zeroGainStabilizers)) {
+                throw InvalidParameterValue("WT3T aerodynamic component is unavailable");
+            }
+
+            stringVec shaftTokens = lineTokens;
+            if (params[5] == 0.0) {
+                shaftTokens[1] = "'WTDS'";
+                shaftTokens.emplace_back(payload.normalized[1U]);
+                shaftTokens.emplace_back(payload.normalized[2U]);
+                shaftTokens.emplace_back("1");
+            } else {
+                shaftTokens[1] = "'WTDTA1'";
+                shaftTokens.emplace_back(payload.normalized[1U]);
+                shaftTokens.emplace_back(payload.normalized[2U]);
+                shaftTokens.emplace_back(payload.normalized[5U]);
+                shaftTokens.emplace_back(payload.normalized[6U]);
+                shaftTokens.emplace_back(payload.normalized[7U]);
+            }
+            if (!detail::loadDyrModelRecord(context.parentObject,
+                                            shaftTokens,
+                                            context.disableStabilizers,
+                                            context.zeroGainStabilizers)) {
+                throw InvalidParameterValue("WT3T shaft component is unavailable");
+            }
+        }
+        catch (const InvalidParameterValue& error) {
+            std::string message{context.fileName};
+            message.push_back(':');
+            message.append(std::to_string(recordLineNumber));
+            message.append(" WT3T bus ").append(lineTokens[0]).append(" machine ");
+            message.append(lineTokens.size() > 2U ? lineTokens[2] : "<missing>");
+            message.append(": ").append(error.what());
+            throw InvalidParameterValue(message);
+        }
+        return true;
+    }
+
+    void loadDirectDydRecord(DydLoadContext& context,
+                             std::string_view sourceModelName,
+                             std::string_view canonicalModelName,
+                             std::string_view displayModelName,
+                             const stringVec& lineTokens,
+                             std::size_t recordLineNumber,
+                             const DydPayload& payload)
+    {
+        auto modelTokens = lineTokens;
+        const bool directModel = isDydDirectModel(canonicalModelName);
+        if (payload.isSupported && directModel) {
+            if (sourceModelName == "ieeeg1") {
+                modelTokens.emplace_back("0");
+                modelTokens.emplace_back("'1'");
+            }
+            modelTokens.insert(modelTokens.end(), payload.normalized.begin(), payload.normalized.end());
+        }
+        try {
+            if (!payload.isSupported || !directModel ||
+                !detail::loadDyrModelRecord(context.parentObject,
+                                            modelTokens,
+                                            context.disableStabilizers,
+                                            context.zeroGainStabilizers)) {
+                addUnsupportedModel(context.unsupportedModels,
                                     displayModelName,
                                     lineTokens,
                                     recordLineNumber);
             }
         }
         catch (const InvalidParameterValue& error) {
-            std::string message{fileName};
+            std::string message{context.fileName};
             message.push_back(':');
             message.append(std::to_string(recordLineNumber));
             message.append(" ").append(displayModelName).append(" bus ");
@@ -1085,64 +1111,148 @@ void loadDyd(CoreObject* parentObject,
         }
     }
 
-    if (!ignoredNonessentialModels.empty()) {
-        std::string message =
-            fileName + ": ignored nonessential DYD models (not loaded into the dynamic system):";
-        for (const auto& [modelName, summary] : ignoredNonessentialModels) {
-            message += "\n  " + modelName + " (warning): " + std::to_string(summary.mCount) +
-                " record(s); first at line " + std::to_string(summary.mFirstLine) + ", bus " +
-                summary.mFirstBus + " machine " + summary.mFirstMachine;
+    void processDydRecord(DydLoadContext& context, const DydInputRecord& record)
+    {
+        const auto sourceModelName = gmlc::utilities::convertToLowerCase(
+            gmlc::utilities::stringOps::removeQuotes(record.header[0]));
+        const auto canonicalModelName = canonicalDydModelName(sourceModelName);
+        const auto displayModelName = gmlc::utilities::convertToUpperCase(sourceModelName);
+        const stringVec lineTokens{gmlc::utilities::stringOps::removeQuotes(record.header[1]),
+                                   "'" + gmlc::utilities::convertToUpperCase(canonicalModelName) +
+                                       "'",
+                                   gmlc::utilities::stringOps::removeQuotes(record.header[4])};
+        if (isDydIgnoredNonessentialModel(sourceModelName)) {
+            addUnsupportedModel(context.ignoredNonessentialModels,
+                                displayModelName,
+                                lineTokens,
+                                record.lineNumber);
+            return;
         }
-        parentObject->log(parentObject, PrintLevel::WARNING, message);
-    }
-    if (ignoredIeeestTdelay.mCount > 0U) {
-        const std::string message = fileName +
-            ": ignored nonzero or invalid PSLF IEEEST Tdelay values (time delay is not modeled): " +
-            std::to_string(ignoredIeeestTdelay.mCount) + " record(s); first at line " +
-            std::to_string(ignoredIeeestTdelay.mFirstLine) + ", bus " +
-            ignoredIeeestTdelay.mFirstBus + " machine " + ignoredIeeestTdelay.mFirstMachine +
-            ", Tdelay=" + ignoredIeeestTdelay.mFirstValue;
-        parentObject->log(parentObject, PrintLevel::WARNING, message);
-    }
-    if (ignoredEsac1aSpdmlt.mCount > 0U) {
-        const std::string message = fileName +
-            ": ignored nonzero or invalid PSLF ESAC1A Spdmlt values (generator-speed output "
-            "scaling is not modeled): " +
-            std::to_string(ignoredEsac1aSpdmlt.mCount) + " record(s); first at line " +
-            std::to_string(ignoredEsac1aSpdmlt.mFirstLine) + ", bus " +
-            ignoredEsac1aSpdmlt.mFirstBus + " machine " + ignoredEsac1aSpdmlt.mFirstMachine +
-            ", Spdmlt=" + ignoredEsac1aSpdmlt.mFirstValue;
-        parentObject->log(parentObject, PrintLevel::WARNING, message);
-    }
-    if (singleMassWtgtFallbacks.mCount > 0U) {
-        const std::string message = fileName +
-            ": WTGT_A records with Hg=0 or KShaft<=0 were loaded as the documented single-mass "
-            "WTDS form: " +
-            std::to_string(singleMassWtgtFallbacks.mCount) + " record(s); first at line " +
-            std::to_string(singleMassWtgtFallbacks.mFirstLine) + ", bus " +
-            singleMassWtgtFallbacks.mFirstBus + " machine " + singleMassWtgtFallbacks.mFirstMachine;
-        parentObject->log(parentObject, PrintLevel::WARNING, message);
-    }
-    if (!unsupportedModels.empty()) {
-        std::string message = fileName + ": unsupported DYD models:";
-        for (const auto& [modelName, summary] : unsupportedModels) {
-            message += "\n  " + modelName + ": " + std::to_string(summary.mCount) +
-                " record(s); first at line " + std::to_string(summary.mFirstLine) + ", bus " +
-                summary.mFirstBus + " machine " + summary.mFirstMachine;
+
+        const auto rawPayload = gmlc::utilities::stringOps::splitlineQuotes(
+            record.payloadText,
+            " \t\n,/",
+            gmlc::utilities::stringOps::default_quote_chars,
+            gmlc::utilities::stringOps::delimiter_compression::on);
+        const auto payload = prepareDydRecordPayload(context,
+                                                     sourceModelName,
+                                                     canonicalModelName,
+                                                     record.header,
+                                                     lineTokens,
+                                                     record.lineNumber,
+                                                     rawPayload);
+        if (handleWsccLoadRecord(context,
+                                 sourceModelName,
+                                 displayModelName,
+                                 record.header,
+                                 record.lineNumber,
+                                 payload) ||
+            handleWtgtARecord(
+                context, displayModelName, lineTokens, record.lineNumber, payload) ||
+            handleWt3tRecord(context, displayModelName, lineTokens, record.lineNumber, payload)) {
+            return;
         }
-        throw InvalidParameterValue(message);
+        loadDirectDydRecord(context,
+                            sourceModelName,
+                            canonicalModelName,
+                            displayModelName,
+                            lineTokens,
+                            record.lineNumber,
+                            payload);
     }
-    if (hasWsccLoadTemplates) {
-        if (auto* mutableSimulation = dynamic_cast<GridDynSimulation*>(parentObject->getRoot());
-            mutableSimulation != nullptr) {
-            applyLoadTemplatesFromReader(*mutableSimulation, wsccLoadTemplates);
+
+    void logDydLoadSummary(DydLoadContext& context)
+    {
+        auto* parentObject = context.parentObject;
+        const auto& fileName = context.fileName;
+        if (!context.ignoredNonessentialModels.empty()) {
+            std::string message =
+                fileName + ": ignored nonessential DYD models (not loaded into the dynamic system):";
+            for (const auto& [modelName, summary] : context.ignoredNonessentialModels) {
+                message += "\n  " + modelName + " (warning): " + std::to_string(summary.mCount) +
+                    " record(s); first at line " + std::to_string(summary.mFirstLine) + ", bus " +
+                    summary.mFirstBus + " machine " + summary.mFirstMachine;
+            }
+            parentObject->log(parentObject, PrintLevel::WARNING, message);
+        }
+        if (context.ignoredIeeestTdelay.mCount > 0U) {
+            const auto& summary = context.ignoredIeeestTdelay;
+            const std::string message = fileName +
+                ": ignored nonzero or invalid PSLF IEEEST Tdelay values (time delay is not modeled): " +
+                std::to_string(summary.mCount) + " record(s); first at line " +
+                std::to_string(summary.mFirstLine) + ", bus " + summary.mFirstBus + " machine " +
+                summary.mFirstMachine + ", Tdelay=" + summary.mFirstValue;
+            parentObject->log(parentObject, PrintLevel::WARNING, message);
+        }
+        if (context.ignoredEsac1aSpdmlt.mCount > 0U) {
+            const auto& summary = context.ignoredEsac1aSpdmlt;
+            const std::string message = fileName +
+                ": ignored nonzero or invalid PSLF ESAC1A Spdmlt values (generator-speed output "
+                "scaling is not modeled): " +
+                std::to_string(summary.mCount) + " record(s); first at line " +
+                std::to_string(summary.mFirstLine) + ", bus " + summary.mFirstBus + " machine " +
+                summary.mFirstMachine + ", Spdmlt=" + summary.mFirstValue;
+            parentObject->log(parentObject, PrintLevel::WARNING, message);
+        }
+        if (context.singleMassWtgtFallbacks.mCount > 0U) {
+            const auto& summary = context.singleMassWtgtFallbacks;
+            const std::string message = fileName +
+                ": WTGT_A records with Hg=0 or KShaft<=0 were loaded as the documented single-mass "
+                "WTDS form: " +
+                std::to_string(summary.mCount) + " record(s); first at line " +
+                std::to_string(summary.mFirstLine) + ", bus " + summary.mFirstBus + " machine " +
+                summary.mFirstMachine;
+            parentObject->log(parentObject, PrintLevel::WARNING, message);
+        }
+        if (!context.unsupportedModels.empty()) {
+            std::string message = fileName + ": unsupported DYD models:";
+            for (const auto& [modelName, summary] : context.unsupportedModels) {
+                message += "\n  " + modelName + ": " + std::to_string(summary.mCount) +
+                    " record(s); first at line " + std::to_string(summary.mFirstLine) + ", bus " +
+                    summary.mFirstBus + " machine " + summary.mFirstMachine;
+            }
+            throw InvalidParameterValue(message);
+        }
+        if (context.hasWsccLoadTemplates) {
+            if (auto* simulation = dynamic_cast<GridDynSimulation*>(parentObject->getRoot());
+                simulation != nullptr) {
+                applyLoadTemplatesFromReader(*simulation, context.wsccLoadTemplates);
+            }
+        }
+        if (context.disableStabilizers) {
+            parentObject->log(parentObject,
+                              PrintLevel::SUMMARY,
+                              "DYD diagnostic: set zero output gain on " +
+                                  std::to_string(context.zeroGainStabilizers) +
+                                  " stabilizer model records");
         }
     }
-    if (disableStabilizers) {
-        parentObject->log(parentObject,
-                          PrintLevel::SUMMARY,
-                          "DYD diagnostic: set zero output gain on " +
-                              std::to_string(zeroGainStabilizers) + " stabilizer model records");
+}  // namespace
+
+void loadDyd(CoreObject* parentObject,
+             const std::string& fileName,
+             const BasicReaderInfo& /*readerOptions*/)
+{
+    const auto* simulation = dynamic_cast<const GridDynSimulation*>(parentObject->getRoot());
+    const bool disableStabilizers =
+        (simulation != nullptr) && simulation->isFlagSet(DISABLE_STABILIZERS_FOR_DIAGNOSTICS);
+    std::ifstream file(fileName.c_str(), std::ios::in);
+    if (!file.is_open()) {
+        parentObject->log(parentObject, PrintLevel::ERROR, "Unable to open file " + fileName);
+        return;
     }
-}
-}  // namespace griddyn
+
+    warnIfStaticNetworkMissing(parentObject, "DYD", fileName);
+    const auto inputLines = readDydInputLines(file);
+    DydLoadContext context{parentObject, fileName, disableStabilizers};
+    std::size_t lineIndex = 0U;
+    bool inOutOfServiceModels = false;
+    while (true) {
+        auto record = nextDydInputRecord(inputLines, lineIndex, inOutOfServiceModels);
+        if (!record) {
+            break;
+        }
+        processDydRecord(context, *record);
+    }
+    logDydLoadSummary(context);
+}}  // namespace griddyn

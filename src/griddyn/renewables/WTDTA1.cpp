@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <numbers>
 #include <string>
 
 namespace griddyn {
@@ -150,8 +149,7 @@ std::array<double, 3> WTDTA1::rates(const IOdata& inputs, const double state[]) 
     const double hg2 = 2 * (1 - Htfrac) * H;
     const double delta = state[windTurbine] - state[windGenerator];
     const double powerDifference = Dshaft * delta;
-    const double shaftAngularFrequency = 2.0 * std::numbers::pi * Freq1;
-    const double stiffness = ht2 * hg2 * 0.5 * shaftAngularFrequency * shaftAngularFrequency / H;
+    const double stiffness = 0.5 * Freq1 * Freq1 * ht2 * hg2 / H;
     return {(-(electricalPower / std::max(state[windGenerator], 0.01)) + state[shaft] -
              (DAMP * (state[windGenerator] - operatingSpeed)) + powerDifference) /
                 hg2,

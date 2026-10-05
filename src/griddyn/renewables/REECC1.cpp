@@ -101,7 +101,7 @@ void REECC1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 double REECC1::storageSocRate(const IOdata& inputs) const
 {
     const auto powerIndex = electricalPowerInputIndex();
-    if (inputs.size() <= powerIndex || inputs[powerIndex] == kNullVal ||
+    if (std::cmp_less_equal(inputs.size(), powerIndex) || inputs[powerIndex] == kNullVal ||
         !std::isfinite(inputs[powerIndex])) {
         throw InvalidParameterValue("REECC1 requires measured electrical power from REGC_A");
     }

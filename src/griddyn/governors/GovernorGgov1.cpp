@@ -127,9 +127,8 @@ void GovernorGgov1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     if (((Rselect != -2) && (Rselect != -1) && (Rselect != 0) && (Rselect != 1)) ||
         ((fuelFlag != 0) && (fuelFlag != 1)) || (Tpelec <= 0.0) || (Tdgov <= 0.0) ||
         (Tact <= 0.0) || (Tb <= 0.0) || (Tfload <= 0.0) || (TaAccel <= 0.0) || (Tsb < 0.0) ||
-        ((Tsb == 0.0) && (Tsa != 0.0)) ||
-        (Kturb <= 0.0) || (R < 0.0) || (Kpgov < 0.0) || (Kdgov < 0.0) || (Pmax < Pmin) ||
-        (maxerr < minerr) || (Ropen < 0.0) || (Rclose > 0.0)) {
+        ((Tsb == 0.0) && (Tsa != 0.0)) || (Kturb <= 0.0) || (R < 0.0) || (Kpgov < 0.0) ||
+        (Kdgov < 0.0) || (Pmax < Pmin) || (maxerr < minerr) || (Ropen < 0.0) || (Rclose > 0.0)) {
         throw InvalidParameterValue("GGOV1 selectors, gains, time constants, or limits");
     }
     if (std::abs(Teng) > 1e-9) {
@@ -262,9 +261,9 @@ GovernorGgov1::Signals GovernorGgov1::evaluate(const IOdata& inputs, const doubl
         state[turbineState] + (Tc / Tb) * (signals.mTurbineInput - state[turbineState]);
     const double speedFactor = (Dm < 0.0) ? std::pow(omega, Dm) : 1.0;
     signals.mTemperatureInput = signals.mFuelFlow * speedFactor;
-    signals.mTemperatureLeadOutput = (Tsb == 0.0) ?
-        signals.mTemperatureInput :
-        state[temperatureLeadState] + (Tsa / Tsb) * (signals.mTemperatureInput - state[temperatureLeadState]);
+    signals.mTemperatureLeadOutput = (Tsb == 0.0) ? signals.mTemperatureInput :
+                                                    state[temperatureLeadState] +
+            (Tsa / Tsb) * (signals.mTemperatureInput - state[temperatureLeadState]);
     signals.mMechanicalPower = (Dm >= 0.0) ? signals.mTurbineOutput - Dm * signals.mSpeedDeviation :
                                              signals.mTurbineOutput;
     return signals;
@@ -316,9 +315,8 @@ void GovernorGgov1::derivative(const IOdata& inputs,
     }
     stateDerivative[valveState] = rate;
     stateDerivative[turbineState] = (signals.mTurbineInput - state[turbineState]) / Tb;
-    stateDerivative[temperatureLeadState] = (Tsb == 0.0) ?
-        0.0 :
-        (signals.mTemperatureInput - state[temperatureLeadState]) / Tsb;
+    stateDerivative[temperatureLeadState] =
+        (Tsb == 0.0) ? 0.0 : (signals.mTemperatureInput - state[temperatureLeadState]) / Tsb;
     stateDerivative[temperatureState] =
         (signals.mTemperatureLeadOutput - state[temperatureState]) / Tfload;
     // The PSS/E GGOV1 diagram specifies tracking for the load/temperature PI

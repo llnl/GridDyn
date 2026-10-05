@@ -12,8 +12,8 @@
 #include "griddyn/exciters/ExciterESAC1A.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/generators/RenewableGenerator.h"
-#include "griddyn/governors/GovernorGgov1.h"
 #include "griddyn/governors/GovernorGPWSCC.h"
+#include "griddyn/governors/GovernorGgov1.h"
 #include "griddyn/links/AcLine.h"
 #include <algorithm>
 #include <array>
@@ -428,8 +428,7 @@ TEST(ExampleReaderTests, MapsPslfGgov1DydOrderAndBypassedTemperatureLeadLag)
     ASSERT_NE(bus, nullptr);
     auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
     ASSERT_NE(generator, nullptr);
-    auto* governor =
-        dynamic_cast<griddyn::governors::GovernorGgov1*>(generator->find("governor"));
+    auto* governor = dynamic_cast<griddyn::governors::GovernorGgov1*>(generator->find("governor"));
     ASSERT_NE(governor, nullptr);
     EXPECT_DOUBLE_EQ(governor->get("rselect"), 1.0);
     EXPECT_DOUBLE_EQ(governor->get("fswitch"), 0.0);

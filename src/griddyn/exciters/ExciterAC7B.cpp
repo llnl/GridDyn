@@ -250,9 +250,8 @@ ExciterAC7B::Evaluation
     // for literal Kp=0 unless the field feedback is also zero. Keep the
     // normal potential-source path for nonzero Kp, and use Va directly for
     // the zero-Kp compatibility mode.
-    const Signal sourceVoltage = (Kp == 0.0) ?
-        constantSignal<stateCount>(1.0) :
-        scaleSignal(terminalVoltage, Kp);
+    const Signal sourceVoltage =
+        (Kp == 0.0) ? constantSignal<stateCount>(1.0) : scaleSignal(terminalVoltage, Kp);
     Signal exciterControl = multiplySignals(sourceVoltage, piOutput);
     if (exciterControl.value < lowerControlLimit.value) {
         exciterControl = lowerControlLimit;

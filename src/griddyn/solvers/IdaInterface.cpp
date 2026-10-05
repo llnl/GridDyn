@@ -760,8 +760,7 @@ void IdaInterface::logInitialConditionDiagnostics(
             denseJacobian[rowOffset + pivot] = 0.0;
             const auto pivotOffset = static_cast<size_t>(pivot) * svsize;
             for (index_t column = pivot + 1; column < svsize; ++column) {
-                denseJacobian[rowOffset + column] -=
-                    factor * denseJacobian[pivotOffset + column];
+                denseJacobian[rowOffset + column] -= factor * denseJacobian[pivotOffset + column];
             }
         }
         ++numericalRank;
@@ -779,8 +778,9 @@ void IdaInterface::logInitialConditionDiagnostics(
         const auto reducedIndex = numericalRank + offset;
         const auto row = rowOrder[reducedIndex];
         const auto column = columnOrder[reducedIndex];
-        const auto rowName = (static_cast<size_t>(row) < stateNames.size()) ? stateNames[row] :
-                                                                              std::string{"<unnamed>"};
+        const auto rowName = (static_cast<size_t>(row) < stateNames.size()) ?
+            stateNames[row] :
+            std::string{"<unnamed>"};
         const auto columnName = (static_cast<size_t>(column) < stateNames.size()) ?
             stateNames[column] :
             std::string{"<unnamed>"};
@@ -953,13 +953,14 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
         }
         if (initialResidualIsFinite && (maxInitialResidual <= tolerance)) {
             if (flags[IDA_IC_DIAGNOSTICS]) {
-                logging::logTo(m_gds,
-                               m_gds,
-                               PrintLevel::SUMMARY,
-                               "IDA initial-condition correction skipped: initial residual {} is within "
-                               "absolute tolerance {}",
-                               maxInitialResidual,
-                               tolerance);
+                logging::logTo(
+                    m_gds,
+                    m_gds,
+                    PrintLevel::SUMMARY,
+                    "IDA initial-condition correction skipped: initial residual {} is within "
+                    "absolute tolerance {}",
+                    maxInitialResidual,
+                    tolerance);
             }
             return FUNCTION_EXECUTION_SUCCESS;
         }

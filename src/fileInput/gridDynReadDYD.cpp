@@ -20,9 +20,9 @@
 #include "loadModelReaderHelper.h"
 #include <algorithm>
 #include <array>
+#include <cctype>
 #include <charconv>
 #include <cmath>
-#include <cctype>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -338,10 +338,11 @@ namespace {
             if (sourcePayload.size() != 35U) {
                 return false;
             }
-            static constexpr std::array<std::size_t, 29> leadingOrder{
-                1U, 16U, 0U, 2U,  3U,  4U,  5U,  6U,  7U,  8U,
-                9U, 10U, 11U, 12U, 13U, 14U, 15U, 17U, 18U, 19U,
-                20U, 21U, 22U, 23U, 24U, 25U, 27U, 28U, 29U};
+            static constexpr std::array<std::size_t, 29> leadingOrder{1U,  16U, 0U,  2U,  3U,  4U,
+                                                                      5U,  6U,  7U,  8U,  9U,  10U,
+                                                                      11U, 12U, 13U, 14U, 15U, 17U,
+                                                                      18U, 19U, 20U, 21U, 22U, 23U,
+                                                                      24U, 25U, 27U, 28U, 29U};
             payload.reserve(35U);
             for (const auto index : leadingOrder) {
                 payload.push_back(sourcePayload[index]);
@@ -1174,7 +1175,7 @@ namespace {
         if (!busResolved && network != nullptr) {
             // PSLF DYD records retain the bus name as well as the model-file
             // bus number. The latter need not equal the static network's
-            // external bus ID, notably when a SAV database was renumbered.
+            // external bus ID, notably when a SAVE database was renumbered.
             auto busName = gmlc::utilities::stringOps::removeQuotes(record.mHeader[2]);
             gmlc::utilities::stringOps::trimString(busName);
             const auto normalizedBusName = gmlc::utilities::convertToLowerCase(busName);
@@ -1193,7 +1194,9 @@ namespace {
                     std::all_of(normalizedCandidateName.begin() +
                                     static_cast<std::ptrdiff_t>(normalizedBusName.size() + 1U),
                                 normalizedCandidateName.end(),
-                                [](unsigned char character) { return std::isdigit(character) != 0; });
+                                [](unsigned char character) {
+                                    return std::isdigit(character) != 0;
+                                });
                 if (exactNameMatch || generatedSuffixMatch) {
                     busToken = std::to_string(candidate->getUserID());
                     busResolved = true;
@@ -1203,13 +1206,12 @@ namespace {
         }
         if (directModel && !busResolved) {
             std::string message = context.mFileName + ":" + std::to_string(record.mLineNumber) +
-                " " + displayModelName + " cannot match DYD bus " + record.mHeader[1] +
-                " named '" + record.mHeader[2] + "' to the static network";
+                " " + displayModelName + " cannot match DYD bus " + record.mHeader[1] + " named '" +
+                record.mHeader[2] + "' to the static network";
             if (network != nullptr) {
                 std::vector<GridBus*> buses;
                 network->getBusVector(buses);
-                message += "; static network exposes " + std::to_string(buses.size()) +
-                    " bus(es)";
+                message += "; static network exposes " + std::to_string(buses.size()) + " bus(es)";
                 const auto appendCandidate = [&message, &buses](std::size_t index) {
                     if (index < buses.size()) {
                         message += "; static bus index " + std::to_string(index) + " is " +

@@ -34,8 +34,10 @@ TEST(RunnerTests, UnresolvedCommandLineEventWarnsAndIsIgnored)
     char* argv[] = {executable, fileName.data(), eventOption, event.data()};
 
     EXPECT_EQ(runner.Initialize(4, argv), FUNCTION_EXECUTION_SUCCESS);
-    EXPECT_TRUE(std::any_of(messages.cbegin(), messages.cend(), [&event](const std::string& message) {
-        return message.find("command-line event target was not resolved") != std::string::npos &&
-            message.find(event) != std::string::npos;
-    }));
+    EXPECT_TRUE(
+        std::any_of(messages.cbegin(), messages.cend(), [&event](const std::string& message) {
+            return message.find("command-line event target was not resolved") !=
+                std::string::npos &&
+                message.find(event) != std::string::npos;
+        }));
 }

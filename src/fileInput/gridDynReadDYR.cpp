@@ -506,8 +506,7 @@ namespace {
                 break;
             }
             const auto candidateName = candidate->getName();
-            const auto normalizedCandidateName =
-                gmlc::utilities::convertToLowerCase(candidateName);
+            const auto normalizedCandidateName = gmlc::utilities::convertToLowerCase(candidateName);
             const auto suffixPosition = normalizedCandidateName.rfind("_gen_");
             if (suffixPosition == std::string::npos) {
                 continue;
@@ -550,9 +549,10 @@ namespace {
                     throw InvalidParameterValue(std::string{modelName} + " requires existing bus " +
                                                 tokens[0] + " for machine " + tokens[2]);
                 }
-                throw InvalidParameterValue(std::string{modelName} + " requires generator machine " +
-                                            tokens[2] + " at bus " + tokens[0] + "; the bus contains " +
-                                            std::to_string(bus->getInt("gencount")) + " generator(s)");
+                throw InvalidParameterValue(
+                    std::string{modelName} + " requires generator machine " + tokens[2] +
+                    " at bus " + tokens[0] + "; the bus contains " +
+                    std::to_string(bus->getInt("gencount")) + " generator(s)");
             }
             throw InvalidParameterValue(std::string{modelName} +
                                         " requires an existing generator matching bus " +

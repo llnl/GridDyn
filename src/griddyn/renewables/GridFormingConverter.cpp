@@ -578,7 +578,7 @@ stringVec GridFormingConverter::localStateNames() const
 }
 
 #define GRID_FORMING_MODEL_IMPL(Model, kind)                                                       \
-    Model::Model(const std::string& objName): GridFormingConverter(Variant::kind, objName) {}     \
+    Model::Model(const std::string& objName): GridFormingConverter(Variant::kind, objName) {}      \
     CoreObject* Model::clone(CoreObject* obj) const                                                \
     {                                                                                              \
         auto* out = cloneBase<Model, GridFormingConverter>(this, obj);                             \

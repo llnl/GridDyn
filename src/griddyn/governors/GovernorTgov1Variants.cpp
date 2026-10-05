@@ -55,7 +55,8 @@ GovernorTgov1DB::GovernorTgov1DB(const std::string& objName):
 }
 GovernorTgov1N::GovernorTgov1N(const std::string& objName):
     GovernorTgov1Variant(false, true, objName)
-{}
+{
+}
 GovernorTgov1NDB::GovernorTgov1NDB(const std::string& objName):
     GovernorTgov1Variant(true, true, objName)
 {

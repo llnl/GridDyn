@@ -627,7 +627,7 @@ void DistributedConverter::copyParametersTo(DistributedConverter* target) const
 }
 
 #define DISTRIBUTED_VARIANT(Model, kind)                                                           \
-    Model::Model(const std::string& objName): DistributedConverter(Variant::kind, objName) {}     \
+    Model::Model(const std::string& objName): DistributedConverter(Variant::kind, objName) {}      \
     CoreObject* Model::clone(CoreObject* obj) const                                                \
     {                                                                                              \
         auto* out = cloneBase<Model, DistributedConverter>(this, obj);                             \

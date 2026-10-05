@@ -100,10 +100,8 @@ void SchedulerReg::validateRegulationBounds(double baseMW,
         throw InvalidParameterValue("scheduler regulation settings are outside valid ranges");
     }
     const double rating = (baseMW >= kHalfBigNum) ? maxValue : baseMW / systemBasePower;
-    const double effectiveMin =
-        minValue + (regulationEnabled ? downFraction * rating : 0.0);
-    const double effectiveMax =
-        maxValue - (regulationEnabled ? upFraction * rating : 0.0);
+    const double effectiveMin = minValue + (regulationEnabled ? downFraction * rating : 0.0);
+    const double effectiveMax = maxValue - (regulationEnabled ? upFraction * rating : 0.0);
     if (!std::isfinite(rating) || effectiveMin > effectiveMax - reserveAvail) {
         throw InvalidParameterValue(
             "scheduler regulation limits and reserve exceed the available power range");

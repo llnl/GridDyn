@@ -10,7 +10,9 @@
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
+#include <functional>
 #include <gtest/gtest.h>
+#include <cmath>
 #include <memory>
 #include <string>
 #include <vector>
@@ -63,6 +65,50 @@ void configureIeeest(stabilizers::StabilizerIEEEST& stabilizer)
     stabilizer.set("lsmin", -0.05);
     stabilizer.set("vcu", 0.1);
     stabilizer.set("vcl", -0.1);
+}
+
+void runAttachedStabilizerLoadPulseTest(
+    std::unique_ptr<GridDynSimulation>& simulation,
+    const std::string& modelName,
+    const std::function<void(DynamicGenerator*)>& attachStabilizer)
+{
+    SCOPED_TRACE(modelName);
+    simulation =
+        readSimXMLFile(std::string(GRIDDYN_TEST_DIRECTORY "/genmodel_tests/test_model1.xml"));
+    auto* generator = dynamic_cast<DynamicGenerator*>(simulation->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    attachStabilizer(generator);
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
+    const auto initialState = simulation->getState();
+
+    ASSERT_EQ(simulation->run(2.0), 0);
+    const auto disturbedState = simulation->getState();
+    bool respondedToLoadPulse = false;
+    ASSERT_EQ(initialState.size(), disturbedState.size());
+    for (std::size_t index = 0; index < initialState.size(); ++index) {
+        if (std::abs(disturbedState[index] - initialState[index]) > 1e-6) {
+            respondedToLoadPulse = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(respondedToLoadPulse);
+
+    ASSERT_EQ(simulation->run(18.0), 0);
+    const auto recoveredState = simulation->getState();
+    ASSERT_EQ(simulation->run(20.0), 0);
+    const auto finalState = simulation->getState();
+    ASSERT_EQ(recoveredState.size(), finalState.size());
+    // The first state is the reference generator angle; compare the remaining states for settling.
+    for (std::size_t index = 0; index < finalState.size(); ++index) {
+        EXPECT_TRUE(std::isfinite(finalState[index]));
+        EXPECT_LT(std::abs(finalState[index]), 10.0);
+        if (index != 0) {
+            EXPECT_NEAR(finalState[index], recoveredState[index], 0.005);
+        }
+    }
 }
 }  // namespace
 
@@ -297,4 +343,22 @@ TEST_F(StabilizerTests, IeeestAnalyticJacobianMatchesFiniteDifferencesWhenAttach
     ASSERT_EQ(gds->dynInitialize(), 0);
     EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode, false), 0);
+}
+
+TEST_F(StabilizerTests, AttachedStabilizersSettleAfterLoadPulse)
+{
+    runAttachedStabilizerLoadPulseTest(gds, "IEEEST", [](DynamicGenerator* generator) {
+        auto* stabilizer = new stabilizers::StabilizerIEEEST();
+        configureIeeest(*stabilizer);
+        stabilizer->set("lsmax", 2.0);
+        stabilizer->set("lsmin", -2.0);
+        generator->add(stabilizer);
+    });
+    runAttachedStabilizerLoadPulseTest(gds, "ST2CUT", [](DynamicGenerator* generator) {
+        auto* stabilizer = new stabilizers::StabilizerST2CUT();
+        configureSt2cut(*stabilizer);
+        stabilizer->set("lsmax", 2.0);
+        stabilizer->set("lsmin", -2.0);
+        generator->add(stabilizer);
+    });
 }

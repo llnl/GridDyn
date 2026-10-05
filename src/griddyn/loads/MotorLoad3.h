@@ -53,6 +53,11 @@ class MotorLoad3: public MotorLoad {
                           const StateData& sD,
                           double resid[],
                           const SolverMode& sMode) override;
+    virtual void algebraicUpdate(const IOdata& inputs,
+                                 const StateData& sD,
+                                 double update[],
+                                 const SolverMode& sMode,
+                                 double alpha) override;
 
     virtual void derivative(const IOdata& inputs,
                             const StateData& sD,

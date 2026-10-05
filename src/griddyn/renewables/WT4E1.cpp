@@ -421,24 +421,26 @@ void WT4E1::jacobianElements(const IOdata& inputs,
         for (index_t rowIndex = 0; rowIndex < 3; ++rowIndex) {
             matrixData.assign(locations.algOffset + rowIndex, locations.algOffset + rowIndex, -1.0);
         }
-        for (index_t stateIndex = 0; stateIndex < 5; ++stateIndex) {
-            auto plus = std::array<double, 5>{locations.diffStateLoc[0],
-                                              locations.diffStateLoc[1],
-                                              locations.diffStateLoc[2],
-                                              locations.diffStateLoc[3],
-                                              locations.diffStateLoc[4]};
-            auto minus = plus;
-            plus[stateIndex] += step;
-            minus[stateIndex] -= step;
-            const auto upperCommands = commands(inputs, plus.data());
-            const auto lowerCommands = commands(inputs, minus.data());
-            const std::array<double, 3> upperValues{upperCommands[0],
-                                                    plus[reactiveCurrentFilterState],
-                                                    initialP + optional(inputs, 3)};
-            const std::array<double, 3> lowerValues{lowerCommands[0],
-                                                    minus[reactiveCurrentFilterState],
-                                                    initialP + optional(inputs, 3)};
-            assign(upperValues, lowerValues, locations.diffOffset + stateIndex, false);
+        if (hasDifferential(sMode)) {
+            for (index_t stateIndex = 0; stateIndex < 5; ++stateIndex) {
+                auto plus = std::array<double, 5>{locations.diffStateLoc[0],
+                                                  locations.diffStateLoc[1],
+                                                  locations.diffStateLoc[2],
+                                                  locations.diffStateLoc[3],
+                                                  locations.diffStateLoc[4]};
+                auto minus = plus;
+                plus[stateIndex] += step;
+                minus[stateIndex] -= step;
+                const auto upperCommands = commands(inputs, plus.data());
+                const auto lowerCommands = commands(inputs, minus.data());
+                const std::array<double, 3> upperValues{upperCommands[0],
+                                                        plus[reactiveCurrentFilterState],
+                                                        initialP + optional(inputs, 3)};
+                const std::array<double, 3> lowerValues{lowerCommands[0],
+                                                        minus[reactiveCurrentFilterState],
+                                                        initialP + optional(inputs, 3)};
+                assign(upperValues, lowerValues, locations.diffOffset + stateIndex, false);
+            }
         }
     }
     for (std::size_t inputIndex = 0; inputIndex < inputs.size() && inputIndex < inputLocs.size();

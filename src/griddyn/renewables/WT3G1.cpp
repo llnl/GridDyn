@@ -239,6 +239,26 @@ void WT3G1::jacobianElements(const IOdata& inputs,
         matrixData.assign(loc.algOffset + electricalReactivePower,
                           loc.algOffset + electricalReactivePower,
                           -1.0);
+        if (hasDifferential(sMode)) {
+            for (index_t stateIndex = 0; stateIndex < 4; ++stateIndex) {
+                auto plus = std::array<double, 4>{loc.diffStateLoc[0],
+                                                  loc.diffStateLoc[1],
+                                                  loc.diffStateLoc[2],
+                                                  loc.diffStateLoc[3]};
+                auto minus = plus;
+                plus[stateIndex] += step;
+                minus[stateIndex] -= step;
+                const auto upper = power(inputs, plus.data());
+                const auto lower = power(inputs, minus.data());
+                for (index_t row = 0; row < 2; ++row) {
+                    matrixData.assign(loc.algOffset + row,
+                                      loc.diffOffset + stateIndex,
+                                      (upper[row] - lower[row]) / (2 * step));
+                }
+            }
+        }
+    }
+    if (hasDifferential(sMode)) {
         for (index_t stateIndex = 0; stateIndex < 4; ++stateIndex) {
             auto plus = std::array<double, 4>{loc.diffStateLoc[0],
                                               loc.diffStateLoc[1],
@@ -247,33 +267,14 @@ void WT3G1::jacobianElements(const IOdata& inputs,
             auto minus = plus;
             plus[stateIndex] += step;
             minus[stateIndex] -= step;
-            const auto upper = power(inputs, plus.data());
-            const auto lower = power(inputs, minus.data());
-            for (index_t row = 0; row < 2; ++row) {
-                matrixData.assign(loc.algOffset + row,
+            const auto upper = rates(inputs, plus.data());
+            const auto lower = rates(inputs, minus.data());
+            for (index_t row = 0; row < 4; ++row) {
+                matrixData.assign(loc.diffOffset + row,
                                   loc.diffOffset + stateIndex,
-                                  (upper[row] - lower[row]) / (2 * step));
+                                  ((upper[row] - lower[row]) / (2 * step)) -
+                                      (row == stateIndex ? stateData.cj : 0.0));
             }
-        }
-    }
-    if (!hasDifferential(sMode)) {
-        return;
-    }
-    for (index_t stateIndex = 0; stateIndex < 4; ++stateIndex) {
-        auto plus = std::array<double, 4>{loc.diffStateLoc[0],
-                                          loc.diffStateLoc[1],
-                                          loc.diffStateLoc[2],
-                                          loc.diffStateLoc[3]};
-        auto minus = plus;
-        plus[stateIndex] += step;
-        minus[stateIndex] -= step;
-        const auto upper = rates(inputs, plus.data());
-        const auto lower = rates(inputs, minus.data());
-        for (index_t row = 0; row < 4; ++row) {
-            matrixData.assign(loc.diffOffset + row,
-                              loc.diffOffset + stateIndex,
-                              ((upper[row] - lower[row]) / (2 * step)) -
-                                  (row == stateIndex ? stateData.cj : 0.0));
         }
     }
     for (std::size_t inputIndex = 0; inputIndex < inputs.size() && inputIndex < inputLocs.size();
@@ -285,12 +286,14 @@ void WT3G1::jacobianElements(const IOdata& inputs,
         auto minus = inputs;
         plus[inputIndex] += step;
         minus[inputIndex] -= step;
-        const auto upper = rates(plus, loc.diffStateLoc);
-        const auto lower = rates(minus, loc.diffStateLoc);
-        for (index_t row = 0; row < 4; ++row) {
-            matrixData.assign(loc.diffOffset + row,
-                              inputLocs[inputIndex],
-                              (upper[row] - lower[row]) / (2 * step));
+        if (hasDifferential(sMode)) {
+            const auto upper = rates(plus, loc.diffStateLoc);
+            const auto lower = rates(minus, loc.diffStateLoc);
+            for (index_t row = 0; row < 4; ++row) {
+                matrixData.assign(loc.diffOffset + row,
+                                  inputLocs[inputIndex],
+                                  (upper[row] - lower[row]) / (2 * step));
+            }
         }
         if (hasAlgebraic(sMode)) {
             const auto powerUpper = power(plus, loc.diffStateLoc);

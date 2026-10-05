@@ -35,6 +35,8 @@
 #include <memory>
 #include <print>
 #include <string>
+#include <string_view>
+#include <utility>
 #include <vector>
 // test case for CoreObject object
 
@@ -1607,4 +1609,108 @@ TEST_F(GovernorTests, IeeeG1CouplesMixedGeneratorModelsExactlyOnce)
     EXPECT_EQ(secondary->find("governor"), unusedLocalGovernor);
     EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode), 0);
     EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode), 0);
+}
+
+TEST_F(GovernorTests, PartitionedGovernorEquationSweep)
+{
+    using Parameter = std::pair<std::string, double>;
+    struct GovernorCase {
+        std::string_view name;
+        std::vector<Parameter> parameters;
+    };
+    const std::array cases{
+        GovernorCase{"tgov1", {{"r", 0.05}, {"t1", 0.05}, {"pmax", 2.0}, {"pmin", 0.0},
+                                {"t2", 1.0}, {"t3", 2.1}, {"dt", 0.1}}},
+        GovernorCase{"gast", {{"r", 0.05}, {"t1", 0.4}, {"t2", 0.1}, {"t3", 3.0},
+                               {"at", 1.5}, {"kt", 2.0}, {"vmax", 1.5}, {"vmin", -0.05},
+                               {"dt", 0.1}}},
+        GovernorCase{"hydro", {{"k", 5.0}, {"t1", 0.25}, {"t2", 0.0}, {"t3", 0.1},
+                                {"tw", 0.04}, {"pmax", 2.0}, {"pmin", 0.0}}},
+        GovernorCase{"hygov", {{"r", 0.05}, {"temporarydroop", 0.3}, {"tr", 5.0},
+                                {"tf", 0.05}, {"tg", 0.5}, {"velm", 0.2}, {"gmax", 1.5},
+                                {"gmin", 0.0}, {"tw", 1.25}, {"at", 1.2}, {"dturb", 0.2},
+                                {"qnl", 0.08}}},
+        GovernorCase{"ieeeg1", {{"k", 20.0}, {"t1", 0.2}, {"t2", 0.05}, {"t3", 0.1},
+                                 {"uo", 0.3}, {"uc", -0.25}, {"pmax", 2.0}, {"pmin", 0.0},
+                                 {"t4", 0.4}, {"k1", 0.3}, {"k2", 0.0}, {"t5", 0.0},
+                                 {"k3", 0.2}, {"k4", 0.0}, {"t6", 0.5}, {"k5", 0.1},
+                                 {"k6", 0.0}, {"t7", 0.2}, {"k7", 0.1}, {"k8", 0.0}}},
+        GovernorCase{"ggov1", {{"vmax", 2.0}, {"vmin", 0.0}, {"kturb", 2.0}, {"ldref", 1.2},
+                                {"kiload", 0.0}, {"fswitch", 0.0}, {"rselect", -2.0}}},
+        GovernorCase{"gpwscc", {{"mwcap", 100.0}, {"mvabase", 100.0}, {"gmax", 2.0},
+                                 {"gmin", 0.0}, {"r", 0.055}, {"td", 0.04}, {"tf", 0.04},
+                                 {"tp", 0.13}, {"velopen", 0.3}, {"velclose", -0.3},
+                                 {"kp", 4.0}, {"kd", 1.5}, {"ki", 2.0}, {"kg", 15.0},
+                                 {"tturb", 1.0}, {"aturb", 0.8}, {"bturb", 1.0}, {"tt", 2.0},
+                                 {"db1", 0.01}}},
+    };
+
+    for (const auto& governorCase : cases) {
+        SCOPED_TRACE(governorCase.name);
+        GridDynSimulation::resetObjectCounters();
+        gds = readSimXMLFile(std::string(GOVERNOR_TEST_DIRECTORY "test_gov_stability.xml"));
+        ASSERT_NE(gds, nullptr);
+        gds->set("dynamicsolvermethod", "partitioned");
+        gds->set("defdyndiff", "basicode");
+        gds->set("timestep", 0.005);
+
+        auto* generator = dynamic_cast<DynamicGenerator*>(gds->findByUserID("gen", 2));
+        ASSERT_NE(generator, nullptr);
+        auto factory = CoreObjectFactory::instance();
+        std::unique_ptr<CoreObject> object(factory->createObject("governor", governorCase.name));
+        ASSERT_NE(object, nullptr) << "Could not create governor " << governorCase.name;
+        for (const auto& [parameter, value] : governorCase.parameters) {
+            object->set(parameter, value);
+        }
+        generator->add(object.release());
+
+        {
+            SCOPED_TRACE("dynamic initialization");
+            ASSERT_EQ(gds->dynInitialize(), 0) << "dynInitialize for " << governorCase.name;
+        }
+        {
+            SCOPED_TRACE("partitioned startup");
+            ASSERT_EQ(gds->run(0.005), 0) << "partitioned startup for " << governorCase.name;
+        }
+        const auto algMode = gds->getSolverMode("dynalg");
+        const auto diffMode = gds->getSolverMode("dyndiff");
+        ASSERT_GT(gds->stateSize(algMode), 0U);
+        ASSERT_GT(gds->stateSize(diffMode), 0U);
+
+        {
+            SCOPED_TRACE("partitioned diagnostics");
+            {
+                SCOPED_TRACE("algebraic residual");
+                EXPECT_EQ(runResidualCheck(gds, algMode, false), 0);
+            }
+            {
+                SCOPED_TRACE("differential residual");
+                EXPECT_EQ(runResidualCheck(gds, diffMode, false), 0);
+            }
+            {
+                SCOPED_TRACE("algebraic update");
+                EXPECT_EQ(runAlgebraicCheck(gds, algMode, false), 0);
+            }
+            {
+                SCOPED_TRACE("derivative");
+                EXPECT_EQ(runDerivativeCheck(gds, diffMode, false), 0);
+            }
+            {
+                SCOPED_TRACE("algebraic Jacobian");
+                EXPECT_EQ(runJacobianCheck(gds, algMode, false), 0);
+            }
+            {
+                SCOPED_TRACE("differential Jacobian");
+                EXPECT_EQ(runJacobianCheck(gds, diffMode, false), 0);
+            }
+        }
+
+        ASSERT_EQ(gds->run(0.05), 0) << "short integration for " << governorCase.name;
+        for (const auto mode : {algMode, diffMode}) {
+            const auto state = gds->getState(mode);
+            EXPECT_TRUE(std::all_of(state.begin(), state.end(), [](double value) {
+                return std::isfinite(value) && std::abs(value) < 100.0;
+            })) << "non-finite or unbounded partition state";
+        }
+    }
 }

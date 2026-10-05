@@ -438,20 +438,22 @@ void WT3E1::jacobianElements(const IOdata& inputs,
                               locations.algOffset + stateIndex,
                               -1.0);
         }
-        for (index_t stateIndex = 0; stateIndex < 4; ++stateIndex) {
-            auto plus = std::array<double, 4>{locations.diffStateLoc[0],
-                                              locations.diffStateLoc[1],
-                                              locations.diffStateLoc[2],
-                                              locations.diffStateLoc[3]};
-            auto minus = plus;
-            plus[stateIndex] += step;
-            minus[stateIndex] -= step;
-            const auto upper = commands(inputs, plus.data());
-            const auto lower = commands(inputs, minus.data());
-            for (index_t row = 0; row < 3; ++row) {
-                matrixData.assign(locations.algOffset + row,
-                                  locations.diffOffset + stateIndex,
-                                  (upper[row] - lower[row]) / (2 * step));
+        if (hasDifferential(sMode)) {
+            for (index_t stateIndex = 0; stateIndex < 4; ++stateIndex) {
+                auto plus = std::array<double, 4>{locations.diffStateLoc[0],
+                                                  locations.diffStateLoc[1],
+                                                  locations.diffStateLoc[2],
+                                                  locations.diffStateLoc[3]};
+                auto minus = plus;
+                plus[stateIndex] += step;
+                minus[stateIndex] -= step;
+                const auto upper = commands(inputs, plus.data());
+                const auto lower = commands(inputs, minus.data());
+                for (index_t row = 0; row < 3; ++row) {
+                    matrixData.assign(locations.algOffset + row,
+                                      locations.diffOffset + stateIndex,
+                                      (upper[row] - lower[row]) / (2 * step));
+                }
             }
         }
     }

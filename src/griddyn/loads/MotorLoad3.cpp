@@ -201,10 +201,12 @@ void MotorLoad3::residual(const IOdata& inputs,
         double Vr = -voltage * Vcontrol * sin(theta);
         double Vm = voltage * Vcontrol * cos(theta);
 
-        // ir
-        rva[0] = Vm - gmd[2] - r * gm[1] - xp * gm[0];
-        // im
-        rva[1] = Vr - gmd[1] - r * gm[0] + xp * gm[1];
+        if (hasAlgebraic(sMode)) {
+            // ir
+            rva[0] = Vm - gmd[2] - r * gm[1] - xp * gm[0];
+            // im
+            rva[1] = Vr - gmd[1] - r * gm[0] + xp * gm[1];
+        }
 
         if (isAlgebraicOnly(sMode)) {
             return;
@@ -249,6 +251,31 @@ void MotorLoad3::residual(const IOdata& inputs,
         rv[3] = systemBaseFrequency * slip * gm[4] - (gm[3] + (x0 - xp) * gm[1]) / T0p;
         rv[4] = -systemBaseFrequency * slip * gm[3] - (gm[4] - (x0 - xp) * gm[0]) / T0p;
     }
+}
+
+void MotorLoad3::algebraicUpdate(const IOdata& inputs,
+                                 const StateData& sD,
+                                 double update[],
+                                 const SolverMode& sMode,
+                                 double /*alpha*/)
+{
+    if (!hasAlgebraic(sMode)) {
+        return;
+    }
+    auto Loc = offsets.getLocations(sD, update, sMode, this);
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
+    const double theta = inputs[ANGLE_IN_LOCATION];
+    const double vr = -voltage * Vcontrol * sin(theta);
+    const double vm = voltage * Vcontrol * cos(theta);
+
+    gmlc::utilities::solve2x2(r,
+                              -xp,
+                              xp,
+                              r,
+                              vr - Loc.diffStateLoc[1],
+                              vm - Loc.diffStateLoc[2],
+                              Loc.destLoc[0],
+                              Loc.destLoc[1]);
 }
 
 void MotorLoad3::getStateName(stringVec& stNames,
@@ -378,30 +405,35 @@ void MotorLoad3::jacobianElements(const IOdata& inputs,
     // im
     // rva[1] = Vr - gmd[1] - r*gm[0] + xp*gm[1];
 
-    // P
-    if (TLoc != kNullLocation) {
-        md.assign(refAlg, TLoc, Vr);
-        md.assign(refAlg + 1, TLoc, -Vm);
-    }
-    // Q
-    if (VLoc != kNullLocation) {
-        md.assign(refAlg, VLoc, Vm / voltage);
-        md.assign(refAlg + 1, VLoc, Vr / voltage);
-    }
+    const bool hasAlgebraicRows = !isDynamic(sMode) || hasAlgebraic(sMode);
+    if (hasAlgebraicRows) {
+        // P
+        if (TLoc != kNullLocation) {
+            md.assign(refAlg, TLoc, Vr);
+            md.assign(refAlg + 1, TLoc, -Vm);
+        }
+        // Q
+        if (VLoc != kNullLocation) {
+            md.assign(refAlg, VLoc, Vm / voltage);
+            md.assign(refAlg + 1, VLoc, Vr / voltage);
+        }
 
-    md.assign(refAlg, refAlg, -xp);
-    md.assign(refAlg, refAlg + 1, -r);
+        md.assign(refAlg, refAlg, -xp);
+        md.assign(refAlg, refAlg + 1, -r);
 
-    md.assign(refAlg + 1, refAlg, -r);
-    md.assign(refAlg + 1, refAlg + 1, xp);
-    if ((isDynamic(sMode)) && (isAlgebraicOnly(sMode))) {
+        md.assign(refAlg + 1, refAlg, -r);
+        md.assign(refAlg + 1, refAlg + 1, xp);
+    }
+    if (isDynamic(sMode) && !hasDifferential(sMode)) {
         return;
     }
     // Ir Differential
 
-    md.assign(refAlg, refDiff + 2, -1.0);
-    // Im Differential
-    md.assign(refAlg + 1, refDiff + 1, -1.0);
+    if (hasAlgebraicRows && (!isDynamic(sMode) || hasDifferential(sMode))) {
+        md.assign(refAlg, refDiff + 2, -1.0);
+        // Im Differential
+        md.assign(refAlg + 1, refDiff + 1, -1.0);
+    }
 
     double slip = dst[0];
     if ((isDynamic(sMode)) || (!opFlags[INIT_TRANSIENT])) {
@@ -418,8 +450,10 @@ void MotorLoad3::jacobianElements(const IOdata& inputs,
             md.assign(refDiff, refDiff, dmechds(slip) / (2.0 * H) - cj);
             md.assign(refDiff, refDiff + 1, -gm[0] / (2.0 * H));
             md.assign(refDiff, refDiff + 2, -gm[1] / (2.0 * H));
-            md.assign(refDiff, refAlg, -dst[1] / (2.0 * H));
-            md.assign(refDiff, refAlg + 1, -dst[2] / (2.0 * H));
+            if (hasAlgebraicRows) {
+                md.assign(refDiff, refAlg, -dst[1] / (2.0 * H));
+                md.assign(refDiff, refAlg + 1, -dst[2] / (2.0 * H));
+            }
         }
     } else {
         md.assign(refDiff, refDiff, 1.0);
@@ -430,12 +464,16 @@ void MotorLoad3::jacobianElements(const IOdata& inputs,
     // dv[1] = systemBaseFrequency*slip*dst[2] - (dst[1] + (x0 - xp)*ast[1]) / T0p;
     // dv[2] = -systemBaseFrequency*slip*dst[1] - (dst[2] - (x0 - xp)*ast[0]) / T0p;
 
-    md.assign(refDiff + 1, refAlg + 1, -(x0 - xp) / T0p);
+    if (hasAlgebraicRows) {
+        md.assign(refDiff + 1, refAlg + 1, -(x0 - xp) / T0p);
+    }
     md.assign(refDiff + 1, refDiff, systemBaseFrequency * dst[2]);
     md.assign(refDiff + 1, refDiff + 1, -1.0 / T0p - cj);
     md.assign(refDiff + 1, refDiff + 2, systemBaseFrequency * slip);
 
-    md.assign(refDiff + 2, refAlg, (x0 - xp) / T0p);
+    if (hasAlgebraicRows) {
+        md.assign(refDiff + 2, refAlg, (x0 - xp) / T0p);
+    }
     md.assign(refDiff + 2, refDiff, -systemBaseFrequency * dst[1]);
     md.assign(refDiff + 2, refDiff + 1, -systemBaseFrequency * slip);
     md.assign(refDiff + 2, refDiff + 2, -1.0 / T0p - cj);

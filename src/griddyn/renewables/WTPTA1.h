@@ -15,6 +15,7 @@ class WTPTA1 final: public RenewableComponent {
   public:
     explicit WTPTA1(const std::string& name = "WTPTA1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using RenewableComponent::set;
     RenewableRole role() const override { return RenewableRole::pitchControl; }
     std::span<const RenewablePort> inputPorts() const override;
     std::span<const RenewablePort> outputPorts() const override;

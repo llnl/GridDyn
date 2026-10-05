@@ -16,6 +16,7 @@ class WT3E1 final: public RenewableComponent {
   public:
     explicit WT3E1(const std::string& name = "WT3E1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using RenewableComponent::set;
     RenewableRole role() const override { return RenewableRole::electricalControl; }
     std::span<const RenewablePort> inputPorts() const override;
     std::span<const RenewablePort> outputPorts() const override;

@@ -41,7 +41,7 @@ namespace {
     }};
 }  // namespace
 
-REECA1G::REECA1G(const std::string& name): REECA1(name)
+REECA1G::REECA1G(const std::string& objName): REECA1(objName)
 {
     m_inputSize = 6;
 }

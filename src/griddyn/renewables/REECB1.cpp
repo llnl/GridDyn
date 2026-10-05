@@ -12,7 +12,7 @@
 
 namespace griddyn {
 
-REECB1::REECB1(const std::string& name): REECA1(name)
+REECB1::REECB1(const std::string& objName): REECA1(objName)
 {
     set("imax", 999.0);
 }

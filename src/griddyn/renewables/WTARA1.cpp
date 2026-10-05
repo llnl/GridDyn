@@ -27,7 +27,7 @@ namespace {
     }};
 }  // namespace
 
-WTARA1::WTARA1(const std::string& name): RenewableComponent(name)
+WTARA1::WTARA1(const std::string& objName): RenewableComponent(objName)
 {
     m_inputSize = 1;
     m_outputSize = 2;

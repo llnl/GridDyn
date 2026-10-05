@@ -40,7 +40,7 @@ namespace {
     }
 }  // namespace
 
-RenewableGenerator::RenewableGenerator(const std::string& name): Generator(name) {}
+RenewableGenerator::RenewableGenerator(const std::string& objName): Generator(objName) {}
 
 CoreObject* RenewableGenerator::clone(CoreObject* obj) const
 {
@@ -369,12 +369,12 @@ GridBus* RenewableGenerator::regulationSource(const RenewableComponent* model) c
         auto* area = pending.back();
         pending.pop_back();
         for (index_t busIndex = 0; area->getBus(busIndex) != nullptr; ++busIndex) {
-            auto* bus = area->getBus(busIndex);
-            if (bus->getName() == requested) {
+            auto* busObject = area->getBus(busIndex);
+            if (busObject->getName() == requested) {
                 if (match != nullptr) {
                     throw InvalidParameterValue("renewable regulation bus name is ambiguous");
                 }
-                match = bus;
+                match = busObject;
             }
         }
         for (index_t areaIndex = 0; area->getArea(areaIndex) != nullptr; ++areaIndex) {
@@ -418,8 +418,8 @@ IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
                 }
                 break;
             case RenewableSignal::regulationVoltage:
-                if (auto* bus = regulationSource(model); bus != nullptr) {
-                    result[portIndex] = bus->getVoltage(stateDataValue, sMode);
+                if (auto* busObject = regulationSource(model); busObject != nullptr) {
+                    result[portIndex] = busObject->getVoltage(stateDataValue, sMode);
                 }
                 break;
             default:
@@ -495,8 +495,8 @@ IOlocs RenewableGenerator::modelInputLocs(const RenewableComponent* model,
                 result[portIndex] = inputLocs[FREQUENCY_IN_LOCATION];
             }
         } else if (port.signal == RenewableSignal::regulationVoltage) {
-            if (auto* bus = regulationSource(model); bus != nullptr) {
-                result[portIndex] = bus->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
+            if (auto* busObject = regulationSource(model); busObject != nullptr) {
+                result[portIndex] = busObject->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
             }
         } else {
             if (auto* machine = machineSource(model, port.signal); machine != nullptr) {

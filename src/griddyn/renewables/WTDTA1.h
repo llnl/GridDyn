@@ -20,6 +20,7 @@ class WTDTA1 final: public RenewableComponent {
   public:
     explicit WTDTA1(const std::string& name = "WTDTA1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using RenewableComponent::set;
     RenewableRole role() const override { return RenewableRole::driveTrain; }
     std::span<const RenewablePort> inputPorts() const override;
     std::span<const RenewablePort> outputPorts() const override;

@@ -15,6 +15,7 @@ class WTDS final: public RenewableComponent {
   public:
     explicit WTDS(const std::string& name = "WTDS_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using RenewableComponent::set;
     RenewableRole role() const override { return RenewableRole::driveTrain; }
     std::span<const RenewablePort> inputPorts() const override;
     std::span<const RenewablePort> outputPorts() const override;

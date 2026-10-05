@@ -15,7 +15,7 @@
 #include <vector>
 
 namespace griddyn::governors {
-GovernorHygovDB::GovernorHygovDB(const std::string& name): GovernorHygov(name)
+GovernorHygovDB::GovernorHygovDB(const std::string& objName): GovernorHygov(objName)
 {
     K = 20.0;
     temporaryDroop = 1.0;

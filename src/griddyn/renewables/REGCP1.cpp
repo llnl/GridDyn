@@ -32,7 +32,7 @@ namespace {
     }};
 }  // namespace
 
-REGCP1::REGCP1(const std::string& name): REGCA1(name)
+REGCP1::REGCP1(const std::string& objName): REGCA1(objName)
 {
     m_inputSize = 5;
 }

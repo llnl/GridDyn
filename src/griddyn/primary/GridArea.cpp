@@ -2107,11 +2107,11 @@ double GridArea::getBoundaryTieFlowReal() const
             if (isSameObject(object, this)) {
                 return true;
             }
-            const auto* parent = object->getParent();
-            if (parent == object) {
+            const auto* parentObject = object->getParent();
+            if (parentObject == object) {
                 break;
             }
-            object = parent;
+            object = parentObject;
         }
         return false;
     };
@@ -2148,11 +2148,11 @@ double GridArea::getTieFlowReal(index_t areaUserID) const
             if (isSameObject(object, area)) {
                 return true;
             }
-            auto* parent = object->getParent();
-            if (parent == object) {
+            auto* parentObject = object->getParent();
+            if (parentObject == object) {
                 break;
             }
-            object = parent;
+            object = parentObject;
         }
         return false;
     };

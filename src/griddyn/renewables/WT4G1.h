@@ -22,6 +22,7 @@ class WT4G1 final: public TerminalElectricalModel {
   public:
     explicit WT4G1(const std::string& name = "WT4G1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using TerminalElectricalModel::set;
     std::span<const RenewablePort> inputPorts() const override;
     std::span<const RenewablePort> outputPorts() const override;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;

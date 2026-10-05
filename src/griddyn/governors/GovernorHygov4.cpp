@@ -15,7 +15,7 @@
 #include <string>
 
 namespace griddyn::governors {
-GovernorHygov4::GovernorHygov4(const std::string& name): Governor(name)
+GovernorHygov4::GovernorHygov4(const std::string& objName): Governor(objName)
 {
     Pmax = 1.0;
     Pmin = 0.0;

@@ -34,7 +34,7 @@ namespace {
     constexpr index_t windGenerator = 0, windTurbine = 1, shaft = 2;
 }  // namespace
 
-WTDTA1::WTDTA1(const std::string& name): RenewableComponent(name)
+WTDTA1::WTDTA1(const std::string& objName): RenewableComponent(objName)
 {
     m_inputSize = 3;
     m_outputSize = 2;

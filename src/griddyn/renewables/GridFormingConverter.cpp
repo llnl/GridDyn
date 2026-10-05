@@ -86,15 +86,15 @@ namespace {
     constexpr double piConstant = 3.14159265358979323846;
 }  // namespace
 
-GridFormingConverter::GridFormingConverter(Variant variantType, const std::string& name):
-    TerminalElectricalModel(name), variant(variantType)
+GridFormingConverter::GridFormingConverter(Variant variantType, const std::string& objName):
+    TerminalElectricalModel(objName), variant(variantType)
 {
     std::copy(defaults.begin(), defaults.end(), parameters.begin());
     m_inputSize = variant == Variant::f2 ? 3 : 2;
 }
 
-GridFormingConverter::GridFormingConverter(const std::string& name):
-    GridFormingConverter(Variant::cv1, name)
+GridFormingConverter::GridFormingConverter(const std::string& objName):
+    GridFormingConverter(Variant::cv1, objName)
 {
 }
 
@@ -578,7 +578,7 @@ stringVec GridFormingConverter::localStateNames() const
 }
 
 #define GRID_FORMING_MODEL_IMPL(Model, kind)                                                       \
-    Model::Model(const std::string& name): GridFormingConverter(Variant::kind, name) {}            \
+    Model::Model(const std::string& objName): GridFormingConverter(Variant::kind, objName) {}     \
     CoreObject* Model::clone(CoreObject* obj) const                                                \
     {                                                                                              \
         auto* out = cloneBase<Model, GridFormingConverter>(this, obj);                             \

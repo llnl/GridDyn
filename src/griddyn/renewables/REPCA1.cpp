@@ -32,7 +32,7 @@ namespace {
                       lag = 3;
 }  // namespace
 
-REPCA1::REPCA1(const std::string& name): RenewableComponent(name)
+REPCA1::REPCA1(const std::string& objName): RenewableComponent(objName)
 {
     m_inputSize = 2;
     m_outputSize = 2;

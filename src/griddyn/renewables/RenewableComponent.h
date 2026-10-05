@@ -73,8 +73,8 @@ struct RenewablePort {
 /** Common connection contract for renewable submodels. */
 class RenewableComponent: public GridSubModel {
   public:
-    explicit RenewableComponent(const std::string& name = "renewableComponent_#"):
-        GridSubModel(name)
+    explicit RenewableComponent(const std::string& objName = "renewableComponent_#"):
+        GridSubModel(objName)
     {
     }
     virtual RenewableRole role() const = 0;
@@ -86,8 +86,8 @@ class RenewableComponent: public GridSubModel {
 /** The one mandatory grid-facing role: terminal generation P/Q on machine base. */
 class TerminalElectricalModel: public RenewableComponent {
   public:
-    explicit TerminalElectricalModel(const std::string& name = "renewableElectrical_#"):
-        RenewableComponent(name)
+    explicit TerminalElectricalModel(const std::string& objName = "renewableElectrical_#"):
+        RenewableComponent(objName)
     {
         m_outputSize = 2;
     }

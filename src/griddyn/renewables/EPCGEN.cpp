@@ -38,7 +38,7 @@ namespace {
     }
 }  // namespace
 
-EPCGEN::EPCGEN(const std::string& name): TerminalElectricalModel(name)
+EPCGEN::EPCGEN(const std::string& objName): TerminalElectricalModel(objName)
 {
     m_inputSize = 2;
 }

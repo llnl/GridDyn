@@ -32,7 +32,7 @@ namespace {
     constexpr index_t theta = 0, speedIntegral = 1, powerIntegral = 2;
 }  // namespace
 
-WTPTA1::WTPTA1(const std::string& name): RenewableComponent(name)
+WTPTA1::WTPTA1(const std::string& objName): RenewableComponent(objName)
 {
     m_inputSize = 5;
     m_outputSize = 1;

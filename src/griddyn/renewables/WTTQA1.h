@@ -15,6 +15,7 @@ class WTTQA1 final: public RenewableComponent {
   public:
     explicit WTTQA1(const std::string& name = "WTTQA1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using RenewableComponent::set;
     RenewableRole role() const override { return RenewableRole::torqueControl; }
     std::span<const RenewablePort> inputPorts() const override;
     std::span<const RenewablePort> outputPorts() const override;

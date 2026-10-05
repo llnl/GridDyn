@@ -17,6 +17,7 @@ class REECA1: public RenewableComponent {
   public:
     explicit REECA1(const std::string& name = "REECA1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using RenewableComponent::set;
     RenewableRole role() const override { return RenewableRole::electricalControl; }
     std::span<const RenewablePort> inputPorts() const override;
     std::span<const RenewablePort> outputPorts() const override;

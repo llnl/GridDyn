@@ -25,6 +25,8 @@ class RenewableGenerator: public Generator {
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     using Generator::add;
+    using Generator::getReactivePower;
+    using Generator::getRealPower;
     void add(GridSubModel* obj) override;
     void remove(CoreObject* obj) override;
     CoreObject* find(std::string_view object) const override;

@@ -57,7 +57,7 @@ namespace {
         return inputData.size() > index && inputData[index] != kNullVal ? inputData[index] : 0.0;
     }
 }  // namespace
-WT3E1::WT3E1(const std::string& name): RenewableComponent(name)
+WT3E1::WT3E1(const std::string& objName): RenewableComponent(objName)
 {
     m_inputSize = 8;
     m_outputSize = 4;

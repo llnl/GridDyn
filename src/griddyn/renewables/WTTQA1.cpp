@@ -27,7 +27,7 @@ namespace {
     constexpr index_t pref = 0, pef = 0, wref = 1, integral = 2;
 }  // namespace
 
-WTTQA1::WTTQA1(const std::string& name): RenewableComponent(name)
+WTTQA1::WTTQA1(const std::string& objName): RenewableComponent(objName)
 {
     m_inputSize = 2;
     m_outputSize = 2;

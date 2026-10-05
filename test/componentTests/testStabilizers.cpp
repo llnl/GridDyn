@@ -10,9 +10,9 @@
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
+#include <cmath>
 #include <functional>
 #include <gtest/gtest.h>
-#include <cmath>
 #include <memory>
 #include <string>
 #include <vector>

@@ -362,9 +362,9 @@ std::unique_ptr<RenewableGenerator> renewableDynamicHost(RenewableDynamicProfile
 }
 
 void checkRenewablePartitionedHost(RenewableGenerator& host,
-                                  const IOdata& inputs,
-                                  const IOdata& desiredOutput,
-                                  std::string_view profile)
+                                   const IOdata& inputs,
+                                   const IOdata& desiredOutput,
+                                   std::string_view profile)
 {
     host.dynInitializeA(0.0, 0);
     IOdata fields;
@@ -421,7 +421,8 @@ void checkRenewablePartitionedHost(RenewableGenerator& host,
     for (std::size_t index = 0; index < diffState.size(); ++index) {
         EXPECT_NEAR(calculatedRates[index], rates[index], 1e-8)
             << profile << " derivative " << index;
-        EXPECT_NEAR(diffResidual[index], 0.0, 1e-8) << profile << " differential residual " << index;
+        EXPECT_NEAR(diffResidual[index], 0.0, 1e-8)
+            << profile << " differential residual " << index;
     }
 
     const auto checkJacobian = [&](const SolverMode& mode, bool algebraic) {
@@ -430,11 +431,8 @@ void checkRenewablePartitionedHost(RenewableGenerator& host,
         auto stateData = makeStateData(mode, activeState, activeRates);
         stateData.cj = 0.0;
         MatrixDataSparse<double> jacobian;
-        host.jacobianElements(inputs,
-                              stateData,
-                              jacobian,
-                              IOlocs(inputs.size(), kNullLocation),
-                              mode);
+        host.jacobianElements(
+            inputs, stateData, jacobian, IOlocs(inputs.size(), kNullLocation), mode);
         jacobian.compact();
         const auto evaluate = [&](std::vector<double>& values) {
             auto trialData = makeStateData(mode, values, activeRates);
@@ -453,8 +451,7 @@ void checkRenewablePartitionedHost(RenewableGenerator& host,
             const auto shifted = evaluate(activeState);
             activeState[column] -= step;
             for (std::size_t row = 0; row < activeState.size(); ++row) {
-                EXPECT_NEAR(jacobian.at(static_cast<index_t>(row),
-                                        static_cast<index_t>(column)),
+                EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), static_cast<index_t>(column)),
                             (shifted[row] - base[row]) / step,
                             4e-4)
                     << profile << (algebraic ? " algebraic" : " differential") << " row " << row
@@ -3003,7 +3000,9 @@ TEST(RenewableModels, PartitionedEquationChecks)
     for (const auto profile : renewableDynamicProfiles) {
         SCOPED_TRACE(renewableDynamicProfileName(profile));
         auto host = renewableDynamicHost(profile);
-        checkRenewablePartitionedHost(*host, {1.0, 0.0}, {0.6, 0.1},
+        checkRenewablePartitionedHost(*host,
+                                      {1.0, 0.0},
+                                      {0.6, 0.1},
                                       renewableDynamicProfileName(profile));
     }
 }
@@ -3075,8 +3074,8 @@ TEST(RenewableModels, RenewableFaultClearingStabilityBothSolvers)
 
     for (const auto solverMethod : {std::string_view{"dae"}, std::string_view{"partitioned"}}) {
         SCOPED_TRACE(solverMethod);
-        auto simulation = renewableNetworkCase(RenewableDynamicProfile::speedCoupledWind,
-                                                solverMethod);
+        auto simulation =
+            renewableNetworkCase(RenewableDynamicProfile::speedCoupledWind, solverMethod);
         ASSERT_EQ(simulation->dynInitialize(), 0);
         auto* bus = dynamic_cast<GridBus*>(simulation->find("solar_bus"));
         ASSERT_NE(bus, nullptr);

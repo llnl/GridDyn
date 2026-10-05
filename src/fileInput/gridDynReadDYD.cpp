@@ -699,8 +699,11 @@ namespace {
     };
 
     struct DydLoadContext {
-        DydLoadContext(CoreObject* parentObject, const std::string& fileName, bool disableStabilizers):
-            mParentObject(parentObject), mFileName(fileName), mDisableStabilizers(disableStabilizers)
+        DydLoadContext(CoreObject* parentObject,
+                       const std::string& fileName,
+                       bool disableStabilizers):
+            mParentObject(parentObject), mFileName(fileName),
+            mDisableStabilizers(disableStabilizers)
         {
         }
 
@@ -912,8 +915,8 @@ namespace {
                 }
             }
             context.mWsccLoadTemplates.setTemplate(*wsccScope,
-                                                  selector,
-                                                  loads::makeWSCCLoadTemplate(parameters));
+                                                   selector,
+                                                   loads::makeWSCCLoadTemplate(parameters));
             context.mHasWsccLoadTemplates = true;
         }
         catch (const InvalidParameterValue& error) {

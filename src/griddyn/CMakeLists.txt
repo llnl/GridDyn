@@ -67,6 +67,7 @@ set(generator_headers
     renewables/REECA1E.h
     renewables/REECA1G.h
     renewables/REECB1.h
+    renewables/REECC1.h
     renewables/REPCA1.h
     renewables/WT4G1.h
     renewables/WT4E1.h
@@ -95,6 +96,7 @@ set(generator_sources
     renewables/REECA1E.cpp
     renewables/REECA1G.cpp
     renewables/REECB1.cpp
+    renewables/REECC1.cpp
     renewables/REPCA1.cpp
     renewables/WT4G1.cpp
     renewables/WT4E1.cpp

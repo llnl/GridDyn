@@ -23,9 +23,10 @@ The source cases remain outside the repository:
 | ACTIVSg25k  | `C:\Users\phlpt\Downloads\ACTIVSg25k\ACTIVSg25k.RAW`   | `C:\Users\phlpt\Downloads\ACTIVSg25k\ACTIVSg25k.dyr`            |      18,108 |
 | ACTIVSg70k  | `C:\Users\phlpt\Downloads\ACTIVSg70k\ACTIVSg70k.RAW`   | `C:\Users\phlpt\Downloads\ACTIVSg70k\ACTIVSg70k_dynamics.dyr`   |      40,418 |
 
-The five files contain 67,941 DYR records. 54,870 records use models the
-current DYR reader recognizes; 13,071 records use models that still need
-support. Recognition is not dynamic validation: a model is complete only
+The five files contain 67,941 DYR records. Based on current DYR dispatch,
+56,260 records are recognized and 11,681 remain unsupported. This count
+includes the provisional `WT3P1` and `WT3T1` adapters; recognition does not
+establish equation equivalence or dynamic validation. A model is complete only
 after import, initialization, limits, and disturbed trajectories agree with
 an external reference.
 
@@ -75,7 +76,11 @@ derive and update the particular runtime parameter for each violated bound,
 then add an active-limit residual/Jacobian regression; it should not reuse
 the one-dimensional helper blindly.
 
-## Current dynamic execution status (2026-09-22)
+## Dynamic execution results
+
+The ACTIVSg10k diagnostic run measurements below are from 2026-09-22. Model
+and importer availability was reviewed against the GridDyn working tree on
+2026-10-04; no later whole-case dynamic trajectory result is recorded here.
 
 The merged branch has moved ACTIVSg10k beyond import-only status. The supplied
 RAW/DYR pair now initializes in the Release build with the supported
@@ -154,10 +159,10 @@ consistently in both models.
 | `GAST`      |         30 |           0 |          0 |          0 |          0 |     30 | **Implemented; external trajectory open.** OpenIPSL/ANDES/GridKit equations, DYR mapping, initialization, selector/limit, and Jacobian tests are present.                                          |
 | `REECA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Implemented; validation pending.** Native renewable electrical control and DYR mapping are available with the associated `REGCA1` converter; complete external and whole-case trajectory checks. |
 | `REGCA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Implemented; validation pending.** Native renewable converter and DYR mapping are available with `REECA1`; complete external and whole-case trajectory checks.                                   |
-| `WT3E1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Partial Type-3 support.** Dedicated electrical control, DYR mapping, initialization, and host-Jacobian coverage are present. A complete Type-3 plant remains blocked by `WT3P1`/`WT3T1`.         |
-| `WT3G1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Partial Type-3 support.** Dedicated electrical interface, DYR mapping, initialization, and host-Jacobian coverage are present. A complete Type-3 plant remains blocked by `WT3P1`/`WT3T1`.       |
-| `WT3P1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing; source acquisition required.** The local test corpus confirms a nine-field record, but exact equations, field semantics, limits, and initialization are not yet authoritative.          |
-| `WT3T1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing; source acquisition required.** The local test corpus confirms an eight-field record; an historical OpenIPSL `WT12T1` file is an equation lead only, not a verified PSS/E mapping.       |
+| `WT3E1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Dedicated model; validation pending.** Electrical controller, DYR mapping, initialization, and host-Jacobian coverage are present; whole-plant trajectories remain open.                         |
+| `WT3G1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Dedicated model; validation pending.** Electrical interface, DYR mapping, initialization, and host-Jacobian coverage are present; whole-plant trajectories remain open.                          |
+| `WT3P1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Provisional adapter.** DYR records translate to `WTPTA1`; source field semantics and equation/trajectory equivalence remain unverified.                                                          |
+| `WT3T1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Provisional adapter.** DYR records translate to `WTARA1` plus `WTDS`/`WTDTA1`; source field semantics and equation/trajectory equivalence remain unverified.                                     |
 
 The broader model-by-model mapping is maintained in the
 [ANDES compatibility roadmap](andes-compatibility.md); this table is the
@@ -187,10 +192,11 @@ dependent on the separate RAW/DYR delivery; GridKit cannot substitute for it.
 ### ACTIVSg25k static DYR assessment
 
 `ACTIVSg25k.dyr` was inspected as text only and was not loaded or run. It has
-18,108 records in 22 model families. The current DYR dispatch recognizes 20
-families: the 16 conventional families listed above, `REGCA1`, `REECA1`,
-`WT3G1`, and `WT3E1`. The remaining `WT3P1` and `WT3T1` records account for
-238 records and prevent a complete Type-3 plant simulation.
+18,108 records in 22 model families. DYR dispatch recognizes all 22 names,
+including provisional `WT3P1` and `WT3T1` adapters that translate to existing
+wind components. Those translations have not been validated against the
+legacy model equations, so the case remains uncertified for full Type-3
+dynamics.
 
 The largest remaining gap is now the renewable groups. `REECA1` and `REGCA1` must be initialized and
 validated together; the four `WT3*` models are likewise one Type-3 wind-turbine
@@ -202,10 +208,9 @@ coverage.
 ### ACTIVSg70k static DYR and RAW assessment
 
 `ACTIVSg70k_dynamics.dyr` was inspected as text only and was not loaded or run.
-It has 40,418 records in 22 model families. The current DYR dispatch recognizes
-20 families: the 16 conventional families, `REGCA1`, `REECA1`, `WT3G1`, and
-`WT3E1`. The 576 `WT3P1` and 576 `WT3T1` records remain unsupported, so the
-complete Type-3 plants cannot be initialized or simulated.
+It has 40,418 records in 22 model families. DYR dispatch recognizes all 22
+names, including provisional `WT3P1` and `WT3T1` adapters. Their equation and
+parameter fidelity, and the full Type-3 trajectory, remain unverified.
 
 `GENSAL`, `HYGOV`, `GGOV1`, `ESST4B`, `SCRX`, and `ESAC6A` are recognized and
 have focused model and reader tests, but still need large-case initialization
@@ -221,20 +226,18 @@ artifacts are useful cross-tool references, but are not substitutes for the
 RAW/DYR import. The DYR is a complete plant assembly, so a run must attach
 every record for a machine ID before initializing the case.
 
-| Dynamic assembly                | DYR families required together                     |                                  Records | Execution consequence                                                                                                                                                                                |
-| ------------------------------- | -------------------------------------------------- | ---------------------------------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Round-rotor conventional plants | `GENROU`, exciter, governor, and optional `IEEEST` |                   6,937 `GENROU` records | The machine and the six currently recognized controller families need full initialization and trajectory validation; missing controller records cannot be dropped.                                   |
-| Salient-pole hydro plants       | `GENSAL` + `HYGOV` + exciter + optional `IEEEST`   | 2,306 `GENSAL` and 2,306 `HYGOV` records | Native machine and governor models are implemented; validate whole-plant initialization, bases, limits, controller interfaces, and disturbed trajectories.                                           |
-| General-governor plants         | `GENROU` + `GGOV1` + exciter + optional `IEEEST`   |                    3,419 `GGOV1` records | Native selectable governor/turbine modes are implemented; validate case parameter combinations and reject nonzero `TENG` until transport delay is added.                                             |
-| Renewable converter plants      | `REGCA1` + `REECA1`                                |                              571 of each | Components and DYR mappings are implemented; whole-case initialization and disturbed-trajectory validation remain required.                                                                          |
-| Type-3 wind plants              | `WT3G1` + `WT3E1` + `WT3P1` + `WT3T1`              |                              576 of each | The electrical pair is implemented, but the complete generator, electrical, pitch, and turbine assembly remains blocked by `WT3P1`/`WT3T1`. Do not run or represent this as a complete Type-3 plant. |
+| Dynamic assembly                | DYR families required together                     |                                  Records | Execution consequence                                                                                                                                                                            |
+| ------------------------------- | -------------------------------------------------- | ---------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Round-rotor conventional plants | `GENROU`, exciter, governor, and optional `IEEEST` |                   6,937 `GENROU` records | The machine and the six currently recognized controller families need full initialization and trajectory validation; missing controller records cannot be dropped.                               |
+| Salient-pole hydro plants       | `GENSAL` + `HYGOV` + exciter + optional `IEEEST`   | 2,306 `GENSAL` and 2,306 `HYGOV` records | Native machine and governor models are implemented; validate whole-plant initialization, bases, limits, controller interfaces, and disturbed trajectories.                                       |
+| General-governor plants         | `GENROU` + `GGOV1` + exciter + optional `IEEEST`   |                    3,419 `GGOV1` records | Native selectable governor/turbine modes are implemented; validate case parameter combinations and reject nonzero `TENG` until transport delay is added.                                         |
+| Renewable converter plants      | `REGCA1` + `REECA1`                                |                              571 of each | Components and DYR mappings are implemented; whole-case initialization and disturbed-trajectory validation remain required.                                                                      |
+| Type-3 wind plants              | `WT3G1` + `WT3E1` + `WT3P1` + `WT3T1`              |                              576 of each | `WT3G1`/`WT3E1` are dedicated models; `WT3P1`/`WT3T1` currently translate to existing wind components. Import is recognized, but mapping fidelity and full-plant trajectories remain unverified. |
 
-Accordingly, GridDyn may use the RAW alone for static power-flow work once
-large-scale topology validation is complete, but it must reject a requested
-full 70k DYR run until the remaining unsupported Type-3 families are
-implemented: `WT3P1` and `WT3T1`.
-A strict diagnostic is preferable
-to a partial dynamic simulation.
+GridDyn may use the RAW alone for static power-flow work once large-scale
+topology validation is complete. A full 70k DYR run is not yet a validated
+Type-3 dynamic result: the provisional `WT3P1`/`WT3T1` translations still need
+source-equation review and case-level trajectory comparison.
 
 The supplied RAW is PSS/E v33. It has 67,900 terminal buses, 71,352 branches,
 10,555 two-winding transformers, and 2,100 three-winding transformers. Its
@@ -267,12 +270,10 @@ equations before implementation.
    tests. Capture external trajectories; ANDES's `SEXS` conversion remains
    only an approximation for SCRX/ESAC6A.
 4. **P1 renewable generation:** validate the implemented `REGCA1` plus
-   `REECA1` (and `REPCA1` for Texas7k), then complete the coupled
-   `WT3G1`/`WT3E1`/`WT3P1`/`WT3T1` Type-3 system. `WT3G1`/`WT3E1` have native
-   components and DYR input; the latter two models have DYR fixtures but no
-   authoritative field/equation specification and must be obtained as part of
-   the complete system, not silently omitted or approximated from WECC/GE/PSAT
-   models.
+   `REECA1` (and `REPCA1` for Texas7k), then compare the provisional
+   `WT3P1`/`WT3T1` adapters with authoritative source equations and complete
+   whole-case Type-3 trajectory checks. Keep the adapter status distinct from
+   dedicated-model equivalence.
 5. **P2 remaining excitation/source gaps:** `ESDC2A`, `ESAC1A`, `EXPIC1`, and
    `ESAC6A` are merged; capture independent trajectories and add UEL/OEL
    routing where the exciter interface needs it.

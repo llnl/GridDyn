@@ -598,7 +598,7 @@ dual/result coverage, and larger-case hardening remain to be added.
   controlled result without adding a dependency.
 - Add backend capability queries for LP, QP, nonlinear, integer, and PWL forms.
 - Continue hardening the optional HiGHS backend against the solver-neutral
-  contract. Continue HiGHS-specific details in [`highs-opf-plan.md`](highs-opf-plan.md).
+  contract; see the HiGHS integration sections in this work plan.
 - Keep DC bus/link abstractions extensible so AC subclasses can add voltage,
   reactive power, nonlinear balance, and derivatives while reusing identity,
   hierarchy, offsets, lifecycle, validation, and result handling.

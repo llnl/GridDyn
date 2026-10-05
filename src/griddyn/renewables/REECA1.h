@@ -7,6 +7,7 @@
 #include "RenewableComponent.h"
 #include <array>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace griddyn {
@@ -74,8 +75,27 @@ class REECA1: public RenewableComponent {
   protected:
     virtual bool useVoltageInjection(double voltage) const { return dipMode(voltage); }
     virtual double activeReferenceAdjustment(const IOdata&) const { return 0.0; }
+    virtual bool hasStorageSoc() const { return false; }
+    virtual bool supportsPowerFactorControl() const { return false; }
+    virtual double initialStorageSoc() const { return 0.0; }
+    virtual double storageSocTimeConstant() const { return 1.0; }
+    virtual double storageSocRate(const IOdata&) const { return 0.0; }
+    virtual std::pair<double, double>
+        activeCurrentBounds(const IOdata&, const double[], double ipCap) const
+    {
+        return {0.0, ipCap};
+    }
     virtual void activeReferenceJacobian(const IOlocs&, MatrixData<double>&, index_t, double) const
     {
+    }
+    void updateInputSize();
+    bool cascadedVoltageControl() const { return QFLAG != 0 && VFLAG != 0; }
+    index_t baseDifferentialStateCount() const { return cascadedVoltageControl() ? 5 : 4; }
+    index_t storageSocStateIndex() const { return baseDifferentialStateCount(); }
+    index_t powerFactorFilterStateIndex() const { return storageSocStateIndex() + 1; }
+    index_t electricalPowerInputIndex() const
+    {
+        return 4 + (PFLAG == 1 ? 1 : 0) + (cascadedVoltageControl() ? 1 : 0);
     }
 
   private:
@@ -85,6 +105,7 @@ class REECA1: public RenewableComponent {
     double Tp = 0.02, Tiq = 0.02, Tpord = 0.02, Tpfilt = 0.02;
     double dPmax = 999.0, dPmin = -999.0, PMAX = 999.0, PMIN = 0.0;
     double Imax = 999.0;
+    double pfaref = kNullVal;
     double QMax = 999.0, QMin = -999.0;
     double VMAX = 999.0, VMIN = -999.0;
     double Vref1 = 1.0;
@@ -97,6 +118,7 @@ class REECA1: public RenewableComponent {
     std::array<double, 4> Ip{2.0, 4.0, 8.0, 12.0};
     double initialP = 0.0, initialQ = 0.0;
     double initialVref = 1.0;
+    double initialPowerFactorAngle = 0.0;
     bool voltageDipActive = false;
     bool activeLimitHeld = false;
     CoreTime activeLimitRelease = 0.0;
@@ -104,21 +126,19 @@ class REECA1: public RenewableComponent {
     double heldPowerOrder = 0.0;
     bool voltageDip(double v) const { return v < Vdip || v > Vup; }
     bool dipMode(double v) const { return Thld2 > 0.0 ? voltageDipActive : voltageDip(v); }
-    bool cascadedVoltageControl() const { return QFLAG != 0 && VFLAG != 0; }
     index_t speedInputIndex() const { return cascadedVoltageControl() ? 5 : 4; }
-    void updateInputSize();
     static double curve(double voltage,
                         const std::array<double, 4>& points,
                         const std::array<double, 4>& currents);
     double voltageReference(const IOdata& inputs, const double state[]) const;
-    double reactivePowerReference(const IOdata& inputs) const;
+    double reactivePowerReference(const IOdata& inputs, const double state[]) const;
     double reactivePowerFeedback(const IOdata& inputs) const;
     double reactiveControl(const IOdata& inputs, const double state[]) const;
     double activeLimit(const IOdata& inputs, const double state[]) const;
     void transition(CoreTime time, const IOdata& inputs, bool entering);
     std::array<double, 2> commands(const IOdata& inputs, const double state[]) const;
     double generatorSpeed(const IOdata& inputs) const;
-    std::array<double, 5> rates(const IOdata& inputs, const double state[]) const;
+    std::array<double, 7> rates(const IOdata& inputs, const double state[]) const;
 };
 
 }  // namespace griddyn

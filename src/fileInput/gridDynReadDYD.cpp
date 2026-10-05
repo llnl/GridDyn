@@ -404,8 +404,8 @@ namespace {
                 return true;
             }
             const double htFraction = turbineInertia / totalInertia;
-            const double freq1 = std::sqrt(
-                params[4] * totalInertia / (2.0 * turbineInertia * generatorInertia));
+            const double freq1 =
+                std::sqrt(params[4] * totalInertia / (2.0 * turbineInertia * generatorInertia));
             if (!std::isfinite(htFraction) || !std::isfinite(freq1) || htFraction <= 0.0 ||
                 htFraction >= 1.0 || freq1 <= 0.0) {
                 return false;
@@ -727,10 +727,10 @@ namespace {
         return inputLines;
     }
 
-    std::optional<DydInputRecord> nextDydInputRecord(
-        const std::vector<std::pair<std::size_t, std::string>>& inputLines,
-        std::size_t& lineIndex,
-        bool& inOutOfServiceModels)
+    std::optional<DydInputRecord>
+        nextDydInputRecord(const std::vector<std::pair<std::size_t, std::string>>& inputLines,
+                           std::size_t& lineIndex,
+                           bool& inOutOfServiceModels)
     {
         while (lineIndex < inputLines.size()) {
             const auto& [recordLineNumber, firstLine] = inputLines[lineIndex];
@@ -762,7 +762,8 @@ namespace {
                 std::size_t nextColon = 0U;
                 stringVec nextHeader;
                 const auto& nextLine = inputLines[lineIndex].second;
-                if (parseDydHeader(nextLine, nextColon, nextHeader) || isDydSectionHeader(nextLine)) {
+                if (parseDydHeader(nextLine, nextColon, nextHeader) ||
+                    isDydSectionHeader(nextLine)) {
                     break;
                 }
                 payloadText.push_back(' ');
@@ -883,9 +884,8 @@ namespace {
                 }
                 if (*wsccScope == LoadTemplateScope::Zone) {
                     if (selector > static_cast<index_t>(std::numeric_limits<int>::max())) {
-                        throw InvalidParameterValue(
-                            std::string{displayModelName} +
-                            " zone selector exceeds the supported range");
+                        throw InvalidParameterValue(std::string{displayModelName} +
+                                                    " zone selector exceeds the supported range");
                     }
                     std::vector<GridBus*> buses;
                     simulation->getBusVector(buses);
@@ -893,8 +893,9 @@ namespace {
                     if (std::ranges::none_of(buses, [zone](const GridBus* bus) {
                             return bus->zone == zone;
                         })) {
-                        throw InvalidParameterValue(std::string{displayModelName} + " zone selector " +
-                                                    std::to_string(selector) + " was not found");
+                        throw InvalidParameterValue(std::string{displayModelName} +
+                                                    " zone selector " + std::to_string(selector) +
+                                                    " was not found");
                     }
                 }
                 if ((*wsccScope == LoadTemplateScope::Bus) &&
@@ -948,9 +949,8 @@ namespace {
             const double generatorInertia = params[2];
             const double totalInertia = turbineInertia + generatorInertia;
             const double initialSpeed = params.size() > 5U ? params[5] : 1.0;
-            if (turbineInertia <= 0.0 || generatorInertia < 0.0 ||
-                !std::isfinite(totalInertia) || totalInertia <= 0.0 || params[3] < 0.0 ||
-                initialSpeed <= 0.0) {
+            if (turbineInertia <= 0.0 || generatorInertia < 0.0 || !std::isfinite(totalInertia) ||
+                totalInertia <= 0.0 || params[3] < 0.0 || initialSpeed <= 0.0) {
                 throw InvalidParameterValue("WTGT_A has invalid inertia, damping, or speed");
             }
 
@@ -1012,8 +1012,7 @@ namespace {
         }
         try {
             const auto params = gmlc::utilities::str2vector(payload.normalized, kNullVal);
-            if (params.size() != 8U ||
-                std::any_of(params.begin(), params.end(), [](double value) {
+            if (params.size() != 8U || std::any_of(params.begin(), params.end(), [](double value) {
                     return !std::isfinite(value) || value == kNullVal;
                 })) {
                 throw InvalidParameterValue("WT3T requires eight finite parameters");
@@ -1084,7 +1083,9 @@ namespace {
                 modelTokens.emplace_back("0");
                 modelTokens.emplace_back("'1'");
             }
-            modelTokens.insert(modelTokens.end(), payload.normalized.begin(), payload.normalized.end());
+            modelTokens.insert(modelTokens.end(),
+                               payload.normalized.begin(),
+                               payload.normalized.end());
         }
         try {
             if (!payload.isSupported || !directModel ||
@@ -1147,8 +1148,7 @@ namespace {
                                  record.header,
                                  record.lineNumber,
                                  payload) ||
-            handleWtgtARecord(
-                context, displayModelName, lineTokens, record.lineNumber, payload) ||
+            handleWtgtARecord(context, displayModelName, lineTokens, record.lineNumber, payload) ||
             handleWt3tRecord(context, displayModelName, lineTokens, record.lineNumber, payload)) {
             return;
         }
@@ -1166,8 +1166,8 @@ namespace {
         auto* parentObject = context.parentObject;
         const auto& fileName = context.fileName;
         if (!context.ignoredNonessentialModels.empty()) {
-            std::string message =
-                fileName + ": ignored nonessential DYD models (not loaded into the dynamic system):";
+            std::string message = fileName +
+                ": ignored nonessential DYD models (not loaded into the dynamic system):";
             for (const auto& [modelName, summary] : context.ignoredNonessentialModels) {
                 message += "\n  " + modelName + " (warning): " + std::to_string(summary.mCount) +
                     " record(s); first at line " + std::to_string(summary.mFirstLine) + ", bus " +
@@ -1255,4 +1255,5 @@ void loadDyd(CoreObject* parentObject,
         processDydRecord(context, *record);
     }
     logDydLoadSummary(context);
-}}  // namespace griddyn
+}
+}  // namespace griddyn

@@ -698,8 +698,7 @@ void REECA1::dynObjectInitializeB(const IOdata& inputs,
     initialVref = Vref0 == 0.0 ? inputs[0] : Vref0;
     if (PFFLAG == 1 && supportsPowerFactorControl()) {
         if (pfaref == kNullVal) {
-            initialPowerFactorAngle =
-                (initialP == 0.0) ? 0.0 : std::atan(initialQ / initialP);
+            initialPowerFactorAngle = (initialP == 0.0) ? 0.0 : std::atan(initialQ / initialP);
         } else {
             initialPowerFactorAngle = pfaref;
         }

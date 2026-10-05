@@ -5,6 +5,8 @@
  */
 #pragma once
 #include "REECA1.h"
+#include <string>
+#include <utility>
 
 namespace griddyn {
 

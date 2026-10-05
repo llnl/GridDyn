@@ -33,6 +33,7 @@
 #include <print>
 #include <string>
 #include <sunlinsol/sunlinsol_dense.h>
+#include <utility>
 #include <vector>
 
 namespace griddyn::solvers {
@@ -707,7 +708,7 @@ void IdaInterface::logInitialConditionDiagnostics(
             (entry.col >= static_cast<index_t>(svsize)) || !std::isfinite(entry.data)) {
             continue;
         }
-        denseJacobian[static_cast<size_t>(entry.row) * svsize + entry.col] = entry.data;
+        denseJacobian[(static_cast<size_t>(entry.row) * svsize) + entry.col] = entry.data;
         largestJacobianElement = (std::max)(largestJacobianElement, std::abs(entry.data));
     }
     const double rankTolerance = (std::max)(1.0e-12 * largestJacobianElement, 1.0e-14);
@@ -724,7 +725,7 @@ void IdaInterface::logInitialConditionDiagnostics(
         for (index_t row = pivot; row < svsize; ++row) {
             for (index_t column = pivot; column < svsize; ++column) {
                 const double candidate =
-                    std::abs(denseJacobian[static_cast<size_t>(row) * svsize + column]);
+                    std::abs(denseJacobian[(static_cast<size_t>(row) * svsize) + column]);
                 if (candidate > pivotMagnitude) {
                     pivotMagnitude = candidate;
                     pivotRow = row;
@@ -737,19 +738,19 @@ void IdaInterface::logInitialConditionDiagnostics(
         }
         if (pivotRow != pivot) {
             for (index_t column = pivot; column < svsize; ++column) {
-                std::swap(denseJacobian[static_cast<size_t>(pivot) * svsize + column],
-                          denseJacobian[static_cast<size_t>(pivotRow) * svsize + column]);
+                std::swap(denseJacobian[(static_cast<size_t>(pivot) * svsize) + column],
+                          denseJacobian[(static_cast<size_t>(pivotRow) * svsize) + column]);
             }
             std::swap(rowOrder[pivot], rowOrder[pivotRow]);
         }
         if (pivotColumn != pivot) {
             for (index_t row = 0; row < svsize; ++row) {
-                std::swap(denseJacobian[static_cast<size_t>(row) * svsize + pivot],
-                          denseJacobian[static_cast<size_t>(row) * svsize + pivotColumn]);
+                std::swap(denseJacobian[(static_cast<size_t>(row) * svsize) + pivot],
+                          denseJacobian[(static_cast<size_t>(row) * svsize) + pivotColumn]);
             }
             std::swap(columnOrder[pivot], columnOrder[pivotColumn]);
         }
-        const double pivotValue = denseJacobian[static_cast<size_t>(pivot) * svsize + pivot];
+        const double pivotValue = denseJacobian[(static_cast<size_t>(pivot) * svsize) + pivot];
         smallestPivot = (std::min)(smallestPivot, std::abs(pivotValue));
         for (index_t row = pivot + 1; row < svsize; ++row) {
             const auto rowOffset = static_cast<size_t>(row) * svsize;

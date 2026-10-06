@@ -43,6 +43,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -3174,3 +3175,64 @@ TEST_F(ExciterTests, ExciterAlgDiffJacobianTests)
     }
 }
 #endif
+
+TEST_F(ExciterTests, PartitionedExciterEquationSweep)
+{
+    using Parameter = std::pair<std::string, double>;
+    struct ExciterCase {
+        std::string_view name;
+        std::vector<Parameter> parameters;
+    };
+    const std::array cases{
+        ExciterCase{.name = "basic", .parameters = {{"ta", 0.2}, {"ka", 11.0}}},
+        ExciterCase{.name = "dc1a", .parameters = {{"ta", 0.1}, {"ka", 6.0}, {"vrmax", 2.0}}},
+        ExciterCase{.name = "dc2a", .parameters = {{"ta", 0.1}, {"ka", 6.0}}},
+        ExciterCase{.name = "ieeex1", .parameters = {{"ta", 0.1}, {"ka", 6.0}}},
+        ExciterCase{.name = "exdc2", .parameters = {}},
+        ExciterCase{.name = "sexs", .parameters = {}},
+    };
+
+    const std::string caseFile =
+        std::string(GRIDDYN_TEST_DIRECTORY) + "/governor_tests/test_gov_stability.xml";
+    for (const auto& exciterCase : cases) {
+        SCOPED_TRACE(exciterCase.name);
+        GridDynSimulation::resetObjectCounters();
+        gds = readSimXMLFile(caseFile);
+        ASSERT_NE(gds, nullptr);
+        gds->set("dynamicsolvermethod", "partitioned");
+        gds->set("defdyndiff", "basicode");
+        gds->set("timestep", 0.005);
+
+        auto* generator = gds->findByUserID("gen", 2);
+        ASSERT_NE(generator, nullptr);
+        auto factory = CoreObjectFactory::instance();
+        std::unique_ptr<CoreObject> object(factory->createObject("exciter", exciterCase.name));
+        ASSERT_NE(object, nullptr) << "Could not create exciter " << exciterCase.name;
+        for (const auto& [parameter, value] : exciterCase.parameters) {
+            object->set(parameter, value);
+        }
+        generator->add(object.release());
+
+        ASSERT_EQ(gds->dynInitialize(), 0) << "dynInitialize for " << exciterCase.name;
+        ASSERT_EQ(gds->run(0.005), 0) << "partitioned startup for " << exciterCase.name;
+        const auto algMode = gds->getSolverMode("dynalg");
+        const auto diffMode = gds->getSolverMode("dyndiff");
+        ASSERT_GT(gds->stateSize(algMode), 0U);
+        ASSERT_GT(gds->stateSize(diffMode), 0U);
+
+        EXPECT_EQ(runResidualCheck(gds, algMode, false), 0) << "algebraic residual";
+        EXPECT_EQ(runResidualCheck(gds, diffMode, false), 0) << "differential residual";
+        EXPECT_EQ(runAlgebraicCheck(gds, algMode, false), 0) << "algebraic update";
+        EXPECT_EQ(runDerivativeCheck(gds, diffMode, false), 0) << "derivative";
+        EXPECT_EQ(runJacobianCheck(gds, algMode, false), 0) << "algebraic Jacobian";
+        EXPECT_EQ(runJacobianCheck(gds, diffMode, false), 0) << "differential Jacobian";
+
+        ASSERT_EQ(gds->run(0.05), 0) << "short integration for " << exciterCase.name;
+        for (const auto mode : {algMode, diffMode}) {
+            const auto state = gds->getState(mode);
+            EXPECT_TRUE(std::all_of(state.begin(), state.end(), [](double value) {
+                return std::isfinite(value) && std::abs(value) < 100.0;
+            })) << "non-finite or unbounded partition state";
+        }
+    }
+}

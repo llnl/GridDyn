@@ -59,6 +59,11 @@ class GovernorTgov1: public GovernorIeeeSimple {
                             const StateData& stateData,
                             double deriv[],
                             const SolverMode& sMode) override;
+    virtual void algebraicUpdate(const IOdata& inputs,
+                                 const StateData& stateData,
+                                 double update[],
+                                 const SolverMode& sMode,
+                                 double alpha) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& stateData,
                                   MatrixData<double>& matrixData,

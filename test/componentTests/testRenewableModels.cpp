@@ -45,11 +45,13 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -187,6 +189,279 @@ void loadOtherMachines(GridDynSimulation& simulation)
         throw;
     }
     std::filesystem::remove(file);
+}
+
+enum class RenewableDynamicProfile : std::uint8_t {
+    gridFollowing,
+    speedCoupledWind,
+    gridForming,
+    type3Wind,
+    type4Wind
+};
+
+constexpr std::array renewableDynamicProfiles{
+    RenewableDynamicProfile::gridFollowing,
+    RenewableDynamicProfile::speedCoupledWind,
+    RenewableDynamicProfile::gridForming,
+    RenewableDynamicProfile::type3Wind,
+    RenewableDynamicProfile::type4Wind,
+};
+
+std::string_view renewableDynamicProfileName(RenewableDynamicProfile profile)
+{
+    switch (profile) {
+        case RenewableDynamicProfile::gridFollowing:
+            return "grid-following solar";
+        case RenewableDynamicProfile::speedCoupledWind:
+            return "speed-coupled wind";
+        case RenewableDynamicProfile::gridForming:
+            return "grid-forming";
+        case RenewableDynamicProfile::type3Wind:
+            return "type 3 wind";
+        case RenewableDynamicProfile::type4Wind:
+            return "type 4 wind";
+    }
+    return "unknown renewable profile";
+}
+
+std::unique_ptr<GridDynSimulation> renewableNetworkCase(RenewableDynamicProfile profile,
+                                                        std::string_view solverMethod)
+{
+    const auto xml = std::filesystem::path(__FILE__).parent_path().parent_path() / "reference" /
+        "renewable_fault" / "two_bus.xml";
+    auto simulation = std::make_unique<GridDynSimulation>();
+    loadFile(simulation.get(), xml.string());
+    simulation->consolePrintLevel = PrintLevel::NO_PRINT;
+    simulation->set("dynamicsolvermethod", solverMethod);
+    simulation->set("defdyndiff", "basicode");
+    simulation->set("timestep", 0.005);
+
+    auto* bus = dynamic_cast<GridBus*>(simulation->find("solar_bus"));
+    if (bus == nullptr) {
+        throw std::runtime_error("renewable two-bus test case has no solar_bus");
+    }
+    auto* host = new RenewableGenerator("solar");
+    host->set("p", 0.6);
+    host->set("mbase", 100.0, units::MVAR);
+
+    switch (profile) {
+        case RenewableDynamicProfile::gridFollowing: {
+            auto* converter = new REGCA1;
+            converter->set("tg", 0.02);
+            converter->set("tfltr", 0.02);
+            converter->set("iqrmax", 999.0);
+            converter->set("iqrmin", -999.0);
+            converter->set("lvplsw", 0.0);
+            auto* control = new REECA1;
+            control->set("vflag", 0.0);
+            control->set("pqflag", 0.0);
+            control->set("thld2", 0.5);
+            control->set("tpord", 0.0);
+            control->set("imax", 1.3);
+            control->set("qmax", 1.0);
+            control->set("qmin", -1.0);
+            for (int index = 1; index <= 4; ++index) {
+                const auto suffix = std::to_string(index);
+                control->set("iq" + suffix, 1.3);
+                control->set("ip" + suffix, 1.3);
+            }
+            auto* plant = new REPCA1;
+            plant->set("vcflag", 0.0);
+            plant->set("refflag", 1.0);
+            plant->set("fflag", 0.0);
+            plant->set("plflag", 0.0);
+            host->add(converter);
+            host->add(control);
+            host->add(plant);
+            break;
+        }
+        case RenewableDynamicProfile::speedCoupledWind: {
+            auto* converter = new REGCP1;
+            converter->set("tg", 0.02);
+            converter->set("tfltr", 0.02);
+            converter->set("iqrmax", 999.0);
+            converter->set("iqrmin", -999.0);
+            converter->set("lvplsw", 0.0);
+            auto* control = new REECA1;
+            control->set("vflag", 0.0);
+            control->set("pqflag", 0.0);
+            control->set("pflag", 1.0);
+            control->set("tpord", 0.02);
+            control->set("imax", 1.3);
+            control->set("qmax", 1.0);
+            control->set("qmin", -1.0);
+            auto* shaft = new WTDS;
+            host->add(converter);
+            host->add(control);
+            host->add(shaft);
+            break;
+        }
+        case RenewableDynamicProfile::gridForming:
+            host->add(new REGCV1);
+            break;
+        case RenewableDynamicProfile::type3Wind:
+            host->add(new WT3G1);
+            host->add(new WT3E1);
+            break;
+        case RenewableDynamicProfile::type4Wind:
+            host->add(new WT4G1);
+            host->add(new WT4E1);
+            break;
+    }
+    bus->add(host);
+    return simulation;
+}
+
+std::unique_ptr<RenewableGenerator> renewableDynamicHost(RenewableDynamicProfile profile)
+{
+    auto host = std::make_unique<RenewableGenerator>("renewable");
+    host->set("mbase", 100.0, units::MVAR);
+    switch (profile) {
+        case RenewableDynamicProfile::gridFollowing: {
+            auto* converter = new REGCA1;
+            converter->set("lvplsw", 0.0);
+            auto* control = new REECA1;
+            control->set("vflag", 0.0);
+            control->set("pqflag", 0.0);
+            control->set("tpord", 0.0);
+            auto* plant = new REPCA1;
+            plant->set("vcflag", 0.0);
+            plant->set("refflag", 1.0);
+            plant->set("fflag", 0.0);
+            plant->set("plflag", 0.0);
+            host->add(converter);
+            host->add(control);
+            host->add(plant);
+            break;
+        }
+        case RenewableDynamicProfile::speedCoupledWind: {
+            auto* converter = new REGCP1;
+            converter->set("lvplsw", 0.0);
+            auto* control = new REECA1;
+            control->set("vflag", 0.0);
+            control->set("pqflag", 0.0);
+            control->set("pflag", 1.0);
+            control->set("tpord", 0.02);
+            host->add(converter);
+            host->add(control);
+            host->add(new WTDS);
+            break;
+        }
+        case RenewableDynamicProfile::gridForming:
+            host->add(new REGCV1);
+            break;
+        case RenewableDynamicProfile::type3Wind:
+            host->add(new WT3G1);
+            host->add(new WT3E1);
+            break;
+        case RenewableDynamicProfile::type4Wind:
+            host->add(new WT4G1);
+            host->add(new WT4E1);
+            break;
+    }
+    return host;
+}
+
+void checkRenewablePartitionedHost(RenewableGenerator& host,
+                                   const IOdata& inputs,
+                                   const IOdata& desiredOutput,
+                                   std::string_view profile)
+{
+    host.dynInitializeA(0.0, 0);
+    IOdata fields;
+    host.dynInitializeB(inputs, desiredOutput, fields);
+    auto algMode = cDynAlgSolverMode;
+    auto diffMode = cDynDiffSolverMode;
+    algMode.pairedOffsetIndex = diffMode.offsetIndex;
+    diffMode.pairedOffsetIndex = algMode.offsetIndex;
+    static_cast<void>(host.stateSize(cDaeSolverMode));
+    static_cast<void>(host.stateSize(algMode));
+    static_cast<void>(host.stateSize(diffMode));
+    host.setOffset(0, cDaeSolverMode);
+    host.setOffset(0, algMode);
+    host.setOffset(0, diffMode);
+    std::vector<double> algState(host.stateSize(algMode));
+    std::vector<double> diffState(host.stateSize(diffMode));
+    std::vector<double> rates(diffState.size());
+    host.guessState(0.0, algState.data(), nullptr, algMode);
+    host.guessState(0.0, diffState.data(), rates.data(), diffMode);
+
+    const auto makeStateData = [&](const SolverMode& mode,
+                                   std::vector<double>& state,
+                                   const std::vector<double>& activeRates) {
+        StateData stateData(0.0, state.data(), activeRates.data());
+        stateData.stateSize = static_cast<count_t>(state.size());
+        if (isAlgebraicOnly(mode)) {
+            stateData.diffState = diffState.data();
+            stateData.pairIndex = diffMode.offsetIndex;
+        } else {
+            stateData.algState = algState.data();
+            stateData.pairIndex = algMode.offsetIndex;
+        }
+        return stateData;
+    };
+
+    auto algData = makeStateData(algMode, algState, rates);
+    std::vector<double> algResidual(algState.size());
+    host.residual(inputs, algData, algResidual.data(), algMode);
+    for (const auto value : algResidual) {
+        EXPECT_NEAR(value, 0.0, 1e-8) << profile << " algebraic residual";
+    }
+    std::vector<double> updatedAlgebraic(algState.size());
+    host.algebraicUpdate(inputs, algData, updatedAlgebraic.data(), algMode, 1.0);
+    for (std::size_t index = 0; index < algState.size(); ++index) {
+        EXPECT_NEAR(updatedAlgebraic[index], algState[index], 1e-8)
+            << profile << " algebraic update " << index;
+    }
+
+    auto diffData = makeStateData(diffMode, diffState, rates);
+    std::vector<double> calculatedRates(diffState.size());
+    host.derivative(inputs, diffData, calculatedRates.data(), diffMode);
+    std::vector<double> diffResidual(diffState.size());
+    host.residual(inputs, diffData, diffResidual.data(), diffMode);
+    for (std::size_t index = 0; index < diffState.size(); ++index) {
+        EXPECT_NEAR(calculatedRates[index], rates[index], 1e-8)
+            << profile << " derivative " << index;
+        EXPECT_NEAR(diffResidual[index], 0.0, 1e-8)
+            << profile << " differential residual " << index;
+    }
+
+    const auto checkJacobian = [&](const SolverMode& mode, bool algebraic) {
+        auto& activeState = algebraic ? algState : diffState;
+        auto& activeRates = rates;
+        auto stateData = makeStateData(mode, activeState, activeRates);
+        stateData.cj = 0.0;
+        MatrixDataSparse<double> jacobian;
+        host.jacobianElements(
+            inputs, stateData, jacobian, IOlocs(inputs.size(), kNullLocation), mode);
+        jacobian.compact();
+        const auto evaluate = [&](std::vector<double>& values) {
+            auto trialData = makeStateData(mode, values, activeRates);
+            std::vector<double> result(values.size());
+            if (algebraic) {
+                host.residual(inputs, trialData, result.data(), mode);
+            } else {
+                host.derivative(inputs, trialData, result.data(), mode);
+            }
+            return result;
+        };
+        const auto base = evaluate(activeState);
+        constexpr double step = 1e-7;
+        for (std::size_t column = 0; column < activeState.size(); ++column) {
+            activeState[column] += step;
+            const auto shifted = evaluate(activeState);
+            activeState[column] -= step;
+            for (std::size_t row = 0; row < activeState.size(); ++row) {
+                EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), static_cast<index_t>(column)),
+                            (shifted[row] - base[row]) / step,
+                            4e-4)
+                    << profile << (algebraic ? " algebraic" : " differential") << " row " << row
+                    << " column " << column;
+            }
+        }
+    };
+    checkJacobian(algMode, true);
+    checkJacobian(diffMode, false);
 }
 }  // namespace
 
@@ -2718,5 +2993,159 @@ TEST(RenewableModels, TwoBusRenewableFaultMatchesAndesReference)
             ++samples;
         }
         EXPECT_EQ(samples, 8);
+    }
+}
+
+TEST(RenewableModels, PartitionedEquationChecks)
+{
+    for (const auto profile : renewableDynamicProfiles) {
+        SCOPED_TRACE(renewableDynamicProfileName(profile));
+        auto host = renewableDynamicHost(profile);
+        checkRenewablePartitionedHost(*host,
+                                      {1.0, 0.0},
+                                      {0.6, 0.1},
+                                      renewableDynamicProfileName(profile));
+    }
+}
+
+TEST(RenewableModels, SmallNetworkDaeAndPartitionedSweep)
+{
+    constexpr std::array networkCases{
+        std::pair{RenewableDynamicProfile::gridFollowing, std::string_view{"partitioned"}},
+        std::pair{RenewableDynamicProfile::speedCoupledWind, std::string_view{"dae"}},
+        std::pair{RenewableDynamicProfile::speedCoupledWind, std::string_view{"partitioned"}},
+        std::pair{RenewableDynamicProfile::type4Wind, std::string_view{"partitioned"}},
+    };
+    for (const auto& [profile, solverMethod] : networkCases) {
+        SCOPED_TRACE(std::string{renewableDynamicProfileName(profile)} + " with " +
+                     std::string{solverMethod});
+        auto simulation = renewableNetworkCase(profile, solverMethod);
+        ASSERT_EQ(simulation->dynInitialize(), 0);
+
+        if (solverMethod == "dae") {
+            EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
+            EXPECT_EQ(runDerivativeCheck(simulation, cDaeSolverMode, false), 0);
+            EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
+        } else {
+            // Partitioned startup configures the paired modes used by the diagnostics helpers.
+            ASSERT_EQ(simulation->run(0.005), 0);
+            const auto algMode = simulation->getSolverMode("dynalg");
+            const auto diffMode = simulation->getSolverMode("dyndiff");
+            EXPECT_EQ(runResidualCheck(simulation, algMode, false), 0);
+            EXPECT_EQ(runResidualCheck(simulation, diffMode, false), 0);
+            EXPECT_EQ(runAlgebraicCheck(simulation, algMode, false), 0);
+            EXPECT_EQ(runDerivativeCheck(simulation, diffMode, false), 0);
+            EXPECT_EQ(runJacobianCheck(simulation, algMode, false), 0);
+            EXPECT_EQ(runJacobianCheck(simulation, diffMode, false), 0);
+        }
+
+        std::vector<double> initialVoltages;
+        simulation->getVoltage(initialVoltages);
+        ASSERT_EQ(simulation->run(0.05), 0);
+        std::vector<double> finalVoltages;
+        simulation->getVoltage(finalVoltages);
+        ASSERT_EQ(finalVoltages.size(), initialVoltages.size());
+        ASSERT_GT(finalVoltages.size(), 1U);
+        EXPECT_GT(finalVoltages[1], 0.9);
+        EXPECT_LT(finalVoltages[1], 1.1);
+        EXPECT_LT(std::abs(finalVoltages[1] - initialVoltages[1]), 0.02);
+        if (solverMethod == "dae") {
+            const auto state = simulation->getState(cDaeSolverMode);
+            EXPECT_TRUE(std::all_of(state.begin(), state.end(), [](double value) {
+                return std::isfinite(value);
+            }));
+        } else {
+            for (const auto mode : {cDynAlgSolverMode, cDynDiffSolverMode}) {
+                const auto state = simulation->getState(mode);
+                EXPECT_TRUE(std::all_of(state.begin(), state.end(), [](double value) {
+                    return std::isfinite(value);
+                }));
+            }
+        }
+    }
+}
+
+TEST(RenewableModels, RenewableFaultClearingStabilityBothSolvers)
+{
+    struct FaultSample {
+        double voltage;
+        double activePower;
+        double reactivePower;
+    };
+
+    for (const auto solverMethod : {std::string_view{"dae"}, std::string_view{"partitioned"}}) {
+        SCOPED_TRACE(solverMethod);
+        auto simulation =
+            renewableNetworkCase(RenewableDynamicProfile::speedCoupledWind, solverMethod);
+        ASSERT_EQ(simulation->dynInitialize(), 0);
+        auto* bus = dynamic_cast<GridBus*>(simulation->find("solar_bus"));
+        ASSERT_NE(bus, nullptr);
+        auto* host = dynamic_cast<RenewableGenerator*>(bus->getGen(0));
+        ASSERT_NE(host, nullptr);
+        auto* converter = dynamic_cast<REGCP1*>(host->find("electrical"));
+        ASSERT_NE(converter, nullptr);
+
+        const auto sample = [&]() {
+            const auto converterState = converter->getStates();
+            EXPECT_GE(converterState.size(), 2U);
+            return FaultSample{.voltage = bus->getVoltage(),
+                               .activePower = converterState[0],
+                               .reactivePower = converterState[1]};
+        };
+        const auto checkStateBounds = [&]() {
+            const auto checkState = [](const std::vector<double>& state) {
+                for (const double value : state) {
+                    EXPECT_TRUE(std::isfinite(value));
+                    EXPECT_LT(std::abs(value), 5.0);
+                }
+            };
+            if (solverMethod == "dae") {
+                checkState(simulation->getState(cDaeSolverMode));
+            } else {
+                checkState(simulation->getState(simulation->getSolverMode("dynalg")));
+                checkState(simulation->getState(simulation->getSolverMode("dyndiff")));
+            }
+        };
+
+        ASSERT_EQ(simulation->run(0.05), 0);
+        const auto preFault = sample();
+        ASSERT_TRUE(std::isfinite(preFault.voltage));
+        ASSERT_TRUE(std::isfinite(preFault.activePower));
+        ASSERT_TRUE(std::isfinite(preFault.reactivePower));
+        checkStateBounds();
+
+        FaultSample duringFault{};
+        FaultSample recovery{};
+        FaultSample settled{};
+        for (int step = 11; step <= 180; ++step) {
+            const double time = 0.005 * static_cast<double>(step);
+            ASSERT_EQ(simulation->run(time), 0) << "at t=" << time;
+            const auto values = sample();
+            EXPECT_TRUE(std::isfinite(values.voltage));
+            EXPECT_TRUE(std::isfinite(values.activePower));
+            EXPECT_TRUE(std::isfinite(values.reactivePower));
+            EXPECT_GT(values.voltage, 0.5) << "at t=" << time;
+            EXPECT_LT(values.voltage, 1.2) << "at t=" << time;
+            EXPECT_LT(std::abs(values.activePower), 2.0) << "at t=" << time;
+            EXPECT_LT(std::abs(values.reactivePower), 2.0) << "at t=" << time;
+            checkStateBounds();
+
+            if (step == 30) {
+                duringFault = values;
+            } else if (step == 80) {
+                recovery = values;
+            } else if (step == 180) {
+                settled = values;
+            }
+        }
+
+        EXPECT_LT(duringFault.voltage, preFault.voltage - 0.1);
+        EXPECT_LT(duringFault.activePower, preFault.activePower - 0.05);
+        EXPECT_GT(duringFault.reactivePower, preFault.reactivePower + 0.05);
+        for (const auto& values : {recovery, settled}) {
+            EXPECT_NEAR(values.voltage, preFault.voltage, 0.02);
+            EXPECT_NEAR(values.activePower, preFault.activePower, 0.02);
+            EXPECT_NEAR(values.reactivePower, preFault.reactivePower, 0.02);
+        }
     }
 }

@@ -809,6 +809,21 @@ TEST_F(GenModelTests, ModelTest2AlgDiffTests)
 }
 #endif
 
+TEST_F(GenModelTests, PartitionedGeneratorExciterFieldJacobianMatchesFiniteDifferences)
+{
+    gds = readSimXMLFile(std::string(GENMODEL_TEST_DIRECTORY "test_model1.xml"));
+    gds->set("dynamicsolvermethod", "partitioned");
+    gds->set("defdyndiff", "basicode");
+    gds->set("timestep", 0.005);
+
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    ASSERT_EQ(gds->run(0.005), 0);
+    const auto diffMode = gds->getSolverMode("dyndiff");
+    EXPECT_EQ(runResidualCheck(gds, diffMode, false), 0);
+    EXPECT_EQ(runDerivativeCheck(gds, diffMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(gds, diffMode, false), 0);
+}
+
 TEST_F(GenModelTests, ModelTest3)
 {
     std::string fileName = std::string(GENMODEL_TEST_DIRECTORY "test_model2.xml");

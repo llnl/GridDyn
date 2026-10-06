@@ -87,9 +87,12 @@ void GovernorTgov1::residual(const IOdata& inputs,
 {
     const double omega = inputs[govOmegaInLocation];
     const auto loc = offsets.getLocations(stateData, resid, sMode, this);
-    loc.destLoc[0] = loc.algStateLoc[0] - loc.diffStateLoc[0] + (Dt * (omega - 1.0));
-
-    if (isAlgebraicOnly(sMode)) {
+    if (hasAlgebraic(sMode)) {
+        loc.destLoc[0] = loc.algStateLoc[0] - loc.diffStateLoc[0] + (Dt * (omega - 1.0));
+        if (isAlgebraicOnly(sMode)) {
+            return;
+        }
+    } else if (!hasDifferential(sMode)) {
         return;
     }
 
@@ -119,6 +122,19 @@ void GovernorTgov1::derivative(const IOdata& inputs,
     loc.destDiffLoc[0] = turbineTransfer.outputStateDerivative(governorState[1],
                                                                governorState[0],
                                                                loc.destDiffLoc[1]);
+}
+
+void GovernorTgov1::algebraicUpdate(const IOdata& inputs,
+                                    const StateData& stateData,
+                                    double update[],
+                                    const SolverMode& sMode,
+                                    double /*alpha*/)
+{
+    if (!hasAlgebraic(sMode)) {
+        return;
+    }
+    const auto loc = offsets.getLocations(stateData, update, sMode, this);
+    loc.destLoc[0] = loc.diffStateLoc[0] - (Dt * (inputs[govOmegaInLocation] - 1.0));
 }
 
 void GovernorTgov1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
@@ -155,16 +171,19 @@ if (opFlags.test (uses_deadband))
       }
   }
       */
-    // Pm
-    if (linkOmega) {
-        matrixData.assign(loc.algOffset, inputLocs[govOmegaInLocation], Dt);
-    }
-
-    matrixData.assign(loc.algOffset, loc.algOffset, 1);
-    if (isAlgebraicOnly(sMode)) {
+    if (hasAlgebraic(sMode)) {
+        // Pm
+        if (linkOmega) {
+            matrixData.assign(loc.algOffset, inputLocs[govOmegaInLocation], Dt);
+        }
+        matrixData.assign(loc.algOffset, loc.algOffset, 1);
+        if (isAlgebraicOnly(sMode)) {
+            return;
+        }
+        matrixData.assign(loc.algOffset, referenceIndex, -1);
+    } else if (!hasDifferential(sMode)) {
         return;
     }
-    matrixData.assign(loc.algOffset, referenceIndex, -1);
 
     if (opFlags[POWER_LIMITED]) {
         matrixData.assign(referenceIndex + 1, referenceIndex + 1, -stateData.cj);

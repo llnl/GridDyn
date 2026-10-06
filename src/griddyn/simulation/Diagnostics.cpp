@@ -326,12 +326,13 @@ int residualCheck(GridDynSimulation* gds,
     }
     int errors = 0;
     auto solverInterface = gds->getSolverInterface(sMode);
+    const auto& activeMode = solverInterface->getSolverMode();
     double* state = solverInterface->stateData();
     auto nsize = solverInterface->size();
-    assert(nsize == const_cast<const GridDynSimulation*>(gds)->stateSize(sMode));
+    assert(nsize == const_cast<const GridDynSimulation*>(gds)->stateSize(activeMode));
     if (gds->currentProcessState() == GridDynSimulation::GridState::INITIALIZED) {
         // sMode must be power flow or dc power flow to get here
-        gds->guessState(time, state, nullptr, sMode);
+        gds->guessState(time, state, nullptr, activeMode);
     }
 
     std::vector<double> resid(nsize);
@@ -341,9 +342,12 @@ int residualCheck(GridDynSimulation* gds,
         residTol = resid_check_tol;
     }
 
-    stateData.dstate_dt = (isDAE(sMode)) ? solverInterface->derivData() : nullptr;
+    stateData.dstate_dt = (hasDifferential(activeMode)) ? solverInterface->derivData() : nullptr;
+    if (activeMode.pairedOffsetIndex != kNullLocation) {
+        gds->fillExtraStateData(stateData, activeMode);
+    }
 
-    gds->residual(noInputs, stateData, resid.data(), sMode);
+    gds->residual(noInputs, stateData, resid.data(), activeMode);
     for (index_t kk = 0; kk < nsize; ++kk) {
         if (std::abs(resid[kk]) > residTol) {
             if (useStateNames) {
@@ -379,14 +383,15 @@ int algebraicCheck(GridDynSimulation* gds,
     }
 
     auto solverInterface = gds->getSolverInterface(sMode);
+    const auto& activeMode = solverInterface->getSolverMode();
     auto* state = solverInterface->stateData();
     auto nsize = solverInterface->size();
-    assert(nsize == const_cast<const GridDynSimulation*>(gds)->stateSize(sMode));
+    assert(nsize == const_cast<const GridDynSimulation*>(gds)->stateSize(activeMode));
     if (gds->currentProcessState() == GridDynSimulation::GridState::INITIALIZED) {
         // sMode must be power flow or dc power flow to get here
-        gds->guessState(time, state, nullptr, sMode);
+        gds->guessState(time, state, nullptr, activeMode);
     } else {
-        gds->guessState(time, state, solverInterface->derivData(), sMode);
+        gds->guessState(time, state, solverInterface->derivData(), activeMode);
     }
     std::vector<double> update(nsize);
 
@@ -395,12 +400,15 @@ int algebraicCheck(GridDynSimulation* gds,
         algTol = resid_check_tol;
     }
     StateData stateData(time, solverInterface->stateData());
-    stateData.dstate_dt = (isDAE(sMode)) ? solverInterface->derivData() : nullptr;
+    stateData.dstate_dt = (hasDifferential(activeMode)) ? solverInterface->derivData() : nullptr;
+    if (activeMode.pairedOffsetIndex != kNullLocation) {
+        gds->fillExtraStateData(stateData, activeMode);
+    }
 
-    gds->algebraicUpdate(noInputs, stateData, update.data(), sMode, 1.0);
+    gds->algebraicUpdate(noInputs, stateData, update.data(), activeMode, 1.0);
     std::vector<double> vtype(nsize);
 
-    gds->getVariableType(vtype.data(), sMode);
+    gds->getVariableType(vtype.data(), activeMode);
     int errors = 0;
     for (index_t kk = 0; kk < nsize; ++kk) {
         if (vtype[kk] > 0.01) {
@@ -444,14 +452,15 @@ int derivativeCheck(GridDynSimulation* gds,
     }
     int errors = 0;
     auto solverInterface = gds->getSolverInterface(sMode);
+    const auto& activeMode = solverInterface->getSolverMode();
     double* state = solverInterface->stateData();
     auto nsize = solverInterface->size();
-    assert(nsize == const_cast<const GridDynSimulation*>(gds)->stateSize(sMode));
+    assert(nsize == const_cast<const GridDynSimulation*>(gds)->stateSize(activeMode));
     if (gds->currentProcessState() == GridDynSimulation::GridState::INITIALIZED) {
         // sMode must be power flow or dc power flow to get here
-        gds->guessState(time, state, nullptr, sMode);
+        gds->guessState(time, state, nullptr, activeMode);
     } else {
-        gds->guessState(time, state, solverInterface->derivData(), sMode);
+        gds->guessState(time, state, solverInterface->derivData(), activeMode);
     }
     std::vector<double> deriv(nsize);
 
@@ -459,12 +468,15 @@ int derivativeCheck(GridDynSimulation* gds,
     {
         derivTol = resid_check_tol;
     }
-    const StateData stateData(time, solverInterface->stateData(), solverInterface->derivData());
+    StateData stateData(time, solverInterface->stateData(), solverInterface->derivData());
+    if (activeMode.pairedOffsetIndex != kNullLocation) {
+        gds->fillExtraStateData(stateData, activeMode);
+    }
 
-    gds->derivative(noInputs, stateData, deriv.data(), sMode);
+    gds->derivative(noInputs, stateData, deriv.data(), activeMode);
     std::vector<double> vtype(nsize);
 
-    gds->getVariableType(vtype.data(), sMode);
+    gds->getVariableType(vtype.data(), activeMode);
     for (index_t kk = 0; kk < nsize; ++kk) {
         if (vtype[kk] < 0.1) {
             continue;

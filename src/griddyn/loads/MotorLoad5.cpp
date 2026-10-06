@@ -269,10 +269,12 @@ void MotorLoad5::residual(const IOdata& inputs,
         double Vr = -voltage * Vcontrol * sin(theta);
         double Vm = voltage * Vcontrol * cos(theta);
 
-        // ir
-        rva[irA] = Vm - gmd[emppD] - r * gm[imA] - xpp * gm[irA];
-        // im
-        rva[imA] = Vr - gmd[erppD] - r * gm[irA] + xpp * gm[imA];
+        if (hasAlgebraic(sMode)) {
+            // ir
+            rva[irA] = Vm - gmd[emppD] - r * gm[imA] - xpp * gm[irA];
+            // im
+            rva[imA] = Vr - gmd[erppD] - r * gm[irA] + xpp * gm[imA];
+        }
 
         if (isAlgebraicOnly(sMode)) {
             return;
@@ -322,6 +324,31 @@ void MotorLoad5::residual(const IOdata& inputs,
         rv[emppA] = systemBaseFrequency * slip * (gm[erpA] - gm[erppA]) -
             (gm[empA] - gm[erppA] + (xp - xpp) * gm[irA]) / T0pp;
     }
+}
+
+void MotorLoad5::algebraicUpdate(const IOdata& inputs,
+                                 const StateData& sD,
+                                 double update[],
+                                 const SolverMode& sMode,
+                                 double /*alpha*/)
+{
+    if (!hasAlgebraic(sMode)) {
+        return;
+    }
+    auto Loc = offsets.getLocations(sD, update, sMode, this);
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
+    const double theta = inputs[ANGLE_IN_LOCATION];
+    const double vr = -voltage * Vcontrol * sin(theta);
+    const double vm = voltage * Vcontrol * cos(theta);
+
+    gmlc::utilities::solve2x2(r,
+                              -xpp,
+                              xpp,
+                              r,
+                              vr - Loc.diffStateLoc[erppD],
+                              vm - Loc.diffStateLoc[emppD],
+                              Loc.destLoc[0],
+                              Loc.destLoc[1]);
 }
 
 void MotorLoad5::getStateName(stringVec& stNames,
@@ -466,30 +493,35 @@ void MotorLoad5::jacobianElements(const IOdata& inputs,
     // im
     // rva[1] = Vr - gmd[1] - r*gm[0] + xp*gm[1];
 
-    // P
-    if (TLoc != kNullLocation) {
-        md.assign(refAlg, TLoc, Vr);
-        md.assign(refAlg + 1, TLoc, -Vm);
-    }
-    // Q
-    if (VLoc != kNullLocation) {
-        md.assign(refAlg, VLoc, Vm / voltage);
-        md.assign(refAlg + 1, VLoc, Vr / voltage);
-    }
+    const bool hasAlgebraicRows = !isDynamic(sMode) || hasAlgebraic(sMode);
+    if (hasAlgebraicRows) {
+        // P
+        if (TLoc != kNullLocation) {
+            md.assign(refAlg, TLoc, Vr);
+            md.assign(refAlg + 1, TLoc, -Vm);
+        }
+        // Q
+        if (VLoc != kNullLocation) {
+            md.assign(refAlg, VLoc, Vm / voltage);
+            md.assign(refAlg + 1, VLoc, Vr / voltage);
+        }
 
-    md.assign(refAlg, refAlg, -xpp);
-    md.assign(refAlg, refAlg + 1, -r);
+        md.assign(refAlg, refAlg, -xpp);
+        md.assign(refAlg, refAlg + 1, -r);
 
-    md.assign(refAlg + 1, refAlg, -r);
-    md.assign(refAlg + 1, refAlg + 1, xpp);
-    if ((isDynamic(sMode)) && (isAlgebraicOnly(sMode))) {
+        md.assign(refAlg + 1, refAlg, -r);
+        md.assign(refAlg + 1, refAlg + 1, xpp);
+    }
+    if (isDynamic(sMode) && !hasDifferential(sMode)) {
         return;
     }
     // Ir Differential
 
-    md.assign(refAlg, refDiff + 4, -1);
-    // Im Differential
-    md.assign(refAlg + 1, refDiff + 3, -1);
+    if (hasAlgebraicRows && (!isDynamic(sMode) || hasDifferential(sMode))) {
+        md.assign(refAlg, refDiff + 4, -1);
+        // Im Differential
+        md.assign(refAlg + 1, refDiff + 3, -1);
+    }
 
     double slip = dst[0];
     if ((isDynamic(sMode)) || (!opFlags[INIT_TRANSIENT])) {
@@ -506,8 +538,10 @@ void MotorLoad5::jacobianElements(const IOdata& inputs,
             md.assign(refDiff, refDiff, dmechds(slip) / (2 * H) - cj);
             md.assign(refDiff, refDiff + 3, -gm[0] / (2 * H));
             md.assign(refDiff, refDiff + 4, -gm[1] / (2 * H));
-            md.assign(refDiff, refAlg, -dst[3] / (2 * H));
-            md.assign(refDiff, refAlg + 1, -dst[4] / (2 * H));
+            if (hasAlgebraicRows) {
+                md.assign(refDiff, refAlg, -dst[3] / (2 * H));
+                md.assign(refDiff, refAlg + 1, -dst[4] / (2 * H));
+            }
         }
     } else {
         md.assign(refDiff, refDiff, 1);
@@ -518,12 +552,16 @@ void MotorLoad5::jacobianElements(const IOdata& inputs,
     // dv[1] = systemBaseFrequency*slip*dst[2] - (dst[1] + (x0 - xp)*ast[1]) / T0p;
     // dv[2] = -systemBaseFrequency*slip*dst[1] - (dst[2] + (x0 - xp)*ast[0]) / T0p;
 
-    md.assign(refDiff + 1, refAlg + 1, -(x0 - xp) / T0p);
+    if (hasAlgebraicRows) {
+        md.assign(refDiff + 1, refAlg + 1, -(x0 - xp) / T0p);
+    }
     md.assign(refDiff + 1, refDiff, systemBaseFrequency * dst[2]);
     md.assign(refDiff + 1, refDiff + 1, -1 / T0p - cj);
     md.assign(refDiff + 1, refDiff + 2, systemBaseFrequency * slip);
 
-    md.assign(refDiff + 2, refAlg, (x0 - xp) / T0p);
+    if (hasAlgebraicRows) {
+        md.assign(refDiff + 2, refAlg, (x0 - xp) / T0p);
+    }
     md.assign(refDiff + 2, refDiff, -systemBaseFrequency * dst[1]);
     md.assign(refDiff + 2, refDiff + 1, -systemBaseFrequency * slip);
     md.assign(refDiff + 2, refDiff + 2, -1 / T0p - cj);
@@ -546,14 +584,18 @@ void MotorLoad5::jacobianElements(const IOdata& inputs,
     // dv[3] = -systemBaseFrequency*slip*(dst[2] - dst[4]) + ddt[1] - (dst[1] - dst[4] - (xp -
     // xpp)*ast[1]) / T0pp; dv[4] = systemBaseFrequency*slip*(dst[1] - dst[3]) + ddt[2] -
     // (dst[2] - dst[3] + (xp - xpp)*ast[0]) / T0pp;
-    md.assign(refDiff + 3, refAlg + 1, (xp - xpp) / T0pp);
+    if (hasAlgebraicRows) {
+        md.assign(refDiff + 3, refAlg + 1, (xp - xpp) / T0pp);
+    }
     md.assign(refDiff + 3, refDiff, -systemBaseFrequency * (dst[2] - dst[4]));
     md.assign(refDiff + 3, refDiff + 1, -1 / T0pp + cj);
     md.assign(refDiff + 3, refDiff + 2, -systemBaseFrequency * slip);
     md.assign(refDiff + 3, refDiff + 3, -cj);
     md.assign(refDiff + 3, refDiff + 4, systemBaseFrequency * slip + 1 / T0pp);
 
-    md.assign(refDiff + 4, refAlg, -(xp - xpp) / T0pp);
+    if (hasAlgebraicRows) {
+        md.assign(refDiff + 4, refAlg, -(xp - xpp) / T0pp);
+    }
     md.assign(refDiff + 4, refDiff, systemBaseFrequency * (dst[1] - dst[3]));
     md.assign(refDiff + 4, refDiff + 1, systemBaseFrequency * slip);
     md.assign(refDiff + 4, refDiff + 2, -1 / T0pp + cj);

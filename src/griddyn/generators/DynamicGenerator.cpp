@@ -1407,12 +1407,16 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
                 pss->getOutputLoc(sMode, 0) :
                 kNullLocation;
         }
-        // In a partitioned differential callback Efd is supplied by the
-        // paired algebraic solve, not by a column in the differential state
-        // vector.  Do not map it to the exciter's first differential state;
-        // that would create a false Jacobian dependency.
-        subInputLocs.inputLocs[GEN_MODEL_LOC][genModelEftInLocation] =
-            isDifferentialOnly(sMode) ? kNullLocation : ext->getOutputLoc(sMode, 0);
+        index_t fieldOutputLocation = ext->getOutputLoc(sMode, 0);
+        if (isDifferentialOnly(sMode) && (sMode.pairedOffsetIndex != kNullLocation)) {
+            const auto& pairedMode = offsets.getSolverMode(sMode.pairedOffsetIndex);
+            if (pairedMode.algebraic && (ext->algSize(pairedMode) > 0)) {
+                // The field output is supplied by the paired algebraic solve,
+                // so it is fixed during the differential solve.
+                fieldOutputLocation = kNullLocation;
+            }
+        }
+        subInputLocs.inputLocs[GEN_MODEL_LOC][genModelEftInLocation] = fieldOutputLocation;
     } else {
         subInputLocs.inputLocs[GEN_MODEL_LOC][genModelEftInLocation] = kNullLocation;
     }
@@ -1428,14 +1432,31 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
             subInputLocs.inputLocs[GOVERNOR_LOC][govOmegaInLocation] = floc;
         }
         subInputLocs.inputLocs[GOVERNOR_LOC][govpSetInLocation] = pSetLocation(sMode);
-        subInputLocs.inputLocs[GOVERNOR_LOC][govElectricalPowerInLocation] =
+        index_t electricalPowerLocation =
             machineSignalLocation(static_cast<index_t>(MachineControllerSignal::ELECTRICAL_POWER));
+        if (isDifferentialOnly(sMode)) {
+            // The differential pass holds machine electrical power at the
+            // paired algebraic operating point; it is not a differential
+            // state input to the governor Jacobian.
+            electricalPowerLocation = kNullLocation;
+        }
+        subInputLocs.inputLocs[GOVERNOR_LOC][govElectricalPowerInLocation] =
+            electricalPowerLocation;
     }
 
     auto* pmechSource = getMechanicalPowerSource();
     if ((pmechSource != nullptr) && (pmechSource->isEnabled())) {
-        subInputLocs.inputLocs[GEN_MODEL_LOC][genModelPmechInLocation] =
+        index_t mechanicalPowerLocation =
             pmechSource->getOutputLoc(sMode, getMechanicalPowerOutput());
+        if (isDifferentialOnly(sMode) && (sMode.pairedOffsetIndex != kNullLocation)) {
+            const auto& pairedMode = offsets.getSolverMode(sMode.pairedOffsetIndex);
+            if (pairedMode.algebraic && (pmechSource->algSize(pairedMode) > 0)) {
+                // Mechanical power comes from the paired algebraic solve, so
+                // it is fixed while assembling the differential Jacobian.
+                mechanicalPowerLocation = kNullLocation;
+            }
+        }
+        subInputLocs.inputLocs[GEN_MODEL_LOC][genModelPmechInLocation] = mechanicalPowerLocation;
     } else {
         subInputLocs.inputLocs[GEN_MODEL_LOC][genModelPmechInLocation] = pSetLocation(sMode);
     }

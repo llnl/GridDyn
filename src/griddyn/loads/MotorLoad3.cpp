@@ -79,9 +79,8 @@ void MotorLoad3::converge()
     while (err > 1e-6) {
         internalVoltageReal = voltageReal - (r * currentReal) + (xp * currentImaginary);
         internalVoltageImaginary = voltageImaginary - (r * currentImaginary) - (xp * currentReal);
-        double const slipp =
-            (internalVoltageReal + ((x0 - xp) * currentImaginary)) / T0p / systemBaseFrequency /
-            internalVoltageImaginary;
+        double const slipp = (internalVoltageReal + ((x0 - xp) * currentImaginary)) / T0p /
+            systemBaseFrequency / internalVoltageImaginary;
         dslip = slipp - slip;
         if (Pmot > 0) {
             if (slipp < 0) {
@@ -107,8 +106,7 @@ void MotorLoad3::converge()
 
         perr = err;
         currentReal =
-            ((-systemBaseFrequency * slip * internalVoltageReal * T0p) -
-             internalVoltageImaginary) /
+            ((-systemBaseFrequency * slip * internalVoltageReal * T0p) - internalVoltageImaginary) /
             (-(x0 - xp));
         currentImaginary =
             (mechPower(slip) - (internalVoltageReal * currentReal)) / internalVoltageImaginary;
@@ -216,11 +214,9 @@ void MotorLoad3::residual(const IOdata& inputs,
 
         if (hasAlgebraic(sMode)) {
             // currentReal
-            rva[0] = voltageImaginary - gmd[2] - (r * algebraicState[1]) -
-                (xp * algebraicState[0]);
+            rva[0] = voltageImaginary - gmd[2] - (r * algebraicState[1]) - (xp * algebraicState[0]);
             // currentImaginary
-            rva[1] = voltageReal - gmd[1] - (r * algebraicState[0]) +
-                (xp * algebraicState[1]);
+            rva[1] = voltageReal - gmd[1] - (r * algebraicState[0]) + (xp * algebraicState[1]);
         }
 
         if (isAlgebraicOnly(sMode)) {
@@ -250,13 +246,11 @@ void MotorLoad3::residual(const IOdata& inputs,
         double const voltageImaginary = voltage * Vcontrol * cos(theta);
 
         // currentReal
-        residualVector[0] =
-            voltageImaginary - algebraicState[4] - (r * algebraicState[1]) -
+        residualVector[0] = voltageImaginary - algebraicState[4] - (r * algebraicState[1]) -
             (xp * algebraicState[0]);
         // currentImaginary
         residualVector[1] =
-            voltageReal - algebraicState[3] - (r * algebraicState[0]) +
-            (xp * algebraicState[1]);
+            voltageReal - algebraicState[3] - (r * algebraicState[0]) + (xp * algebraicState[1]);
 
         double const slip = algebraicState[2];
         // printf("angle=%f, slip=%f\n",theta,slip);
@@ -387,8 +381,8 @@ void MotorLoad3::derivative(const IOdata& /*inputs*/,
     // printf("t=%f, slip=%f mp=%f, electricalTorque=%f, dslip=%e\n", stateData.time,
     // slip,mechPower(slip), Te,derivativeVector[0]
     // ); Edp and Eqp
-    derivativeVector[1] = (systemBaseFrequency * slip * dst[2]) -
-        ((dst[1] + ((x0 - xp) * ast[1])) / T0p);
+    derivativeVector[1] =
+        (systemBaseFrequency * slip * dst[2]) - ((dst[1] + ((x0 - xp) * ast[1])) / T0p);
     derivativeVector[2] =
         (-systemBaseFrequency * slip * dst[1]) - ((dst[2] - ((x0 - xp) * ast[0])) / T0p);
 }

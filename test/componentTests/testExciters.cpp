@@ -3170,12 +3170,12 @@ TEST_F(ExciterTests, PartitionedExciterEquationSweep)
         std::vector<Parameter> parameters;
     };
     const std::array cases{
-        ExciterCase{"basic", {{"ta", 0.2}, {"ka", 11.0}}},
-        ExciterCase{"dc1a", {{"ta", 0.1}, {"ka", 6.0}, {"vrmax", 2.0}}},
-        ExciterCase{"dc2a", {{"ta", 0.1}, {"ka", 6.0}}},
-        ExciterCase{"ieeex1", {{"ta", 0.1}, {"ka", 6.0}}},
-        ExciterCase{"exdc2", {}},
-        ExciterCase{"sexs", {}},
+        ExciterCase{.name = "basic", .parameters = {{"ta", 0.2}, {"ka", 11.0}}},
+        ExciterCase{.name = "dc1a", .parameters = {{"ta", 0.1}, {"ka", 6.0}, {"vrmax", 2.0}}},
+        ExciterCase{.name = "dc2a", .parameters = {{"ta", 0.1}, {"ka", 6.0}}},
+        ExciterCase{.name = "ieeex1", .parameters = {{"ta", 0.1}, {"ka", 6.0}}},
+        ExciterCase{.name = "exdc2", .parameters = {}},
+        ExciterCase{.name = "sexs", .parameters = {}},
     };
 
     const std::string caseFile =

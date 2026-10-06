@@ -43,6 +43,7 @@
 #include "utilities/MatrixDataSparse.hpp"
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <cmath>
 #include <cstddef>
 #include <filesystem>
@@ -190,7 +191,7 @@ void loadOtherMachines(GridDynSimulation& simulation)
     std::filesystem::remove(file);
 }
 
-enum class RenewableDynamicProfile {
+enum class RenewableDynamicProfile : std::uint8_t {
     gridFollowing,
     speedCoupledWind,
     gridForming,
@@ -3087,7 +3088,9 @@ TEST(RenewableModels, RenewableFaultClearingStabilityBothSolvers)
         const auto sample = [&]() {
             const auto converterState = converter->getStates();
             EXPECT_GE(converterState.size(), 2U);
-            return FaultSample{bus->getVoltage(), converterState[0], converterState[1]};
+            return FaultSample{.voltage = bus->getVoltage(),
+                               .activePower = converterState[0],
+                               .reactivePower = converterState[1]};
         };
         const auto checkStateBounds = [&]() {
             const auto checkState = [](const std::vector<double>& state) {

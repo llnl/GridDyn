@@ -8,6 +8,8 @@
 
 #include "../GridBus.h"
 #include "../Source.h"
+#include "../VoltageCompensator.h"
+#include "../voltagecompensators/VoltageCompensatorIeeeVC.h"
 #include "../Stabilizer.h"
 #include "../controllers/Scheduler.h"
 #include "../exciters/ExciterDC2A.h"
@@ -49,6 +51,10 @@ governor --- Pm(t0) = Pset is stored externally as well
 namespace griddyn {
 static TypeFactory<DynamicGenerator>
     gGeneratorFactory("generator", std::to_array<std::string_view>({"local_dynamic"}));
+static TypeFactory<VoltageCompensator>
+    gVoltageCompensatorFactory("voltagecompensator", std::to_array<std::string_view>({"vcomp"}));
+static ChildTypeFactory<voltagecompensators::VoltageCompensatorIeeeVC, VoltageCompensator>
+    gVoltageCompensatorIeeeVCFactory("voltagecompensator", "ieeevc");
 
 using units::convert;
 using units::MVAR;
@@ -79,6 +85,9 @@ CoreObject* DynamicGenerator::clone(CoreObject* obj) const
     gen->mechanicalPowerSourceName = mechanicalPowerSourceName;
     gen->mechanicalPowerSource =
         (mechanicalPowerSourceExplicit && (mechanicalPowerSource == gov)) ? gen->gov : nullptr;
+    gen->voltageCompensator =
+        (voltageCompensator != nullptr) ?
+        dynamic_cast<VoltageCompensator*>(gen->find("voltagecompensator")) : nullptr;
     return gen;
 }
 namespace {
@@ -94,6 +103,15 @@ namespace {
     {
         for (index_t signalIndex = 0; signalIndex < machineControllerSignalCount; ++signalIndex) {
             exciterInputs[exciterMachineSignalBase + signalIndex] = machineSignals[signalIndex];
+        }
+    }
+
+    void copyMachineSignalsToVoltageCompensator(const IOdata& machineSignals,
+                                                IOdata& compensatorInputs)
+    {
+        for (index_t signalIndex = 0; signalIndex < machineControllerSignalCount; ++signalIndex) {
+            compensatorInputs[voltageCompensatorMachineSignalBase + signalIndex] =
+                machineSignals[signalIndex];
         }
     }
 
@@ -305,18 +323,31 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
         Pset -= isoc->getOutput();
     }
 
+    // Controller signals such as XadIfd for reduced-order machines use the
+    // initialized field voltage and mechanical power inputs.  Populate these
+    // before taking the shared signal snapshot used by the governor, exciter,
+    // and voltage compensator.
+    modelInputs[genModelPmechInLocation] = m_Pmech;
+    modelInputs[genModelEftInLocation] = m_Eft;
+
+    const auto machineSignals =
+        genModel->getMachineControllerSignals(modelInputs, emptyStateData, cLocalSolverMode);
+    if ((voltageCompensator != nullptr) && (voltageCompensator->isEnabled())) {
+        IOdata compensatorInputs(voltageCompensatorInputCount, 0.0);
+        compensatorInputs[voltageCompensatorVoltageInLocation] = voltage;
+        copyMachineSignalsToVoltageCompensator(machineSignals, compensatorInputs);
+        IOdata compensatorFieldSet;
+        voltageCompensator->dynInitializeB(compensatorInputs, {}, compensatorFieldSet);
+    }
     if ((ext != nullptr) && (ext->isEnabled())) {
         IOdata exciterInputs(exciterInputCount, 0.0);
-        exciterInputs[exciterVoltageInLocation] = voltage;
+        exciterInputs[exciterVoltageInLocation] =
+            ((voltageCompensator != nullptr) && voltageCompensator->isEnabled()) ?
+            voltageCompensator->getOutput() : voltage;
         exciterInputs[exciterVsetInLocation] = 1.0;
         exciterInputs[exciterPmechInLocation] = m_Pmech;
         exciterInputs[exciterOmegaInLocation] = 1.0;
-        modelInputs[genModelPmechInLocation] = m_Pmech;
-        modelInputs[genModelEftInLocation] = m_Eft;
-        copyMachineSignals(genModel->getMachineControllerSignals(modelInputs,
-                                                                 emptyStateData,
-                                                                 cLocalSolverMode),
-                           exciterInputs);
+        copyMachineSignals(machineSignals, exciterInputs);
 
         localDesiredOutput[0] = m_Eft;
         ext->dynInitializeB(exciterInputs, localDesiredOutput, computedFieldSet);
@@ -325,8 +356,7 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
         // Vset=inputSetup[1];
     }
     if ((gov != nullptr) && (gov->isEnabled())) {
-        const auto governorSignals =
-            genModel->getMachineControllerSignals(modelInputs, emptyStateData, cLocalSolverMode);
+        const auto governorSignals = machineSignals;
         modelInputs[govOmegaInLocation] = 1.0;
         modelInputs[govpSetInLocation] = kNullVal;
         modelInputs[govElectricalPowerInLocation] =
@@ -358,7 +388,7 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
         // The machine, exciter, governor, and PSS above require their own
         // controller input contracts.  Do not initialize them again through
         // the generic empty-input path.
-        if (sub->locIndex <= PSS_LOC) {
+        if ((sub->locIndex <= PSS_LOC) || (sub == voltageCompensator)) {
             continue;
         }
         if (sub->isEnabled()) {
@@ -455,7 +485,10 @@ void DynamicGenerator::add(CoreObject* obj)
 
 void DynamicGenerator::add(GridSubModel* obj)
 {
-    if (dynamic_cast<Exciter*>(obj) != nullptr) {
+    if (dynamic_cast<VoltageCompensator*>(obj) != nullptr) {
+        voltageCompensator = static_cast<VoltageCompensator*>(
+            replaceModel(obj, voltageCompensator, VOLTAGE_COMPENSATOR_LOC));
+    } else if (dynamic_cast<Exciter*>(obj) != nullptr) {
         ext = static_cast<Exciter*>(replaceModel(obj, ext, EXCITER_LOC));
     } else if (dynamic_cast<GenModel*>(obj) != nullptr) {
         genModel = static_cast<GenModel*>(replaceModel(obj, genModel, GEN_MODEL_LOC));
@@ -691,10 +724,19 @@ void DynamicGenerator::timestep(CoreTime time, const IOdata& inputs, const Solve
             exciterInputs[exciterVsetInLocation] = 1.0;
             exciterInputs[exciterPmechInLocation] = m_Pmech;
             exciterInputs[exciterOmegaInLocation] = omega;
-            copyMachineSignals(genModel->getMachineControllerSignals(genModelInputs,
-                                                                     emptyStateData,
-                                                                     cLocalSolverMode),
-                               exciterInputs);
+            const auto machineSignals =
+                genModel->getMachineControllerSignals(genModelInputs,
+                                                      emptyStateData,
+                                                      cLocalSolverMode);
+            copyMachineSignals(machineSignals, exciterInputs);
+            if ((voltageCompensator != nullptr) && voltageCompensator->isEnabled()) {
+                IOdata compensatorInputs(voltageCompensatorInputCount, 0.0);
+                compensatorInputs[voltageCompensatorVoltageInLocation] =
+                    inputs[VOLTAGE_IN_LOCATION];
+                copyMachineSignalsToVoltageCompensator(machineSignals, compensatorInputs);
+                exciterInputs[exciterVoltageInLocation] = voltageCompensator->getOutput(
+                    compensatorInputs, emptyStateData, cLocalSolverMode, 0);
+            }
             if ((pss != nullptr) && (pss->isEnabled()) && (pss->numOutputs() > 0)) {
                 exciterInputs[exciterVssInLocation] = pss->getOutput();
             }
@@ -1080,7 +1122,8 @@ void DynamicGenerator::jacobianElements(const IOdata& inputs,
     // compute the Jacobian
     for (auto* sub : getSubObjects()) {
         if (sub->isEnabled()) {
-            if (((sub == ext) && (ext->numInputs() > exciterMachineSignalBase)) || (sub == pss) ||
+            if (((sub == ext) && (ext->numInputs() > exciterMachineSignalBase)) ||
+                (sub == voltageCompensator) || (sub == pss) ||
                 ((sub == gov) && (gov->numInputs() > govElectricalPowerInLocation))) {
                 MatrixDataCustomWriteOnly<double> translatedMatrix;
                 translatedMatrix.setFunction(
@@ -1189,6 +1232,9 @@ CoreObject* DynamicGenerator::find(std::string_view object) const
     if (object == "exciter") {
         return ext;
     }
+    if ((object == "voltagecompensator") || (object == "vcomp") || (object == "ieeevc")) {
+        return voltageCompensator;
+    }
     if ((object == "pset") || (object == "source")) {
         return pSetControl;
     }
@@ -1235,21 +1281,23 @@ double DynamicGenerator::getAngle(const StateData& stateDataValue,
     return genModel->getAngle(stateDataValue, sMode, angleOffset);
 }
 
-DynamicGenerator::SubModelInputs::SubModelInputs(): inputs(6)
+DynamicGenerator::SubModelInputs::SubModelInputs(): inputs(9)
 {
     inputs[GEN_MODEL_LOC].resize(4);
     inputs[EXCITER_LOC].resize(exciterInputCount);
     inputs[GOVERNOR_LOC].resize(3);
     inputs[PSS_LOC].resize(pssInputCount);
+    inputs[VOLTAGE_COMPENSATOR_LOC].resize(voltageCompensatorInputCount);
 }
 
 DynamicGenerator::SubModelInputLocs::SubModelInputLocs():
-    genModelInputLocsInternal(4), genModelInputLocsExternal(4), inputLocs(6)
+    genModelInputLocsInternal(4), genModelInputLocsExternal(4), inputLocs(9)
 {
     inputLocs[GEN_MODEL_LOC].resize(4);
     inputLocs[EXCITER_LOC].resize(exciterInputCount);
     inputLocs[GOVERNOR_LOC].resize(3);
     inputLocs[PSS_LOC].resize(pssInputCount);
+    inputLocs[VOLTAGE_COMPENSATOR_LOC].resize(voltageCompensatorInputCount);
 
     genModelInputLocsExternal[genModelEftInLocation] = kNullLocation;
     genModelInputLocsExternal[genModelPmechInLocation] = kNullLocation;
@@ -1338,6 +1386,17 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
     subInputs.inputs[GOVERNOR_LOC][govElectricalPowerInLocation] =
         machineSignals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_POWER)];
     copyMachineSignals(machineSignals, subInputs.inputs[EXCITER_LOC]);
+    if ((voltageCompensator != nullptr) && voltageCompensator->isEnabled()) {
+        subInputs.inputs[VOLTAGE_COMPENSATOR_LOC][voltageCompensatorVoltageInLocation] =
+            subInputs.inputs[GEN_MODEL_LOC][VOLTAGE_IN_LOCATION];
+        copyMachineSignalsToVoltageCompensator(
+            machineSignals, subInputs.inputs[VOLTAGE_COMPENSATOR_LOC]);
+        subInputs.inputs[EXCITER_LOC][exciterVoltageInLocation] =
+            voltageCompensator->getOutput(subInputs.inputs[VOLTAGE_COMPENSATOR_LOC],
+                                          stateDataValue,
+                                          sMode,
+                                          0);
+    }
     if ((pss != nullptr) && (pss->isEnabled())) {
         copyPssInputs(machineSignals,
                       subInputs.inputs[GOVERNOR_LOC][govOmegaInLocation],
@@ -1392,9 +1451,21 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
     subInputLocs.genModelInputLocsExternal[VOLTAGE_IN_LOCATION] = inputLocs[VOLTAGE_IN_LOCATION];
     subInputLocs.genModelInputLocsExternal[ANGLE_IN_LOCATION] = inputLocs[ANGLE_IN_LOCATION];
 
+    if ((voltageCompensator != nullptr) && voltageCompensator->isEnabled()) {
+        subInputLocs.inputLocs[VOLTAGE_COMPENSATOR_LOC][voltageCompensatorVoltageInLocation] =
+            inputLocs[VOLTAGE_IN_LOCATION];
+        for (index_t signalIndex = 0; signalIndex < machineControllerSignalCount;
+             ++signalIndex) {
+            subInputLocs.inputLocs[VOLTAGE_COMPENSATOR_LOC]
+                                [voltageCompensatorMachineSignalBase + signalIndex] =
+                machineSignalLocation(signalIndex);
+        }
+    }
+
     if ((ext != nullptr) && (ext->isEnabled())) {
         subInputLocs.inputLocs[EXCITER_LOC][exciterVoltageInLocation] =
-            inputLocs[VOLTAGE_IN_LOCATION];
+            ((voltageCompensator != nullptr) && voltageCompensator->isEnabled()) ?
+            voltageCompensator->getOutputLoc(sMode, 0) : inputLocs[VOLTAGE_IN_LOCATION];
         subInputLocs.inputLocs[EXCITER_LOC][exciterVsetInLocation] = vSetLocation(sMode);
         if (ext->numInputs() > exciterMachineSignalBase) {
             for (index_t signalIndex = 0; signalIndex < machineControllerSignalCount;

@@ -14,6 +14,7 @@
 #include "griddyn/governors/GovernorHygov4.h"
 #include "griddyn/governors/GovernorHygovDB.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
+#include "griddyn/governors/GovernorIeeeG2.h"
 #include "griddyn/governors/GovernorReheat.h"
 #include "griddyn/governors/GovernorSteamTCSR.h"
 #include "griddyn/governors/GovernorTG2.h"

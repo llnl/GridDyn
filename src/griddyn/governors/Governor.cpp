@@ -47,6 +47,8 @@ namespace governors {
 
     static ChildTypeFactory<GovernorIeeeG1, Governor>
         gFgov6("governor", std::to_array<std::string_view>({"ieeeg1"}));
+    static ChildTypeFactory<GovernorIeeeG2, Governor>
+        gFgovIeeeG2("governor", std::to_array<std::string_view>({"ieeeg2"}));
     static ChildTypeFactory<GovernorGgov1, Governor>
         gFgov7("governor", std::to_array<std::string_view>({"ggov1"}));
     static ChildTypeFactory<GovernorGast, Governor>

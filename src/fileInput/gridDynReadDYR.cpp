@@ -22,11 +22,14 @@
 #include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
+#include "griddyn/VoltageCompensator.h"
 #include "griddyn/Stabilizer.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/generators/RenewableGenerator.h"
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
+#include "griddyn/governors/GovernorIeeeG2.h"
+#include "griddyn/voltagecompensators/VoltageCompensatorIeeeVC.h"
 #include "griddyn/governors/GovernorReheat.h"
 #include "griddyn/loads/LoadTemplateAdapters.h"
 #include "griddyn/relays/BusMeasurementSensor.h"
@@ -47,6 +50,9 @@
 #include "griddyn/renewables/WTPTA1.h"
 #include "griddyn/renewables/WTTQA1.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
+#include "griddyn/stabilizers/StabilizerIee2st.h"
+#include "griddyn/stabilizers/StabilizerPss2a.h"
+#include "griddyn/stabilizers/StabilizerStab3.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
 #include "loadModelReaderHelper.h"
 #include <array>
@@ -116,14 +122,22 @@ namespace {
     void loadGAST(CoreObject* parentObject, stringVec& tokens);
     void loadGPWSCC(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEG1(CoreObject* parentObject, stringVec& tokens);
+    void loadIEEEG2(CoreObject* parentObject, stringVec& tokens);
+    void loadIEEEVC(CoreObject* parentObject, stringVec& tokens);
     void loadIEESGO(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEST(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
+    void loadIEE2ST(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
+    void loadPSS2A(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
+    void loadSTAB3(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
     void loadST2CUT(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
     void loadEXDC2(CoreObject* parentObject, stringVec& tokens);
     void loadSEXS(CoreObject* parentObject, stringVec& tokens);
     void loadRenewable(CoreObject* parentObject, stringVec& tokens, std::string_view modelName);
     void loadMeasurement(CoreObject* parentObject, stringVec& tokens, std::string_view modelName);
     void loadIEELAL(CoreObject* parentObject, const stringVec& tokens);
+    Generator* requireDyrGenerator(CoreObject* parentObject,
+                                   const stringVec& tokens,
+                                   std::string_view modelName);
 
     struct UnsupportedDyrModelSummary {
         std::size_t mCount = 0;
@@ -146,6 +160,106 @@ namespace {
         }
     }
 
+    void loadIEE2ST(CoreObject* parentObject, stringVec& tokens, bool zeroGain)
+    {
+        if (tokens.size() != 23U) {
+            throw InvalidParameterValue("IEE2ST DYR record must contain 23 fields");
+        }
+        auto* generator = dynamic_cast<DynamicGenerator*>(
+            requireDyrGenerator(parentObject, tokens, "IEE2ST"));
+        if (generator == nullptr) {
+            throw InvalidParameterValue("IEE2ST requires a dynamic generator");
+        }
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* stabilizer = new stabilizers::StabilizerIee2st();
+        stabilizer->set("mode1", params[3]);
+        stabilizer->set("busr1", params[4]);
+        stabilizer->set("mode2", params[5]);
+        stabilizer->set("busr2", params[6]);
+        stabilizer->set("k1", params[7]);
+        stabilizer->set("k2", params[8]);
+        stabilizer->set("t1", params[9]);
+        stabilizer->set("t2", params[10]);
+        stabilizer->set("t3", params[11]);
+        stabilizer->set("t4", params[12]);
+        stabilizer->set("t5", params[13]);
+        stabilizer->set("t6", params[14]);
+        stabilizer->set("t7", params[15]);
+        stabilizer->set("t8", params[16]);
+        stabilizer->set("t9", params[17]);
+        stabilizer->set("t10", params[18]);
+        stabilizer->set("lsmax", params[19]);
+        stabilizer->set("lsmin", params[20]);
+        stabilizer->set("vcu", params[21]);
+        stabilizer->set("vcl", params[22]);
+        if (zeroGain) {
+            stabilizer->set("k1", 0.0);
+            stabilizer->set("k2", 0.0);
+        }
+        generator->add(stabilizer);
+    }
+
+    void loadPSS2A(CoreObject* parentObject, stringVec& tokens, bool zeroGain)
+    {
+        if (tokens.size() != 24U) {
+            throw InvalidParameterValue("PSS2A DYR record must contain 24 fields");
+        }
+        auto* generator = dynamic_cast<DynamicGenerator*>(
+            requireDyrGenerator(parentObject, tokens, "PSS2A"));
+        if (generator == nullptr) {
+            throw InvalidParameterValue("PSS2A requires a dynamic generator");
+        }
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* stabilizer = new stabilizers::StabilizerPss2a();
+        stabilizer->set("mode1", params[3]);
+        stabilizer->set("busr1", params[4]);
+        stabilizer->set("mode2", params[5]);
+        stabilizer->set("busr2", params[6]);
+        stabilizer->set("tw1", params[7]);
+        stabilizer->set("tw2", params[8]);
+        stabilizer->set("t6", params[9]);
+        stabilizer->set("tw3", params[10]);
+        stabilizer->set("tw4", params[11]);
+        stabilizer->set("t7", params[12]);
+        stabilizer->set("ks2", params[13]);
+        stabilizer->set("ks3", params[14]);
+        stabilizer->set("t8", params[15]);
+        stabilizer->set("t9", params[16]);
+        stabilizer->set("ks1", params[17]);
+        stabilizer->set("t1", params[18]);
+        stabilizer->set("t2", params[19]);
+        stabilizer->set("t3", params[20]);
+        stabilizer->set("t4", params[21]);
+        stabilizer->set("vstmax", params[22]);
+        stabilizer->set("vstmin", params[23]);
+        if (zeroGain) {
+            stabilizer->set("ks1", 0.0);
+        }
+        generator->add(stabilizer);
+    }
+
+    void loadSTAB3(CoreObject* parentObject, stringVec& tokens, bool zeroGain)
+    {
+        if (tokens.size() != 8U) {
+            throw InvalidParameterValue("STAB3 DYR record must contain 8 fields");
+        }
+        auto* generator = dynamic_cast<DynamicGenerator*>(
+            requireDyrGenerator(parentObject, tokens, "STAB3"));
+        if (generator == nullptr) {
+            throw InvalidParameterValue("STAB3 requires a dynamic generator");
+        }
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* stabilizer = new stabilizers::StabilizerStab3();
+        stabilizer->set("tt", params[3]);
+        stabilizer->set("tx1", params[4]);
+        stabilizer->set("tx2", params[5]);
+        stabilizer->set("kx", params[6]);
+        stabilizer->set("vlim", params[7]);
+        if (zeroGain) {
+            stabilizer->set("kx", 0.0);
+        }
+        generator->add(stabilizer);
+    }
 }  // namespace
 
 namespace detail {
@@ -242,6 +356,10 @@ namespace detail {
             loadGPWSCC(parentObject, lineTokens);
         } else if (type == "'IEEEG1'") {
             loadIEEEG1(parentObject, lineTokens);
+        } else if (type == "'IEEEG2'") {
+            loadIEEEG2(parentObject, lineTokens);
+        } else if (type == "'IEEEVC'") {
+            loadIEEEVC(parentObject, lineTokens);
         } else if (type == "'IEESGO'") {
             loadIEESGO(parentObject, lineTokens);
         } else if (type == "'IEEEST'") {
@@ -249,6 +367,21 @@ namespace detail {
                 ++zeroGainStabilizers;
             }
             loadIEEEST(parentObject, lineTokens, disableStabilizers);
+        } else if (type == "'IEE2ST'") {
+            if (disableStabilizers) {
+                ++zeroGainStabilizers;
+            }
+            loadIEE2ST(parentObject, lineTokens, disableStabilizers);
+        } else if (type == "'PSS2A'") {
+            if (disableStabilizers) {
+                ++zeroGainStabilizers;
+            }
+            loadPSS2A(parentObject, lineTokens, disableStabilizers);
+        } else if (type == "'STAB3'") {
+            if (disableStabilizers) {
+                ++zeroGainStabilizers;
+            }
+            loadSTAB3(parentObject, lineTokens, disableStabilizers);
         } else if (type == "'ST2CUT'") {
             if (disableStabilizers) {
                 ++zeroGainStabilizers;
@@ -2129,6 +2262,62 @@ namespace {
             secondary->setMechanicalPowerSource(governorPointer,
                                                 governors::GovernorIeeeG1::lpOutput);
         }
+    }
+
+    void loadIEEEG2(CoreObject* parentObject, stringVec& tokens)
+    {
+        // BUS, 'IEEEG2', ID, K, T1, T2, T3, PMAX, PMIN, T4
+        if (tokens.size() != 10U) {
+            throw InvalidParameterValue("IEEEG2 DYR record must contain 10 fields");
+        }
+        auto* generator =
+            dynamic_cast<DynamicGenerator*>(requireDyrGenerator(parentObject, tokens, "IEEEG2"));
+        if (generator == nullptr) {
+            throw InvalidParameterValue("IEEEG2 requires a dynamic generator");
+        }
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        std::unique_ptr<governors::GovernorIeeeG2> governor(
+            dynamic_cast<governors::GovernorIeeeG2*>(
+                CoreObjectFactory::instance()->createObject("governor", "ieeeg2")));
+        if (governor == nullptr) {
+            throw InvalidParameterValue("IEEEG2 factory registration");
+        }
+        static constexpr std::array<std::string_view, 7> names{
+            "k", "t1", "t2", "t3", "pmax", "pmin", "t4"};
+        for (std::size_t index = 0; index < names.size(); ++index) {
+            if (!std::isfinite(params[index + 3U]) || (params[index + 3U] == kNullVal)) {
+                throw InvalidParameterValue("IEEEG2 DYR record has a nonnumeric field");
+            }
+            governor->set(names[index], params[index + 3U]);
+        }
+        generator->add(governor.release());
+    }
+
+    void loadIEEEVC(CoreObject* parentObject, stringVec& tokens)
+    {
+        // BUS, 'IEEEVC', ID, RC, XC
+        if (tokens.size() != 5U) {
+            throw InvalidParameterValue("IEEEVC DYR record must contain 5 fields");
+        }
+        auto* generator =
+            dynamic_cast<DynamicGenerator*>(requireDyrGenerator(parentObject, tokens, "IEEEVC"));
+        if (generator == nullptr) {
+            throw InvalidParameterValue("IEEEVC requires a dynamic generator");
+        }
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        std::unique_ptr<voltagecompensators::VoltageCompensatorIeeeVC> compensator(
+            dynamic_cast<voltagecompensators::VoltageCompensatorIeeeVC*>(
+                CoreObjectFactory::instance()->createObject("voltagecompensator", "ieeevc")));
+        if (compensator == nullptr) {
+            throw InvalidParameterValue("IEEEVC factory registration");
+        }
+        if (!std::isfinite(params[3]) || !std::isfinite(params[4]) || params[3] == kNullVal ||
+            params[4] == kNullVal) {
+            throw InvalidParameterValue("IEEEVC DYR record has a nonnumeric field");
+        }
+        compensator->set("rc", params[3]);
+        compensator->set("xc", params[4]);
+        generator->add(compensator.release());
     }
 
     void loadIEESGO(CoreObject* parentObject, stringVec& tokens)

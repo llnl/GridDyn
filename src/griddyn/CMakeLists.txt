@@ -56,6 +56,8 @@ set(generator_headers
     generators/VariableGenerator.h
     generators/IsocController.h
     generators/DynamicGenerator.h
+    VoltageCompensator.h
+    voltagecompensators/VoltageCompensatorIeeeVC.h
     generators/RenewableGenerator.h
     renewables/RenewableComponent.h
     renewables/GridFormingConverter.h
@@ -86,6 +88,8 @@ set(generator_sources
     generators/VariableGenerator.cpp
     generators/IsocController.cpp
     generators/DynamicGenerator.cpp
+    VoltageCompensator.cpp
+    voltagecompensators/VoltageCompensatorIeeeVC.cpp
     generators/RenewableGenerator.cpp
     renewables/GridFormingConverter.cpp
     renewables/DistributedConverter.cpp
@@ -141,6 +145,9 @@ set(exciter_headers
     Exciter.h
     Stabilizer.h
     stabilizers/StabilizerIEEEST.h
+    stabilizers/StabilizerIee2st.h
+    stabilizers/StabilizerPss2a.h
+    stabilizers/StabilizerStab3.h
     stabilizers/StabilizerST2CUT.h
     exciters/ExciterDC1A.h
     exciters/ExciterDC2A.h
@@ -196,6 +203,9 @@ set(exciter_sources
     exciters/ExciterSCRX.cpp
     stabilizers/Stabilizer.cpp
     stabilizers/StabilizerIEEEST.cpp
+    stabilizers/StabilizerIee2st.cpp
+    stabilizers/StabilizerPss2a.cpp
+    stabilizers/StabilizerStab3.cpp
     stabilizers/StabilizerST2CUT.cpp
 )
 
@@ -212,6 +222,7 @@ set(gov_headers
     governors/GovernorGast.h
     governors/GovernorGPWSCC.h
     governors/GovernorIeeeG1.h
+    governors/GovernorIeeeG2.h
     governors/GovernorIeeeSimple.h
     governors/GovernorReheat.h
     governors/GovernorSteamNR.h
@@ -232,6 +243,7 @@ set(gov_sources
     governors/GovernorGast.cpp
     governors/GovernorGPWSCC.cpp
     governors/GovernorIeeeG1.cpp
+    governors/GovernorIeeeG2.cpp
     governors/GovernorIeeeSimple.cpp
     governors/GovernorReheat.cpp
     governors/GovernorSteamNR.cpp

@@ -14,7 +14,12 @@
 #include "griddyn/generators/RenewableGenerator.h"
 #include "griddyn/governors/GovernorGPWSCC.h"
 #include "griddyn/governors/GovernorGgov1.h"
+#include "griddyn/governors/GovernorIeeeG2.h"
 #include "griddyn/links/AcLine.h"
+#include "griddyn/stabilizers/StabilizerIee2st.h"
+#include "griddyn/stabilizers/StabilizerPss2a.h"
+#include "griddyn/stabilizers/StabilizerStab3.h"
+#include "griddyn/voltagecompensators/VoltageCompensatorIeeeVC.h"
 #include <algorithm>
 #include <array>
 #include <filesystem>
@@ -234,6 +239,214 @@ TEST(ExampleReaderTests, LoadEpcDyrDynamicModels)
         ASSERT_NE(generator, nullptr) << "dynamic generator at bus " << busId;
         EXPECT_NE(generator->find("genmodel"), nullptr) << "GENROU at bus " << busId;
     }
+}
+
+TEST(ExampleReaderTests, LoadIeeeG2AndIeeeVCFromDyr)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dyrPath = std::filesystem::temp_directory_path() / "griddyn_ieeeg2_ieeevc.dyr";
+    {
+        std::ofstream output(dyrPath);
+        ASSERT_TRUE(output.is_open());
+        output << "1 'GENROU' 1 6.5 0.06 0.2 0.05 4.0 0.0 1.8 1.75 0.6 0.8 "
+                   "0.23 0.15 0.09 0.38 0 0 0 /\n"
+                   "1 'IEEEG2' 1 20.0 50.0 5.0 1.0 1.25 0.0 1.5 /\n"
+                   "1 'IEEEVC' 1 0.02 0.10 /\n"
+                   "1 'IEEET1' 1 0.06 25.0 0.2 1.0 -1.0 -0.044 0.5 "
+                   "0.15 1.0 0.0 1.2692 0.0080931 1.6923 0.011281 /\n";
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup()
+        {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } cleanup{dyrPath};
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, epcPath.string()));
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, dyrPath.string()));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* governor =
+        dynamic_cast<griddyn::governors::GovernorIeeeG2*>(generator->find("governor"));
+    ASSERT_NE(governor, nullptr);
+    EXPECT_DOUBLE_EQ(governor->get("t4"), 1.5);
+    EXPECT_DOUBLE_EQ(governor->get("pmax"), 1.25);
+    EXPECT_DOUBLE_EQ(governor->get("pmin"), 0.0);
+    auto* compensator = dynamic_cast<griddyn::voltagecompensators::VoltageCompensatorIeeeVC*>(
+        generator->find("voltagecompensator"));
+    ASSERT_NE(compensator, nullptr);
+    EXPECT_DOUBLE_EQ(compensator->get("rc"), 0.02);
+    EXPECT_DOUBLE_EQ(compensator->get("xc"), 0.10);
+    EXPECT_NE(generator->find("exciter"), nullptr);
+    EXPECT_EQ(simulation->dynInitialize(), 0);
+}
+
+TEST(ExampleReaderTests, LoadIeeeG2AndIeeeVCFromDyd)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dydPath = std::filesystem::temp_directory_path() / "griddyn_ieeeg2_ieeevc.dyd";
+    {
+        std::ofstream output(dydPath);
+        ASSERT_TRUE(output.is_open());
+        output << "models\n"
+                  "genrou 1 \"Bus 1\" 138.0 \"1\" : 6.5 0.06 0.2 0.05 4.0 0.0 "
+                  "1.8 1.75 0.6 0.8 0.23 0.15 0.09 0.38 0 0 0 /\n"
+                  "ieeeg2 1 \"Bus 1\" 138.0 \"1\" : 20.0 50.0 5.0 1.0 1.25 "
+                  "0.0 1.5 /\n"
+                  "ieeevc 1 \"Bus 1\" 138.0 \"1\" : 0.02 0.10 /\n"
+                  "ieeet1 1 \"Bus 1\" 138.0 \"1\" : 0.06 25.0 0.2 1.0 -1.0 "
+                  "-0.044 0.5 0.15 1.0 0.0 1.2692 0.0080931 1.6923 0.011281 /\n";
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup()
+        {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } cleanup{dydPath};
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, epcPath.string()));
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, dydPath.string()));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* governor =
+        dynamic_cast<griddyn::governors::GovernorIeeeG2*>(generator->find("governor"));
+    ASSERT_NE(governor, nullptr);
+    EXPECT_DOUBLE_EQ(governor->get("t4"), 1.5);
+    EXPECT_DOUBLE_EQ(governor->get("pmax"), 1.25);
+    EXPECT_DOUBLE_EQ(governor->get("pmin"), 0.0);
+    EXPECT_NE(dynamic_cast<griddyn::voltagecompensators::VoltageCompensatorIeeeVC*>(
+                  generator->find("voltagecompensator")),
+              nullptr);
+    EXPECT_NE(generator->find("exciter"), nullptr);
+    EXPECT_EQ(simulation->dynInitialize(), 0);
+}
+
+TEST(ExampleReaderTests, LoadStabilizersFromDyr)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dyrPath = std::filesystem::temp_directory_path() / "griddyn_stabilizers.dyr";
+    {
+        std::ofstream output(dyrPath);
+        ASSERT_TRUE(output.is_open());
+        const auto genrou =
+            " 6.5 0.06 0.2 0.05 4.0 0.0 1.8 1.75 0.6 0.8 0.23 0.15 0.09 0.38 0 0 0 /\n";
+        output << "1 'GENROU' 1" << genrou
+               << "1 'IEE2ST' 1 1 0 3 0 2 2 .03 .03 10 10 .15 .05 .15 .05 .15 .05 .1 -.1 0 0 /\n"
+               << "2 'GENROU' 1" << genrou
+               << "2 'PSS2A' 1 1 0 3 0 2 2 0 2 0 2 .98 1 .5 .1 8 .15 .03 .15 .03 .1 -.1 /\n"
+               << "3 'GENROU' 1" << genrou
+               << "3 'STAB3' 1 0 .1 .47 2.38 200 /\n";
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup()
+        {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } cleanup{dyrPath};
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, epcPath.string()));
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, dyrPath.string()));
+    auto* bus1 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    auto* bus2 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+    auto* bus3 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 3));
+    ASSERT_NE(bus1, nullptr);
+    ASSERT_NE(bus2, nullptr);
+    ASSERT_NE(bus3, nullptr);
+    auto* generator1 = dynamic_cast<griddyn::DynamicGenerator*>(bus1->getGen(0));
+    auto* generator2 = dynamic_cast<griddyn::DynamicGenerator*>(bus2->getGen(0));
+    auto* generator3 = dynamic_cast<griddyn::DynamicGenerator*>(bus3->getGen(0));
+    ASSERT_NE(generator1, nullptr);
+    ASSERT_NE(generator2, nullptr);
+    ASSERT_NE(generator3, nullptr);
+    auto* iee2st = dynamic_cast<griddyn::stabilizers::StabilizerIee2st*>(generator1->find("pss"));
+    auto* pss2a = dynamic_cast<griddyn::stabilizers::StabilizerPss2a*>(generator2->find("pss"));
+    auto* stab3 = dynamic_cast<griddyn::stabilizers::StabilizerStab3*>(generator3->find("pss"));
+    ASSERT_NE(iee2st, nullptr);
+    ASSERT_NE(pss2a, nullptr);
+    ASSERT_NE(stab3, nullptr);
+    EXPECT_DOUBLE_EQ(iee2st->get("mode2"), 3.0);
+    EXPECT_DOUBLE_EQ(iee2st->get("t4"), 10.0);
+    EXPECT_DOUBLE_EQ(pss2a->get("ks2"), 0.98);
+    EXPECT_DOUBLE_EQ(pss2a->get("ks1"), 8.0);
+    EXPECT_DOUBLE_EQ(stab3->get("tx2"), 0.47);
+    EXPECT_DOUBLE_EQ(stab3->get("kx"), 2.38);
+    EXPECT_EQ(simulation->dynInitialize(), 0);
+}
+
+TEST(ExampleReaderTests, LoadStabilizersFromDyd)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dydPath = std::filesystem::temp_directory_path() / "griddyn_stabilizers.dyd";
+    {
+        std::ofstream output(dydPath);
+        ASSERT_TRUE(output.is_open());
+        output << "models\n"
+               << "genrou 1 \"Bus 1\" 138.0 \"1\" : 6.5 0.06 0.2 0.05 4.0 0.0 1.8 1.75 "
+                  "0.6 0.8 0.23 0.15 0.09 0.38 0 0 0 /\n"
+               << "iee2st 1 \"Bus 1\" 138.0 \"1\" : 1 0 3 0 2 2 .03 .03 10 10 .15 .05 "
+                  ".15 .05 .15 .05 .1 -.1 0 0 /\n"
+               << "genrou 2 \"Bus 2\" 138.0 \"1\" : 6.5 0.06 0.2 0.05 4.0 0.0 1.8 1.75 "
+                  "0.6 0.8 0.23 0.15 0.09 0.38 0 0 0 /\n"
+               << "pss2a 2 \"Bus 2\" 138.0 \"1\" : 1 0 3 0 2 2 0 2 0 2 .98 1 .5 .1 8 "
+                  ".15 .03 .15 .03 .1 -.1 /\n"
+               << "genrou 3 \"Bus 3\" 138.0 \"1\" : 6.5 0.06 0.2 0.05 4.0 0.0 1.8 1.75 "
+                  "0.6 0.8 0.23 0.15 0.09 0.38 0 0 0 /\n"
+               << "stab3 3 \"Bus 3\" 138.0 \"1\" : 0 .1 .47 2.38 200 /\n";
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup()
+        {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } cleanup{dydPath};
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, epcPath.string()));
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, dydPath.string()));
+    auto* bus1 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    auto* bus2 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+    auto* bus3 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 3));
+    ASSERT_NE(bus1, nullptr);
+    ASSERT_NE(bus2, nullptr);
+    ASSERT_NE(bus3, nullptr);
+    auto* generator1 = dynamic_cast<griddyn::DynamicGenerator*>(bus1->getGen(0));
+    auto* generator2 = dynamic_cast<griddyn::DynamicGenerator*>(bus2->getGen(0));
+    auto* generator3 = dynamic_cast<griddyn::DynamicGenerator*>(bus3->getGen(0));
+    ASSERT_NE(generator1, nullptr);
+    ASSERT_NE(generator2, nullptr);
+    ASSERT_NE(generator3, nullptr);
+    auto* iee2st = dynamic_cast<griddyn::stabilizers::StabilizerIee2st*>(generator1->find("pss"));
+    auto* pss2a = dynamic_cast<griddyn::stabilizers::StabilizerPss2a*>(generator2->find("pss"));
+    auto* stab3 = dynamic_cast<griddyn::stabilizers::StabilizerStab3*>(generator3->find("pss"));
+    ASSERT_NE(iee2st, nullptr);
+    ASSERT_NE(pss2a, nullptr);
+    ASSERT_NE(stab3, nullptr);
+    EXPECT_DOUBLE_EQ(iee2st->get("mode2"), 3.0);
+    EXPECT_DOUBLE_EQ(iee2st->get("t4"), 10.0);
+    EXPECT_DOUBLE_EQ(pss2a->get("ks2"), 0.98);
+    EXPECT_DOUBLE_EQ(pss2a->get("ks1"), 8.0);
+    EXPECT_DOUBLE_EQ(stab3->get("tx2"), 0.47);
+    EXPECT_DOUBLE_EQ(stab3->get("kx"), 2.38);
+    EXPECT_EQ(simulation->dynInitialize(), 0);
 }
 
 TEST(ExampleReaderTests, LoadEpcDydDynamicModels)

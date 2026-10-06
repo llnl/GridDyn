@@ -1306,26 +1306,21 @@ static const IOlocs K_NULL_LOCATIONS{kNullLocation, kNullLocation, kNullLocation
 
 IOlocs AcBus::getOutputLocs(const SolverMode& sMode) const
 {
-    if ((!hasAlgebraic(sMode)) || (!isConnected())) {
+    if (!isConnected()) {
         return K_NULL_LOCATIONS;
     }
     if (sMode.offsetIndex == lastSmode) {
         return outLocs;
     }
 
-    IOlocs newOutLocs(3);
-    // auto Aoffset = useAngle(sMode) ? offsets.getAOffset(sMode) : kNullLocation;
-    // auto Voffset = useVoltage(sMode) ? offsets.getVOffset(sMode) : kNullLocation;
-    auto aoffset = offsets.getAOffset(sMode);
-    auto voffset = offsets.getVOffset(sMode);
-
-    newOutLocs[VOLTAGE_IN_LOCATION] = voffset;
-    newOutLocs[ANGLE_IN_LOCATION] = aoffset;
+    IOlocs newOutLocs(3, kNullLocation);
+    if (hasAlgebraic(sMode)) {
+        newOutLocs[VOLTAGE_IN_LOCATION] = offsets.getVOffset(sMode);
+        newOutLocs[ANGLE_IN_LOCATION] = offsets.getAOffset(sMode);
+    }
     if (opFlags[COMPUTE_FREQUENCY]) {
-        index_t toff = kNullLocation;
-        if (opFlags[COMPUTE_FREQUENCY]) {
-            toff = fblock->getOutputLoc(sMode);
-        } else if (keyGen != nullptr) {
+        index_t toff = fblock->getOutputLoc(sMode);
+        if ((toff == kNullLocation) && (keyGen != nullptr)) {
             keyGen->getFreq(emptyStateData, sMode, &toff);
         }
 

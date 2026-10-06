@@ -669,6 +669,65 @@ TEST_F(LoadTests, Cim6SaturationInitializesAndIntegrates)
                   GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 
+TEST_F(LoadTests, PartitionedDynamicMotorAndCimModelChecks)
+{
+    for (const auto fileName : {"motorload_test1.xml",
+                                "motorload_test3.xml",
+                                "cim5_saturation.xml",
+                                "cim6_saturation.xml",
+                                "fdepLoad.xml"}) {
+        SCOPED_TRACE(fileName);
+        auto simulation = readSimXMLFile(makeLoadTestPath(fileName));
+        if (std::string_view(fileName) == "fdepLoad.xml") {
+            auto* fdep = dynamic_cast<FDepLoad*>(simulation->getBus(2)->getLoad());
+            ASSERT_NE(fdep, nullptr);
+            fdep->set("betap", 1.0);
+            fdep->set("betaq", 1.0);
+            fdep->add(new griddyn::blocks::LeadLagBlock(2.0, 0.0, 1.0, "frequency_filter"));
+        }
+        simulation->set("dynamicsolvermethod", "partitioned");
+        simulation->set("defdyndiff", "basicode");
+        simulation->set("timestep", 0.005);
+
+        ASSERT_EQ(simulation->dynInitialize(), 0);
+        ASSERT_EQ(simulation->run(0.005), 0);
+        const auto algMode = simulation->getSolverMode("dynalg");
+        const auto diffMode = simulation->getSolverMode("dyndiff");
+        {
+            SCOPED_TRACE("algebraic partition residual");
+            EXPECT_EQ(runResidualCheck(simulation, algMode, false), 0);
+        }
+        {
+            SCOPED_TRACE("differential partition residual");
+            EXPECT_EQ(runResidualCheck(simulation, diffMode, false), 0);
+        }
+        {
+            SCOPED_TRACE("partitioned algebraic update");
+            EXPECT_EQ(runAlgebraicCheck(simulation, algMode, false), 0);
+        }
+        {
+            SCOPED_TRACE("partitioned derivative");
+            EXPECT_EQ(runDerivativeCheck(simulation, diffMode, false), 0);
+        }
+        {
+            SCOPED_TRACE("algebraic partition Jacobian");
+            EXPECT_EQ(runJacobianCheck(simulation, algMode, false), 0);
+        }
+        {
+            SCOPED_TRACE("differential partition Jacobian");
+            EXPECT_EQ(runJacobianCheck(simulation, diffMode, false), 0);
+        }
+
+        ASSERT_EQ(simulation->run(0.05), 0);
+        for (const auto mode : {algMode, diffMode}) {
+            for (const double value : simulation->getState(mode)) {
+                EXPECT_TRUE(std::isfinite(value));
+                EXPECT_LT(std::abs(value), 10.0);
+            }
+        }
+    }
+}
+
 #ifdef ENABLE_IN_DEVELOPMENT_CASES
 #    ifdef ENABLE_EXPERIMENTAL_TEST_CASES
 TEST_F(LoadTests, MotorTest5)

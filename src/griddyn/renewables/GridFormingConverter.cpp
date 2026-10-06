@@ -490,27 +490,26 @@ void GridFormingConverter::jacobianElements(const IOdata& inputs,
             }
         }
     };
-    for (index_t parameterIndex = 0; parameterIndex < 2; ++parameterIndex) {
-        const double stepSize = 1e-7 * std::max(1.0, std::abs(alg[parameterIndex]));
-        alg[parameterIndex] += stepSize;
-        std::array<double, 2> shiftedPower{};
-        std::array<double, 14> shiftedRates{};
-        evaluate(inputs, alg.data(), state.data(), shiftedPower.data(), shiftedRates.data());
-        addColumn(loc.algOffset + parameterIndex, shiftedPower, shiftedRates, stepSize);
-        alg[parameterIndex] -= stepSize;
-        if (hasAlgebraic(sMode)) {
-            matrixData.assign(loc.algOffset + parameterIndex, loc.algOffset + parameterIndex, -1.0);
+    if (hasAlgebraic(sMode)) {
+        for (index_t parameterIndex = 0; parameterIndex < 2; ++parameterIndex) {
+            const double stepSize = 1e-7 * std::max(1.0, std::abs(alg[parameterIndex]));
+            alg[parameterIndex] += stepSize;
+            std::array<double, 2> shiftedPower{};
+            std::array<double, 14> shiftedRates{};
+            evaluate(inputs, alg.data(), state.data(), shiftedPower.data(), shiftedRates.data());
+            addColumn(loc.algOffset + parameterIndex, shiftedPower, shiftedRates, stepSize);
+            alg[parameterIndex] -= stepSize;
         }
     }
-    for (index_t parameterIndex = 0; parameterIndex < differentialCount; ++parameterIndex) {
-        const double stepSize = 1e-7 * std::max(1.0, std::abs(state[parameterIndex]));
-        state[parameterIndex] += stepSize;
-        std::array<double, 2> shiftedPower{};
-        std::array<double, 14> shiftedRates{};
-        evaluate(inputs, alg.data(), state.data(), shiftedPower.data(), shiftedRates.data());
-        addColumn(loc.diffOffset + parameterIndex, shiftedPower, shiftedRates, stepSize);
-        state[parameterIndex] -= stepSize;
-        if (hasDifferential(sMode)) {
+    if (hasDifferential(sMode)) {
+        for (index_t parameterIndex = 0; parameterIndex < differentialCount; ++parameterIndex) {
+            const double stepSize = 1e-7 * std::max(1.0, std::abs(state[parameterIndex]));
+            state[parameterIndex] += stepSize;
+            std::array<double, 2> shiftedPower{};
+            std::array<double, 14> shiftedRates{};
+            evaluate(inputs, alg.data(), state.data(), shiftedPower.data(), shiftedRates.data());
+            addColumn(loc.diffOffset + parameterIndex, shiftedPower, shiftedRates, stepSize);
+            state[parameterIndex] -= stepSize;
             matrixData.assign(loc.diffOffset + parameterIndex,
                               loc.diffOffset + parameterIndex,
                               -stateData.cj);

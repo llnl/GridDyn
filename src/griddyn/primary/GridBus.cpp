@@ -956,8 +956,6 @@ void GridBus::derivative(const IOdata& inputs,
     GridComponent::derivative(outputs, stateDataValue, deriv, sMode);
 }
 
-static const IOlocs K_NULL_LOCATIONS{kNullLocation, kNullLocation, kNullLocation};
-
 // Jacobian
 void GridBus::jacobianElements(const IOdata& inputs,
                                const StateData& stateDataValue,
@@ -970,8 +968,7 @@ void GridBus::jacobianElements(const IOdata& inputs,
 
     // printf("t=%f,id=%d, dpdt=%f, dpdv=%f, dqdt=%f, dqdv=%f\n", time, id, Ptii, Pvii, Qvii, Qtii);
 
-    const IOlocs& coutLocs = (hasAlgebraic(sMode)) ? outLocs : K_NULL_LOCATIONS;
-    GridComponent::jacobianElements(outputs, stateDataValue, matrixDataValue, coutLocs, sMode);
+    GridComponent::jacobianElements(outputs, stateDataValue, matrixDataValue, outLocs, sMode);
 }
 
 double GridBus::lastError() const

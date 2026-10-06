@@ -109,9 +109,8 @@ class MotorLoad3: public MotorLoad {
     virtual double getReactivePower(double voltage) const override;
     virtual double getRealPower() const override;
     virtual double getReactivePower() const override;
-    virtual void updateCurrents(const IOdata& inputs,
-                                const StateData& stateData,
-                                const SolverMode& sMode);
+    virtual void
+        updateCurrents(const IOdata& inputs, const StateData& stateData, const SolverMode& sMode);
 
   private:
     /** @brief estimate the initial state values of the motor

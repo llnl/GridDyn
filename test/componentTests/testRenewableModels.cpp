@@ -43,9 +43,9 @@
 #include "utilities/MatrixDataSparse.hpp"
 #include <algorithm>
 #include <array>
-#include <cstdint>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>

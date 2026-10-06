@@ -184,8 +184,8 @@ void StabilizerStab3::derivative(const IOdata& inputs,
     const double* state = locations.diffStateLoc;
     double* stateDerivative = locations.destDiffLoc;
     const double electricalPower = inputs[pssElectricalPowerInLocation];
-    const double transducer = (transducerState == kNullLocation) ? electricalPower :
-                                                                     state[transducerState];
+    const double transducer =
+        (transducerState == kNullLocation) ? electricalPower : state[transducerState];
     const double feedback = transducer - initialElectricalPower;
     const double lowPass = (lowPassState == kNullLocation) ? feedback : state[lowPassState];
     if (transducerState != kNullLocation) {
@@ -225,9 +225,9 @@ void StabilizerStab3::jacobianElements(const IOdata& inputs,
     }
     const auto finalOutput = unlimitedOutput(inputs, state);
     const auto addExpression = [&matrixData, &inputLocs, refDiff](index_t row,
-                                                                   const LinearValue& value,
-                                                                   double scale,
-                                                                   bool includeStates) {
+                                                                  const LinearValue& value,
+                                                                  double scale,
+                                                                  bool includeStates) {
         if (includeStates) {
             for (index_t index = 0; index < value.stateGain.size(); ++index) {
                 if (value.stateGain[index] != 0.0) {
@@ -236,8 +236,9 @@ void StabilizerStab3::jacobianElements(const IOdata& inputs,
             }
         }
         if (value.inputGain != 0.0) {
-            matrixData.assignCheckCol(
-                row, inputLocs[pssElectricalPowerInLocation], scale * value.inputGain);
+            matrixData.assignCheckCol(row,
+                                      inputLocs[pssElectricalPowerInLocation],
+                                      scale * value.inputGain);
         }
     };
 
@@ -268,9 +269,7 @@ void StabilizerStab3::jacobianElements(const IOdata& inputs,
                       (-1.0 / Tx2) - stateData.cj);
 }
 
-void StabilizerStab3::timestep(CoreTime time,
-                               const IOdata& inputs,
-                               const SolverMode& /*sMode*/)
+void StabilizerStab3::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
     const double timeStep = time - prevTime;

@@ -57,11 +57,11 @@ as gaps against its current approved-model target.
 
 ### Power system stabilizers
 
-| Model named by the article | GridDyn coverage | Notes                                                                                                                                 |
-| -------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| PSS2A                      | Supported, trajectory pending | Native PSS2A model and DYR/DYD routes exist; independent WECC/PSS/E trajectory validation remains open. |
-| PSS2C, PSS3B               | **Gap**          | No matching named model or DYR route found. GridDyn's IEEEST/IEE2ST models are not counted as equivalent without a parameter/equation mapping. |
-| PSS4B, PSS4C               | **Gap**          | No matching named model or DYR route found.                                                                                           |
+| Model named by the article | GridDyn coverage              | Notes                                                                                                                                          |
+| -------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| PSS2A                      | Supported, trajectory pending | Native PSS2A model and DYR/DYD routes exist; independent WECC/PSS/E trajectory validation remains open.                                        |
+| PSS2C, PSS3B               | **Gap**                       | No matching named model or DYR route found. GridDyn's IEEEST/IEE2ST models are not counted as equivalent without a parameter/equation mapping. |
+| PSS4B, PSS4C               | **Gap**                       | No matching named model or DYR route found.                                                                                                    |
 
 PSSSH is identified by the article as proprietary and not approved, so it is
 not counted as a gap against the article's current target. GridDyn currently

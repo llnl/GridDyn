@@ -131,7 +131,7 @@ double GovernorIeeeG2::leadLagOutput(const IOdata& inputs, const double state[])
 double GovernorIeeeG2::speedLagOutput(const IOdata& inputs, const double state[]) const
 {
     return (simpleLagState == kInvalidLocation) ? leadLagOutput(inputs, state) :
-                                                   state[simpleLagState];
+                                                  state[simpleLagState];
 }
 
 double GovernorIeeeG2::limitedInput(const IOdata& inputs, const double state[]) const
@@ -164,8 +164,8 @@ void GovernorIeeeG2::residual(const IOdata& inputs,
 {
     const auto locations = offsets.getLocations(stateData, resid, sMode, this);
     if (hasAlgebraic(sMode)) {
-        locations.destLoc[0] = waterOutput(inputs, locations.diffStateLoc) -
-            locations.algStateLoc[0];
+        locations.destLoc[0] =
+            waterOutput(inputs, locations.diffStateLoc) - locations.algStateLoc[0];
     }
     if (hasDifferential(sMode)) {
         derivative(inputs, stateData, resid, sMode);

@@ -250,11 +250,11 @@ TEST(ExampleReaderTests, LoadIeeeG2AndIeeeVCFromDyr)
         std::ofstream output(dyrPath);
         ASSERT_TRUE(output.is_open());
         output << "1 'GENROU' 1 6.5 0.06 0.2 0.05 4.0 0.0 1.8 1.75 0.6 0.8 "
-                   "0.23 0.15 0.09 0.38 0 0 0 /\n"
-                   "1 'IEEEG2' 1 20.0 50.0 5.0 1.0 1.25 0.0 1.5 /\n"
-                   "1 'IEEEVC' 1 0.02 0.10 /\n"
-                   "1 'IEEET1' 1 0.06 25.0 0.2 1.0 -1.0 -0.044 0.5 "
-                   "0.15 1.0 0.0 1.2692 0.0080931 1.6923 0.011281 /\n";
+                  "0.23 0.15 0.09 0.38 0 0 0 /\n"
+                  "1 'IEEEG2' 1 20.0 50.0 5.0 1.0 1.25 0.0 1.5 /\n"
+                  "1 'IEEEVC' 1 0.02 0.10 /\n"
+                  "1 'IEEET1' 1 0.06 25.0 0.2 1.0 -1.0 -0.044 0.5 "
+                  "0.15 1.0 0.0 1.2692 0.0080931 1.6923 0.011281 /\n";
     }
     struct Cleanup {
         std::filesystem::path path;
@@ -272,8 +272,7 @@ TEST(ExampleReaderTests, LoadIeeeG2AndIeeeVCFromDyr)
     ASSERT_NE(bus, nullptr);
     auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
     ASSERT_NE(generator, nullptr);
-    auto* governor =
-        dynamic_cast<griddyn::governors::GovernorIeeeG2*>(generator->find("governor"));
+    auto* governor = dynamic_cast<griddyn::governors::GovernorIeeeG2*>(generator->find("governor"));
     ASSERT_NE(governor, nullptr);
     EXPECT_DOUBLE_EQ(governor->get("t4"), 1.5);
     EXPECT_DOUBLE_EQ(governor->get("pmax"), 1.25);
@@ -320,8 +319,7 @@ TEST(ExampleReaderTests, LoadIeeeG2AndIeeeVCFromDyd)
     ASSERT_NE(bus, nullptr);
     auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
     ASSERT_NE(generator, nullptr);
-    auto* governor =
-        dynamic_cast<griddyn::governors::GovernorIeeeG2*>(generator->find("governor"));
+    auto* governor = dynamic_cast<griddyn::governors::GovernorIeeeG2*>(generator->find("governor"));
     ASSERT_NE(governor, nullptr);
     EXPECT_DOUBLE_EQ(governor->get("t4"), 1.5);
     EXPECT_DOUBLE_EQ(governor->get("pmax"), 1.25);
@@ -347,8 +345,7 @@ TEST(ExampleReaderTests, LoadStabilizersFromDyr)
                << "1 'IEE2ST' 1 1 0 3 0 2 2 .03 .03 10 10 .15 .05 .15 .05 .15 .05 .1 -.1 0 0 /\n"
                << "2 'GENROU' 1" << genrou
                << "2 'PSS2A' 1 1 0 3 0 2 2 0 2 0 2 .98 1 .5 .1 8 .15 .03 .15 .03 .1 -.1 /\n"
-               << "3 'GENROU' 1" << genrou
-               << "3 'STAB3' 1 0 .1 .47 2.38 200 /\n";
+               << "3 'GENROU' 1" << genrou << "3 'STAB3' 1 0 .1 .47 2.38 200 /\n";
     }
     struct Cleanup {
         std::filesystem::path path;

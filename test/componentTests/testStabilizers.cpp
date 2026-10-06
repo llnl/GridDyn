@@ -8,11 +8,11 @@
 #include "core/ObjectFactory.hpp"
 #include "griddyn/Stabilizer.h"
 #include "griddyn/generators/DynamicGenerator.h"
-#include "griddyn/stabilizers/StabilizerIee2st.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
+#include "griddyn/stabilizers/StabilizerIee2st.h"
 #include "griddyn/stabilizers/StabilizerPss2a.h"
-#include "griddyn/stabilizers/StabilizerStab3.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
+#include "griddyn/stabilizers/StabilizerStab3.h"
 #include <cmath>
 #include <functional>
 #include <gtest/gtest.h>

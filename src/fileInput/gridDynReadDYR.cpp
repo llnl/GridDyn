@@ -22,14 +22,13 @@
 #include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
-#include "griddyn/VoltageCompensator.h"
 #include "griddyn/Stabilizer.h"
+#include "griddyn/VoltageCompensator.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/generators/RenewableGenerator.h"
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorIeeeG2.h"
-#include "griddyn/voltagecompensators/VoltageCompensatorIeeeVC.h"
 #include "griddyn/governors/GovernorReheat.h"
 #include "griddyn/loads/LoadTemplateAdapters.h"
 #include "griddyn/relays/BusMeasurementSensor.h"
@@ -52,8 +51,9 @@
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerIee2st.h"
 #include "griddyn/stabilizers/StabilizerPss2a.h"
-#include "griddyn/stabilizers/StabilizerStab3.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
+#include "griddyn/stabilizers/StabilizerStab3.h"
+#include "griddyn/voltagecompensators/VoltageCompensatorIeeeVC.h"
 #include "loadModelReaderHelper.h"
 #include <array>
 #include <charconv>
@@ -165,8 +165,8 @@ namespace {
         if (tokens.size() != 23U) {
             throw InvalidParameterValue("IEE2ST DYR record must contain 23 fields");
         }
-        auto* generator = dynamic_cast<DynamicGenerator*>(
-            requireDyrGenerator(parentObject, tokens, "IEE2ST"));
+        auto* generator =
+            dynamic_cast<DynamicGenerator*>(requireDyrGenerator(parentObject, tokens, "IEE2ST"));
         if (generator == nullptr) {
             throw InvalidParameterValue("IEE2ST requires a dynamic generator");
         }
@@ -204,8 +204,8 @@ namespace {
         if (tokens.size() != 24U) {
             throw InvalidParameterValue("PSS2A DYR record must contain 24 fields");
         }
-        auto* generator = dynamic_cast<DynamicGenerator*>(
-            requireDyrGenerator(parentObject, tokens, "PSS2A"));
+        auto* generator =
+            dynamic_cast<DynamicGenerator*>(requireDyrGenerator(parentObject, tokens, "PSS2A"));
         if (generator == nullptr) {
             throw InvalidParameterValue("PSS2A requires a dynamic generator");
         }
@@ -243,8 +243,8 @@ namespace {
         if (tokens.size() != 8U) {
             throw InvalidParameterValue("STAB3 DYR record must contain 8 fields");
         }
-        auto* generator = dynamic_cast<DynamicGenerator*>(
-            requireDyrGenerator(parentObject, tokens, "STAB3"));
+        auto* generator =
+            dynamic_cast<DynamicGenerator*>(requireDyrGenerator(parentObject, tokens, "STAB3"));
         if (generator == nullptr) {
             throw InvalidParameterValue("STAB3 requires a dynamic generator");
         }

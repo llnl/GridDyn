@@ -28,8 +28,8 @@ TEST(VoltageCompensatorTests, IeeeVCMatchesComplexVoltageEquation)
     IOdata fieldSet;
     model->dynInitializeB(inputs, {}, fieldSet);
 
-    const double expected = std::hypot(0.9 + (0.02 * 0.2) - (0.10 * -0.1),
-                                       0.4 + (0.02 * -0.1) + (0.10 * 0.2));
+    const double expected =
+        std::hypot(0.9 + (0.02 * 0.2) - (0.10 * -0.1), 0.4 + (0.02 * -0.1) + (0.10 * 0.2));
     EXPECT_NEAR(model->getOutput(), expected, 1e-14);
     EXPECT_NEAR(fieldSet[0], expected, 1e-14);
     std::vector<double> residual(1, 0.0);

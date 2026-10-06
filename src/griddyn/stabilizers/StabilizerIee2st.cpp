@@ -62,17 +62,32 @@ bool StabilizerIee2st::supportedMode(int mode)
 
 void StabilizerIee2st::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
-    const std::array<double, 18> parameters{K1, K2, T1, T2, T3, T4, T5, T6, T7,
-                                             T8, T9, T10, Lsmax, Lsmin, Vcu, Vcl,
-                                             initialVoltage, initialPmech};
+    const std::array<double, 18> parameters{K1,
+                                            K2,
+                                            T1,
+                                            T2,
+                                            T3,
+                                            T4,
+                                            T5,
+                                            T6,
+                                            T7,
+                                            T8,
+                                            T9,
+                                            T10,
+                                            Lsmax,
+                                            Lsmin,
+                                            Vcu,
+                                            Vcl,
+                                            initialVoltage,
+                                            initialPmech};
     if (!std::all_of(parameters.begin(),
                      parameters.end(),
                      [](double value) { return std::isfinite(value); }) ||
-        !supportedMode(mode1) || !supportedMode(mode2) || (remoteBus1 != 0) ||
-        (remoteBus2 != 0) || (T1 < 0.0) || (T2 < 0.0) || (T3 < 0.0) || (T4 <= 0.0) ||
-        (T5 < 0.0) || (T6 < 0.0) || (T7 < 0.0) || (T8 < 0.0) || (T9 < 0.0) ||
-        (T10 < 0.0) || ((T6 == 0.0) && (T5 > 0.0)) || ((T8 == 0.0) && (T7 > 0.0)) ||
-        ((T10 == 0.0) && (T9 > 0.0)) || (Lsmax < Lsmin) || (Vcu < Vcl)) {
+        !supportedMode(mode1) || !supportedMode(mode2) || (remoteBus1 != 0) || (remoteBus2 != 0) ||
+        (T1 < 0.0) || (T2 < 0.0) || (T3 < 0.0) || (T4 <= 0.0) || (T5 < 0.0) || (T6 < 0.0) ||
+        (T7 < 0.0) || (T8 < 0.0) || (T9 < 0.0) || (T10 < 0.0) || ((T6 == 0.0) && (T5 > 0.0)) ||
+        ((T8 == 0.0) && (T7 > 0.0)) || ((T10 == 0.0) && (T9 > 0.0)) || (Lsmax < Lsmin) ||
+        (Vcu < Vcl)) {
         throw InvalidParameterValue("IEE2ST modes, time constants, or limits");
     }
 
@@ -160,19 +175,18 @@ void StabilizerIee2st::dynObjectInitializeB(const IOdata& inputs,
     // The washout state is the filtered-input sum at initialization.  Build
     // it explicitly so this remains correct for both dynamic and bypassed
     // input filters.
-    const double filter1 = (filter1State == kNullLocation) ? K1 * input1.value :
-                                                               state[filter1State];
-    const double filter2 = (filter2State == kNullLocation) ? K2 * input2.value :
-                                                               state[filter2State];
+    const double filter1 =
+        (filter1State == kNullLocation) ? K1 * input1.value : state[filter1State];
+    const double filter2 =
+        (filter2State == kNullLocation) ? K2 * input2.value : state[filter2State];
     state[washoutState] = filter1 + filter2;
     m_state[0] = 0.0;
     std::fill(m_dstate_dt.begin(), m_dstate_dt.end(), 0.0);
     updateLimitFlags(inputs, state);
 }
 
-StabilizerIee2st::LinearValue StabilizerIee2st::selectedInput(const IOdata& inputs,
-                                                              int mode,
-                                                              bool first) const
+StabilizerIee2st::LinearValue
+    StabilizerIee2st::selectedInput(const IOdata& inputs, int mode, bool first) const
 {
     LinearValue input;
     switch (mode) {
@@ -200,10 +214,10 @@ StabilizerIee2st::LinearValue StabilizerIee2st::selectedInput(const IOdata& inpu
 }
 
 StabilizerIee2st::LinearValue StabilizerIee2st::leadLagOutput(const double state[],
-                                                             const LinearValue& input,
-                                                             index_t stateIndex,
-                                                             double leadTime,
-                                                             double lagTime) const
+                                                              const LinearValue& input,
+                                                              index_t stateIndex,
+                                                              double leadTime,
+                                                              double lagTime) const
 {
     if (stateIndex == kNullLocation) {
         return input;
@@ -266,8 +280,7 @@ StabilizerIee2st::LinearValue StabilizerIee2st::outputExpression(const IOdata& i
         washout.stateGain[washoutState] -= scale;
     }
     const auto firstLeadLag = leadLagOutput(state, washout, leadLag1State, T5, T6);
-    const auto secondLeadLag =
-        leadLagOutput(state, firstLeadLag, leadLag2State, T7, T8);
+    const auto secondLeadLag = leadLagOutput(state, firstLeadLag, leadLag2State, T7, T8);
     return leadLagOutput(state, secondLeadLag, leadLag3State, T9, T10);
 }
 
@@ -337,10 +350,10 @@ void StabilizerIee2st::derivative(const IOdata& inputs,
     double* stateDerivative = locations.destDiffLoc;
     const auto input1 = selectedInput(inputs, mode1, true);
     const auto input2 = selectedInput(inputs, mode2, false);
-    const double filter1 = (filter1State == kNullLocation) ? K1 * input1.value :
-                                                               state[filter1State];
-    const double filter2 = (filter2State == kNullLocation) ? K2 * input2.value :
-                                                               state[filter2State];
+    const double filter1 =
+        (filter1State == kNullLocation) ? K1 * input1.value : state[filter1State];
+    const double filter2 =
+        (filter2State == kNullLocation) ? K2 * input2.value : state[filter2State];
     const double summed = filter1 + filter2;
     if (filter1State != kNullLocation) {
         stateDerivative[filter1State] = (K1 * input1.value - state[filter1State]) / T1;
@@ -349,16 +362,13 @@ void StabilizerIee2st::derivative(const IOdata& inputs,
         stateDerivative[filter2State] = (K2 * input2.value - state[filter2State]) / T2;
     }
     stateDerivative[washoutState] = (summed - state[washoutState]) / T4;
-    const double washout =
-        (T3 > 0.0) ? (T3 / T4) * (summed - state[washoutState]) : summed;
-    const double first = (leadLag1State == kNullLocation) ? washout :
-                                                            state[leadLag1State] +
-                                                                (T5 / T6) *
-                                                                    (washout - state[leadLag1State]);
-    const double second = (leadLag2State == kNullLocation) ? first :
-                                                              state[leadLag2State] +
-                                                                  (T7 / T8) *
-                                                                      (first - state[leadLag2State]);
+    const double washout = (T3 > 0.0) ? (T3 / T4) * (summed - state[washoutState]) : summed;
+    const double first = (leadLag1State == kNullLocation) ?
+        washout :
+        state[leadLag1State] + (T5 / T6) * (washout - state[leadLag1State]);
+    const double second = (leadLag2State == kNullLocation) ?
+        first :
+        state[leadLag2State] + (T7 / T8) * (first - state[leadLag2State]);
     if (leadLag1State != kNullLocation) {
         stateDerivative[leadLag1State] = (washout - state[leadLag1State]) / T6;
     }
@@ -447,15 +457,13 @@ void StabilizerIee2st::jacobianElements(const IOdata& inputs,
         washout.stateGain[washoutState] -= scale;
     }
     const auto firstLeadLag = leadLagOutput(state, washout, leadLag1State, T5, T6);
-    const auto secondLeadLag =
-        leadLagOutput(state, firstLeadLag, leadLag2State, T7, T8);
-    const auto finalOutput =
-        leadLagOutput(state, secondLeadLag, leadLag3State, T9, T10);
+    const auto secondLeadLag = leadLagOutput(state, firstLeadLag, leadLag2State, T7, T8);
+    const auto finalOutput = leadLagOutput(state, secondLeadLag, leadLag3State, T9, T10);
 
     const auto addExpression = [this, &matrixData, &inputLocs, refDiff](index_t row,
-                                                                         const LinearValue& value,
-                                                                         double scale,
-                                                                         bool includeStates) {
+                                                                        const LinearValue& value,
+                                                                        double scale,
+                                                                        bool includeStates) {
         if (includeStates) {
             for (index_t index = 0; index < value.stateGain.size(); ++index) {
                 if (value.stateGain[index] != 0.0) {
@@ -469,10 +477,7 @@ void StabilizerIee2st::jacobianElements(const IOdata& inputs,
     if (hasAlgebraic(sMode)) {
         matrixData.assign(refAlg, refAlg, -1.0);
         if (voltageEnabled(inputs) && (outputLimitStatus(inputs, state) == 0)) {
-            addExpression(refAlg,
-                          finalOutput,
-                          1.0,
-                          !isAlgebraicOnly(sMode));
+            addExpression(refAlg, finalOutput, 1.0, !isAlgebraicOnly(sMode));
         }
     }
     if (!hasDifferential(sMode)) {
@@ -492,9 +497,7 @@ void StabilizerIee2st::jacobianElements(const IOdata& inputs,
                           (-1.0 / T2) - stateData.cj);
     }
     addExpression(refDiff + washoutState, summed, 1.0 / T4, true);
-    matrixData.assign(refDiff + washoutState,
-                      refDiff + washoutState,
-                      (-1.0 / T4) - stateData.cj);
+    matrixData.assign(refDiff + washoutState, refDiff + washoutState, (-1.0 / T4) - stateData.cj);
 
     if (leadLag1State != kNullLocation) {
         addExpression(refDiff + leadLag1State, washout, 1.0 / T6, true);
@@ -516,9 +519,7 @@ void StabilizerIee2st::jacobianElements(const IOdata& inputs,
     }
 }
 
-void StabilizerIee2st::timestep(CoreTime time,
-                                const IOdata& inputs,
-                                const SolverMode& /*sMode*/)
+void StabilizerIee2st::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
     const double timeStep = time - prevTime;
@@ -612,15 +613,13 @@ void StabilizerIee2st::set(std::string_view param, double val, units::unit unitT
 {
     const auto finite = [val](const char* parameterName) {
         if (!std::isfinite(val)) {
-            throw InvalidParameterValue(std::string("IEE2ST ") + parameterName +
-                                        " must be finite");
+            throw InvalidParameterValue(std::string("IEE2ST ") + parameterName + " must be finite");
         }
     };
     const auto setMode = [&finite](double value, int& mode, const char* parameterName) {
         finite(parameterName);
         if ((std::floor(value) != value) || (value < 0.0) || (value > 5.0)) {
-            throw InvalidParameterValue(std::string("IEE2ST ") + parameterName +
-                                        " is unsupported");
+            throw InvalidParameterValue(std::string("IEE2ST ") + parameterName + " is unsupported");
         }
         mode = static_cast<int>(value);
     };

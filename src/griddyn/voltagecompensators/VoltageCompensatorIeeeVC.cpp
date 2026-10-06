@@ -39,8 +39,8 @@ void VoltageCompensatorIeeeVC::dynObjectInitializeA(CoreTime time0, std::uint32_
 }
 
 void VoltageCompensatorIeeeVC::dynObjectInitializeB(const IOdata& inputs,
-                                                   const IOdata& /*desiredOutput*/,
-                                                   IOdata& fieldSet)
+                                                    const IOdata& /*desiredOutput*/,
+                                                    IOdata& fieldSet)
 {
     if (inputs.size() < voltageCompensatorInputCount) {
         throw InvalidParameterValue("IEEEVC input vector");

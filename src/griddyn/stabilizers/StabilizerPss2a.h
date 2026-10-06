@@ -119,22 +119,20 @@ class StabilizerPss2a: public Stabilizer {
 
     [[nodiscard]] LinearValue selectedInput(const IOdata& inputs, int mode, bool first) const;
     [[nodiscard]] LinearValue derivativeBranch(const LinearValue& input,
-                                                const double state[],
-                                                index_t firstState,
-                                                index_t secondState,
-                                                index_t lagState,
-                                                double firstTime,
-                                                double secondTime,
-                                                double lagGain) const;
-    [[nodiscard]] LinearValue rampFilter(const LinearValue& input,
-                                         const double state[]) const;
+                                               const double state[],
+                                               index_t firstState,
+                                               index_t secondState,
+                                               index_t lagState,
+                                               double firstTime,
+                                               double secondTime,
+                                               double lagGain) const;
+    [[nodiscard]] LinearValue rampFilter(const LinearValue& input, const double state[]) const;
     [[nodiscard]] LinearValue leadLagOutput(const LinearValue& input,
-                                             const double state[],
-                                             index_t stateIndex,
-                                             double leadTime,
-                                             double lagTime) const;
-    [[nodiscard]] LinearValue outputExpression(const IOdata& inputs,
-                                                const double state[]) const;
+                                            const double state[],
+                                            index_t stateIndex,
+                                            double leadTime,
+                                            double lagTime) const;
+    [[nodiscard]] LinearValue outputExpression(const IOdata& inputs, const double state[]) const;
     [[nodiscard]] double output(const IOdata& inputs, const double state[]) const;
     [[nodiscard]] int outputLimitStatus(const IOdata& inputs, const double state[]) const;
     bool updateLimitFlags(const IOdata& inputs, const double state[]);

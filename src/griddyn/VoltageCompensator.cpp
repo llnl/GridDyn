@@ -23,8 +23,13 @@ CoreObject* VoltageCompensator::clone(CoreObject* obj) const
 
 const std::vector<stringVec>& VoltageCompensator::inputNames() const
 {
-    static const std::vector<stringVec> names{{"voltage"}, {"id"}, {"iq"}, {"vd"}, {"vq"},
-                                              {"electrical_power"}, {"electrical_torque"},
+    static const std::vector<stringVec> names{{"voltage"},
+                                              {"id"},
+                                              {"iq"},
+                                              {"vd"},
+                                              {"vq"},
+                                              {"electrical_power"},
+                                              {"electrical_torque"},
                                               {"xad_ifd"}};
     return names;
 }

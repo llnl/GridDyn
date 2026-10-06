@@ -117,12 +117,11 @@ class StabilizerIee2st: public Stabilizer {
 
     [[nodiscard]] LinearValue selectedInput(const IOdata& inputs, int mode, bool first) const;
     [[nodiscard]] LinearValue leadLagOutput(const double state[],
-                                             const LinearValue& input,
-                                             index_t stateIndex,
-                                             double leadTime,
-                                             double lagTime) const;
-    [[nodiscard]] LinearValue outputExpression(const IOdata& inputs,
-                                                const double state[]) const;
+                                            const LinearValue& input,
+                                            index_t stateIndex,
+                                            double leadTime,
+                                            double lagTime) const;
+    [[nodiscard]] LinearValue outputExpression(const IOdata& inputs, const double state[]) const;
     [[nodiscard]] double output(const IOdata& inputs, const double state[]) const;
     [[nodiscard]] bool voltageEnabled(const IOdata& inputs) const;
     [[nodiscard]] int outputLimitStatus(const IOdata& inputs, const double state[]) const;

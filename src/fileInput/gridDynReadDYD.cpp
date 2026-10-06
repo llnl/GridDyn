@@ -85,15 +85,14 @@ namespace {
     bool isDydDirectModel(std::string_view modelName)
     {
         static constexpr std::array directModels{
-            "gencls", "genrou", "genroe", "gensae", "gensal",  "esdc1a",  "esdc2a", "ieeet1",
-            "ieeet3", "ieeex1", "ac7b",   "ac8b",   "esst1a",  "esst2a",  "esst3a", "esst4b",
-            "expic1", "scrx",   "esac6a", "exst1",  "exac1",   "esac1a",  "exac2",  "exac4",
-            "exdc2",  "tgov1",  "hygov",  "gast",   "ggov1",   "ieeeg1",  "ieesgo", "ieeest",
-            "iee2st", "pss2a", "stab3",
-            "sexs",   "ieeeg2", "ieeevc", "regca1", "regcp1", "reeca1", "reeca1e", "reeca1g",
-            "reecb1", "repca1",
-            "regcv1", "regcv2", "regf1",  "regf2",  "regf3",   "wtdta1",  "wtara1", "wtpta1",
-            "wttqa1", "wtds",   "wt3g1",  "wt3e1",  "wt4g1",   "wt4e1",   "epcgen", "gpwscc"};
+            "gencls", "genrou",  "genroe",  "gensae", "gensal", "esdc1a", "esdc2a", "ieeet1",
+            "ieeet3", "ieeex1",  "ac7b",    "ac8b",   "esst1a", "esst2a", "esst3a", "esst4b",
+            "expic1", "scrx",    "esac6a",  "exst1",  "exac1",  "esac1a", "exac2",  "exac4",
+            "exdc2",  "tgov1",   "hygov",   "gast",   "ggov1",  "ieeeg1", "ieesgo", "ieeest",
+            "iee2st", "pss2a",   "stab3",   "sexs",   "ieeeg2", "ieeevc", "regca1", "regcp1",
+            "reeca1", "reeca1e", "reeca1g", "reecb1", "repca1", "regcv1", "regcv2", "regf1",
+            "regf2",  "regf3",   "wtdta1",  "wtara1", "wtpta1", "wttqa1", "wtds",   "wt3g1",
+            "wt3e1",  "wt4g1",   "wt4e1",   "epcgen", "gpwscc"};
         const auto normalized = gmlc::utilities::convertToLowerCase(modelName);
         return std::ranges::any_of(directModels, [normalized](const char* directModel) {
             return normalized == directModel;

@@ -8,11 +8,11 @@
 
 #include "../Generator.h"
 #include "../GridBus.h"
-#include "StabilizerIee2st.h"
 #include "StabilizerIEEEST.h"
+#include "StabilizerIee2st.h"
 #include "StabilizerPss2a.h"
-#include "StabilizerStab3.h"
 #include "StabilizerST2CUT.h"
+#include "StabilizerStab3.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include <cmath>

@@ -64,17 +64,32 @@ bool StabilizerPss2a::supportedMode(int mode)
 
 void StabilizerPss2a::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
-    const std::array<double, 19> parameters{Tw1, Tw2, T6,  Tw3,  Tw4,  T7,  Ks2,
-                                             Ks3, T8,  T9,  Ks1, T1,  T2,  T3,
-                                             T4,  Vstmax, Vstmin, initialPmech, 0.0};
+    const std::array<double, 19> parameters{Tw1,
+                                            Tw2,
+                                            T6,
+                                            Tw3,
+                                            Tw4,
+                                            T7,
+                                            Ks2,
+                                            Ks3,
+                                            T8,
+                                            T9,
+                                            Ks1,
+                                            T1,
+                                            T2,
+                                            T3,
+                                            T4,
+                                            Vstmax,
+                                            Vstmin,
+                                            initialPmech,
+                                            0.0};
     if (!std::all_of(parameters.begin(),
                      parameters.end(),
                      [](double value) { return std::isfinite(value); }) ||
-        !supportedMode(mode1) || !supportedMode(mode2) || (remoteBus1 != 0) ||
-        (remoteBus2 != 0) || (Tw1 < 0.0) || (Tw2 < 0.0) || (T6 < 0.0) || (Tw3 < 0.0) ||
-        (Tw4 < 0.0) || (T7 < 0.0) || (T9 <= 0.0) || (T8 < 0.0) || (T2 < 0.0) ||
-        (T4 < 0.0) || ((T2 == 0.0) && (T1 > 0.0)) || ((T4 == 0.0) && (T3 > 0.0)) ||
-        (Vstmax < Vstmin)) {
+        !supportedMode(mode1) || !supportedMode(mode2) || (remoteBus1 != 0) || (remoteBus2 != 0) ||
+        (Tw1 < 0.0) || (Tw2 < 0.0) || (T6 < 0.0) || (Tw3 < 0.0) || (Tw4 < 0.0) || (T7 < 0.0) ||
+        (T9 <= 0.0) || (T8 < 0.0) || (T2 < 0.0) || (T4 < 0.0) || ((T2 == 0.0) && (T1 > 0.0)) ||
+        ((T4 == 0.0) && (T3 > 0.0)) || (Vstmax < Vstmin)) {
         throw InvalidParameterValue("PSS2A modes, time constants, or limits");
     }
 
@@ -94,7 +109,8 @@ void StabilizerPss2a::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*f
     if (Tw3 > 0.0) branch2Derivative1State = stateCount++;
     if (Tw4 > 0.0) branch2Derivative2State = stateCount++;
     if (T7 > 0.0) branch2LagState = stateCount++;
-    for (auto& state : rampFilterState) state = stateCount++;
+    for (auto& state : rampFilterState)
+        state = stateCount++;
     if (T2 > 0.0) leadLag1State = stateCount++;
     if (T4 > 0.0) leadLag2State = stateCount++;
 
@@ -154,7 +170,8 @@ void StabilizerPss2a::dynObjectInitializeB(const IOdata& inputs,
         state[branch2Derivative2State] = (Tw3 > 0.0) ? 0.0 : input2.value;
     }
     if (branch2LagState != kNullLocation) state[branch2LagState] = 0.0;
-    for (const auto stateIndex : rampFilterState) state[stateIndex] = 0.0;
+    for (const auto stateIndex : rampFilterState)
+        state[stateIndex] = 0.0;
     if (leadLag1State != kNullLocation) state[leadLag1State] = 0.0;
     if (leadLag2State != kNullLocation) state[leadLag2State] = 0.0;
     m_state[0] = 0.0;
@@ -162,9 +179,8 @@ void StabilizerPss2a::dynObjectInitializeB(const IOdata& inputs,
     updateLimitFlags(inputs, state);
 }
 
-StabilizerPss2a::LinearValue StabilizerPss2a::selectedInput(const IOdata& inputs,
-                                                            int mode,
-                                                            bool first) const
+StabilizerPss2a::LinearValue
+    StabilizerPss2a::selectedInput(const IOdata& inputs, int mode, bool first) const
 {
     LinearValue input;
     switch (mode) {
@@ -212,7 +228,8 @@ StabilizerPss2a::LinearValue StabilizerPss2a::derivativeBranch(const LinearValue
     }
     if (lagState == kNullLocation) {
         second.value *= lagGain;
-        for (double& gain : second.stateGain) gain *= lagGain;
+        for (double& gain : second.stateGain)
+            gain *= lagGain;
         second.input1Gain *= lagGain;
         second.input2Gain *= lagGain;
         return second;
@@ -231,9 +248,9 @@ StabilizerPss2a::LinearValue StabilizerPss2a::rampFilter(const LinearValue& inpu
 {
     const double scale = T8 / T9;
     LinearValue first = input;
-    first.value = state[rampFilterState[0]] +
-        (scale * (input.value - state[rampFilterState[0]]));
-    for (double& gain : first.stateGain) gain *= scale;
+    first.value = state[rampFilterState[0]] + (scale * (input.value - state[rampFilterState[0]]));
+    for (double& gain : first.stateGain)
+        gain *= scale;
     first.input1Gain *= scale;
     first.input2Gain *= scale;
     first.stateGain[rampFilterState[0]] += 1.0 - scale;
@@ -257,7 +274,8 @@ StabilizerPss2a::LinearValue StabilizerPss2a::leadLagOutput(const LinearValue& i
     const double scale = leadTime / lagTime;
     LinearValue output = input;
     output.value = state[stateIndex] + scale * (input.value - state[stateIndex]);
-    for (double& gain : output.stateGain) gain *= scale;
+    for (double& gain : output.stateGain)
+        gain *= scale;
     output.input1Gain *= scale;
     output.input2Gain *= scale;
     output.stateGain[stateIndex] += 1.0 - scale;
@@ -299,7 +317,8 @@ StabilizerPss2a::LinearValue StabilizerPss2a::outputExpression(const IOdata& inp
     difference.input1Gain -= branch2.input1Gain;
     difference.input2Gain -= branch2.input2Gain;
     difference.value *= Ks1;
-    for (double& gain : difference.stateGain) gain *= Ks1;
+    for (double& gain : difference.stateGain)
+        gain *= Ks1;
     difference.input1Gain *= Ks1;
     difference.input2Gain *= Ks1;
     const auto first = leadLagOutput(difference, state, leadLag1State, T1, T2);
@@ -357,34 +376,29 @@ void StabilizerPss2a::derivative(const IOdata& inputs,
     const double input2 = selectedInput(inputs, mode2, false).value;
 
     const double branch1First = (Tw1 > 0.0) ? input1 - state[branch1Derivative1State] : input1;
-    const double branch1Second = (Tw2 > 0.0) ?
-        branch1First - state[branch1Derivative2State] :
-        branch1First;
+    const double branch1Second =
+        (Tw2 > 0.0) ? branch1First - state[branch1Derivative2State] : branch1First;
     const double branch2First = (Tw3 > 0.0) ? input2 - state[branch2Derivative1State] : input2;
-    const double branch2Second = (Tw4 > 0.0) ?
-        branch2First - state[branch2Derivative2State] :
-        branch2First;
+    const double branch2Second =
+        (Tw4 > 0.0) ? branch2First - state[branch2Derivative2State] : branch2First;
     if (Tw1 > 0.0) stateDerivative[branch1Derivative1State] = branch1First / Tw1;
     if (Tw2 > 0.0) stateDerivative[branch1Derivative2State] = branch1Second / Tw2;
     if (Tw3 > 0.0) stateDerivative[branch2Derivative1State] = branch2First / Tw3;
     if (Tw4 > 0.0) stateDerivative[branch2Derivative2State] = branch2Second / Tw4;
     const double branch1 = (T6 > 0.0) ? state[branch1LagState] : branch1Second;
-    const double branch2 =
-        (T7 > 0.0) ? state[branch2LagState] : Ks2 * branch2Second;
+    const double branch2 = (T7 > 0.0) ? state[branch2LagState] : Ks2 * branch2Second;
     if (T6 > 0.0) stateDerivative[branch1LagState] = (branch1Second - state[branch1LagState]) / T6;
     if (T7 > 0.0) {
-        stateDerivative[branch2LagState] =
-            (Ks2 * branch2Second - state[branch2LagState]) / T7;
+        stateDerivative[branch2LagState] = (Ks2 * branch2Second - state[branch2LagState]) / T7;
     }
 
     const double summed = branch1 + Ks3 * branch2;
-    const double rampFirst = state[rampFilterState[0]] +
-        (T8 / T9) * (summed - state[rampFilterState[0]]);
+    const double rampFirst =
+        state[rampFilterState[0]] + (T8 / T9) * (summed - state[rampFilterState[0]]);
     stateDerivative[rampFilterState[0]] = (summed - state[rampFilterState[0]]) / T9;
     double previous = rampFirst;
     for (index_t stage = 1; stage <= rampLagCount; ++stage) {
-        stateDerivative[rampFilterState[stage]] =
-            (previous - state[rampFilterState[stage]]) / T9;
+        stateDerivative[rampFilterState[stage]] = (previous - state[rampFilterState[stage]]) / T9;
         previous = state[rampFilterState[stage]];
     }
     const double preCompensator = Ks1 * (state[rampFilterState[rampLagCount]] - branch2);
@@ -406,10 +420,14 @@ void StabilizerPss2a::addLinearInput(MatrixData<double>& matrixData,
     const auto addSignal = [&matrixData, &inputLocs, row, scale](int mode, double gain) {
         if (gain == 0.0) return;
         index_t location = kInvalidLocation;
-        if ((mode == 1) || (mode == 2)) location = inputLocs[pssOmegaInLocation];
-        else if (mode == 3) location = inputLocs[pssElectricalPowerInLocation];
-        else if (mode == 4) location = inputLocs[pssPmechInLocation];
-        else if (mode == 5) location = inputLocs[pssVoltageInLocation];
+        if ((mode == 1) || (mode == 2))
+            location = inputLocs[pssOmegaInLocation];
+        else if (mode == 3)
+            location = inputLocs[pssElectricalPowerInLocation];
+        else if (mode == 4)
+            location = inputLocs[pssPmechInLocation];
+        else if (mode == 5)
+            location = inputLocs[pssVoltageInLocation];
         if (location != kInvalidLocation) matrixData.assignCheckCol(row, location, scale * gain);
     };
     addSignal(mode1, value.input1Gain);
@@ -460,15 +478,16 @@ void StabilizerPss2a::jacobianElements(const IOdata& inputs,
     difference.input1Gain -= branch2.input1Gain;
     difference.input2Gain -= branch2.input2Gain;
     difference.value *= Ks1;
-    for (double& gain : difference.stateGain) gain *= Ks1;
+    for (double& gain : difference.stateGain)
+        gain *= Ks1;
     difference.input1Gain *= Ks1;
     difference.input2Gain *= Ks1;
     const auto firstLeadLag = leadLagOutput(difference, state, leadLag1State, T1, T2);
     const auto finalOutput = leadLagOutput(firstLeadLag, state, leadLag2State, T3, T4);
     const auto addExpression = [this, &matrixData, &inputLocs, refDiff](index_t row,
-                                                                         const LinearValue& value,
-                                                                         double scale,
-                                                                         bool includeStates) {
+                                                                        const LinearValue& value,
+                                                                        double scale,
+                                                                        bool includeStates) {
         if (includeStates) {
             for (index_t index = 0; index < value.stateGain.size(); ++index) {
                 if (value.stateGain[index] != 0.0) {
@@ -579,9 +598,7 @@ void StabilizerPss2a::jacobianElements(const IOdata& inputs,
     }
 }
 
-void StabilizerPss2a::timestep(CoreTime time,
-                               const IOdata& inputs,
-                               const SolverMode& /*sMode*/)
+void StabilizerPss2a::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
     const double timeStep = time - prevTime;
@@ -662,13 +679,10 @@ void StabilizerPss2a::set(std::string_view param, double val, units::unit unitTy
 {
     const auto finite = [val](const char* parameterName) {
         if (!std::isfinite(val)) {
-            throw InvalidParameterValue(std::string("PSS2A ") + parameterName +
-                                        " must be finite");
+            throw InvalidParameterValue(std::string("PSS2A ") + parameterName + " must be finite");
         }
     };
-    const auto time = [&finite, &val](const char* parameterName,
-                                      double& target,
-                                      bool positive) {
+    const auto time = [&finite, &val](const char* parameterName, double& target, bool positive) {
         finite(parameterName);
         if (positive ? (val <= 0.0) : (val < 0.0)) {
             throw InvalidParameterValue(std::string("PSS2A ") + parameterName +
@@ -696,22 +710,40 @@ void StabilizerPss2a::set(std::string_view param, double val, units::unit unitTy
         if ((std::floor(val) != val) || (val != 0.0))
             throw InvalidParameterValue("PSS2A remote BUSR2 is unsupported");
         remoteBus2 = 0;
-    } else if (param == "tw1") time("TW1", Tw1, false);
-    else if (param == "tw2") time("TW2", Tw2, false);
-    else if (param == "t6") time("T6", T6, false);
-    else if (param == "tw3") time("TW3", Tw3, false);
-    else if (param == "tw4") time("TW4", Tw4, false);
-    else if (param == "t7") time("T7", T7, false);
-    else if (param == "t8") time("T8", T8, false);
-    else if (param == "t9") time("T9", T9, true);
-    else if (param == "t1") time("T1", T1, false);
-    else if (param == "t2") time("T2", T2, false);
-    else if (param == "t3") time("T3", T3, false);
-    else if (param == "t4") time("T4", T4, false);
-    else if (param == "ks1") { finite("KS1"); Ks1 = val; }
-    else if (param == "ks2") { finite("KS2"); Ks2 = val; }
-    else if (param == "ks3") { finite("KS3"); Ks3 = val; }
-    else if ((param == "vstmax") || (param == "vmax")) {
+    } else if (param == "tw1")
+        time("TW1", Tw1, false);
+    else if (param == "tw2")
+        time("TW2", Tw2, false);
+    else if (param == "t6")
+        time("T6", T6, false);
+    else if (param == "tw3")
+        time("TW3", Tw3, false);
+    else if (param == "tw4")
+        time("TW4", Tw4, false);
+    else if (param == "t7")
+        time("T7", T7, false);
+    else if (param == "t8")
+        time("T8", T8, false);
+    else if (param == "t9")
+        time("T9", T9, true);
+    else if (param == "t1")
+        time("T1", T1, false);
+    else if (param == "t2")
+        time("T2", T2, false);
+    else if (param == "t3")
+        time("T3", T3, false);
+    else if (param == "t4")
+        time("T4", T4, false);
+    else if (param == "ks1") {
+        finite("KS1");
+        Ks1 = val;
+    } else if (param == "ks2") {
+        finite("KS2");
+        Ks2 = val;
+    } else if (param == "ks3") {
+        finite("KS3");
+        Ks3 = val;
+    } else if ((param == "vstmax") || (param == "vmax")) {
         finite("VSTMAX");
         if (val < Vstmin) throw InvalidParameterValue("PSS2A VSTMAX must not be less than VSTMIN");
         Vstmax = val;

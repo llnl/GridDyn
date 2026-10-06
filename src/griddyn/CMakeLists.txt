@@ -640,6 +640,23 @@ add_library(
                    ${sublibrary_files}
 )
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    # GCC can report a false positive in libstdc++ while instantiating Cereal's polymorphic map
+    # update. Keep the suppression limited to the GridDyn sources that instantiate those messages.
+    set_source_files_properties(
+        relays/Sensor.cpp
+        relays/Pmu.cpp
+        relays/ControlRelay.cpp
+        sources/CommSource.cpp
+        controllers/Scheduler.cpp
+        controllers/schedulerRamp.cpp
+        controllers/schedulerReg.cpp
+        comms/SchedulerMessage.cpp
+        comms/ControlMessage.cpp
+        PROPERTIES COMPILE_OPTIONS -Wno-null-dereference
+    )
+endif()
+
 target_include_directories(
     griddyn
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>

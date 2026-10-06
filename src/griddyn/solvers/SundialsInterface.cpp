@@ -31,11 +31,13 @@
 #include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <format>
 #include <memory>
 #include <print>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -455,7 +457,11 @@ namespace {
             result[row + 1] = result[row] + static_cast<sunindextype>(rowColumns.size());
         }
         const auto oldSize = result.size();
-        result.resize(oldSize + result.back());
+        const auto entryCount = result.back();
+        if (entryCount < 0) {
+            throw std::runtime_error("negative sparse-pattern entry count");
+        }
+        result.resize(oldSize + static_cast<std::size_t>(entryCount));
         sunindextype entryIndex = 0;
         for (const auto& rowColumns : columns) {
             for (const auto column : rowColumns) {

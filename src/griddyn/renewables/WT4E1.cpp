@@ -56,7 +56,7 @@ namespace {
     }
 }  // namespace
 
-WT4E1::WT4E1(const std::string& name): RenewableComponent(name)
+WT4E1::WT4E1(const std::string& objName): RenewableComponent(objName)
 {
     m_inputSize = 5;
     m_outputSize = 3;

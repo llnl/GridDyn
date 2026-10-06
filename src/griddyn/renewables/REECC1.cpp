@@ -14,7 +14,7 @@
 
 namespace griddyn {
 
-REECC1::REECC1(const std::string& name): REECA1(name)
+REECC1::REECC1(const std::string& objName): REECA1(objName)
 {
     // REEC_C uses a fixed current limit unless its PSS/E V-I curves are supplied.
     for (int index = 1; index <= 4; ++index) {

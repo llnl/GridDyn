@@ -194,7 +194,7 @@ class SchedulerReg: public SchedulerRamp {
                                   double maxValue,
                                   double upFraction,
                                   double downFraction,
-                                  bool enabled) const;
+                                  bool regulationEnabled) const;
 
   public:
     explicit SchedulerReg(const std::string& objName = "schedulerReg_#");

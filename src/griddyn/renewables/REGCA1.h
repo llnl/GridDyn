@@ -16,6 +16,7 @@ class REGCA1: public TerminalElectricalModel {
   public:
     explicit REGCA1(const std::string& name = "REGCA1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using TerminalElectricalModel::set;
     std::span<const RenewablePort> inputPorts() const override;
     std::span<const RenewablePort> outputPorts() const override;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;

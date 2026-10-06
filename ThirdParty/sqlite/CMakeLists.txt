@@ -40,3 +40,12 @@ target_compile_definitions(
         SQLITE_THREADSAFE=1
         SQLITE_OMIT_LOAD_EXTENSION
 )
+
+# SQLite is distributed as an upstream amalgamation. GCC's string-operation
+# analysis reports a false positive in the generated source; keep that warning
+# local to this third-party target rather than weakening GridDyn diagnostics.
+target_compile_options(
+    griddyn_sqlite
+    PRIVATE
+        $<$<C_COMPILER_ID:GNU>:-Wno-stringop-overread>
+)

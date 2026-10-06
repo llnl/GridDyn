@@ -71,6 +71,7 @@ class CIM5: public MotorLoad5 {
   public:
     explicit CIM5(const std::string& objName = "cim5_$");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using MotorLoad5::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
@@ -126,6 +127,7 @@ class CIM6: public MotorLoad5 {
   public:
     explicit CIM6(const std::string& objName = "cim6_$");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using MotorLoad5::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
 

@@ -29,7 +29,7 @@
 #include <cctype>
 #include <cmath>
 #include <fstream>
-#include <iterator>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -513,9 +513,9 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
 
     Json document;
     try {
-        const std::string contents((std::istreambuf_iterator<char>(input)),
-                                   std::istreambuf_iterator<char>());
-        document = Json::parse(normalizeAndesJson(contents));
+        std::ostringstream contents;
+        contents << input.rdbuf();
+        document = Json::parse(normalizeAndesJson(contents.str()));
     }
     catch (const Json::parse_error&) {
         return false;

@@ -968,7 +968,7 @@ void GridComponent::guessState(CoreTime time,
                                double dstateDt[],
                                const SolverMode& sMode)
 {
-    if (!hasStates(sMode)) {
+    if (!isEnabled() || !hasStates(sMode)) {
         return;
     }
     const auto& solverOffsetsValue = offsets.getOffsets(sMode);

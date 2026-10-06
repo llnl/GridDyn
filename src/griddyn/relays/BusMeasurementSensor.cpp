@@ -32,7 +32,7 @@ namespace {
     }
 }  // namespace
 
-BusMeasurementSensor::BusMeasurementSensor(const std::string& name): Sensor(name) {}
+BusMeasurementSensor::BusMeasurementSensor(const std::string& objName): Sensor(objName) {}
 
 CoreObject* BusMeasurementSensor::clone(CoreObject* obj) const
 {
@@ -159,8 +159,8 @@ stringVec BusMeasurementSensor::localStateNames() const
     return stateNames;
 }
 
-PLLSensor::PLLSensor(const std::string& name, bool voltagePhase):
-    BusMeasurementSensor(name), phaseDetector(voltagePhase)
+PLLSensor::PLLSensor(const std::string& objName, bool voltagePhase):
+    BusMeasurementSensor(objName), phaseDetector(voltagePhase)
 {
     m_outputSize = 2;
     outputStrings = {{"angle", "am"}, {"frequency_deviation", "df"}};
@@ -425,7 +425,7 @@ void PLLSensor::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMo
     Relay::timestep(time, {}, sMode);
 }
 
-BusROCOFSensor::BusROCOFSensor(const std::string& name): BusMeasurementSensor(name)
+BusROCOFSensor::BusROCOFSensor(const std::string& objName): BusMeasurementSensor(objName)
 {
     m_outputSize = 2;
     outputStrings = {{"df", "frequency_deviation"}, {"dfdt", "rocof"}};
@@ -626,7 +626,7 @@ void BusROCOFSensor::timestep(CoreTime time, const IOdata& /*inputs*/, const Sol
     Relay::timestep(time, {}, sMode);
 }
 
-FreqDivSensor::FreqDivSensor(const std::string& name): BusMeasurementSensor(name)
+FreqDivSensor::FreqDivSensor(const std::string& objName): BusMeasurementSensor(objName)
 {
     m_outputSize = 1;
     outputStrings = {{"frequency", "f"}};

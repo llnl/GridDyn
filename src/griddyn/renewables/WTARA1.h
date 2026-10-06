@@ -14,6 +14,7 @@ class WTARA1 final: public RenewableComponent {
   public:
     explicit WTARA1(const std::string& name = "WTARA1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using RenewableComponent::set;
     RenewableRole role() const override { return RenewableRole::aerodynamics; }
     std::span<const RenewablePort> inputPorts() const override;
     std::span<const RenewablePort> outputPorts() const override;

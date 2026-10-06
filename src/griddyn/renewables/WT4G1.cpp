@@ -49,7 +49,7 @@ namespace {
     }
 }  // namespace
 
-WT4G1::WT4G1(const std::string& name): TerminalElectricalModel(name)
+WT4G1::WT4G1(const std::string& objName): TerminalElectricalModel(objName)
 {
     m_inputSize = 3;
 }

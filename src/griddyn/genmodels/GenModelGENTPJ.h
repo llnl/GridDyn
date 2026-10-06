@@ -103,6 +103,7 @@ class GenModelGENTPJ final: public GenModel5 {
   public:
     explicit GenModelGENTPJ(const std::string& objName = "gentpj_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using GenModel5::set;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,

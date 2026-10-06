@@ -43,8 +43,8 @@ namespace {
     }
 }  // namespace
 
-DistributedConverter::DistributedConverter(Variant type, const std::string& name):
-    TerminalElectricalModel(name), variant(type)
+DistributedConverter::DistributedConverter(Variant type, const std::string& objName):
+    TerminalElectricalModel(objName), variant(type)
 {
     m_inputSize = 5;
     if (variant == Variant::ev1 || variant == Variant::ev2) {
@@ -627,7 +627,7 @@ void DistributedConverter::copyParametersTo(DistributedConverter* target) const
 }
 
 #define DISTRIBUTED_VARIANT(Model, kind)                                                           \
-    Model::Model(const std::string& name): DistributedConverter(Variant::kind, name) {}            \
+    Model::Model(const std::string& objName): DistributedConverter(Variant::kind, objName) {}      \
     CoreObject* Model::clone(CoreObject* obj) const                                                \
     {                                                                                              \
         auto* out = cloneBase<Model, DistributedConverter>(this, obj);                             \

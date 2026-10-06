@@ -245,7 +245,14 @@ ExciterAC7B::Evaluation
     }
 
     const Signal lowerControlLimit = scaleSignal(fieldFeedback, -Kl);
-    Signal exciterControl = multiplySignals(scaleSignal(terminalVoltage, Kp), piOutput);
+    // PSLF ESAC7B data can use Kp=0 to select the unity (non-potential)
+    // source. The published AC7B equation Kp*Vt*Va has no usable equilibrium
+    // for literal Kp=0 unless the field feedback is also zero. Keep the
+    // normal potential-source path for nonzero Kp, and use Va directly for
+    // the zero-Kp compatibility mode.
+    const Signal sourceVoltage =
+        (Kp == 0.0) ? constantSignal<stateCount>(1.0) : scaleSignal(terminalVoltage, Kp);
+    Signal exciterControl = multiplySignals(sourceVoltage, piOutput);
     if (exciterControl.value < lowerControlLimit.value) {
         exciterControl = lowerControlLimit;
     }
@@ -294,7 +301,10 @@ void ExciterAC7B::dynObjectInitializeB(const IOdata& inputs,
     const double fieldFeedback =
         (Ke + saturation(exciterVoltage)) * exciterVoltage + (Kd * fieldCurrent);
     const double terminalVoltage = std::max(1e-8, inputs[exciterVoltageInLocation]);
-    const double piOutput = fieldFeedback / (Kp * terminalVoltage);
+    // See the matching runtime branch in evaluate(): zero Kp denotes PSLF's
+    // unity-source option, rather than a literal zero multiplier.
+    const double sourceVoltage = (Kp == 0.0) ? 1.0 : Kp * terminalVoltage;
+    const double piOutput = fieldFeedback / sourceVoltage;
     const double pidOutput = (Kf1 * fieldVoltage) + (Kf2 * fieldFeedback);
     const double rectifierMismatch =
         (exciterVoltage *

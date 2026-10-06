@@ -47,7 +47,7 @@ namespace {
     constexpr double twoPi60 = 2.0 * 3.14159265358979323846 * 60.0;
 }  // namespace
 
-WT3G1::WT3G1(const std::string& name): TerminalElectricalModel(name)
+WT3G1::WT3G1(const std::string& objName): TerminalElectricalModel(objName)
 {
     m_inputSize = 4;
     m_outputSize = 4;

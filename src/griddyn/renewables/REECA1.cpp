@@ -120,12 +120,12 @@ namespace {
     {
         return std::all_of(voltage.begin(),
                            voltage.end(),
-                           [](double voltage) { return voltage == 0.0; }) &&
+                           [](double voltageValue) { return voltageValue == 0.0; }) &&
             std::all_of(current.begin(), current.end(), [](double index) { return index == 0.0; });
     }
 }  // namespace
 
-REECA1::REECA1(const std::string& name): RenewableComponent(name)
+REECA1::REECA1(const std::string& objName): RenewableComponent(objName)
 {
     // Base flags start disabled; derived models update their input size after
     // construction once virtual storage capabilities are available.

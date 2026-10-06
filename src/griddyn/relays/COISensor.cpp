@@ -19,7 +19,7 @@
 #include <string>
 
 namespace griddyn {
-COISensor::COISensor(const std::string& name): Sensor(name)
+COISensor::COISensor(const std::string& objName): Sensor(objName)
 {
     m_outputSize = 2;
     outputStrings = {{"frequency", "omega"}, {"angle", "delta"}};

@@ -15,6 +15,7 @@ class REPCA1 final: public RenewableComponent {
   public:
     explicit REPCA1(const std::string& name = "REPCA1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using RenewableComponent::set;
     RenewableRole role() const override { return RenewableRole::plantControl; }
     std::span<const RenewablePort> inputPorts() const override;
     std::span<const RenewablePort> outputPorts() const override;

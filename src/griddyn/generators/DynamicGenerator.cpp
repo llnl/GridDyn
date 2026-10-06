@@ -432,6 +432,9 @@ void DynamicGenerator::guessState(CoreTime time,
                                   double dstateDt[],
                                   const SolverMode& sMode)
 {
+    if (!isEnabled()) {
+        return;
+    }
     if (isDynamic(sMode)) {
         for (auto* subobj : getSubObjects()) {
             if (subobj->isEnabled()) {

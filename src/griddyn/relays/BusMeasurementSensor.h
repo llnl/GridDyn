@@ -52,6 +52,7 @@ class PLLSensor: public BusMeasurementSensor {
   public:
     explicit PLLSensor(const std::string& name = "PLL_#", bool voltagePhase = false);
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using BusMeasurementSensor::set;
     void set(std::string_view param, double value, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
@@ -86,13 +87,13 @@ class PLLSensor: public BusMeasurementSensor {
 
 class PLL1Sensor final: public PLLSensor {
   public:
-    explicit PLL1Sensor(const std::string& name = "PLL1_#"): PLLSensor(name, false) {}
+    explicit PLL1Sensor(const std::string& objName = "PLL1_#"): PLLSensor(objName, false) {}
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 };
 
 class PLL2Sensor final: public PLLSensor {
   public:
-    explicit PLL2Sensor(const std::string& name = "PLL2_#"): PLLSensor(name, true) {}
+    explicit PLL2Sensor(const std::string& objName = "PLL2_#"): PLLSensor(objName, true) {}
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 };
 
@@ -101,6 +102,7 @@ class BusROCOFSensor final: public BusMeasurementSensor {
   public:
     explicit BusROCOFSensor(const std::string& name = "BUSROCOF_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using BusMeasurementSensor::set;
     void set(std::string_view param, double value, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;

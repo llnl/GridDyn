@@ -30,7 +30,7 @@ namespace {
     }};
 }  // namespace
 
-WTDS::WTDS(const std::string& name): RenewableComponent(name)
+WTDS::WTDS(const std::string& objName): RenewableComponent(objName)
 {
     m_inputSize = 3;
     m_outputSize = 2;

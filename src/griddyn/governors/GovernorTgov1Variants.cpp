@@ -16,8 +16,8 @@
 namespace griddyn::governors {
 GovernorTgov1Variant::GovernorTgov1Variant(bool deadband,
                                            bool normalizedReference,
-                                           const std::string& name):
-    Governor(name), useDeadband(deadband), normalized(normalizedReference)
+                                           const std::string& objName):
+    Governor(objName), useDeadband(deadband), normalized(normalizedReference)
 {
     T1 = 0.1;
     T2 = 0.2;
@@ -29,8 +29,8 @@ GovernorTgov1Variant::GovernorTgov1Variant(bool deadband,
     opFlags.set(IGNORE_THROTTLE);
 }
 
-GovernorTgov1Variant::GovernorTgov1Variant(const std::string& name):
-    GovernorTgov1Variant(false, false, name)
+GovernorTgov1Variant::GovernorTgov1Variant(const std::string& objName):
+    GovernorTgov1Variant(false, false, objName)
 {
 }
 
@@ -49,11 +49,16 @@ CoreObject* GovernorTgov1Variant::clone(CoreObject* obj) const
     return out;
 }
 
-GovernorTgov1DB::GovernorTgov1DB(const std::string& name): GovernorTgov1Variant(true, false, name)
+GovernorTgov1DB::GovernorTgov1DB(const std::string& objName):
+    GovernorTgov1Variant(true, false, objName)
 {
 }
-GovernorTgov1N::GovernorTgov1N(const std::string& name): GovernorTgov1Variant(false, true, name) {}
-GovernorTgov1NDB::GovernorTgov1NDB(const std::string& name): GovernorTgov1Variant(true, true, name)
+GovernorTgov1N::GovernorTgov1N(const std::string& objName):
+    GovernorTgov1Variant(false, true, objName)
+{
+}
+GovernorTgov1NDB::GovernorTgov1NDB(const std::string& objName):
+    GovernorTgov1Variant(true, true, objName)
 {
 }
 CoreObject* GovernorTgov1DB::clone(CoreObject* obj) const

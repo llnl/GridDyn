@@ -14,7 +14,7 @@
 #include <string>
 
 namespace griddyn::governors {
-GovernorTG2::GovernorTG2(const std::string& name): Governor(name)
+GovernorTG2::GovernorTG2(const std::string& objName): Governor(objName)
 {
     K = 20.0;
     T1 = 0.2;

@@ -21,8 +21,8 @@
 #include <string>
 
 namespace griddyn {
-DGProtectionRelay::DGProtectionRelay(bool useExternalVoltage, const std::string& name):
-    Relay(name), externalVoltage(useExternalVoltage)
+DGProtectionRelay::DGProtectionRelay(bool useExternalVoltage, const std::string& objName):
+    Relay(objName), externalVoltage(useExternalVoltage)
 {
     opFlags.set(CONTINUOUS_FLAG);
     opFlags.set(RESETTABLE_FLAG);
@@ -259,7 +259,7 @@ void DGProtectionRelay::copyParametersTo(DGProtectionRelay* out) const
     out->voltageTime = voltageTime;
 }
 
-DGPRCT1::DGPRCT1(const std::string& name): DGProtectionRelay(false, name) {}
+DGPRCT1::DGPRCT1(const std::string& objName): DGProtectionRelay(false, objName) {}
 CoreObject* DGPRCT1::clone(CoreObject* obj) const
 {
     auto* out = cloneBase<DGPRCT1, DGProtectionRelay>(this, obj);
@@ -268,7 +268,7 @@ CoreObject* DGPRCT1::clone(CoreObject* obj) const
     }
     return out == nullptr ? obj : out;
 }
-DGPRCTExt::DGPRCTExt(const std::string& name): DGProtectionRelay(true, name) {}
+DGPRCTExt::DGPRCTExt(const std::string& objName): DGProtectionRelay(true, objName) {}
 CoreObject* DGPRCTExt::clone(CoreObject* obj) const
 {
     auto* out = cloneBase<DGPRCTExt, DGProtectionRelay>(this, obj);

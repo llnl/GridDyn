@@ -16,6 +16,7 @@ class GovernorTgov1Variant: public Governor {
     GovernorTgov1Variant(bool deadband, bool normalizedReference, const std::string& name);
     explicit GovernorTgov1Variant(const std::string& name);
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using Governor::set;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,

@@ -39,7 +39,7 @@ namespace {
     constexpr index_t filteredVoltage = 2;
 }  // namespace
 
-REGCA1::REGCA1(const std::string& name): TerminalElectricalModel(name)
+REGCA1::REGCA1(const std::string& objName): TerminalElectricalModel(objName)
 {
     m_inputSize = 3;
 }

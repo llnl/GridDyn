@@ -17,6 +17,7 @@ class GridBus;
 /** Timed voltage/frequency protection for a distributed converter. */
 class DGProtectionRelay: public Relay {
   public:
+    using Relay::set;
     DGProtectionRelay(bool externalVoltage, const std::string& name);
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;

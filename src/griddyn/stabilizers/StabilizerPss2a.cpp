@@ -11,6 +11,7 @@
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
+#include <cstddef>
 #include <cmath>
 #include <string>
 #include <vector>
@@ -103,16 +104,33 @@ void StabilizerPss2a::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*f
     leadLag1State = kNullLocation;
     leadLag2State = kNullLocation;
     index_t stateCount = 0;
-    if (Tw1 > 0.0) branch1Derivative1State = stateCount++;
-    if (Tw2 > 0.0) branch1Derivative2State = stateCount++;
-    if (T6 > 0.0) branch1LagState = stateCount++;
-    if (Tw3 > 0.0) branch2Derivative1State = stateCount++;
-    if (Tw4 > 0.0) branch2Derivative2State = stateCount++;
-    if (T7 > 0.0) branch2LagState = stateCount++;
-    for (auto& state : rampFilterState)
+    if (Tw1 > 0.0) {
+        branch1Derivative1State = stateCount++;
+    }
+    if (Tw2 > 0.0) {
+        branch1Derivative2State = stateCount++;
+    }
+    if (T6 > 0.0) {
+        branch1LagState = stateCount++;
+    }
+    if (Tw3 > 0.0) {
+        branch2Derivative1State = stateCount++;
+    }
+    if (Tw4 > 0.0) {
+        branch2Derivative2State = stateCount++;
+    }
+    if (T7 > 0.0) {
+        branch2LagState = stateCount++;
+    }
+    for (auto& state : rampFilterState) {
         state = stateCount++;
-    if (T2 > 0.0) leadLag1State = stateCount++;
-    if (T4 > 0.0) leadLag2State = stateCount++;
+    }
+    if (T2 > 0.0) {
+        leadLag1State = stateCount++;
+    }
+    if (T4 > 0.0) {
+        leadLag2State = stateCount++;
+    }
 
     offsets.local().local.algSize = 1;
     offsets.local().local.diffSize = stateCount;
@@ -162,18 +180,27 @@ void StabilizerPss2a::dynObjectInitializeB(const IOdata& inputs,
         // used by OpenIPSL, so the second stage sees the original input.
         state[branch1Derivative2State] = (Tw1 > 0.0) ? 0.0 : input1.value;
     }
-    if (branch1LagState != kNullLocation) state[branch1LagState] = 0.0;
+    if (branch1LagState != kNullLocation) {
+        state[branch1LagState] = 0.0;
+    }
     if (branch2Derivative1State != kNullLocation) {
         state[branch2Derivative1State] = input2.value;
     }
     if (branch2Derivative2State != kNullLocation) {
         state[branch2Derivative2State] = (Tw3 > 0.0) ? 0.0 : input2.value;
     }
-    if (branch2LagState != kNullLocation) state[branch2LagState] = 0.0;
-    for (const auto stateIndex : rampFilterState)
+    if (branch2LagState != kNullLocation) {
+        state[branch2LagState] = 0.0;
+    }
+    for (const auto stateIndex : rampFilterState) {
         state[stateIndex] = 0.0;
-    if (leadLag1State != kNullLocation) state[leadLag1State] = 0.0;
-    if (leadLag2State != kNullLocation) state[leadLag2State] = 0.0;
+    }
+    if (leadLag1State != kNullLocation) {
+        state[leadLag1State] = 0.0;
+    }
+    if (leadLag2State != kNullLocation) {
+        state[leadLag2State] = 0.0;
+    }
     m_state[0] = 0.0;
     std::fill(m_dstate_dt.begin(), m_dstate_dt.end(), 0.0);
     updateLimitFlags(inputs, state);
@@ -214,7 +241,7 @@ StabilizerPss2a::LinearValue StabilizerPss2a::derivativeBranch(const LinearValue
                                                                index_t lagState,
                                                                double firstTime,
                                                                double secondTime,
-                                                               double lagGain) const
+                                                               double lagGain)
 {
     LinearValue first = input;
     if (firstTime > 0.0) {
@@ -228,8 +255,9 @@ StabilizerPss2a::LinearValue StabilizerPss2a::derivativeBranch(const LinearValue
     }
     if (lagState == kNullLocation) {
         second.value *= lagGain;
-        for (double& gain : second.stateGain)
+        for (double& gain : second.stateGain) {
             gain *= lagGain;
+        }
         second.input1Gain *= lagGain;
         second.input2Gain *= lagGain;
         return second;
@@ -249,8 +277,9 @@ StabilizerPss2a::LinearValue StabilizerPss2a::rampFilter(const LinearValue& inpu
     const double scale = T8 / T9;
     LinearValue first = input;
     first.value = state[rampFilterState[0]] + (scale * (input.value - state[rampFilterState[0]]));
-    for (double& gain : first.stateGain)
+    for (double& gain : first.stateGain) {
         gain *= scale;
+    }
     first.input1Gain *= scale;
     first.input2Gain *= scale;
     first.stateGain[rampFilterState[0]] += 1.0 - scale;
@@ -268,14 +297,17 @@ StabilizerPss2a::LinearValue StabilizerPss2a::leadLagOutput(const LinearValue& i
                                                             const double state[],
                                                             index_t stateIndex,
                                                             double leadTime,
-                                                            double lagTime) const
+                                                            double lagTime)
 {
-    if (stateIndex == kNullLocation) return input;
+    if (stateIndex == kNullLocation) {
+        return input;
+    }
     const double scale = leadTime / lagTime;
     LinearValue output = input;
-    output.value = state[stateIndex] + scale * (input.value - state[stateIndex]);
-    for (double& gain : output.stateGain)
+    output.value = state[stateIndex] + (scale * (input.value - state[stateIndex]));
+    for (double& gain : output.stateGain) {
         gain *= scale;
+    }
     output.input1Gain *= scale;
     output.input2Gain *= scale;
     output.stateGain[stateIndex] += 1.0 - scale;
@@ -303,7 +335,7 @@ StabilizerPss2a::LinearValue StabilizerPss2a::outputExpression(const IOdata& inp
                                           Ks2);
     LinearValue summed = branch1;
     summed.value += Ks3 * branch2.value;
-    for (index_t index = 0; index < summed.stateGain.size(); ++index) {
+    for (std::size_t index = 0; index < summed.stateGain.size(); ++index) {
         summed.stateGain[index] += Ks3 * branch2.stateGain[index];
     }
     summed.input1Gain += Ks3 * branch2.input1Gain;
@@ -311,14 +343,15 @@ StabilizerPss2a::LinearValue StabilizerPss2a::outputExpression(const IOdata& inp
     const auto ramp = rampFilter(summed, state);
     LinearValue difference = ramp;
     difference.value -= branch2.value;
-    for (index_t index = 0; index < difference.stateGain.size(); ++index) {
+    for (std::size_t index = 0; index < difference.stateGain.size(); ++index) {
         difference.stateGain[index] -= branch2.stateGain[index];
     }
     difference.input1Gain -= branch2.input1Gain;
     difference.input2Gain -= branch2.input2Gain;
     difference.value *= Ks1;
-    for (double& gain : difference.stateGain)
+    for (double& gain : difference.stateGain) {
         gain *= Ks1;
+    }
     difference.input1Gain *= Ks1;
     difference.input2Gain *= Ks1;
     const auto first = leadLagOutput(difference, state, leadLag1State, T1, T2);
@@ -333,7 +366,9 @@ double StabilizerPss2a::output(const IOdata& inputs, const double state[]) const
 int StabilizerPss2a::outputLimitStatus(const IOdata& inputs, const double state[]) const
 {
     const double value = outputExpression(inputs, state).value;
-    if (value >= Vstmax) return 1;
+    if (value >= Vstmax) {
+        return 1;
+    }
     return (value <= Vstmin) ? -1 : 0;
 }
 
@@ -356,7 +391,9 @@ void StabilizerPss2a::residual(const IOdata& inputs,
     if (hasAlgebraic(sMode)) {
         locations.destLoc[0] = output(inputs, locations.diffStateLoc) - locations.algStateLoc[0];
     }
-    if (!hasDifferential(sMode)) return;
+    if (!hasDifferential(sMode)) {
+        return;
+    }
     derivative(inputs, stateData, resid, sMode);
     for (index_t index = 0; index < locations.diffSize; ++index) {
         locations.destDiffLoc[index] -= locations.dstateLoc[index];
@@ -368,7 +405,9 @@ void StabilizerPss2a::derivative(const IOdata& inputs,
                                  double deriv[],
                                  const SolverMode& sMode)
 {
-    if (!hasDifferential(sMode)) return;
+    if (!hasDifferential(sMode)) {
+        return;
+    }
     const auto locations = offsets.getLocations(stateData, deriv, sMode, this);
     const double* state = locations.diffStateLoc;
     double* stateDerivative = locations.destDiffLoc;
@@ -381,20 +420,31 @@ void StabilizerPss2a::derivative(const IOdata& inputs,
     const double branch2First = (Tw3 > 0.0) ? input2 - state[branch2Derivative1State] : input2;
     const double branch2Second =
         (Tw4 > 0.0) ? branch2First - state[branch2Derivative2State] : branch2First;
-    if (Tw1 > 0.0) stateDerivative[branch1Derivative1State] = branch1First / Tw1;
-    if (Tw2 > 0.0) stateDerivative[branch1Derivative2State] = branch1Second / Tw2;
-    if (Tw3 > 0.0) stateDerivative[branch2Derivative1State] = branch2First / Tw3;
-    if (Tw4 > 0.0) stateDerivative[branch2Derivative2State] = branch2Second / Tw4;
+    if (Tw1 > 0.0) {
+        stateDerivative[branch1Derivative1State] = branch1First / Tw1;
+    }
+    if (Tw2 > 0.0) {
+        stateDerivative[branch1Derivative2State] = branch1Second / Tw2;
+    }
+    if (Tw3 > 0.0) {
+        stateDerivative[branch2Derivative1State] = branch2First / Tw3;
+    }
+    if (Tw4 > 0.0) {
+        stateDerivative[branch2Derivative2State] = branch2Second / Tw4;
+    }
     const double branch1 = (T6 > 0.0) ? state[branch1LagState] : branch1Second;
     const double branch2 = (T7 > 0.0) ? state[branch2LagState] : Ks2 * branch2Second;
-    if (T6 > 0.0) stateDerivative[branch1LagState] = (branch1Second - state[branch1LagState]) / T6;
+    if (T6 > 0.0) {
+        stateDerivative[branch1LagState] = (branch1Second - state[branch1LagState]) / T6;
+    }
     if (T7 > 0.0) {
-        stateDerivative[branch2LagState] = (Ks2 * branch2Second - state[branch2LagState]) / T7;
+        stateDerivative[branch2LagState] =
+            ((Ks2 * branch2Second) - state[branch2LagState]) / T7;
     }
 
-    const double summed = branch1 + Ks3 * branch2;
+    const double summed = branch1 + (Ks3 * branch2);
     const double rampFirst =
-        state[rampFilterState[0]] + (T8 / T9) * (summed - state[rampFilterState[0]]);
+        state[rampFilterState[0]] + ((T8 / T9) * (summed - state[rampFilterState[0]]));
     stateDerivative[rampFilterState[0]] = (summed - state[rampFilterState[0]]) / T9;
     double previous = rampFirst;
     for (index_t stage = 1; stage <= rampLagCount; ++stage) {
@@ -403,9 +453,11 @@ void StabilizerPss2a::derivative(const IOdata& inputs,
     }
     const double preCompensator = Ks1 * (state[rampFilterState[rampLagCount]] - branch2);
     const double firstLeadLag = (T2 > 0.0) ?
-        state[leadLag1State] + (T1 / T2) * (preCompensator - state[leadLag1State]) :
+        state[leadLag1State] + ((T1 / T2) * (preCompensator - state[leadLag1State])) :
         preCompensator;
-    if (T2 > 0.0) stateDerivative[leadLag1State] = (preCompensator - state[leadLag1State]) / T2;
+    if (T2 > 0.0) {
+        stateDerivative[leadLag1State] = (preCompensator - state[leadLag1State]) / T2;
+    }
     if (T4 > 0.0) {
         stateDerivative[leadLag2State] = (firstLeadLag - state[leadLag2State]) / T4;
     }
@@ -418,17 +470,22 @@ void StabilizerPss2a::addLinearInput(MatrixData<double>& matrixData,
                                      const IOlocs& inputLocs) const
 {
     const auto addSignal = [&matrixData, &inputLocs, row, scale](int mode, double gain) {
-        if (gain == 0.0) return;
+        if (gain == 0.0) {
+            return;
+        }
         index_t location = kInvalidLocation;
-        if ((mode == 1) || (mode == 2))
+        if ((mode == 1) || (mode == 2)) {
             location = inputLocs[pssOmegaInLocation];
-        else if (mode == 3)
+        } else if (mode == 3) {
             location = inputLocs[pssElectricalPowerInLocation];
-        else if (mode == 4)
+        } else if (mode == 4) {
             location = inputLocs[pssPmechInLocation];
-        else if (mode == 5)
+        } else if (mode == 5) {
             location = inputLocs[pssVoltageInLocation];
-        if (location != kInvalidLocation) matrixData.assignCheckCol(row, location, scale * gain);
+        }
+        if (location != kInvalidLocation) {
+            matrixData.assignCheckCol(row, location, scale * gain);
+        }
     };
     addSignal(mode1, value.input1Gain);
     addSignal(mode2, value.input2Gain);
@@ -464,7 +521,7 @@ void StabilizerPss2a::jacobianElements(const IOdata& inputs,
                                           Ks2);
     LinearValue summed = branch1;
     summed.value += Ks3 * branch2.value;
-    for (index_t index = 0; index < summed.stateGain.size(); ++index) {
+    for (std::size_t index = 0; index < summed.stateGain.size(); ++index) {
         summed.stateGain[index] += Ks3 * branch2.stateGain[index];
     }
     summed.input1Gain += Ks3 * branch2.input1Gain;
@@ -472,14 +529,15 @@ void StabilizerPss2a::jacobianElements(const IOdata& inputs,
     const auto ramp = rampFilter(summed, state);
     LinearValue difference = ramp;
     difference.value -= branch2.value;
-    for (index_t index = 0; index < difference.stateGain.size(); ++index) {
+    for (std::size_t index = 0; index < difference.stateGain.size(); ++index) {
         difference.stateGain[index] -= branch2.stateGain[index];
     }
     difference.input1Gain -= branch2.input1Gain;
     difference.input2Gain -= branch2.input2Gain;
     difference.value *= Ks1;
-    for (double& gain : difference.stateGain)
+    for (double& gain : difference.stateGain) {
         gain *= Ks1;
+    }
     difference.input1Gain *= Ks1;
     difference.input2Gain *= Ks1;
     const auto firstLeadLag = leadLagOutput(difference, state, leadLag1State, T1, T2);
@@ -489,9 +547,11 @@ void StabilizerPss2a::jacobianElements(const IOdata& inputs,
                                                                         double scale,
                                                                         bool includeStates) {
         if (includeStates) {
-            for (index_t index = 0; index < value.stateGain.size(); ++index) {
+            for (std::size_t index = 0; index < value.stateGain.size(); ++index) {
                 if (value.stateGain[index] != 0.0) {
-                    matrixData.assign(row, refDiff + index, scale * value.stateGain[index]);
+                    matrixData.assign(row,
+                                      refDiff + static_cast<index_t>(index),
+                                      scale * value.stateGain[index]);
                 }
             }
         }
@@ -504,7 +564,9 @@ void StabilizerPss2a::jacobianElements(const IOdata& inputs,
             addExpression(refAlg, finalOutput, 1.0, !isAlgebraicOnly(sMode));
         }
     }
-    if (!hasDifferential(sMode)) return;
+    if (!hasDifferential(sMode)) {
+        return;
+    }
 
     if (Tw1 > 0.0) {
         addExpression(refDiff + branch1Derivative1State, input1, 1.0 / Tw1, true);
@@ -573,8 +635,20 @@ void StabilizerPss2a::jacobianElements(const IOdata& inputs,
 
     for (index_t stage = 0; stage <= rampLagCount; ++stage) {
         LinearValue rampInput = summed;
-        double lagTime = T9;
-        if (stage > 0) {
+        const double lagTime = T9;
+        if (stage == 1) {
+            // The first low-pass stage follows the T8/T9 lead-lag output,
+            // rather than the first ramp-filter state directly.
+            const double scale = T8 / T9;
+            rampInput.value = state[rampFilterState[0]] +
+                scale * (summed.value - state[rampFilterState[0]]);
+            for (double& gain : rampInput.stateGain) {
+                gain *= scale;
+            }
+            rampInput.input1Gain *= scale;
+            rampInput.input2Gain *= scale;
+            rampInput.stateGain[rampFilterState[0]] += 1.0 - scale;
+        } else if (stage > 1) {
             rampInput = {};
             rampInput.value = state[rampFilterState[stage - 1]];
             rampInput.stateGain[rampFilterState[stage - 1]] = 1.0;
@@ -630,8 +704,12 @@ void StabilizerPss2a::rootTrigger(CoreTime /*time*/,
                                   const SolverMode& sMode)
 {
     const index_t rootOffset = offsets.getRootOffset(sMode);
-    if ((rootMask[rootOffset] == 0) && (rootMask[rootOffset + 1] == 0)) return;
-    if (updateLimitFlags(inputs, m_state.data() + 1)) alert(this, JAC_COUNT_CHANGE);
+    if ((rootMask[rootOffset] == 0) && (rootMask[rootOffset + 1] == 0)) {
+        return;
+    }
+    if (updateLimitFlags(inputs, m_state.data() + 1)) {
+        alert(this, JAC_COUNT_CHANGE);
+    }
 }
 
 ChangeCode StabilizerPss2a::rootCheck(const IOdata& inputs,
@@ -649,24 +727,42 @@ ChangeCode StabilizerPss2a::rootCheck(const IOdata& inputs,
 stringVec StabilizerPss2a::localStateNames() const
 {
     stringVec names{"vs"};
-    if (branch1Derivative1State != kNullLocation) names.emplace_back("w1a");
-    if (branch1Derivative2State != kNullLocation) names.emplace_back("w1b");
-    if (branch1LagState != kNullLocation) names.emplace_back("l1");
-    if (branch2Derivative1State != kNullLocation) names.emplace_back("w2a");
-    if (branch2Derivative2State != kNullLocation) names.emplace_back("w2b");
-    if (branch2LagState != kNullLocation) names.emplace_back("l2");
+    if (branch1Derivative1State != kNullLocation) {
+        names.emplace_back("w1a");
+    }
+    if (branch1Derivative2State != kNullLocation) {
+        names.emplace_back("w1b");
+    }
+    if (branch1LagState != kNullLocation) {
+        names.emplace_back("l1");
+    }
+    if (branch2Derivative1State != kNullLocation) {
+        names.emplace_back("w2a");
+    }
+    if (branch2Derivative2State != kNullLocation) {
+        names.emplace_back("w2b");
+    }
+    if (branch2LagState != kNullLocation) {
+        names.emplace_back("l2");
+    }
     names.emplace_back("rtf");
     for (index_t stage = 1; stage <= rampLagCount; ++stage) {
         names.emplace_back("rtf" + std::to_string(stage));
     }
-    if (leadLag1State != kNullLocation) names.emplace_back("ll1");
-    if (leadLag2State != kNullLocation) names.emplace_back("ll2");
+    if (leadLag1State != kNullLocation) {
+        names.emplace_back("ll1");
+    }
+    if (leadLag2State != kNullLocation) {
+        names.emplace_back("ll2");
+    }
     return names;
 }
 
 index_t StabilizerPss2a::findIndex(std::string_view field, const SolverMode& sMode) const
 {
-    if ((field == "vss") || (field == "vs")) return getOutputLoc(sMode, 0);
+    if ((field == "vss") || (field == "vs")) {
+        return getOutputLoc(sMode, 0);
+    }
     return kInvalidLocation;
 }
 
@@ -692,49 +788,53 @@ void StabilizerPss2a::set(std::string_view param, double val, units::unit unitTy
     };
     if ((param == "mode") || (param == "mode1")) {
         finite("MODE");
-        if ((std::floor(val) != val) || (val < 0.0) || (val > 5.0))
+        if ((std::floor(val) != val) || (val < 0.0) || (val > 5.0)) {
             throw InvalidParameterValue("PSS2A MODE is unsupported");
+        }
         mode1 = static_cast<int>(val);
     } else if (param == "mode2") {
         finite("MODE2");
-        if ((std::floor(val) != val) || (val < 0.0) || (val > 5.0))
+        if ((std::floor(val) != val) || (val < 0.0) || (val > 5.0)) {
             throw InvalidParameterValue("PSS2A MODE2 is unsupported");
+        }
         mode2 = static_cast<int>(val);
     } else if ((param == "busr") || (param == "busr1")) {
         finite("BUSR");
-        if ((std::floor(val) != val) || (val != 0.0))
+        if ((std::floor(val) != val) || (val != 0.0)) {
             throw InvalidParameterValue("PSS2A remote BUSR is unsupported");
+        }
         remoteBus1 = 0;
     } else if (param == "busr2") {
         finite("BUSR2");
-        if ((std::floor(val) != val) || (val != 0.0))
+        if ((std::floor(val) != val) || (val != 0.0)) {
             throw InvalidParameterValue("PSS2A remote BUSR2 is unsupported");
+        }
         remoteBus2 = 0;
-    } else if (param == "tw1")
+    } else if (param == "tw1") {
         time("TW1", Tw1, false);
-    else if (param == "tw2")
+    } else if (param == "tw2") {
         time("TW2", Tw2, false);
-    else if (param == "t6")
+    } else if (param == "t6") {
         time("T6", T6, false);
-    else if (param == "tw3")
+    } else if (param == "tw3") {
         time("TW3", Tw3, false);
-    else if (param == "tw4")
+    } else if (param == "tw4") {
         time("TW4", Tw4, false);
-    else if (param == "t7")
+    } else if (param == "t7") {
         time("T7", T7, false);
-    else if (param == "t8")
+    } else if (param == "t8") {
         time("T8", T8, false);
-    else if (param == "t9")
+    } else if (param == "t9") {
         time("T9", T9, true);
-    else if (param == "t1")
+    } else if (param == "t1") {
         time("T1", T1, false);
-    else if (param == "t2")
+    } else if (param == "t2") {
         time("T2", T2, false);
-    else if (param == "t3")
+    } else if (param == "t3") {
         time("T3", T3, false);
-    else if (param == "t4")
+    } else if (param == "t4") {
         time("T4", T4, false);
-    else if (param == "ks1") {
+    } else if (param == "ks1") {
         finite("KS1");
         Ks1 = val;
     } else if (param == "ks2") {
@@ -745,11 +845,15 @@ void StabilizerPss2a::set(std::string_view param, double val, units::unit unitTy
         Ks3 = val;
     } else if ((param == "vstmax") || (param == "vmax")) {
         finite("VSTMAX");
-        if (val < Vstmin) throw InvalidParameterValue("PSS2A VSTMAX must not be less than VSTMIN");
+        if (val < Vstmin) {
+            throw InvalidParameterValue("PSS2A VSTMAX must not be less than VSTMIN");
+        }
         Vstmax = val;
     } else if ((param == "vstmin") || (param == "vmin")) {
         finite("VSTMIN");
-        if (val > Vstmax) throw InvalidParameterValue("PSS2A VSTMIN must not exceed VSTMAX");
+        if (val > Vstmax) {
+            throw InvalidParameterValue("PSS2A VSTMIN must not exceed VSTMAX");
+        }
         Vstmin = val;
     } else {
         Stabilizer::set(param, val, unitType);
@@ -758,27 +862,69 @@ void StabilizerPss2a::set(std::string_view param, double val, units::unit unitTy
 
 double StabilizerPss2a::get(std::string_view param, units::unit unitType) const
 {
-    if ((param == "mode") || (param == "mode1")) return mode1;
-    if (param == "mode2") return mode2;
-    if ((param == "busr") || (param == "busr1")) return remoteBus1;
-    if (param == "busr2") return remoteBus2;
-    if (param == "tw1") return Tw1;
-    if (param == "tw2") return Tw2;
-    if (param == "t6") return T6;
-    if (param == "tw3") return Tw3;
-    if (param == "tw4") return Tw4;
-    if (param == "t7") return T7;
-    if (param == "ks1") return Ks1;
-    if (param == "ks2") return Ks2;
-    if (param == "ks3") return Ks3;
-    if (param == "t8") return T8;
-    if (param == "t9") return T9;
-    if (param == "t1") return T1;
-    if (param == "t2") return T2;
-    if (param == "t3") return T3;
-    if (param == "t4") return T4;
-    if ((param == "vstmax") || (param == "vmax")) return Vstmax;
-    if ((param == "vstmin") || (param == "vmin")) return Vstmin;
+    if ((param == "mode") || (param == "mode1")) {
+        return mode1;
+    }
+    if (param == "mode2") {
+        return mode2;
+    }
+    if ((param == "busr") || (param == "busr1")) {
+        return remoteBus1;
+    }
+    if (param == "busr2") {
+        return remoteBus2;
+    }
+    if (param == "tw1") {
+        return Tw1;
+    }
+    if (param == "tw2") {
+        return Tw2;
+    }
+    if (param == "t6") {
+        return T6;
+    }
+    if (param == "tw3") {
+        return Tw3;
+    }
+    if (param == "tw4") {
+        return Tw4;
+    }
+    if (param == "t7") {
+        return T7;
+    }
+    if (param == "ks1") {
+        return Ks1;
+    }
+    if (param == "ks2") {
+        return Ks2;
+    }
+    if (param == "ks3") {
+        return Ks3;
+    }
+    if (param == "t8") {
+        return T8;
+    }
+    if (param == "t9") {
+        return T9;
+    }
+    if (param == "t1") {
+        return T1;
+    }
+    if (param == "t2") {
+        return T2;
+    }
+    if (param == "t3") {
+        return T3;
+    }
+    if (param == "t4") {
+        return T4;
+    }
+    if ((param == "vstmax") || (param == "vmax")) {
+        return Vstmax;
+    }
+    if ((param == "vstmin") || (param == "vmin")) {
+        return Vstmin;
+    }
     return Stabilizer::get(param, unitType);
 }
 }  // namespace griddyn::stabilizers

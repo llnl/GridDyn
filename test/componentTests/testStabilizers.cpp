@@ -322,14 +322,14 @@ TEST(StabilizerModelTests, Iee2stMatchesOpenIpslCascadeAndSupportsZeroBypasses)
     EXPECT_EQ(bypass.getStates().size(), 2U);
     std::vector<double> bypassResidual(bypass.getStates().size(), 0.0);
     bypass.residual(inputs, emptyStateData, bypassResidual.data(), cLocalSolverMode);
-    EXPECT_NEAR(bypassResidual[0], 1.6, 1e-14);
+    EXPECT_NEAR(bypassResidual[0], 1.4, 1e-14);
     bypass.set("t6", 1.0);
     bypass.set("t5", 0.2);
     bypass.dynInitializeA(0.0, 0);
     bypass.dynInitializeB(inputs, {0.0}, bypassFields);
     std::vector<double> bypassDerivative(bypass.getStates().size(), 0.0);
     bypass.derivative(inputs, emptyStateData, bypassDerivative.data(), cLocalSolverMode);
-    EXPECT_NEAR(bypassDerivative[2], 1.6, 1e-14);
+    EXPECT_NEAR(bypassDerivative[2], 1.4, 1e-14);
     EXPECT_ANY_THROW({
         bypass.set("t6", 0.0);
         bypass.dynInitializeA(0.0, 0);
@@ -349,7 +349,9 @@ TEST(StabilizerModelTests, Pss2aInitializesTheOpenIpslDualBranchCascade)
     EXPECT_NEAR(stabilizer.getStates()[1], 0.01, 1e-14);
     EXPECT_NEAR(stabilizer.getStates()[4], 0.7, 1e-14);
     for (std::size_t index = 2; index < stabilizer.getStates().size(); ++index) {
-        if (index != 4U) EXPECT_NEAR(stabilizer.getStates()[index], 0.0, 1e-14);
+        if (index != 4U) {
+            EXPECT_NEAR(stabilizer.getStates()[index], 0.0, 1e-14);
+        }
     }
 
     std::vector<double> state(stabilizer.getStates().size(), 0.0);

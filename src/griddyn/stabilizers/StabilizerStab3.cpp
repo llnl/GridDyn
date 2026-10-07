@@ -11,6 +11,7 @@
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
+#include <cstddef>
 #include <cmath>
 #include <string>
 #include <vector>
@@ -90,7 +91,7 @@ void StabilizerStab3::dynObjectInitializeB(const IOdata& inputs,
     updateLimitFlags(inputs, state);
 }
 
-StabilizerStab3::LinearValue StabilizerStab3::electricalPowerInput(const IOdata& inputs) const
+StabilizerStab3::LinearValue StabilizerStab3::electricalPowerInput(const IOdata& inputs)
 {
     LinearValue input;
     input.value = inputs[pssElectricalPowerInLocation];
@@ -229,9 +230,11 @@ void StabilizerStab3::jacobianElements(const IOdata& inputs,
                                                                   double scale,
                                                                   bool includeStates) {
         if (includeStates) {
-            for (index_t index = 0; index < value.stateGain.size(); ++index) {
+            for (std::size_t index = 0; index < value.stateGain.size(); ++index) {
                 if (value.stateGain[index] != 0.0) {
-                    matrixData.assign(row, refDiff + index, scale * value.stateGain[index]);
+                    matrixData.assign(row,
+                                      refDiff + static_cast<index_t>(index),
+                                      scale * value.stateGain[index]);
                 }
             }
         }
@@ -353,18 +356,26 @@ void StabilizerStab3::set(std::string_view param, double val, units::unit unitTy
         throw InvalidParameterValue("STAB3 parameters must be finite");
     }
     if (param == "tt") {
-        if (val < 0.0) throw InvalidParameterValue("STAB3 TT must be nonnegative");
+        if (val < 0.0) {
+            throw InvalidParameterValue("STAB3 TT must be nonnegative");
+        }
         Tt = val;
     } else if (param == "tx1") {
-        if (val < 0.0) throw InvalidParameterValue("STAB3 TX1 must be nonnegative");
+        if (val < 0.0) {
+            throw InvalidParameterValue("STAB3 TX1 must be nonnegative");
+        }
         Tx1 = val;
     } else if (param == "tx2") {
-        if (val <= 0.0) throw InvalidParameterValue("STAB3 TX2 must be positive");
+        if (val <= 0.0) {
+            throw InvalidParameterValue("STAB3 TX2 must be positive");
+        }
         Tx2 = val;
     } else if (param == "kx") {
         Kx = val;
     } else if ((param == "vlim") || (param == "vmax")) {
-        if (val < 0.0) throw InvalidParameterValue("STAB3 VLIM must be nonnegative");
+        if (val < 0.0) {
+            throw InvalidParameterValue("STAB3 VLIM must be nonnegative");
+        }
         Vlim = val;
     } else {
         Stabilizer::set(param, val, unitType);
@@ -373,11 +384,21 @@ void StabilizerStab3::set(std::string_view param, double val, units::unit unitTy
 
 double StabilizerStab3::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "tt") return Tt;
-    if (param == "tx1") return Tx1;
-    if (param == "tx2") return Tx2;
-    if (param == "kx") return Kx;
-    if ((param == "vlim") || (param == "vmax")) return Vlim;
+    if (param == "tt") {
+        return Tt;
+    }
+    if (param == "tx1") {
+        return Tx1;
+    }
+    if (param == "tx2") {
+        return Tx2;
+    }
+    if (param == "kx") {
+        return Kx;
+    }
+    if ((param == "vlim") || (param == "vmax")) {
+        return Vlim;
+    }
     return Stabilizer::get(param, unitType);
 }
 }  // namespace griddyn::stabilizers

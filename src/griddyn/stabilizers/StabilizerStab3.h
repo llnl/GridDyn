@@ -86,7 +86,7 @@ class StabilizerStab3: public Stabilizer {
         double inputGain = 0.0;
     };
 
-    [[nodiscard]] LinearValue electricalPowerInput(const IOdata& inputs) const;
+    [[nodiscard]] static LinearValue electricalPowerInput(const IOdata& inputs);
     [[nodiscard]] LinearValue unlimitedOutput(const IOdata& inputs, const double state[]) const;
     [[nodiscard]] double output(const IOdata& inputs, const double state[]) const;
     [[nodiscard]] int outputLimitStatus(const IOdata& inputs, const double state[]) const;

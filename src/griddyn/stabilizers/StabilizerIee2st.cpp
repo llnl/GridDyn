@@ -11,6 +11,7 @@
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
+#include <cstddef>
 #include <cmath>
 #include <string>
 #include <vector>
@@ -217,7 +218,7 @@ StabilizerIee2st::LinearValue StabilizerIee2st::leadLagOutput(const double state
                                                               const LinearValue& input,
                                                               index_t stateIndex,
                                                               double leadTime,
-                                                              double lagTime) const
+                                                              double lagTime)
 {
     if (stateIndex == kNullLocation) {
         return input;
@@ -259,7 +260,7 @@ StabilizerIee2st::LinearValue StabilizerIee2st::outputExpression(const IOdata& i
     }
     LinearValue summed = filter1;
     summed.value += filter2.value;
-    for (index_t index = 0; index < summed.stateGain.size(); ++index) {
+    for (std::size_t index = 0; index < summed.stateGain.size(); ++index) {
         summed.stateGain[index] += filter2.stateGain[index];
     }
     summed.input1Gain += filter2.input1Gain;
@@ -356,19 +357,19 @@ void StabilizerIee2st::derivative(const IOdata& inputs,
         (filter2State == kNullLocation) ? K2 * input2.value : state[filter2State];
     const double summed = filter1 + filter2;
     if (filter1State != kNullLocation) {
-        stateDerivative[filter1State] = (K1 * input1.value - state[filter1State]) / T1;
+        stateDerivative[filter1State] = ((K1 * input1.value) - state[filter1State]) / T1;
     }
     if (filter2State != kNullLocation) {
-        stateDerivative[filter2State] = (K2 * input2.value - state[filter2State]) / T2;
+        stateDerivative[filter2State] = ((K2 * input2.value) - state[filter2State]) / T2;
     }
     stateDerivative[washoutState] = (summed - state[washoutState]) / T4;
     const double washout = (T3 > 0.0) ? (T3 / T4) * (summed - state[washoutState]) : summed;
     const double first = (leadLag1State == kNullLocation) ?
         washout :
-        state[leadLag1State] + (T5 / T6) * (washout - state[leadLag1State]);
+        state[leadLag1State] + ((T5 / T6) * (washout - state[leadLag1State]));
     const double second = (leadLag2State == kNullLocation) ?
         first :
-        state[leadLag2State] + (T7 / T8) * (first - state[leadLag2State]);
+        state[leadLag2State] + ((T7 / T8) * (first - state[leadLag2State]));
     if (leadLag1State != kNullLocation) {
         stateDerivative[leadLag1State] = (washout - state[leadLag1State]) / T6;
     }
@@ -440,7 +441,7 @@ void StabilizerIee2st::jacobianElements(const IOdata& inputs,
     }
     LinearValue summed = filter1;
     summed.value += filter2.value;
-    for (index_t index = 0; index < summed.stateGain.size(); ++index) {
+    for (std::size_t index = 0; index < summed.stateGain.size(); ++index) {
         summed.stateGain[index] += filter2.stateGain[index];
     }
     summed.input1Gain += filter2.input1Gain;
@@ -465,9 +466,11 @@ void StabilizerIee2st::jacobianElements(const IOdata& inputs,
                                                                         double scale,
                                                                         bool includeStates) {
         if (includeStates) {
-            for (index_t index = 0; index < value.stateGain.size(); ++index) {
+            for (std::size_t index = 0; index < value.stateGain.size(); ++index) {
                 if (value.stateGain[index] != 0.0) {
-                    matrixData.assign(row, refDiff + index, scale * value.stateGain[index]);
+                    matrixData.assign(row,
+                                      refDiff + static_cast<index_t>(index),
+                                      scale * value.stateGain[index]);
                 }
             }
         }
@@ -647,61 +650,89 @@ void StabilizerIee2st::set(std::string_view param, double val, units::unit unitT
         K2 = val;
     } else if (param == "t1") {
         finite("T1");
-        if (val < 0.0) throw InvalidParameterValue("IEE2ST T1 must be nonnegative");
+        if (val < 0.0) {
+            throw InvalidParameterValue("IEE2ST T1 must be nonnegative");
+        }
         T1 = val;
     } else if (param == "t2") {
         finite("T2");
-        if (val < 0.0) throw InvalidParameterValue("IEE2ST T2 must be nonnegative");
+        if (val < 0.0) {
+            throw InvalidParameterValue("IEE2ST T2 must be nonnegative");
+        }
         T2 = val;
     } else if (param == "t3") {
         finite("T3");
-        if (val < 0.0) throw InvalidParameterValue("IEE2ST T3 must be nonnegative");
+        if (val < 0.0) {
+            throw InvalidParameterValue("IEE2ST T3 must be nonnegative");
+        }
         T3 = val;
     } else if (param == "t4") {
         finite("T4");
-        if (val <= 0.0) throw InvalidParameterValue("IEE2ST T4 must be positive");
+        if (val <= 0.0) {
+            throw InvalidParameterValue("IEE2ST T4 must be positive");
+        }
         T4 = val;
     } else if (param == "t5") {
         finite("T5");
-        if (val < 0.0) throw InvalidParameterValue("IEE2ST T5 must be nonnegative");
+        if (val < 0.0) {
+            throw InvalidParameterValue("IEE2ST T5 must be nonnegative");
+        }
         T5 = val;
     } else if (param == "t6") {
         finite("T6");
-        if (val < 0.0) throw InvalidParameterValue("IEE2ST T6 must be nonnegative");
+        if (val < 0.0) {
+            throw InvalidParameterValue("IEE2ST T6 must be nonnegative");
+        }
         T6 = val;
     } else if (param == "t7") {
         finite("T7");
-        if (val < 0.0) throw InvalidParameterValue("IEE2ST T7 must be nonnegative");
+        if (val < 0.0) {
+            throw InvalidParameterValue("IEE2ST T7 must be nonnegative");
+        }
         T7 = val;
     } else if (param == "t8") {
         finite("T8");
-        if (val < 0.0) throw InvalidParameterValue("IEE2ST T8 must be nonnegative");
+        if (val < 0.0) {
+            throw InvalidParameterValue("IEE2ST T8 must be nonnegative");
+        }
         T8 = val;
     } else if (param == "t9") {
         finite("T9");
-        if (val < 0.0) throw InvalidParameterValue("IEE2ST T9 must be nonnegative");
+        if (val < 0.0) {
+            throw InvalidParameterValue("IEE2ST T9 must be nonnegative");
+        }
         T9 = val;
     } else if (param == "t10") {
         finite("T10");
-        if (val < 0.0) throw InvalidParameterValue("IEE2ST T10 must be nonnegative");
+        if (val < 0.0) {
+            throw InvalidParameterValue("IEE2ST T10 must be nonnegative");
+        }
         T10 = val;
     } else if ((param == "lsmax") || (param == "vmax")) {
         finite("LSMAX");
-        if (val < Lsmin) throw InvalidParameterValue("IEE2ST LSMAX must not be less than LSMIN");
+        if (val < Lsmin) {
+            throw InvalidParameterValue("IEE2ST LSMAX must not be less than LSMIN");
+        }
         Lsmax = val;
     } else if ((param == "lsmin") || (param == "vmin")) {
         finite("LSMIN");
-        if (val > Lsmax) throw InvalidParameterValue("IEE2ST LSMIN must not exceed LSMAX");
+        if (val > Lsmax) {
+            throw InvalidParameterValue("IEE2ST LSMIN must not exceed LSMAX");
+        }
         Lsmin = val;
     } else if (param == "vcu") {
         finite("VCU");
         const double mapped = (val == 0.0) ? 999.0 : val;
-        if (mapped < Vcl) throw InvalidParameterValue("IEE2ST VCU must not be less than VCL");
+        if (mapped < Vcl) {
+            throw InvalidParameterValue("IEE2ST VCU must not be less than VCL");
+        }
         Vcu = mapped;
     } else if (param == "vcl") {
         finite("VCL");
         const double mapped = (val == 0.0) ? -999.0 : val;
-        if (mapped > Vcu) throw InvalidParameterValue("IEE2ST VCL must not exceed VCU");
+        if (mapped > Vcu) {
+            throw InvalidParameterValue("IEE2ST VCL must not exceed VCU");
+        }
         Vcl = mapped;
     } else {
         Stabilizer::set(param, val, unitType);
@@ -710,26 +741,66 @@ void StabilizerIee2st::set(std::string_view param, double val, units::unit unitT
 
 double StabilizerIee2st::get(std::string_view param, units::unit unitType) const
 {
-    if ((param == "mode") || (param == "mode1")) return mode1;
-    if (param == "mode2") return mode2;
-    if ((param == "busr") || (param == "busr1")) return remoteBus1;
-    if (param == "busr2") return remoteBus2;
-    if (param == "k1") return K1;
-    if (param == "k2") return K2;
-    if (param == "t1") return T1;
-    if (param == "t2") return T2;
-    if (param == "t3") return T3;
-    if (param == "t4") return T4;
-    if (param == "t5") return T5;
-    if (param == "t6") return T6;
-    if (param == "t7") return T7;
-    if (param == "t8") return T8;
-    if (param == "t9") return T9;
-    if (param == "t10") return T10;
-    if ((param == "lsmax") || (param == "vmax")) return Lsmax;
-    if ((param == "lsmin") || (param == "vmin")) return Lsmin;
-    if (param == "vcu") return Vcu;
-    if (param == "vcl") return Vcl;
+    if ((param == "mode") || (param == "mode1")) {
+        return mode1;
+    }
+    if (param == "mode2") {
+        return mode2;
+    }
+    if ((param == "busr") || (param == "busr1")) {
+        return remoteBus1;
+    }
+    if (param == "busr2") {
+        return remoteBus2;
+    }
+    if (param == "k1") {
+        return K1;
+    }
+    if (param == "k2") {
+        return K2;
+    }
+    if (param == "t1") {
+        return T1;
+    }
+    if (param == "t2") {
+        return T2;
+    }
+    if (param == "t3") {
+        return T3;
+    }
+    if (param == "t4") {
+        return T4;
+    }
+    if (param == "t5") {
+        return T5;
+    }
+    if (param == "t6") {
+        return T6;
+    }
+    if (param == "t7") {
+        return T7;
+    }
+    if (param == "t8") {
+        return T8;
+    }
+    if (param == "t9") {
+        return T9;
+    }
+    if (param == "t10") {
+        return T10;
+    }
+    if ((param == "lsmax") || (param == "vmax")) {
+        return Lsmax;
+    }
+    if ((param == "lsmin") || (param == "vmin")) {
+        return Lsmin;
+    }
+    if (param == "vcu") {
+        return Vcu;
+    }
+    if (param == "vcl") {
+        return Vcl;
+    }
     return Stabilizer::get(param, unitType);
 }
 }  // namespace griddyn::stabilizers

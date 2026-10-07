@@ -10,6 +10,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
+#include <string>
 
 namespace griddyn::voltagecompensators {
 VoltageCompensatorIeeeVC::VoltageCompensatorIeeeVC(const std::string& objName):
@@ -80,11 +81,11 @@ double VoltageCompensatorIeeeVC::get(std::string_view param, units::unit unitTyp
 double VoltageCompensatorIeeeVC::compensatedVoltage(const IOdata& inputs) const
 {
     const double directCurrent = inputs[voltageCompensatorIdInLocation];
-    const double iq = inputs[voltageCompensatorIqInLocation];
-    const double vd = inputs[voltageCompensatorVdInLocation];
-    const double vq = inputs[voltageCompensatorVqInLocation];
-    const double realPart = vd + (RC * directCurrent) - (XC * iq);
-    const double imaginaryPart = vq + (RC * iq) + (XC * directCurrent);
+    const double quadratureCurrent = inputs[voltageCompensatorIqInLocation];
+    const double directVoltage = inputs[voltageCompensatorVdInLocation];
+    const double quadratureVoltage = inputs[voltageCompensatorVqInLocation];
+    const double realPart = directVoltage + (RC * directCurrent) - (XC * quadratureCurrent);
+    const double imaginaryPart = quadratureVoltage + (RC * quadratureCurrent) + (XC * directCurrent);
     return std::hypot(realPart, imaginaryPart);
 }
 
@@ -124,11 +125,11 @@ void VoltageCompensatorIeeeVC::jacobianElements(const IOdata& inputs,
     }
     const auto locations = offsets.getLocations(stateData, sMode, this);
     const double directCurrent = inputs[voltageCompensatorIdInLocation];
-    const double iq = inputs[voltageCompensatorIqInLocation];
-    const double vd = inputs[voltageCompensatorVdInLocation];
-    const double vq = inputs[voltageCompensatorVqInLocation];
-    const double realPart = vd + (RC * directCurrent) - (XC * iq);
-    const double imaginaryPart = vq + (RC * iq) + (XC * directCurrent);
+    const double quadratureCurrent = inputs[voltageCompensatorIqInLocation];
+    const double directVoltage = inputs[voltageCompensatorVdInLocation];
+    const double quadratureVoltage = inputs[voltageCompensatorVqInLocation];
+    const double realPart = directVoltage + (RC * directCurrent) - (XC * quadratureCurrent);
+    const double imaginaryPart = quadratureVoltage + (RC * quadratureCurrent) + (XC * directCurrent);
     const double magnitude = std::hypot(realPart, imaginaryPart);
     const double inverseMagnitude = (magnitude > 1e-12) ? 1.0 / magnitude : 0.0;
     const auto row = locations.algOffset;

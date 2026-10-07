@@ -357,7 +357,7 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
         // Vset=inputSetup[1];
     }
     if ((gov != nullptr) && (gov->isEnabled())) {
-        const auto governorSignals = machineSignals;
+        const auto& governorSignals = machineSignals;
         modelInputs[govOmegaInLocation] = 1.0;
         modelInputs[govpSetInLocation] = kNullVal;
         modelInputs[govElectricalPowerInLocation] =

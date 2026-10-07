@@ -8,6 +8,8 @@
 
 #include "../VoltageCompensator.h"
 
+#include <string>
+
 namespace griddyn::voltagecompensators {
 /** IEEE voltage-regulator current-compensating model (PSS/E IEEEVC). */
 class VoltageCompensatorIeeeVC: public VoltageCompensator {

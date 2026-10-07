@@ -125,7 +125,7 @@ double GovernorIeeeG2::leadLagOutput(const IOdata& inputs, const double state[])
         return K * speedDeviation;
     }
     const double leadLagStateValue = state[leadLagState];
-    return K * (leadLagStateValue + (T2 / T1) * (speedDeviation - leadLagStateValue));
+    return K * (leadLagStateValue + ((T2 / T1) * (speedDeviation - leadLagStateValue)));
 }
 
 double GovernorIeeeG2::speedLagOutput(const IOdata& inputs, const double state[]) const
@@ -148,7 +148,7 @@ double GovernorIeeeG2::waterOutput(const IOdata& inputs, const double state[]) c
         return limited;
     }
     // OpenIPSL LeadLag(K=1, T1=-T4, T2=0.5*T4): y=3*x-2*u.
-    return state[waterState] + (-2.0) * (limited - state[waterState]);
+    return state[waterState] + ((-2.0) * (limited - state[waterState]));
 }
 
 double GovernorIeeeG2::limiterSlope(const IOdata& inputs, const double state[]) const
@@ -224,7 +224,8 @@ void GovernorIeeeG2::jacobianElements(const IOdata& inputs,
     const index_t diffOffset = locations.diffOffset;
     const double* state = locations.diffStateLoc;
     const double leadGain = (leadLagState == kInvalidLocation) ? K : K * (T2 / T1);
-    const double leadStateGain = (leadLagState == kInvalidLocation) ? 0.0 : K * (1.0 - T2 / T1);
+    const double leadStateGain =
+        (leadLagState == kInvalidLocation) ? 0.0 : K * (1.0 - (T2 / T1));
     const double lagGain = (simpleLagState == kInvalidLocation) ? 1.0 : 0.0;
     const double limitGain = limiterSlope(inputs, state);
     const double waterStateGain = (waterState == kInvalidLocation) ? 0.0 : 3.0;

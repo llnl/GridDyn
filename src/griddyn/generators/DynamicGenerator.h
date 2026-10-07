@@ -17,6 +17,7 @@ class Stabilizer;
 class Governor;
 class IsocController;
 class Source;
+class VoltageCompensator;
 /**
 @ brief class describing a generator intended for dynamic simulations
  a generator is a power production unit in GridDyn.  the base generator class implements methods set
@@ -48,6 +49,7 @@ class DynamicGenerator: public Generator {
         PSET_LOC = 5,
         VSET_LOC = 6,
         ISOC_CONTROL_LOC = 7,
+        VOLTAGE_COMPENSATOR_LOC = 8,
     };
 
   protected:
@@ -58,6 +60,7 @@ class DynamicGenerator: public Generator {
     Source* pSetControl = nullptr;  //!< source for throttle control
     Source* vSetControl = nullptr;  //!< source for voltage level control
     IsocController* isoc = nullptr;  //!< pointer to a isochronous controller
+    VoltageCompensator* voltageCompensator = nullptr;  //!< optional IEEEVC-style compensator
     GridSubModel* mechanicalPowerSource = nullptr;  //!< optional non-owning Pmech source
     index_t mechanicalPowerOutput = 0;  //!< selected output on the Pmech source
     std::string mechanicalPowerSourceName;  //!< clone/configuration path for the Pmech source

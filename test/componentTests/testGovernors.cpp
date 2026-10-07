@@ -19,6 +19,7 @@
 #include "griddyn/governors/GovernorHygov4.h"
 #include "griddyn/governors/GovernorHygovDB.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
+#include "griddyn/governors/GovernorIeeeG2.h"
 #include "griddyn/governors/GovernorIeeeSimple.h"
 #include "griddyn/governors/GovernorSteamNR.h"
 #include "griddyn/governors/GovernorSteamTCSR.h"
@@ -80,6 +81,17 @@ void configureIeeeG1(governors::GovernorIeeeG1& governor)
     governor.set("t7", 0.2);
     governor.set("k7", 0.1);
     governor.set("k8", 0.05);
+}
+
+void configureIeeeG2(governors::GovernorIeeeG2& governor)
+{
+    governor.set("k", 20.0);
+    governor.set("t1", 50.0);
+    governor.set("t2", 5.0);
+    governor.set("t3", 1.0);
+    governor.set("t4", 1.5);
+    governor.set("pmax", 1.25);
+    governor.set("pmin", 0.0);
 }
 
 void configureHydro(governors::GovernorHydro& governor)
@@ -865,6 +877,42 @@ TEST(GovernorModelTests, IeeeG1MatchesAndesInitializationAndPerturbedEquations)
     for (std::size_t index = 2; index < state.size(); ++index) {
         EXPECT_NEAR(residual[index], derivative[index], 1e-14) << index;
     }
+}
+
+TEST(GovernorModelTests, IeeeG2MatchesOpenIpslBlockDiagramAndJacobian)
+{
+    governors::GovernorIeeeG2 governor;
+    configureIeeeG2(governor);
+    EXPECT_DOUBLE_EQ(governor.get("t4"), 1.5);
+    governor.dynInitializeA(0.0, 0);
+
+    IOdata fieldSet(2, 0.0);
+    governor.dynInitializeB({1.0, 0.8}, {0.8}, fieldSet);
+    const auto& initialized = governor.getStates();
+    ASSERT_EQ(initialized.size(), 4U);
+    EXPECT_DOUBLE_EQ(initialized[0], 0.8);
+    EXPECT_DOUBLE_EQ(initialized[1], 0.0);
+    EXPECT_DOUBLE_EQ(initialized[2], 0.0);
+    EXPECT_DOUBLE_EQ(initialized[3], 0.8);
+    EXPECT_DOUBLE_EQ(fieldSet[govpSetInLocation], 0.8);
+
+    const std::vector<double> state{0.78, 0.02, 0.01, 0.75};
+    const std::vector<double> stateDerivative(state.size(), 0.0);
+    governor.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    const IOdata inputs{0.99, 0.8};
+    std::vector<double> derivative(state.size(), 0.0);
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[1], -0.0002, 1e-14);
+    EXPECT_NEAR(derivative[2], 0.37, 1e-14);
+    EXPECT_NEAR(derivative[3], 0.08, 1e-14);
+
+    std::vector<double> residual(state.size(), 0.0);
+    governor.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    EXPECT_NEAR(residual[0], -0.15, 1e-14);
+    for (std::size_t index = 1; index < state.size(); ++index) {
+        EXPECT_NEAR(residual[index], derivative[index], 1e-14);
+    }
+    expectGovernorEquationConsistency(governor, inputs, state);
 }
 
 TEST(GovernorModelTests, IeeeG1AdjustsInitialUpperLimitByDefault)

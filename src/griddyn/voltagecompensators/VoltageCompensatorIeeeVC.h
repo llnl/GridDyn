@@ -7,7 +7,6 @@
 #pragma once
 
 #include "../VoltageCompensator.h"
-
 #include <string>
 
 namespace griddyn::voltagecompensators {

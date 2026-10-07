@@ -85,7 +85,8 @@ double VoltageCompensatorIeeeVC::compensatedVoltage(const IOdata& inputs) const
     const double directVoltage = inputs[voltageCompensatorVdInLocation];
     const double quadratureVoltage = inputs[voltageCompensatorVqInLocation];
     const double realPart = directVoltage + (RC * directCurrent) - (XC * quadratureCurrent);
-    const double imaginaryPart = quadratureVoltage + (RC * quadratureCurrent) + (XC * directCurrent);
+    const double imaginaryPart =
+        quadratureVoltage + (RC * quadratureCurrent) + (XC * directCurrent);
     return std::hypot(realPart, imaginaryPart);
 }
 
@@ -129,7 +130,8 @@ void VoltageCompensatorIeeeVC::jacobianElements(const IOdata& inputs,
     const double directVoltage = inputs[voltageCompensatorVdInLocation];
     const double quadratureVoltage = inputs[voltageCompensatorVqInLocation];
     const double realPart = directVoltage + (RC * directCurrent) - (XC * quadratureCurrent);
-    const double imaginaryPart = quadratureVoltage + (RC * quadratureCurrent) + (XC * directCurrent);
+    const double imaginaryPart =
+        quadratureVoltage + (RC * quadratureCurrent) + (XC * directCurrent);
     const double magnitude = std::hypot(realPart, imaginaryPart);
     const double inverseMagnitude = (magnitude > 1e-12) ? 1.0 / magnitude : 0.0;
     const auto row = locations.algOffset;

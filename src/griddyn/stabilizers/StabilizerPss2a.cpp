@@ -11,8 +11,8 @@
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
-#include <cstddef>
 #include <cmath>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -438,8 +438,7 @@ void StabilizerPss2a::derivative(const IOdata& inputs,
         stateDerivative[branch1LagState] = (branch1Second - state[branch1LagState]) / T6;
     }
     if (T7 > 0.0) {
-        stateDerivative[branch2LagState] =
-            ((Ks2 * branch2Second) - state[branch2LagState]) / T7;
+        stateDerivative[branch2LagState] = ((Ks2 * branch2Second) - state[branch2LagState]) / T7;
     }
 
     const double summed = branch1 + (Ks3 * branch2);
@@ -640,8 +639,8 @@ void StabilizerPss2a::jacobianElements(const IOdata& inputs,
             // The first low-pass stage follows the T8/T9 lead-lag output,
             // rather than the first ramp-filter state directly.
             const double scale = T8 / T9;
-            rampInput.value = state[rampFilterState[0]] +
-                scale * (summed.value - state[rampFilterState[0]]);
+            rampInput.value =
+                state[rampFilterState[0]] + scale * (summed.value - state[rampFilterState[0]]);
             for (double& gain : rampInput.stateGain) {
                 gain *= scale;
             }

@@ -11,8 +11,8 @@
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
-#include <cstddef>
 #include <cmath>
+#include <cstddef>
 #include <string>
 #include <vector>
 

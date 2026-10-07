@@ -224,8 +224,7 @@ void GovernorIeeeG2::jacobianElements(const IOdata& inputs,
     const index_t diffOffset = locations.diffOffset;
     const double* state = locations.diffStateLoc;
     const double leadGain = (leadLagState == kInvalidLocation) ? K : K * (T2 / T1);
-    const double leadStateGain =
-        (leadLagState == kInvalidLocation) ? 0.0 : K * (1.0 - (T2 / T1));
+    const double leadStateGain = (leadLagState == kInvalidLocation) ? 0.0 : K * (1.0 - (T2 / T1));
     const double lagGain = (simpleLagState == kInvalidLocation) ? 1.0 : 0.0;
     const double limitGain = limiterSlope(inputs, state);
     const double waterStateGain = (waterState == kInvalidLocation) ? 0.0 : 3.0;

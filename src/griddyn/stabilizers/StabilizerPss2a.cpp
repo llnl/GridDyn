@@ -639,8 +639,8 @@ void StabilizerPss2a::jacobianElements(const IOdata& inputs,
             // The first low-pass stage follows the T8/T9 lead-lag output,
             // rather than the first ramp-filter state directly.
             const double scale = T8 / T9;
-            rampInput.value = state[rampFilterState[0]] +
-                (scale * (summed.value - state[rampFilterState[0]]));
+            rampInput.value =
+                state[rampFilterState[0]] + (scale * (summed.value - state[rampFilterState[0]]));
             for (double& gain : rampInput.stateGain) {
                 gain *= scale;
             }

@@ -9,6 +9,7 @@
 #include "ControllerSignals.h"
 #include "GridSubModel.h"
 #include <string>
+#include <vector>
 
 namespace griddyn {
 inline constexpr int voltageCompensatorVoltageInLocation = 0;

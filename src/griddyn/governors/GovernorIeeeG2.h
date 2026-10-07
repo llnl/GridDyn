@@ -8,6 +8,7 @@
 
 #include "../Governor.h"
 #include <string>
+#include <vector>
 
 namespace griddyn::governors {
 /** IEEE Type 2 hydraulic speed-governing model (PSS/E IEEEG2).

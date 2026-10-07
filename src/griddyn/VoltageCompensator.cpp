@@ -7,6 +7,8 @@
 #include "VoltageCompensator.h"
 
 #include "core/CoreObjectTemplates.hpp"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 VoltageCompensator::VoltageCompensator(const std::string& objName): GridSubModel(objName)

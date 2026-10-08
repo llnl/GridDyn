@@ -1197,6 +1197,7 @@ int GridDynSimulation::residualFunction(CoreTime time,
 {
     ++residCount;
     StateData stateDataValue(time, state, dstateDt, residCount);
+    stateDataValue.stateSize = stateSize(sMode);
 
 #if (CHECK_STATE > 0)
     auto dynDataa = getSolverInterface(sMode);

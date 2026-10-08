@@ -171,30 +171,30 @@ TEST(ElectronicLoadTests, IndependentCurvesFrequencyAndVoltageRecovery)
 
     const double testFrequency = 1.02;
     const double voltage = 1.04;
-    const double pCurve = 0.25 * voltage * voltage + 0.75;
-    const double qCurve = 0.6 * voltage + 0.4;
+    const double pCurve = (0.25 * voltage * voltage) + 0.75;
+    const double qCurve = (0.6 * voltage) + 0.4;
     EXPECT_NEAR(electronic->getRealPower({voltage, 0.0, testFrequency},
                                          emptyStateData,
                                          cDaeSolverMode),
-                0.4 * pCurve * (1.0 + 0.2 * (testFrequency - 1.0)),
+                0.4 * pCurve * (1.0 + (0.2 * (testFrequency - 1.0))),
                 1e-12);
     EXPECT_NEAR(electronic->getReactivePower({voltage, 0.0, testFrequency},
                                              emptyStateData,
                                              cDaeSolverMode),
-                0.1 * qCurve * (1.0 - 0.3 * (testFrequency - 1.0)),
+                0.1 * qCurve * (1.0 - (0.3 * (testFrequency - 1.0))),
                 1e-12);
 
     // Track a low-voltage minimum, then verify partial reconnection follows Frcel.
     electronic->timestep(0.1, {0.55}, cLocalSolverMode);
-    const double pAtLowVoltage = 0.4 * (0.25 * 0.55 * 0.55 + 0.75) * 0.25;
+    const double pAtLowVoltage = 0.4 * ((0.25 * 0.55 * 0.55) + 0.75) * 0.25;
     EXPECT_NEAR(electronic->getRealPower(0.55), pAtLowVoltage, 1e-12);
 
     electronic->timestep(0.2, {0.65}, cLocalSolverMode);
-    const double pDuringRecovery = 0.4 * (0.25 * 0.65 * 0.65 + 0.75) * 0.65;
+    const double pDuringRecovery = 0.4 * ((0.25 * 0.65 * 0.65) + 0.75) * 0.65;
     EXPECT_NEAR(electronic->getRealPower(0.65), pDuringRecovery, 1e-12);
 
     electronic->timestep(0.3, {0.8}, cLocalSolverMode);
-    const double pAfterRecovery = 0.4 * (0.25 * 0.8 * 0.8 + 0.75) * 0.85;
+    const double pAfterRecovery = 0.4 * ((0.25 * 0.8 * 0.8) + 0.75) * 0.85;
     EXPECT_NEAR(electronic->getRealPower(0.8), pAfterRecovery, 1e-12);
 }
 
@@ -804,7 +804,8 @@ TEST_F(LoadTests, WeccMotor3InitializesTorqueAndHasConsistentJacobian)
     const double motorBasePower = motor->getRealPower() / motor->get("scale");
     const double reactivePower = motor->getReactivePower() / motor->get("scale");
     const double expectedElectricalTorque = motorBasePower -
-        (motor->get("r") * (motorBasePower * motorBasePower + reactivePower * reactivePower) /
+        (motor->get("r") * ((motorBasePower * motorBasePower) +
+                             (reactivePower * reactivePower)) /
          (motorBus->getVoltage(emptyStateData, cLocalSolverMode) *
           motorBus->getVoltage(emptyStateData, cLocalSolverMode)));
     EXPECT_NEAR(motor->get("tmo") * std::pow(motor->rotorSpeed(), motor->get("etrq")),
@@ -892,30 +893,31 @@ TEST_F(LoadTests, MotorProtectionGroupsTripCumulativeFractionsAndRecloseAfterDel
 
 TEST_F(LoadTests, MotorDCharacteristicMatchesRunStallAndFrequencyEquations)
 {
-    constexpr double p0 = 0.85;
+    constexpr double activePowerBase = 0.85;
     constexpr double compPF = 0.95;
     constexpr double rStall = 0.05;
     constexpr double xStall = 0.20;
-    constexpr double zSquared = rStall * rStall + xStall * xStall;
+    constexpr double zSquared = (rStall * rStall) + (xStall * xStall);
     constexpr double gStall = rStall / zSquared;
     constexpr double bStall = -xStall / zSquared;
-    const double q0 = p0 * std::tan(std::acos(compPF));
-    const double q0Prime = q0 - (6.0 * std::pow(1.0 - 0.86, 2.0));
+    const double reactivePowerBase = activePowerBase * std::tan(std::acos(compPF));
+    const double reactivePowerAtRunVoltage =
+        reactivePowerBase - (6.0 * std::pow(1.0 - 0.86, 2.0));
 
     const auto nominal =
-        MotorDLoad::characteristicPower(p0, compPF, 1.0, 0.0, 0.45, gStall, bStall);
-    EXPECT_NEAR(nominal.p, p0, 1e-12);
-    EXPECT_NEAR(nominal.q, q0, 1e-12);
+        MotorDLoad::characteristicPower(activePowerBase, compPF, 1.0, 0.0, 0.45, gStall, bStall);
+    EXPECT_NEAR(nominal.p, activePowerBase, 1e-12);
+    EXPECT_NEAR(nominal.q, reactivePowerBase, 1e-12);
 
     const auto undervoltage =
-        MotorDLoad::characteristicPower(p0, compPF, 0.80, -0.01, 0.45, gStall, bStall);
-    const double pRun = p0 + (12.0 * std::pow(0.86 - 0.80, 3.2));
-    const double qRun = q0Prime + (11.0 * std::pow(0.86 - 0.80, 2.5));
+        MotorDLoad::characteristicPower(activePowerBase, compPF, 0.80, -0.01, 0.45, gStall, bStall);
+    const double pRun = activePowerBase + (12.0 * std::pow(0.86 - 0.80, 3.2));
+    const double qRun = reactivePowerAtRunVoltage + (11.0 * std::pow(0.86 - 0.80, 2.5));
     EXPECT_NEAR(undervoltage.p, pRun * 0.99, 1e-12);
     EXPECT_NEAR(undervoltage.q, qRun * 1.033, 1e-12);
 
     const auto stalled =
-        MotorDLoad::characteristicPower(p0, compPF, 0.30, -0.05, 0.45, gStall, bStall);
+        MotorDLoad::characteristicPower(activePowerBase, compPF, 0.30, -0.05, 0.45, gStall, bStall);
     EXPECT_NEAR(stalled.p, gStall * 0.30 * 0.30, 1e-12);
     EXPECT_NEAR(stalled.q, -bStall * 0.30 * 0.30, 1e-12);
 
@@ -978,6 +980,13 @@ TEST_F(LoadTests, MotorDLoadInitializesAndHasConsistentJacobian)
     EXPECT_NEAR(motorD->getReactivePower(1.0), expectedQ, 1e-12);
 
     ASSERT_EQ(simulation->dynInitialize(), 0);
+    const IOdata motorInputs{1.0, 0.0, 1.0};
+    double truncatedState = 0.0;
+    StateData truncatedStateData(0.0, &truncatedState);
+    truncatedStateData.stateSize = 1;
+    EXPECT_NEAR(motorD->getRealPower(motorInputs, truncatedStateData, cDaeSolverMode),
+                motorD->getRealPower(1.0),
+                1e-12);
     EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
     ASSERT_EQ(simulation->run(), 0);

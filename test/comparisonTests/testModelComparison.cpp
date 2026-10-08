@@ -734,10 +734,10 @@ TEST(DyrReaderComparisonTests, MapsCmpldwStaticPolynomialToIeelAndChecksFrequenc
     ASSERT_EQ(simulation->powerflow(), 0);
     const double initialFrequency = bus->getFreq();
     EXPECT_NEAR(staticLoad->getRealPower(referenceVoltage),
-                staticP0 * pCurve * (1.0 + pfrq * (initialFrequency - 1.0)),
+                staticP0 * pCurve * (1.0 + (pfrq * (initialFrequency - 1.0))),
                 1.0e-8);
     EXPECT_NEAR(staticLoad->getReactivePower(referenceVoltage),
-                staticQ0 * qCurve * (1.0 + qfrq * (initialFrequency - 1.0)),
+                staticQ0 * qCurve * (1.0 + (qfrq * (initialFrequency - 1.0))),
                 1.0e-8);
     ASSERT_EQ(simulation->dynInitialize(), 0);
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
@@ -869,10 +869,11 @@ TEST(DyrReaderComparisonTests, BuildsCmpldwTransformerFeederAndChecksDaeJacobian
     EXPECT_DOUBLE_EQ(feeder->get("b1"), 0.0);
     EXPECT_GT(feeder->get("b2"), 0.0);
     const double sourceCurrentSquared =
-        (originalP * originalP + originalQ * originalQ) / (originalVoltage * originalVoltage);
+        ((originalP * originalP) + (originalQ * originalQ)) /
+        (originalVoltage * originalVoltage);
     const double expectedCompensation =
-        sourceCurrentSquared * (transformer->get("x") + feeder->get("x")) -
-        (0.01 * 100.0 / 59.75) * std::pow(lowSide->getVoltage(), 2.0);
+        (sourceCurrentSquared * (transformer->get("x") + feeder->get("x"))) -
+        ((0.01 * 100.0 / 59.75) * std::pow(lowSide->getVoltage(), 2.0));
     EXPECT_NEAR(feeder->get("b2"), expectedCompensation, 1e-10);
 
     auto* substationShunt = dynamic_cast<griddyn::ZipLoad*>(lowSide->getLoad(0));

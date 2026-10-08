@@ -851,8 +851,8 @@ namespace {
         }
 
         constexpr std::array<std::size_t, 3> motorTypeIndices{37U, 57U, 77U};
-        for (std::size_t motorIndex = 0; motorIndex < motorTypeIndices.size(); ++motorIndex) {
-            const double motorType = con[motorTypeIndices[motorIndex]];
+        for (const auto motorTypeIndex : motorTypeIndices) {
+            const double motorType = con[motorTypeIndex];
             if (!near(motorType, 1.0) && !near(motorType, 3.0)) {
                 throw InvalidParameterValue("CMLDBLU1 MtypA/B/C must be 1 or 3");
             }
@@ -916,9 +916,12 @@ namespace {
         const double initialQ = previousLoad->getReactivePower();
         const double systemBaseMVA = area->get("basepower", units::MW);
         const double loadMW = initialP * systemBaseMVA;
-        const double distributionBaseMVA = (con[0U] > 0.0) ?
-            con[0U] :
-            ((con[0U] < 0.0) ? (loadMW / std::abs(con[0U])) : (loadMW / 0.8));
+        double distributionBaseMVA = loadMW / 0.8;
+        if (con[0U] > 0.0) {
+            distributionBaseMVA = con[0U];
+        } else if (con[0U] < 0.0) {
+            distributionBaseMVA = loadMW / std::abs(con[0U]);
+        }
         if (!std::isfinite(distributionBaseMVA) || (distributionBaseMVA <= 0.0) ||
             !std::isfinite(systemBaseMVA) || (systemBaseMVA <= 0.0)) {
             throw InvalidParameterValue(
@@ -960,7 +963,7 @@ namespace {
                 "CMLDBLU1 internal network has no positive load-bus voltage");
         }
         const double currentSquared = std::norm(sourceCurrent);
-        const double initialLoadP = initialP - currentSquared * feederResistance;
+        const double initialLoadP = initialP - (currentSquared * feederResistance);
         const double seriesReactiveConsumption =
             currentSquared * (transformerReactance + feederReactance);
         const double estimatedFeederCompensation =

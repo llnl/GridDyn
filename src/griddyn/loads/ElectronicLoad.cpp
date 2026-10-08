@@ -109,8 +109,10 @@ void ElectronicLoad::timestep(CoreTime time, const IOdata& inputs, const SolverM
     if (!isConnected()) {
         return;
     }
-    const double voltage =
-        inputs.empty() ? ((bus == nullptr) ? 1.0 : bus->getVoltage()) : inputs[VOLTAGE_IN_LOCATION];
+    double voltage = inputs.empty() ? 1.0 : inputs[VOLTAGE_IN_LOCATION];
+    if (inputs.empty() && bus != nullptr) {
+        voltage = bus->getVoltage();
+    }
     if (std::isfinite(voltage)) {
         minimumVoltage = std::max(voltageTripComplete, std::min(minimumVoltage, voltage));
     }
@@ -321,19 +323,19 @@ void ElectronicLoad::ioPartialDerivatives(const IOdata& inputs,
     const double tripD = tripDerivative(voltage);
     const double pShape = voltageFactor(false, voltage);
     const double qShape = voltageFactor(true, voltage);
-    const double pFreq = 1.0 + frequencyCoefficient(false) * (freq - 1.0);
-    const double qFreq = 1.0 + frequencyCoefficient(true) * (freq - 1.0);
+    const double pFreq = 1.0 + (frequencyCoefficient(false) * (freq - 1.0));
+    const double qFreq = 1.0 + (frequencyCoefficient(true) * (freq - 1.0));
     const double qBase = reactiveBasePower();
 
     if (inputLocs[VOLTAGE_IN_LOCATION] != kNullLocation) {
         matrixData.assign(POUT_LOCATION,
                           inputLocs[VOLTAGE_IN_LOCATION],
                           getP() * pFreq *
-                              (voltageDerivative(false, voltage) * trip + pShape * tripD));
+                              ((voltageDerivative(false, voltage) * trip) + (pShape * tripD)));
         matrixData.assign(QOUT_LOCATION,
                           inputLocs[VOLTAGE_IN_LOCATION],
                           qBase * qFreq *
-                              (voltageDerivative(true, voltage) * trip + qShape * tripD));
+                              ((voltageDerivative(true, voltage) * trip) + (qShape * tripD)));
     }
     if (inputLocs[FREQUENCY_IN_LOCATION] != kNullLocation) {
         matrixData.assign(POUT_LOCATION,
@@ -349,12 +351,13 @@ double ElectronicLoad::getRealPower(const IOdata& inputs,
                                     const StateData& stateData,
                                     const SolverMode& sMode) const
 {
-    const double voltage = inputs.empty() ?
-        ((bus == nullptr) ? 1.0 : bus->getVoltage(stateData, sMode)) :
-        inputs[VOLTAGE_IN_LOCATION];
+    double voltage = inputs.empty() ? 1.0 : inputs[VOLTAGE_IN_LOCATION];
+    if (inputs.empty() && bus != nullptr) {
+        voltage = bus->getVoltage(stateData, sMode);
+    }
     const double freq = frequency(inputs, stateData, sMode);
     return isConnected() ? getP() * voltageFactor(false, voltage) * tripFactor(voltage) *
-            (1.0 + frequencyCoefficient(false) * (freq - 1.0)) :
+            (1.0 + (frequencyCoefficient(false) * (freq - 1.0))) :
                            0.0;
 }
 
@@ -362,12 +365,13 @@ double ElectronicLoad::getReactivePower(const IOdata& inputs,
                                         const StateData& stateData,
                                         const SolverMode& sMode) const
 {
-    const double voltage = inputs.empty() ?
-        ((bus == nullptr) ? 1.0 : bus->getVoltage(stateData, sMode)) :
-        inputs[VOLTAGE_IN_LOCATION];
+    double voltage = inputs.empty() ? 1.0 : inputs[VOLTAGE_IN_LOCATION];
+    if (inputs.empty() && bus != nullptr) {
+        voltage = bus->getVoltage(stateData, sMode);
+    }
     const double freq = frequency(inputs, stateData, sMode);
     return isConnected() ? reactiveBasePower() * voltageFactor(true, voltage) *
-            tripFactor(voltage) * (1.0 + frequencyCoefficient(true) * (freq - 1.0)) :
+            tripFactor(voltage) * (1.0 + (frequencyCoefficient(true) * (freq - 1.0))) :
                            0.0;
 }
 
@@ -375,7 +379,7 @@ double ElectronicLoad::getRealPower(double voltage) const
 {
     const double freq = (bus == nullptr) ? 1.0 : bus->getFreq();
     return isConnected() ? getP() * voltageFactor(false, voltage) * tripFactor(voltage) *
-            (1.0 + frequencyCoefficient(false) * (freq - 1.0)) :
+            (1.0 + (frequencyCoefficient(false) * (freq - 1.0))) :
                            0.0;
 }
 
@@ -383,7 +387,7 @@ double ElectronicLoad::getReactivePower(double voltage) const
 {
     const double freq = (bus == nullptr) ? 1.0 : bus->getFreq();
     return isConnected() ? reactiveBasePower() * voltageFactor(true, voltage) *
-            tripFactor(voltage) * (1.0 + frequencyCoefficient(true) * (freq - 1.0)) :
+            tripFactor(voltage) * (1.0 + (frequencyCoefficient(true) * (freq - 1.0))) :
                            0.0;
 }
 

@@ -14,10 +14,12 @@
 #include <array>
 #include <cmath>
 #include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn::loads {
 namespace {
-    static TypeFactory<WECCMotor3> gWeccMotor3Factory(
+    TypeFactory<WECCMotor3> gWeccMotor3Factory(
         "load",
         std::to_array<std::string_view>({"weccmotor3", "motorabc", "cmp_mo3_2"}));
 
@@ -285,8 +287,8 @@ void WECCMotor3::converge()
 {
     const double voltage = bus->getVoltage();
     const double angle = bus->getAngle();
-    const double vr = -voltage * Vcontrol * std::sin(angle);
-    const double vm = voltage * Vcontrol * std::cos(angle);
+    const double voltageReal = -voltage * Vcontrol * std::sin(angle);
+    const double voltageImaginary = voltage * Vcontrol * std::cos(angle);
     const double targetPower = getP() / scale;
     // For a fixed slip the six electrical variables form a linear circuit.
     // The motor Q follows from that circuit; it cannot be assigned from the
@@ -296,8 +298,8 @@ void WECCMotor3::converge()
         double sat = 0.0;
         for (int iteration = 0; iteration < 20; ++iteration) {
             std::array<std::array<double, 7>, 6> equations{{
-                {{xpp, r, 0.0, 0.0, 0.0, 1.0, vm}},
-                {{r, -xpp, 0.0, 0.0, 1.0, 0.0, vr}},
+                {{xpp, r, 0.0, 0.0, 0.0, 1.0, voltageImaginary}},
+                {{r, -xpp, 0.0, 0.0, 1.0, 0.0, voltageReal}},
                 {{0.0, x0 - xp, 1.0, -T0p * frequencySlip, 0.0, -sat, 0.0}},
                 {{-(x0 - xp), 0.0, T0p * frequencySlip, 1.0, sat, 0.0, 0.0}},
                 {{0.0, -(xp - xpp), 1.0, T0pp * frequencySlip, -1.0, -T0pp * frequencySlip, 0.0}},
@@ -322,7 +324,7 @@ void WECCMotor3::converge()
     if (!electricalState(lower, state)) {
         throw InvalidParameterValue("WECC motor electrical initialization failed");
     }
-    double lowerError = vr * state[0] + vm * state[1] - targetPower;
+    double lowerError = (voltageReal * state[0]) + (voltageImaginary * state[1]) - targetPower;
     double upper = lower;
     bool bracketed = false;
     for (int step = 0; step < 140; ++step) {
@@ -330,7 +332,8 @@ void WECCMotor3::converge()
         if (!electricalState(upper, state)) {
             break;
         }
-        const double upperError = vr * state[0] + vm * state[1] - targetPower;
+        const double upperError =
+            (voltageReal * state[0]) + (voltageImaginary * state[1]) - targetPower;
         if ((lowerError <= 0.0) && (upperError >= 0.0)) {
             bracketed = true;
             break;
@@ -349,7 +352,7 @@ void WECCMotor3::converge()
         if (!electricalState(middle, state)) {
             throw InvalidParameterValue("WECC motor electrical initialization failed");
         }
-        const double error = vr * state[0] + vm * state[1] - targetPower;
+        const double error = (voltageReal * state[0]) + (voltageImaginary * state[1]) - targetPower;
         if (std::abs(error) < 1e-12) {
             lower = upper = middle;
             break;

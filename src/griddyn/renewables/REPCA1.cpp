@@ -343,7 +343,7 @@ void REPCA1::dynObjectInitializeB(const IOdata& inputs,
     if (Fflag == 1) {
         m_state[2 + activePowerFilter] = inputs[electricalPowerInput];
         const double initialError = activePowerError(inputs, m_state.data() + 2);
-        m_state[2 + activeIntegral] = initialActiveCommand - Kpg * initialError;
+        m_state[2 + activeIntegral] = initialActiveCommand - (Kpg * initialError);
         m_state[2 + activeLag] = initialActiveCommand;
     }
     fieldSet = {m_state[pext], 0.0};

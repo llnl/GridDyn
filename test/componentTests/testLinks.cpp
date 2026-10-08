@@ -13,6 +13,7 @@
 #include "griddyn/links/ThreeWindingTransformer.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/simulation/Diagnostics.h"
+#include <cmath>
 #include <gtest/gtest.h>
 #include <memory>
 #include <string>
@@ -286,12 +287,16 @@ TEST_F(LinkTests, LinkTestFaultPowerflow2)
     requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     obj->set("fault", -1.0);
-    gds->powerflow();
+    ASSERT_EQ(gds->powerflow(), 0);
 
     requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     std::vector<double> recoveredVoltages;
     gds->getVoltage(recoveredVoltages);
+    ASSERT_EQ(recoveredVoltages.size(), originalVoltages.size());
+    EXPECT_TRUE(std::all_of(recoveredVoltages.begin(), recoveredVoltages.end(), [](double value) {
+        return std::isfinite(value);
+    }));
     EXPECT_TRUE(std::all_of(originalVoltages.begin(), originalVoltages.end(), [](double value) {
         return (value > 0.95);
     }));

@@ -77,7 +77,9 @@ count_t CompositeLoad::componentCount() const
 GridLoad* CompositeLoad::component(index_t index) const
 {
     const auto components = getComponents();
-    return (index < components.size()) ? components[index] : nullptr;
+    return (index >= 0 && static_cast<std::size_t>(index) < components.size()) ?
+        components[static_cast<std::size_t>(index)] :
+        nullptr;
 }
 
 void CompositeLoad::add(CoreObject* obj)
@@ -170,28 +172,30 @@ void CompositeLoad::set(std::string_view param, std::string_view val)
 
 void CompositeLoad::setComponentFraction(index_t index, double fraction)
 {
-    if (!std::isfinite(fraction) || (fraction < 0.0) || (fraction > 1.0)) {
+    if (index < 0 || !std::isfinite(fraction) || (fraction < 0.0) || (fraction > 1.0)) {
         throw(InvalidParameterValue("composite component fraction must be in [0, 1]"));
     }
     if (opFlags[POWERFLOW_INITIALIZED]) {
         throw(InvalidParameterValue(
             "composite component fractions must be set before power-flow initialization"));
     }
-    if (componentFractions.size() <= index) {
-        componentFractions.resize(index + 1U, -1.0);
+    const auto componentIndex = static_cast<std::size_t>(index);
+    if (componentFractions.size() <= componentIndex) {
+        componentFractions.resize(componentIndex + 1U, -1.0);
     }
-    componentFractions[index] = fraction;
+    componentFractions[componentIndex] = fraction;
 }
 
 void CompositeLoad::setComponentReactiveBase(index_t index, double reactivePower)
 {
-    if ((index >= componentCount()) || !std::isfinite(reactivePower) ||
+    if ((index < 0) || (static_cast<std::size_t>(index) >= getComponents().size()) ||
+        !std::isfinite(reactivePower) ||
         opFlags[POWERFLOW_INITIALIZED]) {
         throw InvalidParameterValue("invalid composite component reactive base");
     }
     componentReactiveBases.resize(
         std::max(componentReactiveBases.size(), static_cast<std::size_t>(index) + 1U));
-    componentReactiveBases[index] = reactivePower;
+    componentReactiveBases[static_cast<std::size_t>(index)] = reactivePower;
 }
 
 void CompositeLoad::set(std::string_view param, double val, units::unit unitType)
@@ -210,8 +214,10 @@ double CompositeLoad::get(std::string_view param, units::unit unitType) const
     index_t componentIndex = 0;
     if (parseIndexedParameter(param, "componentfraction", componentIndex) ||
         parseIndexedParameter(param, "fraction", componentIndex)) {
-        return (componentIndex < componentFractions.size()) ? componentFractions[componentIndex] :
-                                                              kNullVal;
+        return (componentIndex >= 0 &&
+                static_cast<std::size_t>(componentIndex) < componentFractions.size()) ?
+            componentFractions[static_cast<std::size_t>(componentIndex)] :
+            kNullVal;
     }
     return GridLoad::get(param, unitType);
 }
@@ -282,10 +288,13 @@ void CompositeLoad::allocateComponentPowers()
         // Allocate electrical bases without invoking model-specific p setters.
         // WECCMotor3 transfers its allocated P to Pmot during initialization;
         // its operating-point Q is solved by the motor circuit.
-        const double reactivePower =
-            ((index < componentReactiveBases.size()) && componentReactiveBases[index]) ?
-            *componentReactiveBases[index] :
-            Q * fractions[index];
+        double reactivePower = Q * fractions[index];
+        if (index < componentReactiveBases.size()) {
+            const auto& reactiveBase = componentReactiveBases[index];
+            if (reactiveBase.has_value()) {
+                reactivePower = reactiveBase.value();
+            }
+        }
         components[index]->setLoad(P * fractions[index], reactivePower);
         if (zipLoad != nullptr) {
             zipLoad->set("ip", zipTerms.ip * fractions[index]);

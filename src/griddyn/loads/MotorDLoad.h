@@ -86,13 +86,13 @@ class MotorDLoad: public GridLoad {
     double stallBreakVoltage() const { return stallBreak; }
 
     /** CMPLDW run-state equations, in per unit on the Motor D MVA base. */
-    static MotorDPower characteristicPower(double p0,
-                                           double compPF,
+    static MotorDPower characteristicPower(double activePowerBase,
+                                           double compressorPowerFactor,
                                            double voltage,
                                            double frequencyDeviation,
                                            double stallBreakVoltage,
-                                           double gStall,
-                                           double bStall);
+                                           double stallConductance,
+                                           double stallSusceptance);
     static double inverseStallCycles(double voltage);
     static double thermalOnlineFraction(double temperature, double tripStart, double tripComplete);
 

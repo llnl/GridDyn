@@ -305,6 +305,10 @@ set(load_headers
     loads/MotorLoad3.h
     loads/MotorLoad5.h
     loads/CIMLoad.h
+    loads/MotorProtectionGroups.h
+    loads/WECCMotor3.h
+    loads/MotorDLoad.h
+    loads/ElectronicLoad.h
     loads/GridLabDLoad.h
     loads/IEELLoad.h
     loads/IEELParameters.h
@@ -314,6 +318,7 @@ set(load_headers
     loads/WSCCParameters.h
     loads/Svd.h
     loads/AggregateLoad.h
+    loads/CompositeLoad.h
     loads/ZipLoad.h
     loads/FrequencySensitiveLoad.h
     loads/ThreePhaseLoad.h
@@ -329,10 +334,15 @@ set(load_sources
     loads/MotorLoad3.cpp
     loads/MotorLoad5.cpp
     loads/CIMLoad.cpp
+    loads/MotorProtectionGroups.cpp
+    loads/WECCMotor3.cpp
+    loads/MotorDLoad.cpp
+    loads/ElectronicLoad.cpp
     loads/ApproximatingLoad.cpp
     loads/ExponentialLoad.cpp
     loads/FDepLoad.cpp
     loads/AggregateLoad.cpp
+    loads/CompositeLoad.cpp
     loads/SourceLoad.cpp
     loads/ZipLoad.cpp
     loads/IEELLoad.cpp

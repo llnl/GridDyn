@@ -60,7 +60,12 @@
 using namespace griddyn;
 
 namespace {
-std::string renewableDyrRecord(std::string_view model, int busId = 101)
+std::string renewableDyrRecord(std::string_view model,
+                              int busId = 101,
+                              int repcaVbus = 0,
+                              int repcaFflag = 0,
+                              int repcaBranchFrom = 0,
+                              int repcaBranchTo = 0)
 {
     if (model == "PLL1") {
         return std::to_string(busId) + " 'PLL1' 'pll1a' 1 2 .02 .03 60 /\n";
@@ -91,9 +96,10 @@ std::string renewableDyrRecord(std::string_view model, int busId = 101)
         payload = "0 0 1 0 1 .8 1.2 .02 -.02 .02 1 999 -999 0 .02 "
                   "999 -999 999 -999 1 .1 1 .1 .02 999 -999 999 0 999 .02";
     } else if (model == "REPCA1") {
-        payload = "0 0 0 '1' 0 1 0 .02 1 .1 1 1 .8 0 0 0 "
-                  "999 -999 -.1 .1 999 -999 1 .1 .02 -.0002833 .0002833 "
-                  ".05 -.05 999 -999 .02 10 10";
+        payload = std::to_string(repcaVbus) + " " + std::to_string(repcaBranchFrom) + " " +
+            std::to_string(repcaBranchTo) + " '1' 0 1 " + std::to_string(repcaFflag) +
+            " .02 1 .1 1 1 .8 0 0 0 999 -999 -.1 .1 999 -999 1 .1 .02 "
+            "-.0002833 .0002833 .05 -.05 999 -999 .02 10 10";
     } else if (model == "WTDTA1") {
         payload = "3 0 .5 1 1";
     } else if (model == "WTDS") {
@@ -137,14 +143,23 @@ std::unique_ptr<GridDynSimulation> renewableDyrSimulation()
 
 void loadRenewableRecords(GridDynSimulation& simulation,
                           const std::vector<std::string_view>& models,
-                          int busId = 101)
+                          int busId = 101,
+                          int repcaVbus = 0,
+                          int repcaFflag = 0,
+                          int repcaBranchFrom = 0,
+                          int repcaBranchTo = 0)
 {
     const auto file = std::filesystem::temp_directory_path() /
         ("griddyn_renewable_" + std::to_string(simulation.getID()) + ".dyr");
     {
         std::ofstream stream(file);
         for (auto model : models) {
-            auto record = renewableDyrRecord(model, busId);
+            auto record = renewableDyrRecord(model,
+                                             busId,
+                                             repcaVbus,
+                                             repcaFflag,
+                                             repcaBranchFrom,
+                                             repcaBranchTo);
             if (model == "REECA1" &&
                 std::find(models.begin(), models.end(), std::string_view{"WTDS"}) != models.end()) {
                 const auto flags = record.find("0 0 1 0 0 1 .8");
@@ -1282,7 +1297,59 @@ TEST(RenewableModels, REECA1UnsupportedModesFail)
     REPCA1 plant;
     EXPECT_THROW(plant.set("RefFlag", 0.5), InvalidParameterValue);
     plant.set("Fflag", 1.0);
+    plant.set("Rc", 0.01);
     EXPECT_THROW(plant.dynInitializeA(0.0, 0), InvalidParameterValue);
+}
+
+TEST(RenewableModels, REPCA1FrequencyModeDaeJacobianIncludesFrequencyInput)
+{
+    RenewableGenerator host;
+    host.add(new REGCA1);
+    host.add(new REECA1);
+    auto* plant = new REPCA1;
+    plant->set("fflag", 1.0);
+    plant->set("femin", -10.0);
+    plant->set("femax", 10.0);
+    host.add(plant);
+    host.dynInitializeA(0.0, 0);
+    IOdata fields;
+    constexpr double frequency = 0.997;
+    host.dynInitializeB({1.0, 0.0, frequency}, {0.8, 0.1}, fields);
+
+    host.setOffset(0, cDaeSolverMode);
+    std::vector<double> state(host.stateSize(cDaeSolverMode));
+    std::vector<double> rate(state.size());
+    host.guessState(0.0, state.data(), rate.data(), cDaeSolverMode);
+    StateData data(0.0, state.data(), rate.data());
+    data.stateSize = static_cast<count_t>(state.size());
+    data.cj = 1.0;
+
+    const auto frequencyColumn = static_cast<index_t>(state.size() + 3);
+    MatrixDataSparse<double> jacobian;
+    host.jacobianElements({1.0, 0.0, frequency},
+                          data,
+                          jacobian,
+                          {frequencyColumn - 2, frequencyColumn - 1, frequencyColumn},
+                          cDaeSolverMode);
+    const auto residualAtFrequency = [&](double value) {
+        std::vector<double> residual(state.size());
+        host.residual({1.0, 0.0, value}, data, residual.data(), cDaeSolverMode);
+        return residual;
+    };
+
+    constexpr double step = 1e-7;
+    const auto upper = residualAtFrequency(frequency + step);
+    const auto lower = residualAtFrequency(frequency - step);
+    double largestFrequencyDerivative = 0.0;
+    for (std::size_t row = 0; row < state.size(); ++row) {
+        const auto rowIndex = static_cast<index_t>(row);
+        const double finiteDifference = (upper[row] - lower[row]) / (2.0 * step);
+        EXPECT_NEAR(jacobian.at(rowIndex, frequencyColumn), finiteDifference, 1e-3)
+            << "row " << row;
+        largestFrequencyDerivative = std::max(largestFrequencyDerivative,
+                                               std::abs(finiteDifference));
+    }
+    EXPECT_GT(largestFrequencyDerivative, 100.0);
 }
 
 TEST(RenewableModels, REECB1QFlagVoltageControlInitializes)
@@ -2089,6 +2156,120 @@ TEST(RenewableModels, DyrAssemblesIndependentModelsInEitherOrder)
         EXPECT_NEAR(output[0], -0.8, 1e-12);
         EXPECT_NEAR(output[1], -0.1, 1e-12);
     }
+}
+
+TEST(RenewableModels, REPCA1DyrBindsRemoteMeasurementBus)
+{
+    auto simulation = renewableDyrSimulation();
+    auto* remoteBus = new AcBus("remoteBus202");
+    remoteBus->setUserID(202);
+    remoteBus->set("voltage", 1.04);
+    remoteBus->set("freq", 0.997);
+    simulation->add(remoteBus);
+    remoteBus->pFlowInitializeA(0.0, 0);
+    remoteBus->dynInitializeA(0.0, 0);
+    loadRenewableRecords(*simulation, {"REGCA1", "REECA1", "REPCA1"}, 101, 202, 1);
+
+    auto* terminalBus = dynamic_cast<GridBus*>(simulation->findByUserID("bus", 101));
+    ASSERT_NE(terminalBus, nullptr);
+    auto* host = dynamic_cast<RenewableGenerator*>(terminalBus->getGen(0));
+    ASSERT_NE(host, nullptr);
+    auto* plant = dynamic_cast<REPCA1*>(host->find("plant_control"));
+    ASSERT_NE(plant, nullptr);
+    EXPECT_DOUBLE_EQ(plant->get("vbus"), 202.0);
+    EXPECT_DOUBLE_EQ(plant->get("fflag"), 1.0);
+    EXPECT_EQ(plant->sourceBusID(RenewableSignal::terminalVoltage), 202);
+    EXPECT_EQ(plant->sourceBusID(RenewableSignal::terminalFrequency), 202);
+
+    host->dynInitializeA(0.0, 0);
+    IOdata fields;
+    host->dynInitializeB({1.0, 0.0, 1.0}, {0.8, 0.1}, fields);
+    EXPECT_NEAR(plant->get("vref"), 1.04, 1e-12);
+
+    remoteBus->setOffset(0, cDaeSolverMode);
+    host->setOffset(2, cDaeSolverMode);
+    std::vector<double> state(2 + host->stateSize(cDaeSolverMode));
+    std::vector<double> rate(state.size());
+    remoteBus->guessState(0.0, state.data(), rate.data(), cDaeSolverMode);
+    host->guessState(0.0, state.data(), rate.data(), cDaeSolverMode);
+    StateData data(0.0, state.data(), rate.data());
+    data.stateSize = static_cast<count_t>(state.size());
+    data.cj = 1.0;
+    const auto remoteVoltageLocation =
+        remoteBus->getOutputLoc(cDaeSolverMode, VOLTAGE_IN_LOCATION);
+    ASSERT_NE(remoteVoltageLocation, kNullLocation);
+    EXPECT_DOUBLE_EQ(remoteBus->getVoltage(data, cDaeSolverMode), state[remoteVoltageLocation]);
+
+    MatrixDataSparse<double> voltageJacobian;
+    host->jacobianElements({1.0, 0.0, 1.0},
+                           data,
+                           voltageJacobian,
+                           {kNullLocation, kNullLocation, kNullLocation},
+                           cDaeSolverMode);
+    const auto residualAtRemoteVoltage = [&](double voltage) {
+        auto shiftedState = state;
+        shiftedState[remoteVoltageLocation] = voltage;
+        StateData trial(0.0, shiftedState.data(), rate.data());
+        trial.stateSize = static_cast<count_t>(shiftedState.size());
+        trial.cj = 1.0;
+        std::vector<double> residual(state.size());
+        host->residual({1.0, 0.0, 1.0}, trial, residual.data(), cDaeSolverMode);
+        return residual;
+    };
+    constexpr double voltageStep = 1e-7;
+    const auto upperVoltage =
+        residualAtRemoteVoltage(state[remoteVoltageLocation] + voltageStep);
+    const auto lowerVoltage =
+        residualAtRemoteVoltage(state[remoteVoltageLocation] - voltageStep);
+    double largestRemoteVoltageDerivative = 0.0;
+    for (std::size_t row = 0; row < state.size(); ++row) {
+        const auto rowIndex = static_cast<index_t>(row);
+        const double finiteDifference =
+            (upperVoltage[row] - lowerVoltage[row]) / (2.0 * voltageStep);
+        EXPECT_NEAR(voltageJacobian.at(rowIndex, remoteVoltageLocation), finiteDifference, 1e-3)
+            << "row " << row;
+        largestRemoteVoltageDerivative =
+            std::max(largestRemoteVoltageDerivative, std::abs(finiteDifference));
+    }
+    EXPECT_GT(largestRemoteVoltageDerivative, 10.0);
+
+    const auto derivativeAtRemoteFrequency = [&](double frequency) {
+        remoteBus->set("freq", frequency);
+        std::vector<double> derivative(state.size());
+        host->derivative({1.0, 0.0, 1.0}, data, derivative.data(), cDaeSolverMode);
+        return derivative;
+    };
+    const auto nominalFrequency = derivativeAtRemoteFrequency(1.0);
+    const auto underFrequency = derivativeAtRemoteFrequency(0.997);
+    double largestDerivativeChange = 0.0;
+    for (std::size_t index = 0; index < state.size(); ++index) {
+        largestDerivativeChange = std::max(largestDerivativeChange,
+                                           std::abs(underFrequency[index] -
+                                                    nominalFrequency[index]));
+    }
+    EXPECT_GT(largestDerivativeChange, 1e-3);
+}
+
+TEST(RenewableModels, REPCA1DyrRejectsMissingRemoteBusAndMonitoredLine)
+{
+    auto missingBusSimulation = renewableDyrSimulation();
+    loadRenewableRecords(
+        *missingBusSimulation, {"REGCA1", "REECA1", "REPCA1"}, 101, 202, 0);
+    auto* terminalBus = dynamic_cast<GridBus*>(missingBusSimulation->findByUserID("bus", 101));
+    ASSERT_NE(terminalBus, nullptr);
+    auto* host = dynamic_cast<RenewableGenerator*>(terminalBus->getGen(0));
+    ASSERT_NE(host, nullptr);
+    EXPECT_THROW(host->dynInitializeA(0.0, 0), InvalidParameterValue);
+
+    auto monitoredLineSimulation = renewableDyrSimulation();
+    EXPECT_THROW(loadRenewableRecords(*monitoredLineSimulation,
+                                      {"REPCA1"},
+                                      101,
+                                      0,
+                                      0,
+                                      101,
+                                      202),
+                 InvalidParameterValue);
 }
 
 TEST(RenewableModels, DyrLoadsREGCP1AndWTDSInEitherOrder)

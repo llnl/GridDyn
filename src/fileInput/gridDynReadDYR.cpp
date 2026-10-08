@@ -22,6 +22,16 @@
 #include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
+#include "griddyn/Load.h"
+#include "griddyn/links/AcLine.h"
+#include "griddyn/links/AdjustableTransformer.h"
+#include "griddyn/loads/CompositeLoad.h"
+#include "griddyn/loads/ElectronicLoad.h"
+#include "griddyn/loads/IEELLoad.h"
+#include "griddyn/loads/MotorDLoad.h"
+#include "griddyn/loads/WECCMotor3.h"
+#include "griddyn/loads/ZipLoad.h"
+#include "griddyn/primary/AcBus.h"
 #include "griddyn/Stabilizer.h"
 #include "griddyn/VoltageCompensator.h"
 #include "griddyn/generators/DynamicGenerator.h"
@@ -55,9 +65,11 @@
 #include "griddyn/stabilizers/StabilizerStab3.h"
 #include "griddyn/voltagecompensators/VoltageCompensatorIeeeVC.h"
 #include "loadModelReaderHelper.h"
+#include <algorithm>
 #include <array>
 #include <charconv>
 #include <cmath>
+#include <complex>
 #include <cstddef>
 #include <format>
 #include <fstream>
@@ -68,6 +80,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 
 namespace griddyn {
 namespace {
@@ -135,6 +148,7 @@ namespace {
     void loadRenewable(CoreObject* parentObject, stringVec& tokens, std::string_view modelName);
     void loadMeasurement(CoreObject* parentObject, stringVec& tokens, std::string_view modelName);
     void loadIEELAL(CoreObject* parentObject, const stringVec& tokens);
+    void loadCMLDBLU1(CoreObject* parentObject, const stringVec& tokens);
     Generator* requireDyrGenerator(CoreObject* parentObject,
                                    const stringVec& tokens,
                                    std::string_view modelName);
@@ -280,6 +294,8 @@ namespace detail {
             loadCSVGN1(parentObject, lineTokens);
         } else if (type == "'IEELAL'") {
             loadIEELAL(parentObject, lineTokens);
+        } else if (type == "'CMLDBLU1'") {
+            loadCMLDBLU1(parentObject, lineTokens);
         } else if (type == "'GENTPJ'") {
             loadGENTPJ(parentObject, lineTokens);
         } else if (type == "'GENROE'") {
@@ -736,6 +752,514 @@ namespace {
         applyLoadTemplatesFromReader(*simulation, templates);
     }
 
+    void loadCMLDBLU1(CoreObject* parentObject, const stringVec& tokens)
+    {
+        // PSS/E 32 CMLDBLU1 has 132 CONs following bus, model name, and load ID.
+        constexpr std::size_t cmpldwConCount = 132U;
+        if (tokens.size() != cmpldwConCount + 3U) {
+            throw InvalidParameterValue("CMLDBLU1 DYR record must contain 132 parameters");
+        }
+
+        std::array<double, cmpldwConCount> con{};
+        for (std::size_t index = 0; index < con.size(); ++index) {
+            const auto& token = tokens[index + 3U];
+            const std::string errorMessage =
+                "CMLDBLU1 parameter " + std::to_string(index + 1U) + " must be a finite number";
+            try {
+                con[index] = gmlc::utilities::numeric_conversionComplete<double>(
+                    std::string_view{token}, std::numeric_limits<double>::quiet_NaN());
+            }
+            catch (const std::out_of_range&) {
+                throw InvalidParameterValue(errorMessage);
+            }
+            if (!std::isfinite(con[index])) {
+                throw InvalidParameterValue(errorMessage);
+            }
+        }
+
+        const auto near = [](double first, double second) {
+            return std::abs(first - second) <= 1.0e-9;
+        };
+        if ((con[2U] < 0.0) || (con[3U] < 0.0) || (con[5U] < 0.0)) {
+            throw InvalidParameterValue(
+                "CMLDBLU1 Rfdr, Xfdr, and Xxf must be nonnegative");
+        }
+        if ((con[6U] <= 0.0) || (con[7U] <= 0.0)) {
+            throw InvalidParameterValue("CMLDBLU1 TfixHS and TfixLS must be positive");
+        }
+        if ((con[5U] <= 1.0e-9) &&
+            (!near(con[6U], 1.0) || !near(con[7U], 1.0))) {
+            throw InvalidParameterValue(
+                "CMLDBLU1 fixed transformer taps require a nonzero Xxf transformer");
+        }
+        if (!near(con[8U], -1.0) && !near(con[8U], 0.0) && !near(con[8U], 1.0)) {
+            throw InvalidParameterValue("CMLDBLU1 LTC flag must be -1, 0, or 1 for PSS/E data");
+        }
+        if (near(con[8U], 1.0)) {
+            throw InvalidParameterValue(
+                "CMLDBLU1 dynamic LTC operation is not implemented; use LTC=-1 for initialization-only control");
+        }
+        if (near(con[8U], -1.0) && con[5U] <= 1.0e-9) {
+            throw InvalidParameterValue("CMLDBLU1 LTC control requires a nonzero Xxf transformer");
+        }
+        if ((con[4U] < 0.0) || (con[4U] > 1.0)) {
+            throw InvalidParameterValue("CMLDBLU1 Fb must be in [0, 1]");
+        }
+        if (near(con[8U], -1.0) &&
+            (!near(con[16U], 0.0) || !near(con[17U], 0.0))) {
+            throw InvalidParameterValue(
+                "CMLDBLU1 LTC line-drop compensation Rcmp/Xcmp is not implemented");
+        }
+        if (near(con[8U], -1.0) &&
+            ((con[9U] <= 0.0) || (con[10U] < con[9U]) || (con[11U] <= 0.0) ||
+             (con[12U] <= 0.0) || (con[13U] <= con[12U]))) {
+            throw InvalidParameterValue(
+                "CMLDBLU1 initialization-only LTC requires valid tap limits, step, and voltage band");
+        }
+
+        std::array<double, 4> motorFractions{con[18U], con[19U], con[20U], con[21U]};
+        double electronicFraction = con[22U];
+        double motorFractionTotal = 0.0;
+        for (const double fraction : motorFractions) {
+            if ((fraction < 0.0) || (fraction > 1.0)) {
+                throw InvalidParameterValue("CMLDBLU1 motor fractions must be in [0, 1]");
+            }
+            motorFractionTotal += fraction;
+        }
+        if (electronicFraction < 0.0 || electronicFraction > 1.0) {
+            throw InvalidParameterValue("CMLDBLU1 Fel must be in [0, 1]");
+        }
+        if ((electronicFraction > 1.0e-9) &&
+            ((con[23U] < -1.0) || (con[23U] > 1.0) || (con[25U] < 0.0) ||
+             (con[24U] <= con[25U]))) {
+            throw InvalidParameterValue(
+                "CMLDBLU1 electronic load requires PFel in [-1, 1] and Vd1 > Vd2 >= 0");
+        }
+        const double allocatedFraction = motorFractionTotal + electronicFraction;
+        if (allocatedFraction > 1.0) {
+            // WECC assigns no static remainder and renormalizes the dynamic
+            // fractions when their sum exceeds the original load.
+            for (auto& fraction : motorFractions) {
+                fraction /= allocatedFraction;
+            }
+            electronicFraction /= allocatedFraction;
+            motorFractionTotal /= allocatedFraction;
+        }
+
+        const double staticFraction =
+            std::max(0.0, 1.0 - motorFractionTotal - electronicFraction);
+        if (staticFraction > 1.0e-9) {
+            if ((std::abs(con[26U]) > 1.0) || (std::abs(con[26U]) < 1.0e-6)) {
+                throw InvalidParameterValue(
+                    "CMLDBLU1 PFs must be a nonzero value in [-1, 1] for a static remainder");
+            }
+        }
+
+        constexpr std::array<std::size_t, 3> motorTypeIndices{37U, 57U, 77U};
+        for (std::size_t motorIndex = 0; motorIndex < motorTypeIndices.size(); ++motorIndex) {
+            const double motorType = con[motorTypeIndices[motorIndex]];
+            if (!near(motorType, 1.0) && !near(motorType, 3.0)) {
+                throw InvalidParameterValue("CMLDBLU1 MtypA/B/C must be 1 or 3");
+            }
+        }
+
+        // Motor D's PSS/E extensions are accepted only at the WECC values implemented
+        // by MotorDLoad. Values that alter its characteristic or filtered inputs must
+        // be implemented before the reader can safely map them.
+        if (motorFractions[3] > 1.0e-9) {
+            constexpr std::array<std::pair<std::size_t, double>, 14> motorDConstants{{
+                {100U, 0.0},   // Tf: MotorDLoad currently uses the instantaneous frequency input.
+                {106U, 1.0},   // LFadj
+                {107U, 0.0},   // Kp1
+                {108U, 1.0},   // Np1
+                {109U, 6.0},   // Kq1
+                {110U, 2.0},   // Nq1
+                {111U, 12.0},  // Kp2
+                {112U, 3.2},   // Np2
+                {113U, 11.0},  // Kq2
+                {114U, 2.5},   // Nq2
+                {115U, 0.86},  // Vbrk
+                {118U, 1.0},   // CmpKpf
+                {119U, -3.3},  // CmpKqf
+                {0U, 0.0},     // Reserved sentinel; Mbase is validated below as finite.
+            }};
+            for (std::size_t index = 0; index + 1U < motorDConstants.size(); ++index) {
+                if (!near(con[motorDConstants[index].first], motorDConstants[index].second)) {
+                    throw InvalidParameterValue("CMLDBLU1 Motor D parameter " +
+                                                std::to_string(motorDConstants[index].first + 1U) +
+                                                " is outside the implemented WECC characteristic");
+                }
+            }
+        }
+
+        int busId = 0;
+        const auto busResult =
+            std::from_chars(tokens[0].data(), tokens[0].data() + tokens[0].size(), busId);
+        if ((busResult.ec != std::errc{}) || (busResult.ptr != tokens[0].data() + tokens[0].size())) {
+            throw InvalidParameterValue("CMLDBLU1 requires a numeric bus number");
+        }
+        auto* bus = dynamic_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        if (bus == nullptr) {
+            throw InvalidParameterValue("CMLDBLU1 requires existing bus " + tokens[0]);
+        }
+        auto* previousLoad = bus->getLoad(0);
+        if ((previousLoad == nullptr) || (bus->getLoad(1) != nullptr)) {
+            throw InvalidParameterValue(
+                "CMLDBLU1 requires exactly one existing load at the specified bus; load IDs are not yet addressable");
+        }
+        if (previousLoad->isFixedShunt()) {
+            throw InvalidParameterValue("CMLDBLU1 cannot replace a fixed shunt");
+        }
+
+        auto* area = dynamic_cast<GridArea*>(bus->getParent());
+        if (area == nullptr) {
+            throw InvalidParameterValue("CMLDBLU1 requires its bus to belong to a GridArea");
+        }
+
+        const double initialP = previousLoad->getRealPower();
+        const double initialQ = previousLoad->getReactivePower();
+        const double systemBaseMVA = area->get("basepower", units::MW);
+        const double loadMW = initialP * systemBaseMVA;
+        const double distributionBaseMVA = (con[0U] > 0.0) ?
+            con[0U] :
+            ((con[0U] < 0.0) ? (loadMW / std::abs(con[0U])) : (loadMW / 0.8));
+        if (!std::isfinite(distributionBaseMVA) || (distributionBaseMVA <= 0.0) ||
+            !std::isfinite(systemBaseMVA) || (systemBaseMVA <= 0.0)) {
+            throw InvalidParameterValue("CMLDBLU1 cannot determine a positive distribution MVA base");
+        }
+        const double distributionToSystem = systemBaseMVA / distributionBaseMVA;
+        const bool hasTransformer = con[5U] > 1.0e-9;
+        // WECC omits the feeder equivalent when Xfdr is zero, even if Rfdr is
+        // populated, and represents its reactive compensation with one shunt.
+        const bool hasFeeder = con[3U] > 1.0e-9;
+        const double transformerReactance =
+            con[5U] * distributionToSystem * con[6U] * con[6U];
+        const double feederResistance = hasFeeder ? con[2U] * distributionToSystem : 0.0;
+        const double feederReactance = con[3U] * distributionToSystem;
+        const double substationSusceptance = con[1U] * distributionToSystem;
+        const double sourceVoltage = bus->getVoltage();
+        if (!std::isfinite(sourceVoltage) || (sourceVoltage <= 0.0)) {
+            throw InvalidParameterValue("CMLDBLU1 requires a positive initial system-bus voltage");
+        }
+
+        // Estimate the far-end operating point for component normalization and the
+        // feeder compensation. The WECC initialization procedure iterates these values
+        // with the network power flow; this first implementation uses the initial
+        // transmission-bus P/Q and a one-pass series-drop estimate.
+        const auto sourcePhasor = std::polar(sourceVoltage, bus->getAngle());
+        const auto sourcePower = std::complex<double>{initialP, initialQ};
+        const auto sourceCurrent = std::conj(sourcePower / sourcePhasor);
+        const double fixedTapRatio = con[6U] / con[7U];
+        auto lowSidePhasor = sourcePhasor / fixedTapRatio;
+        if (hasTransformer) {
+            lowSidePhasor -= std::complex<double>{0.0, transformerReactance} * sourceCurrent;
+        }
+        auto loadPhasor = lowSidePhasor;
+        if (hasFeeder) {
+            loadPhasor -=
+                std::complex<double>{feederResistance, feederReactance} * sourceCurrent;
+        }
+        const double initialLoadVoltage = std::abs(loadPhasor);
+        if (!std::isfinite(initialLoadVoltage) || (initialLoadVoltage <= 0.0)) {
+            throw InvalidParameterValue("CMLDBLU1 internal network has no positive load-bus voltage");
+        }
+        const double currentSquared = std::norm(sourceCurrent);
+        const double initialLoadP = initialP - currentSquared * feederResistance;
+        const double seriesReactiveConsumption =
+            currentSquared * (transformerReactance + feederReactance);
+        const double estimatedFeederCompensation =
+            seriesReactiveConsumption -
+            (substationSusceptance * std::norm(lowSidePhasor));
+        if (!std::isfinite(initialLoadP) || !std::isfinite(estimatedFeederCompensation)) {
+            throw InvalidParameterValue("CMLDBLU1 internal network initialization estimate is invalid");
+        }
+        std::unique_ptr<loads::IEELLoad> staticComponent;
+        double staticReactiveOverride = 0.0;
+        bool useStaticReactiveOverride = false;
+        if (staticFraction > 1.0e-9) {
+            // CMLDBLU1 stores the static curve as two coefficient/exponent pairs
+            // plus a constant-power remainder. IEEL has three terms, so the third
+            // coefficient is the residual needed to make the curve sum to one at
+            // 1 pu. Normalize the active-power base at the estimated load-end voltage to
+            // retain the static MW share at the initial operating point. The CMPLDW
+            // PFs field defines Q0 independently; scale the IEEL reactive curve to
+            // express that Q0 using CompositeLoad's shared component P/Q fractions.
+            constexpr double minimumCurveMagnitude = 1.0e-12;
+            const double initialVoltage = initialLoadVoltage;
+            if (!std::isfinite(initialVoltage) || (initialVoltage <= 0.0)) {
+                throw InvalidParameterValue(
+                    "CMLDBLU1 static polynomial requires a positive initial bus voltage");
+            }
+
+            const double p1c = con[27U];
+            const double p1e = con[28U];
+            const double p2c = con[29U];
+            const double p2e = con[30U];
+            const double q1c = con[32U];
+            const double q1e = con[33U];
+            const double q2c = con[34U];
+            const double q2e = con[35U];
+            const auto curveValue = [initialVoltage](double firstCoefficient,
+                                                     double firstExponent,
+                                                     double secondCoefficient,
+                                                     double secondExponent) {
+                return (firstCoefficient * std::pow(initialVoltage, firstExponent)) +
+                    (secondCoefficient * std::pow(initialVoltage, secondExponent)) +
+                    (1.0 - firstCoefficient - secondCoefficient);
+            };
+            const double pCurveAtInitial = curveValue(p1c, p1e, p2c, p2e);
+            const double qCurveAtInitial = curveValue(q1c, q1e, q2c, q2e);
+            const double staticPBase = initialLoadP * staticFraction;
+            const double staticQBase = initialQ * staticFraction;
+            double staticP0 = 0.0;
+            double pCoefficientScale = 1.0;
+            if (std::abs(staticPBase) > minimumCurveMagnitude) {
+                if (!std::isfinite(pCurveAtInitial) ||
+                    (std::abs(pCurveAtInitial) <= minimumCurveMagnitude)) {
+                    throw InvalidParameterValue(
+                        "CMLDBLU1 active static curve is zero or non-finite at the initial voltage");
+                }
+                staticP0 = staticPBase / pCurveAtInitial;
+                pCoefficientScale = staticP0 / staticPBase;
+            }
+
+            const double staticQ0 = staticP0 * std::tan(std::acos(con[26U]));
+            double qCoefficientScale = 1.0;
+            if (std::abs(staticQBase) > minimumCurveMagnitude) {
+                qCoefficientScale = staticQ0 / staticQBase;
+            } else if (std::abs(staticQ0) > minimumCurveMagnitude) {
+                // CompositeLoad normally allocates Q using the same fraction
+                // as P. PFs can require Q even when the original load has none.
+                staticReactiveOverride = staticQ0;
+                useStaticReactiveOverride = true;
+            }
+            if (!std::isfinite(qCurveAtInitial) || !std::isfinite(staticP0) ||
+                !std::isfinite(staticQ0) || !std::isfinite(pCoefficientScale) ||
+                !std::isfinite(qCoefficientScale)) {
+                throw InvalidParameterValue(
+                    "CMLDBLU1 static polynomial cannot be normalized at the initial operating point");
+            }
+
+            IEELParameters parameters;
+            parameters.coefficients = {p1c * pCoefficientScale,
+                                       p2c * pCoefficientScale,
+                                       (1.0 - p1c - p2c) * pCoefficientScale,
+                                       q1c * qCoefficientScale,
+                                       q2c * qCoefficientScale,
+                                       (1.0 - q1c - q2c) * qCoefficientScale,
+                                       con[31U],
+                                       con[36U]};
+            parameters.exponents = {p1e, p2e, 0.0, q1e, q2e, 0.0};
+            if (!std::all_of(parameters.coefficients.begin(),
+                             parameters.coefficients.end(),
+                             [](double value) { return std::isfinite(value); })) {
+                throw InvalidParameterValue(
+                    "CMLDBLU1 static polynomial coefficients overflowed during normalization");
+            }
+            staticComponent = std::make_unique<loads::IEELLoad>("static_remainder");
+            staticComponent->setIEELParameters(parameters);
+        }
+        auto composite = std::make_unique<loads::CompositeLoad>(
+            "cmpldw_" + std::to_string(busId) + "_" +
+            gmlc::utilities::stringOps::removeQuotes(tokens[2]));
+
+        std::size_t componentIndex = 0U;
+        const auto addComponent = [&composite, &componentIndex](GridLoad* component,
+                                                                double fraction) {
+            composite->add(component);
+            ++componentIndex;
+            composite->set("fraction" + std::to_string(componentIndex), fraction);
+        };
+
+        for (std::size_t motorIndex = 0; motorIndex < 3U; ++motorIndex) {
+            const double fraction = motorFractions[motorIndex];
+            if (fraction <= 1.0e-9) {
+                continue;
+            }
+            const auto start = motorTypeIndices[motorIndex];
+            if (near(con[start], 1.0)) {
+                auto motor = std::make_unique<loads::MotorDLoad>(
+                    "motor_" + std::to_string(motorIndex + 1U));
+                motor->set("lfm", con[start + 1U]);
+                motor->set("comppf", con[start + 2U]);
+                motor->set("vstall", con[start + 3U]);
+                motor->set("rstall", con[start + 4U]);
+                motor->set("xstall", con[start + 5U]);
+                motor->set("tstall", con[start + 6U]);
+                motor->set("frst", con[start + 7U]);
+                motor->set("vrst", con[start + 8U]);
+                motor->set("trst", con[start + 9U]);
+                motor->set("fuvr", con[start + 10U]);
+                motor->set("vtr1", con[start + 11U]);
+                motor->set("ttr1", con[start + 12U]);
+                motor->set("vtr2", con[start + 13U]);
+                motor->set("ttr2", con[start + 14U]);
+                motor->set("vc1off", con[start + 15U]);
+                motor->set("vc2off", con[start + 16U]);
+                motor->set("vc1on", con[start + 17U]);
+                motor->set("vc2on", con[start + 18U]);
+                motor->set("tth", con[start + 19U]);
+                // CMLDBLU1's fixed A/B/C blocks omit the thermal thresholds and
+                // voltage lag. Use the defaults from NERC reference Table A.10.
+                motor->set("th1t", 0.7);
+                motor->set("th2t", 1.9);
+                motor->set("tv", 0.025);
+                addComponent(motor.release(), fraction);
+            } else {
+                auto motor = std::make_unique<loads::WECCMotor3>(
+                    "motor_" + std::to_string(motorIndex + 1U));
+                motor->set("lfm", con[start + 1U]);
+                motor->set("rs", con[start + 2U]);
+                motor->set("ls", con[start + 3U]);
+                motor->set("lp", con[start + 4U]);
+                motor->set("lpp", con[start + 5U]);
+                motor->set("tpo", con[start + 6U]);
+                motor->set("tppo", con[start + 7U]);
+                motor->set("h", con[start + 8U]);
+                motor->set("etrq", con[start + 9U]);
+                for (std::size_t stage = 0; stage < 2U; ++stage) {
+                    const auto stageStart = start + 10U + (stage * 5U);
+                    const auto suffix = std::to_string(stage + 1U);
+                    motor->set("vtr" + suffix, con[stageStart]);
+                    motor->set("ttr" + suffix, con[stageStart + 1U]);
+                    motor->set("ftr" + suffix, con[stageStart + 2U]);
+                    motor->set("vrc" + suffix, con[stageStart + 3U]);
+                    motor->set("trc" + suffix, con[stageStart + 4U]);
+                }
+                addComponent(motor.release(), fraction);
+            }
+        }
+
+        if (motorFractions[3] > 1.0e-9) {
+            auto motor = std::make_unique<loads::MotorDLoad>("motor_d");
+            motor->set("tstall", con[97U]);
+            motor->set("trst", con[98U]);
+            motor->set("tv", con[99U]);
+            motor->set("lfm", con[101U]);
+            motor->set("comppf", con[102U]);
+            motor->set("vstall", con[103U]);
+            motor->set("rstall", con[104U]);
+            motor->set("xstall", con[105U]);
+            motor->set("frst", con[116U]);
+            motor->set("vrst", con[117U]);
+            motor->set("vc1off", con[120U]);
+            motor->set("vc2off", con[121U]);
+            motor->set("vc1on", con[122U]);
+            motor->set("vc2on", con[123U]);
+            motor->set("tth", con[124U]);
+            motor->set("th1t", con[125U]);
+            motor->set("th2t", con[126U]);
+            motor->set("fuvr", con[127U]);
+            motor->set("vtr1", con[128U]);
+            motor->set("ttr1", con[129U]);
+            motor->set("vtr2", con[130U]);
+            motor->set("ttr2", con[131U]);
+            addComponent(motor.release(), motorFractions[3]);
+        }
+
+        if (electronicFraction > 1.0e-9) {
+            auto electronic = std::make_unique<loads::ElectronicLoad>("electronic");
+            electronic->set("pfel", con[23U]);
+            electronic->set("vd1", con[24U]);
+            electronic->set("vd2", con[25U]);
+            // CMLDBLU1's fixed 132-CON record has no Frcel entry. Use the
+            // reference default while preserving the model's adjustable XML API.
+            electronic->set("frcel", 0.8);
+            addComponent(electronic.release(), electronicFraction);
+        }
+
+        if (staticFraction > 1.0e-9) {
+            addComponent(staticComponent.release(), staticFraction);
+            if (useStaticReactiveOverride) {
+                composite->setComponentReactiveBase(static_cast<index_t>(componentIndex - 1U),
+                                                    staticReactiveOverride);
+            }
+        }
+        if (componentIndex == 0U) {
+            throw InvalidParameterValue("CMLDBLU1 has no supported load components");
+        }
+
+        const auto loadId = gmlc::utilities::stringOps::removeQuotes(tokens[2]);
+        const auto networkName = "cmpldw_" + std::to_string(busId) + "_" + loadId;
+        GridBus* lowSideBus = bus;
+        if (hasTransformer) {
+            auto lowSide = std::make_unique<AcBus>(networkName + "_low_side");
+            lowSide->set("voltage", std::abs(lowSidePhasor));
+            lowSide->set("angle", std::arg(lowSidePhasor));
+            lowSide->Network = bus->Network;
+            lowSide->set("basevoltage", bus->get("basevoltage", units::kV), units::kV);
+            lowSideBus = lowSide.get();
+            area->add(lowSide.release());
+        }
+
+        if (hasTransformer) {
+            std::unique_ptr<AcLine> transformer;
+            if (near(con[8U], -1.0)) {
+                auto adjustable = std::make_unique<links::AdjustableTransformer>(
+                    networkName + "_transformer");
+                adjustable->set("controlmode", "voltage");
+                adjustable->set("change", "stepped");
+                adjustable->set("mintap", (con[9U] + con[7U] - 1.0) / con[6U]);
+                adjustable->set("maxtap", (con[10U] + con[7U] - 1.0) / con[6U]);
+                adjustable->set("stepsize", con[11U] / con[6U]);
+                adjustable->set("vmin", con[12U]);
+                adjustable->set("vmax", con[13U]);
+                adjustable->setControlBus(lowSideBus);
+                transformer = std::move(adjustable);
+            } else {
+                transformer = std::make_unique<AcLine>(networkName + "_transformer");
+            }
+            transformer->set("x", transformerReactance);
+            transformer->set("ratio", fixedTapRatio);
+            transformer->updateBus(bus, 1);
+            transformer->updateBus(lowSideBus, 2);
+            area->add(transformer.release());
+        }
+
+        if (std::abs(substationSusceptance) > 1.0e-12) {
+            auto substationShunt = std::make_unique<ZipLoad>(networkName + "_bss");
+            substationShunt->set("yq", -substationSusceptance);
+            lowSideBus->add(substationShunt.release());
+        }
+
+        GridBus* loadBus = lowSideBus;
+        if (hasFeeder) {
+            auto loadEnd = std::make_unique<AcBus>(networkName + "_load_end");
+            loadEnd->set("voltage", initialLoadVoltage);
+            loadEnd->set("angle", std::arg(loadPhasor));
+            loadEnd->Network = bus->Network;
+            loadEnd->set("basevoltage", bus->get("basevoltage", units::kV), units::kV);
+            loadBus = loadEnd.get();
+            area->add(loadEnd.release());
+
+            auto feeder = std::make_unique<AcLine>(networkName + "_feeder");
+            feeder->set("r", feederResistance);
+            feeder->set("x", feederReactance);
+            feeder->set("b1", con[4U] * estimatedFeederCompensation);
+            feeder->set("b2", (1.0 - con[4U]) * estimatedFeederCompensation);
+            feeder->updateBus(lowSideBus, 1);
+            feeder->updateBus(loadBus, 2);
+            area->add(feeder.release());
+        } else if (std::abs(estimatedFeederCompensation) > 1.0e-12) {
+            // With no feeder reactance, WECC places the computed feeder
+            // compensation as a single shunt at the low-side bus. This also
+            // applies when the transformer is omitted and lowSideBus is the
+            // original system bus.
+            auto feederShunt = std::make_unique<ZipLoad>(networkName + "_bfeeder");
+            feederShunt->set("yq", -estimatedFeederCompensation);
+            lowSideBus->add(feederShunt.release());
+        }
+
+        auto* replacement = composite.release();
+        if (loadBus == bus) {
+            bus->replaceLoad(previousLoad, replacement);
+        } else {
+            bus->remove(previousLoad);
+            loadBus->add(replacement);
+        }
+        replacement->setLoad(initialLoadP, initialQ);
+    }
+
     void loadMeasurement(CoreObject* parentObject, stringVec& tokens, std::string_view modelName)
     {
         std::size_t expected = 3U;
@@ -1073,10 +1597,11 @@ namespace {
         } else if (modelName == "EPCGEN") {
             setFields(epcgenFields, 3);
         } else if (modelName == "REPCA1") {
-            if (params[3] != 0.0 || params[4] != 0.0 || params[5] != 0.0) {
+            if (params[4] != 0.0 || params[5] != 0.0) {
                 throw InvalidParameterValue(
-                    "REPCA1 remote bus or monitored line is not yet supported");
+                    "REPCA1 monitored-line measurement is not yet supported");
             }
+            model->set("vbus", params[3]);
             setFields(repcaFields, 7);
         } else if (modelName == "WTDTA1") {
             setFields(wtdtaFields, 3);

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="motor_d_performance" version="0.0.1">
+  <bus name="source">
+    <type>infinite</type>
+    <angle>0</angle>
+    <voltage>1</voltage>
+  </bus>
+  <bus name="motor_bus">
+    <load name="motor_d" type="motord">
+      <p>0.7</p>
+      <comppf>0.97</comppf>
+      <lfm>0.85</lfm>
+      <vstall>0.65</vstall>
+      <rstall>0.05</rstall>
+      <xstall>0.20</xstall>
+      <tstall>0.033</tstall>
+      <frst>0.40</frst>
+      <vrst>0.85</vrst>
+      <trst>0.20</trst>
+      <fuvr>0.25</fuvr>
+      <vtr1>0.50</vtr1>
+      <ttr1>0.05</ttr1>
+      <vtr2>0.45</vtr2>
+      <ttr2>0.04</ttr2>
+      <vc1off>0.70</vc1off>
+      <vc2off>0.50</vc2off>
+      <vc1on>0.95</vc1on>
+      <vc2on>0.75</vc2on>
+      <tth>10</tth>
+      <th1t>1</th1t>
+      <th2t>5</th2t>
+      <tv>0.02</tv>
+    </load>
+  </bus>
+  <link from="source" name="source_to_motor" to="motor_bus">
+    <r>0</r>
+    <x>0.015</x>
+  </link>
+  <basepower>100</basepower>
+  <timestart>0</timestart>
+  <timestop>0.05</timestop>
+  <timestep>0.01</timestep>
+</griddyn>

@@ -193,7 +193,10 @@ void RenewableGenerator::validateAssembly() const
                 }
                 continue;
             }
-            if (isTerminalSignal(input.signal) && component->sourceName(input.signal).empty()) {
+            const bool hasNamedSource = !component->sourceName(input.signal).empty();
+            const auto sourceBusID = component->sourceBusID(input.signal);
+            if (isTerminalSignal(input.signal) && !hasNamedSource &&
+                sourceBusID == kNullLocation) {
                 continue;
             }
             count_t providers = 0;
@@ -205,6 +208,12 @@ void RenewableGenerator::validateAssembly() const
                 ++providers;
             }
             if (machineSource(component, input.signal) != nullptr) {
+                ++providers;
+            }
+            if (sourceBusID != kNullLocation) {
+                if (signalBusSource(component, input.signal) == nullptr) {
+                    throw InvalidParameterValue("renewable remote measurement bus was not found");
+                }
                 ++providers;
             }
             for (const auto* candidate : components) {
@@ -242,6 +251,24 @@ void RenewableGenerator::validateAssembly() const
             }
         }
     }
+}
+
+GridBus* RenewableGenerator::signalBusSource(const RenewableComponent* model,
+                                             RenewableSignal signal) const
+{
+    const auto requested = model->sourceBusID(signal);
+    if (requested == kNullLocation) {
+        return nullptr;
+    }
+    auto* terminal = dynamic_cast<GridBus*>(getParent());
+    auto* root = terminal == nullptr ? nullptr : dynamic_cast<GridArea*>(terminal->getParent());
+    if (root == nullptr) {
+        return nullptr;
+    }
+    while (auto* parentArea = dynamic_cast<GridArea*>(root->getParent())) {
+        root = parentArea;
+    }
+    return dynamic_cast<GridBus*>(root->findByUserID("bus", requested));
 }
 
 std::pair<BusMeasurementSensor*, index_t>
@@ -397,7 +424,9 @@ IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
         }
         switch (port.signal) {
             case RenewableSignal::terminalVoltage:
-                if (inputs.size() > VOLTAGE_IN_LOCATION) {
+                if (auto* busObject = signalBusSource(model, port.signal); busObject != nullptr) {
+                    result[portIndex] = busObject->getVoltage(stateDataValue, sMode);
+                } else if (inputs.size() > VOLTAGE_IN_LOCATION) {
                     result[portIndex] = inputs[VOLTAGE_IN_LOCATION];
                 }
                 break;
@@ -410,7 +439,9 @@ IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
                 }
                 break;
             case RenewableSignal::terminalFrequency:
-                if (const auto [sensor, output] = measurementSource(model, port.signal);
+                if (auto* busObject = signalBusSource(model, port.signal); busObject != nullptr) {
+                    result[portIndex] = busObject->getFreq(stateDataValue, sMode);
+                } else if (const auto [sensor, output] = measurementSource(model, port.signal);
                     sensor != nullptr) {
                     result[portIndex] = sensor->getOutput({}, stateDataValue, sMode, output);
                 } else if (inputs.size() > FREQUENCY_IN_LOCATION) {
@@ -477,9 +508,12 @@ IOlocs RenewableGenerator::modelInputLocs(const RenewableComponent* model,
         if (result.size() <= portIndex) {
             result.resize(portIndex + 1, kNullLocation);
         }
-        if (port.signal == RenewableSignal::terminalVoltage &&
-            inputLocs.size() > VOLTAGE_IN_LOCATION) {
-            result[portIndex] = inputLocs[VOLTAGE_IN_LOCATION];
+        if (port.signal == RenewableSignal::terminalVoltage) {
+            if (auto* busObject = signalBusSource(model, port.signal); busObject != nullptr) {
+                result[portIndex] = busObject->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
+            } else if (inputLocs.size() > VOLTAGE_IN_LOCATION) {
+                result[portIndex] = inputLocs[VOLTAGE_IN_LOCATION];
+            }
         } else if (port.signal == RenewableSignal::terminalAngle) {
             if (const auto [sensor, output] = measurementSource(model, port.signal);
                 sensor != nullptr) {
@@ -488,7 +522,9 @@ IOlocs RenewableGenerator::modelInputLocs(const RenewableComponent* model,
                 result[portIndex] = inputLocs[ANGLE_IN_LOCATION];
             }
         } else if (port.signal == RenewableSignal::terminalFrequency) {
-            if (const auto [sensor, output] = measurementSource(model, port.signal);
+            if (auto* busObject = signalBusSource(model, port.signal); busObject != nullptr) {
+                result[portIndex] = busObject->getOutputLoc(sMode, FREQUENCY_IN_LOCATION);
+            } else if (const auto [sensor, output] = measurementSource(model, port.signal);
                 sensor != nullptr) {
                 result[portIndex] = sensor->getOutputLoc(sMode, output);
             } else if (inputLocs.size() > FREQUENCY_IN_LOCATION) {

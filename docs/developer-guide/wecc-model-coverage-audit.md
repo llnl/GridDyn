@@ -24,7 +24,7 @@ check, not as an independent determination of current WECC approval status.
 | REEC_A                     | Supported as `REECA1`                 | DYR and DYD paths exist.                                                                                                      |
 | REEC_C                     | Supported as `REECC1`                 | DYR accepts `REECC1` and `REECCU1`; this audit does not find a PSLF DYD mapping for REEC_C.                                   |
 | REEC_D                     | **Gap**                               | No REEC_D implementation or import mapping found.                                                                             |
-| REPC_A                     | Present as `REPCA1`, with limitations | The implementation covers local plant voltage/reactive control. Remote-bus and monitored-line operation are not supported.    |
+| REPC_A                     | Present as `REPCA1`, with limitations | Local plant voltage/reactive control and `Fflag=1` frequency-active-power response are implemented. Remote-bus and monitored-line measurements are not supported. |
 | REPC_B, REPC_C, REPC_D     | **Gap**                               | No implementations or import mappings found.                                                                                  |
 | REGFM_A1                   | **Gap**                               | No grid-forming REGFM_A1 implementation or import mapping found.                                                              |
 
@@ -32,7 +32,9 @@ The model-name adapters for REGC_A, REEC_A, and REPC_A are in
 `src/fileInput/gridDynReadDYD.cpp`; PSS/E DYR dispatch is in
 `src/fileInput/gridDynReadDYR.cpp`. REEC_C is registered in
 `src/griddyn/generators/Generator.cpp` and has a DYR record mapping. The
-REPCA1 limitations are enforced by its implementation and DYR loader.
+REPCA1 accepts the local frequency-response mode through its DYR path. Its
+remote-bus and monitored-line measurement limitations remain enforced by the
+implementation and DYR loader.
 
 ## Nonrenewable models
 
@@ -71,7 +73,7 @@ registers IEEEST, ST2CUT, IEE2ST, PSS2A, and STAB3 stabilizers.
 
 | Model named by the article | GridDyn coverage                           | Notes                                                                                                                                              |
 | -------------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CMPLDW, CMPLDWG            | **Gap**                                    | No composite-load model implementation or DYR mapping found. Existing aggregate or individual load classes do not provide CMPLDW behavior by name. |
+| CMPLDW, CMPLDWG            | Partial composition, components, first-pass internal network, and restricted `CMLDBLU1` DYR import | The PSS/E reader maps type-1 Motor A/B/C to `MotorDLoad`, type-3 Motor A/B/C to `WECCMotor3`, Motor D to `MotorDLoad`, electronic load to `ElectronicLoad`, and the static polynomial remainder to `IEELLoad`. Nonzero `Xxf`, `Rfdr`, `Xfdr`, and `Bss` create internal buses, transformer/feeder links, and shunts; DYR tests check power flow and the DAE Jacobian with the feeder topology. Feeder compensation uses a first-pass estimate rather than the iterative WECC initialization; dynamic LTC and LTC line-drop compensation are rejected. PSLF/CMPLDW2 records, load-ID scopes, and fully coordinated reactive compensation remain gaps. The electronic component supports the CMPLDW low-voltage trip/recovery shape plus optional independent P/Q voltage curves and frequency sensitivities; CMLDBLU1 uses flat curves and zero frequency sensitivity. Static `PFs` is mapped through the shared P/Q component allocation. |
 | MOTOR1                     | Implemented internally; **DYR import gap** | Registered as `motor1`, but the DYR dispatcher has no `MOTOR1` record route.                                                                       |
 | MOTORW                     | **Gap**                                    | No MOTORW-specific implementation or import mapping found. Other induction-motor load models are not assumed equivalent.                           |
 

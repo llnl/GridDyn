@@ -115,6 +115,7 @@ class RenewableGenerator: public Generator {
     std::pair<BusMeasurementSensor*, index_t> measurementSource(const RenewableComponent* model,
                                                                 RenewableSignal signal) const;
     DynamicGenerator* machineSource(const RenewableComponent* model, RenewableSignal signal) const;
+    GridBus* signalBusSource(const RenewableComponent* model, RenewableSignal signal) const;
     GridBus* regulationSource(const RenewableComponent* model) const;
     static std::size_t roleIndex(RenewableRole role);
 };

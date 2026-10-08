@@ -10,7 +10,7 @@
 
 namespace griddyn {
 
-/** REPCA1 local plant reactive/voltage controller; frequency and remote modes fail closed. */
+/** REPCA1 local plant reactive/voltage controller with optional frequency response. */
 class REPCA1 final: public RenewableComponent {
   public:
     explicit REPCA1(const std::string& name = "REPCA1_#");
@@ -19,6 +19,7 @@ class REPCA1 final: public RenewableComponent {
     RenewableRole role() const override { return RenewableRole::plantControl; }
     std::span<const RenewablePort> inputPorts() const override;
     std::span<const RenewablePort> outputPorts() const override;
+    index_t sourceBusID(RenewableSignal signal) const override;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
@@ -63,11 +64,18 @@ class REPCA1 final: public RenewableComponent {
     double fdbd1 = -0.0002833, fdbd2 = 0.0002833;
     double femax = 0.05, femin = -0.05, Pmax = 999.0, Pmin = -999.0;
     double Tg = 0.02, Ddn = 10.0, Dup = 10.0;
-    double vReference = 1.0, qReference = 0.0;
+    double FreqRef = 1.0;
+    double vReference = 1.0, qReference = 0.0, initialActiveReference = 0.0;
+    index_t Vbus = kNullLocation;
+    void updateInputSize();
     double controllerError(double v, const double state[]) const;
     double piOutput(double v, const double state[]) const;
     double reactiveIncrement(double v, const double state[]) const;
-    std::array<double, 4> rates(const IOdata& inputs, const double state[]) const;
+    double activePowerReference(const IOdata& inputs) const;
+    double activePowerError(const IOdata& inputs, const double state[]) const;
+    double activePiOutput(const IOdata& inputs, const double state[]) const;
+    double activeIncrement(const IOdata& inputs, const double state[]) const;
+    std::array<double, 7> rates(const IOdata& inputs, const double state[]) const;
 };
 
 }  // namespace griddyn

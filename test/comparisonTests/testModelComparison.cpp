@@ -9,6 +9,7 @@
 #include "fileInput/fileInput.h"
 #include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/GridComponentHelperClasses.h"
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/GridSubModel.h"
 #include "griddyn/events/Event.h"
@@ -47,6 +48,15 @@
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorReheat.h"
 #include "griddyn/governors/GovernorTgov1.h"
+#include "griddyn/loads/CompositeLoad.h"
+#include "griddyn/loads/ElectronicLoad.h"
+#include "griddyn/loads/IEELLoad.h"
+#include "griddyn/loads/MotorDLoad.h"
+#include "griddyn/loads/WECCMotor3.h"
+#include "griddyn/loads/ZipLoad.h"
+#include "griddyn/links/AcLine.h"
+#include "griddyn/links/AdjustableTransformer.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
 #include <algorithm>
@@ -504,6 +514,450 @@ TEST(DyrReaderComparisonTests, RejectsMalformedGenroeAndUnsupportedIeeex1Switch)
                      griddyn::InvalidParameterValue)
             << record;
     }
+}
+
+TEST(DyrReaderComparisonTests, MapsCmpldwMotorComponentsAndChecksCompositeDynamics)
+{
+    auto simulation = loadComparisonDynamicCase(
+        "ieee14_genrou.dyr", {"ieee14_cmpldw_motors.dyr"});
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 4));
+    ASSERT_NE(bus, nullptr);
+    auto* composite = dynamic_cast<griddyn::loads::CompositeLoad*>(bus->getLoad(0));
+    ASSERT_NE(composite, nullptr);
+    ASSERT_EQ(composite->componentCount(), 3U);
+
+    auto* motor3 = dynamic_cast<griddyn::loads::WECCMotor3*>(composite->component(0));
+    auto* motorD = dynamic_cast<griddyn::loads::MotorDLoad*>(composite->component(1));
+    ASSERT_NE(motor3, nullptr);
+    ASSERT_NE(motorD, nullptr);
+    EXPECT_NE(composite->component(2), nullptr);
+    EXPECT_DOUBLE_EQ(composite->get("fraction1"), 0.45);
+    EXPECT_DOUBLE_EQ(composite->get("fraction2"), 0.35);
+    EXPECT_DOUBLE_EQ(composite->get("fraction3"), 0.20);
+    EXPECT_DOUBLE_EQ(motor3->get("r"), 0.03);
+    EXPECT_DOUBLE_EQ(motor3->get("ls"), 2.5);
+    EXPECT_DOUBLE_EQ(motor3->get("etrq"), 2.0);
+    EXPECT_DOUBLE_EQ(motor3->get("ftr1"), 0.25);
+    EXPECT_DOUBLE_EQ(motorD->get("lfm"), 0.85);
+    EXPECT_DOUBLE_EQ(motorD->get("tv"), 0.025);
+    EXPECT_DOUBLE_EQ(motorD->get("tstall"), 0.033);
+    EXPECT_TRUE(motorD->checkFlag(griddyn::USES_BUS_FREQUENCY));
+
+    // The CMPLDW motor data can change the reactive characteristic from the
+    // original static load, so settle the imported composite case before DAE
+    // initialization, as for any changed power-flow load model.
+    ASSERT_EQ(simulation->powerflow(), 0);
+    ASSERT_TRUE(bus->isConnected());
+    EXPECT_NEAR(motor3->get("pmot"), motor3->get("p"), 1e-12);
+    EXPECT_NEAR(motor3->get("scale"), motor3->get("p") / motor3->get("lfm"), 1e-12);
+    EXPECT_NEAR(motor3->get("base"),
+                100.0 * composite->get("p") * composite->get("fraction1") / motor3->get("lfm"),
+                1e-10);
+    EXPECT_GT(motor3->getRealPower(), 0.0);
+    EXPECT_GT(motor3->getReactivePower(), 0.0);
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(DyrReaderComparisonTests, InitializesSingleCageCmpldwMotorWithZeroTppo)
+{
+    auto simulation = loadComparisonDynamicCase(
+        "ieee14_genrou.dyr", {"ieee14_cmpldw_single_cage.dyr"});
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 4));
+    ASSERT_NE(bus, nullptr);
+    auto* composite = dynamic_cast<griddyn::loads::CompositeLoad*>(bus->getLoad(0));
+    ASSERT_NE(composite, nullptr);
+    auto* motor = dynamic_cast<griddyn::loads::WECCMotor3*>(composite->component(0));
+    ASSERT_NE(motor, nullptr);
+    EXPECT_DOUBLE_EQ(motor->get("tppo"), 0.0);
+    ASSERT_EQ(simulation->powerflow(), 0);
+    ASSERT_TRUE(bus->isConnected());
+    EXPECT_NEAR(motor->get("pmot"), motor->get("p"), 1e-12);
+    EXPECT_NEAR(motor->get("scale"), motor->get("p") / motor->get("lfm"), 1e-12);
+    EXPECT_GT(motor->getRealPower(), 0.0);
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    ASSERT_EQ(simulation->run(0.05), 0);
+}
+
+TEST(DyrReaderComparisonTests, SingleCageTppoAndEqualReactanceFormsAgree)
+{
+    auto zeroTppo = loadComparisonDynamicCase(
+        "ieee14_genrou.dyr", {"ieee14_cmpldw_single_cage.dyr"});
+    auto equalReactance = loadComparisonDynamicCase(
+        "ieee14_genrou.dyr", {"ieee14_cmpldw_single_cage_equal_reactance.dyr"});
+    auto getMotor = [](griddyn::GridDynSimulation* simulation) {
+        auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 4));
+        auto* composite = bus ? dynamic_cast<griddyn::loads::CompositeLoad*>(bus->getLoad(0)) :
+                                nullptr;
+        return composite ? dynamic_cast<griddyn::loads::WECCMotor3*>(composite->component(0)) :
+                           nullptr;
+    };
+    auto* zeroMotor = getMotor(zeroTppo.get());
+    auto* equalMotor = getMotor(equalReactance.get());
+    ASSERT_NE(zeroMotor, nullptr);
+    ASSERT_NE(equalMotor, nullptr);
+    ASSERT_EQ(zeroTppo->powerflow(), 0);
+    ASSERT_EQ(equalReactance->powerflow(), 0);
+    EXPECT_GT(zeroMotor->getRealPower(), 0.0);
+    EXPECT_GT(zeroMotor->getReactivePower(), 0.0);
+    EXPECT_NEAR(zeroMotor->getRealPower(), equalMotor->getRealPower(), 1e-8);
+    EXPECT_NEAR(zeroMotor->getReactivePower(), equalMotor->getReactivePower(), 1e-8);
+    EXPECT_NEAR(zeroMotor->rotorSpeed(), equalMotor->rotorSpeed(), 1e-8);
+    ASSERT_EQ(zeroTppo->dynInitialize(), 0);
+    ASSERT_EQ(equalReactance->dynInitialize(), 0);
+    ASSERT_EQ(zeroTppo->run(0.05), 0);
+    ASSERT_EQ(equalReactance->run(0.05), 0);
+    EXPECT_NEAR(zeroMotor->getRealPower(), equalMotor->getRealPower(), 1e-6);
+    EXPECT_NEAR(zeroMotor->getReactivePower(), equalMotor->getReactivePower(), 1e-6);
+}
+
+TEST(DyrReaderComparisonTests, MapsCmpldwElectronicLoadAndChecksOptionalFrequencyJacobian)
+{
+    auto simulation = loadComparisonDynamicCase(
+        "ieee14_genrou.dyr", {"ieee14_cmpldw_electronic.dyr"});
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 4));
+    ASSERT_NE(bus, nullptr);
+    auto* composite = dynamic_cast<griddyn::loads::CompositeLoad*>(bus->getLoad(0));
+    ASSERT_NE(composite, nullptr);
+    ASSERT_EQ(composite->componentCount(), 2U);
+    auto* electronic = dynamic_cast<griddyn::loads::ElectronicLoad*>(composite->component(0));
+    ASSERT_NE(electronic, nullptr);
+    EXPECT_DOUBLE_EQ(composite->get("fraction1"), 0.1);
+    EXPECT_DOUBLE_EQ(composite->get("fraction2"), 0.9);
+    EXPECT_DOUBLE_EQ(electronic->get("pfel"), 0.98);
+    EXPECT_DOUBLE_EQ(electronic->get("vd1"), 0.9);
+    EXPECT_DOUBLE_EQ(electronic->get("vd2"), 0.7);
+    EXPECT_DOUBLE_EQ(electronic->get("frcel"), 0.8);
+    EXPECT_DOUBLE_EQ(electronic->get("a3"), 1.0);
+    EXPECT_DOUBLE_EQ(electronic->get("a6"), 1.0);
+    EXPECT_DOUBLE_EQ(electronic->get("pfrq"), 0.0);
+    EXPECT_DOUBLE_EQ(electronic->get("qfrq"), 0.0);
+    EXPECT_FALSE(electronic->checkFlag(griddyn::USES_BUS_FREQUENCY));
+
+    // The generic extensions are separate from CMLDBLU1 input and can be enabled
+    // for other electronic-load studies without changing the CMPLDW defaults.
+    // Activate them before power flow so the frequency-dependent operating point
+    // and dynamic initialization are consistent.
+    electronic->set("a1", 0.4);
+    electronic->set("a3", 0.6);
+    electronic->set("n1", 2.0);
+    electronic->set("a4", 0.25);
+    electronic->set("a6", 0.75);
+    electronic->set("n4", 1.0);
+    electronic->set("pfrq", 0.15);
+    electronic->set("qfrq", -0.25);
+    EXPECT_TRUE(electronic->checkFlag(griddyn::USES_BUS_FREQUENCY));
+
+    ASSERT_EQ(simulation->powerflow(), 0);
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    ASSERT_EQ(simulation->run(0.05), 0);
+}
+
+TEST(DyrReaderComparisonTests, NormalizesOverallocatedCmpldwMotorAndElectronicFractions)
+{
+    auto simulation = loadComparisonDynamicCase(
+        "ieee14_genrou.dyr", {"ieee14_cmpldw_overallocated.dyr"});
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 4));
+    ASSERT_NE(bus, nullptr);
+    auto* composite = dynamic_cast<griddyn::loads::CompositeLoad*>(bus->getLoad(0));
+    ASSERT_NE(composite, nullptr);
+    ASSERT_EQ(composite->componentCount(), 2U);
+    EXPECT_NE(dynamic_cast<griddyn::loads::MotorDLoad*>(composite->component(0)), nullptr);
+    EXPECT_NE(dynamic_cast<griddyn::loads::ElectronicLoad*>(composite->component(1)), nullptr);
+    EXPECT_NEAR(composite->get("fraction1"), 5.0 / 12.0, 1e-12);
+    EXPECT_NEAR(composite->get("fraction2"), 7.0 / 12.0, 1e-12);
+    ASSERT_EQ(simulation->powerflow(), 0);
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(DyrReaderComparisonTests, MapsCmpldwStaticPolynomialToIeelAndChecksFrequencyJacobian)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 4));
+    ASSERT_NE(bus, nullptr);
+    const double referenceVoltage = bus->getVoltage();
+    const double initialP = bus->getLoad(0)->getRealPower();
+    const double initialQ = bus->getLoad(0)->getReactivePower();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_cmpldw_static_polynomial.dyr"));
+    auto* composite = dynamic_cast<griddyn::loads::CompositeLoad*>(bus->getLoad(0));
+    ASSERT_NE(composite, nullptr);
+    ASSERT_EQ(composite->componentCount(), 3U);
+    auto* staticLoad = dynamic_cast<griddyn::loads::IEELLoad*>(composite->component(2));
+    ASSERT_NE(staticLoad, nullptr);
+    EXPECT_TRUE(staticLoad->checkFlag(griddyn::USES_BUS_FREQUENCY));
+    const double staticFraction = composite->get("fraction3");
+    EXPECT_DOUBLE_EQ(staticFraction, 0.20);
+
+    constexpr double p1c = 0.3;
+    constexpr double p1e = 2.0;
+    constexpr double p2c = 0.7;
+    constexpr double p2e = 1.0;
+    constexpr double pfrq = 0.2;
+    constexpr double q1c = -0.5;
+    constexpr double q1e = 2.0;
+    constexpr double q2c = 1.5;
+    constexpr double q2e = 1.0;
+    constexpr double qfrq = -1.0;
+    constexpr double staticPF = 0.97878;
+    const double pCurve = (p1c * std::pow(referenceVoltage, p1e)) +
+        (p2c * std::pow(referenceVoltage, p2e)) + (1.0 - p1c - p2c);
+    const double qCurve = (q1c * std::pow(referenceVoltage, q1e)) +
+        (q2c * std::pow(referenceVoltage, q2e)) + (1.0 - q1c - q2c);
+    const double staticP0 = (initialP * staticFraction) / pCurve;
+    const double staticQ0 = staticP0 * std::tan(std::acos(staticPF));
+    const double staticQBase = initialQ * staticFraction;
+    const double qCoefficientScale = staticQ0 / staticQBase;
+    EXPECT_NEAR(staticLoad->get("a1"), p1c / pCurve, 1.0e-12);
+    EXPECT_NEAR(staticLoad->get("a2"), p2c / pCurve, 1.0e-12);
+    EXPECT_NEAR(staticLoad->get("a3"), (1.0 - p1c - p2c) / pCurve, 1.0e-12);
+    EXPECT_NEAR(staticLoad->get("a4"), q1c * qCoefficientScale, 1.0e-12);
+    EXPECT_NEAR(staticLoad->get("a5"), q2c * qCoefficientScale, 1.0e-12);
+    EXPECT_NEAR(staticLoad->get("a6"),
+                (1.0 - q1c - q2c) * qCoefficientScale,
+                1.0e-12);
+    EXPECT_DOUBLE_EQ(staticLoad->get("a7"), pfrq);
+    EXPECT_DOUBLE_EQ(staticLoad->get("a8"), qfrq);
+    EXPECT_DOUBLE_EQ(staticLoad->get("n1"), p1e);
+    EXPECT_DOUBLE_EQ(staticLoad->get("n2"), p2e);
+    EXPECT_DOUBLE_EQ(staticLoad->get("n3"), 0.0);
+    EXPECT_DOUBLE_EQ(staticLoad->get("n4"), q1e);
+    EXPECT_DOUBLE_EQ(staticLoad->get("n5"), q2e);
+    EXPECT_DOUBLE_EQ(staticLoad->get("n6"), 0.0);
+
+    ASSERT_EQ(simulation->powerflow(), 0);
+    const double initialFrequency = bus->getFreq();
+    EXPECT_NEAR(staticLoad->getRealPower(referenceVoltage),
+                staticP0 * pCurve * (1.0 + pfrq * (initialFrequency - 1.0)),
+                1.0e-8);
+    EXPECT_NEAR(staticLoad->getReactivePower(referenceVoltage),
+                staticQ0 * qCurve * (1.0 + qfrq * (initialFrequency - 1.0)),
+                1.0e-8);
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(DyrReaderComparisonTests, MapsStaticPowerFactorWhenOriginalLoadHasZeroReactivePower)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 4));
+    ASSERT_NE(bus, nullptr);
+    auto* original = bus->getLoad(0);
+    ASSERT_NE(original, nullptr);
+    const double referenceVoltage = bus->getVoltage();
+    const double originalP = original->getRealPower();
+    original->set("q", 0.0);
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    ASSERT_NO_THROW(griddyn::loadFile(
+        simulation.get(), makeComparisonTestPath("ieee14_cmpldw_static_polynomial.dyr")));
+    auto* composite = dynamic_cast<griddyn::loads::CompositeLoad*>(bus->getLoad(0));
+    ASSERT_NE(composite, nullptr);
+    auto* staticLoad = dynamic_cast<griddyn::loads::IEELLoad*>(composite->component(2));
+    ASSERT_NE(staticLoad, nullptr);
+    ASSERT_EQ(simulation->powerflow(), 0);
+    const double pCurve = (0.3 * referenceVoltage * referenceVoltage) +
+        (0.7 * referenceVoltage);
+    const double qCurve = (-0.5 * referenceVoltage * referenceVoltage) +
+        (1.5 * referenceVoltage);
+    const double staticP0 = (0.2 * originalP) / pCurve;
+    const double expectedQ = staticP0 * std::tan(std::acos(0.97878)) * qCurve;
+    EXPECT_NEAR(staticLoad->getReactivePower(referenceVoltage), expectedQ, 1e-8);
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(DyrReaderComparisonTests, MapsCmpldwType1MotorABCAndChecksCompositeDaeJacobian)
+{
+    auto simulation = loadComparisonDynamicCase(
+        "ieee14_genrou.dyr", {"ieee14_cmpldw_type1_abc.dyr"});
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 4));
+    ASSERT_NE(bus, nullptr);
+    auto* composite = dynamic_cast<griddyn::loads::CompositeLoad*>(bus->getLoad(0));
+    ASSERT_NE(composite, nullptr);
+    ASSERT_EQ(composite->componentCount(), 5U);
+
+    auto* motorA = dynamic_cast<griddyn::loads::MotorDLoad*>(composite->component(0));
+    auto* motorB = dynamic_cast<griddyn::loads::MotorDLoad*>(composite->component(1));
+    auto* motorC = dynamic_cast<griddyn::loads::MotorDLoad*>(composite->component(2));
+    auto* motorD = dynamic_cast<griddyn::loads::MotorDLoad*>(composite->component(3));
+    ASSERT_NE(motorA, nullptr);
+    ASSERT_NE(motorB, nullptr);
+    ASSERT_NE(motorC, nullptr);
+    ASSERT_NE(motorD, nullptr);
+    EXPECT_NE(composite->component(4), nullptr);
+    EXPECT_DOUBLE_EQ(composite->get("fraction1"), 0.15);
+    EXPECT_DOUBLE_EQ(composite->get("fraction2"), 0.15);
+    EXPECT_DOUBLE_EQ(composite->get("fraction3"), 0.15);
+    EXPECT_DOUBLE_EQ(composite->get("fraction4"), 0.35);
+    EXPECT_DOUBLE_EQ(composite->get("fraction5"), 0.20);
+
+    EXPECT_DOUBLE_EQ(motorA->get("lfm"), 0.85);
+    EXPECT_DOUBLE_EQ(motorA->get("comppf"), 0.98);
+    EXPECT_DOUBLE_EQ(motorA->get("vstall"), 0.65);
+    EXPECT_DOUBLE_EQ(motorA->get("frst"), 0.25);
+    EXPECT_DOUBLE_EQ(motorA->get("fuvr"), 0.1);
+    EXPECT_DOUBLE_EQ(motorA->get("vtr1"), 0.6);
+    EXPECT_DOUBLE_EQ(motorA->get("ttr1"), 0.02);
+    EXPECT_DOUBLE_EQ(motorA->get("ttr2"), 9999.0);
+    EXPECT_DOUBLE_EQ(motorA->get("vc1off"), 0.6);
+    EXPECT_DOUBLE_EQ(motorA->get("vc2off"), 0.4);
+    EXPECT_DOUBLE_EQ(motorA->get("tth"), 15.0);
+    EXPECT_DOUBLE_EQ(motorB->get("lfm"), 0.8);
+    EXPECT_DOUBLE_EQ(motorB->get("comppf"), 0.97);
+    EXPECT_DOUBLE_EQ(motorB->get("tstall"), 0.05);
+    EXPECT_DOUBLE_EQ(motorB->get("frst"), 0.4);
+    EXPECT_DOUBLE_EQ(motorB->get("tth"), 10.0);
+    EXPECT_DOUBLE_EQ(motorC->get("lfm"), 0.9);
+    EXPECT_DOUBLE_EQ(motorC->get("comppf"), 0.99);
+    EXPECT_DOUBLE_EQ(motorC->get("vstall"), 0.6);
+    EXPECT_DOUBLE_EQ(motorC->get("tth"), 12.0);
+    for (const auto* motor : {motorA, motorB, motorC}) {
+        EXPECT_DOUBLE_EQ(motor->get("th1t"), 0.7);
+        EXPECT_DOUBLE_EQ(motor->get("th2t"), 1.9);
+        EXPECT_DOUBLE_EQ(motor->get("tv"), 0.025);
+        EXPECT_TRUE(motor->checkFlag(griddyn::USES_BUS_FREQUENCY));
+        EXPECT_EQ(motor->localStateNames(),
+                  (griddyn::stringVec{"voltage_measurement", "thermal_a", "thermal_b"}));
+    }
+
+    ASSERT_EQ(simulation->powerflow(), 0);
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(DyrReaderComparisonTests, BuildsCmpldwTransformerFeederAndChecksDaeJacobian)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    auto* originalBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 4));
+    ASSERT_NE(originalBus, nullptr);
+    const double originalP = originalBus->getLoad(0)->getRealPower();
+    const double originalQ = originalBus->getLoad(0)->getReactivePower();
+    const double originalVoltage = originalBus->getVoltage();
+    griddyn::loadFile(simulation.get(),
+                      makeComparisonTestPath("ieee14_cmpldw_internal_network.dyr"));
+
+    auto* systemBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 4));
+    ASSERT_NE(systemBus, nullptr);
+    auto* slackBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(slackBus, nullptr);
+    EXPECT_EQ(slackBus->getType(), griddyn::GridBus::BusType::SLK);
+    EXPECT_EQ(systemBus->getLoad(0), nullptr);
+    auto* area = dynamic_cast<griddyn::GridArea*>(systemBus->getParent());
+    ASSERT_NE(area, nullptr);
+    auto* lowSide = dynamic_cast<griddyn::GridBus*>(area->find("cmpldw_4_1_low_side"));
+    auto* loadEnd = dynamic_cast<griddyn::GridBus*>(area->find("cmpldw_4_1_load_end"));
+    ASSERT_NE(lowSide, nullptr);
+    ASSERT_NE(loadEnd, nullptr);
+
+    auto* transformer = dynamic_cast<griddyn::AcLine*>(area->find("cmpldw_4_1_transformer"));
+    auto* feeder = dynamic_cast<griddyn::AcLine*>(area->find("cmpldw_4_1_feeder"));
+    ASSERT_NE(transformer, nullptr);
+    ASSERT_NE(feeder, nullptr);
+    EXPECT_TRUE(transformer->isConnected());
+    EXPECT_TRUE(feeder->isConnected());
+    EXPECT_NEAR(transformer->get("x"), 0.08 * 100.0 / 59.75, 1.0e-10);
+    EXPECT_NEAR(feeder->get("r"), 0.00625 * 100.0 / 59.75, 1.0e-10);
+    EXPECT_NEAR(feeder->get("x"), 0.0125 * 100.0 / 59.75, 1.0e-10);
+    EXPECT_DOUBLE_EQ(feeder->get("b1"), 0.0);
+    EXPECT_GT(feeder->get("b2"), 0.0);
+    const double sourceCurrentSquared =
+        (originalP * originalP + originalQ * originalQ) /
+        (originalVoltage * originalVoltage);
+    const double expectedCompensation =
+        sourceCurrentSquared * (transformer->get("x") + feeder->get("x")) -
+        (0.01 * 100.0 / 59.75) * std::pow(lowSide->getVoltage(), 2.0);
+    EXPECT_NEAR(feeder->get("b2"), expectedCompensation, 1e-10);
+
+    auto* substationShunt = dynamic_cast<griddyn::ZipLoad*>(lowSide->getLoad(0));
+    ASSERT_NE(substationShunt, nullptr);
+    EXPECT_LT(substationShunt->get("yq"), 0.0);
+    auto* composite = dynamic_cast<griddyn::loads::CompositeLoad*>(loadEnd->getLoad(0));
+    ASSERT_NE(composite, nullptr);
+
+    ASSERT_EQ(simulation->powerflow(), 0);
+    EXPECT_TRUE(systemBus->isConnected());
+    EXPECT_TRUE(lowSide->isConnected());
+    EXPECT_TRUE(loadEnd->isConnected());
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(DyrReaderComparisonTests, OmitsCmpldwFeederWhenFeederReactanceIsZero)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(),
+                      makeComparisonTestPath("ieee14_cmpldw_no_feeder.dyr"));
+
+    auto* systemBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 4));
+    ASSERT_NE(systemBus, nullptr);
+    auto* area = dynamic_cast<griddyn::GridArea*>(systemBus->getParent());
+    ASSERT_NE(area, nullptr);
+    auto* lowSide = dynamic_cast<griddyn::GridBus*>(area->find("cmpldw_4_1_low_side"));
+    ASSERT_NE(lowSide, nullptr);
+    EXPECT_EQ(area->find("cmpldw_4_1_feeder"), nullptr);
+    EXPECT_EQ(area->find("cmpldw_4_1_load_end"), nullptr);
+    auto* feederCompensation = dynamic_cast<griddyn::ZipLoad*>(lowSide->getLoad(1));
+    ASSERT_NE(feederCompensation, nullptr);
+    EXPECT_GT(std::abs(feederCompensation->get("yq")), 1.0e-12);
+    EXPECT_NE(dynamic_cast<griddyn::loads::CompositeLoad*>(lowSide->getLoad(2)), nullptr);
+
+    ASSERT_EQ(simulation->powerflow(), 0);
+    EXPECT_TRUE(systemBus->isConnected());
+    EXPECT_TRUE(lowSide->isConnected());
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(DyrReaderComparisonTests, RejectsMalformedCmpldwRecords)
+{
+    for (const auto record : {"ieee14_cmpldw_bad_count.dyr"}) {
+        auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+        EXPECT_THROW(griddyn::loadFile(simulation.get(), makeComparisonTestPath(record)),
+                     griddyn::InvalidParameterValue)
+            << record;
+    }
+}
+
+TEST(DyrReaderComparisonTests, RejectsDynamicCmpldwLtcUntilDelayedTapControlIsAvailable)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    EXPECT_THROW(griddyn::loadFile(
+                     simulation.get(), makeComparisonTestPath("ieee14_cmpldw_dynamic_ltc.dyr")),
+                 griddyn::InvalidParameterValue);
+}
+
+TEST(DyrReaderComparisonTests, InitializesCmpldwLtcInPowerFlowOnlyMode)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_cmpldw_init_ltc.dyr"));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 4));
+    ASSERT_NE(bus, nullptr);
+    auto* area = dynamic_cast<griddyn::GridArea*>(bus->getParent());
+    ASSERT_NE(area, nullptr);
+    auto* transformer = dynamic_cast<griddyn::links::AdjustableTransformer*>(
+        area->find("cmpldw_4_1_transformer"));
+    ASSERT_NE(transformer, nullptr);
+
+    ASSERT_EQ(simulation->powerflow(), 0);
+    EXPECT_TRUE(bus->isConnected());
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
 TEST(DyrReaderComparisonTests, RejectsUnsupportedModelWithRecordLocation)

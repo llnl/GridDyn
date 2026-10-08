@@ -15,15 +15,20 @@
 #include "griddyn/links/AcLine.h"
 #include "griddyn/loads/ApproximatingLoad.h"
 #include "griddyn/loads/CIMLoad.h"
+#include "griddyn/loads/ElectronicLoad.h"
 #include "griddyn/loads/FDepLoad.h"
 #include "griddyn/loads/FileLoad.h"
 #include "griddyn/loads/GridLabDLoad.h"
 #include "griddyn/loads/IEELLoad.h"
 #include "griddyn/loads/LoadTemplateAdapters.h"
+#include "griddyn/loads/CompositeLoad.h"
 #include "griddyn/loads/MotorLoad5.h"
+#include "griddyn/loads/MotorDLoad.h"
+#include "griddyn/loads/MotorProtectionGroups.h"
 #include "griddyn/loads/SourceLoad.h"
 #include "griddyn/loads/Svd.h"
 #include "griddyn/loads/ThreePhaseLoad.h"
+#include "griddyn/loads/WECCMotor3.h"
 #include "griddyn/loads/ZipLoad.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/simulation/Diagnostics.h"
@@ -123,6 +128,70 @@ TEST(IEELLoadTests, SelectsTheSimplestEquivalentLoadAndEvaluatesItsEquation)
             return 0.25 * ((0.3 * std::pow(voltage, 0.2)) + (0.7 * std::pow(voltage, 2.5))) *
                 (1.0 + (0.4 * (frequency - 1.0)));
         });
+}
+
+TEST(ElectronicLoadTests, IndependentCurvesFrequencyAndVoltageRecovery)
+{
+    auto simulation = std::make_unique<GridDynSimulation>();
+    auto* source = new AcBus("source");
+    source->set("type", "swing");
+    source->set("voltage", 1.0);
+    source->add(new DynamicGenerator("slack_generator"));
+
+    auto* loadBus = new AcBus("electronic_load_bus");
+    loadBus->set("type", "pq");
+    auto* electronic = new ElectronicLoad("electronic_load");
+    electronic->setLoad(0.4, 0.1);
+    electronic->set("pfel", 0.0);  // Use the assigned Q base.
+    electronic->set("vd1", 0.7);
+    electronic->set("vd2", 0.5);
+    electronic->set("frcel", 0.8);
+    electronic->set("a1", 0.25);
+    electronic->set("a3", 0.75);
+    electronic->set("n1", 2.0);
+    electronic->set("a4", 0.6);
+    electronic->set("a6", 0.4);
+    electronic->set("n4", 1.0);
+    electronic->set("pfrq", 0.2);
+    electronic->set("qfrq", -0.3);
+    loadBus->add(electronic);
+    simulation->add(source);
+    simulation->add(loadBus);
+
+    auto* line = new AcLine(0.0, 0.015, "source_to_electronic_load");
+    line->updateBus(source, 1);
+    line->updateBus(loadBus, 2);
+    simulation->add(line);
+
+    ASSERT_EQ(simulation->powerflow(), 0);
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_TRUE(electronic->checkFlag(USES_BUS_FREQUENCY));
+    EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
+
+    const double testFrequency = 1.02;
+    const double voltage = 1.04;
+    const double pCurve = 0.25 * voltage * voltage + 0.75;
+    const double qCurve = 0.6 * voltage + 0.4;
+    EXPECT_NEAR(electronic->getRealPower({voltage, 0.0, testFrequency}, emptyStateData, cDaeSolverMode),
+                0.4 * pCurve * (1.0 + 0.2 * (testFrequency - 1.0)),
+                1e-12);
+    EXPECT_NEAR(electronic->getReactivePower({voltage, 0.0, testFrequency}, emptyStateData, cDaeSolverMode),
+                0.1 * qCurve * (1.0 - 0.3 * (testFrequency - 1.0)),
+                1e-12);
+
+    // Track a low-voltage minimum, then verify partial reconnection follows Frcel.
+    electronic->timestep(0.1, {0.55}, cLocalSolverMode);
+    const double pAtLowVoltage = 0.4 * (0.25 * 0.55 * 0.55 + 0.75) * 0.25;
+    EXPECT_NEAR(electronic->getRealPower(0.55), pAtLowVoltage, 1e-12);
+
+    electronic->timestep(0.2, {0.65}, cLocalSolverMode);
+    const double pDuringRecovery = 0.4 * (0.25 * 0.65 * 0.65 + 0.75) * 0.65;
+    EXPECT_NEAR(electronic->getRealPower(0.65), pDuringRecovery, 1e-12);
+
+    electronic->timestep(0.3, {0.8}, cLocalSolverMode);
+    const double pAfterRecovery = 0.4 * (0.25 * 0.8 * 0.8 + 0.75) * 0.85;
+    EXPECT_NEAR(electronic->getRealPower(0.8), pAfterRecovery, 1e-12);
 }
 
 TEST(LoadTemplateTests, KeepsFixedAndControlledShunts)
@@ -667,6 +736,312 @@ TEST_F(LoadTests, Cim6SaturationInitializesAndIntegrates)
     simulation->run();
     requireStates(simulation->currentProcessState(),
                   GridDynSimulation::GridState::DYNAMIC_COMPLETE);
+}
+
+TEST_F(LoadTests, WeccMotor3UsesSpeedExponentTorqueAndDirectParameters)
+{
+    WECCMotor3 motor;
+    motor.set("Tmo", 1.2);
+    motor.set("Etrq", 2.0);
+    motor.set("Ls", 2.5);
+    motor.set("Lp", 0.2);
+    motor.set("Lpp", 0.15);
+    motor.set("Tpo", 0.44);
+    motor.set("Tppo", 0.0026);
+
+    EXPECT_NEAR(motor.mechanicalTorqueAtSpeed(0.8), 1.2 * 0.8 * 0.8, 1e-12);
+    EXPECT_NEAR(motor.get("ls"), 2.5, 1e-12);
+    EXPECT_NEAR(motor.get("lp"), 0.2, 1e-12);
+    EXPECT_NEAR(motor.get("lpp"), 0.15, 1e-12);
+    EXPECT_NEAR(motor.get("tpo"), 0.44, 1e-12);
+    EXPECT_NEAR(motor.get("tppo"), 0.0026, 1e-12);
+}
+
+TEST_F(LoadTests, WeccMotor3InitializesTorqueAndHasConsistentJacobian)
+{
+    auto simulation = std::make_unique<GridDynSimulation>();
+    auto* source = new AcBus("source");
+    source->set("type", "swing");
+    source->set("voltage", 1.0);
+    source->add(new DynamicGenerator("slack_generator"));
+    auto* motorBus = new AcBus("motor_bus");
+    motorBus->set("type", "pq");
+    auto* motor = new WECCMotor3("motor");
+    motor->set("p", 0.2);
+    motor->set("lfm", 0.85);
+    motor->set("h", 0.5);
+    motor->set("rs", 0.03);
+    motor->set("ls", 1.8);
+    motor->set("lp", 0.19);
+    motor->set("lpp", 0.14);
+    motor->set("tpo", 0.2);
+    motor->set("tppo", 0.0026);
+    motor->set("etrq", 2.0);
+    motor->set("vtr1", 0.8);
+    motor->set("ttr1", 0.02);
+    motor->set("ftr1", 0.25);
+    motorBus->add(motor);
+    simulation->add(source);
+    simulation->add(motorBus);
+    auto* line = new AcLine(0.0, 0.015, "source_to_motor");
+    line->updateBus(source, 1);
+    line->updateBus(motorBus, 2);
+    simulation->add(line);
+
+    ASSERT_EQ(simulation->powerflow(), 0);
+    ASSERT_TRUE(motorBus->isConnected());
+    EXPECT_NEAR(motor->get("p"), 0.2, 1e-12);
+    EXPECT_NEAR(motor->get("pmot"), motor->get("p"), 1e-12);
+    EXPECT_NEAR(motor->get("scale"), motor->get("p") / motor->get("lfm"), 1e-12);
+    EXPECT_GT(motor->getRealPower(), 0.0);
+    EXPECT_GT(motor->getReactivePower(), 0.0);
+    EXPECT_GT(motor->rotorSpeed(), 0.0);
+    EXPECT_LT(motor->rotorSpeed(), 1.0);
+    const double motorBasePower = motor->getRealPower() / motor->get("scale");
+    const double reactivePower = motor->getReactivePower() / motor->get("scale");
+    const double expectedElectricalTorque = motorBasePower -
+        (motor->get("r") * (motorBasePower * motorBasePower + reactivePower * reactivePower) /
+         (motorBus->getVoltage(emptyStateData, cLocalSolverMode) *
+          motorBus->getVoltage(emptyStateData, cLocalSolverMode)));
+    EXPECT_NEAR(motor->get("tmo") * std::pow(motor->rotorSpeed(), motor->get("etrq")),
+                expectedElectricalTorque,
+                1e-6);
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
+}
+
+TEST_F(LoadTests, WeccMotor3UsesAllocatedPowerForItsBaseAndHonorsExplicitRating)
+{
+    for (const bool explicitRating : {false, true}) {
+        SCOPED_TRACE(explicitRating ? "explicit motor rating" : "LFm derived rating");
+        auto simulation = std::make_unique<GridDynSimulation>();
+        auto* source = new AcBus("source");
+        source->set("type", "swing");
+        source->set("voltage", 1.0);
+        source->add(new DynamicGenerator("slack_generator"));
+        auto* motorBus = new AcBus("motor_bus");
+        motorBus->set("type", "pq");
+        auto* motor = new WECCMotor3("motor");
+        // CompositeLoad uses setLoad(), which bypasses MotorLoad's p setter.
+        motor->setLoad(0.2, 0.04);
+        motor->set("lfm", 0.9);
+        motor->set("rs", 0.03);
+        motor->set("ls", 2.5);
+        motor->set("lp", 0.2);
+        motor->set("lpp", 0.15);
+        motor->set("tpo", 0.44);
+        motor->set("tppo", 0.0026);
+        motor->set("h", 0.5);
+        if (explicitRating) {
+            motor->set("mbase", 40.0);
+        }
+        motorBus->add(motor);
+        simulation->add(source);
+        simulation->add(motorBus);
+        auto* line = new AcLine(0.0, 0.015, "source_to_motor");
+        line->updateBus(source, 1);
+        line->updateBus(motorBus, 2);
+        simulation->add(line);
+
+        ASSERT_EQ(simulation->powerflow(), 0);
+        ASSERT_TRUE(motorBus->isConnected());
+        EXPECT_NEAR(motor->get("pmot"), 0.2, 1e-12);
+        EXPECT_NEAR(motor->get("base"), explicitRating ? 40.0 : 100.0 * 0.2 / 0.9, 1e-10);
+        EXPECT_NEAR(motor->get("scale"), explicitRating ? 0.4 : 0.2 / 0.9, 1e-12);
+        EXPECT_GT(motor->getRealPower(), 0.0);
+        EXPECT_NEAR(motor->getRealPower(), 0.2, 0.01);
+        EXPECT_GT(motor->getReactivePower(), 0.0);
+        EXPECT_GT(motor->rotorSpeed(), 0.0);
+        EXPECT_LT(motor->rotorSpeed(), 1.0);
+        ASSERT_EQ(simulation->dynInitialize(), 0);
+        EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
+        EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
+    }
+}
+
+TEST_F(LoadTests, MotorProtectionGroupsTripCumulativeFractionsAndRecloseAfterDelay)
+{
+    MotorProtectionGroups protections;
+    protections.setStage(0, 0.80, 0.10, 0.20, 0.90, 0.20);
+    protections.setStage(1, 0.60, 0.05, 0.70, 0.80, 0.05);
+    protections.initialize(0.0, 1.0);
+    EXPECT_DOUBLE_EQ(protections.onlineFraction(), 1.0);
+
+    EXPECT_FALSE(protections.rootTrigger(0, 0.0, 0.70));
+    EXPECT_FALSE(protections.rootTrigger(1, 0.09, 0.70));
+    EXPECT_TRUE(protections.rootTrigger(1, 0.10, 0.70));
+    EXPECT_DOUBLE_EQ(protections.onlineFraction(), 0.80);
+
+    EXPECT_FALSE(protections.rootTrigger(4, 0.20, 0.50));
+    EXPECT_TRUE(protections.rootTrigger(5, 0.25, 0.50));
+    EXPECT_DOUBLE_EQ(protections.onlineFraction(), 0.30);
+
+    EXPECT_FALSE(protections.rootTrigger(6, 0.30, 0.85));
+    EXPECT_TRUE(protections.rootTrigger(7, 0.35, 0.85));
+    EXPECT_DOUBLE_EQ(protections.onlineFraction(), 0.80);
+
+    EXPECT_FALSE(protections.rootTrigger(2, 0.40, 0.95));
+    EXPECT_TRUE(protections.rootTrigger(3, 0.60, 0.95));
+    EXPECT_DOUBLE_EQ(protections.onlineFraction(), 1.0);
+}
+
+TEST_F(LoadTests, MotorDCharacteristicMatchesRunStallAndFrequencyEquations)
+{
+    constexpr double p0 = 0.85;
+    constexpr double compPF = 0.95;
+    constexpr double rStall = 0.05;
+    constexpr double xStall = 0.20;
+    constexpr double zSquared = rStall * rStall + xStall * xStall;
+    constexpr double gStall = rStall / zSquared;
+    constexpr double bStall = -xStall / zSquared;
+    const double q0 = p0 * std::tan(std::acos(compPF));
+    const double q0Prime = q0 - (6.0 * std::pow(1.0 - 0.86, 2.0));
+
+    const auto nominal = MotorDLoad::characteristicPower(p0, compPF, 1.0, 0.0, 0.45, gStall, bStall);
+    EXPECT_NEAR(nominal.p, p0, 1e-12);
+    EXPECT_NEAR(nominal.q, q0, 1e-12);
+
+    const auto undervoltage =
+        MotorDLoad::characteristicPower(p0, compPF, 0.80, -0.01, 0.45, gStall, bStall);
+    const double pRun = p0 + (12.0 * std::pow(0.86 - 0.80, 3.2));
+    const double qRun = q0Prime + (11.0 * std::pow(0.86 - 0.80, 2.5));
+    EXPECT_NEAR(undervoltage.p, pRun * 0.99, 1e-12);
+    EXPECT_NEAR(undervoltage.q, qRun * 1.033, 1e-12);
+
+    const auto stalled =
+        MotorDLoad::characteristicPower(p0, compPF, 0.30, -0.05, 0.45, gStall, bStall);
+    EXPECT_NEAR(stalled.p, gStall * 0.30 * 0.30, 1e-12);
+    EXPECT_NEAR(stalled.q, -bStall * 0.30 * 0.30, 1e-12);
+
+    EXPECT_DOUBLE_EQ(MotorDLoad::inverseStallCycles(0.45), 2.0);
+    EXPECT_DOUBLE_EQ(MotorDLoad::inverseStallCycles(0.49), 3.0);
+    EXPECT_DOUBLE_EQ(MotorDLoad::inverseStallCycles(0.51), 6.0);
+    EXPECT_DOUBLE_EQ(MotorDLoad::inverseStallCycles(0.53), 9.0);
+    EXPECT_DOUBLE_EQ(MotorDLoad::inverseStallCycles(0.55), 12.0);
+    EXPECT_DOUBLE_EQ(MotorDLoad::inverseStallCycles(0.565), 1.0e6);
+    EXPECT_DOUBLE_EQ(MotorDLoad::thermalOnlineFraction(0.5, 1.0, 2.0), 1.0);
+    EXPECT_DOUBLE_EQ(MotorDLoad::thermalOnlineFraction(1.5, 1.0, 2.0), 0.5);
+    EXPECT_DOUBLE_EQ(MotorDLoad::thermalOnlineFraction(2.0, 1.0, 2.0), 0.0);
+}
+
+TEST_F(LoadTests, MotorDContactorAndInverseTimeProtectionOperate)
+{
+    {
+        auto simulation = readSimXMLFile(makeLoadTestPath("motor_d_performance.xml"));
+        auto* motorD = dynamic_cast<MotorDLoad*>(simulation->getBus(1)->getLoad());
+        ASSERT_NE(motorD, nullptr);
+        motorD->set("tv", 0.0);
+        ASSERT_EQ(simulation->dynInitialize(), 0);
+
+        const double fullLoadPower = motorD->getRealPower(1.0);
+        motorD->timestep(0.01, {0.60}, cLocalSolverMode);
+        EXPECT_NEAR(motorD->getRealPower(1.0), 0.50 * fullLoadPower, 1e-10);
+        motorD->timestep(0.02, {0.80}, cLocalSolverMode);
+        EXPECT_NEAR(motorD->getRealPower(1.0), 0.50 * fullLoadPower, 1e-10);
+        motorD->timestep(0.03, {0.90}, cLocalSolverMode);
+        EXPECT_NEAR(motorD->getRealPower(1.0), 0.75 * fullLoadPower, 1e-10);
+        motorD->timestep(0.04, {1.00}, cLocalSolverMode);
+        EXPECT_NEAR(motorD->getRealPower(1.0), fullLoadPower, 1e-10);
+    }
+    {
+        auto simulation = readSimXMLFile(makeLoadTestPath("motor_d_performance.xml"));
+        auto* motorD = dynamic_cast<MotorDLoad*>(simulation->getBus(1)->getLoad());
+        ASSERT_NE(motorD, nullptr);
+        motorD->set("tv", 0.0);
+        motorD->set("tstall", -1.0);
+        ASSERT_EQ(simulation->dynInitialize(), 0);
+
+        motorD->timestep(0.01, {0.40}, cLocalSolverMode);
+        motorD->timestep(0.03, {0.40}, cLocalSolverMode);
+        EXPECT_FALSE(motorD->isStalled());
+        motorD->timestep(0.05, {0.40}, cLocalSolverMode);
+        EXPECT_TRUE(motorD->isStalled());
+    }
+}
+
+TEST_F(LoadTests, MotorDLoadInitializesAndHasConsistentJacobian)
+{
+    auto simulation = readSimXMLFile(makeLoadTestPath("motor_d_performance.xml"));
+    auto* bus = simulation->getBus(1);
+    ASSERT_NE(bus, nullptr);
+    auto* motorD = dynamic_cast<MotorDLoad*>(bus->getLoad());
+    ASSERT_NE(motorD, nullptr);
+
+    EXPECT_NEAR(motorD->getRealPower(1.0), motorD->get("p"), 1e-12);
+    const double expectedQ = motorD->get("p") * std::tan(std::acos(motorD->get("comppf")));
+    EXPECT_NEAR(motorD->getReactivePower(1.0), expectedQ, 1e-12);
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
+    ASSERT_EQ(simulation->run(), 0);
+    EXPECT_FALSE(motorD->isStalled());
+    EXPECT_FALSE(motorD->isUndervoltageTripped());
+}
+
+TEST_F(LoadTests, CompositeMotorComponentsHaveConsistentDaeJacobianAndRun)
+{
+    auto simulation = std::make_unique<GridDynSimulation>();
+    auto* source = new AcBus("source");
+    source->set("type", "swing");
+    source->set("voltage", 1.0);
+    source->add(new DynamicGenerator("slack_generator"));
+
+    auto* loadBus = new AcBus("composite_load_bus");
+    loadBus->set("type", "pq");
+    auto* composite = new loads::CompositeLoad("composite_motor_load");
+    composite->setLoad(0.4, 0.08);
+
+    auto* motor3 = new WECCMotor3("three_phase_motor");
+    motor3->set("lfm", 0.85);
+    motor3->set("h", 0.5);
+    motor3->set("rs", 0.03);
+    motor3->set("ls", 2.5);
+    motor3->set("lp", 0.2);
+    motor3->set("lpp", 0.15);
+    motor3->set("tpo", 0.44);
+    motor3->set("tppo", 0.0026);
+    motor3->set("etrq", 2.0);
+    motor3->set("vtr1", 0.8);
+    motor3->set("ttr1", 0.02);
+    motor3->set("ftr1", 0.25);
+
+    auto* motorD = new MotorDLoad("single_phase_motor");
+    motorD->set("lfm", 0.85);
+    motorD->set("comppf", 0.97);
+    motorD->set("vstall", 0.65);
+    motorD->set("tstall", 0.033);
+    motorD->set("frst", 0.25);
+    motorD->set("tv", 0.02);
+
+    composite->add(motor3);
+    composite->set("fraction1", 0.5);
+    composite->add(motorD);
+    composite->set("fraction2", 0.5);
+    loadBus->add(composite);
+    simulation->add(source);
+    simulation->add(loadBus);
+
+    auto* line = new AcLine(0.0, 0.015, "source_to_composite_load");
+    line->updateBus(source, 1);
+    line->updateBus(loadBus, 2);
+    simulation->add(line);
+
+    ASSERT_EQ(simulation->powerflow(), 0);
+    ASSERT_TRUE(loadBus->isConnected());
+    EXPECT_NEAR(motor3->get("pmot"), 0.2, 1e-12);
+    EXPECT_NEAR(motor3->get("scale"), 0.2 / motor3->get("lfm"), 1e-12);
+    EXPECT_GT(motor3->getRealPower(), 0.0);
+    ASSERT_EQ(composite->componentCount(), 2U);
+    EXPECT_EQ(composite->component(0), motor3);
+    EXPECT_EQ(composite->component(1), motorD);
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
+    ASSERT_EQ(simulation->run(0.05), 0);
+    EXPECT_TRUE(std::isfinite(motorD->get("p")));
 }
 
 TEST_F(LoadTests, PartitionedDynamicMotorAndCimModelChecks)

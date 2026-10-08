@@ -516,13 +516,14 @@ void MotorLoad3::outputPartialDerivatives(const IOdata& inputs,
     // voltageReal*m_state[0] + voltageImaginary*m_state[1];
 
     // output P
-    matrixData.assign(POUT_LOCATION, refAlg, voltageReal * scale);
-    matrixData.assign(POUT_LOCATION, refAlg + 1, voltageImaginary * scale);
+    const double outputScale = scale * motorOutputFraction();
+    matrixData.assign(POUT_LOCATION, refAlg, voltageReal * outputScale);
+    matrixData.assign(POUT_LOCATION, refAlg + 1, voltageImaginary * outputScale);
 
     // voltageImaginary*m_state[0] - voltageReal*m_state[1];
     // output Q
-    matrixData.assign(QOUT_LOCATION, refAlg, voltageImaginary * scale);
-    matrixData.assign(QOUT_LOCATION, refAlg + 1, -voltageReal * scale);
+    matrixData.assign(QOUT_LOCATION, refAlg, voltageImaginary * outputScale);
+    matrixData.assign(QOUT_LOCATION, refAlg + 1, -voltageReal * outputScale);
 }
 
 count_t MotorLoad3::outputDependencyCount(index_t /*num*/, const SolverMode& /*sMode*/) const
@@ -545,8 +546,9 @@ void MotorLoad3::ioPartialDerivatives(const IOdata& inputs,
 
     const double* algebraicState = loc.algStateLoc;
 
-    double const currentReal = algebraicState[0] * scale;
-    double const currentImaginary = algebraicState[1] * scale;
+    double const outputScale = scale * motorOutputFraction();
+    double const currentReal = algebraicState[0] * outputScale;
+    double const currentImaginary = algebraicState[1] * outputScale;
 
     // P=voltageReal*m_state[0] + voltageImaginary*m_state[1];
 
@@ -676,7 +678,7 @@ double MotorLoad3::getRealPower() const
     double const voltageReal = -voltage * Vcontrol * sin(ang);
     double const voltageImaginary = voltage * Vcontrol * cos(ang);
     double const realPower = (voltageReal * m_state[0]) + (voltageImaginary * m_state[1]);
-    return realPower * scale;
+    return realPower * scale * motorOutputFraction();
 }
 
 double MotorLoad3::getReactivePower() const
@@ -687,7 +689,7 @@ double MotorLoad3::getReactivePower() const
     double const voltageImaginary = voltage * Vcontrol * cos(ang);
     double const reactivePower = (voltageImaginary * m_state[0]) - (voltageReal * m_state[1]);
 
-    return reactivePower * scale;
+    return reactivePower * scale * motorOutputFraction();
 }
 
 double MotorLoad3::getRealPower(const IOdata& inputs,
@@ -705,7 +707,7 @@ double MotorLoad3::getRealPower(const IOdata& inputs,
     double const currentReal = stateData.state[offset];
     double const realPower = (voltageReal * currentReal) + (voltageImaginary * currentImaginary);
 
-    return realPower * scale;
+    return realPower * scale * motorOutputFraction();
 }
 
 double MotorLoad3::getReactivePower(const IOdata& inputs,
@@ -724,7 +726,7 @@ double MotorLoad3::getReactivePower(const IOdata& inputs,
     double const reactivePower =
         (voltageImaginary * currentReal) - (voltageReal * currentImaginary);
 
-    return reactivePower * scale;
+    return reactivePower * scale * motorOutputFraction();
 }
 
 double MotorLoad3::getRealPower(double voltage) const
@@ -734,7 +736,7 @@ double MotorLoad3::getRealPower(double voltage) const
     double const voltageReal = -voltage * Vcontrol * sin(ang);
     double const voltageImaginary = voltage * Vcontrol * cos(ang);
     double const realPower = (voltageReal * m_state[0]) + (voltageImaginary * m_state[1]);
-    return realPower * scale;
+    return realPower * scale * motorOutputFraction();
 }
 
 double MotorLoad3::getReactivePower(double voltage) const
@@ -745,6 +747,6 @@ double MotorLoad3::getReactivePower(double voltage) const
     double const voltageImaginary = voltage * Vcontrol * cos(ang);
     double const reactivePower = (voltageImaginary * m_state[0]) - (voltageReal * m_state[1]);
 
-    return reactivePower * scale;
+    return reactivePower * scale * motorOutputFraction();
 }
 }  // namespace griddyn::loads

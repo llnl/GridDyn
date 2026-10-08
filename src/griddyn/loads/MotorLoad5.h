@@ -25,6 +25,12 @@ class MotorLoad5: public MotorLoad3 {
     double x2 = 0.04;  //!< 3 impedance loop reactance
     double T0pp = 0.0;  //!< subtransient time constant
     double xpp = 0.0;  //!< subtransient reactance
+    bool useDirectMachineParameters = false;
+    double directX0 = 0.0;
+    double directXp = 0.0;
+    double directXpp = 0.0;
+    double directT0p = 0.0;
+    double directT0pp = 0.0;
   public:
     /** @brief constructor
 @param[in] objName  the name of the object
@@ -103,9 +109,9 @@ class MotorLoad5: public MotorLoad3 {
                                              double& derivativeErpp,
                                              double& derivativeEmpp) const;
 
-  private:
+  protected:
     /** @brief estimate the initial state values of the motor
      */
-    void converge();
+    virtual void converge();
 };
 }  // namespace griddyn::loads

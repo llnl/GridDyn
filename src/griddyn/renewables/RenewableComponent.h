@@ -81,6 +81,8 @@ class RenewableComponent: public GridSubModel {
     virtual std::span<const RenewablePort> inputPorts() const = 0;
     virtual std::span<const RenewablePort> outputPorts() const = 0;
     virtual std::string_view sourceName(RenewableSignal) const { return {}; }
+    /** Optional network bus user ID for signals measured at another bus. */
+    virtual index_t sourceBusID(RenewableSignal) const { return kNullLocation; }
 };
 
 /** The one mandatory grid-facing role: terminal generation P/Q on machine base. */

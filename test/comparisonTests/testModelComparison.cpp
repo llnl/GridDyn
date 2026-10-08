@@ -869,8 +869,7 @@ TEST(DyrReaderComparisonTests, BuildsCmpldwTransformerFeederAndChecksDaeJacobian
     EXPECT_DOUBLE_EQ(feeder->get("b1"), 0.0);
     EXPECT_GT(feeder->get("b2"), 0.0);
     const double sourceCurrentSquared =
-        ((originalP * originalP) + (originalQ * originalQ)) /
-        (originalVoltage * originalVoltage);
+        ((originalP * originalP) + (originalQ * originalQ)) / (originalVoltage * originalVoltage);
     const double expectedCompensation =
         (sourceCurrentSquared * (transformer->get("x") + feeder->get("x"))) -
         ((0.01 * 100.0 / 59.75) * std::pow(lowSide->getVoltage(), 2.0));

@@ -189,8 +189,7 @@ void CompositeLoad::setComponentFraction(index_t index, double fraction)
 void CompositeLoad::setComponentReactiveBase(index_t index, double reactivePower)
 {
     if ((index < 0) || (static_cast<std::size_t>(index) >= getComponents().size()) ||
-        !std::isfinite(reactivePower) ||
-        opFlags[POWERFLOW_INITIALIZED]) {
+        !std::isfinite(reactivePower) || opFlags[POWERFLOW_INITIALIZED]) {
         throw InvalidParameterValue("invalid composite component reactive base");
     }
     componentReactiveBases.resize(

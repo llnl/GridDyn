@@ -804,8 +804,7 @@ TEST_F(LoadTests, WeccMotor3InitializesTorqueAndHasConsistentJacobian)
     const double motorBasePower = motor->getRealPower() / motor->get("scale");
     const double reactivePower = motor->getReactivePower() / motor->get("scale");
     const double expectedElectricalTorque = motorBasePower -
-        (motor->get("r") * ((motorBasePower * motorBasePower) +
-                             (reactivePower * reactivePower)) /
+        (motor->get("r") * ((motorBasePower * motorBasePower) + (reactivePower * reactivePower)) /
          (motorBus->getVoltage(emptyStateData, cLocalSolverMode) *
           motorBus->getVoltage(emptyStateData, cLocalSolverMode)));
     EXPECT_NEAR(motor->get("tmo") * std::pow(motor->rotorSpeed(), motor->get("etrq")),
@@ -901,8 +900,7 @@ TEST_F(LoadTests, MotorDCharacteristicMatchesRunStallAndFrequencyEquations)
     constexpr double gStall = rStall / zSquared;
     constexpr double bStall = -xStall / zSquared;
     const double reactivePowerBase = activePowerBase * std::tan(std::acos(compPF));
-    const double reactivePowerAtRunVoltage =
-        reactivePowerBase - (6.0 * std::pow(1.0 - 0.86, 2.0));
+    const double reactivePowerAtRunVoltage = reactivePowerBase - (6.0 * std::pow(1.0 - 0.86, 2.0));
 
     const auto nominal =
         MotorDLoad::characteristicPower(activePowerBase, compPF, 1.0, 0.0, 0.45, gStall, bStall);

@@ -20,13 +20,13 @@
 
 namespace griddyn::loads {
 namespace {
-    static TypeFactory<MotorDLoad> gMotorDFactory(
-        "load", std::to_array<std::string_view>({"motord", "motor_d"}));
+    static TypeFactory<MotorDLoad>
+        gMotorDFactory("load", std::to_array<std::string_view>({"motord", "motor_d"}));
 
     constexpr std::array<std::string_view, 22> numericParameters{
-        "lfm", "comppf", "vstall", "rstall", "xstall", "tstall", "frst", "vrst",
-        "trst", "fuvr", "vtr1", "ttr1", "vtr2", "ttr2", "vc1off", "vc2off",
-        "vc1on", "vc2on", "tth", "th1t", "th2t", "tv"};
+        "lfm",   "comppf", "vstall", "rstall", "xstall", "tstall", "frst",   "vrst",
+        "trst",  "fuvr",   "vtr1",   "ttr1",   "vtr2",   "ttr2",   "vc1off", "vc2off",
+        "vc1on", "vc2on",  "tth",    "th1t",   "th2t",   "tv"};
     constexpr std::array<std::string_view, 0> stringParameters{};
     constexpr std::array<std::string_view, 0> flagParameters{};
 
@@ -38,12 +38,12 @@ namespace {
     };
 
     MotorDPowerDerivatives characteristicDerivatives(double p0,
-                                                      double compPF,
-                                                      double voltage,
-                                                      double frequencyDeviation,
-                                                      double stallBreakVoltage,
-                                                      double gStall,
-                                                      double bStall)
+                                                     double compPF,
+                                                     double voltage,
+                                                     double frequencyDeviation,
+                                                     double stallBreakVoltage,
+                                                     double gStall,
+                                                     double bStall)
     {
         constexpr double runVoltage = 0.86;
         const double q0 = p0 * std::tan(std::acos(compPF));
@@ -336,12 +336,11 @@ double MotorDLoad::get(std::string_view param, units::unit unitType) const
 
 void MotorDLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
-    const bool thermalConfigured = (thermalTimeConstant > 0.0) || (thermalTripStart > 0.0) ||
-        (thermalTripComplete > 0.0);
+    const bool thermalConfigured =
+        (thermalTimeConstant > 0.0) || (thermalTripStart > 0.0) || (thermalTripComplete > 0.0);
     if (thermalConfigured &&
         ((thermalTimeConstant <= 0.0) || (thermalTripComplete <= thermalTripStart))) {
-        throw InvalidParameterValue(
-            "Motor D thermal protection requires Tth > 0 and Th2t > Th1t");
+        throw InvalidParameterValue("Motor D thermal protection requires Tth > 0 and Th2t > Th1t");
     }
     if ((contactorVoltageOff1 > 0.0) || (contactorVoltageOff2 > 0.0) ||
         (contactorVoltageOn1 > 0.0) || (contactorVoltageOn2 > 0.0)) {
@@ -351,8 +350,8 @@ void MotorDLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
         }
     }
     motorBaseScale = (getP() > 0.0) ? getP() / loadFactor : 1.0;
-    const double impedanceSquared = (stallResistance * stallResistance) +
-        (stallReactance * stallReactance);
+    const double impedanceSquared =
+        (stallResistance * stallResistance) + (stallReactance * stallReactance);
     gStall = stallResistance / impedanceSquared;
     bStall = -stallReactance / impedanceSquared;
     computeStallBreak();
@@ -428,7 +427,7 @@ StateSizes MotorDLoad::localStateSizes(const SolverMode& sMode) const
     StateSizes sizes;
     if (isDynamic(sMode) && !isAlgebraicOnly(sMode)) {
         sizes.diffSize = static_cast<count_t>((voltageMeasurementLag > 0.0 ? 1 : 0) +
-                                               (thermalProtectionEnabled() ? 2 : 0));
+                                              (thermalProtectionEnabled() ? 2 : 0));
     }
     return sizes;
 }
@@ -525,32 +524,28 @@ void MotorDLoad::rootTest(const IOdata& inputs,
     const auto rootOffset = offsets.getRootOffset(sMode);
     const double voltage = measuredVoltage(inputs, stateData, sMode);
     const bool monitorStall = !restartablePartStalled &&
-        (!hasStalled || (restartableFraction > 0.0)) && (stallVoltage < 2.0) &&
-        (stallDelay >= 0.0);
+        (!hasStalled || (restartableFraction > 0.0)) && (stallVoltage < 2.0) && (stallDelay >= 0.0);
     roots[rootOffset] = monitorStall ? voltage - stallVoltage : 1.0;
     roots[rootOffset + 1] = stallTimerActive && (stallDelay >= 0.0) ?
         static_cast<double>(stateData.time - stallStart) - stallDelay :
         1.0;
-    roots[rootOffset + 2] = (restartablePartStalled && restartableFraction > 0.0) ?
-        voltage - restartVoltage :
-        1.0;
+    roots[rootOffset + 2] =
+        (restartablePartStalled && restartableFraction > 0.0) ? voltage - restartVoltage : 1.0;
     roots[rootOffset + 3] = restartTimerActive ?
         static_cast<double>(stateData.time - restartStart) - restartDelay :
         1.0;
-    roots[rootOffset + 4] = (!undervoltageTripped && (undervoltageFraction > 0.0) &&
-                             (tripVoltage1 < 2.0)) ?
+    roots[rootOffset + 4] =
+        (!undervoltageTripped && (undervoltageFraction > 0.0) && (tripVoltage1 < 2.0)) ?
         voltage - tripVoltage1 :
         1.0;
-    roots[rootOffset + 5] = tripTimerActive1 ?
-        static_cast<double>(stateData.time - tripStart1) - tripDelay1 :
-        1.0;
-    roots[rootOffset + 6] = (!undervoltageTripped && (undervoltageFraction > 0.0) &&
-                             (tripVoltage2 < 2.0)) ?
+    roots[rootOffset + 5] =
+        tripTimerActive1 ? static_cast<double>(stateData.time - tripStart1) - tripDelay1 : 1.0;
+    roots[rootOffset + 6] =
+        (!undervoltageTripped && (undervoltageFraction > 0.0) && (tripVoltage2 < 2.0)) ?
         voltage - tripVoltage2 :
         1.0;
-    roots[rootOffset + 7] = tripTimerActive2 ?
-        static_cast<double>(stateData.time - tripStart2) - tripDelay2 :
-        1.0;
+    roots[rootOffset + 7] =
+        tripTimerActive2 ? static_cast<double>(stateData.time - tripStart2) - tripDelay2 : 1.0;
 }
 
 void MotorDLoad::rootTrigger(CoreTime time,
@@ -597,8 +592,7 @@ void MotorDLoad::rootTrigger(CoreTime time,
         }
     }
     if (isTriggered(3) && restartTimerActive && restartablePartStalled &&
-        (voltage > restartVoltage) &&
-        (static_cast<double>(time - restartStart) >= restartDelay)) {
+        (voltage > restartVoltage) && (static_cast<double>(time - restartStart) >= restartDelay)) {
         restartTimerActive = false;
         restartablePartStalled = false;
     }
@@ -638,8 +632,7 @@ void MotorDLoad::rootTrigger(CoreTime time,
             tripTimerActive2 = false;
         }
     }
-    if ((wasStalled != hasStalled) ||
-        (wasRestartablePartStalled != restartablePartStalled) ||
+    if ((wasStalled != hasStalled) || (wasRestartablePartStalled != restartablePartStalled) ||
         (wasUndervoltageTripped != undervoltageTripped)) {
         alert(this, POTENTIAL_FAULT_CHANGE);
     }
@@ -651,8 +644,7 @@ void MotorDLoad::computeStallBreak()
     constexpr double runVoltage = 0.86;
     const double p0 = loadFactor;
     const auto difference = [p0, this](double voltage) {
-        const double compressorPower = p0 +
-            12.0 * std::pow(std::max(0.0, 0.86 - voltage), 3.2);
+        const double compressorPower = p0 + 12.0 * std::pow(std::max(0.0, 0.86 - voltage), 3.2);
         return compressorPower - (gStall * voltage * voltage);
     };
     double lower = lowSearchVoltage;
@@ -703,8 +695,7 @@ MotorDPower MotorDLoad::characteristicPower(double p0,
         pBase += 12.0 * std::pow(voltageDrop, 3.2);
         qBase = q0Prime + (11.0 * std::pow(voltageDrop, 2.5));
     }
-    return {pBase * (1.0 + frequencyDeviation),
-            qBase * (1.0 - (3.3 * frequencyDeviation))};
+    return {pBase * (1.0 + frequencyDeviation), qBase * (1.0 - (3.3 * frequencyDeviation))};
 }
 
 double MotorDLoad::inverseStallCycles(double voltage)
@@ -724,9 +715,7 @@ double MotorDLoad::inverseStallCycles(double voltage)
     return 1.0e6;
 }
 
-double MotorDLoad::thermalOnlineFraction(double temperature,
-                                         double tripStart,
-                                         double tripComplete)
+double MotorDLoad::thermalOnlineFraction(double temperature, double tripStart, double tripComplete)
 {
     if (tripComplete <= tripStart) {
         return 1.0;
@@ -741,8 +730,8 @@ double MotorDLoad::thermalOnlineFraction(double temperature,
 }
 
 double MotorDLoad::measuredVoltage(const IOdata& inputs,
-                                  const StateData& stateData,
-                                  const SolverMode& sMode) const
+                                   const StateData& stateData,
+                                   const SolverMode& sMode) const
 {
     const auto stateIndex = voltageStateIndex();
     return (stateIndex != kNullLocation) ? stateValue(stateData, sMode, stateIndex) :
@@ -755,16 +744,10 @@ double MotorDLoad::thermalHeating(double voltage, double frequency, bool stalled
         return 0.0;
     }
     const double p0 = (motorBaseScale > 0.0) ? getP() / motorBaseScale : 0.0;
-    const auto run = characteristicPower(p0,
-                                         compPF,
-                                         voltage,
-                                         frequency - 1.0,
-                                         stallBreak,
-                                         gStall,
-                                         bStall);
-    const MotorDPower activePower = stalled ?
-        MotorDPower{gStall * voltage * voltage, -bStall * voltage * voltage} :
-        run;
+    const auto run =
+        characteristicPower(p0, compPF, voltage, frequency - 1.0, stallBreak, gStall, bStall);
+    const MotorDPower activePower =
+        stalled ? MotorDPower{gStall * voltage * voltage, -bStall * voltage * voltage} : run;
     return (((activePower.p * activePower.p) + (activePower.q * activePower.q)) /
             (voltage * voltage)) *
         stallResistance;
@@ -819,8 +802,8 @@ void MotorDLoad::updateInverseTimeStall(CoreTime time, double voltage)
     const double elapsed = static_cast<double>(time - inverseTimeStart);
     if (elapsed > 0.0) {
         const double nominalFrequency = systemBaseFrequency / (2.0 * std::numbers::pi);
-        inverseTimeAccumulation += elapsed * nominalFrequency *
-            0.5 * ((1.0 / cycles) + (1.0 / inverseTimeCycles));
+        inverseTimeAccumulation +=
+            elapsed * nominalFrequency * 0.5 * ((1.0 / cycles) + (1.0 / inverseTimeCycles));
         inverseTimeStart = time;
         inverseTimeCycles = cycles;
     }
@@ -846,22 +829,16 @@ MotorDPower MotorDLoad::modelPower(double voltage,
                                    double thermalFractionB) const
 {
     const double p0 = (motorBaseScale > 0.0) ? getP() / motorBaseScale : 0.0;
-    const auto runningPower = characteristicPower(p0,
-                                                  compPF,
-                                                  voltage,
-                                                  frequency - 1.0,
-                                                  stallBreak,
-                                                  gStall,
-                                                  bStall);
-    const MotorDPower lockedRotorPower{gStall * voltage * voltage,
-                                       -bStall * voltage * voltage};
+    const auto runningPower =
+        characteristicPower(p0, compPF, voltage, frequency - 1.0, stallBreak, gStall, bStall);
+    const MotorDPower lockedRotorPower{gStall * voltage * voltage, -bStall * voltage * voltage};
     const MotorDPower motorA = hasStalled ? lockedRotorPower : runningPower;
-    const MotorDPower motorB = (hasStalled && restartablePartStalled) ? lockedRotorPower : runningPower;
-    MotorDPower selectedPower{
-        ((1.0 - restartableFraction) * thermalFractionA * motorA.p) +
-            (restartableFraction * thermalFractionB * motorB.p),
-        ((1.0 - restartableFraction) * thermalFractionA * motorA.q) +
-            (restartableFraction * thermalFractionB * motorB.q)};
+    const MotorDPower motorB =
+        (hasStalled && restartablePartStalled) ? lockedRotorPower : runningPower;
+    MotorDPower selectedPower{((1.0 - restartableFraction) * thermalFractionA * motorA.p) +
+                                  (restartableFraction * thermalFractionB * motorB.p),
+                              ((1.0 - restartableFraction) * thermalFractionA * motorA.q) +
+                                  (restartableFraction * thermalFractionB * motorB.q)};
     const double onlineFraction = undervoltageTripped ? 1.0 - undervoltageFraction : 1.0;
     selectedPower.p *= motorBaseScale * onlineFraction * contactorFraction;
     selectedPower.q *= motorBaseScale * onlineFraction * contactorFraction;
@@ -922,15 +899,14 @@ void MotorDLoad::derivative(const IOdata& inputs,
     const double frequency = frequencyInput(inputs, stateData, sMode);
     const auto voltageIndex = voltageStateIndex();
     if (voltageIndex != kNullLocation) {
-        derivativeValues[voltageIndex] = (voltage - loc.diffStateLoc[voltageIndex]) /
-            voltageMeasurementLag;
+        derivativeValues[voltageIndex] =
+            (voltage - loc.diffStateLoc[voltageIndex]) / voltageMeasurementLag;
     }
     const auto thermalAIndex = thermalAStateIndex();
     if (thermalAIndex != kNullLocation) {
         const double heatingA = thermalHeating(voltage, frequency, hasStalled);
-        const double heatingB = thermalHeating(voltage,
-                                               frequency,
-                                               hasStalled && restartablePartStalled);
+        const double heatingB =
+            thermalHeating(voltage, frequency, hasStalled && restartablePartStalled);
         derivativeValues[thermalAIndex] =
             (heatingA - loc.diffStateLoc[thermalAIndex]) / thermalTimeConstant;
         derivativeValues[thermalBStateIndex()] =
@@ -973,7 +949,8 @@ void MotorDLoad::jacobianElements(const IOdata& inputs,
     const double frequencyStep = 1.0e-6;
     const auto heatVoltageDerivative = [&](bool stalled) {
         const double upper = thermalHeating(voltage + voltageStep, frequency, stalled);
-        const double lower = thermalHeating(std::max(0.0, voltage - voltageStep), frequency, stalled);
+        const double lower =
+            thermalHeating(std::max(0.0, voltage - voltageStep), frequency, stalled);
         const double denominator = (voltage >= voltageStep) ? 2.0 * voltageStep : voltageStep;
         return (upper - lower) / denominator;
     };
@@ -986,9 +963,7 @@ void MotorDLoad::jacobianElements(const IOdata& inputs,
     const std::array<index_t, 2> thermalIndices{thermalAIndex, thermalBIndex};
     for (index_t part = 0; part < 2; ++part) {
         const auto row = loc.diffOffset + thermalIndices[part];
-        matrixData.assign(row,
-                          row,
-                          (-1.0 / thermalTimeConstant) - stateData.cj);
+        matrixData.assign(row, row, (-1.0 / thermalTimeConstant) - stateData.cj);
         const double dHeatingDv = heatVoltageDerivative(isStalled[part]) / thermalTimeConstant;
         if (voltageLoc != kNullLocation) {
             matrixData.assign(row, voltageLoc, dHeatingDv);
@@ -996,16 +971,15 @@ void MotorDLoad::jacobianElements(const IOdata& inputs,
         if (frequencyLoc != kNullLocation) {
             matrixData.assign(row,
                               frequencyLoc,
-                              heatFrequencyDerivative(isStalled[part]) /
-                                  thermalTimeConstant);
+                              heatFrequencyDerivative(isStalled[part]) / thermalTimeConstant);
         }
     }
 }
 
 void MotorDLoad::outputPartialDerivatives(const IOdata& inputs,
-                                         const StateData& stateData,
-                                         MatrixData<double>& matrixData,
-                                         const SolverMode& sMode)
+                                          const StateData& stateData,
+                                          MatrixData<double>& matrixData,
+                                          const SolverMode& sMode)
 {
     const auto thermalAIndex = thermalAStateIndex();
     const auto thermalBIndex = thermalBStateIndex();
@@ -1015,13 +989,8 @@ void MotorDLoad::outputPartialDerivatives(const IOdata& inputs,
     const double voltage = voltageInput(inputs, stateData, sMode);
     const double frequency = frequencyInput(inputs, stateData, sMode);
     const double p0 = (motorBaseScale > 0.0) ? getP() / motorBaseScale : 0.0;
-    const auto run = characteristicPower(p0,
-                                         compPF,
-                                         voltage,
-                                         frequency - 1.0,
-                                         stallBreak,
-                                         gStall,
-                                         bStall);
+    const auto run =
+        characteristicPower(p0, compPF, voltage, frequency - 1.0, stallBreak, gStall, bStall);
     const MotorDPower locked{gStall * voltage * voltage, -bStall * voltage * voltage};
     const MotorDPower motorA = hasStalled ? locked : run;
     const MotorDPower motorB = (hasStalled && restartablePartStalled) ? locked : run;
@@ -1038,7 +1007,7 @@ void MotorDLoad::outputPartialDerivatives(const IOdata& inputs,
         0.0;
     const auto diffOffset = offsets.getDiffOffset(sMode);
     const auto aLoc = diffOffset + thermalAIndex;
-    const auto bLoc = diffOffset + thermalBIndex;
+    const auto block = diffOffset + thermalBIndex;
     matrixData.assign(POUT_LOCATION,
                       aLoc,
                       outputScale * (1.0 - restartableFraction) * motorA.p * dThermalA);
@@ -1046,10 +1015,10 @@ void MotorDLoad::outputPartialDerivatives(const IOdata& inputs,
                       aLoc,
                       outputScale * (1.0 - restartableFraction) * motorA.q * dThermalA);
     matrixData.assign(POUT_LOCATION,
-                      bLoc,
+                      block,
                       outputScale * restartableFraction * motorB.p * dThermalB);
     matrixData.assign(QOUT_LOCATION,
-                      bLoc,
+                      block,
                       outputScale * restartableFraction * motorB.q * dThermalB);
 }
 
@@ -1122,18 +1091,14 @@ void MotorDLoad::ioPartialDerivatives(const IOdata& inputs,
     const double frequency = frequencyInput(inputs, stateData, sMode);
     const double p0 = (motorBaseScale > 0.0) ? getP() / motorBaseScale : 0.0;
     const double onlineFraction = undervoltageTripped ? 1.0 - undervoltageFraction : 1.0;
-    auto derivatives = characteristicDerivatives(p0,
-                                                 compPF,
-                                                 voltage,
-                                                 frequency - 1.0,
-                                                 stallBreak,
-                                                 gStall,
-                                                 bStall);
+    auto derivatives =
+        characteristicDerivatives(p0, compPF, voltage, frequency - 1.0, stallBreak, gStall, bStall);
     MotorDPowerDerivatives lockedDerivatives;
     lockedDerivatives.pVoltage = 2.0 * gStall * voltage;
     lockedDerivatives.qVoltage = -2.0 * bStall * voltage;
     const auto derivativeA = hasStalled ? lockedDerivatives : derivatives;
-    const auto derivativeB = (hasStalled && restartablePartStalled) ? lockedDerivatives : derivatives;
+    const auto derivativeB =
+        (hasStalled && restartablePartStalled) ? lockedDerivatives : derivatives;
     const double thermalA = thermalFraction(stateValue(stateData, sMode, thermalAStateIndex()));
     const double thermalB = thermalFraction(stateValue(stateData, sMode, thermalBStateIndex()));
     const double pVoltage = (1.0 - restartableFraction) * thermalA * derivativeA.pVoltage +

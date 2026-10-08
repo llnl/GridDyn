@@ -15,15 +15,15 @@
 #include "griddyn/links/AcLine.h"
 #include "griddyn/loads/ApproximatingLoad.h"
 #include "griddyn/loads/CIMLoad.h"
+#include "griddyn/loads/CompositeLoad.h"
 #include "griddyn/loads/ElectronicLoad.h"
 #include "griddyn/loads/FDepLoad.h"
 #include "griddyn/loads/FileLoad.h"
 #include "griddyn/loads/GridLabDLoad.h"
 #include "griddyn/loads/IEELLoad.h"
 #include "griddyn/loads/LoadTemplateAdapters.h"
-#include "griddyn/loads/CompositeLoad.h"
-#include "griddyn/loads/MotorLoad5.h"
 #include "griddyn/loads/MotorDLoad.h"
+#include "griddyn/loads/MotorLoad5.h"
 #include "griddyn/loads/MotorProtectionGroups.h"
 #include "griddyn/loads/SourceLoad.h"
 #include "griddyn/loads/Svd.h"
@@ -173,10 +173,14 @@ TEST(ElectronicLoadTests, IndependentCurvesFrequencyAndVoltageRecovery)
     const double voltage = 1.04;
     const double pCurve = 0.25 * voltage * voltage + 0.75;
     const double qCurve = 0.6 * voltage + 0.4;
-    EXPECT_NEAR(electronic->getRealPower({voltage, 0.0, testFrequency}, emptyStateData, cDaeSolverMode),
+    EXPECT_NEAR(electronic->getRealPower({voltage, 0.0, testFrequency},
+                                         emptyStateData,
+                                         cDaeSolverMode),
                 0.4 * pCurve * (1.0 + 0.2 * (testFrequency - 1.0)),
                 1e-12);
-    EXPECT_NEAR(electronic->getReactivePower({voltage, 0.0, testFrequency}, emptyStateData, cDaeSolverMode),
+    EXPECT_NEAR(electronic->getReactivePower({voltage, 0.0, testFrequency},
+                                             emptyStateData,
+                                             cDaeSolverMode),
                 0.1 * qCurve * (1.0 - 0.3 * (testFrequency - 1.0)),
                 1e-12);
 
@@ -898,7 +902,8 @@ TEST_F(LoadTests, MotorDCharacteristicMatchesRunStallAndFrequencyEquations)
     const double q0 = p0 * std::tan(std::acos(compPF));
     const double q0Prime = q0 - (6.0 * std::pow(1.0 - 0.86, 2.0));
 
-    const auto nominal = MotorDLoad::characteristicPower(p0, compPF, 1.0, 0.0, 0.45, gStall, bStall);
+    const auto nominal =
+        MotorDLoad::characteristicPower(p0, compPF, 1.0, 0.0, 0.45, gStall, bStall);
     EXPECT_NEAR(nominal.p, p0, 1e-12);
     EXPECT_NEAR(nominal.q, q0, 1e-12);
 

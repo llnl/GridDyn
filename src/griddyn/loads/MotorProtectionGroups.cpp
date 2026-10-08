@@ -72,9 +72,8 @@ void MotorProtectionGroups::rootTest(CoreTime time, double voltage, double roots
         roots[offset + 1] = (tripEnabled && stage.tripTimerActive) ?
             static_cast<double>(time - stage.tripStart) - stage.tripDelay :
             1.0;
-        roots[offset + 2] = (reconnectEnabled && stage.isTripped) ?
-            voltage - stage.reconnectVoltage :
-            1.0;
+        roots[offset + 2] =
+            (reconnectEnabled && stage.isTripped) ? voltage - stage.reconnectVoltage : 1.0;
         roots[offset + 3] = (reconnectEnabled && stage.reconnectTimerActive) ?
             static_cast<double>(time - stage.reconnectStart) - stage.reconnectDelay :
             1.0;
@@ -110,8 +109,7 @@ bool MotorProtectionGroups::rootTrigger(std::size_t root, CoreTime time, double 
             }
             break;
         case 1:
-            if (stage.tripTimerActive && !stage.isTripped &&
-                (voltage < stage.tripVoltage) &&
+            if (stage.tripTimerActive && !stage.isTripped && (voltage < stage.tripVoltage) &&
                 (static_cast<double>(time - stage.tripStart) >= stage.tripDelay)) {
                 stage.tripTimerActive = false;
                 stage.isTripped = true;

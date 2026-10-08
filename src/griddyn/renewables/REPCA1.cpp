@@ -24,9 +24,7 @@ namespace {
         inputPortMap[0],
         inputPortMap[1],
         {.signal = RenewableSignal::terminalFrequency, .ioIndex = 2},
-        {.signal = RenewableSignal::electricalPower,
-         .ioIndex = 3,
-         .base = RenewableBase::machine},
+        {.signal = RenewableSignal::electricalPower, .ioIndex = 3, .base = RenewableBase::machine},
         {.signal = RenewableSignal::activeReference,
          .ioIndex = 4,
          .base = RenewableBase::machine,
@@ -293,20 +291,20 @@ double REPCA1::get(std::string_view param, units::unit unitType) const
 
 void REPCA1::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
-    const std::array<double, 28> inputs{Tfltr, Kp,    Ki,    Tft,   Tfv,  Vfrz, Rc,  Xc,  Kc,
-                                        emax,  emin,  dbd1,  dbd2,  Qmax, Qmin, Kpg, Kig, Tp,
-                                        fdbd1, fdbd2, femax, femin, Pmax, Pmin, Tg,  Ddn, Dup,
-                                        FreqRef};
+    const std::array<double, 28> inputs{Tfltr, Kp,   Ki,   Tft,  Tfv,   Vfrz,  Rc,
+                                        Xc,    Kc,   emax, emin, dbd1,  dbd2,  Qmax,
+                                        Qmin,  Kpg,  Kig,  Tp,   fdbd1, fdbd2, femax,
+                                        femin, Pmax, Pmin, Tg,   Ddn,   Dup,   FreqRef};
     const bool invalidFrequencyParameters = Fflag == 1 &&
-        (Tp <= 0 || Tg <= 0 || Kpg < 0 || Kig < 0 || femax < femin || Pmax < Pmin ||
-         fdbd1 > 0 || fdbd2 < 0 || Ddn < 0 || Dup < 0 || FreqRef <= 0);
+        (Tp <= 0 || Tg <= 0 || Kpg < 0 || Kig < 0 || femax < femin || Pmax < Pmin || fdbd1 > 0 ||
+         fdbd2 < 0 || Ddn < 0 || Dup < 0 || FreqRef <= 0);
     if (std::any_of(inputs.begin(),
                     inputs.end(),
                     [](double stateValue) { return !std::isfinite(stateValue); }) ||
         Tfltr <= 0 || Tfv <= 0 || Tft < 0 || Kp < 0 || Ki < 0 || Qmax < Qmin || emax < emin ||
         dbd1 > 0 || dbd2 < 0 || (RefFlag != 0 && RefFlag != 1) || (VCFlag != 0 && VCFlag != 1) ||
-        (PLflag != 0 && PLflag != 1) || (Fflag != 0 && Fflag != 1) ||
-        invalidFrequencyParameters || Rc != 0 || Xc != 0 || Kc != 0) {
+        (PLflag != 0 && PLflag != 1) || (Fflag != 0 && Fflag != 1) || invalidFrequencyParameters ||
+        Rc != 0 || Xc != 0 || Kc != 0) {
         throw InvalidParameterValue(
             "REPCA1 unsupported remote measurement mode or invalid parameters");
     }
@@ -326,10 +324,9 @@ void REPCA1::dynObjectInitializeB(const IOdata& inputs,
         inputs[1] == kNullVal || !std::isfinite(desiredOutput[0]) ||
         !std::isfinite(desiredOutput[1]) || desiredOutput[0] == kNullVal ||
         desiredOutput[1] == kNullVal ||
-        (Fflag == 1 && (!std::isfinite(inputs[frequencyInput]) ||
-                        !std::isfinite(inputs[electricalPowerInput]) ||
-                        inputs[frequencyInput] == kNullVal ||
-                        inputs[electricalPowerInput] == kNullVal))) {
+        (Fflag == 1 &&
+         (!std::isfinite(inputs[frequencyInput]) || !std::isfinite(inputs[electricalPowerInput]) ||
+          inputs[frequencyInput] == kNullVal || inputs[electricalPowerInput] == kNullVal))) {
         throw InvalidParameterValue("REPCA1 initial terminal voltage or Q");
     }
     vReference = inputs[0];
@@ -382,8 +379,7 @@ double REPCA1::reactiveIncrement(double voltage, const double state[]) const
 double REPCA1::activePowerReference(const IOdata& inputs) const
 {
     if (Fflag == 1 && inputs.size() > activeReferenceInput &&
-        inputs[activeReferenceInput] != kNullVal &&
-        std::isfinite(inputs[activeReferenceInput])) {
+        inputs[activeReferenceInput] != kNullVal && std::isfinite(inputs[activeReferenceInput])) {
         return inputs[activeReferenceInput];
     }
     return initialActiveReference;
@@ -399,10 +395,10 @@ double REPCA1::activePowerError(const IOdata& inputs, const double state[]) cons
     } else if (frequencyDeviation < fdbd1) {
         deadbandedDeviation = frequencyDeviation - fdbd1;
     }
-    const double frequencyPower = deadbandedDeviation >= 0.0 ?
-        Dup * deadbandedDeviation : Ddn * deadbandedDeviation;
-    const double rawError = activePowerReference(inputs) - state[activePowerFilter] +
-        frequencyPower;
+    const double frequencyPower =
+        deadbandedDeviation >= 0.0 ? Dup * deadbandedDeviation : Ddn * deadbandedDeviation;
+    const double rawError =
+        activePowerReference(inputs) - state[activePowerFilter] + frequencyPower;
     return std::clamp(rawError, femin, femax);
 }
 
@@ -437,8 +433,7 @@ std::array<double, 7> REPCA1::rates(const IOdata& inputs, const double state[]) 
         const double activeRaw = (Kpg * activeError) + state[activeIntegral];
         const bool activeUpper = activeRaw >= Pmax && activeError > 0;
         const bool activeLower = activeRaw <= Pmin && activeError < 0;
-        result[activePowerFilter] =
-            (inputs[electricalPowerInput] - state[activePowerFilter]) / Tp;
+        result[activePowerFilter] = (inputs[electricalPowerInput] - state[activePowerFilter]) / Tp;
         result[activeIntegral] = activeUpper || activeLower ? 0.0 : Kig * activeError;
         result[activeLag] = (activePiOutput(inputs, state) - state[activeLag]) / Tg;
     }

@@ -22,9 +22,7 @@
 
 namespace griddyn::loads {
 namespace {
-    bool parseIndexedParameter(std::string_view param,
-                               std::string_view prefix,
-                               index_t& index)
+    bool parseIndexedParameter(std::string_view param, std::string_view prefix, index_t& index)
     {
         if (!param.starts_with(prefix)) {
             return false;
@@ -191,8 +189,8 @@ void CompositeLoad::setComponentReactiveBase(index_t index, double reactivePower
         opFlags[POWERFLOW_INITIALIZED]) {
         throw InvalidParameterValue("invalid composite component reactive base");
     }
-    componentReactiveBases.resize(std::max(componentReactiveBases.size(),
-                                           static_cast<std::size_t>(index) + 1U));
+    componentReactiveBases.resize(
+        std::max(componentReactiveBases.size(), static_cast<std::size_t>(index) + 1U));
     componentReactiveBases[index] = reactivePower;
 }
 
@@ -212,9 +210,8 @@ double CompositeLoad::get(std::string_view param, units::unit unitType) const
     index_t componentIndex = 0;
     if (parseIndexedParameter(param, "componentfraction", componentIndex) ||
         parseIndexedParameter(param, "fraction", componentIndex)) {
-        return (componentIndex < componentFractions.size()) ?
-            componentFractions[componentIndex] :
-            kNullVal;
+        return (componentIndex < componentFractions.size()) ? componentFractions[componentIndex] :
+                                                              kNullVal;
     }
     return GridLoad::get(param, unitType);
 }
@@ -287,7 +284,8 @@ void CompositeLoad::allocateComponentPowers()
         // its operating-point Q is solved by the motor circuit.
         const double reactivePower =
             ((index < componentReactiveBases.size()) && componentReactiveBases[index]) ?
-            *componentReactiveBases[index] : Q * fractions[index];
+            *componentReactiveBases[index] :
+            Q * fractions[index];
         components[index]->setLoad(P * fractions[index], reactivePower);
         if (zipLoad != nullptr) {
             zipLoad->set("ip", zipTerms.ip * fractions[index]);

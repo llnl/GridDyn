@@ -20,22 +20,24 @@
 
 namespace griddyn::loads {
 static ChildTypeFactory<ElectronicLoad, GridLoad> gElectronicLoadFactory(
-    "load", std::to_array<std::string_view>({"electronic", "powerelectronic", "cmpldwelectronic"}));
+    "load",
+    std::to_array<std::string_view>({"electronic", "powerelectronic", "cmpldwelectronic"}));
 
 namespace {
-std::optional<std::size_t> parameterIndex(std::string_view param, char prefix, std::size_t maxIndex)
-{
-    if ((param.size() < 2U) || (param.front() != prefix)) {
-        return std::nullopt;
+    std::optional<std::size_t>
+        parameterIndex(std::string_view param, char prefix, std::size_t maxIndex)
+    {
+        if ((param.size() < 2U) || (param.front() != prefix)) {
+            return std::nullopt;
+        }
+        std::size_t value = 0;
+        const auto parsed = std::from_chars(param.data() + 1, param.data() + param.size(), value);
+        if ((parsed.ec != std::errc{}) || (parsed.ptr != param.data() + param.size()) ||
+            (value == 0U) || (value > maxIndex)) {
+            return std::nullopt;
+        }
+        return value - 1U;
     }
-    std::size_t value = 0;
-    const auto parsed = std::from_chars(param.data() + 1, param.data() + param.size(), value);
-    if ((parsed.ec != std::errc{}) || (parsed.ptr != param.data() + param.size()) ||
-        (value == 0U) || (value > maxIndex)) {
-        return std::nullopt;
-    }
-    return value - 1U;
-}
 
 }  // namespace
 
@@ -82,8 +84,7 @@ void ElectronicLoad::validateTripParameters() const
         (voltageTripComplete < 0.0) || (voltageTripStart <= voltageTripComplete)) {
         throw InvalidParameterValue("electronic load requires Vd1 > Vd2 >= 0");
     }
-    if (!std::isfinite(recoveryFraction) || (recoveryFraction < 0.0) ||
-        (recoveryFraction > 1.0)) {
+    if (!std::isfinite(recoveryFraction) || (recoveryFraction < 0.0) || (recoveryFraction > 1.0)) {
         throw InvalidParameterValue("electronic load Frcel must be in [0, 1]");
     }
 }
@@ -108,8 +109,8 @@ void ElectronicLoad::timestep(CoreTime time, const IOdata& inputs, const SolverM
     if (!isConnected()) {
         return;
     }
-    const double voltage = inputs.empty() ? ((bus == nullptr) ? 1.0 : bus->getVoltage()) :
-                                            inputs[VOLTAGE_IN_LOCATION];
+    const double voltage =
+        inputs.empty() ? ((bus == nullptr) ? 1.0 : bus->getVoltage()) : inputs[VOLTAGE_IN_LOCATION];
     if (std::isfinite(voltage)) {
         minimumVoltage = std::max(voltageTripComplete, std::min(minimumVoltage, voltage));
     }
@@ -117,9 +118,24 @@ void ElectronicLoad::timestep(CoreTime time, const IOdata& inputs, const SolverM
 
 void ElectronicLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    static constexpr std::array<std::string_view, 18> parameterNames{
-        "pfel", "vd1", "vd2", "frcel", "a1", "a2", "a3", "a4", "a5", "a6",
-        "pfrq", "qfrq", "n1", "n2", "n3", "n4", "n5", "n6"};
+    static constexpr std::array<std::string_view, 18> parameterNames{"pfel",
+                                                                     "vd1",
+                                                                     "vd2",
+                                                                     "frcel",
+                                                                     "a1",
+                                                                     "a2",
+                                                                     "a3",
+                                                                     "a4",
+                                                                     "a5",
+                                                                     "a6",
+                                                                     "pfrq",
+                                                                     "qfrq",
+                                                                     "n1",
+                                                                     "n2",
+                                                                     "n3",
+                                                                     "n4",
+                                                                     "n5",
+                                                                     "n6"};
     if (pstype == ParamStringType::LOCAL_NUM) {
         pstr.assign(parameterNames.begin(), parameterNames.end());
         return;
@@ -333,8 +349,9 @@ double ElectronicLoad::getRealPower(const IOdata& inputs,
                                     const StateData& stateData,
                                     const SolverMode& sMode) const
 {
-    const double voltage = inputs.empty() ? ((bus == nullptr) ? 1.0 : bus->getVoltage(stateData, sMode)) :
-                                            inputs[VOLTAGE_IN_LOCATION];
+    const double voltage = inputs.empty() ?
+        ((bus == nullptr) ? 1.0 : bus->getVoltage(stateData, sMode)) :
+        inputs[VOLTAGE_IN_LOCATION];
     const double freq = frequency(inputs, stateData, sMode);
     return isConnected() ? getP() * voltageFactor(false, voltage) * tripFactor(voltage) *
             (1.0 + frequencyCoefficient(false) * (freq - 1.0)) :
@@ -345,11 +362,12 @@ double ElectronicLoad::getReactivePower(const IOdata& inputs,
                                         const StateData& stateData,
                                         const SolverMode& sMode) const
 {
-    const double voltage = inputs.empty() ? ((bus == nullptr) ? 1.0 : bus->getVoltage(stateData, sMode)) :
-                                            inputs[VOLTAGE_IN_LOCATION];
+    const double voltage = inputs.empty() ?
+        ((bus == nullptr) ? 1.0 : bus->getVoltage(stateData, sMode)) :
+        inputs[VOLTAGE_IN_LOCATION];
     const double freq = frequency(inputs, stateData, sMode);
-    return isConnected() ? reactiveBasePower() * voltageFactor(true, voltage) * tripFactor(voltage) *
-            (1.0 + frequencyCoefficient(true) * (freq - 1.0)) :
+    return isConnected() ? reactiveBasePower() * voltageFactor(true, voltage) *
+            tripFactor(voltage) * (1.0 + frequencyCoefficient(true) * (freq - 1.0)) :
                            0.0;
 }
 
@@ -364,8 +382,8 @@ double ElectronicLoad::getRealPower(double voltage) const
 double ElectronicLoad::getReactivePower(double voltage) const
 {
     const double freq = (bus == nullptr) ? 1.0 : bus->getFreq();
-    return isConnected() ? reactiveBasePower() * voltageFactor(true, voltage) * tripFactor(voltage) *
-            (1.0 + frequencyCoefficient(true) * (freq - 1.0)) :
+    return isConnected() ? reactiveBasePower() * voltageFactor(true, voltage) *
+            tripFactor(voltage) * (1.0 + frequencyCoefficient(true) * (freq - 1.0)) :
                            0.0;
 }
 

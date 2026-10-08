@@ -27,9 +27,7 @@ class MotorDLoad: public GridLoad {
 
     void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     void set(std::string_view param, std::string_view val) override;
-    void set(std::string_view param,
-             double val,
-             units::unit unitType = units::defunit) override;
+    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
     void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
@@ -89,21 +87,21 @@ class MotorDLoad: public GridLoad {
 
     /** CMPLDW run-state equations, in per unit on the Motor D MVA base. */
     static MotorDPower characteristicPower(double p0,
-                                            double compPF,
-                                            double voltage,
-                                            double frequencyDeviation,
-                                            double stallBreakVoltage,
-                                            double gStall,
-                                            double bStall);
+                                           double compPF,
+                                           double voltage,
+                                           double frequencyDeviation,
+                                           double stallBreakVoltage,
+                                           double gStall,
+                                           double bStall);
     static double inverseStallCycles(double voltage);
-    static double thermalOnlineFraction(double temperature,
-                                        double tripStart,
-                                        double tripComplete);
+    static double thermalOnlineFraction(double temperature, double tripStart, double tripComplete);
 
   protected:
     void computeStallBreak();
     MotorDPower modelPower(double voltage, double frequency) const;
-    double voltageInput(const IOdata& inputs, const StateData& stateData, const SolverMode& sMode) const;
+    double voltageInput(const IOdata& inputs,
+                        const StateData& stateData,
+                        const SolverMode& sMode) const;
     double frequencyInput(const IOdata& inputs,
                           const StateData& stateData,
                           const SolverMode& sMode) const;

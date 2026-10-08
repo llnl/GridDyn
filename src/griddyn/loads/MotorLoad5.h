@@ -31,6 +31,7 @@ class MotorLoad5: public MotorLoad3 {
     double directXpp = 0.0;
     double directT0p = 0.0;
     double directT0pp = 0.0;
+
   public:
     /** @brief constructor
 @param[in] objName  the name of the object

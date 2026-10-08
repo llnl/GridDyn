@@ -18,15 +18,31 @@
 namespace griddyn::loads {
 namespace {
     static TypeFactory<WECCMotor3> gWeccMotor3Factory(
-        "load", std::to_array<std::string_view>({"weccmotor3", "motorabc", "cmp_mo3_2"}));
+        "load",
+        std::to_array<std::string_view>({"weccmotor3", "motorabc", "cmp_mo3_2"}));
 
-    constexpr std::array<std::string_view, 18> numericParameters{
-        "lfm", "ls", "lp", "lpp", "tpo", "tppo", "etrq", "tmo", "vtr1", "ttr1",
-        "ftr1", "vrc1", "trc1", "vtr2", "ttr2", "ftr2", "vrc2", "trc2"};
+    constexpr std::array<std::string_view, 18> numericParameters{"lfm",
+                                                                 "ls",
+                                                                 "lp",
+                                                                 "lpp",
+                                                                 "tpo",
+                                                                 "tppo",
+                                                                 "etrq",
+                                                                 "tmo",
+                                                                 "vtr1",
+                                                                 "ttr1",
+                                                                 "ftr1",
+                                                                 "vrc1",
+                                                                 "trc1",
+                                                                 "vtr2",
+                                                                 "ttr2",
+                                                                 "ftr2",
+                                                                 "vrc2",
+                                                                 "trc2"};
     constexpr std::array<std::string_view, 0> stringParameters{};
     constexpr std::array<std::string_view, 0> flagParameters{};
 
-    template <std::size_t N>
+    template<std::size_t N>
     bool solveLinear(std::array<std::array<double, N + 1>, N>& equations,
                      std::array<double, N>& solution)
     {
@@ -213,9 +229,7 @@ double WECCMotor3::get(std::string_view param, units::unit unitType) const
     return CIM6::get(param, unitType);
 }
 
-void WECCMotor3::setProtectionParameter(std::size_t stage,
-                                        std::string_view parameter,
-                                        double value)
+void WECCMotor3::setProtectionParameter(std::size_t stage, std::string_view parameter, double value)
 {
     auto& settings = protectionParameters[stage];
     if (parameter.starts_with("vtr")) {
@@ -258,8 +272,8 @@ void WECCMotor3::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
     }
     directX0 = synchronousReactance;
     directXp = transientReactance;
-    const bool singleCage = (subtransientTimeConstant == 0.0) ||
-        (subtransientReactance == transientReactance);
+    const bool singleCage =
+        (subtransientTimeConstant == 0.0) || (subtransientReactance == transientReactance);
     directXpp = singleCage ? transientReactance : subtransientReactance;
     directT0p = transientTimeConstant;
     directT0pp = singleCage ? 1.0e-7 : subtransientTimeConstant;
@@ -286,10 +300,8 @@ void WECCMotor3::converge()
                 {{r, -xpp, 0.0, 0.0, 1.0, 0.0, vr}},
                 {{0.0, x0 - xp, 1.0, -T0p * frequencySlip, 0.0, -sat, 0.0}},
                 {{-(x0 - xp), 0.0, T0p * frequencySlip, 1.0, sat, 0.0, 0.0}},
-                {{0.0, -(xp - xpp), 1.0, T0pp * frequencySlip,
-                  -1.0, -T0pp * frequencySlip, 0.0}},
-                {{xp - xpp, 0.0, -T0pp * frequencySlip, 1.0,
-                  T0pp * frequencySlip, -1.0, 0.0}},
+                {{0.0, -(xp - xpp), 1.0, T0pp * frequencySlip, -1.0, -T0pp * frequencySlip, 0.0}},
+                {{xp - xpp, 0.0, -T0pp * frequencySlip, 1.0, T0pp * frequencySlip, -1.0, 0.0}},
             }};
             if (!solveLinear(equations, state)) {
                 return false;
@@ -412,7 +424,8 @@ void WECCMotor3::rootTest(const IOdata& inputs,
 {
     CIM6::rootTest(inputs, stateData, roots, sMode);
     const auto baseRoots = CIM6::LocalRootCount(sMode);
-    const auto protectionRootOffset = offsets.getRootOffset(sMode) + baseRoots.first + baseRoots.second;
+    const auto protectionRootOffset =
+        offsets.getRootOffset(sMode) + baseRoots.first + baseRoots.second;
     protectionGroups.rootTest(stateData.time,
                               inputs[VOLTAGE_IN_LOCATION],
                               roots + protectionRootOffset);
@@ -425,7 +438,8 @@ void WECCMotor3::rootTrigger(CoreTime time,
 {
     CIM6::rootTrigger(time, inputs, rootMask, sMode);
     const auto baseRoots = CIM6::LocalRootCount(sMode);
-    const auto protectionRootOffset = offsets.getRootOffset(sMode) + baseRoots.first + baseRoots.second;
+    const auto protectionRootOffset =
+        offsets.getRootOffset(sMode) + baseRoots.first + baseRoots.second;
     for (std::size_t root = 0; root < MotorProtectionGroups::rootCount; ++root) {
         if ((protectionRootOffset + root < rootMask.size()) &&
             (rootMask[protectionRootOffset + root] != 0)) {

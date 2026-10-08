@@ -61,11 +61,11 @@ using namespace griddyn;
 
 namespace {
 std::string renewableDyrRecord(std::string_view model,
-                              int busId = 101,
-                              int repcaVbus = 0,
-                              int repcaFflag = 0,
-                              int repcaBranchFrom = 0,
-                              int repcaBranchTo = 0)
+                               int busId = 101,
+                               int repcaVbus = 0,
+                               int repcaFflag = 0,
+                               int repcaBranchFrom = 0,
+                               int repcaBranchTo = 0)
 {
     if (model == "PLL1") {
         return std::to_string(busId) + " 'PLL1' 'pll1a' 1 2 .02 .03 60 /\n";
@@ -154,12 +154,8 @@ void loadRenewableRecords(GridDynSimulation& simulation,
     {
         std::ofstream stream(file);
         for (auto model : models) {
-            auto record = renewableDyrRecord(model,
-                                             busId,
-                                             repcaVbus,
-                                             repcaFflag,
-                                             repcaBranchFrom,
-                                             repcaBranchTo);
+            auto record = renewableDyrRecord(
+                model, busId, repcaVbus, repcaFflag, repcaBranchFrom, repcaBranchTo);
             if (model == "REECA1" &&
                 std::find(models.begin(), models.end(), std::string_view{"WTDS"}) != models.end()) {
                 const auto flags = record.find("0 0 1 0 0 1 .8");
@@ -1346,8 +1342,8 @@ TEST(RenewableModels, REPCA1FrequencyModeDaeJacobianIncludesFrequencyInput)
         const double finiteDifference = (upper[row] - lower[row]) / (2.0 * step);
         EXPECT_NEAR(jacobian.at(rowIndex, frequencyColumn), finiteDifference, 1e-3)
             << "row " << row;
-        largestFrequencyDerivative = std::max(largestFrequencyDerivative,
-                                               std::abs(finiteDifference));
+        largestFrequencyDerivative =
+            std::max(largestFrequencyDerivative, std::abs(finiteDifference));
     }
     EXPECT_GT(largestFrequencyDerivative, 100.0);
 }
@@ -2195,8 +2191,7 @@ TEST(RenewableModels, REPCA1DyrBindsRemoteMeasurementBus)
     StateData data(0.0, state.data(), rate.data());
     data.stateSize = static_cast<count_t>(state.size());
     data.cj = 1.0;
-    const auto remoteVoltageLocation =
-        remoteBus->getOutputLoc(cDaeSolverMode, VOLTAGE_IN_LOCATION);
+    const auto remoteVoltageLocation = remoteBus->getOutputLoc(cDaeSolverMode, VOLTAGE_IN_LOCATION);
     ASSERT_NE(remoteVoltageLocation, kNullLocation);
     EXPECT_DOUBLE_EQ(remoteBus->getVoltage(data, cDaeSolverMode), state[remoteVoltageLocation]);
 
@@ -2217,10 +2212,8 @@ TEST(RenewableModels, REPCA1DyrBindsRemoteMeasurementBus)
         return residual;
     };
     constexpr double voltageStep = 1e-7;
-    const auto upperVoltage =
-        residualAtRemoteVoltage(state[remoteVoltageLocation] + voltageStep);
-    const auto lowerVoltage =
-        residualAtRemoteVoltage(state[remoteVoltageLocation] - voltageStep);
+    const auto upperVoltage = residualAtRemoteVoltage(state[remoteVoltageLocation] + voltageStep);
+    const auto lowerVoltage = residualAtRemoteVoltage(state[remoteVoltageLocation] - voltageStep);
     double largestRemoteVoltageDerivative = 0.0;
     for (std::size_t row = 0; row < state.size(); ++row) {
         const auto rowIndex = static_cast<index_t>(row);
@@ -2243,9 +2236,9 @@ TEST(RenewableModels, REPCA1DyrBindsRemoteMeasurementBus)
     const auto underFrequency = derivativeAtRemoteFrequency(0.997);
     double largestDerivativeChange = 0.0;
     for (std::size_t index = 0; index < state.size(); ++index) {
-        largestDerivativeChange = std::max(largestDerivativeChange,
-                                           std::abs(underFrequency[index] -
-                                                    nominalFrequency[index]));
+        largestDerivativeChange =
+            std::max(largestDerivativeChange,
+                     std::abs(underFrequency[index] - nominalFrequency[index]));
     }
     EXPECT_GT(largestDerivativeChange, 1e-3);
 }
@@ -2253,8 +2246,7 @@ TEST(RenewableModels, REPCA1DyrBindsRemoteMeasurementBus)
 TEST(RenewableModels, REPCA1DyrRejectsMissingRemoteBusAndMonitoredLine)
 {
     auto missingBusSimulation = renewableDyrSimulation();
-    loadRenewableRecords(
-        *missingBusSimulation, {"REGCA1", "REECA1", "REPCA1"}, 101, 202, 0);
+    loadRenewableRecords(*missingBusSimulation, {"REGCA1", "REECA1", "REPCA1"}, 101, 202, 0);
     auto* terminalBus = dynamic_cast<GridBus*>(missingBusSimulation->findByUserID("bus", 101));
     ASSERT_NE(terminalBus, nullptr);
     auto* host = dynamic_cast<RenewableGenerator*>(terminalBus->getGen(0));
@@ -2262,13 +2254,7 @@ TEST(RenewableModels, REPCA1DyrRejectsMissingRemoteBusAndMonitoredLine)
     EXPECT_THROW(host->dynInitializeA(0.0, 0), InvalidParameterValue);
 
     auto monitoredLineSimulation = renewableDyrSimulation();
-    EXPECT_THROW(loadRenewableRecords(*monitoredLineSimulation,
-                                      {"REPCA1"},
-                                      101,
-                                      0,
-                                      0,
-                                      101,
-                                      202),
+    EXPECT_THROW(loadRenewableRecords(*monitoredLineSimulation, {"REPCA1"}, 101, 0, 0, 101, 202),
                  InvalidParameterValue);
 }
 

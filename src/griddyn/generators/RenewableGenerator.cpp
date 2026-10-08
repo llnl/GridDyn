@@ -195,8 +195,7 @@ void RenewableGenerator::validateAssembly() const
             }
             const bool hasNamedSource = !component->sourceName(input.signal).empty();
             const auto sourceBusID = component->sourceBusID(input.signal);
-            if (isTerminalSignal(input.signal) && !hasNamedSource &&
-                sourceBusID == kNullLocation) {
+            if (isTerminalSignal(input.signal) && !hasNamedSource && sourceBusID == kNullLocation) {
                 continue;
             }
             count_t providers = 0;
@@ -442,7 +441,7 @@ IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
                 if (auto* busObject = signalBusSource(model, port.signal); busObject != nullptr) {
                     result[portIndex] = busObject->getFreq(stateDataValue, sMode);
                 } else if (const auto [sensor, output] = measurementSource(model, port.signal);
-                    sensor != nullptr) {
+                           sensor != nullptr) {
                     result[portIndex] = sensor->getOutput({}, stateDataValue, sMode, output);
                 } else if (inputs.size() > FREQUENCY_IN_LOCATION) {
                     result[portIndex] = inputs[FREQUENCY_IN_LOCATION];
@@ -525,7 +524,7 @@ IOlocs RenewableGenerator::modelInputLocs(const RenewableComponent* model,
             if (auto* busObject = signalBusSource(model, port.signal); busObject != nullptr) {
                 result[portIndex] = busObject->getOutputLoc(sMode, FREQUENCY_IN_LOCATION);
             } else if (const auto [sensor, output] = measurementSource(model, port.signal);
-                sensor != nullptr) {
+                       sensor != nullptr) {
                 result[portIndex] = sensor->getOutputLoc(sMode, output);
             } else if (inputLocs.size() > FREQUENCY_IN_LOCATION) {
                 result[portIndex] = inputLocs[FREQUENCY_IN_LOCATION];

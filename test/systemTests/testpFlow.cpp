@@ -315,8 +315,7 @@ TEST_F(PowerflowSystemTests, TestIteratedPflow)
 
 TEST_F(PowerflowSystemTests, PFlowOffsetsRestoredAfterDynamicInitialization)
 {
-    const std::string fileName =
-        std::string(pFlow_test_directory) + "iterated_test_case.xml";
+    const std::string fileName = std::string(pFlow_test_directory) + "iterated_test_case.xml";
     gds = readSimXMLFile(fileName);
     ASSERT_NE(gds, nullptr);
     ASSERT_EQ(gds->pFlowInitialize(), FUNCTION_EXECUTION_SUCCESS);

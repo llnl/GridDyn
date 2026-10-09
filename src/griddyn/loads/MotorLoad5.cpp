@@ -46,33 +46,47 @@ CoreObject* MotorLoad5::clone(CoreObject* obj) const
     ld->r2 = r2;
     ld->x2 = x2;
     ld->motorType = motorType;
+    ld->useDirectMachineParameters = useDirectMachineParameters;
+    ld->directX0 = directX0;
+    ld->directXp = directXp;
+    ld->directXpp = directXpp;
+    ld->directT0p = directT0p;
+    ld->directT0pp = directT0pp;
     return ld;
 }
 
 void MotorLoad5::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     // setup the parameters
-    x0 = x + xm;
-    xp = x + x1 * xm / (x1 + xm);
-    T0p = (x1 + xm) / (systemBaseFrequency * r1);
-
-    if ((r2 <= 0.0) || (x2 <= 0.0)) {
-        // The CIM single-cage form removes the subtransient circuit.  Retain
-        // the five-state formulation with the same short time constant used
-        // by the PSS/E/OpenIPSL equations, so it collapses to the transient
-        // circuit without a divide-by-zero during initialization.
-        xpp = xp;
-        T0pp = 1e-7;
-    } else if (motorType == 2) {
-        // PSS/E CIM Type-B: the two rotor cages are in series for the
-        // transient circuit and in parallel for the subtransient circuit.
-        xp = x + xm * (x1 + x2) / (x1 + x2 + xm);
-        T0p = (x1 + x2 + xm) / (systemBaseFrequency * r2);
-        T0pp = (x1 + xm) * x2 / (x1 + xm + x2) / (systemBaseFrequency * r1);
-        xpp = xp;
+    if (useDirectMachineParameters) {
+        x0 = directX0;
+        xp = directXp;
+        xpp = directXpp;
+        T0p = directT0p;
+        T0pp = directT0pp;
     } else {
-        T0pp = (x2 + x1 * xm / (x1 + xm)) / (systemBaseFrequency * r2);
-        xpp = x + x1 * x2 * xm / (x1 * x2 + x1 * xm + x2 * xm);
+        x0 = x + xm;
+        xp = x + x1 * xm / (x1 + xm);
+        T0p = (x1 + xm) / (systemBaseFrequency * r1);
+
+        if ((r2 <= 0.0) || (x2 <= 0.0)) {
+            // The CIM single-cage form removes the subtransient circuit.  Retain
+            // the five-state formulation with the same short time constant used
+            // by the PSS/E/OpenIPSL equations, so it collapses to the transient
+            // circuit without a divide-by-zero during initialization.
+            xpp = xp;
+            T0pp = 1e-7;
+        } else if (motorType == 2) {
+            // PSS/E CIM Type-B: the two rotor cages are in series for the
+            // transient circuit and in parallel for the subtransient circuit.
+            xp = x + xm * (x1 + x2) / (x1 + x2 + xm);
+            T0p = (x1 + x2 + xm) / (systemBaseFrequency * r2);
+            T0pp = (x1 + xm) * x2 / (x1 + xm + x2) / (systemBaseFrequency * r1);
+            xpp = xp;
+        } else {
+            T0pp = (x2 + x1 * xm / (x1 + xm)) / (systemBaseFrequency * r2);
+            xpp = x + x1 * x2 * xm / (x1 * x2 + x1 * xm + x2 * xm);
+        }
     }
 
     scale = mBase / systemBasePower;
@@ -80,7 +94,7 @@ void MotorLoad5::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
     if (opFlags[INIT_TRANSIENT]) {
         m_state[2] = init_slip;
     } else if (Pmot > -kHalfBigNum) {
-        m_state[2] = computeSlip(Pmot);
+        m_state[2] = computeSlip(useDirectMachineParameters && (scale > 0.0) ? Pmot / scale : Pmot);
     } else {
         m_state[2] = 1.0;
         opFlags.set(INIT_TRANSIENT);
@@ -195,6 +209,13 @@ count_t MotorLoad5::localJacobianCount(const SolverMode& sMode) const
         } else {
             localJacSize = 35;
         }
+    }
+    if (useDirectMachineParameters) {
+        // The direct-parameter equations keep the same state variables but
+        // introduce additional sparse couplings through the direct flux
+        // states. Reserve those entries for both the dynamic and algebraic
+        // formulations.
+        localJacSize += isDynamic(sMode) ? 4U : 1U;
     }
     return localJacSize;
 }
@@ -319,10 +340,12 @@ void MotorLoad5::residual(const IOdata& inputs,
             gm[emppA] * saturation / T0p;
         rv[empA] = -systemBaseFrequency * slip * gm[erpA] - (gm[empA] - (x0 - xp) * gm[irA]) / T0p -
             gm[erppA] * saturation / T0p;
+        // Each subtransient axis relaxes toward its corresponding transient
+        // axis; the slip terms provide the cross-axis coupling.
         rv[erppA] = -systemBaseFrequency * slip * (gm[empA] - gm[emppA]) -
-            (gm[erpA] - gm[emppA] - (xp - xpp) * gm[imA]) / T0pp;
+            (gm[erpA] - gm[erppA] - (xp - xpp) * gm[imA]) / T0pp;
         rv[emppA] = systemBaseFrequency * slip * (gm[erpA] - gm[erppA]) -
-            (gm[empA] - gm[erppA] + (xp - xpp) * gm[irA]) / T0pp;
+            (gm[empA] - gm[emppA] + (xp - xpp) * gm[irA]) / T0pp;
     }
 }
 
@@ -446,9 +469,9 @@ void MotorLoad5::derivative(const IOdata& /*inputs*/,
     dv[empD] = -systemBaseFrequency * slip * dst[erpD] - (dst[empD] - (x0 - xp) * ast[irA]) / T0p -
         dst[erppD] * saturation / T0p;
     dv[erppD] = -systemBaseFrequency * slip * (dst[empD] - dst[emppD]) + ddt[erpD] -
-        (dst[erpD] - dst[emppD] - (xp - xpp) * ast[imA]) / T0pp;
+        (dst[erpD] - dst[erppD] - (xp - xpp) * ast[imA]) / T0pp;
     dv[emppD] = systemBaseFrequency * slip * (dst[erpD] - dst[erppD]) + ddt[empD] -
-        (dst[empD] - dst[erppD] + (xp - xpp) * ast[irA]) / T0pp;
+        (dst[empD] - dst[emppD] + (xp - xpp) * ast[irA]) / T0pp;
 }
 
 void MotorLoad5::jacobianElements(const IOdata& inputs,
@@ -581,17 +604,17 @@ void MotorLoad5::jacobianElements(const IOdata& inputs,
     md.assign(refDiff + 2, refDiff + 4, -dst[erppD] * saturationDerivativeEmpp / T0p);
 
     // Erpp and Empp
-    // dv[3] = -systemBaseFrequency*slip*(dst[2] - dst[4]) + ddt[1] - (dst[1] - dst[4] - (xp -
+    // dv[3] = -systemBaseFrequency*slip*(dst[2] - dst[4]) + ddt[1] - (dst[1] - dst[3] - (xp -
     // xpp)*ast[1]) / T0pp; dv[4] = systemBaseFrequency*slip*(dst[1] - dst[3]) + ddt[2] -
-    // (dst[2] - dst[3] + (xp - xpp)*ast[0]) / T0pp;
+    // (dst[2] - dst[4] + (xp - xpp)*ast[0]) / T0pp;
     if (hasAlgebraicRows) {
         md.assign(refDiff + 3, refAlg + 1, (xp - xpp) / T0pp);
     }
     md.assign(refDiff + 3, refDiff, -systemBaseFrequency * (dst[2] - dst[4]));
     md.assign(refDiff + 3, refDiff + 1, -1 / T0pp + cj);
     md.assign(refDiff + 3, refDiff + 2, -systemBaseFrequency * slip);
-    md.assign(refDiff + 3, refDiff + 3, -cj);
-    md.assign(refDiff + 3, refDiff + 4, systemBaseFrequency * slip + 1 / T0pp);
+    md.assign(refDiff + 3, refDiff + 3, 1 / T0pp - cj);
+    md.assign(refDiff + 3, refDiff + 4, systemBaseFrequency * slip);
 
     if (hasAlgebraicRows) {
         md.assign(refDiff + 4, refAlg, -(xp - xpp) / T0pp);
@@ -599,8 +622,8 @@ void MotorLoad5::jacobianElements(const IOdata& inputs,
     md.assign(refDiff + 4, refDiff, systemBaseFrequency * (dst[1] - dst[3]));
     md.assign(refDiff + 4, refDiff + 1, systemBaseFrequency * slip);
     md.assign(refDiff + 4, refDiff + 2, -1 / T0pp + cj);
-    md.assign(refDiff + 4, refDiff + 3, -systemBaseFrequency * slip + 1 / T0pp);
-    md.assign(refDiff + 4, refDiff + 4, -cj);
+    md.assign(refDiff + 4, refDiff + 3, -systemBaseFrequency * slip);
+    md.assign(refDiff + 4, refDiff + 4, 1 / T0pp - cj);
 }
 
 index_t MotorLoad5::findIndex(std::string_view field, const SolverMode& sMode) const

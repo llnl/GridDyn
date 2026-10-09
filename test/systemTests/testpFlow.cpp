@@ -7,6 +7,7 @@
 #include "../gtestHelper.h"
 #include "core/CoreExceptions.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include "griddyn/GridBus.h"
 #include "griddyn/solvers/SolverInterface.h"
 #include <array>
 #include <gtest/gtest.h>
@@ -310,6 +311,31 @@ TEST_F(PowerflowSystemTests, TestIteratedPflow)
     gds->set("recorddirectory", pFlow_test_directory);
     gds->run();
     ASSERT_GT(gds->getSimulationTime(), 575.0);
+}
+
+TEST_F(PowerflowSystemTests, PFlowOffsetsRestoredAfterDynamicInitialization)
+{
+    const std::string fileName = std::string(pFlow_test_directory) + "iterated_test_case.xml";
+    gds = readSimXMLFile(fileName);
+    ASSERT_NE(gds, nullptr);
+    ASSERT_EQ(gds->pFlowInitialize(), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+
+    auto* bus30 = dynamic_cast<GridBus*>(gds->findByUserID("bus", 30));
+    ASSERT_NE(bus30, nullptr);
+    const auto originalAngleOffset = bus30->getOffsets(cPflowSolverMode).aOffset;
+    ASSERT_NE(originalAngleOffset, kNullLocation);
+
+    ASSERT_EQ(gds->dynInitialize(), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_FALSE(gds->getOffsets(cPflowSolverMode).offsetsLoaded);
+
+    // Loading counts after the generator model is added must not leave the
+    // next power flow with cleared bus offsets when its vector size is unchanged.
+    gds->stateSize(cPflowSolverMode);
+    ASSERT_EQ(bus30->getOffsets(cPflowSolverMode).aOffset, kNullLocation);
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_TRUE(gds->getOffsets(cPflowSolverMode).offsetsLoaded);
+    EXPECT_EQ(bus30->getOffsets(cPflowSolverMode).aOffset, originalAngleOffset);
 }
 
 /** test case for a floating bus ie a bus off a line with no load*/

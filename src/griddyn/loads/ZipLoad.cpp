@@ -8,6 +8,7 @@
 
 #include "../GridBus.h"
 #include "ApproximatingLoad.h"
+#include "CompositeLoad.h"
 #include "ExponentialLoad.h"
 #include "FDepLoad.h"
 #include "FileLoad.h"
@@ -41,6 +42,9 @@ static ChildTypeFactory<ZipLoad, GridLoad>
                     std::to_array<std::string_view>({"basic", "zip"}),
                     "zip");  // set basic to the default
 namespace loads {
+    static TypeFactory<CompositeLoad>
+        gCompositeLoadFactory("load",
+                              std::to_array<std::string_view>({"loadcomposition", "compositemix"}));
     static TypeFactoryArg<SourceLoad, SourceLoad::SourceType>
         gPulseLoadFactory("load", "pulse", SourceLoad::SourceType::PULSE);
     static TypeFactoryArg<SourceLoad, SourceLoad::SourceType>

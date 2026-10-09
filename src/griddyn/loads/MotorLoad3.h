@@ -18,6 +18,9 @@ class MotorLoad3: public MotorLoad {
     double T0p = 0.0;  //!< transient time constant of the motor
     double x0 = 0.0;  //!< x0 parameter
 
+    /** Fraction of the equivalent motor aggregate that remains connected. */
+    virtual double motorOutputFraction() const { return 1.0; }
+
     // double theta=0;
   public:
     /** @brief constructor

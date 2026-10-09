@@ -60,7 +60,7 @@ void SolverOffsets::reset()
     local.reset();
     total.reset();
 
-    rootsLoaded = jacobianLoaded = stateLoaded = offetLoaded = false;
+    rootsLoaded = jacobianLoaded = stateLoaded = offsetsLoaded = false;
 }
 
 void SolverOffsets::stateReset()
@@ -69,6 +69,7 @@ void SolverOffsets::stateReset()
     total.stateReset();
     diffOffset = aOffset = vOffset = algOffset = kNullLocation;
     stateLoaded = false;
+    offsetsLoaded = false;
 }
 
 void SolverOffsets::rootCountReset()
@@ -231,6 +232,7 @@ void SolverOffsets::setOffsets(const SolverOffsets& newOffsets)
     if (diffOffset == kNullLocation) {
         diffOffset = algOffset + total.algSize;
     }
+    offsetsLoaded = true;
 }
 
 void SolverOffsets::setOffset(index_t newOffset)
@@ -245,6 +247,7 @@ void SolverOffsets::setOffset(index_t newOffset)
     if (total.vSize == 0) {
         vOffset = kNullLocation;
     }
+    offsetsLoaded = true;
 }
 
 }  // namespace griddyn

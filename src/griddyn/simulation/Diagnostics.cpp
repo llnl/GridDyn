@@ -124,6 +124,7 @@ int jacobianCheck(GridDynSimulation* gds,
     std::vector<double> resid(nsize);
     std::vector<double> resid2(nsize);
     StateData stateData(timeCurr, nstate.data(), ndstate.data());
+    stateData.stateSize = nsize;
     if (sMode.pairedOffsetIndex != kNullLocation) {
         gds->fillExtraStateData(stateData, sMode);
     }
@@ -337,6 +338,7 @@ int residualCheck(GridDynSimulation* gds,
 
     std::vector<double> resid(nsize);
     StateData stateData(time, solverInterface->stateData());
+    stateData.stateSize = nsize;
     if (residTol < 0)  // make sure the tolerance is positive
     {
         residTol = resid_check_tol;
@@ -400,6 +402,7 @@ int algebraicCheck(GridDynSimulation* gds,
         algTol = resid_check_tol;
     }
     StateData stateData(time, solverInterface->stateData());
+    stateData.stateSize = nsize;
     stateData.dstate_dt = (hasDifferential(activeMode)) ? solverInterface->derivData() : nullptr;
     if (activeMode.pairedOffsetIndex != kNullLocation) {
         gds->fillExtraStateData(stateData, activeMode);
@@ -469,6 +472,7 @@ int derivativeCheck(GridDynSimulation* gds,
         derivTol = resid_check_tol;
     }
     StateData stateData(time, solverInterface->stateData(), solverInterface->derivData());
+    stateData.stateSize = nsize;
     if (activeMode.pairedOffsetIndex != kNullLocation) {
         gds->fillExtraStateData(stateData, activeMode);
     }

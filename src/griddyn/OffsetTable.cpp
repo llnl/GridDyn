@@ -165,6 +165,7 @@ void OffsetTable::unload(bool dynamicOnly)
         for (auto& offsetInfo : offsetContainer) {
             if (isDynamic(offsetInfo.sMode)) {
                 offsetInfo.stateLoaded = false;
+                offsetInfo.offsetsLoaded = false;
                 offsetInfo.rootsLoaded = false;
                 offsetInfo.jacobianLoaded = false;
                 offsetInfo.diffOffset = kNullLocation;
@@ -174,6 +175,7 @@ void OffsetTable::unload(bool dynamicOnly)
     } else {
         for (auto& offsetInfo : offsetContainer) {
             offsetInfo.stateLoaded = false;
+            offsetInfo.offsetsLoaded = false;
             offsetInfo.rootsLoaded = false;
             offsetInfo.jacobianLoaded = false;
             offsetInfo.diffOffset = kNullLocation;
@@ -188,6 +190,7 @@ void OffsetTable::stateUnload(bool dynamicOnly)
         for (auto& offsetInfo : offsetContainer) {
             if (isDynamic(offsetInfo.sMode)) {
                 offsetInfo.stateLoaded = false;
+                offsetInfo.offsetsLoaded = false;
                 offsetInfo.diffOffset = kNullLocation;
                 offsetInfo.algOffset = kNullLocation;
             }
@@ -195,6 +198,7 @@ void OffsetTable::stateUnload(bool dynamicOnly)
     } else {
         for (auto& offsetInfo : offsetContainer) {
             offsetInfo.stateLoaded = false;
+            offsetInfo.offsetsLoaded = false;
             offsetInfo.diffOffset = kNullLocation;
             offsetInfo.algOffset = kNullLocation;
         }

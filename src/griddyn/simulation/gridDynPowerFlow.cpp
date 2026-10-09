@@ -253,7 +253,25 @@ void GridDynSimulation::reInitpFlow(const SolverMode& sMode, ChangeCode change)
 
     try {
         auto pFlowData = getSolverInterface(sMode);
-        if ((opFlags[STATE_CHANGE_FLAG]) || (change == ChangeCode::STATE_SIZE_CHANGE)) {
+        const bool stateCountChanged =
+            opFlags[STATE_CHANGE_FLAG] || (change == ChangeCode::STATE_SIZE_CHANGE);
+        bool offsetsReassigned = false;
+        bool solverResized = false;
+        if (!stateCountChanged && !offsets.getOffsets(sMode).offsetsLoaded) {
+            // An object can invalidate offsets without changing the power flow
+            // vector length.  Restore every object's offsets before the solver
+            // evaluates another residual or Jacobian.
+            updateOffsets(sMode);
+            offsetsReassigned = true;
+            const auto ssize = stateSize(sMode);
+            if (ssize != pFlowData->size()) {
+                pFlowData->allocate(ssize);
+                pFlowData->initialize(currentTime);
+                pState = GridState::INITIALIZED;
+                solverResized = true;
+            }
+        }
+        if (stateCountChanged) {
             updateOffsets(sMode);
             auto ssize = stateSize(sMode);
             pFlowData->allocate(ssize);
@@ -285,7 +303,8 @@ void GridDynSimulation::reInitpFlow(const SolverMode& sMode, ChangeCode change)
                     pState = GridState::INITIALIZED;
                 }
             }
-            if ((!controlFlags[DENSE_SOLVER]) && (opFlags[JACOBIAN_COUNT_CHANGE_FLAG])) {
+            if ((!controlFlags[DENSE_SOLVER]) &&
+                ((offsetsReassigned && !solverResized) || opFlags[JACOBIAN_COUNT_CHANGE_FLAG])) {
                 pFlowData->sparseReInit(SolverInterface::SparseReinitMode::RESIZE);
             }
         }

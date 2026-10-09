@@ -1197,7 +1197,14 @@ int GridDynSimulation::residualFunction(CoreTime time,
 {
     ++residCount;
     StateData stateDataValue(time, state, dstateDt, residCount);
-    stateDataValue.stateSize = stateSize(sMode);
+    // Use the allocated vector length for model bounds checks.  A stateSize
+    // query can reload invalidated counts and clear offsets mid-callback.
+    if (isValidIndex(sMode.offsetIndex, solverInterfaces)) {
+        const auto& solver = solverInterfaces[sMode.offsetIndex];
+        if (solver != nullptr) {
+            stateDataValue.stateSize = static_cast<index_t>(solver->size());
+        }
+    }
 
 #if (CHECK_STATE > 0)
     auto dynDataa = getSolverInterface(sMode);

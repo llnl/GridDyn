@@ -330,7 +330,7 @@ class SolverOffsets {
     bool stateLoaded = false;  //!< flag indicating the state sizes have been loaded
     bool jacobianLoaded = false;  //!< flag indicated Jacobian size is loaded
     bool rootsLoaded = false;  //!< flag indicated root size is loaded
-    bool offetLoaded = false;  //!< flag indicating that offsets have been loaded
+    bool offsetsLoaded = false;  //!< flag indicating that state offsets have been assigned
     SolverMode sMode = cLocalSolverMode;  //!< the reference SolverMode
 
     // local objectSizes

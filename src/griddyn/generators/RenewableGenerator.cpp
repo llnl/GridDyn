@@ -666,11 +666,10 @@ IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
     if (!signalBindingsReady) {
         throw InvalidParameterValue("renewable signal routes require dynamic initialization");
     }
-    return signalBindings[roleIndex(model->role())].values(
-        {.hostInputs = inputs,
-         .hostInputLocs = nullptr,
-         .stateData = stateDataValue,
-         .solverMode = sMode});
+    return signalBindings[roleIndex(model->role())].values({.hostInputs = inputs,
+                                                            .hostInputLocs = nullptr,
+                                                            .stateData = stateDataValue,
+                                                            .solverMode = sMode});
 }
 
 ControlSignalInputLocations RenewableGenerator::modelInputMap(const RenewableComponent* model,
@@ -682,11 +681,10 @@ ControlSignalInputLocations RenewableGenerator::modelInputMap(const RenewableCom
     if (!signalBindingsReady) {
         throw InvalidParameterValue("renewable signal routes require dynamic initialization");
     }
-    return signalBindings[roleIndex(model->role())].inputLocations(
-        {.hostInputs = inputs,
-         .hostInputLocs = &inputLocs,
-         .stateData = stateDataValue,
-         .solverMode = sMode});
+    return signalBindings[roleIndex(model->role())].inputLocations({.hostInputs = inputs,
+                                                                    .hostInputLocs = &inputLocs,
+                                                                    .stateData = stateDataValue,
+                                                                    .solverMode = sMode});
 }
 
 void RenewableGenerator::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)

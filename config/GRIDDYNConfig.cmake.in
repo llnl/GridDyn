@@ -1,25 +1,5 @@
 @PACKAGE_INIT@
 
-include(CMakeFindDependencyMacro)
-
-find_dependency(Boost @BOOST_MINIMUM_VERSION@ CONFIG)
-
-if(@GRIDDYN_ENABLE_MULTITHREADING@)
-    find_dependency(Threads)
-endif()
-
-if(@GRIDDYN_HAVE_OPENMP@)
-    find_dependency(OpenMP COMPONENTS C CXX)
-endif()
-
-if(@GRIDDYN_ENABLE_MPI@)
-    find_dependency(MPI COMPONENTS C)
-    if(@GRIDDYN_HAVE_MPI_CXX@)
-        find_dependency(MPI COMPONENTS CXX)
-    endif()
-endif()
-
-set_and_check(GRIDDYN_INCLUDE_DIR "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_INCLUDEDIR@")
 include("${CMAKE_CURRENT_LIST_DIR}/griddyn-targets.cmake")
 
 check_required_components(GRIDDYN)

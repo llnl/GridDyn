@@ -1,7 +1,9 @@
 # Documentation release plan
 
-**Review date:** 2026-09-25
-**Release context:** Python package version 0.12.0 is the current project version.
+**Snapshot date:** 2026-09-25
+**Release context at snapshot:** Python package version 0.12.0 was current;
+version 0.13.0 was planned as the next minor release. The source version is now
+0.13.0, dated 2026-10-10; this plan's earlier status notes remain a snapshot.
 
 This plan records a practical documentation baseline and a staged path to
 improve the release documentation. It prioritizes accurate user guidance and
@@ -62,20 +64,20 @@ make the entire C++ implementation a release blocker.
    file. Fix clear comment/parser defects as they are encountered; do not
    suppress undocumented warnings to make the count appear smaller.
 
-## Next documentation pass
+## Remaining documentation work
 
 ### User guide
 
-- Add concise guides for the main user workflows: supported input formats,
-  network model configuration, steady-state power flow, dynamic simulation,
-  recorders and output files, and the optimization/export features.
-- Explain units, parameter names, return values, errors, and known boundaries
-  where users make decisions. Mark optional features and required build options
-  explicitly.
+- The Python and XML guides now cover supported input formats, network model
+  configuration, power flow, dynamic simulation, recorders, output files, and
+  optimization/export features. Keep them aligned with the implementation as
+  the interface changes.
+- Expand return-value, error, and optional-build details when a workflow needs
+  more precision than the current [Python guide](python-interface.md) provides.
 - Keep examples runnable from an installed package. Prefer the packaged
   example cases over historical machine-specific paths and output snapshots.
-- Add a clear version/release note and a compatibility/support table once the
-  supported platforms and wheel matrix for the release are confirmed.
+- Add a published version note and a platform/wheel compatibility table after
+  the supported platforms and release wheel matrix are confirmed.
 
 ### C++ API reference
 

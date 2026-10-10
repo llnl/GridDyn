@@ -7,20 +7,20 @@ from ._data import example_file
 
 def main() -> None:
     sim = gd.load(example_file("case9.m"))
-    sim.PFlow.run()
+    sim.power_flow.run()
 
-    buses = sim.Bus.as_dicts()
-    lowest_voltage = min(buses, key=lambda bus: bus["v"])
-    highest_voltage = max(buses, key=lambda bus: bus["v"])
+    buses = sim.buses.as_dicts()
+    lowest_voltage = min(buses, key=lambda bus: bus["voltage"])
+    highest_voltage = max(buses, key=lambda bus: bus["voltage"])
 
     print(f"Solved {len(buses)} buses.")
     print(
-        f"Voltage range: {lowest_voltage['name']}={lowest_voltage['v']:.4f} pu to "
-        f"{highest_voltage['name']}={highest_voltage['v']:.4f} pu"
+        f"Voltage range: {lowest_voltage['name']}={lowest_voltage['voltage']:.4f} pu to "
+        f"{highest_voltage['name']}={highest_voltage['voltage']:.4f} pu"
     )
     print("Bus voltages:")
     for bus in buses:
-        print(f"  {bus['name']}: {bus['v']:.4f} pu at {bus['a']:.4f} rad")
+        print(f"  {bus['name']}: {bus['voltage']:.4f} pu at {bus['angle']:.4f} rad")
 
 
 if __name__ == "__main__":

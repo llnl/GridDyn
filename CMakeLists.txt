@@ -11,7 +11,7 @@
 # including CMP0167 for Boost's config-package discovery.
 cmake_minimum_required(VERSION 3.28...4.2)
 
-project(GRIDDYN VERSION 0.12.0)
+project(GRIDDYN VERSION 0.13.0)
 
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
     message(FATAL_ERROR "GridDyn requires a 64-bit target platform")
@@ -36,7 +36,7 @@ endif()
 
 # version number
 set(GRIDDYN_VERSION_BUILD)
-set(GRIDDYN_DATE "2026-04-16")
+set(GRIDDYN_DATE "2026-10-10")
 
 set(GRIDDYN_VERSION_UNDERSCORE
     "${GRIDDYN_VERSION_MAJOR}_${GRIDDYN_VERSION_MINOR}_${GRIDDYN_VERSION_PATCH}"
@@ -74,9 +74,8 @@ endif()
 
 if(GRIDDYN_VERSION_DESCRIPTION)
     message(STATUS "griddyn version tag description is ${GRIDDYN_VERSION_DESCRIPTION}")
-    string(TIMESTAMP current_date "%Y-%m-%d")
     set(GRIDDYN_VERSION_STRING
-        "${GRIDDYN_VERSION}-${GRIDDYN_VERSION_DESCRIPTION} (${current_date})"
+        "${GRIDDYN_VERSION}-${GRIDDYN_VERSION_DESCRIPTION} (${GRIDDYN_DATE})"
     )
 else()
     set(GRIDDYN_VERSION_STRING "${GRIDDYN_VERSION} (${GRIDDYN_DATE})")
@@ -335,13 +334,6 @@ else()
 endif()
 
 griddyn_hide_cache_variables_by_prefix(UCM_)
-
-install(
-    TARGETS compile_flags_target build_flags_target griddyn_base ${GRIDDYN_EXPORT_COMMAND}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
 
 # ------------------------------------------------------------
 # BOOST  find the boost libraries
@@ -692,6 +684,25 @@ add_subdirectory(ThirdParty/sqlite EXCLUDE_FROM_ALL)
 # ------------------------------------------------------------
 add_subdirectory(src)
 
+# The command-line program links to SuiteSparse shared libraries when KLU is
+# built as a local shared dependency. Keep those DLLs/shared objects alongside
+# the installed executable in the applications component.
+if(GRIDDYN_SUITESPARSE_LOCAL_BUILD AND GRIDDYN_ENABLE_KLU)
+    foreach(_griddyn_suite_target IN ITEMS klu amd colamd btf)
+        if(TARGET ${_griddyn_suite_target})
+            get_target_property(_griddyn_suite_type ${_griddyn_suite_target} TYPE)
+            if(_griddyn_suite_type STREQUAL "SHARED_LIBRARY")
+                install(
+                    TARGETS ${_griddyn_suite_target}
+                    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT applications
+                    LIBRARY DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT applications
+                    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libs
+                )
+            endif()
+        endif()
+    endforeach()
+endif()
+
 # ------------------------------------------------------------
 # Enable Doxygen
 # ------------------------------------------------------------
@@ -754,7 +765,7 @@ if(GRIDDYN_WITH_CMAKE_PACKAGE)
     )
     install(FILES "${PROJECT_BINARY_DIR}/GRIDDYNConfig.cmake"
                   "${PROJECT_BINARY_DIR}/GRIDDYNConfigVersion.cmake"
-            DESTINATION "${GRIDDYN_CMAKECONFIG_INSTALL_DIR}" COMPONENT libs
+            DESTINATION "${GRIDDYN_CMAKECONFIG_INSTALL_DIR}" COMPONENT applications
     )
 endif()
 
@@ -773,7 +784,7 @@ if(GRIDDYN_WITH_CMAKE_PACKAGE)
         EXPORT griddyn-targets
         NAMESPACE Griddyn::
         DESTINATION ${GRIDDYN_CMAKECONFIG_INSTALL_DIR}
-        COMPONENT libs
+        COMPONENT applications
     )
 endif()
 

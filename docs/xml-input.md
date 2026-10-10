@@ -53,8 +53,9 @@ to supported settings.
 
 Dynamic configuration is nested under the component it belongs to. For
 example, a generator can contain a dynamic model, and an event on a load can
-change that load during a run. A recorder selects fields and a sampling period
-and writes samples to a file. The current
+change that load during a run. A recorder selects fields and a sampling period;
+Python can read its samples in memory, and an optional output setting writes
+them to a file. The current
 [two-bus dynamic example](https://github.com/LLNL/GridDyn/blob/main/examples/two_bus_dynamic_example.xml)
 shows these pieces together:
 

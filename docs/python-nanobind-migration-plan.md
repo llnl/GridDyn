@@ -92,9 +92,9 @@ import griddyn as gd
 
 sim = gd.Simulation(name="case14")
 sim.load("case14.xml")
-sim.initialize()
-sim.powerflow()
-sim.run_until(10.0)
+sim.power_flow.run()
+sim.time_domain.initialize()
+sim.time_domain.run_until(10.0)
 ```
 
 ## First Public API
@@ -109,22 +109,16 @@ class Simulation:
     def load(self, path: str | Path, *, format: str | None = None) -> None:
         ...
 
-    def initialize(self, args: str | Sequence[str] | None = None) -> None:
+    def load_from_string(self, arguments: str) -> None:
         ...
 
-    def powerflow(self) -> None:
-        ...
-
-    def run(self) -> float:
-        ...
-
-    def run_until(self, time: float) -> float:
-        ...
-
-    def step(self, time: float) -> float:
+    def load_from_args(self, arguments: list[str]) -> None:
         ...
 
     def reset(self) -> None:
+        ...
+
+    def execute(self, action: str) -> int:
         ...
 
     @property
@@ -138,15 +132,38 @@ class Simulation:
     @name.setter
     def name(self, value: str) -> None:
         ...
+
+    @property
+    def power_flow(self) -> "PowerFlowRoutine":
+        ...
+
+    @property
+    def time_domain(self) -> "TimeDomainRoutine":
+        ...
+
+class PowerFlowRoutine:
+    def run(self) -> None:
+        ...
+
+class TimeDomainRoutine:
+    def initialize(self) -> None:
+        ...
+
+    def run(self) -> float:
+        ...
+
+    def run_until(self, time: float) -> float:
+        ...
+
+    def step(self, time: float) -> float:
+        ...
+
 ```
 
-Potential aliases can be added where they improve readability:
-
-- `load_file` as an alias for `load`
-- `run_to` as an alias for `run_until`
-- `current_time` as an alias for `time`
-
-Aliases should be chosen carefully so the API remains small.
+`Simulation` owns loading, system properties, object access, file output, and
+general GridDyn action execution.
+Power-flow, OPF, and time-domain operations live on their respective domain
+objects. The simulation clock is exposed once as `Simulation.time`.
 
 ## C++ Binding Design
 
@@ -163,12 +180,10 @@ class PySimulation {
 
     void load(const std::filesystem::path& path,
               std::optional<std::string> format = std::nullopt);
-    void initialize(std::optional<nb::object> args = std::nullopt);
-    void powerflow();
-    double run();
-    double runUntil(double time);
-    double step(double time);
+    void loadFromString(std::string_view arguments);
+    void loadFromArgs(const std::vector<std::string>& arguments);
     void reset();
+    int execute(std::string_view action);
 
     double time() const;
     std::string name() const;
@@ -176,6 +191,19 @@ class PySimulation {
 
   private:
     std::shared_ptr<griddyn::GriddynRunner> runner_;
+};
+
+class PyPowerFlowRoutine {
+  public:
+    void run();
+};
+
+class PyTimeDomainRoutine {
+  public:
+    void initialize();
+    double run();
+    double runUntil(double time);
+    double step(double time);
 };
 ```
 
@@ -223,11 +251,14 @@ Long-running simulation operations should release the GIL once they no longer
 need Python objects:
 
 - `load`
-- `initialize`
-- `powerflow`
-- `run`
-- `run_until`
-- `step`
+- `load_from_string`
+- `load_from_args`
+- `power_flow.run`
+- `time_domain.initialize`
+- `time_domain.run`
+- `time_domain.run_until`
+- `time_domain.step`
+- `execute`
 - `reset` if it can perform significant work
 
 The wrapper should reacquire the GIL before throwing Python exceptions or

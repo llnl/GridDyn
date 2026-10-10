@@ -40,6 +40,26 @@ solvers are controlled by `GRIDDYN_*` CMake options. Check the top-level
 CMakeLists.txt and the relevant integration documentation before enabling an
 optional component; available settings can change as integrations evolve.
 
+## Install and find the command-line executable
+
+After building `gridDynMain`, install GridDyn with `cmake --install build`
+(add `--config Release` for a multi-configuration generator). The installed
+`GRIDDYN` CMake package exports `Griddyn::gridDynMain` as an imported executable
+target. A downstream CMake project can locate it without linking to GridDyn's
+internal static libraries:
+
+```cmake
+find_package(GRIDDYN 0.13 CONFIG REQUIRED)
+add_custom_target(show_griddyn_version
+    COMMAND $<TARGET_FILE:Griddyn::gridDynMain> --version
+    VERBATIM)
+```
+
+Set `CMAKE_PREFIX_PATH` to the installation prefix if CMake does not find the
+package automatically. The executable and its package files are in the
+`applications` install component. The Python wheel contains the Python extension;
+it does not install this command-line executable.
+
 ## Run the C++ test suite
 
 For a test-enabled build, configure with `-DBUILD_TESTING=ON` and

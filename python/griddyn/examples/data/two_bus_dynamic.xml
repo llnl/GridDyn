@@ -26,7 +26,7 @@
       <x>0.518336712</x>
 </link>
    <timestop>10</timestop>
-   <recorder period="0.05" field="bus1:voltage, bus1::gen1:p, bus1:linkreal">
+   <recorder name="signals" period="0.05" field="bus1:voltage, bus1::gen1:p, bus1:linkreal">
    <file>twobusdynout.csv</file>
    </recorder>
 </griddyn>

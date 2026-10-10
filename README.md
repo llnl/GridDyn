@@ -1,10 +1,8 @@
 # ![image](docgen/images/GridDyn_FullColor.png "GridDyn")
 
-[![Build Status](https://travis-ci.org/LLNL/GridDyn.svg?branch=master)](https://travis-ci.org/LLNL/GridDyn)
-[![Build status](https://ci.appveyor.com/api/projects/status/e3rygs874w04a25n?svg=true)](https://ci.appveyor.com/project/griddyn/griddyn)
+[![CI Tests](https://github.com/LLNL/GridDyn/actions/workflows/ci-tests.yml/badge.svg?branch=main)](https://github.com/LLNL/GridDyn/actions/workflows/ci-tests.yml)
+[![Python Library](https://github.com/LLNL/GridDyn/actions/workflows/python-library.yml/badge.svg?branch=main)](https://github.com/LLNL/GridDyn/actions/workflows/python-library.yml)
 [![Gitter chat](https://badges.gitter.im/LLNL/GridDyn.png)](https://gitter.im/LLNL/GridDyn)
-
-[![Join the chat at https://gitter.im/LLNL/GridDyn](https://badges.gitter.im/LLNL/GridDyn.svg)](https://gitter.im/LLNL/GridDyn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 GridDyn is a power system simulator developed at Lawrence Livermore National Laboratory.
 The name is a concatenation of Grid Dynamics, and as such usually pronounced as "Grid Dine".
@@ -51,7 +49,7 @@ Start with the [quick start guide](https://griddyn.readthedocs.io/en/latest/quic
 ## Python package
 
 The `griddyn` Python package provides simulation control, network inspection,
-and PYPOWER/MATPOWER power-flow case export. Install it on Python 3.13 or newer:
+and power-flow case and result export. Install it on Python 3.13 or newer:
 
 ```sh
 python -m pip install griddyn
@@ -62,8 +60,8 @@ from pathlib import Path
 import griddyn as gd
 
 sim = gd.load(Path("network.xml"))
-sim.PFlow.run()
-warnings = sim.save_pypower_case(Path("network.py"))
+sim.power_flow.run()
+warnings = sim.write_file(Path("network.py"))
 ```
 
 See the [Python interface guide](https://griddyn.readthedocs.io/en/latest/python-interface.html)

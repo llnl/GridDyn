@@ -170,6 +170,11 @@ class GridSimulation: public GridArea {
     @param[in] collectorName  the name of the recorder to find
     @return a shared_ptr to the recorder that was found or an empty shared ptr*/
     std::shared_ptr<Collector> findCollector(const std::string& collectorName);
+    /** @brief get all collectors owned by the simulation */
+    const std::vector<std::shared_ptr<Collector>>& getCollectors() const
+    {
+        return collectorList;
+    }
     /** @brief get all the objects from the event Queue */
     void getEventObjects(std::vector<CoreObject*>& objV) const;
 

@@ -12,6 +12,11 @@ repos:
     hooks:
       - id: black
         args: ["--line-length=100"]
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.0
+    hooks:
+      - id: ruff-check
+        files: ^python/(griddyn|tests)/.*\.py$
   - repo: https://github.com/asottile/blacken-docs
     rev: 1.19.1
     hooks:

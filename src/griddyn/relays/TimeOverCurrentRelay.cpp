@@ -350,9 +350,9 @@ void TimeOverCurrentRelay::validateParameters() const
         !std::isfinite(mPickup) || mTimeDial < 0.0 || !std::isfinite(mTimeDial) ||
         mDefiniteTime < timeZero || !std::isfinite(static_cast<double>(mDefiniteTime)) ||
         mInstantaneousDelay < timeZero ||
-        !std::isfinite(static_cast<double>(mInstantaneousDelay)) ||
-        mResetMargin < 0.0 || !std::isfinite(mResetMargin) || mTerminal < 1 || mTerminal > 2 ||
-        mVoltageBase <= 0.0 || !std::isfinite(mVoltageBase)) {
+        !std::isfinite(static_cast<double>(mInstantaneousDelay)) || mResetMargin < 0.0 ||
+        !std::isfinite(mResetMargin) || mTerminal < 1 || mTerminal > 2 || mVoltageBase <= 0.0 ||
+        !std::isfinite(mVoltageBase)) {
         throw InvalidParameterValue("time-over-current relay parameters or source/sink");
     }
     if (!isDisabled(mInstantaneousPickup) &&

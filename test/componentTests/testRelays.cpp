@@ -67,6 +67,7 @@ TEST(TimeOverCurrentRelayTests, PiecewiseTimeCurrentCurveInterpolatesAndClones)
 {
     relays::TimeOverCurrentRelay relay("table");
     relay.set("voltagebase", 20.0, units::kV);
+    EXPECT_NEAR(relay.get("voltagebase", units::kV), 20.0, 1e-12);
     std::array<relays::TimeOverCurrentRelay::TimeCurrentPoint, 3> points{{
         {10.0, 9999.0},
         {12.0, 120.0},

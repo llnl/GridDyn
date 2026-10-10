@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="test_tiocr1_dyr" version="0.0.1">
+   <bus name="high_side">
+      <type>SLK</type>
+      <basevoltage>500</basevoltage>
+      <voltage>1.0</voltage>
+   </bus>
+   <bus name="low_side">
+      <type>PQ</type>
+      <basevoltage>20</basevoltage>
+      <voltage>1.0</voltage>
+   </bus>
+   <link from="high_side" name="high_to_low" to="low_side">
+      <type>adjustable</type>
+      <r>0.01</r>
+      <x>0.1</x>
+   </link>
+   <basepower>100</basepower>
+   <timestart>0</timestart>
+   <timestop>1</timestop>
+   <timestep>0.01</timestep>
+</griddyn>

@@ -43,3 +43,37 @@ The importer does not make the complete Bus200 DYR case loadable by itself;
 other unsupported model families remain independent import gaps. Broader
 `TIOCR1` support requires records with varying fields and an authoritative
 PSS/E/InterPSS definition or reference trajectory.
+
+## Merge boundary and future work
+
+The mergeable scope is the native `TimeOverCurrentRelay`, its factory/CMake
+registration, the guarded DYR dispatch, the constrained reader test, and the
+small XML fixtures used by the relay tests. These pieces should be kept
+together when the feature is promoted to the main GridDyn branch. The reader
+must remain fail-fast for records outside the documented shape; silently
+approximating unknown fields would make a protection study difficult to audit.
+
+The following work is intentionally deferred:
+
+1. Obtain an authoritative PSS/E or InterPSS `TIOCR1` definition and resolve
+   the meanings of the repeated transformer references, `BL`, `0.05`, and the
+   final enable flag.
+2. Confirm whether the current points are kA, primary amps, secondary amps, or
+   another base, and compare pickup/trip times against an independent relay
+   trajectory.
+3. Determine whether the model represents phase-specific CTs, multiple
+   measuring elements, directional supervision, filtering, or a single
+   positive-sequence current element.
+4. Confirm the trip topology: one terminal, both transformer terminals, a
+   dedicated breaker object, or a coordinated relay/breaker sequence. Add a
+   two-terminal integration test only after that behavior is specified.
+5. Broaden the reader only with representative records for each new variant;
+   retain explicit rejection and diagnostics for unsupported variants.
+6. Add an end-to-end case test once the remaining Bus200 DYR model families
+   are supported. A successful `TIOCR1` import alone is not evidence that the
+   complete Bus200 dynamic case is supported.
+
+Before opening the merge request, verify that the relay implementation and all
+three relay XML fixtures are included in the feature commit, that the DYR
+compatibility note is included in the documentation build, and that the
+targeted relay tests plus the normal component-test target pass.

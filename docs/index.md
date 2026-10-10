@@ -31,6 +31,7 @@ building
 documentation-release-plan
 developer-guide/wecc-model-coverage-audit
 developer-guide/tiocr1-dyr-compatibility
+developer-guide/fskit-retirement
 ```
 
 The Doxygen API reference is generated from the C++ source separately. Its

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="limiter_models">
+  <bus name="bus1">
+    <bustype>SLK</bustype>
+    <voltage>1</voltage>
+    <generator name="gen1">
+      <model type="inverter"/>
+      <exciter type="scrx"/>
+      <limiter name="reactive_oel" type="oel4c" role="over" qref="0.1" tdelay="0.2"/>
+      <limiter name="circle_uel" type="mnlex2" role="under" q0="0" radius="0.5"/>
+    </generator>
+  </bus>
+</griddyn>

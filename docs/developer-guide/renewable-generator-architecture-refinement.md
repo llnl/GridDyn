@@ -1,5 +1,8 @@
 # RenewableGenerator architecture refinement
 
+The reusable routing mechanism now piloted in `RenewableGenerator` is
+documented in [Controller signal routing](control-signal-routing.md).
+
 ## Current implementation scope (reviewed 2026-10-04)
 
 `RenewableGenerator` hosts independent `RenewableComponent` instances. The
@@ -139,6 +142,9 @@ is a separate step after dynamics records have been loaded:
 ```cpp
 void RenewableGenerator::add(GridSubModel* object)
 {
+    if (signalBindingsReady) {
+        throw InvalidParameterValue("renewable generator structure requires a full dynamic reset");
+    }
     if (object == nullptr || ownedByAnotherHost(object)) {
         throw ObjectAddFailure(this);
     }
@@ -152,7 +158,6 @@ void RenewableGenerator::add(GridSubModel* object)
         throw ObjectAddFailure(this);
     }
     replaceOwnedRole(role, component); // ownership, locIndex, terminal pointer
-    bindingsDirty = true;
 }
 ```
 
@@ -210,9 +215,11 @@ an accepted dynamics record cannot be silently inert. Examples:
 
 Initialization uses the power-flow P/Q as the terminal target, then solves
 or iterates the coupled controls and mechanics to a consistent equilibrium.
-Replacing or removing a component invalidates the binding table and dynamic
-solver layout. Diagnostics should name the bus, machine ID, component type,
-and missing or conflicting signal.
+Replacing or removing a component after initialization first requires
+`resetSignalRoutesForDynamicInitialization()`, followed by full simulation
+`dynInitialize()` so bindings and the solver layout are rebuilt. Diagnostics
+should name the bus, machine ID, component type, and missing or conflicting
+signal.
 
 ## Why this hierarchy
 
@@ -245,9 +252,9 @@ tolerances for all five models.
 
 `GridFormingConverter` currently forms its DAE Jacobians by finite differences.
 That is covered by the component Jacobian tests, but large-network performance
-has not been benchmarked for this batch. `REECA1G` resolves its named machine
-speed source through the area tree during solver evaluation; that lookup may
-also warrant caching if many such controllers are used in a large case.
+has not been benchmarked for this batch. `REECA1G` now resolves its named
+machine-speed source when the host compiles signal bindings; solver callbacks
+read the cached source's current state.
 
 `WTARV1` is not in the implementation queue yet: its ANDES class says work is in
 progress and defines a pitch algebraic variable but no wind-velocity to

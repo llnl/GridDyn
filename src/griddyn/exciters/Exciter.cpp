@@ -352,9 +352,12 @@ const std::vector<stringVec>& Exciter::inputNames() const
         {"iq", "quadratureaxiscurrent"},
         {"vd", "directaxisvoltage"},
         {"vq", "quadratureaxisvoltage"},
+        {"pe", "electricalpower"},
         {"te", "electricaltorque"},
         {"xadifd", "fieldcurrent"},
         {"vss", "stabilizersignal"},
+        {"vuel", "underexcitationlimiter"},
+        {"voel", "overexcitationlimiter"},
     };
     return inputNamesStr;
 }
@@ -365,6 +368,11 @@ const std::vector<stringVec>& Exciter::outputNames() const
         {"e", "field", "exciter"},
     };
     return outputNamesStr;
+}
+
+bool Exciter::supportsLimiterSignal(ExciterLimiterSignal /*signal*/) const
+{
+    return false;
 }
 
 }  // namespace griddyn

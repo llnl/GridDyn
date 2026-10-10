@@ -251,7 +251,7 @@ void ExciterESAC6A::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     local.algSize = 1;
     local.diffSize = layout.count;
     local.algRoots = 1;
-    local.jacSize = 96;
+    local.jacSize = 104;
     prevTime = time0;
 }
 
@@ -277,6 +277,7 @@ ExciterESAC6A::ModelEvaluation ExciterESAC6A::evaluateModel(const IOdata& inputs
     Signal reference =
         addSignals(constantSignal(Vref + vBias - 1.0), inputSignal(inputs, exciterVsetInLocation));
     reference = addSignals(reference, inputSignal(inputs, exciterVssInLocation));
+    reference = addSignals(reference, inputSignal(inputs, exciterVuelInLocation));
     const Signal error = subtract(reference, measuredVoltage);
 
     if (Tr > 0.0) {
@@ -342,7 +343,8 @@ void ExciterESAC6A::dynObjectInitializeB(const IOdata& inputs,
     if (inputs.size() < exciterInputCount || desiredOutput.empty() ||
         !std::isfinite(inputs[exciterVoltageInLocation]) ||
         !std::isfinite(inputs[exciterVsetInLocation]) ||
-        !std::isfinite(inputs[exciterVssInLocation]) || !std::isfinite(desiredOutput[0])) {
+        !std::isfinite(inputs[exciterVssInLocation]) ||
+        !std::isfinite(inputs[exciterVuelInLocation]) || !std::isfinite(desiredOutput[0])) {
         throw InvalidParameterValue("ESAC6A initial voltage signals");
     }
     const double fieldCurrent = inputs[exciterXadIfdInLocation];
@@ -420,7 +422,8 @@ void ExciterESAC6A::dynObjectInitializeB(const IOdata& inputs,
 
     const double error = leadLagOutput / Ka;
     vBias = error + inputs[exciterVoltageInLocation] - Vref -
-        (inputs[exciterVsetInLocation] - 1.0) - inputs[exciterVssInLocation];
+        (inputs[exciterVsetInLocation] - 1.0) - inputs[exciterVssInLocation] -
+        inputs[exciterVuelInLocation];
     fieldSet.resize(2);
     fieldSet[exciterVsetInLocation] = Vref;
     std::fill(m_dstate_dt.begin(), m_dstate_dt.end(), 0.0);
@@ -795,4 +798,8 @@ double ExciterESAC6A::get(std::string_view param, units::unit unitType) const
     return Exciter::get(param, unitType);
 }
 // NOLINTEND(readability-math-missing-parentheses)
+bool ExciterESAC6A::supportsLimiterSignal(ExciterLimiterSignal signal) const
+{
+    return signal == ExciterLimiterSignal::UNDER;
+}
 }  // namespace griddyn::exciters

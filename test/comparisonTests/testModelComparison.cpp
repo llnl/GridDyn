@@ -8,6 +8,9 @@
 #include "core/CoreExceptions.h"
 #include "fileInput/fileInput.h"
 #include "griddyn/Generator.h"
+#include "griddyn/ExcitationLimiter.h"
+#include "griddyn/limiters/ExcitationLimiterMNLEX2.h"
+#include "griddyn/limiters/ExcitationLimiterOEL4C.h"
 #include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/GridComponentHelperClasses.h"
@@ -1179,6 +1182,184 @@ TEST(DyrReaderComparisonTests, MapsScrxParametersInPsseDyrOrder)
     ASSERT_EQ(simulation->dynInitialize(), 0);
     EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDynDiffSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDynAlgSolverMode, false), 0);
+}
+
+TEST(DyrReaderComparisonTests, ScrxCouplesBothOptionalLimitersToSynchronousMachine)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_scrx.dyr"));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* oel = new griddyn::ExcitationLimiter("field_oel");
+    oel->set("threshold", 0.0);
+    oel->set("gain", 0.02);
+    generator->add(oel);
+    auto* uel = new griddyn::ExcitationLimiter("reactive_uel");
+    uel->setRole(griddyn::ExcitationLimiter::Role::UNDER);
+    uel->set("threshold", 1.0);
+    uel->set("gain", 0.02);
+    generator->add(uel);
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_GT(oel->getOutput(), 0.0);
+    EXPECT_GT(uel->getOutput(), 0.0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(DyrReaderComparisonTests, ScrxCouplesDynamicUelAndOelToSynchronousMachine)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_scrx.dyr"));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* uel = new griddyn::limiters::ExcitationLimiterMNLEX2("circle_uel");
+    uel->set("q0", 0.0);
+    EXPECT_DOUBLE_EQ(uel->get("q0"), 0.0);
+    uel->set("radius", 0.5);
+    uel->set("km", 0.05);
+    uel->set("melmax", 1.0);
+    generator->add(uel);
+    auto* oel = new griddyn::limiters::ExcitationLimiterOEL4C("reactive_oel");
+    oel->set("qref", -0.1);
+    oel->set("tdelay", 0.0);
+    oel->set("kp", 0.05);
+    // An active integral branch has a nonzero derivative and cannot be a
+    // steady initial condition; keep this integration check on its P branch.
+    oel->set("ki", 0.0);
+    generator->add(oel);
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDynDiffSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDynAlgSolverMode, false), 0);
+    EXPECT_EQ(runDerivativeCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    ASSERT_EQ(simulation->run(0.5), 0);
+    EXPECT_TRUE(std::isfinite(uel->getOutput()));
+    EXPECT_TRUE(std::isfinite(oel->getOutput()));
+}
+
+TEST(DynamicComparisonTests, Mnlex2ActivatesAndRemainsBoundedAfterReactiveLimitStep)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_scrx.dyr"));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* uel = new griddyn::limiters::ExcitationLimiterMNLEX2("step_uel");
+    uel->set("q0", 0.0);
+    uel->set("radius", 5.0);
+    uel->set("km", 1.0);
+    uel->set("tm", 0.05);
+    uel->set("melmax", 0.05);
+    generator->add(uel);
+    auto event = std::make_shared<griddyn::Event>(0.1);
+    ASSERT_TRUE(event->setTarget(uel, "q0"));
+    event->setValue(20.0);
+    simulation->add(event);
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_NEAR(uel->getOutput(), 0.0, 1e-12);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runDerivativeCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    ASSERT_EQ(simulation->run(0.05), 0);
+    EXPECT_NEAR(uel->getOutput(), 0.0, 1e-12);
+
+    ASSERT_EQ(simulation->run(0.5), 0);
+    EXPECT_NEAR(uel->getOutput(), uel->get("melmax"), 1e-10);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+
+    ASSERT_EQ(simulation->run(2.0), 0);
+    EXPECT_NEAR(uel->getOutput(), uel->get("melmax"), 1e-10);
+    EXPECT_TRUE(std::isfinite(uel->getOutput()));
+    const auto finalState = simulation->getState(griddyn::cDaeSolverMode);
+    ASSERT_FALSE(finalState.empty());
+    for (double stateValue : finalState) { EXPECT_TRUE(std::isfinite(stateValue)); }
+}
+
+TEST(DynamicComparisonTests, Oel4cActivatesAfterReactiveLimitDelay)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_scrx.dyr"));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* oel = new griddyn::limiters::ExcitationLimiterOEL4C("delayed_oel");
+    oel->set("qref", 1e6);
+    oel->set("tdelay", 0.2);
+    oel->set("kp", 0.05);
+    oel->set("ki", 0.05);
+    oel->set("vmin", -0.05);
+    generator->add(oel);
+    auto event = std::make_shared<griddyn::Event>(0.1);
+    ASSERT_TRUE(event->setTarget(oel, "qref"));
+    event->setValue(-1e6);
+    simulation->add(event);
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_DOUBLE_EQ(oel->get("qref"), 1e6);
+    EXPECT_DOUBLE_EQ(oel->getOutput(), 0.0);
+    ASSERT_EQ(simulation->run(0.15), 0);
+    EXPECT_DOUBLE_EQ(oel->get("qref"), -1e6);
+    EXPECT_DOUBLE_EQ(oel->getOutput(), 0.0);
+    ASSERT_EQ(simulation->run(0.25), 0);
+    EXPECT_DOUBLE_EQ(oel->getOutput(), 0.0);
+    ASSERT_EQ(simulation->run(0.5), 0);
+    EXPECT_NEAR(oel->getOutput(), 0.05, 1e-10);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    ASSERT_EQ(simulation->run(2.0), 0);
+    EXPECT_NEAR(oel->getOutput(), 0.05, 1e-10);
+    EXPECT_TRUE(std::isfinite(oel->getOutput()));
+    const auto finalState = simulation->getState(griddyn::cDaeSolverMode);
+    ASSERT_FALSE(finalState.empty());
+    for (double stateValue : finalState) { EXPECT_TRUE(std::isfinite(stateValue)); }
+}
+
+TEST(DyrReaderComparisonTests, GensalLimiterSignalsHavePartitionedJacobians)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_gensal.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_scrx.dyr"));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* uel = new griddyn::limiters::ExcitationLimiterMNLEX2("gensal_uel");
+    uel->set("q0", 0.0);
+    uel->set("radius", 0.5);
+    uel->set("km", 0.05);
+    uel->set("melmax", 1.0);
+    generator->add(uel);
+    auto* oel = new griddyn::limiters::ExcitationLimiterOEL4C("gensal_oel");
+    oel->set("qref", -0.1);
+    oel->set("tdelay", 0.0);
+    oel->set("kp", 0.05);
+    oel->set("ki", 0.0);
+    generator->add(oel);
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDynDiffSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDynAlgSolverMode, false), 0);
 }
 
 TEST(DyrReaderComparisonTests, MapsEsac5aParametersInPsseDyrOrder)

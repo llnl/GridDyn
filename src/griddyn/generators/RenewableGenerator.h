@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "../ControlSignalRouting.h"
 #include "../Generator.h"
 #include "../renewables/RenewableComponent.h"
 #include <array>
@@ -32,6 +33,8 @@ class RenewableGenerator: public Generator {
     CoreObject* find(std::string_view object) const override;
     CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
     bool supportsActivePowerSchedule() const;
+    /** Allow structural edits before a new full dynamic initialization. */
+    void resetSignalRoutesForDynamicInitialization();
 
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
@@ -103,15 +106,23 @@ class RenewableGenerator: public Generator {
     static constexpr std::size_t roleCount = static_cast<std::size_t>(RenewableRole::count);
     std::array<RenewableComponent*, roleCount> components{};
     TerminalElectricalModel* electricalModel = nullptr;
+    std::array<ControlSignalRouting, roleCount> signalBindings;
+    std::vector<BusMeasurementSensor*> boundSensors;
+    bool signalBindingsReady = false;
 
     IOdata modelInputs(const RenewableComponent* model,
                        const IOdata& inputs,
                        const StateData& stateDataValue,
                        const SolverMode& sMode) const;
-    IOlocs modelInputLocs(const RenewableComponent* model,
-                          const IOlocs& inputLocs,
-                          const SolverMode& sMode) const;
+    ControlSignalInputLocations modelInputMap(const RenewableComponent* model,
+                                              const IOdata& inputs,
+                                              const StateData& stateDataValue,
+                                              const IOlocs& inputLocs,
+                                              const SolverMode& sMode) const;
     void validateAssembly() const;
+    void compileSignalBindings();
+    ControlSignalRoute resolveSignalRoute(const RenewableComponent* model,
+                                          const RenewablePort& port);
     std::pair<BusMeasurementSensor*, index_t> measurementSource(const RenewableComponent* model,
                                                                 RenewableSignal signal) const;
     DynamicGenerator* machineSource(const RenewableComponent* model, RenewableSignal signal) const;

@@ -28,8 +28,8 @@ BUS, ID, TATB, TB, K, TE, EMIN, EMAX, CSWITCH, RCRFD
 Use the existing GridDyn exciter signals: terminal-voltage magnitude for the
 SCRX `E_C`/`E_T` voltage inputs, field current `I_fd` (GridDyn's `XadIfd`
 signal), voltage-setpoint input, and PSS input `V_S`. The source equations
-also include UEL/OEL summing inputs; GridDyn currently treats those as zero
-until a dedicated limiter interface is wired. Convert `TATB` to the lead time
+also include UEL/OEL summing inputs. GridDyn now routes optional `VUEL` and
+`VOEL` from limiter submodels; both are zero when absent. Convert `TATB` to the lead time
 constant once on input:
 
 \f[
@@ -110,8 +110,8 @@ TE, VFELIM, KH, VHMAX, TH, TJ, KC, KD, KE, E1, SE1, E2, SE2
 
 The implemented GridDyn inputs are terminal voltage for `E_C`, voltage
 setpoint, `V_S`, field current `I_fd`, and optional absolute per-unit speed
-`omega`. The source equation also includes `V_UEL`; GridDyn currently treats it
-as zero until a dedicated limiter interface is wired. The speed multiplier is
+`omega`. GridDyn now routes optional `VUEL` from a limiter submodel and uses
+zero when absent. The speed multiplier is
 a model option, not a DYR field; default it to disabled. No direct OpenIPSL or
 ANDES implementation establishes an alternate ESAC6A input convention.
 

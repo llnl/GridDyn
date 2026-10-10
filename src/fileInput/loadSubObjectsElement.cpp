@@ -17,6 +17,7 @@
 // A bunch of includes to load these kinds of objects
 #include "griddyn/Block.h"
 #include "griddyn/Exciter.h"
+#include "griddyn/ExcitationLimiter.h"
 #include "griddyn/GenModel.h"
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
@@ -30,6 +31,7 @@
 #include "griddyn/controllers/Scheduler.h"
 #include "griddyn/loads/ZipLoad.h"
 #include "griddyn/renewables/RenewableComponent.h"
+#include "gmlc/utilities/stringOps.h"
 
 namespace griddyn {
 namespace {
@@ -67,6 +69,45 @@ namespace {
     {
         return elementReader(
             currentElement, static_cast<Exciter*>(nullptr), "exciter", readerInf, parentObject);
+    }
+
+    CoreObject* loadExcitationLimiter(std::shared_ptr<ReaderElement>& currentElement,
+                                      ReaderInfo& readerInf,
+                                      CoreObject* parentObject)
+    {
+        // The generic element reader attaches before applying parameters.
+        // Role selects the generator's OEL or UEL slot, so apply it first.
+        auto scope = readerInf.newScope();
+        loadDefines(currentElement, readerInf);
+        loadDirectories(currentElement, readerInf);
+        auto* searchObject =
+            updateSearchObject<ExcitationLimiter>(currentElement, readerInf, parentObject);
+        ExcitationLimiter* limiter = nullptr;
+        if (searchObject != nullptr) {
+            limiter = locateObjectFromElement<ExcitationLimiter>(
+                currentElement, "excitationlimiter", readerInf, searchObject);
+        }
+        limiter = buildObject(
+            currentElement, limiter, "excitationlimiter", readerInf, searchObject);
+        if (limiter == nullptr) {
+            readerInf.closeScope(scope);
+            return nullptr;
+        }
+        setIndex(currentElement, limiter, readerInf);
+        auto role = readerInf.checkDefines(
+            getElementField(currentElement, "role", readerConfig::defMatchType));
+        if (!role.empty()) {
+            gmlc::utilities::makeLowerCase(role);
+            limiter->set("role", role);
+        }
+        loadParentInfo(currentElement, limiter, readerInf, searchObject);
+        loadElementInformation(limiter,
+                               currentElement,
+                               "excitationlimiter",
+                               readerInf,
+                               emptyIgnoreList);
+        readerInf.closeScope(scope);
+        return limiter;
     }
 
     CoreObject* loadGovernor(std::shared_ptr<ReaderElement>& currentElement,
@@ -204,10 +245,12 @@ namespace {
         return parentObject;
     }
 
-    constexpr std::array<LoadFunctionEntry, 20> loadFunctionMap{
+    constexpr std::array<LoadFunctionEntry, 22> loadFunctionMap{
         {{.mName = "genmodel", .mLoader = &loadGenModel},
          {.mName = "renewable_model", .mLoader = &loadRenewableModel},
          {.mName = "exciter", .mLoader = &loadExciter},
+         {.mName = "excitationlimiter", .mLoader = &loadExcitationLimiter},
+         {.mName = "limiter", .mLoader = &loadExcitationLimiter},
          {.mName = "governor", .mLoader = &loadGovernor},
          {.mName = "pss", .mLoader = &loadPss},
          {.mName = "source", .mLoader = &loadSource},

@@ -38,7 +38,11 @@ inline constexpr int exciterElectricalTorqueInLocation =
 inline constexpr int exciterXadIfdInLocation =
     exciterMachineSignalBase + static_cast<int>(MachineControllerSignal::XADIFD);
 inline constexpr int exciterVssInLocation = exciterMachineSignalBase + machineControllerSignalCount;
-inline constexpr count_t exciterInputCount = exciterVssInLocation + 1;
+inline constexpr int exciterVuelInLocation = exciterVssInLocation + 1;
+inline constexpr int exciterVoelInLocation = exciterVuelInLocation + 1;
+inline constexpr count_t exciterInputCount = exciterVoelInLocation + 1;
+
+enum class ExciterLimiterSignal { UNDER, OVER };
 
 /** class defining the interface for an exciter as well a trivial implementation of such
  */
@@ -105,6 +109,8 @@ class Exciter: public GridSubModel {
     // virtual void setTime(CoreTime time){prevTime=time;};
     virtual const std::vector<stringVec>& inputNames() const override;
     virtual const std::vector<stringVec>& outputNames() const override;
+    /** Whether this exciter implements the named external limiter action. */
+    virtual bool supportsLimiterSignal(ExciterLimiterSignal signal) const;
 
   protected:
     /** Configure the initial exciter-limit policy from simulation flags. */

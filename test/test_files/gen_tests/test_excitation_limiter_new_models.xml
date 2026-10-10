@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="new_limiter_models">
+  <bus name="bus1">
+    <bustype>SLK</bustype>
+    <voltage>1</voltage>
+    <generator name="oel3c_gen">
+      <model type="inverter"/>
+      <exciter type="scrx"/>
+      <limiter name="field_oel" type="oel3c" role="over" itfpu="1.05"
+               kscale="1" tf="0.02" k1="1" koel="1" toel="24" kpoel="1"
+               voelmin1="-1" voelmax1="0.66" voelmin2="-1" voelmax2="0"/>
+    </generator>
+    <generator name="uel1_gen">
+      <model type="inverter"/>
+      <exciter type="scrx"/>
+      <limiter name="circle_uel" type="uel1" role="under" kur="1.95"
+               kuc="1.38" kuf="0" kul="40" kui="0.1"/>
+    </generator>
+    <generator name="uel2c_gen">
+      <model type="inverter"/>
+      <exciter type="scrx"/>
+      <limiter name="curve_uel" type="uel2c" role="under" k1="0" k2="0"
+               kul="1" kui="0.1" p0="0" q0="-0.3" p1="0.5" q1="-0.25"
+               p2="1" q2="0"/>
+    </generator>
+  </bus>
+</griddyn>

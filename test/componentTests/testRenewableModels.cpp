@@ -10,6 +10,7 @@
 #include "fileInput/ReaderInfo.h"
 #include "fileInput/fileInput.h"
 #include "griddyn/GridArea.h"
+#include "griddyn/ControlSignalRouting.h"
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/controllers/Scheduler.h"
 #include "griddyn/generators/DynamicGenerator.h"
@@ -476,6 +477,98 @@ void checkRenewablePartitionedHost(RenewableGenerator& host,
 }
 }  // namespace
 
+TEST(ControlSignalRouting, ScaledComputedInputPropagatesSparseJacobian)
+{
+    ControlSignalRouting routing;
+    ControlSignalRoute computed;
+    computed.inputIndex = 0;
+    computed.gain = 3.0;
+    computed.offset = -1.0;
+    computed.value = [](const ControlSignalContext& context) {
+        return context.hostInputs[0] * context.hostInputs[1] + 2.0 * context.hostInputs[1];
+    };
+    computed.derivatives = [](const ControlSignalContext& context,
+                              std::vector<ControlSignalDerivative>& terms) {
+        terms.push_back({(*context.hostInputLocs)[0], context.hostInputs[1]});
+        terms.push_back({(*context.hostInputLocs)[1], context.hostInputs[0] + 2.0});
+    };
+    routing.add(std::move(computed));
+
+    ControlSignalRoute direct;
+    direct.inputIndex = 1;
+    direct.value = [](const ControlSignalContext& context) { return context.hostInputs[2]; };
+    direct.derivatives = [](const ControlSignalContext& context,
+                            std::vector<ControlSignalDerivative>& terms) {
+        terms.push_back({(*context.hostInputLocs)[2], 1.0});
+    };
+    routing.add(std::move(direct));
+
+    ControlSignalRoute neutral;
+    neutral.inputIndex = 2;
+    neutral.value = [](const ControlSignalContext&) { return 0.0; };
+    routing.add(std::move(neutral));
+
+    const IOdata inputs{4.0, 5.0, 6.0};
+    const IOlocs inputLocs{10, 11, 12};
+    const ControlSignalContext context{inputs, &inputLocs, emptyStateData, cDaeSolverMode};
+    EXPECT_EQ(routing.values(context), (IOdata{89.0, 6.0, 0.0}));
+    IOdata hostBuffer{1.0, 1.0, 1.0, 42.0};
+    routing.writeValues(context, hostBuffer);
+    EXPECT_EQ(hostBuffer, (IOdata{89.0, 6.0, 0.0, 42.0}));
+
+    const auto locations = routing.inputLocations(context);
+    EXPECT_TRUE(locations.needsTranslation());
+    EXPECT_EQ(locations.locations[1], 12);
+    EXPECT_EQ(locations.locations[2], kNullLocation);
+    MatrixDataSparse<double> jacobian;
+    locations.assign(jacobian, 3, locations.locations[0], 2.0);
+    locations.assign(jacobian, 3, locations.locations[1], 7.0);
+    jacobian.compact();
+    EXPECT_DOUBLE_EQ(jacobian.at(3, 10), 30.0);
+    EXPECT_DOUBLE_EQ(jacobian.at(3, 11), 36.0);
+    EXPECT_DOUBLE_EQ(jacobian.at(3, 12), 7.0);
+}
+
+TEST(ControlSignalRouting, HostFrameRoutesValuesAndSparseDerivatives)
+{
+    ControlSignalRouting routing;
+    routing.addInput(0, 0, "direct source", 2.0, 1.0);
+    routing.addInput(1, 1, "computed source");
+
+    const IOdata values{3.0, 4.0};
+    const IOlocs directLocations{10, kNullLocation};
+    const std::vector<std::vector<ControlSignalDerivative>> sparse{
+        {}, {{20, 0.5}, {21, -1.0}}};
+    const ControlSignalContext context{
+        values, &directLocations, emptyStateData, cDaeSolverMode, &sparse};
+    EXPECT_EQ(routing.values(context), (IOdata{7.0, 4.0}));
+
+    const auto locations = routing.inputLocations(context);
+    std::vector<ControlSignalDerivative> expanded;
+    locations.appendExpanded(locations.locations[1], 2.0, expanded);
+    ASSERT_EQ(expanded.size(), 2);
+    EXPECT_EQ(expanded[0].location, 20);
+    EXPECT_DOUBLE_EQ(expanded[0].value, 1.0);
+    EXPECT_EQ(expanded[1].location, 21);
+    EXPECT_DOUBLE_EQ(expanded[1].value, -2.0);
+    MatrixDataSparse<double> jacobian;
+    locations.assign(jacobian, 3, locations.locations[0], 2.0);
+    locations.assign(jacobian, 3, locations.locations[1], 3.0);
+    jacobian.compact();
+    EXPECT_DOUBLE_EQ(jacobian.at(3, 10), 4.0);
+    EXPECT_DOUBLE_EQ(jacobian.at(3, 20), 1.5);
+    EXPECT_DOUBLE_EQ(jacobian.at(3, 21), -3.0);
+
+    ControlSignalInputLocations reused;
+    routing.writeInputLocations(context, reused);
+    EXPECT_TRUE(reused.needsTranslation());
+    ControlSignalRouting directOnly;
+    directOnly.addInput(0, 0, "direct source");
+    directOnly.writeInputLocations(context, reused);
+    EXPECT_FALSE(reused.needsTranslation());
+    EXPECT_EQ(reused.locations, (IOlocs{10}));
+}
+
 TEST(RenewableModels, FactoryAndRoleReplacement)
 {
     auto factory = CoreObjectFactory::instance();
@@ -501,6 +594,23 @@ TEST(RenewableModels, FactoryAndRoleReplacement)
     EXPECT_NE(copiedConverter, second);
     host.remove(second);
     EXPECT_EQ(host.find("electrical"), nullptr);
+}
+
+TEST(RenewableModels, SignalRoutesFreezeUntilFullDynamicInitialization)
+{
+    RenewableGenerator host;
+    host.add(new REGCA1);
+    host.dynInitializeA(0.0, 0);
+
+    auto replacement = std::make_unique<REGCA1>();
+    EXPECT_THROW(host.add(replacement.get()), InvalidParameterValue);
+    EXPECT_THROW(host.remove(host.find("electrical")), InvalidParameterValue);
+
+    host.resetSignalRoutesForDynamicInitialization();
+    EXPECT_THROW(host.timestep(0.01, {1.0, 0.0}, cLocalSolverMode), InvalidParameterValue);
+    host.add(replacement.get());
+    replacement.release();
+    EXPECT_NO_THROW(host.dynInitializeA(0.0, 0));
 }
 
 TEST(RenewableModels, GridFormingVariantsInitializeAndRespond)

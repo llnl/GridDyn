@@ -245,7 +245,8 @@ static const IgnoreListType& keywords()
                            "agc",       "reserve",    "reservedispatch",
                            "dispatch",  "econ",       "configuration",
                            "custom",    "purpose",    "event",
-                           "collector", "extra",      "renewable_model"};
+                           "collector", "extra",      "renewable_model",
+                           "limiter",   "excitationlimiter"};
     return *keywordSet;
 }
 

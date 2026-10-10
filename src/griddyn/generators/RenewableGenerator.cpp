@@ -15,6 +15,7 @@
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "utilities/MatrixData.hpp"
+#include "utilities/MatrixDataCustomWriteOnly.hpp"
 #include "utilities/MatrixDataScale.hpp"
 #include <algorithm>
 #include <array>
@@ -44,7 +45,24 @@ RenewableGenerator::RenewableGenerator(const std::string& objName): Generator(ob
 
 CoreObject* RenewableGenerator::clone(CoreObject* obj) const
 {
-    return cloneBase<RenewableGenerator, Generator>(this, obj);
+    auto* cloned = cloneBase<RenewableGenerator, Generator>(this, obj);
+    if (cloned != nullptr) {
+        cloned->signalBindingsReady = false;
+        cloned->boundSensors.clear();
+        for (auto& bindings : cloned->signalBindings) {
+            bindings.clear();
+        }
+    }
+    return cloned;
+}
+
+void RenewableGenerator::resetSignalRoutesForDynamicInitialization()
+{
+    signalBindingsReady = false;
+    for (auto& bindings : signalBindings) {
+        bindings.clear();
+    }
+    boundSensors.clear();
 }
 
 std::size_t RenewableGenerator::roleIndex(RenewableRole role)
@@ -58,6 +76,9 @@ std::size_t RenewableGenerator::roleIndex(RenewableRole role)
 
 void RenewableGenerator::add(GridSubModel* obj)
 {
+    if (signalBindingsReady) {
+        throw InvalidParameterValue("renewable generator structure requires a full dynamic reset");
+    }
     if (obj == nullptr ||
         (obj->getParent() != nullptr &&
          !isSameObject(static_cast<id_type_t>(0), obj->getParent()) && obj->getParent() != this)) {
@@ -96,6 +117,9 @@ void RenewableGenerator::add(GridSubModel* obj)
 
 void RenewableGenerator::remove(CoreObject* obj)
 {
+    if (signalBindingsReady) {
+        throw InvalidParameterValue("renewable generator structure requires a full dynamic reset");
+    }
     if (sched == obj) {
         sched = nullptr;
     }
@@ -410,165 +434,270 @@ GridBus* RenewableGenerator::regulationSource(const RenewableComponent* model) c
     return match;
 }
 
+void RenewableGenerator::compileSignalBindings()
+{
+    signalBindingsReady = false;
+    validateAssembly();
+    for (auto& bindings : signalBindings) {
+        bindings.clear();
+    }
+    boundSensors.clear();
+    for (std::size_t role = 0; role < components.size(); ++role) {
+        const auto* model = components[role];
+        if (model == nullptr || !model->isEnabled()) {
+            continue;
+        }
+        for (const auto& port : model->inputPorts()) {
+            signalBindings[role].add(resolveSignalRoute(model, port));
+        }
+    }
+    signalBindingsReady = true;
+}
+
+ControlSignalRoute RenewableGenerator::resolveSignalRoute(const RenewableComponent* model,
+                                                          const RenewablePort& port)
+{
+    ControlSignalRoute route;
+    route.inputIndex = port.ioIndex;
+    const auto requireUnbound = [&route] {
+        if (route.value) {
+            throw InvalidParameterValue("renewable input has multiple compatible providers");
+        }
+    };
+    const auto trackSensor = [this](BusMeasurementSensor* sensor) {
+        if (std::find(boundSensors.begin(), boundSensors.end(), sensor) == boundSensors.end()) {
+            boundSensors.push_back(sensor);
+        }
+    };
+    const auto bindExternal = [&route, &requireUnbound](index_t inputIndex) {
+        requireUnbound();
+        route.sourceName = "generator terminal input";
+        route.value = [inputIndex](const ControlSignalContext& context) {
+            return context.hostInputs.size() > static_cast<std::size_t>(inputIndex) ?
+                context.hostInputs[inputIndex] :
+                kNullVal;
+        };
+        route.derivatives = [inputIndex](const ControlSignalContext& context,
+                                         std::vector<ControlSignalDerivative>& terms) {
+            if (context.hostInputLocs != nullptr &&
+                context.hostInputLocs->size() > static_cast<std::size_t>(inputIndex)) {
+                const auto location = (*context.hostInputLocs)[inputIndex];
+                if (location != kNullLocation) {
+                    terms.push_back({location, 1.0});
+                }
+            }
+        };
+    };
+    const auto bindBusVoltage = [&route, &requireUnbound](GridBus* source) {
+        requireUnbound();
+        route.sourceName = source->getName();
+        route.value = [source](const ControlSignalContext& context) {
+            return source->getVoltage(context.stateData, context.solverMode);
+        };
+        route.derivatives = [source](const ControlSignalContext& context,
+                                     std::vector<ControlSignalDerivative>& terms) {
+            const auto location = source->getOutputLoc(context.solverMode, VOLTAGE_IN_LOCATION);
+            if (location != kNullLocation) {
+                terms.push_back({location, 1.0});
+            }
+        };
+    };
+    const auto bindSensor = [&route, &trackSensor, &requireUnbound](BusMeasurementSensor* source,
+                                                                    index_t outputIndex) {
+        requireUnbound();
+        trackSensor(source);
+        route.sourceName = source->getName();
+        route.value = [source, outputIndex](const ControlSignalContext& context) {
+            if (!source->isEnabled()) {
+                return kNullVal;
+            }
+            return source->getOutput({}, context.stateData, context.solverMode, outputIndex);
+        };
+        route.derivatives = [source, outputIndex](const ControlSignalContext& context,
+                                                  std::vector<ControlSignalDerivative>& terms) {
+            if (!source->isEnabled()) {
+                return;
+            }
+            const auto location = source->getOutputLoc(context.solverMode, outputIndex);
+            if (location != kNullLocation) {
+                terms.push_back({location, 1.0});
+            }
+        };
+    };
+
+    if (port.signal == RenewableSignal::terminalVoltage) {
+        if (auto* source = signalBusSource(model, port.signal); source != nullptr) {
+            bindBusVoltage(source);
+        } else {
+            bindExternal(VOLTAGE_IN_LOCATION);
+        }
+    } else if (port.signal == RenewableSignal::terminalAngle) {
+        const auto [sensor, output] = measurementSource(model, port.signal);
+        if (sensor != nullptr) {
+            bindSensor(sensor, output);
+        } else {
+            bindExternal(ANGLE_IN_LOCATION);
+        }
+    } else if (port.signal == RenewableSignal::terminalFrequency) {
+        if (auto* source = signalBusSource(model, port.signal); source != nullptr) {
+            requireUnbound();
+            route.sourceName = source->getName();
+            route.value = [source](const ControlSignalContext& context) {
+                return source->getFreq(context.stateData, context.solverMode);
+            };
+            route.derivatives = [source](const ControlSignalContext& context,
+                                         std::vector<ControlSignalDerivative>& terms) {
+                const auto location =
+                    source->getOutputLoc(context.solverMode, FREQUENCY_IN_LOCATION);
+                if (location != kNullLocation) {
+                    terms.push_back({location, 1.0});
+                }
+            };
+        } else {
+            const auto [sensor, output] = measurementSource(model, port.signal);
+            if (sensor != nullptr) {
+                bindSensor(sensor, output);
+            } else {
+                bindExternal(FREQUENCY_IN_LOCATION);
+            }
+        }
+    } else if (port.signal == RenewableSignal::regulationVoltage) {
+        if (auto* source = regulationSource(model); source != nullptr) {
+            bindBusVoltage(source);
+        }
+    } else {
+        if (port.signal == RenewableSignal::activeReference &&
+            port.base == RenewableBase::machine && sched != nullptr && sched->isEnabled()) {
+            requireUnbound();
+            route.sourceName = sched->getName();
+            route.value = [this](const ControlSignalContext& context) {
+                if (!sched->isEnabled()) {
+                    return kNullVal;
+                }
+                const auto queryTime =
+                    context.stateData.empty() ? prevTime : context.stateData.time;
+                return sched->predict(queryTime) * systemBasePower / machineBasePower;
+            };
+        }
+        if (auto* source = machineSource(model, port.signal); source != nullptr) {
+            requireUnbound();
+            route.sourceName = source->getName();
+            route.value = [source](const ControlSignalContext& context) {
+                if (!source->isEnabled()) {
+                    return kNullVal;
+                }
+                index_t location = kNullLocation;
+                return source->getFreq(context.stateData, context.solverMode, &location);
+            };
+            route.derivatives = [source](const ControlSignalContext& context,
+                                         std::vector<ControlSignalDerivative>& terms) {
+                if (!source->isEnabled()) {
+                    return;
+                }
+                index_t location = kNullLocation;
+                source->getFreq(emptyStateData, context.solverMode, &location);
+                if (location != kNullLocation) {
+                    terms.push_back({location, 1.0});
+                }
+            };
+        }
+        const auto [sensor, output] = measurementSource(model, port.signal);
+        if (sensor != nullptr) {
+            bindSensor(sensor, output);
+        }
+        for (const auto* candidate : components) {
+            if (candidate == nullptr || candidate == model || !candidate->isEnabled() ||
+                !matchesSource(model, candidate, port.signal)) {
+                continue;
+            }
+            for (const auto& provided : candidate->outputPorts()) {
+                if (provided.signal != port.signal || provided.base != port.base) {
+                    continue;
+                }
+                requireUnbound();
+                const auto outputIndex = provided.ioIndex;
+                route.sourceName = candidate->getName();
+                route.value = [this, candidate, outputIndex](const ControlSignalContext& context) {
+                    if (!candidate->isEnabled() || !candidate->checkFlag(DYN_INITIALIZED)) {
+                        return kNullVal;
+                    }
+                    const SolverMode* outputMode = &context.solverMode;
+                    StateData outputState = context.stateData;
+                    if (isDifferentialOnly(context.solverMode) &&
+                        context.solverMode.pairedOffsetIndex != kNullLocation &&
+                        context.stateData.algState != nullptr) {
+                        const auto& paired =
+                            offsets.getSolverMode(context.solverMode.pairedOffsetIndex);
+                        if (paired.algebraic && candidate->algSize(paired) > outputIndex) {
+                            outputMode = &paired;
+                            outputState.state = context.stateData.algState;
+                        }
+                    }
+                    return candidate->getOutput({}, outputState, *outputMode, outputIndex);
+                };
+                route.derivatives = [candidate,
+                                     outputIndex](const ControlSignalContext& context,
+                                                  std::vector<ControlSignalDerivative>& terms) {
+                    if (!candidate->isEnabled() || !candidate->checkFlag(DYN_INITIALIZED)) {
+                        return;
+                    }
+                    const auto algebraicOutputs = candidate->algSize(cLocalSolverMode);
+                    if ((isDifferentialOnly(context.solverMode) &&
+                         outputIndex < algebraicOutputs) ||
+                        (isAlgebraicOnly(context.solverMode) && outputIndex >= algebraicOutputs)) {
+                        return;
+                    }
+                    const auto location = candidate->getOutputLoc(context.solverMode, outputIndex);
+                    if (location != kNullLocation) {
+                        terms.push_back({location, 1.0});
+                    }
+                };
+            }
+        }
+    }
+    return route;
+}
+
 IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
                                        const IOdata& inputs,
                                        const StateData& stateDataValue,
                                        const SolverMode& sMode) const
 {
-    IOdata result;
-    for (const auto& port : model->inputPorts()) {
-        const auto portIndex = static_cast<std::size_t>(port.ioIndex);
-        if (result.size() <= portIndex) {
-            result.resize(portIndex + 1, kNullVal);
-        }
-        switch (port.signal) {
-            case RenewableSignal::terminalVoltage:
-                if (auto* busObject = signalBusSource(model, port.signal); busObject != nullptr) {
-                    result[portIndex] = busObject->getVoltage(stateDataValue, sMode);
-                } else if (inputs.size() > VOLTAGE_IN_LOCATION) {
-                    result[portIndex] = inputs[VOLTAGE_IN_LOCATION];
-                }
-                break;
-            case RenewableSignal::terminalAngle:
-                if (const auto [sensor, output] = measurementSource(model, port.signal);
-                    sensor != nullptr) {
-                    result[portIndex] = sensor->getOutput({}, stateDataValue, sMode, output);
-                } else if (inputs.size() > ANGLE_IN_LOCATION) {
-                    result[portIndex] = inputs[ANGLE_IN_LOCATION];
-                }
-                break;
-            case RenewableSignal::terminalFrequency:
-                if (auto* busObject = signalBusSource(model, port.signal); busObject != nullptr) {
-                    result[portIndex] = busObject->getFreq(stateDataValue, sMode);
-                } else if (const auto [sensor, output] = measurementSource(model, port.signal);
-                           sensor != nullptr) {
-                    result[portIndex] = sensor->getOutput({}, stateDataValue, sMode, output);
-                } else if (inputs.size() > FREQUENCY_IN_LOCATION) {
-                    result[portIndex] = inputs[FREQUENCY_IN_LOCATION];
-                }
-                break;
-            case RenewableSignal::regulationVoltage:
-                if (auto* busObject = regulationSource(model); busObject != nullptr) {
-                    result[portIndex] = busObject->getVoltage(stateDataValue, sMode);
-                }
-                break;
-            default:
-                if (port.signal == RenewableSignal::activeReference &&
-                    port.base == RenewableBase::machine && sched != nullptr && sched->isEnabled()) {
-                    const auto queryTime = stateDataValue.empty() ? prevTime : stateDataValue.time;
-                    result[portIndex] =
-                        sched->predict(queryTime) * systemBasePower / machineBasePower;
-                }
-                if (auto* machine = machineSource(model, port.signal); machine != nullptr) {
-                    index_t location = kNullLocation;
-                    result[portIndex] = machine->getFreq(stateDataValue, sMode, &location);
-                }
-                if (const auto [sensor, output] = measurementSource(model, port.signal);
-                    sensor != nullptr) {
-                    result[portIndex] = sensor->getOutput({}, stateDataValue, sMode, output);
-                }
-                for (const auto* candidate : components) {
-                    if (candidate == nullptr || candidate == model || !candidate->isEnabled() ||
-                        !candidate->checkFlag(DYN_INITIALIZED) ||
-                        !matchesSource(model, candidate, port.signal)) {
-                        continue;
-                    }
-                    for (const auto& output : candidate->outputPorts()) {
-                        if (output.signal == port.signal && output.base == port.base) {
-                            const SolverMode* outputMode = &sMode;
-                            StateData outputState = stateDataValue;
-                            if (isDifferentialOnly(sMode) &&
-                                sMode.pairedOffsetIndex != kNullLocation &&
-                                stateDataValue.algState != nullptr) {
-                                const auto& paired = offsets.getSolverMode(sMode.pairedOffsetIndex);
-                                if (paired.algebraic &&
-                                    candidate->algSize(paired) > output.ioIndex) {
-                                    outputMode = &paired;
-                                    outputState.state = stateDataValue.algState;
-                                }
-                            }
-                            result[portIndex] =
-                                candidate->getOutput({}, outputState, *outputMode, output.ioIndex);
-                        }
-                    }
-                }
-        }
+    if (!signalBindingsReady) {
+        throw InvalidParameterValue("renewable signal routes require dynamic initialization");
     }
-    return result;
+    return signalBindings[roleIndex(model->role())].values(
+        {inputs, nullptr, stateDataValue, sMode});
 }
 
-IOlocs RenewableGenerator::modelInputLocs(const RenewableComponent* model,
-                                          const IOlocs& inputLocs,
-                                          const SolverMode& sMode) const
+ControlSignalInputLocations RenewableGenerator::modelInputMap(const RenewableComponent* model,
+                                                              const IOdata& inputs,
+                                                              const StateData& stateDataValue,
+                                                              const IOlocs& inputLocs,
+                                                              const SolverMode& sMode) const
 {
-    IOlocs result;
-    for (const auto& port : model->inputPorts()) {
-        const auto portIndex = static_cast<std::size_t>(port.ioIndex);
-        if (result.size() <= portIndex) {
-            result.resize(portIndex + 1, kNullLocation);
-        }
-        if (port.signal == RenewableSignal::terminalVoltage) {
-            if (auto* busObject = signalBusSource(model, port.signal); busObject != nullptr) {
-                result[portIndex] = busObject->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
-            } else if (inputLocs.size() > VOLTAGE_IN_LOCATION) {
-                result[portIndex] = inputLocs[VOLTAGE_IN_LOCATION];
-            }
-        } else if (port.signal == RenewableSignal::terminalAngle) {
-            if (const auto [sensor, output] = measurementSource(model, port.signal);
-                sensor != nullptr) {
-                result[portIndex] = sensor->getOutputLoc(sMode, output);
-            } else if (inputLocs.size() > ANGLE_IN_LOCATION) {
-                result[portIndex] = inputLocs[ANGLE_IN_LOCATION];
-            }
-        } else if (port.signal == RenewableSignal::terminalFrequency) {
-            if (auto* busObject = signalBusSource(model, port.signal); busObject != nullptr) {
-                result[portIndex] = busObject->getOutputLoc(sMode, FREQUENCY_IN_LOCATION);
-            } else if (const auto [sensor, output] = measurementSource(model, port.signal);
-                       sensor != nullptr) {
-                result[portIndex] = sensor->getOutputLoc(sMode, output);
-            } else if (inputLocs.size() > FREQUENCY_IN_LOCATION) {
-                result[portIndex] = inputLocs[FREQUENCY_IN_LOCATION];
-            }
-        } else if (port.signal == RenewableSignal::regulationVoltage) {
-            if (auto* busObject = regulationSource(model); busObject != nullptr) {
-                result[portIndex] = busObject->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
-            }
-        } else {
-            if (auto* machine = machineSource(model, port.signal); machine != nullptr) {
-                index_t location = kNullLocation;
-                machine->getFreq(emptyStateData, sMode, &location);
-                result[portIndex] = location;
-            }
-            if (const auto [sensor, output] = measurementSource(model, port.signal);
-                sensor != nullptr) {
-                result[portIndex] = sensor->getOutputLoc(sMode, output);
-            }
-            for (const auto* candidate : components) {
-                if (candidate == nullptr || candidate == model || !candidate->isEnabled() ||
-                    !matchesSource(model, candidate, port.signal)) {
-                    continue;
-                }
-                for (const auto& output : candidate->outputPorts()) {
-                    if (output.signal == port.signal && output.base == port.base) {
-                        const auto algebraicOutputs = candidate->algSize(cLocalSolverMode);
-                        // Paired states supply values, not columns in this mode's Jacobian.
-                        if ((isDifferentialOnly(sMode) && output.ioIndex < algebraicOutputs) ||
-                            (isAlgebraicOnly(sMode) && output.ioIndex >= algebraicOutputs)) {
-                            continue;
-                        }
-                        result[portIndex] = candidate->getOutputLoc(sMode, output.ioIndex);
-                    }
-                }
-            }
-        }
+    if (!signalBindingsReady) {
+        throw InvalidParameterValue("renewable signal routes require dynamic initialization");
     }
-    return result;
+    return signalBindings[roleIndex(model->role())].inputLocations(
+        {inputs, &inputLocs, stateDataValue, sMode});
 }
 
 void RenewableGenerator::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
-    validateAssembly();
-    Generator::dynObjectInitializeA(time0, flags);
+    const bool firstBinding = !signalBindingsReady;
+    if (firstBinding) {
+        compileSignalBindings();
+    }
+    try {
+        Generator::dynObjectInitializeA(time0, flags);
+    }
+    catch (...) {
+        if (firstBinding) {
+            resetSignalRoutesForDynamicInitialization();
+        }
+        throw;
+    }
 }
 
 void RenewableGenerator::dynObjectInitializeB(const IOdata& inputs,
@@ -724,18 +853,12 @@ void RenewableGenerator::timestep(CoreTime time, const IOdata& inputs, const Sol
     }
     // Area relay traversal follows bus traversal. Advance any named continuous
     // measurements consumed by this generator before stepping its controls.
-    std::vector<BusMeasurementSensor*> advanced;
-    for (const auto* component : components) {
-        if (component == nullptr || !component->isEnabled()) {
-            continue;
-        }
-        for (const auto& port : component->inputPorts()) {
-            auto* sensor = measurementSource(component, port.signal).first;
-            if (sensor != nullptr && sensor->diffSize(cLocalSolverMode) > 0 &&
-                std::find(advanced.begin(), advanced.end(), sensor) == advanced.end()) {
-                sensor->timestep(time, {}, sMode);
-                advanced.push_back(sensor);
-            }
+    if (!signalBindingsReady) {
+        throw InvalidParameterValue("renewable signal routes require dynamic initialization");
+    }
+    for (auto* sensor : boundSensors) {
+        if (sensor->isEnabled() && sensor->diffSize(cLocalSolverMode) > 0) {
+            sensor->timestep(time, {}, sMode);
         }
     }
     const auto stepRole = [&](RenewableRole role) {
@@ -782,11 +905,26 @@ void RenewableGenerator::jacobianElements(const IOdata& inputs,
     }
     for (auto* component : components) {
         if (component != nullptr && component->isEnabled()) {
-            component->jacobianElements(modelInputs(component, inputs, stateDataValue, sMode),
-                                        stateDataValue,
-                                        matrixDataValue,
-                                        modelInputLocs(component, inputLocs, sMode),
-                                        sMode);
+            const auto locations =
+                modelInputMap(component, inputs, stateDataValue, inputLocs, sMode);
+            if (locations.needsTranslation()) {
+                MatrixDataCustomWriteOnly<double> translatedMatrix;
+                translatedMatrix.setFunction(
+                    [&matrixDataValue, &locations](index_t row, index_t column, double value) {
+                        locations.assign(matrixDataValue, row, column, value);
+                    });
+                component->jacobianElements(modelInputs(component, inputs, stateDataValue, sMode),
+                                            stateDataValue,
+                                            translatedMatrix,
+                                            locations.locations,
+                                            sMode);
+            } else {
+                component->jacobianElements(modelInputs(component, inputs, stateDataValue, sMode),
+                                            stateDataValue,
+                                            matrixDataValue,
+                                            locations.locations,
+                                            sMode);
+            }
         }
     }
 }
@@ -857,12 +995,29 @@ void RenewableGenerator::ioPartialDerivatives(const IOdata& inputs,
         return;
     }
     MatrixDataScale<double> scaled(matrixDataValue, -machineBasePower / systemBasePower);
-    electricalModel->ioPartialDerivatives(
-        modelInputs(electricalModel, inputs, stateDataValue, sMode),
-        stateDataValue,
-        scaled,
-        modelInputLocs(electricalModel, inputLocs, sMode),
-        sMode);
+    const auto locations =
+        modelInputMap(electricalModel, inputs, stateDataValue, inputLocs, sMode);
+    if (locations.needsTranslation()) {
+        MatrixDataCustomWriteOnly<double> translatedMatrix;
+        translatedMatrix.setFunction([&scaled, &locations](index_t row,
+                                                            index_t column,
+                                                            double value) {
+            locations.assign(scaled, row, column, value);
+        });
+        electricalModel->ioPartialDerivatives(
+            modelInputs(electricalModel, inputs, stateDataValue, sMode),
+            stateDataValue,
+            translatedMatrix,
+            locations.locations,
+            sMode);
+    } else {
+        electricalModel->ioPartialDerivatives(
+            modelInputs(electricalModel, inputs, stateDataValue, sMode),
+            stateDataValue,
+            scaled,
+            locations.locations,
+            sMode);
+    }
 }
 
 void RenewableGenerator::rootTest(const IOdata& inputs,

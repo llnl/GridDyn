@@ -411,7 +411,7 @@ IOdata GenModelGENROU::getMachineControllerSignals(const IOdata& inputs,
 }
 
 MachineSignalDerivativeData
-    GenModelGENROU::getMachineControllerSignalDerivatives(const IOdata& inputs,
+GenModelGENROU::getMachineControllerSignalDerivatives(const IOdata& inputs,
                                                           const StateData& stateDataValue,
                                                           const IOlocs& inputLocs,
                                                           const SolverMode& sMode) const
@@ -421,6 +421,15 @@ MachineSignalDerivativeData
     const double* state = locations.diffStateLoc;
     const auto refAlg = locations.algOffset;
     const auto refDiff = locations.diffOffset;
+    // A paired algebraic/differential state occupies a different solver.
+    // Its offset can alias an active column here, so expose only derivatives
+    // of states owned by this solver mode.
+    const auto algLocation = [refAlg, &sMode](index_t stateIndex) {
+        return hasAlgebraic(sMode) ? refAlg + stateIndex : kNullLocation;
+    };
+    const auto diffLocation = [refDiff, &sMode](index_t stateIndex) {
+        return hasDifferential(sMode) ? refDiff + stateIndex : kNullLocation;
+    };
     const auto coefficients = computeCoefficients(Xd, Xq, Xdp, Xqp, Xdpp, Xqpp, Xl);
 
     MachineSignalDerivativeData derivatives;
@@ -432,8 +441,8 @@ MachineSignalDerivativeData
             }
         };
 
-    addDerivative(MachineControllerSignal::ID, refAlg, 1.0);
-    addDerivative(MachineControllerSignal::IQ, refAlg + 1, 1.0);
+    addDerivative(MachineControllerSignal::ID, algLocation(0), 1.0);
+    addDerivative(MachineControllerSignal::IQ, algLocation(1), 1.0);
 
     const double voltage = inputs[VOLTAGE_IN_LOCATION];
     const double angleDifference = state[0] - inputs[ANGLE_IN_LOCATION];
@@ -445,13 +454,13 @@ MachineSignalDerivativeData
 
     addDerivative(MachineControllerSignal::VD, voltageLoc, directVoltage * inverseVoltage);
     addDerivative(MachineControllerSignal::VD, angleLoc, quadratureVoltage);
-    addDerivative(MachineControllerSignal::VD, refDiff, -quadratureVoltage);
+    addDerivative(MachineControllerSignal::VD, diffLocation(0), -quadratureVoltage);
     addDerivative(MachineControllerSignal::VQ, voltageLoc, quadratureVoltage * inverseVoltage);
     addDerivative(MachineControllerSignal::VQ, angleLoc, -directVoltage);
-    addDerivative(MachineControllerSignal::VQ, refDiff, directVoltage);
+    addDerivative(MachineControllerSignal::VQ, diffLocation(0), directVoltage);
 
-    addDerivative(MachineControllerSignal::ELECTRICAL_POWER, refAlg, directVoltage);
-    addDerivative(MachineControllerSignal::ELECTRICAL_POWER, refAlg + 1, quadratureVoltage);
+    addDerivative(MachineControllerSignal::ELECTRICAL_POWER, algLocation(0), directVoltage);
+    addDerivative(MachineControllerSignal::ELECTRICAL_POWER, algLocation(1), quadratureVoltage);
     addDerivative(MachineControllerSignal::ELECTRICAL_POWER,
                   voltageLoc,
                   (directVoltage * alg[0] + quadratureVoltage * alg[1]) * inverseVoltage);
@@ -459,14 +468,14 @@ MachineSignalDerivativeData
                   angleLoc,
                   quadratureVoltage * alg[0] - directVoltage * alg[1]);
     addDerivative(MachineControllerSignal::ELECTRICAL_POWER,
-                  refDiff,
+                  diffLocation(0),
                   -quadratureVoltage * alg[0] + directVoltage * alg[1]);
 
     addDerivative(MachineControllerSignal::ELECTRICAL_TORQUE,
-                  refAlg,
+                  algLocation(0),
                   directVoltage + 2.0 * Rs * alg[0]);
     addDerivative(MachineControllerSignal::ELECTRICAL_TORQUE,
-                  refAlg + 1,
+                  algLocation(1),
                   quadratureVoltage + 2.0 * Rs * alg[1]);
     addDerivative(MachineControllerSignal::ELECTRICAL_TORQUE,
                   voltageLoc,
@@ -475,7 +484,7 @@ MachineSignalDerivativeData
                   angleLoc,
                   quadratureVoltage * alg[0] - directVoltage * alg[1]);
     addDerivative(MachineControllerSignal::ELECTRICAL_TORQUE,
-                  refDiff,
+                  diffLocation(0),
                   -quadratureVoltage * alg[0] + directVoltage * alg[1]);
 
     const double psi2q = coefficients.mGq1 * state[2] + (1.0 - coefficients.mGq1) * state[4];
@@ -493,20 +502,20 @@ MachineSignalDerivativeData
     const double reactanceDifference = Xd - Xdp;
 
     addDerivative(MachineControllerSignal::XADIFD,
-                  refAlg,
+                  algLocation(0),
                   -reactanceDifference * coefficients.mGd1);
     addDerivative(MachineControllerSignal::XADIFD,
-                  refDiff + 2,
+                  diffLocation(2),
                   dSaturationTermQ * coefficients.mGq1);
     addDerivative(MachineControllerSignal::XADIFD,
-                  refDiff + 3,
+                  diffLocation(3),
                   1.0 + reactanceDifference * coefficients.mGd2 +
                       dSaturationTermD * coefficients.mGd1);
     addDerivative(MachineControllerSignal::XADIFD,
-                  refDiff + 4,
+                  diffLocation(4),
                   dSaturationTermQ * (1.0 - coefficients.mGq1));
     addDerivative(MachineControllerSignal::XADIFD,
-                  refDiff + 5,
+                  diffLocation(5),
                   -reactanceDifference * coefficients.mGd2 +
                       dSaturationTermD * (1.0 - coefficients.mGd1));
     return derivatives;

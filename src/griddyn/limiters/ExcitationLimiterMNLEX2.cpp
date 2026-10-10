@@ -248,7 +248,7 @@ void ExcitationLimiterMNLEX2::jacobianElements(const IOdata& inputs,
         }
     }
     matrixData.assign(outputRow + 1, outputRow, outputSensitivity / tF2);
-    matrixData.assign(outputRow + 1, outputRow + 1, -1.0 / tF2 - stateData.cj);
+    matrixData.assign(outputRow + 1, outputRow + 1, (-1.0 / tF2) - stateData.cj);
 }
 
 void ExcitationLimiterMNLEX2::timestep(CoreTime time,

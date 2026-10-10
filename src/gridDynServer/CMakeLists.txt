@@ -21,8 +21,6 @@ target_include_directories(griddynServer SYSTEM PRIVATE ${Boost_INCLUDE_DIR})
 
 target_link_libraries(griddynServer PRIVATE runner griddyn gridDynLoader)
 
-install(
-    TARGETS griddynServer ${GRIDDYN_EXPORT_COMMAND}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    COMPONENT applications
+install(TARGETS griddynServer ${GRIDDYN_EXPORT_COMMAND} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                                                                COMPONENT applications
 )

@@ -141,9 +141,11 @@ class Simulation:
     def time_domain(self) -> "TimeDomainRoutine":
         ...
 
+
 class PowerFlowRoutine:
     def run(self) -> None:
         ...
+
 
 class TimeDomainRoutine:
     def initialize(self) -> None:
@@ -157,7 +159,6 @@ class TimeDomainRoutine:
 
     def step(self, time: float) -> float:
         ...
-
 ```
 
 `Simulation` owns loading, system properties, object access, file output, and

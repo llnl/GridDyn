@@ -28,22 +28,22 @@ print(sim.generators.as_dicts())
 GridDyn selects input readers from these file extensions (matching is
 case-insensitive):
 
-| Extension | Input format |
-| --- | --- |
-| `.xml` | GridDyn XML |
-| `.csv` | GridDyn CSV |
-| `.raw`, `.psse`, `.pti` | PSS/E RAW |
-| `.dyr` | PSS/E dynamic models |
-| `.dyd` | PSLF dynamic models |
-| `.cdf`, `.txt` | IEEE Common Data Format |
-| `.m`, `.matlab` | MATLAB-style cases; content selects MATPOWER, PSAT, or MatDyn readers |
-| `.py` | PYPOWER |
-| `.psp` | PSP |
-| `.epc` | EPC |
-| `.sav` | PSLF SQLite saved case |
-| `.json` | ANDES JSON or GridDyn JSON elements |
-| `.yaml`, `.yml` | GridDyn YAML elements |
-| `.gdz` | Compressed GridDyn case |
+| Extension               | Input format                                                          |
+| ----------------------- | --------------------------------------------------------------------- |
+| `.xml`                  | GridDyn XML                                                           |
+| `.csv`                  | GridDyn CSV                                                           |
+| `.raw`, `.psse`, `.pti` | PSS/E RAW                                                             |
+| `.dyr`                  | PSS/E dynamic models                                                  |
+| `.dyd`                  | PSLF dynamic models                                                   |
+| `.cdf`, `.txt`          | IEEE Common Data Format                                               |
+| `.m`, `.matlab`         | MATLAB-style cases; content selects MATPOWER, PSAT, or MatDyn readers |
+| `.py`                   | PYPOWER                                                               |
+| `.psp`                  | PSP                                                                   |
+| `.epc`                  | EPC                                                                   |
+| `.sav`                  | PSLF SQLite saved case                                                |
+| `.json`                 | ANDES JSON or GridDyn JSON elements                                   |
+| `.yaml`, `.yml`         | GridDyn YAML elements                                                 |
+| `.gdz`                  | Compressed GridDyn case                                               |
 
 Pass `format` when the file uses a different extension or has none. Use the
 reader name, such as `format="sav"`. Format names are case-insensitive; a
@@ -55,12 +55,12 @@ load legacy binary PSS/E saved cases.
 system-level properties and objects, write files, and execute general GridDyn
 actions. Direct solver and time-advance operations belong to their domains:
 
-| Interface | Responsibility | Operations |
-| --- | --- | --- |
-| `sim` | Load or reset the system, access or edit it, write files, and execute general actions | `load()`, `write_file()`, `get()`, `set()`, `find()`, `reset()`, `execute()` |
-| `sim.power_flow` | Solve steady-state power flow | `run()` |
-| `sim.optimization` | Solve OPF | `opf()` |
-| `sim.time_domain` | Initialize and advance dynamic simulation | `initialize()`, `run()`, `run_until()`, `step()` |
+| Interface          | Responsibility                                                                        | Operations                                                                   |
+| ------------------ | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `sim`              | Load or reset the system, access or edit it, write files, and execute general actions | `load()`, `write_file()`, `get()`, `set()`, `find()`, `reset()`, `execute()` |
+| `sim.power_flow`   | Solve steady-state power flow                                                         | `run()`                                                                      |
+| `sim.optimization` | Solve OPF                                                                             | `opf()`                                                                      |
+| `sim.time_domain`  | Initialize and advance dynamic simulation                                             | `initialize()`, `run()`, `run_until()`, `step()`                             |
 
 The system clock is available as `sim.time`. Failures are reported with
 `GridDynError` subclasses such as `FileLoadError`, `SolveError`, and

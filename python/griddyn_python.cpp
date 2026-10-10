@@ -1189,8 +1189,7 @@ class PyRecorder {
         columnNames.reserve(dataset.columns());
         std::unordered_set<std::string> usedNames{"time"};
         for (gmlc::utilities::fsize_t column = 0; column < dataset.columns(); ++column) {
-            const std::string baseName =
-                (column < fields.size() && !fields[column].empty()) ?
+            const std::string baseName = (column < fields.size() && !fields[column].empty()) ?
                 fields[column] :
                 "column_" + std::to_string(column);
             std::string columnName = baseName;
@@ -1676,8 +1675,7 @@ class PySimulation {
         nb::gil_scoped_release release;
         const auto result = runner_->InitializeFromString(args);
         if (result != 0) {
-            throw ExecutionError("simulation loading failed with status " +
-                                 std::to_string(result));
+            throw ExecutionError("simulation loading failed with status " + std::to_string(result));
         }
         runnerResetAvailable_ = canReset && result == 0;
         hasLoadedSystem_ = hasLoadedSystem_ || result == 0;
@@ -1690,13 +1688,12 @@ class PySimulation {
         runnerResetAvailable_ = false;
 
         nb::gil_scoped_release release;
-        const auto result = runner_->Initialize(
-            static_cast<int>(commandLineArguments_->argv.size()),
-            commandLineArguments_->argv.data(),
-            false);
+        const auto result =
+            runner_->Initialize(static_cast<int>(commandLineArguments_->argv.size()),
+                                commandLineArguments_->argv.data(),
+                                false);
         if (result != 0) {
-            throw ExecutionError("simulation loading failed with status " +
-                                 std::to_string(result));
+            throw ExecutionError("simulation loading failed with status " + std::to_string(result));
         }
         runnerResetAvailable_ = canReset && result == 0;
         hasLoadedSystem_ = hasLoadedSystem_ || result == 0;
@@ -1715,8 +1712,7 @@ class PySimulation {
         nb::gil_scoped_release release;
         const auto result = runner_->Reset();
         if (result != 0) {
-            throw ExecutionError("simulation reset failed with status " +
-                                 std::to_string(result));
+            throw ExecutionError("simulation reset failed with status " + std::to_string(result));
         }
     }
 
@@ -1727,17 +1723,15 @@ class PySimulation {
         return sim->execute(action);
     }
 
-    std::vector<std::string> writeFile(
-        const nb::object& path,
-        const std::optional<std::string>& type = std::nullopt) const
+    std::vector<std::string> writeFile(const nb::object& path,
+                                       const std::optional<std::string>& type = std::nullopt) const
     {
         const auto filePath = pathToString(path);
         if (filePath.empty()) {
             throw nb::value_error("output path must not be empty");
         }
 
-        const auto outputType =
-            type ? normalizeOutputType(*type) : outputTypeFromPath(filePath);
+        const auto outputType = type ? normalizeOutputType(*type) : outputTypeFromPath(filePath);
         if (outputType == "pypower") {
             return savePowerFlowCase(filePath, griddyn::savePyPowerCase, "PYPOWER");
         }
@@ -1861,9 +1855,8 @@ class PySimulation {
     {
         auto extension = std::filesystem::path(path).extension().string();
         if (extension.empty()) {
-            throw nb::value_error(
-                "cannot infer output type without a supported file extension; "
-                "pass type explicitly");
+            throw nb::value_error("cannot infer output type without a supported file extension; "
+                                  "pass type explicitly");
         }
         if (auto outputType = tryNormalizeOutputType(extension)) {
             return *outputType;
@@ -1895,8 +1888,7 @@ class PySimulation {
         return warnings;
     }
 
-    void savePowerFlowResults(const std::string& filePath,
-                              PowerFlowResultWriter writer) const
+    void savePowerFlowResults(const std::string& filePath, PowerFlowResultWriter writer) const
     {
         auto sim = simulation();
         try {
@@ -1974,8 +1966,7 @@ NB_MODULE(_core, mod)
 {
     mod.doc() = "Python bindings for the GridDyn simulation API.";
     mod.attr("__version__") = std::to_string(griddyn::versionMajor) + "." +
-        std::to_string(griddyn::versionMinor) + "." +
-        std::to_string(griddyn::versionPatch);
+        std::to_string(griddyn::versionMinor) + "." + std::to_string(griddyn::versionPatch);
 
     auto gridDynError = nb::exception<GridDynError>(mod, "GridDynError");
     auto invalidObjectError =
@@ -2274,8 +2265,8 @@ NB_MODULE(_core, mod)
         .def("as_dicts", &PyRecorder::asDicts)
         .def("as_dataframe", &PyRecorder::asDataFrame)
         .def("__repr__", [](const PyRecorder& recorder) {
-            return "<griddyn.Recorder name='" + recorder.name() + "' size=" +
-                std::to_string(recorder.size()) + ">";
+            return "<griddyn.Recorder name='" + recorder.name() +
+                "' size=" + std::to_string(recorder.size()) + ">";
         });
 
     nb::class_<PyRecorderCollection>(mod, "RecorderCollection")

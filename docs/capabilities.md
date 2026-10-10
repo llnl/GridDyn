@@ -4,13 +4,13 @@ This page summarizes the Python package surface documented for the current
 release. GridDyn's C++ application and optional libraries expose additional
 features that are selected at build time.
 
-| Workflow           | Current Python support                                                                                               |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| Load a network     | Load extension-selected input formats. See the [reader list](python-interface.md#load-and-run-a-network). |
-| Power flow         | Run the steady-state power-flow solver and inspect bus, generator, and other object collections.                     |
-| Dynamic simulation | Initialize and advance time-domain simulation; inspect recorder samples in memory or write them to files.            |
-| Network edits      | Read and set supported model parameters, including numeric values with unit conversion.                               |
-| File output        | Write PYPOWER/MATPOWER static cases and CSV/XML power-flow result summaries through `Simulation.write_file()`.        |
+| Workflow           | Current Python support                                                                                                 |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| Load a network     | Load extension-selected input formats. See the [reader list](python-interface.md#load-and-run-a-network).              |
+| Power flow         | Run the steady-state power-flow solver and inspect bus, generator, and other object collections.                       |
+| Dynamic simulation | Initialize and advance time-domain simulation; inspect recorder samples in memory or write them to files.              |
+| Network edits      | Read and set supported model parameters, including numeric values with unit conversion.                                |
+| File output        | Write PYPOWER/MATPOWER static cases and CSV/XML power-flow result summaries through `Simulation.write_file()`.         |
 | Optimal power flow | Run continuous DC OPF for supported polynomial costs through quadratic order when built with the optimization library. |
 
 Current Python API boundaries include no AC OPF, integer unit commitment,

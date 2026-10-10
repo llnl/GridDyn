@@ -684,9 +684,9 @@ add_subdirectory(ThirdParty/sqlite EXCLUDE_FROM_ALL)
 # ------------------------------------------------------------
 add_subdirectory(src)
 
-# The command-line program links to SuiteSparse shared libraries when KLU is
-# built as a local shared dependency. Keep those DLLs/shared objects alongside
-# the installed executable in the applications component.
+# The command-line program links to SuiteSparse shared libraries when KLU is built as a local shared
+# dependency. Keep those DLLs/shared objects alongside the installed executable in the applications
+# component.
 if(GRIDDYN_SUITESPARSE_LOCAL_BUILD AND GRIDDYN_ENABLE_KLU)
     foreach(_griddyn_suite_target IN ITEMS klu amd colamd btf)
         if(TARGET ${_griddyn_suite_target})

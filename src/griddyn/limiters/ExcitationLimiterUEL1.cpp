@@ -261,8 +261,7 @@ void ExcitationLimiterUEL1::residual(const IOdata& inputs,
     }
     if (hasDifferential(sMode)) {
         loc.destDiffLoc[0] = integralRate(loc.diffStateLoc[0], measured.error) - loc.dstateLoc[0];
-        loc.destDiffLoc[1] =
-            (tu2 > 0.0) ?
+        loc.destDiffLoc[1] = (tu2 > 0.0) ?
             ((piSignal - loc.diffStateLoc[1]) / tu2) - loc.dstateLoc[1] :
             -loc.dstateLoc[1];
         loc.destDiffLoc[2] = (tu4 > 0.0) ?
@@ -349,9 +348,7 @@ void ExcitationLimiterUEL1::jacobianElements(const IOdata& inputs,
     }
     if (tu2 > 0.0) {
         matrixData.assign(loc.diffOffset + 1, loc.diffOffset, 1.0 / tu2);
-        matrixData.assign(loc.diffOffset + 1,
-                          loc.diffOffset + 1,
-                          (-1.0 / tu2) - stateData.cj);
+        matrixData.assign(loc.diffOffset + 1, loc.diffOffset + 1, (-1.0 / tu2) - stateData.cj);
         for (index_t input = 0; input < excitationLimiterInputCount; ++input) {
             matrixData.assignCheckCol(loc.diffOffset + 1,
                                       inputLocs[input],
@@ -363,9 +360,7 @@ void ExcitationLimiterUEL1::jacobianElements(const IOdata& inputs,
     if (tu4 > 0.0) {
         matrixData.assign(loc.diffOffset + 2, loc.diffOffset, alpha1 / tu4);
         matrixData.assign(loc.diffOffset + 2, loc.diffOffset + 1, (1.0 - alpha1) / tu4);
-        matrixData.assign(loc.diffOffset + 2,
-                          loc.diffOffset + 2,
-                          (-1.0 / tu4) - stateData.cj);
+        matrixData.assign(loc.diffOffset + 2, loc.diffOffset + 2, (-1.0 / tu4) - stateData.cj);
         for (index_t input = 0; input < excitationLimiterInputCount; ++input) {
             matrixData.assignCheckCol(loc.diffOffset + 2,
                                       inputLocs[input],
@@ -388,8 +383,8 @@ void ExcitationLimiterUEL1::timestep(CoreTime time,
     const double piSignal = (kuL * error) + oldIntegral;
     const double alpha1 = (tu2 > 0.0) ? tu1 / tu2 : 1.0;
     const double first = (alpha1 * piSignal) + ((1.0 - alpha1) * oldLag1);
-    m_state[1] = std::clamp(
-        oldIntegral + (step * integralRate(oldIntegral, error)), vuiMin, vuiMax);
+    m_state[1] =
+        std::clamp(oldIntegral + (step * integralRate(oldIntegral, error)), vuiMin, vuiMax);
     if (tu2 > 0.0) {
         m_state[2] += step * (piSignal - oldLag1) / tu2;
     }

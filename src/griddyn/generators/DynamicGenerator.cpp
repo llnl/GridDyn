@@ -460,11 +460,10 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
     for (auto model : {OEL_LOC, UEL_LOC}) {
         auto* limiter = (model == OEL_LOC) ? oel : uel;
         if (limiter != nullptr && limiter->isEnabled()) {
-            auto limiterInputs = signalRoutes[model].values(
-                {.hostInputs = signalFrame.values,
-                 .hostInputLocs = nullptr,
-                 .stateData = emptyStateData,
-                 .solverMode = cLocalSolverMode});
+            auto limiterInputs = signalRoutes[model].values({.hostInputs = signalFrame.values,
+                                                             .hostInputLocs = nullptr,
+                                                             .stateData = emptyStateData,
+                                                             .solverMode = cLocalSolverMode});
             IOdata limiterFieldSet;
             limiter->dynInitializeB(limiterInputs, {}, limiterFieldSet);
             signalFrame.values[(model == OEL_LOC) ? overExcitationAction : underExcitationAction] =
@@ -472,21 +471,20 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
         }
     }
     if ((voltageCompensator != nullptr) && (voltageCompensator->isEnabled())) {
-        auto compensatorInputs = signalRoutes[VOLTAGE_COMPENSATOR_LOC].values(
-            {.hostInputs = signalFrame.values,
-             .hostInputLocs = nullptr,
-             .stateData = emptyStateData,
-             .solverMode = cLocalSolverMode});
+        auto compensatorInputs =
+            signalRoutes[VOLTAGE_COMPENSATOR_LOC].values({.hostInputs = signalFrame.values,
+                                                          .hostInputLocs = nullptr,
+                                                          .stateData = emptyStateData,
+                                                          .solverMode = cLocalSolverMode});
         IOdata compensatorFieldSet;
         voltageCompensator->dynInitializeB(compensatorInputs, {}, compensatorFieldSet);
         signalFrame.values[exciterVoltage] = voltageCompensator->getOutput();
     }
     if ((ext != nullptr) && (ext->isEnabled())) {
-        auto exciterInputs = signalRoutes[EXCITER_LOC].values(
-            {.hostInputs = signalFrame.values,
-             .hostInputLocs = nullptr,
-             .stateData = emptyStateData,
-             .solverMode = cLocalSolverMode});
+        auto exciterInputs = signalRoutes[EXCITER_LOC].values({.hostInputs = signalFrame.values,
+                                                               .hostInputLocs = nullptr,
+                                                               .stateData = emptyStateData,
+                                                               .solverMode = cLocalSolverMode});
 
         localDesiredOutput[0] = m_Eft;
         ext->dynInitializeB(exciterInputs, localDesiredOutput, computedFieldSet);
@@ -495,11 +493,10 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
         // Vset=inputSetup[1];
     }
     if ((gov != nullptr) && (gov->isEnabled())) {
-        auto governorInputs = signalRoutes[GOVERNOR_LOC].values(
-            {.hostInputs = signalFrame.values,
-             .hostInputLocs = nullptr,
-             .stateData = emptyStateData,
-             .solverMode = cLocalSolverMode});
+        auto governorInputs = signalRoutes[GOVERNOR_LOC].values({.hostInputs = signalFrame.values,
+                                                                 .hostInputLocs = nullptr,
+                                                                 .stateData = emptyStateData,
+                                                                 .solverMode = cLocalSolverMode});
 
         localDesiredOutput[0] = Pset * scale;
         if (isoc != nullptr) {
@@ -519,11 +516,10 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
         const auto previousTorque = signalFrame.values[torqueIndex];
         signalFrame.values[exciterVoltage] = voltage;
         signalFrame.values[torqueIndex] = m_Pmech;
-        auto pssInputs = signalRoutes[PSS_LOC].values(
-            {.hostInputs = signalFrame.values,
-             .hostInputLocs = nullptr,
-             .stateData = emptyStateData,
-             .solverMode = cLocalSolverMode});
+        auto pssInputs = signalRoutes[PSS_LOC].values({.hostInputs = signalFrame.values,
+                                                       .hostInputLocs = nullptr,
+                                                       .stateData = emptyStateData,
+                                                       .solverMode = cLocalSolverMode});
         signalFrame.values[exciterVoltage] = previousVoltage;
         signalFrame.values[torqueIndex] = previousTorque;
         localDesiredOutput[0] = 0;

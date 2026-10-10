@@ -485,15 +485,13 @@ TEST(ControlSignalRouting, ScaledComputedInputPropagatesSparseJacobian)
     computed.gain = 3.0;
     computed.offset = -1.0;
     computed.value = [](const ControlSignalContext& context) {
-        return (context.hostInputs[0] * context.hostInputs[1]) +
-            (2.0 * context.hostInputs[1]);
+        return (context.hostInputs[0] * context.hostInputs[1]) + (2.0 * context.hostInputs[1]);
     };
     computed.derivatives = [](const ControlSignalContext& context,
                               std::vector<ControlSignalDerivative>& terms) {
-        terms.push_back({.location = (*context.hostInputLocs)[0],
-                         .value = context.hostInputs[1]});
-        terms.push_back({.location = (*context.hostInputLocs)[1],
-                         .value = context.hostInputs[0] + 2.0});
+        terms.push_back({.location = (*context.hostInputLocs)[0], .value = context.hostInputs[1]});
+        terms.push_back(
+            {.location = (*context.hostInputLocs)[1], .value = context.hostInputs[0] + 2.0});
     };
     routing.add(std::move(computed));
 

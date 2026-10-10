@@ -113,17 +113,16 @@ ExcitationLimiterMNLEX2::Circle ExcitationLimiterMNLEX2::circleError(const IOdat
     const double quadratureCurrent = inputs[limiterIqInLocation];
     const double directVoltage = inputs[limiterVdInLocation];
     const double quadratureVoltage = inputs[limiterVqInLocation];
-    const double activePower = (iDirect * directVoltage) +
-        (quadratureCurrent * quadratureVoltage);
-    const double reactivePower = (iDirect * quadratureVoltage) -
-        (quadratureCurrent * directVoltage);
-    const double voltageSquared = (directVoltage * directVoltage) +
-        (quadratureVoltage * quadratureVoltage);
+    const double activePower = (iDirect * directVoltage) + (quadratureCurrent * quadratureVoltage);
+    const double reactivePower =
+        (iDirect * quadratureVoltage) - (quadratureCurrent * directVoltage);
+    const double voltageSquared =
+        (directVoltage * directVoltage) + (quadratureVoltage * quadratureVoltage);
     const double centeredQ = (q0 * voltageSquared) - reactivePower;
     const double scaledRadius = radius * voltageSquared;
     Circle result;
-    result.error = (centeredQ * centeredQ) + (activePower * activePower) -
-        (scaledRadius * scaledRadius);
+    result.error =
+        (centeredQ * centeredQ) + (activePower * activePower) - (scaledRadius * scaledRadius);
     const std::array<double, excitationLimiterInputCount> activePowerDerivatives{
         0, directVoltage, quadratureVoltage, iDirect, quadratureCurrent};
     const std::array<double, excitationLimiterInputCount> reactivePowerDerivatives{
@@ -131,9 +130,8 @@ ExcitationLimiterMNLEX2::Circle ExcitationLimiterMNLEX2::circleError(const IOdat
     const std::array<double, excitationLimiterInputCount> voltageSquaredDerivatives{
         0, 0, 0, 2 * directVoltage, 2 * quadratureVoltage};
     for (index_t index = 0; index < excitationLimiterInputCount; ++index) {
-        const double centeredQDerivative =
-            2 * centeredQ * ((q0 * voltageSquaredDerivatives[index]) -
-                             reactivePowerDerivatives[index]);
+        const double centeredQDerivative = 2 * centeredQ *
+            ((q0 * voltageSquaredDerivatives[index]) - reactivePowerDerivatives[index]);
         const double activePowerDerivative = 2 * activePower * activePowerDerivatives[index];
         const double radiusDerivative =
             2 * scaledRadius * radius * voltageSquaredDerivatives[index];

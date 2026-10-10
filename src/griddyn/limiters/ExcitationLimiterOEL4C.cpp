@@ -101,8 +101,7 @@ void ExcitationLimiterOEL4C::dynObjectInitializeA(CoreTime time0, std::uint32_t 
     violationStart = time0;
 }
 
-ExcitationLimiterOEL4C::ReactivePower
-    ExcitationLimiterOEL4C::reactivePower(const IOdata& inputs)
+ExcitationLimiterOEL4C::ReactivePower ExcitationLimiterOEL4C::reactivePower(const IOdata& inputs)
 {
     if (inputs.size() < excitationLimiterInputCount) {
         throw InvalidParameterValue("OEL4C input vector");

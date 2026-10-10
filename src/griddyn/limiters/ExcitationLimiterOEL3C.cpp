@@ -301,10 +301,9 @@ void ExcitationLimiterOEL3C::timestep(CoreTime time,
         m_state[1] = field;
     }
     const auto result = evaluate(m_state[1], m_state[2]);
-    m_state[2] =
-        std::clamp(m_state[2] + (step * integralRate(m_state[2], result.error)),
-                   voelMin1,
-                   voelMax1);
+    m_state[2] = std::clamp(m_state[2] + (step * integralRate(m_state[2], result.error)),
+                            voelMin1,
+                            voelMax1);
     m_state[0] = evaluate(m_state[1], m_state[2]).action;
     prevTime = time;
 }

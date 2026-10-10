@@ -200,10 +200,10 @@ ExcitationLimiterUEL2C::Evaluation ExcitationLimiterUEL2C::evaluate(const IOdata
     const double quadratureCurrent = inputs[limiterIqInLocation];
     const double directVoltage = inputs[limiterVdInLocation];
     const double quadratureVoltage = inputs[limiterVqInLocation];
-    const double activePower = (idCurrent * directVoltage) +
-        (quadratureCurrent * quadratureVoltage);
-    const double reactivePower = (idCurrent * quadratureVoltage) -
-        (quadratureCurrent * directVoltage);
+    const double activePower =
+        (idCurrent * directVoltage) + (quadratureCurrent * quadratureVoltage);
+    const double reactivePower =
+        (idCurrent * quadratureVoltage) - (quadratureCurrent * directVoltage);
     const double voltage = std::hypot(directVoltage, quadratureVoltage);
     if (voltage <= inputTolerance) {
         throw InvalidParameterValue("UEL2C requires nonzero terminal voltage");
@@ -230,8 +230,7 @@ ExcitationLimiterUEL2C::Evaluation ExcitationLimiterUEL2C::evaluate(const IOdata
         const double dNormalizedP = (activePowerDerivatives[input] / voltageFactor1) -
             ((activePower * voltageFactor1Derivative * voltageDerivatives[input]) /
              (voltageFactor1 * voltageFactor1));
-        result.errorDerivatives[input] =
-            (limit.slope * voltageFactor2 * dNormalizedP) +
+        result.errorDerivatives[input] = (limit.slope * voltageFactor2 * dNormalizedP) +
             (limit.qLimit * voltageFactor2Derivative * voltageDerivatives[input]) -
             reactivePowerDerivatives[input];
     }
@@ -354,8 +353,8 @@ void ExcitationLimiterUEL2C::timestep(CoreTime time,
 {
     const double step = time - prevTime;
     const auto result = evaluate(inputs, m_state[1]);
-    m_state[1] = std::clamp(
-        m_state[1] + (step * integralRate(m_state[1], result.error)), vuiMin, vuiMax);
+    m_state[1] =
+        std::clamp(m_state[1] + (step * integralRate(m_state[1], result.error)), vuiMin, vuiMax);
     m_state[0] = evaluate(inputs, m_state[1]).output;
     prevTime = time;
 }

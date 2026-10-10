@@ -40,12 +40,15 @@ class GeneratorTests: public GridDynSimulationTestFixture, public ::testing::Tes
 class InspectableDynamicGenerator: public DynamicGenerator {
   public:
     using DynamicGenerator::DynamicGenerator;
-    const ControlSignalRouting& exciterRoutes() const { return signalRoutes[EXCITER_LOC]; }
-    const ControlSignalRouting& routes(SubModelLocations model) const
+    [[nodiscard]] const ControlSignalRouting& exciterRoutes() const
+    {
+        return signalRoutes[EXCITER_LOC];
+    }
+    [[nodiscard]] const ControlSignalRouting& routes(SubModelLocations model) const
     {
         return signalRoutes[model];
     }
-    const IOdata& currentSignals() const { return signalFrame.values; }
+    [[nodiscard]] const IOdata& currentSignals() const { return signalFrame.values; }
 };
 
 TEST(DynamicGeneratorModelTests, SignalRoutesFreezeUntilFullDynamicInitialization)
@@ -63,10 +66,10 @@ TEST(DynamicGeneratorModelTests, SignalRoutesFreezeUntilFullDynamicInitializatio
               excitationLimiterInputCount);
     EXPECT_EQ(host.routes(DynamicGenerator::UEL_LOC).bindings().size(),
               excitationLimiterInputCount);
-    const ControlSignalContext context{host.currentSignals(),
-                                       nullptr,
-                                       emptyStateData,
-                                       cLocalSolverMode};
+    const ControlSignalContext context{.hostInputs = host.currentSignals(),
+                                       .hostInputLocs = nullptr,
+                                       .stateData = emptyStateData,
+                                       .solverMode = cLocalSolverMode};
     EXPECT_DOUBLE_EQ(host.exciterRoutes().values(context)[exciterVssInLocation], 0.0);
     EXPECT_EQ(host.exciterRoutes().inputLocations(context).locations[exciterVssInLocation],
               kNullLocation);
@@ -83,7 +86,7 @@ TEST(DynamicGeneratorModelTests, SignalRoutesFreezeUntilFullDynamicInitializatio
     host.resetSignalRoutesForDynamicInitialization();
     auto* attached = stabilizer.get();
     host.add(attached);
-    stabilizer.release();
+    EXPECT_EQ(stabilizer.release(), attached);
     EXPECT_NO_THROW(host.dynInitializeA(0.0, 0));
     const auto& bindings = host.exciterRoutes().bindings();
     const auto stabilizerRoute =
@@ -703,7 +706,7 @@ TEST(DynamicGeneratorModelTests, ConcreteLimitersAttachToExistingRoutes)
     auto* curveUel = new limiters::ExcitationLimiterUEL2C("curve_uel2c");
     for (std::size_t point = 0; point < 2; ++point) {
         curveUel->set("p" + std::to_string(point), static_cast<double>(point));
-        curveUel->set("q" + std::to_string(point), -0.2 + 0.2 * point);
+        curveUel->set("q" + std::to_string(point), -0.2 + (0.2 * point));
     }
     verifyRoute(curveUel, exciterVuelInLocation, "curve_uel2c");
 }

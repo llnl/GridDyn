@@ -483,7 +483,7 @@ ControlSignalRoute RenewableGenerator::resolveSignalRoute(const RenewableCompone
                 context.hostInputLocs->size() > static_cast<std::size_t>(inputIndex)) {
                 const auto location = (*context.hostInputLocs)[inputIndex];
                 if (location != kNullLocation) {
-                    terms.push_back({location, 1.0});
+                    terms.push_back({.location = location, .value = 1.0});
                 }
             }
         };
@@ -498,7 +498,7 @@ ControlSignalRoute RenewableGenerator::resolveSignalRoute(const RenewableCompone
                                      std::vector<ControlSignalDerivative>& terms) {
             const auto location = source->getOutputLoc(context.solverMode, VOLTAGE_IN_LOCATION);
             if (location != kNullLocation) {
-                terms.push_back({location, 1.0});
+                terms.push_back({.location = location, .value = 1.0});
             }
         };
     };
@@ -520,7 +520,7 @@ ControlSignalRoute RenewableGenerator::resolveSignalRoute(const RenewableCompone
             }
             const auto location = source->getOutputLoc(context.solverMode, outputIndex);
             if (location != kNullLocation) {
-                terms.push_back({location, 1.0});
+                terms.push_back({.location = location, .value = 1.0});
             }
         };
     };
@@ -550,7 +550,7 @@ ControlSignalRoute RenewableGenerator::resolveSignalRoute(const RenewableCompone
                 const auto location =
                     source->getOutputLoc(context.solverMode, FREQUENCY_IN_LOCATION);
                 if (location != kNullLocation) {
-                    terms.push_back({location, 1.0});
+                    terms.push_back({.location = location, .value = 1.0});
                 }
             };
         } else {
@@ -597,7 +597,7 @@ ControlSignalRoute RenewableGenerator::resolveSignalRoute(const RenewableCompone
                 index_t location = kNullLocation;
                 source->getFreq(emptyStateData, context.solverMode, &location);
                 if (location != kNullLocation) {
-                    terms.push_back({location, 1.0});
+                    terms.push_back({.location = location, .value = 1.0});
                 }
             };
         }
@@ -649,7 +649,7 @@ ControlSignalRoute RenewableGenerator::resolveSignalRoute(const RenewableCompone
                     }
                     const auto location = candidate->getOutputLoc(context.solverMode, outputIndex);
                     if (location != kNullLocation) {
-                        terms.push_back({location, 1.0});
+                        terms.push_back({.location = location, .value = 1.0});
                     }
                 };
             }
@@ -667,7 +667,10 @@ IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
         throw InvalidParameterValue("renewable signal routes require dynamic initialization");
     }
     return signalBindings[roleIndex(model->role())].values(
-        {inputs, nullptr, stateDataValue, sMode});
+        {.hostInputs = inputs,
+         .hostInputLocs = nullptr,
+         .stateData = stateDataValue,
+         .solverMode = sMode});
 }
 
 ControlSignalInputLocations RenewableGenerator::modelInputMap(const RenewableComponent* model,
@@ -680,7 +683,10 @@ ControlSignalInputLocations RenewableGenerator::modelInputMap(const RenewableCom
         throw InvalidParameterValue("renewable signal routes require dynamic initialization");
     }
     return signalBindings[roleIndex(model->role())].inputLocations(
-        {inputs, &inputLocs, stateDataValue, sMode});
+        {.hostInputs = inputs,
+         .hostInputLocs = &inputLocs,
+         .stateData = stateDataValue,
+         .solverMode = sMode});
 }
 
 void RenewableGenerator::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)

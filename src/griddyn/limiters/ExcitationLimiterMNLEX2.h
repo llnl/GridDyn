@@ -7,6 +7,7 @@
 
 #include "../ExcitationLimiter.h"
 #include <array>
+#include <string>
 
 namespace griddyn::limiters {
 /** PSS/E MNLEX2 circular P-Q underexcitation limiter. */

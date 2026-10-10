@@ -11,6 +11,8 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <string>
+#include <vector>
 
 namespace griddyn::limiters {
 namespace {
@@ -100,7 +102,7 @@ void ExcitationLimiterOEL4C::dynObjectInitializeA(CoreTime time0, std::uint32_t 
 }
 
 ExcitationLimiterOEL4C::ReactivePower
-    ExcitationLimiterOEL4C::reactivePower(const IOdata& inputs) const
+    ExcitationLimiterOEL4C::reactivePower(const IOdata& inputs)
 {
     if (inputs.size() < excitationLimiterInputCount) {
         throw InvalidParameterValue("OEL4C input vector");
@@ -115,11 +117,11 @@ ExcitationLimiterOEL4C::ReactivePower
     const double iqCurrent = inputs[limiterIqInLocation];
     const double vdVoltage = inputs[limiterVdInLocation];
     const double vqVoltage = inputs[limiterVqInLocation];
-    return {idCurrent * vqVoltage - iqCurrent * vdVoltage,
-            vqVoltage,
-            -vdVoltage,
-            -iqCurrent,
-            idCurrent};
+    return {.value = (idCurrent * vqVoltage) - (iqCurrent * vdVoltage),
+            .dId = vqVoltage,
+            .dIq = -vdVoltage,
+            .dVd = -iqCurrent,
+            .dVq = idCurrent};
 }
 
 void ExcitationLimiterOEL4C::updateTimer(bool violation, CoreTime time)
@@ -133,24 +135,25 @@ void ExcitationLimiterOEL4C::updateTimer(bool violation, CoreTime time)
     violating = violation;
 }
 
-double ExcitationLimiterOEL4C::piInput(double q, CoreTime time) const
+double ExcitationLimiterOEL4C::piInput(double reactivePowerValue, CoreTime time) const
 {
-    if (q <= qRef || !violating || (!delayElapsed && time < violationStart + delay)) {
+    if (reactivePowerValue <= qRef || !violating ||
+        (!delayElapsed && time < violationStart + delay)) {
         return 0.0;
     }
-    return qRef - q;
+    return qRef - reactivePowerValue;
 }
 
 double ExcitationLimiterOEL4C::action(double input, double integral) const
 {
     // Dynawo's OEL4C is signed nonpositive. The GridDyn VOEL route carries
     // its positive magnitude and SCRX subtracts that magnitude at its sum.
-    return -std::clamp(kp * input + integral, minimum, 0.0);
+    return -std::clamp((kp * input) + integral, minimum, 0.0);
 }
 
 double ExcitationLimiterOEL4C::integralRate(double input, double integral) const
 {
-    const double raw = kp * input + integral;
+    const double raw = (kp * input) + integral;
     if ((raw <= minimum && input < 0.0) || (raw >= 0.0 && input > 0.0)) {
         return 0.0;
     }
@@ -216,12 +219,14 @@ void ExcitationLimiterOEL4C::jacobianElements(const IOdata& inputs,
                                               const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
-    const auto q = reactivePower(inputs);
-    const double input = piInput(q.value, stateData.time);
+    const auto reactivePowerEvaluation = reactivePower(inputs);
+    const double input = piInput(reactivePowerEvaluation.value, stateData.time);
     const double integral = loc.diffStateLoc[0];
-    const double raw = kp * input + integral;
+    const double raw = (kp * input) + integral;
     const bool unsaturated = raw > minimum && raw < 0.0;
-    const bool integrating = !((raw <= minimum && input < 0.0) || (raw >= 0.0 && input > 0.0));
+    const bool blockedAtMinimum = raw <= minimum && input < 0.0;
+    const bool blockedAtMaximum = raw >= 0.0 && input > 0.0;
+    const bool integrating = !blockedAtMinimum && !blockedAtMaximum;
     if (hasAlgebraic(sMode)) {
         matrixData.assign(loc.algOffset, loc.algOffset, -1.0);
         if (unsaturated && !isAlgebraicOnly(sMode)) {
@@ -234,13 +239,22 @@ void ExcitationLimiterOEL4C::jacobianElements(const IOdata& inputs,
     if (input == 0.0) {
         return;
     }
-    const std::array<double, excitationLimiterInputCount> dq{0, q.dId, q.dIq, q.dVd, q.dVq};
+    const std::array<double, excitationLimiterInputCount> reactivePowerDerivatives{
+        0,
+        reactivePowerEvaluation.dId,
+        reactivePowerEvaluation.dIq,
+        reactivePowerEvaluation.dVd,
+        reactivePowerEvaluation.dVq};
     for (index_t index = 1; index < excitationLimiterInputCount; ++index) {
         if (hasAlgebraic(sMode) && unsaturated) {
-            matrixData.assignCheckCol(loc.algOffset, inputLocs[index], kp * dq[index]);
+            matrixData.assignCheckCol(loc.algOffset,
+                                      inputLocs[index],
+                                      kp * reactivePowerDerivatives[index]);
         }
         if (hasDifferential(sMode) && integrating) {
-            matrixData.assignCheckCol(loc.diffOffset, inputLocs[index], -ki * dq[index]);
+            matrixData.assignCheckCol(loc.diffOffset,
+                                      inputLocs[index],
+                                      -ki * reactivePowerDerivatives[index]);
         }
     }
 }
@@ -309,12 +323,12 @@ void ExcitationLimiterOEL4C::timestep(CoreTime time,
                                       const SolverMode& /*sMode*/)
 {
     const double step = time - prevTime;
-    const double q = reactivePower(inputs).value;
-    updateTimer(q > qRef, time);
+    const double reactivePowerValue = reactivePower(inputs).value;
+    updateTimer(reactivePowerValue > qRef, time);
     if (violating && time >= violationStart + delay) {
         delayElapsed = true;
     }
-    const double input = piInput(q, time);
+    const double input = piInput(reactivePowerValue, time);
     m_state[1] += step * integralRate(input, m_state[1]);
     m_state[0] = action(input, m_state[1]);
     prevTime = time;

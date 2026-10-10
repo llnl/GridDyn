@@ -6,6 +6,8 @@
 #pragma once
 
 #include "../ExcitationLimiter.h"
+#include <string>
+#include <vector>
 
 namespace griddyn::limiters {
 /** Reactive-power delayed PI OEL4C; output is a positive VOEL magnitude. */
@@ -62,8 +64,8 @@ class ExcitationLimiterOEL4C final: public ExcitationLimiter {
         double dVd;
         double dVq;
     };
-    ReactivePower reactivePower(const IOdata& inputs) const;
-    double piInput(double reactivePower, CoreTime time) const;
+    static ReactivePower reactivePower(const IOdata& inputs);
+    double piInput(double reactivePowerValue, CoreTime time) const;
     double action(double input, double integral) const;
     double integralRate(double input, double integral) const;
     void updateTimer(bool violation, CoreTime time);

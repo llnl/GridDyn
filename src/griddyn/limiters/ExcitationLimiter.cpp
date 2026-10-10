@@ -17,21 +17,22 @@
 #include <algorithm>
 #include <cmath>
 #include <string>
+#include <vector>
 
 namespace griddyn {
 namespace {
-    static TypeFactory<ExcitationLimiter>
+    TypeFactory<ExcitationLimiter>
         gExcitationLimiterFactory("excitationlimiter",
                                   std::to_array<std::string_view>({"limiter"}));
-    static ChildTypeFactory<limiters::ExcitationLimiterMNLEX2, ExcitationLimiter>
+    ChildTypeFactory<limiters::ExcitationLimiterMNLEX2, ExcitationLimiter>
         gMnlex2Factory("excitationlimiter", "mnlex2");
-    static ChildTypeFactory<limiters::ExcitationLimiterOEL3C, ExcitationLimiter>
+    ChildTypeFactory<limiters::ExcitationLimiterOEL3C, ExcitationLimiter>
         gOel3cFactory("excitationlimiter", "oel3c");
-    static ChildTypeFactory<limiters::ExcitationLimiterOEL4C, ExcitationLimiter>
+    ChildTypeFactory<limiters::ExcitationLimiterOEL4C, ExcitationLimiter>
         gOel4cFactory("excitationlimiter", "oel4c");
-    static ChildTypeFactory<limiters::ExcitationLimiterUEL1, ExcitationLimiter>
+    ChildTypeFactory<limiters::ExcitationLimiterUEL1, ExcitationLimiter>
         gUel1Factory("excitationlimiter", "uel1");
-    static ChildTypeFactory<limiters::ExcitationLimiterUEL2C, ExcitationLimiter>
+    ChildTypeFactory<limiters::ExcitationLimiterUEL2C, ExcitationLimiter>
         gUel2cFactory("excitationlimiter", "uel2c");
 }  // namespace
 
@@ -147,14 +148,15 @@ ExcitationLimiter::Evaluation ExcitationLimiter::evaluate(const IOdata& inputs) 
             }
         }
         const double directCurrent = inputs[limiterIdInLocation];
-        const double iq = inputs[limiterIqInLocation];
-        const double vd = inputs[limiterVdInLocation];
-        const double vq = inputs[limiterVqInLocation];
-        const double reactiveInjection = (directCurrent * vq) - (iq * vd);
+        const double quadratureCurrent = inputs[limiterIqInLocation];
+        const double directVoltage = inputs[limiterVdInLocation];
+        const double quadratureVoltage = inputs[limiterVqInLocation];
+        const double reactiveInjection =
+            (directCurrent * quadratureVoltage) - (quadratureCurrent * directVoltage);
         error = threshold - reactiveInjection;
-        result.derivatives[limiterIdInLocation] = -gain * vq;
-        result.derivatives[limiterIqInLocation] = gain * vd;
-        result.derivatives[limiterVdInLocation] = gain * iq;
+        result.derivatives[limiterIdInLocation] = -gain * quadratureVoltage;
+        result.derivatives[limiterIqInLocation] = gain * directVoltage;
+        result.derivatives[limiterVdInLocation] = gain * quadratureCurrent;
         result.derivatives[limiterVqInLocation] = -gain * directCurrent;
     }
     const double rawAction = gain * error;

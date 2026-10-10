@@ -7,6 +7,7 @@
 
 #include "../ExcitationLimiter.h"
 #include <array>
+#include <string>
 
 namespace griddyn::limiters {
 /**

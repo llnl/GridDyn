@@ -485,12 +485,15 @@ TEST(ControlSignalRouting, ScaledComputedInputPropagatesSparseJacobian)
     computed.gain = 3.0;
     computed.offset = -1.0;
     computed.value = [](const ControlSignalContext& context) {
-        return context.hostInputs[0] * context.hostInputs[1] + 2.0 * context.hostInputs[1];
+        return (context.hostInputs[0] * context.hostInputs[1]) +
+            (2.0 * context.hostInputs[1]);
     };
     computed.derivatives = [](const ControlSignalContext& context,
                               std::vector<ControlSignalDerivative>& terms) {
-        terms.push_back({(*context.hostInputLocs)[0], context.hostInputs[1]});
-        terms.push_back({(*context.hostInputLocs)[1], context.hostInputs[0] + 2.0});
+        terms.push_back({.location = (*context.hostInputLocs)[0],
+                         .value = context.hostInputs[1]});
+        terms.push_back({.location = (*context.hostInputLocs)[1],
+                         .value = context.hostInputs[0] + 2.0});
     };
     routing.add(std::move(computed));
 
@@ -499,7 +502,7 @@ TEST(ControlSignalRouting, ScaledComputedInputPropagatesSparseJacobian)
     direct.value = [](const ControlSignalContext& context) { return context.hostInputs[2]; };
     direct.derivatives = [](const ControlSignalContext& context,
                             std::vector<ControlSignalDerivative>& terms) {
-        terms.push_back({(*context.hostInputLocs)[2], 1.0});
+        terms.push_back({.location = (*context.hostInputLocs)[2], .value = 1.0});
     };
     routing.add(std::move(direct));
 
@@ -510,7 +513,10 @@ TEST(ControlSignalRouting, ScaledComputedInputPropagatesSparseJacobian)
 
     const IOdata inputs{4.0, 5.0, 6.0};
     const IOlocs inputLocs{10, 11, 12};
-    const ControlSignalContext context{inputs, &inputLocs, emptyStateData, cDaeSolverMode};
+    const ControlSignalContext context{.hostInputs = inputs,
+                                       .hostInputLocs = &inputLocs,
+                                       .stateData = emptyStateData,
+                                       .solverMode = cDaeSolverMode};
     EXPECT_EQ(routing.values(context), (IOdata{89.0, 6.0, 0.0}));
     IOdata hostBuffer{1.0, 1.0, 1.0, 42.0};
     routing.writeValues(context, hostBuffer);
@@ -537,9 +543,13 @@ TEST(ControlSignalRouting, HostFrameRoutesValuesAndSparseDerivatives)
 
     const IOdata values{3.0, 4.0};
     const IOlocs directLocations{10, kNullLocation};
-    const std::vector<std::vector<ControlSignalDerivative>> sparse{{}, {{20, 0.5}, {21, -1.0}}};
-    const ControlSignalContext context{
-        values, &directLocations, emptyStateData, cDaeSolverMode, &sparse};
+    const std::vector<std::vector<ControlSignalDerivative>> sparse{
+        {}, {{.location = 20, .value = 0.5}, {.location = 21, .value = -1.0}}};
+    const ControlSignalContext context{.hostInputs = values,
+                                       .hostInputLocs = &directLocations,
+                                       .stateData = emptyStateData,
+                                       .solverMode = cDaeSolverMode,
+                                       .hostInputDerivatives = &sparse};
     EXPECT_EQ(routing.values(context), (IOdata{7.0, 4.0}));
 
     const auto locations = routing.inputLocations(context);
@@ -607,8 +617,9 @@ TEST(RenewableModels, SignalRoutesFreezeUntilFullDynamicInitialization)
 
     host.resetSignalRoutesForDynamicInitialization();
     EXPECT_THROW(host.timestep(0.01, {1.0, 0.0}, cLocalSolverMode), InvalidParameterValue);
-    host.add(replacement.get());
-    replacement.release();
+    auto* replacementModel = replacement.get();
+    host.add(replacementModel);
+    EXPECT_EQ(replacement.release(), replacementModel);
     EXPECT_NO_THROW(host.dynInitializeA(0.0, 0));
 }
 

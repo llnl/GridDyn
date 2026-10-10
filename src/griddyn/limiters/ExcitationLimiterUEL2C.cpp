@@ -168,19 +168,20 @@ void ExcitationLimiterUEL2C::dynObjectInitializeA(CoreTime time0, std::uint32_t 
 ExcitationLimiterUEL2C::CurveEvaluation ExcitationLimiterUEL2C::curve(double normalizedP) const
 {
     if (normalizedP <= pPoints[0]) {
-        return {qPoints[0], 0.0};
+        return {.qLimit = qPoints[0], .slope = 0.0};
     }
     if (normalizedP >= pPoints[pointCount - 1]) {
-        return {qPoints[pointCount - 1], 0.0};
+        return {.qLimit = qPoints[pointCount - 1], .slope = 0.0};
     }
     for (std::size_t point = 1; point < pointCount; ++point) {
         if (normalizedP <= pPoints[point]) {
             const double slope =
                 (qPoints[point] - qPoints[point - 1]) / (pPoints[point] - pPoints[point - 1]);
-            return {qPoints[point - 1] + slope * (normalizedP - pPoints[point - 1]), slope};
+            return {.qLimit = qPoints[point - 1] + (slope * (normalizedP - pPoints[point - 1])),
+                    .slope = slope};
         }
     }
-    return {qPoints[pointCount - 1], 0.0};
+    return {.qLimit = qPoints[pointCount - 1], .slope = 0.0};
 }
 
 ExcitationLimiterUEL2C::Evaluation ExcitationLimiterUEL2C::evaluate(const IOdata& inputs,
@@ -196,38 +197,46 @@ ExcitationLimiterUEL2C::Evaluation ExcitationLimiterUEL2C::evaluate(const IOdata
         }
     }
     const double idCurrent = inputs[limiterIdInLocation];
-    const double iq = inputs[limiterIqInLocation];
-    const double vd = inputs[limiterVdInLocation];
-    const double vq = inputs[limiterVqInLocation];
-    const double p = idCurrent * vd + iq * vq;
-    const double q = idCurrent * vq - iq * vd;
-    const double voltage = std::hypot(vd, vq);
+    const double quadratureCurrent = inputs[limiterIqInLocation];
+    const double directVoltage = inputs[limiterVdInLocation];
+    const double quadratureVoltage = inputs[limiterVqInLocation];
+    const double activePower = (idCurrent * directVoltage) +
+        (quadratureCurrent * quadratureVoltage);
+    const double reactivePower = (idCurrent * quadratureVoltage) -
+        (quadratureCurrent * directVoltage);
+    const double voltage = std::hypot(directVoltage, quadratureVoltage);
     if (voltage <= inputTolerance) {
         throw InvalidParameterValue("UEL2C requires nonzero terminal voltage");
     }
-    const double f1 = std::pow(voltage, k1);
-    const double f2 = std::pow(voltage, k2);
-    const double normalizedP = p / f1;
+    const double voltageFactor1 = std::pow(voltage, k1);
+    const double voltageFactor2 = std::pow(voltage, k2);
+    const double normalizedP = activePower / voltageFactor1;
     const auto limit = curve(normalizedP);
-    const double qReference = limit.qLimit * f2;
+    const double qReference = limit.qLimit * voltageFactor2;
     Evaluation result;
-    result.error = qReference - q;
+    result.error = qReference - reactivePower;
 
-    const std::array<double, excitationLimiterInputCount> dp{0.0, vd, vq, idCurrent, iq};
-    const std::array<double, excitationLimiterInputCount> dq{0.0, vq, -vd, -iq, idCurrent};
-    const std::array<double, excitationLimiterInputCount> dv{
-        0.0, 0.0, 0.0, vd / voltage, vq / voltage};
-    const double f1Derivative =
+    const std::array<double, excitationLimiterInputCount> activePowerDerivatives{
+        0.0, directVoltage, quadratureVoltage, idCurrent, quadratureCurrent};
+    const std::array<double, excitationLimiterInputCount> reactivePowerDerivatives{
+        0.0, quadratureVoltage, -directVoltage, -quadratureCurrent, idCurrent};
+    const std::array<double, excitationLimiterInputCount> voltageDerivatives{
+        0.0, 0.0, 0.0, directVoltage / voltage, quadratureVoltage / voltage};
+    const double voltageFactor1Derivative =
         (k1 == 0) ? 0.0 : static_cast<double>(k1) * std::pow(voltage, k1 - 1);
-    const double f2Derivative =
+    const double voltageFactor2Derivative =
         (k2 == 0) ? 0.0 : static_cast<double>(k2) * std::pow(voltage, k2 - 1);
     for (index_t input = 0; input < excitationLimiterInputCount; ++input) {
-        const double dNormalizedP = dp[input] / f1 - p * f1Derivative * dv[input] / (f1 * f1);
+        const double dNormalizedP = (activePowerDerivatives[input] / voltageFactor1) -
+            ((activePower * voltageFactor1Derivative * voltageDerivatives[input]) /
+             (voltageFactor1 * voltageFactor1));
         result.errorDerivatives[input] =
-            limit.slope * f2 * dNormalizedP + limit.qLimit * f2Derivative * dv[input] - dq[input];
+            (limit.slope * voltageFactor2 * dNormalizedP) +
+            (limit.qLimit * voltageFactor2Derivative * voltageDerivatives[input]) -
+            reactivePowerDerivatives[input];
     }
 
-    const double raw = kuL * result.error + integral;
+    const double raw = (kuL * result.error) + integral;
     const double piLimited = std::clamp(raw, vuiMin, vuiMax);
     const double output = std::clamp(piLimited, vulMin1, vulMax1);
     result.output = std::clamp(output, vulMin2, vulMax2);
@@ -307,8 +316,9 @@ void ExcitationLimiterUEL2C::jacobianElements(const IOdata& inputs,
     const auto loc = offsets.getLocations(stateData, sMode, this);
     const auto result = evaluate(inputs, loc.diffStateLoc[0]);
     const double rate = kuI * result.error;
-    const bool integrate = !((loc.diffStateLoc[0] <= vuiMin && rate < 0.0) ||
-                             (loc.diffStateLoc[0] >= vuiMax && rate > 0.0));
+    const bool blockedAtMinimum = loc.diffStateLoc[0] <= vuiMin && rate < 0.0;
+    const bool blockedAtMaximum = loc.diffStateLoc[0] >= vuiMax && rate > 0.0;
+    const bool integrate = !blockedAtMinimum && !blockedAtMaximum;
     if (hasAlgebraic(sMode)) {
         matrixData.assign(loc.algOffset, loc.algOffset, -1.0);
         if (!isAlgebraicOnly(sMode)) {
@@ -344,8 +354,8 @@ void ExcitationLimiterUEL2C::timestep(CoreTime time,
 {
     const double step = time - prevTime;
     const auto result = evaluate(inputs, m_state[1]);
-    m_state[1] =
-        std::clamp(m_state[1] + step * integralRate(m_state[1], result.error), vuiMin, vuiMax);
+    m_state[1] = std::clamp(
+        m_state[1] + (step * integralRate(m_state[1], result.error)), vuiMin, vuiMax);
     m_state[0] = evaluate(inputs, m_state[1]).output;
     prevTime = time;
 }

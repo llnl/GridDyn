@@ -375,7 +375,10 @@ void DynamicGenerator::writeModelInputs(SubModelLocations model,
     if (!signalRoutesReady) {
         throw InvalidParameterValue("dynamic generator signal routes require initialization");
     }
-    signalRoutes[model].writeValues({signalFrame.values, nullptr, stateDataValue, sMode},
+    signalRoutes[model].writeValues({.hostInputs = signalFrame.values,
+                                     .hostInputLocs = nullptr,
+                                     .stateData = stateDataValue,
+                                     .solverMode = sMode},
                                     subInputs.inputs[model]);
 }
 
@@ -458,7 +461,10 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
         auto* limiter = (model == OEL_LOC) ? oel : uel;
         if (limiter != nullptr && limiter->isEnabled()) {
             auto limiterInputs = signalRoutes[model].values(
-                {signalFrame.values, nullptr, emptyStateData, cLocalSolverMode});
+                {.hostInputs = signalFrame.values,
+                 .hostInputLocs = nullptr,
+                 .stateData = emptyStateData,
+                 .solverMode = cLocalSolverMode});
             IOdata limiterFieldSet;
             limiter->dynInitializeB(limiterInputs, {}, limiterFieldSet);
             signalFrame.values[(model == OEL_LOC) ? overExcitationAction : underExcitationAction] =
@@ -467,14 +473,20 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
     }
     if ((voltageCompensator != nullptr) && (voltageCompensator->isEnabled())) {
         auto compensatorInputs = signalRoutes[VOLTAGE_COMPENSATOR_LOC].values(
-            {signalFrame.values, nullptr, emptyStateData, cLocalSolverMode});
+            {.hostInputs = signalFrame.values,
+             .hostInputLocs = nullptr,
+             .stateData = emptyStateData,
+             .solverMode = cLocalSolverMode});
         IOdata compensatorFieldSet;
         voltageCompensator->dynInitializeB(compensatorInputs, {}, compensatorFieldSet);
         signalFrame.values[exciterVoltage] = voltageCompensator->getOutput();
     }
     if ((ext != nullptr) && (ext->isEnabled())) {
         auto exciterInputs = signalRoutes[EXCITER_LOC].values(
-            {signalFrame.values, nullptr, emptyStateData, cLocalSolverMode});
+            {.hostInputs = signalFrame.values,
+             .hostInputLocs = nullptr,
+             .stateData = emptyStateData,
+             .solverMode = cLocalSolverMode});
 
         localDesiredOutput[0] = m_Eft;
         ext->dynInitializeB(exciterInputs, localDesiredOutput, computedFieldSet);
@@ -484,7 +496,10 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
     }
     if ((gov != nullptr) && (gov->isEnabled())) {
         auto governorInputs = signalRoutes[GOVERNOR_LOC].values(
-            {signalFrame.values, nullptr, emptyStateData, cLocalSolverMode});
+            {.hostInputs = signalFrame.values,
+             .hostInputLocs = nullptr,
+             .stateData = emptyStateData,
+             .solverMode = cLocalSolverMode});
 
         localDesiredOutput[0] = Pset * scale;
         if (isoc != nullptr) {
@@ -505,7 +520,10 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
         signalFrame.values[exciterVoltage] = voltage;
         signalFrame.values[torqueIndex] = m_Pmech;
         auto pssInputs = signalRoutes[PSS_LOC].values(
-            {signalFrame.values, nullptr, emptyStateData, cLocalSolverMode});
+            {.hostInputs = signalFrame.values,
+             .hostInputLocs = nullptr,
+             .stateData = emptyStateData,
+             .solverMode = cLocalSolverMode});
         signalFrame.values[exciterVoltage] = previousVoltage;
         signalFrame.values[torqueIndex] = previousTorque;
         localDesiredOutput[0] = 0;
@@ -1683,11 +1701,12 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
     if (activePowerCommandUnclamped >= Pmin && activePowerCommandUnclamped <= Pmax) {
         const auto sourceLocation = pSetLocation(sMode);
         if (sourceLocation != kNullLocation) {
-            signalFrame.derivatives[activePowerCommand].push_back({sourceLocation, scale});
+            signalFrame.derivatives[activePowerCommand].push_back(
+                {.location = sourceLocation, .value = scale});
         }
         if (opFlags[ISOCHRONOUS_OPERATION] && isoc != nullptr) {
             signalFrame.derivatives[activePowerCommand].push_back(
-                {isoc->getOutputLoc(sMode, 0), 1.0});
+                {.location = isoc->getOutputLoc(sMode, 0), .value = 1.0});
         }
     }
 
@@ -1740,8 +1759,11 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
         }
     }
 
-    const ControlSignalContext context{
-        signalFrame.values, &sourceLocations, stateDataValue, sMode, &signalFrame.derivatives};
+    const ControlSignalContext context{.hostInputs = signalFrame.values,
+                                       .hostInputLocs = &sourceLocations,
+                                       .stateData = stateDataValue,
+                                       .solverMode = sMode,
+                                       .hostInputDerivatives = &signalFrame.derivatives};
     signalRoutes[GEN_MODEL_LOC].writeInputLocations(context, routeInputLocations[GEN_MODEL_LOC]);
     subInputLocs.inputLocs[GEN_MODEL_LOC] = routeInputLocations[GEN_MODEL_LOC].locations;
     subInputLocs.genModelInputLocsInternal = subInputLocs.inputLocs[GEN_MODEL_LOC];

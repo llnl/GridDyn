@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../ExcitationLimiter.h"
+#include <string>
 
 namespace griddyn::limiters {
 /**
@@ -55,7 +56,7 @@ class ExcitationLimiterOEL3C final: public ExcitationLimiter {
     };
     Evaluation evaluate(double scaledFieldCurrent, double integral) const;
     double integralRate(double integral, double error) const;
-    double fieldCurrent(const IOdata& inputs) const;
+    static double fieldCurrent(const IOdata& inputs);
 
     double itfpu = 1.05;
     double kscale = 1.0;

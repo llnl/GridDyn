@@ -110,22 +110,34 @@ ExcitationLimiterMNLEX2::Circle ExcitationLimiterMNLEX2::circleError(const IOdat
         }
     }
     const double iDirect = inputs[limiterIdInLocation];
-    const double iq = inputs[limiterIqInLocation];
-    const double vd = inputs[limiterVdInLocation];
-    const double vq = inputs[limiterVqInLocation];
-    const double p = iDirect * vd + iq * vq;
-    const double q = iDirect * vq - iq * vd;
-    const double v2 = vd * vd + vq * vq;
-    const double centeredQ = q0 * v2 - q;
-    const double scaledRadius = radius * v2;
+    const double quadratureCurrent = inputs[limiterIqInLocation];
+    const double directVoltage = inputs[limiterVdInLocation];
+    const double quadratureVoltage = inputs[limiterVqInLocation];
+    const double activePower = (iDirect * directVoltage) +
+        (quadratureCurrent * quadratureVoltage);
+    const double reactivePower = (iDirect * quadratureVoltage) -
+        (quadratureCurrent * directVoltage);
+    const double voltageSquared = (directVoltage * directVoltage) +
+        (quadratureVoltage * quadratureVoltage);
+    const double centeredQ = (q0 * voltageSquared) - reactivePower;
+    const double scaledRadius = radius * voltageSquared;
     Circle result;
-    result.error = centeredQ * centeredQ + p * p - scaledRadius * scaledRadius;
-    const std::array<double, excitationLimiterInputCount> dp{0, vd, vq, iDirect, iq};
-    const std::array<double, excitationLimiterInputCount> dq{0, vq, -vd, -iq, iDirect};
-    const std::array<double, excitationLimiterInputCount> dv2{0, 0, 0, 2 * vd, 2 * vq};
+    result.error = (centeredQ * centeredQ) + (activePower * activePower) -
+        (scaledRadius * scaledRadius);
+    const std::array<double, excitationLimiterInputCount> activePowerDerivatives{
+        0, directVoltage, quadratureVoltage, iDirect, quadratureCurrent};
+    const std::array<double, excitationLimiterInputCount> reactivePowerDerivatives{
+        0, quadratureVoltage, -directVoltage, -quadratureCurrent, iDirect};
+    const std::array<double, excitationLimiterInputCount> voltageSquaredDerivatives{
+        0, 0, 0, 2 * directVoltage, 2 * quadratureVoltage};
     for (index_t index = 0; index < excitationLimiterInputCount; ++index) {
-        result.derivatives[index] = 2 * centeredQ * (q0 * dv2[index] - dq[index]) +
-            2 * p * dp[index] - 2 * scaledRadius * radius * dv2[index];
+        const double centeredQDerivative =
+            2 * centeredQ * ((q0 * voltageSquaredDerivatives[index]) -
+                             reactivePowerDerivatives[index]);
+        const double activePowerDerivative = 2 * activePower * activePowerDerivatives[index];
+        const double radiusDerivative =
+            2 * scaledRadius * radius * voltageSquaredDerivatives[index];
+        result.derivatives[index] = centeredQDerivative + activePowerDerivative - radiusDerivative;
     }
     return result;
 }
@@ -133,7 +145,7 @@ ExcitationLimiterMNLEX2::Circle ExcitationLimiterMNLEX2::circleError(const IOdat
 double ExcitationLimiterMNLEX2::rate(double output, double feedback, double error) const
 {
     const double unconstrainedRate =
-        (kM * (error - (kF2 / tF2) * (output - feedback)) - output) / tM;
+        ((kM * (error - ((kF2 / tF2) * (output - feedback)))) - output) / tM;
     if ((output <= 0.0 && unconstrainedRate < 0.0) ||
         (output >= melMax && unconstrainedRate > 0.0)) {
         return 0.0;
@@ -166,7 +178,7 @@ void ExcitationLimiterMNLEX2::residual(const IOdata& inputs,
     if (hasDifferential(sMode)) {
         const auto error = circleError(inputs).error;
         loc.destDiffLoc[0] = rate(output, loc.diffStateLoc[1], error) - loc.dstateLoc[0];
-        loc.destDiffLoc[1] = (output - loc.diffStateLoc[1]) / tF2 - loc.dstateLoc[1];
+        loc.destDiffLoc[1] = ((output - loc.diffStateLoc[1]) / tF2) - loc.dstateLoc[1];
     }
 }
 
@@ -220,14 +232,13 @@ void ExcitationLimiterMNLEX2::jacobianElements(const IOdata& inputs,
     const double output = std::clamp(mel, 0.0, melMax);
     const double outputSensitivity = (mel >= 0.0 && mel < melMax) ? 1.0 : 0.0;
     const double unconstrainedRate =
-        (kM * (circle.error - (kF2 / tF2) * (output - loc.diffStateLoc[1])) - output) / tM;
+        ((kM * (circle.error - ((kF2 / tF2) * (output - loc.diffStateLoc[1])))) - output) / tM;
     const bool limited =
         (output <= 0.0 && unconstrainedRate < 0.0) || (output >= melMax && unconstrainedRate > 0.0);
     const auto outputRow = loc.diffOffset;
-    matrixData.assign(outputRow,
-                      outputRow,
-                      (limited ? 0.0 : outputSensitivity * (-1.0 - kM * kF2 / tF2) / tM) -
-                          stateData.cj);
+    const double outputRateSlope =
+        limited ? 0.0 : outputSensitivity * (-1.0 - ((kM * kF2) / tF2)) / tM;
+    matrixData.assign(outputRow, outputRow, outputRateSlope - stateData.cj);
     if (!limited) {
         matrixData.assign(outputRow, outputRow + 1, kM * kF2 / (tM * tF2));
         for (index_t index = 0; index < excitationLimiterInputCount; ++index) {
@@ -248,8 +259,8 @@ void ExcitationLimiterMNLEX2::timestep(CoreTime time,
     const double output = m_state[1];
     const double feedback = m_state[2];
     const double error = circleError(inputs).error;
-    m_state[1] = std::clamp(output + step * rate(output, feedback, error), 0.0, melMax);
-    m_state[2] = feedback + step * (output - feedback) / tF2;
+    m_state[1] = std::clamp(output + (step * rate(output, feedback, error)), 0.0, melMax);
+    m_state[2] = feedback + ((step * (output - feedback)) / tF2);
     m_state[0] = m_state[1];
     prevTime = time;
 }

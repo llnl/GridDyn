@@ -9,15 +9,15 @@
 #include "fileInput/fileInput.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/comms/CommMessage.h"
-#include "griddyn/comms/Communicator.h"
 #include "griddyn/comms/CommunicationsCore.h"
+#include "griddyn/comms/Communicator.h"
 #include "griddyn/comms/ControlMessage.h"
+#include "griddyn/links/AdjustableTransformer.h"
 #include "griddyn/relays/ControlRelay.h"
 #include "griddyn/relays/Pmu.h"
 #include "griddyn/relays/Sensor.h"
 #include "griddyn/relays/TimeOverCurrentRelay.h"
 #include "griddyn/relays/ZonalRelay.h"
-#include "griddyn/links/AdjustableTransformer.h"
 #include <array>
 #include <cmath>
 #include <filesystem>
@@ -246,7 +246,8 @@ TEST_F(RelayTests, RelayTestBasicCommunicationFixture)
 
 TEST_F(RelayTests, TimeOverCurrentRelayFixture)
 {
-    const std::string fileName = std::string(RELAY_TEST_DIRECTORY "test_time_overcurrent_relay.xml");
+    const std::string fileName =
+        std::string(RELAY_TEST_DIRECTORY "test_time_overcurrent_relay.xml");
 
     gds = readSimXMLFile(fileName);
     ASSERT_EQ(gds->dynInitialize(timeZero), 0);
@@ -301,8 +302,7 @@ TEST_F(RelayTests, TimeOverCurrentRelaySecondaryInstantaneousFixture)
 
 TEST_F(RelayTests, DyrLoadsConstrainedTIOCR1TransformerRelay)
 {
-    const std::string fileName =
-        std::string(RELAY_TEST_DIRECTORY "test_tiocr1_dyr.xml");
+    const std::string fileName = std::string(RELAY_TEST_DIRECTORY "test_tiocr1_dyr.xml");
     gds = readSimXMLFile(fileName);
 
     auto* highSide = gds->getBus(0);
@@ -317,11 +317,11 @@ TEST_F(RelayTests, DyrLoadsConstrainedTIOCR1TransformerRelay)
     {
         std::ofstream output(dyrFile);
         ASSERT_TRUE(output.good());
-        output << highSide->getUserID() << " 'TIOCR1' " << lowSide->getUserID()
-               << " 1 1 1 " << lowSide->getUserID()
-               << " BL " << highSide->getUserID() << " " << lowSide->getUserID()
-               << " 1 " << highSide->getUserID() << " " << lowSide->getUserID()
-               << " 1 " << highSide->getUserID() << " " << lowSide->getUserID()
+        output << highSide->getUserID() << " 'TIOCR1' " << lowSide->getUserID() << " 1 1 1 "
+               << lowSide->getUserID() << " BL " << highSide->getUserID() << " "
+               << lowSide->getUserID() << " 1 " << highSide->getUserID() << " "
+               << lowSide->getUserID() << " 1 " << highSide->getUserID() << " "
+               << lowSide->getUserID()
                << " 1 10.05 9999 10.60 120 11.88 60 14.08 30 20.66 10 20.66 10"
                << " 0.05 1 /\n";
     }
@@ -347,8 +347,7 @@ TEST_F(RelayTests, DyrLoadsConstrainedTIOCR1TransformerRelay)
 
 TEST_F(RelayTests, DyrRejectsUnsupportedTIOCR1Variant)
 {
-    const std::string fileName =
-        std::string(RELAY_TEST_DIRECTORY "test_tiocr1_dyr.xml");
+    const std::string fileName = std::string(RELAY_TEST_DIRECTORY "test_tiocr1_dyr.xml");
     gds = readSimXMLFile(fileName);
 
     auto* highSide = gds->getBus(0);
@@ -361,11 +360,11 @@ TEST_F(RelayTests, DyrRejectsUnsupportedTIOCR1Variant)
     {
         std::ofstream output(dyrFile);
         ASSERT_TRUE(output.good());
-        output << highSide->getUserID() << " 'TIOCR1' " << lowSide->getUserID()
-               << " 1 1 1 " << lowSide->getUserID()
-               << " BL " << highSide->getUserID() << " " << lowSide->getUserID()
-               << " 1 " << highSide->getUserID() << " " << lowSide->getUserID()
-               << " 1 " << highSide->getUserID() << " " << lowSide->getUserID()
+        output << highSide->getUserID() << " 'TIOCR1' " << lowSide->getUserID() << " 1 1 1 "
+               << lowSide->getUserID() << " BL " << highSide->getUserID() << " "
+               << lowSide->getUserID() << " 1 " << highSide->getUserID() << " "
+               << lowSide->getUserID() << " 1 " << highSide->getUserID() << " "
+               << lowSide->getUserID()
                << " 1 10.05 9999 10.60 120 11.88 60 14.08 30 20.66 10 20.66 10"
                << " 0.04 1 /\n";
     }

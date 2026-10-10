@@ -115,8 +115,8 @@ void TimeOverCurrentRelay::setTimeCurrentCurve(std::span<const TimeCurrentPoint>
     std::vector<TimeCurrentPoint> converted;
     converted.reserve(points.size());
     for (const auto& point : points) {
-        if (!std::isfinite(point.current) || point.current <= 0.0 ||
-            !std::isfinite(point.time) || point.time < timeZero) {
+        if (!std::isfinite(point.current) || point.current <= 0.0 || !std::isfinite(point.time) ||
+            point.time < timeZero) {
             throw InvalidParameterValue("time-current curve point is invalid");
         }
         const auto current =
@@ -150,12 +150,14 @@ void TimeOverCurrentRelay::set(std::string_view param, double val, units::unit u
         mInstantaneousPickup =
             units::convert(val, unitType, units::puA, systemBasePower, mVoltageBase);
     } else if (key == "instantaneousdelay" || key == "instdelay" || key == "highsetdelay") {
-        mInstantaneousDelay = units::convert(
-            val, unitType == units::defunit ? units::second : unitType, units::second);
+        mInstantaneousDelay = units::convert(val,
+                                             unitType == units::defunit ? units::second : unitType,
+                                             units::second);
     } else if (key == "delay" || key == "definitetime" || key == "minimumtime" ||
                key == "tripdelay") {
-        mDefiniteTime =
-            units::convert(val, unitType == units::defunit ? units::second : unitType, units::second);
+        mDefiniteTime = units::convert(val,
+                                       unitType == units::defunit ? units::second : unitType,
+                                       units::second);
     } else if (key == "timedial" || key == "td") {
         mTimeDial = val;
     } else if (key == "resetmargin" || key == "margin") {
@@ -183,8 +185,7 @@ double TimeOverCurrentRelay::get(std::string_view param, units::unit unitType) c
     if (key == "instantaneousdelay" || key == "instdelay" || key == "highsetdelay") {
         return units::convert(mInstantaneousDelay, units::second, unitType);
     }
-    if (key == "delay" || key == "definitetime" || key == "minimumtime" ||
-        key == "tripdelay") {
+    if (key == "delay" || key == "definitetime" || key == "minimumtime" || key == "tripdelay") {
         return units::convert(mDefiniteTime, units::second, unitType);
     }
     if (key == "timedial" || key == "td") {
@@ -216,9 +217,16 @@ std::string TimeOverCurrentRelay::getString(std::string_view param) const
 
 void TimeOverCurrentRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    static constexpr auto numericParameterStrings = std::array<std::string_view, 9>{
-        "pickup", "instantaneous", "instantaneousdelay", "delay", "timedial", "resetmargin",
-        "terminal", "voltagebase", "tripped"};
+    static constexpr auto numericParameterStrings =
+        std::array<std::string_view, 9>{"pickup",
+                                        "instantaneous",
+                                        "instantaneousdelay",
+                                        "delay",
+                                        "timedial",
+                                        "resetmargin",
+                                        "terminal",
+                                        "voltagebase",
+                                        "tripped"};
     static constexpr auto stringParameterStrings = std::array<std::string_view, 1>{"curve"};
     static constexpr std::array<std::string_view, 0> flagStrings{};
     getParamString<TimeOverCurrentRelay, Relay>(
@@ -299,11 +307,12 @@ CoreTime TimeOverCurrentRelay::operatingTime(double current) const
         if (mTimeCurrentCurve.empty()) {
             return maxTime;
         }
-        const auto right = std::upper_bound(
-            mTimeCurrentCurve.begin(),
-            mTimeCurrentCurve.end(),
-            current,
-            [](double value, const TimeCurrentPoint& point) { return value < point.current; });
+        const auto right = std::upper_bound(mTimeCurrentCurve.begin(),
+                                            mTimeCurrentCurve.end(),
+                                            current,
+                                            [](double value, const TimeCurrentPoint& point) {
+                                                return value < point.current;
+                                            });
         if (right == mTimeCurrentCurve.end()) {
             return mDefiniteTime + mTimeCurrentCurve.back().time;
         }
@@ -315,12 +324,10 @@ CoreTime TimeOverCurrentRelay::operatingTime(double current) const
         if (rightPoint.current == leftPoint.current) {
             return mDefiniteTime + leftPoint.time;
         }
-        const double fraction = (current - leftPoint.current) /
-            (rightPoint.current - leftPoint.current);
-        const auto time = leftPoint.time +
-            (fraction * (rightPoint.time - leftPoint.time));
-        return std::isfinite(time) ?
-            std::max(timeZero, mDefiniteTime + CoreTime(time)) : maxTime;
+        const double fraction =
+            (current - leftPoint.current) / (rightPoint.current - leftPoint.current);
+        const auto time = leftPoint.time + (fraction * (rightPoint.time - leftPoint.time));
+        return std::isfinite(time) ? std::max(timeZero, mDefiniteTime + CoreTime(time)) : maxTime;
     }
     const auto parameters = curveParameters(mCurve);
     const double multiple = current / mPickup;
@@ -328,8 +335,8 @@ CoreTime TimeOverCurrentRelay::operatingTime(double current) const
     if (!(denominator > 0.0)) {
         return maxTime;
     }
-    const double time = mDefiniteTime + mTimeDial *
-        (parameters.coefficient / denominator + parameters.offset);
+    const double time =
+        mDefiniteTime + mTimeDial * (parameters.coefficient / denominator + parameters.offset);
     return std::isfinite(time) ? ((time < timeZero) ? timeZero : CoreTime(time)) : maxTime;
 }
 
@@ -359,8 +366,7 @@ void TimeOverCurrentRelay::dynObjectInitializeA(CoreTime time0, std::uint32_t fl
     auto tripEvent = std::make_shared<Event>();
     const auto measurement = currentExpression(m_sourceObject, mTerminal);
     if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
-        add(std::shared_ptr<Condition>(
-            makeCondition(measurement, ">", mPickup, m_sourceObject)));
+        add(std::shared_ptr<Condition>(makeCondition(measurement, ">", mPickup, m_sourceObject)));
         setResetMargin(0, mResetMargin);
         tripEvent->setTarget(m_sinkObject, "switch" + std::to_string(mTerminal));
         tripEvent->setValue(1.0);
@@ -376,8 +382,8 @@ void TimeOverCurrentRelay::dynObjectInitializeA(CoreTime time0, std::uint32_t fl
     setActionTrigger(0, 0, mDefiniteTime);
 
     if (!isDisabled(mInstantaneousPickup)) {
-        add(std::shared_ptr<Condition>(makeCondition(
-            measurement, ">", mInstantaneousPickup, m_sourceObject)));
+        add(std::shared_ptr<Condition>(
+            makeCondition(measurement, ">", mInstantaneousPickup, m_sourceObject)));
         setResetMargin(1, mResetMargin);
         setActionTrigger(0, 1, mInstantaneousDelay);
     }

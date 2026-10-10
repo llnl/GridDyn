@@ -1273,8 +1273,9 @@ namespace {
             throw InvalidParameterValue(std::string{modelName} + " is missing " +
                                         std::string{fieldName});
         }
-        const auto parsed = std::from_chars(
-            tokens[index].data(), tokens[index].data() + tokens[index].size(), value);
+        const auto parsed = std::from_chars(tokens[index].data(),
+                                            tokens[index].data() + tokens[index].size(),
+                                            value);
         if (parsed.ec != std::errc{} || parsed.ptr != tokens[index].data() + tokens[index].size()) {
             throw InvalidParameterValue(std::string{modelName} + " requires an integer " +
                                         std::string{fieldName});
@@ -1294,8 +1295,7 @@ namespace {
             if (link == nullptr) {
                 break;
             }
-            const bool joinsBuses =
-                (link->getBus(1) == bus2) || (link->getBus(2) == bus2);
+            const bool joinsBuses = (link->getBus(1) == bus2) || (link->getBus(2) == bus2);
             if (joinsBuses && static_cast<int>(link->get("circuit")) == circuit &&
                 dynamic_cast<links::AdjustableTransformer*>(link) != nullptr) {
                 return link;
@@ -1314,8 +1314,7 @@ namespace {
         }
         const int bus1Id = requireDyrInteger(tokens, 0, "TIOCR1", "first transformer bus");
         const int bus2Id = requireDyrInteger(tokens, 2, "TIOCR1", "second transformer bus");
-        const int monitoredBusId =
-            requireDyrInteger(tokens, 6, "TIOCR1", "monitored terminal bus");
+        const int monitoredBusId = requireDyrInteger(tokens, 6, "TIOCR1", "monitored terminal bus");
         const int circuit = requireDyrInteger(tokens, 10, "TIOCR1", "circuit");
         if (tokens[7] != "BL" || tokens[3] != "1" || tokens[4] != "1" || tokens[5] != "1" ||
             tokens[30] != "1") {
@@ -1324,9 +1323,9 @@ namespace {
         }
 
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
-        for (const auto index : {3U, 4U, 5U, 6U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U,
-                                 16U, 17U, 18U, 19U, 20U, 21U, 22U, 23U, 24U, 25U, 26U,
-                                 27U, 28U, 29U, 30U}) {
+        for (const auto index :
+             {3U,  4U,  5U,  6U,  8U,  9U,  10U, 11U, 12U, 13U, 14U, 15U, 16U, 17U,
+              18U, 19U, 20U, 21U, 22U, 23U, 24U, 25U, 26U, 27U, 28U, 29U, 30U}) {
             if (!std::isfinite(params[index]) || params[index] == kNullVal) {
                 throw InvalidParameterValue("TIOCR1 contains a nonnumeric parameter");
             }
@@ -1358,10 +1357,10 @@ namespace {
                                         std::to_string(bus1Id) + "-" + std::to_string(bus2Id) +
                                         " circuit " + std::to_string(circuit));
         }
-        auto* monitoredBus = dynamic_cast<GridBus*>(
-            parentObject->findByUserID("bus", monitoredBusId));
-        auto* owner = monitoredBus == nullptr ? nullptr :
-            dynamic_cast<GridArea*>(monitoredBus->getParent());
+        auto* monitoredBus =
+            dynamic_cast<GridBus*>(parentObject->findByUserID("bus", monitoredBusId));
+        auto* owner =
+            monitoredBus == nullptr ? nullptr : dynamic_cast<GridArea*>(monitoredBus->getParent());
         if (owner == nullptr) {
             throw InvalidParameterValue("TIOCR1 monitored bus must belong to an area");
         }
@@ -1376,8 +1375,8 @@ namespace {
             throw InvalidParameterValue("TIOCR1 monitored bus is not a transformer terminal");
         }
 
-        const auto relayName = "TIOCR1_" + std::to_string(bus1Id) + "_" +
-            std::to_string(bus2Id) + "_" + std::to_string(circuit);
+        const auto relayName = "TIOCR1_" + std::to_string(bus1Id) + "_" + std::to_string(bus2Id) +
+            "_" + std::to_string(circuit);
         for (index_t index = 0; owner->getRelay(index) != nullptr; ++index) {
             if (owner->getRelay(index)->getName() == relayName) {
                 throw InvalidParameterValue("TIOCR1 duplicates relay " + relayName);
@@ -1394,8 +1393,7 @@ namespace {
             // The observed TIOCR1 values are interpreted as kA on the
             // monitored transformer terminal.  Convert to A here because the
             // relay's public table API accepts an explicit units argument.
-            points[point] = {params[17U + (2U * point)] * 1000.0,
-                             params[18U + (2U * point)]};
+            points[point] = {params[17U + (2U * point)] * 1000.0, params[18U + (2U * point)]};
         }
 
         auto relay = std::make_unique<relays::TimeOverCurrentRelay>(relayName);

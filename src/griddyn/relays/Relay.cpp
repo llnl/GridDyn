@@ -63,7 +63,8 @@ namespace relays {
     static TypeFactory<Fuse> gFuseFactory("relay", "fuse");
     static TypeFactory<TimeOverCurrentRelay> gTimeOverCurrentRelayFactory(
         "relay",
-        std::to_array<std::string_view>({"timeovercurrent", "time_over_current", "toc", "overcurrent"}));
+        std::to_array<std::string_view>(
+            {"timeovercurrent", "time_over_current", "toc", "overcurrent"}));
     static TypeFactory<Breaker> gBreakerFactory("relay", "breaker");
     static ChildTypeFactory<Pmu, Sensor>
         gPmuFactory("relay",

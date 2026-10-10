@@ -159,7 +159,7 @@ void ExciterSCRX::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     local.algSize = 1;
     local.diffSize = layout.count;
     local.algRoots = (layout.amplifier == kInvalidLocation) ? 0 : 1;
-    local.jacSize = 32;
+    local.jacSize = 40;
     prevTime = time0;
 }
 
@@ -173,6 +173,8 @@ ExciterSCRX::ModelEvaluation ExciterSCRX::evaluateModel(const IOdata& inputs,
     Signal reference =
         addSignals(constantSignal(Vref + vBias - 1.0), inputSignal(inputs, exciterVsetInLocation));
     reference = addSignals(reference, inputSignal(inputs, exciterVssInLocation));
+    reference = addSignals(reference, inputSignal(inputs, exciterVuelInLocation));
+    reference = subtract(reference, inputSignal(inputs, exciterVoelInLocation));
     const Signal error = subtract(reference, inputSignal(inputs, exciterVoltageInLocation));
 
     Signal leadOutput = error;
@@ -219,7 +221,9 @@ void ExciterSCRX::dynObjectInitializeB(const IOdata& inputs,
     if (inputs.size() < exciterInputCount || desiredOutput.empty() ||
         !std::isfinite(inputs[exciterVoltageInLocation]) ||
         !std::isfinite(inputs[exciterVsetInLocation]) ||
-        !std::isfinite(inputs[exciterVssInLocation]) || !std::isfinite(desiredOutput[0])) {
+        !std::isfinite(inputs[exciterVssInLocation]) ||
+        !std::isfinite(inputs[exciterVuelInLocation]) ||
+        !std::isfinite(inputs[exciterVoelInLocation]) || !std::isfinite(desiredOutput[0])) {
         throw InvalidParameterValue("SCRX initial voltage signals");
     }
     if (!std::isfinite(inputs[exciterXadIfdInLocation]) ||
@@ -252,7 +256,8 @@ void ExciterSCRX::dynObjectInitializeB(const IOdata& inputs,
     }
     m_state[0] = desiredOutput[0];
     vBias = error + inputs[exciterVoltageInLocation] - Vref -
-        (inputs[exciterVsetInLocation] - 1.0) - inputs[exciterVssInLocation];
+        (inputs[exciterVsetInLocation] - 1.0) - inputs[exciterVssInLocation] -
+        inputs[exciterVuelInLocation] + inputs[exciterVoelInLocation];
     fieldSet.resize(2);
     fieldSet[exciterVsetInLocation] = Vref;
     std::fill(m_dstate_dt.begin(), m_dstate_dt.end(), 0.0);
@@ -565,5 +570,9 @@ double ExciterSCRX::get(std::string_view param, units::unit unitType) const
         return rCrFd;
     }
     return Exciter::get(param, unitType);
+}
+bool ExciterSCRX::supportsLimiterSignal(ExciterLimiterSignal /*signal*/) const
+{
+    return true;
 }
 }  // namespace griddyn::exciters

@@ -379,14 +379,20 @@ MachineSignalDerivativeData
     const auto loc = offsets.getLocations(stateData, sMode, this);
     const auto algebraicRow = loc.algOffset;
     const auto differentialRow = loc.diffOffset;
+    const auto algLocation = [algebraicRow, &sMode](index_t stateIndex) {
+        return hasAlgebraic(sMode) ? algebraicRow + stateIndex : kNullLocation;
+    };
+    const auto diffLocation = [differentialRow, &sMode](index_t stateIndex) {
+        return hasDifferential(sMode) ? differentialRow + stateIndex : kNullLocation;
+    };
     const double voltage = inputs[VOLTAGE_IN_LOCATION];
     const double angle = loc.diffStateLoc[0] - inputs[ANGLE_IN_LOCATION];
     const double directVoltage = -voltage * std::sin(angle);
     const double quadratureVoltage = voltage * std::cos(angle);
     const double inverseVoltage = (voltage != 0.0) ? 1.0 / voltage : 0.0;
     MachineSignalDerivativeData data;
-    addSignalDerivative(data, MachineControllerSignal::ID, algebraicRow, 1.0);
-    addSignalDerivative(data, MachineControllerSignal::IQ, algebraicRow + 1, 1.0);
+    addSignalDerivative(data, MachineControllerSignal::ID, algLocation(0), 1.0);
+    addSignalDerivative(data, MachineControllerSignal::IQ, algLocation(1), 1.0);
     addSignalDerivative(data,
                         MachineControllerSignal::VD,
                         inputLocs[VOLTAGE_IN_LOCATION],
@@ -395,7 +401,7 @@ MachineSignalDerivativeData
                         MachineControllerSignal::VD,
                         inputLocs[ANGLE_IN_LOCATION],
                         quadratureVoltage);
-    addSignalDerivative(data, MachineControllerSignal::VD, differentialRow, -quadratureVoltage);
+    addSignalDerivative(data, MachineControllerSignal::VD, diffLocation(0), -quadratureVoltage);
     addSignalDerivative(data,
                         MachineControllerSignal::VQ,
                         inputLocs[VOLTAGE_IN_LOCATION],
@@ -404,14 +410,14 @@ MachineSignalDerivativeData
                         MachineControllerSignal::VQ,
                         inputLocs[ANGLE_IN_LOCATION],
                         -directVoltage);
-    addSignalDerivative(data, MachineControllerSignal::VQ, differentialRow, directVoltage);
+    addSignalDerivative(data, MachineControllerSignal::VQ, diffLocation(0), directVoltage);
     addSignalDerivative(data,
                         MachineControllerSignal::ELECTRICAL_POWER,
-                        algebraicRow,
+                        algLocation(0),
                         directVoltage);
     addSignalDerivative(data,
                         MachineControllerSignal::ELECTRICAL_POWER,
-                        algebraicRow + 1,
+                        algLocation(1),
                         quadratureVoltage);
     addSignalDerivative(data,
                         MachineControllerSignal::ELECTRICAL_POWER,
@@ -426,16 +432,16 @@ MachineSignalDerivativeData
                             directVoltage * loc.algStateLoc[1]);
     addSignalDerivative(data,
                         MachineControllerSignal::ELECTRICAL_POWER,
-                        differentialRow,
+                        diffLocation(0),
                         -quadratureVoltage * loc.algStateLoc[0] +
                             directVoltage * loc.algStateLoc[1]);
     addSignalDerivative(data,
                         MachineControllerSignal::ELECTRICAL_TORQUE,
-                        algebraicRow,
+                        algLocation(0),
                         directVoltage + 2.0 * Rs * loc.algStateLoc[0]);
     addSignalDerivative(data,
                         MachineControllerSignal::ELECTRICAL_TORQUE,
-                        algebraicRow + 1,
+                        algLocation(1),
                         quadratureVoltage + 2.0 * Rs * loc.algStateLoc[1]);
     addSignalDerivative(data,
                         MachineControllerSignal::ELECTRICAL_TORQUE,
@@ -450,7 +456,7 @@ MachineSignalDerivativeData
                             directVoltage * loc.algStateLoc[1]);
     addSignalDerivative(data,
                         MachineControllerSignal::ELECTRICAL_TORQUE,
-                        differentialRow,
+                        diffLocation(0),
                         -quadratureVoltage * loc.algStateLoc[0] +
                             directVoltage * loc.algStateLoc[1]);
     const auto coeff = coefficients(Xd, Xdp, Xdpp, Xl);
@@ -462,19 +468,19 @@ MachineSignalDerivativeData
         (saturationInput > 0.0) ? saturation.derivative / saturationInput : 0.0;
     addSignalDerivative(data,
                         MachineControllerSignal::XADIFD,
-                        algebraicRow,
+                        algLocation(0),
                         coeff.mK1d * (Xdp - Xl) - (Xd - Xdp));
     addSignalDerivative(
         data,
         MachineControllerSignal::XADIFD,
-        differentialRow + 2,
+        diffLocation(2),
         usesExponentialSaturation() ?
             1.0 + coeff.mK1d +
                 coeff.mK3d * (saturation.value + psi2d * psi2d * saturationDerivativeOverFlux) :
             coeff.mK1d + 1.0 + saturation.value + loc.diffStateLoc[2] * saturation.derivative);
     addSignalDerivative(data,
                         MachineControllerSignal::XADIFD,
-                        differentialRow + 3,
+                        diffLocation(3),
                         usesExponentialSaturation() ? -coeff.mK1d +
                                 coeff.mK4d *
                                     (saturation.value +
@@ -483,7 +489,7 @@ MachineSignalDerivativeData
     if (usesExponentialSaturation()) {
         addSignalDerivative(data,
                             MachineControllerSignal::XADIFD,
-                            differentialRow + 4,
+                            diffLocation(4),
                             psi2d * loc.diffStateLoc[4] * saturationDerivativeOverFlux);
     }
     return data;

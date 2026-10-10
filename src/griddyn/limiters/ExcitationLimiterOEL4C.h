@@ -3,20 +3,22 @@
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
 #pragma once
 
-#include "../Exciter.h"
-#include <array>
+#include "../ExcitationLimiter.h"
 #include <string>
 #include <vector>
 
-namespace griddyn::exciters {
-/** PSS/E SCRX bus-fed or solid-fed static excitation system. */
-class ExciterSCRX final: public Exciter {
+namespace griddyn::limiters {
+/** Reactive-power delayed PI OEL4C; output is a positive VOEL magnitude. */
+class ExcitationLimiterOEL4C final: public ExcitationLimiter {
   public:
-    explicit ExciterSCRX(const std::string& objName = "exciterSCRX_#");
+    explicit ExcitationLimiterOEL4C(const std::string& objName = "oel4c_#");
+    using ExcitationLimiter::set;
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    bool supportsRole(Role role) const override { return role == Role::OVER; }
+    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
@@ -39,7 +41,6 @@ class ExciterSCRX final: public Exciter {
                           MatrixData<double>& matrixData,
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
-    void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     void rootTest(const IOdata& inputs,
                   const StateData& stateData,
                   double roots[],
@@ -52,43 +53,31 @@ class ExciterSCRX final: public Exciter {
                          const StateData& stateData,
                          const SolverMode& sMode,
                          CheckLevel level) override;
+    void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     stringVec localStateNames() const override;
-    index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
-    void set(std::string_view param, std::string_view val) override;
-    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
-    bool supportsLimiterSignal(ExciterLimiterSignal signal) const override;
 
   private:
-    static constexpr index_t maximumStates = 2;
-    struct StateLayout {
-        index_t leadLag = kInvalidLocation;
-        index_t amplifier = kInvalidLocation;
-        index_t count = 0;
+    struct ReactivePower {
+        double value;
+        double dId;
+        double dIq;
+        double dVd;
+        double dVq;
     };
-    struct ModelEvaluation {
-        double fieldOutput = 0.0;
-        double amplifierLimitDrive = 0.0;
-        std::array<double, maximumStates> fieldStateDerivatives{};
-        std::array<double, exciterInputCount> fieldInputDerivatives{};
-        std::array<double, maximumStates> rates{};
-        std::array<std::array<double, maximumStates>, maximumStates> rateStateDerivatives{};
-        std::array<std::array<double, exciterInputCount>, maximumStates> rateInputDerivatives{};
-    };
+    static ReactivePower reactivePower(const IOdata& inputs);
+    double piInput(double reactivePowerValue, CoreTime time) const;
+    double action(double input, double integral) const;
+    double integralRate(double input, double integral) const;
+    void updateTimer(bool violation, CoreTime time);
 
-    [[nodiscard]] StateLayout stateLayout() const;
-    [[nodiscard]] ModelEvaluation evaluateModel(const IOdata& inputs, const double state[]) const;
-    bool updateLimitFlags(const IOdata& inputs, const double state[]);
-
-    enum SCRXFlags {
-        AMPLIFIER_LIMITED = OBJECT_FLAG5,
-        AMPLIFIER_LIMIT_HIGH = OBJECT_FLAG6,
-    };
-
-    model_parameter TaOverTb = 0.1;
-    model_parameter Tb = 1.0;
-    model_parameter Te = 0.005;
-    model_parameter rCrFd = 10.0;
-    bool solidFed = false;
+    double ki = 1.0;
+    double kp = 1.0;
+    double delay = 0.0;
+    double minimum = -0.2;
+    double qRef = 0.0;
+    bool qRefSet = false;
+    bool violating = false;
+    bool delayElapsed = false;
+    CoreTime violationStart = 0.0;
 };
-}  // namespace griddyn::exciters
+}  // namespace griddyn::limiters

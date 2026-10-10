@@ -183,9 +183,9 @@ their field voltages before fitting would apply the field factor twice. At a
 steady PI operating point `eV=0` and `xA=VA`. This follows the transfer
 function and block diagram; the GridKit README's initialization line
 `eV0=VA0/KA` conflicts with its own differential equation and is not used.
-The current GridDyn exciter interface provides the voltage-reference and PSS
-signals but no separate UEL/OEL inputs, so those two optional GridKit diagram
-terms are zero. Its voltage input is likewise the compensated-voltage signal
+The current GridDyn exciter interface reserves separate UEL/OEL inputs, but
+`ESAC1A` does not yet consume them, so those two optional GridKit diagram
+terms remain zero for this model. Its voltage input is the compensated-voltage signal
 available from `DynamicGenerator` rather than a separate compensator model.
 
 The supported exact reductions are `TR=0` (direct terminal-voltage sensing),
@@ -508,9 +508,12 @@ and appends the following machine/controller signals:
 |     5 | `Iq`     | Quadrature-axis stator current on the machine base               |
 |     6 | `Vd`     | Direct-axis terminal voltage in GridDyn's dq convention          |
 |     7 | `Vq`     | Quadrature-axis terminal voltage in GridDyn's dq convention      |
-|     8 | `Te`     | Electrical torque including stator copper loss                   |
-|     9 | `XadIfd` | Air-gap field-current quantity or documented reduced-order proxy |
-|    10 | `Vss`    | Stabilizer output                                                |
+|     8 | `Pe`     | Electrical power on the machine base                             |
+|     9 | `Te`     | Electrical torque including stator copper loss                   |
+|    10 | `XadIfd` | Air-gap field-current quantity or documented reduced-order proxy |
+|    11 | `Vss`    | Stabilizer output                                                |
+|    12 | `VUEL`   | Optional under-excitation limiter action                         |
+|    13 | `VOEL`   | Optional over-excitation limiter action                          |
 
 All synchronous generator models provide `Id`, `Iq`, `Vd`, `Vq`, and `Te`
 from their existing electrical states. `GENROU` provides the full-order

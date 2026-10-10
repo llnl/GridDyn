@@ -6,7 +6,11 @@
 
 #pragma once
 
+#include "../ControlSignalRouting.h"
+#include "../ControllerSignals.h"
 #include "../Generator.h"
+#include <array>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -18,6 +22,7 @@ class Governor;
 class IsocController;
 class Source;
 class VoltageCompensator;
+class ExcitationLimiter;
 /**
 @ brief class describing a generator intended for dynamic simulations
  a generator is a power production unit in GridDyn.  the base generator class implements methods set
@@ -50,9 +55,12 @@ class DynamicGenerator: public Generator {
         VSET_LOC = 6,
         ISOC_CONTROL_LOC = 7,
         VOLTAGE_COMPENSATOR_LOC = 8,
+        OEL_LOC = 9,
+        UEL_LOC = 10,
     };
 
   protected:
+    static constexpr std::size_t subModelSlotCount = UEL_LOC + 1;
     GenModel* genModel = nullptr;  //!< generator model
     Exciter* ext = nullptr;  //!< exciter model
     Governor* gov = nullptr;  //!< governor model
@@ -61,6 +69,8 @@ class DynamicGenerator: public Generator {
     Source* vSetControl = nullptr;  //!< source for voltage level control
     IsocController* isoc = nullptr;  //!< pointer to a isochronous controller
     VoltageCompensator* voltageCompensator = nullptr;  //!< optional IEEEVC-style compensator
+    ExcitationLimiter* oel = nullptr;
+    ExcitationLimiter* uel = nullptr;
     GridSubModel* mechanicalPowerSource = nullptr;  //!< optional non-owning Pmech source
     index_t mechanicalPowerOutput = 0;  //!< selected output on the Pmech source
     std::string mechanicalPowerSourceName;  //!< clone/configuration path for the Pmech source
@@ -74,6 +84,38 @@ class DynamicGenerator: public Generator {
     // //!< the total number of states
     double m_Eft = 0;  //!< place to store a constant the exciter field
     double m_Pmech = 0;  //!< place to store a constant power output
+    enum SignalSource : index_t {
+        terminalVoltage,
+        terminalAngle,
+        controllerOmega,
+        isochronousFrequency,
+        activePowerCommand,
+        mechanicalPower,
+        voltageSetpoint,
+        fieldVoltage,
+        exciterVoltage,
+        stabilizerOutput,
+        governorElectricalPower,
+        overExcitationAction,
+        underExcitationAction,
+        machineSignalBase,
+        signalSourceCount = machineSignalBase + machineControllerSignalCount,
+    };
+    struct SignalFrame {
+        IOdata values = IOdata(signalSourceCount, kNullVal);
+        IOlocs locations = IOlocs(signalSourceCount, kNullLocation);
+        std::vector<std::vector<ControlSignalDerivative>> derivatives =
+            std::vector<std::vector<ControlSignalDerivative>>(signalSourceCount);
+    };
+    SignalFrame signalFrame;
+    std::array<ControlSignalRouting, subModelSlotCount> signalRoutes;
+    std::array<ControlSignalInputLocations, subModelSlotCount> routeInputLocations;
+    Stabilizer* boundStabilizer = nullptr;
+    GridSubModel* boundMechanicalPowerSource = nullptr;
+    double activePowerCommandUnclamped = 0.0;
+    bool mechanicalPowerWasInvalid = false;
+    bool signalRoutesReady = false;
+
   public:
     static DynModel dynModelFromString(const std::string& dynModelType);
     /** @brief default constructor
@@ -110,6 +152,10 @@ class DynamicGenerator: public Generator {
     @param[in] obj submodel to add
     @throw unrecognizedObjectError is object is not valid*/
     virtual void add(GridSubModel* obj) override;
+    virtual void remove(CoreObject* obj) override;
+
+    /** Allow structural edits before a full dynamic initialization. */
+    void resetSignalRoutesForDynamicInitialization();
 
     /** Connect this machine's single mechanical-power input to a submodel output.
     The source remains owned and evaluated by its normal parent. */
@@ -227,11 +273,17 @@ class DynamicGenerator: public Generator {
                                         const SolverMode& sMode);
     virtual void generateSubModelInputLocs(const IOlocs& inputLocs,
                                            const StateData& stateDataValue,
-                                           const SolverMode& sMode);
+                                           const SolverMode& sMode,
+                                           bool includeControllerLocations = true);
 
     GridSubModel* replaceModel(GridSubModel* newObject, GridSubModel* oldObject, index_t newIndex);
 
     void resolveMechanicalPowerSource();
+
+    void compileSignalRoutes();
+    void writeModelInputs(SubModelLocations model,
+                          const StateData& stateDataValue,
+                          const SolverMode& sMode);
 
     void buildDynModel(DynModel dynModel);
 };

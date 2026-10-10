@@ -52,6 +52,12 @@ MachineSignalDerivativeData
     const double* algebraicState = locations.algStateLoc;
     const index_t algebraicOffset = locations.algOffset;
     const index_t differentialOffset = locations.diffOffset;
+    const auto algLocation = [algebraicOffset, &sMode](index_t stateIndex) {
+        return hasAlgebraic(sMode) ? algebraicOffset + stateIndex : kNullLocation;
+    };
+    const auto diffLocation = [differentialOffset, &sMode](index_t stateIndex) {
+        return hasDifferential(sMode) ? differentialOffset + stateIndex : kNullLocation;
+    };
     const double voltage = inputs[VOLTAGE_IN_LOCATION];
     const double angleDifference = locations.diffStateLoc[0] - inputs[ANGLE_IN_LOCATION];
     const double sineAngle = std::sin(angleDifference);
@@ -68,22 +74,20 @@ MachineSignalDerivativeData
             }
         };
 
-    addDerivative(MachineControllerSignal::ID, algebraicOffset, 1.0);
-    addDerivative(MachineControllerSignal::IQ, algebraicOffset + 1, 1.0);
+    addDerivative(MachineControllerSignal::ID, algLocation(0), 1.0);
+    addDerivative(MachineControllerSignal::IQ, algLocation(1), 1.0);
 
     const index_t voltageLocation = inputLocs[VOLTAGE_IN_LOCATION];
     const index_t angleLocation = inputLocs[ANGLE_IN_LOCATION];
     addDerivative(MachineControllerSignal::VD, voltageLocation, -sineAngle);
     addDerivative(MachineControllerSignal::VD, angleLocation, quadratureVoltage);
-    addDerivative(MachineControllerSignal::VD, differentialOffset, -quadratureVoltage);
+    addDerivative(MachineControllerSignal::VD, diffLocation(0), -quadratureVoltage);
     addDerivative(MachineControllerSignal::VQ, voltageLocation, cosineAngle);
     addDerivative(MachineControllerSignal::VQ, angleLocation, -directVoltage);
-    addDerivative(MachineControllerSignal::VQ, differentialOffset, directVoltage);
+    addDerivative(MachineControllerSignal::VQ, diffLocation(0), directVoltage);
 
-    addDerivative(MachineControllerSignal::ELECTRICAL_POWER, algebraicOffset, directVoltage);
-    addDerivative(MachineControllerSignal::ELECTRICAL_POWER,
-                  algebraicOffset + 1,
-                  quadratureVoltage);
+    addDerivative(MachineControllerSignal::ELECTRICAL_POWER, algLocation(0), directVoltage);
+    addDerivative(MachineControllerSignal::ELECTRICAL_POWER, algLocation(1), quadratureVoltage);
     addDerivative(MachineControllerSignal::ELECTRICAL_POWER,
                   voltageLocation,
                   (-sineAngle * algebraicState[0]) + (cosineAngle * algebraicState[1]));
@@ -91,14 +95,14 @@ MachineSignalDerivativeData
                   angleLocation,
                   (quadratureVoltage * algebraicState[0]) - (directVoltage * algebraicState[1]));
     addDerivative(MachineControllerSignal::ELECTRICAL_POWER,
-                  differentialOffset,
+                  diffLocation(0),
                   (-quadratureVoltage * algebraicState[0]) + (directVoltage * algebraicState[1]));
 
     addDerivative(MachineControllerSignal::ELECTRICAL_TORQUE,
-                  algebraicOffset,
+                  algLocation(0),
                   directVoltage + (2.0 * Rs * algebraicState[0]));
     addDerivative(MachineControllerSignal::ELECTRICAL_TORQUE,
-                  algebraicOffset + 1,
+                  algLocation(1),
                   quadratureVoltage + (2.0 * Rs * algebraicState[1]));
     addDerivative(MachineControllerSignal::ELECTRICAL_TORQUE,
                   voltageLocation,
@@ -107,7 +111,7 @@ MachineSignalDerivativeData
                   angleLocation,
                   (quadratureVoltage * algebraicState[0]) - (directVoltage * algebraicState[1]));
     addDerivative(MachineControllerSignal::ELECTRICAL_TORQUE,
-                  differentialOffset,
+                  diffLocation(0),
                   (-quadratureVoltage * algebraicState[0]) + (directVoltage * algebraicState[1]));
 
     addDerivative(MachineControllerSignal::XADIFD, inputLocs[genModelEftInLocation], 1.0);
@@ -139,8 +143,12 @@ MachineSignalDerivativeData
         derivatives[static_cast<index_t>(MachineControllerSignal::XADIFD)];
     fieldCurrentDerivatives.clear();
     const auto locations = offsets.getLocations(stateDataValue, sMode, this);
-    fieldCurrentDerivatives.push_back({.location = locations.algOffset, .value = -(Xd - Xdp)});
-    fieldCurrentDerivatives.push_back({.location = locations.diffOffset + 2, .value = 1.0});
+    if (hasAlgebraic(sMode)) {
+        fieldCurrentDerivatives.push_back({.location = locations.algOffset, .value = -(Xd - Xdp)});
+    }
+    if (hasDifferential(sMode)) {
+        fieldCurrentDerivatives.push_back({.location = locations.diffOffset + 2, .value = 1.0});
+    }
     return derivatives;
 }
 
@@ -169,8 +177,12 @@ MachineSignalDerivativeData
         derivatives[static_cast<index_t>(MachineControllerSignal::XADIFD)];
     fieldCurrentDerivatives.clear();
     const auto locations = offsets.getLocations(stateDataValue, sMode, this);
-    fieldCurrentDerivatives.push_back({.location = locations.algOffset, .value = -(Xd - Xdp)});
-    fieldCurrentDerivatives.push_back({.location = locations.diffOffset + 3, .value = 1.0});
+    if (hasAlgebraic(sMode)) {
+        fieldCurrentDerivatives.push_back({.location = locations.algOffset, .value = -(Xd - Xdp)});
+    }
+    if (hasDifferential(sMode)) {
+        fieldCurrentDerivatives.push_back({.location = locations.diffOffset + 3, .value = 1.0});
+    }
     return derivatives;
 }
 
@@ -198,7 +210,9 @@ MachineSignalDerivativeData
         derivatives[static_cast<index_t>(MachineControllerSignal::XADIFD)];
     fieldCurrentDerivatives.clear();
     const auto locations = offsets.getLocations(stateDataValue, sMode, this);
-    fieldCurrentDerivatives.push_back({.location = locations.diffOffset + 2, .value = 1.0});
+    if (hasDifferential(sMode)) {
+        fieldCurrentDerivatives.push_back({.location = locations.diffOffset + 2, .value = 1.0});
+    }
     return derivatives;
 }
 

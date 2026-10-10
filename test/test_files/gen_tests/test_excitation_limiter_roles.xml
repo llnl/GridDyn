@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="limiter_roles">
+  <bus name="bus1">
+    <bustype>SLK</bustype>
+    <voltage>1</voltage>
+    <generator name="gen1">
+      <model type="inverter"/>
+      <exciter type="scrx"/>
+      <limiter name="field_oel" role="over" threshold="1.0"/>
+      <limiter name="reactive_uel" role="under" threshold="-0.2"/>
+    </generator>
+  </bus>
+</griddyn>

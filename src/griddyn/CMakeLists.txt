@@ -53,6 +53,13 @@ set(genmodel_sources
 
 set(generator_headers
     Generator.h
+    ControlSignalRouting.h
+    ExcitationLimiter.h
+    limiters/ExcitationLimiterMNLEX2.h
+    limiters/ExcitationLimiterOEL3C.h
+    limiters/ExcitationLimiterOEL4C.h
+    limiters/ExcitationLimiterUEL1.h
+    limiters/ExcitationLimiterUEL2C.h
     generators/VariableGenerator.h
     generators/IsocController.h
     generators/DynamicGenerator.h
@@ -90,6 +97,12 @@ set(generator_sources
     generators/DynamicGenerator.cpp
     VoltageCompensator.cpp
     voltagecompensators/VoltageCompensatorIeeeVC.cpp
+    limiters/ExcitationLimiter.cpp
+    limiters/ExcitationLimiterMNLEX2.cpp
+    limiters/ExcitationLimiterOEL3C.cpp
+    limiters/ExcitationLimiterOEL4C.cpp
+    limiters/ExcitationLimiterUEL1.cpp
+    limiters/ExcitationLimiterUEL2C.cpp
     generators/RenewableGenerator.cpp
     renewables/GridFormingConverter.cpp
     renewables/DistributedConverter.cpp

@@ -1217,6 +1217,12 @@ TEST(ExciterModelTests, Esac6aMatchesGridKitPerturbedEquations)
     std::vector<double> residual(state.size(), 0.0);
     exciter.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
     EXPECT_NEAR(residual[0], 0.176, 1e-12);
+    EXPECT_TRUE(exciter.supportsLimiterSignal(ExciterLimiterSignal::UNDER));
+    EXPECT_FALSE(exciter.supportsLimiterSignal(ExciterLimiterSignal::OVER));
+    inputs[exciterVuelInLocation] = 0.01;
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[2], -28.92, 1e-12);
+    expectExciterJacobian(exciter, inputs, state);
 }
 
 TEST(ExciterModelTests, Esac6aUsesVoltageScaledRegulatorAndBoundedExciter)
@@ -1403,6 +1409,32 @@ TEST(ExciterModelTests, ScrxDetectsClampsAndReleasesAmplifierLimits)
     exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
     exciter.timestep(0.1, inputs, cLocalSolverMode);
     EXPECT_DOUBLE_EQ(exciter.getStates()[1], 1.0);
+}
+
+TEST(ExciterModelTests, ScrxConsumesOptionalLimiterActions)
+{
+    exciters::ExciterSCRX exciter;
+    EXPECT_TRUE(exciter.supportsLimiterSignal(ExciterLimiterSignal::UNDER));
+    EXPECT_TRUE(exciter.supportsLimiterSignal(ExciterLimiterSignal::OVER));
+    exciter.set("tatb", 0.0);
+    exciter.set("tb", 0.0);
+    exciter.set("te", 0.0);
+    exciter.set("k", 2.0);
+    exciter.set("emin", -10.0);
+    exciter.set("emax", 10.0);
+    exciter.dynInitializeA(0.0, 0);
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    inputs[exciterXadIfdInLocation] = 1.0;
+    IOdata fieldSet(2, 0.0);
+    exciter.dynInitializeB(inputs, {0.5}, fieldSet);
+    inputs[exciterVuelInLocation] = 0.10;
+    inputs[exciterVoelInLocation] = 0.05;
+    std::vector<double> update(exciter.getStates().size(), 0.0);
+    exciter.algebraicUpdate(inputs, emptyStateData, update.data(), cLocalSolverMode, 1.0);
+    EXPECT_NEAR(update[0], 0.6, 1e-12);
+    expectExciterJacobian(exciter, inputs, exciter.getStates());
 }
 
 TEST(ExciterModelTests, ScrxAdjustsInitialUpperLimitByDefault)

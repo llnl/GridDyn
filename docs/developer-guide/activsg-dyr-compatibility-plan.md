@@ -275,8 +275,8 @@ equations before implementation.
    whole-case Type-3 trajectory checks. Keep the adapter status distinct from
    dedicated-model equivalence.
 5. **P2 remaining excitation/source gaps:** `ESDC2A`, `ESAC1A`, `EXPIC1`, and
-   `ESAC6A` are merged; capture independent trajectories and add UEL/OEL
-   routing where the exciter interface needs it.
+   `ESAC6A` are merged; capture independent trajectories and finish
+   model-specific UEL/OEL action points where the exciter needs them.
 6. **Reader and validation hardening:** table-driven DYR dispatch, strict
    unknown-model diagnostics, exact bus-plus-machine-ID resolution, minimized
    fixtures, and whole-case trajectory regressions. Add dedicated

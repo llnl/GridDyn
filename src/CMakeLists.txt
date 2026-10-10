@@ -61,15 +61,6 @@ if(GRIDDYN_ENABLE_FMI_EXPORT)
 endif(GRIDDYN_ENABLE_FMI_EXPORT)
 
 # ------------------------------------------------------------
-# Enable compilation of FSKIT?
-# ------------------------------------------------------------
-if(ENABLE_FSKIT)
-    # TODO this needs to do a find_package(fskit) of some sort
-    add_subdirectory(fskit)
-    target_link_libraries(griddyn_optional INTERFACE fskitLibrary)
-endif(ENABLE_FSKIT)
-
-# ------------------------------------------------------------
 # Enable compilation of networking?
 # ------------------------------------------------------------
 if(GRIDDYN_ENABLE_NETWORKING_LIBRARY)

@@ -41,11 +41,11 @@ void CommunicationsCore::registerCommunicator(Communicator* comm)
 void CommunicationsCore::unregisterCommunicator(Communicator* comm)
 {
     auto resName = mStringMap.find(comm->getName());
-    if (resName != mStringMap.end()) {
+    if ((resName != mStringMap.end()) && (resName->second == comm)) {
         mStringMap.erase(resName);
     }
     auto resId = mIdMap.find(comm->getID());
-    if (resId != mIdMap.end()) {
+    if ((resId != mIdMap.end()) && (resId->second == comm)) {
         mIdMap.erase(resId);
     }
 }

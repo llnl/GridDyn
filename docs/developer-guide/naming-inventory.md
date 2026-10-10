@@ -33,7 +33,6 @@ Historical late-stage findings at that checkpoint: **1108**
 - `src/fmi`: 29
 - `src/networking`: 29
 - `src/optimization`: 20
-- `src/fskit`: 19
 - `src/helics`: 18
 - `test/componentTests`: 18
 - `src/runner`: 14
@@ -584,11 +583,6 @@ Historical late-stage findings at that checkpoint: **1108**
 | `src/formatInterpreters/tomlReaderElement.h`                     |   19 | `TomlReaderElement`               | file stem 'tomlReaderElement' differs from declared type               |
 | `src/formatInterpreters/yamlElement.h`                           |   12 | `YamlElement`                     | file stem 'yamlElement' differs from declared type                     |
 | `src/formatInterpreters/yamlReaderElement.h`                     |   19 | `YamlReaderElement`               | file stem 'yamlReaderElement' differs from declared type               |
-| `src/fskit/fskitCommunicator.h`                                  |   19 | `FskitCommunicator`               | file stem 'fskitCommunicator' differs from declared type               |
-| `src/fskit/fskitRunner.h`                                        |   22 | `FskitRunner`                     | file stem 'fskitRunner' differs from declared type                     |
-| `src/fskit/gridDynFederatedScheduler.h`                          |   27 | `GridDynFederatedScheduler`       | file stem 'gridDynFederatedScheduler' differs from declared type       |
-| `src/fskit/protection-message.h`                                 |   17 | `ProtectionMessage`               | file stem 'protection-message' differs from declared type              |
-| `src/fskit/zonalRelayLogicalProcess.h`                           |   18 | `ZonalRelayLogicalProcess`        | file stem 'zonalRelayLogicalProcess' differs from declared type        |
 | `src/gridDynMain/gridDynMain.cpp`                                |   30 | `ExecMode`                        | file stem 'gridDynMain' differs from declared type                     |
 | `src/gridDynServer/gridDynServer.h`                              |   18 | `pmu_udp_socket`                  | file stem 'gridDynServer' differs from declared type                   |
 | `src/griddyn/Block.h`                                            |   29 | `GridBlock`                       | file stem 'Block' differs from declared type                           |
@@ -1020,20 +1014,6 @@ Historical late-stage findings at that checkpoint: **1108**
 | `src/formatInterpreters/jsonReaderElement.cpp`                   |  304 | `numeric_conversionComplete`             | function/method name |
 | `src/formatInterpreters/tomlReaderElement.cpp`                   |  159 | `numeric_conversionComplete`             | function/method name |
 | `src/formatInterpreters/tomlReaderElement.cpp`                   |  296 | `numeric_conversionComplete`             | function/method name |
-| `src/fskit/GridDynFederatedSimulator.h`                          |   38 | `Initialize`                             | function/method name |
-| `src/fskit/GridDynFederatedSimulator.h`                          |   40 | `StartCommunication`                     | function/method name |
-| `src/fskit/GridDynFederatedSimulator.h`                          |   42 | `TestCommunication`                      | function/method name |
-| `src/fskit/GridDynFederatedSimulator.h`                          |   46 | `Finalize`                               | function/method name |
-| `src/fskit/GridDynFederatedSimulator.h`                          |   52 | `StartTimeAdvancement`                   | function/method name |
-| `src/fskit/fskitCommunicator.h`                                  |   45 | `ProcessEventMessage`                    | function/method name |
-| `src/fskit/fskitRunner.cpp`                                      |   33 | `Initialize`                             | function/method name |
-| `src/fskit/fskitRunner.h`                                        |   30 | `Initialize`                             | function/method name |
-| `src/fskit/fskitRunner.h`                                        |   33 | `Initialize`                             | function/method name |
-| `src/fskit/fskitRunner.h`                                        |   35 | `Run`                                    | function/method name |
-| `src/fskit/fskitRunner.h`                                        |   36 | `Finalize`                               | function/method name |
-| `src/fskit/gridDynfskit.cpp`                                     |   29 | `griddyn_runner_main`                    | function/method name |
-| `src/fskit/protection-message.h`                                 |   34 | `GetMessageType`                         | function/method name |
-| `src/fskit/zonalRelayLogicalProcess.h`                           |   22 | `ProcessEventMessage`                    | function/method name |
 | `src/gridDynServer/gridDynServer.h`                              |  113 | `send_data`                              | function/method name |
 | `src/gridDynServer/gridDynServer.h`                              |  121 | `tcp_accept`                             | function/method name |
 | `src/gridDynServer/gridDynServer.h`                              |  123 | `command_loop`                           | function/method name |

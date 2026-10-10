@@ -63,7 +63,7 @@
          the relay ensures that it does not participate in the protection
          scheme.
     <relay flags="comm_enabled" name="4_14">
-      <commtype>fskit</commtype>
+      <commtype>basic</commtype>
       <terminal>1</terminal>
       <type>zonal</type>
       <zones>2</zones>

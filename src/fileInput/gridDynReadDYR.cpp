@@ -42,6 +42,7 @@
 #include "griddyn/loads/ZipLoad.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/relays/BusMeasurementSensor.h"
+#include "griddyn/relays/TimeOverCurrentRelay.h"
 #include "griddyn/renewables/REECA1.h"
 #include "griddyn/renewables/REECA1E.h"
 #include "griddyn/renewables/REECA1G.h"
@@ -147,6 +148,7 @@ namespace {
     void loadSEXS(CoreObject* parentObject, stringVec& tokens);
     void loadRenewable(CoreObject* parentObject, stringVec& tokens, std::string_view modelName);
     void loadMeasurement(CoreObject* parentObject, stringVec& tokens, std::string_view modelName);
+    void loadTIOCR1(CoreObject* parentObject, stringVec& tokens);
     void loadIEELAL(CoreObject* parentObject, const stringVec& tokens);
     void loadCMLDBLU1(CoreObject* parentObject, const stringVec& tokens);
     Generator* requireDyrGenerator(CoreObject* parentObject,
@@ -438,6 +440,8 @@ namespace detail {
             loadMeasurement(parentObject, lineTokens, "PLL2");
         } else if (type == "'FREQDIV'") {
             loadMeasurement(parentObject, lineTokens, "FREQDIV");
+        } else if (type == "'TIOCR1'") {
+            loadTIOCR1(parentObject, lineTokens);
         } else if (type == "'WTARA1'") {
             loadRenewable(parentObject, lineTokens, "WTARA1");
         } else if (type == "'WTPTA1'") {
@@ -1257,6 +1261,150 @@ namespace {
             loadBus->add(replacement);
         }
         replacement->setLoad(initialLoadP, initialQ);
+    }
+
+    int requireDyrInteger(const stringVec& tokens,
+                          std::size_t index,
+                          std::string_view modelName,
+                          std::string_view fieldName)
+    {
+        int value = 0;
+        if (index >= tokens.size()) {
+            throw InvalidParameterValue(std::string{modelName} + " is missing " +
+                                        std::string{fieldName});
+        }
+        const auto parsed = std::from_chars(
+            tokens[index].data(), tokens[index].data() + tokens[index].size(), value);
+        if (parsed.ec != std::errc{} || parsed.ptr != tokens[index].data() + tokens[index].size()) {
+            throw InvalidParameterValue(std::string{modelName} + " requires an integer " +
+                                        std::string{fieldName});
+        }
+        return value;
+    }
+
+    Link* findDyrTransformer(CoreObject* parentObject, int bus1Id, int bus2Id, int circuit)
+    {
+        auto* bus1 = dynamic_cast<GridBus*>(parentObject->findByUserID("bus", bus1Id));
+        auto* bus2 = dynamic_cast<GridBus*>(parentObject->findByUserID("bus", bus2Id));
+        if (bus1 == nullptr || bus2 == nullptr) {
+            return nullptr;
+        }
+        for (index_t index = 0;; ++index) {
+            auto* link = bus1->getLink(index);
+            if (link == nullptr) {
+                break;
+            }
+            const bool joinsBuses =
+                (link->getBus(1) == bus2) || (link->getBus(2) == bus2);
+            if (joinsBuses && static_cast<int>(link->get("circuit")) == circuit &&
+                dynamic_cast<links::AdjustableTransformer*>(link) != nullptr) {
+                return link;
+            }
+        }
+        return nullptr;
+    }
+
+    void loadTIOCR1(CoreObject* parentObject, stringVec& tokens)
+    {
+        // This is the constrained form observed in the InterPSS/PSS/E Bus200
+        // case.  TIOCR1's complete PSS/E semantics are not established yet.
+        if (tokens.size() != 31U) {
+            throw InvalidParameterValue(
+                "TIOCR1 currently supports only the observed 29-parameter record form");
+        }
+        const int bus1Id = requireDyrInteger(tokens, 0, "TIOCR1", "first transformer bus");
+        const int bus2Id = requireDyrInteger(tokens, 2, "TIOCR1", "second transformer bus");
+        const int monitoredBusId =
+            requireDyrInteger(tokens, 6, "TIOCR1", "monitored terminal bus");
+        const int circuit = requireDyrInteger(tokens, 10, "TIOCR1", "circuit");
+        if (tokens[7] != "BL" || tokens[3] != "1" || tokens[4] != "1" || tokens[5] != "1" ||
+            tokens[30] != "1") {
+            throw InvalidParameterValue(
+                "TIOCR1 only supports the observed BL/1/1/1/.../1 compatibility variant");
+        }
+
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        for (const auto index : {3U, 4U, 5U, 6U, 8U, 9U, 10U, 11U, 12U, 13U, 14U, 15U,
+                                 16U, 17U, 18U, 19U, 20U, 21U, 22U, 23U, 24U, 25U, 26U,
+                                 27U, 28U, 29U, 30U}) {
+            if (!std::isfinite(params[index]) || params[index] == kNullVal) {
+                throw InvalidParameterValue("TIOCR1 contains a nonnumeric parameter");
+            }
+        }
+        if (params[29] != 0.05) {
+            throw InvalidParameterValue(
+                "TIOCR1 only supports the observed penultimate parameter value 0.05");
+        }
+        if (circuit <= 0 || bus1Id == bus2Id ||
+            (monitoredBusId != bus1Id && monitoredBusId != bus2Id)) {
+            throw InvalidParameterValue("TIOCR1 has invalid transformer or monitored bus data");
+        }
+
+        // The three repeated references are identical in every known record.
+        // Requiring that shape prevents us from guessing whether other TIOCR1
+        // variants represent phases, multiple trip targets, or separate CTs.
+        for (index_t group = 0; group < 3; ++group) {
+            const auto first = 8U + (3U * group);
+            if (params[first] != bus1Id || params[first + 1U] != bus2Id ||
+                params[first + 2U] != circuit) {
+                throw InvalidParameterValue(
+                    "TIOCR1 only supports three repeated references to its transformer");
+            }
+        }
+
+        auto* transformer = findDyrTransformer(parentObject, bus1Id, bus2Id, circuit);
+        if (transformer == nullptr) {
+            throw InvalidParameterValue("TIOCR1 requires an existing adjustable transformer " +
+                                        std::to_string(bus1Id) + "-" + std::to_string(bus2Id) +
+                                        " circuit " + std::to_string(circuit));
+        }
+        auto* monitoredBus = dynamic_cast<GridBus*>(
+            parentObject->findByUserID("bus", monitoredBusId));
+        auto* owner = monitoredBus == nullptr ? nullptr :
+            dynamic_cast<GridArea*>(monitoredBus->getParent());
+        if (owner == nullptr) {
+            throw InvalidParameterValue("TIOCR1 monitored bus must belong to an area");
+        }
+
+        index_t terminal = 0;
+        if (transformer->getBus(1) == monitoredBus) {
+            terminal = 1;
+        } else if (transformer->getBus(2) == monitoredBus) {
+            terminal = 2;
+        }
+        if (terminal == 0) {
+            throw InvalidParameterValue("TIOCR1 monitored bus is not a transformer terminal");
+        }
+
+        const auto relayName = "TIOCR1_" + std::to_string(bus1Id) + "_" +
+            std::to_string(bus2Id) + "_" + std::to_string(circuit);
+        for (index_t index = 0; owner->getRelay(index) != nullptr; ++index) {
+            if (owner->getRelay(index)->getName() == relayName) {
+                throw InvalidParameterValue("TIOCR1 duplicates relay " + relayName);
+            }
+        }
+
+        const auto voltageBase = monitoredBus->get("basevoltage", units::kV);
+        if (!std::isfinite(voltageBase) || voltageBase <= 0.0) {
+            throw InvalidParameterValue("TIOCR1 monitored bus has an invalid voltage base");
+        }
+
+        std::array<relays::TimeOverCurrentRelay::TimeCurrentPoint, 6> points{};
+        for (index_t point = 0; point < points.size(); ++point) {
+            // The observed TIOCR1 values are interpreted as kA on the
+            // monitored transformer terminal.  Convert to A here because the
+            // relay's public table API accepts an explicit units argument.
+            points[point] = {params[17U + (2U * point)] * 1000.0,
+                             params[18U + (2U * point)]};
+        }
+
+        auto relay = std::make_unique<relays::TimeOverCurrentRelay>(relayName);
+        relay->setSource(transformer);
+        relay->setSink(transformer);
+        relay->set("terminal", static_cast<double>(terminal));
+        relay->set("voltagebase", voltageBase, units::kV);
+        relay->setTimeCurrentCurve(points, units::A);
+        owner->add(relay.release());
     }
 
     void loadMeasurement(CoreObject* parentObject, stringVec& tokens, std::string_view modelName)

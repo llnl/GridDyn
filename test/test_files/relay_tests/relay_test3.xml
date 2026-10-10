@@ -57,14 +57,14 @@
       <x>0.2008</x>
    </link>
 
-   <relay target="bus2_to_bus3" flags="comm_enabled" commdest="bus2bus3" commtype="fskit">
+   <relay target="bus2_to_bus3" flags="comm_enabled" commdest="bus2bus3" commtype="basic">
    <name>bus2bus3</name>
    <terminal>1</terminal>
    <type>zonal</type>
    <zones>2</zones>
     <delay>0.005,0.15</delay>
    </relay>
-    <relay target="bus2_to_bus3" flags="comm_enabled" commdest="bus3bus2" commtype="fskit">
+    <relay target="bus2_to_bus3" flags="comm_enabled" commdest="bus3bus2" commtype="basic">
    <name>bus3bus2</name>
    <terminal>2</terminal>
    <type>zonal</type>

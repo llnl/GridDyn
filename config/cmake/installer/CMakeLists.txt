@@ -453,19 +453,6 @@ if(FMI_ENABLE)
 endif(FMI_ENABLE)
 
 # -------------------------------------------------------------
-# FSKIT
-# -------------------------------------------------------------
-
-option(FSKIT_ENABLE "Enable FSKIT support" OFF)
-
-if(FSKIT_ENABLE)
-    find_package(FSKIT)
-    include_directories(SYSTEM ${FSKIT_INCLUDE_DIR})
-    set(GRIDDYN_HAVE_FSKIT 1)
-    add_subdirectory(src/fskit)
-endif(FSKIT_ENABLE)
-
-# -------------------------------------------------------------
 # Enable 64 bit indexing (enable to allow for more than 2^31 objects)--that would be a very big
 # model
 # -------------------------------------------------------------

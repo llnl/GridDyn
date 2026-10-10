@@ -169,7 +169,6 @@ Goal: establish the measurable list of remaining work.
   - `src/fmi`: 29
   - `src/networking`: 29
   - `src/optimization`: 20
-  - `src/fskit`: 19
   - `src/helics`: 18
   - `test/componentTests`: 18
 
@@ -230,7 +229,6 @@ Types of work in this phase:
 - [x] `src/fileInput`
 - [x] `src/plugins`
 - [x] `src/formatInterpreters`
-- [x] `src/fskit`
 - [x] `src/fmi_export`
 - [x] `src/extraModels`
 - [x] `src/gridDynLoader`
@@ -335,7 +333,6 @@ Types of work in this phase:
 - [x] `src/helics`
 - [x] `src/fileInput`
 - [x] `src/coupling`
-- [x] `src/fskit`
 
 ### Phase 5 Exit Criteria
 
@@ -351,7 +348,7 @@ scope.
 Completed Phase 5 work covered:
 
 - contained subsystem public type and method cleanup across networking, HELICS,
-  optimization, file input, FMI export, FSKIT, coupling, and FMI
+  optimization, file input, FMI export, coupling, and FMI
 - dependent runner, test, and entry-point fallout needed to keep public API
   renames coherent at call sites
 - removal of short-lived compatibility shims before phase close where staged
@@ -446,7 +443,7 @@ work.
 - [x] Remove temporary compatibility shims when safe
 
 Follow-up plan-alignment sweeps found stale lowercase communication-type
-spellings in the HELICS and FSKIT adapters after the earlier communication
+spellings in the HELICS adapter after the earlier communication
 surface sweep. Those references have now been updated to `CommMessage` and
 `CommunicationsCore`, and no first-party compatibility alias layer remains for
 the legacy `commMessage` / `communicationsCore` spellings.
@@ -506,7 +503,7 @@ names.
   which was updated to match the current communication message type before the
   Phase 8 closeout merged.
 - A later first-party source sweep found stale lowercase communication-core
-  spellings in the HELICS and FSKIT adapters, including `commMessage` and
+  spellings in the HELICS adapter, including `commMessage` and
   `communicationsCore`. Those references were cleaned up during follow-up plan
   alignment, leaving no live first-party source references to the legacy
   `commMessage`, `communicationsCore`, or `commManager` spellings.
@@ -573,7 +570,6 @@ merged final cleanup work.
 - [x] `src/fmi`
 - [x] `src/fmi_export`
 - [x] `src/formatInterpreters`
-- [x] `src/fskit`
 - [x] `src/griddyn`
 - [x] `src/gridDynLoader`
 - [x] `src/gridDynMain`
@@ -625,7 +621,6 @@ Use this table to log each naming migration PR as it lands.
 | merged      | `src/griddyn/comms`                                                                                                     | Phase 3 | Low-risk comms cleanup in `Communicator`, `communicationsCore`, and related communicator fixes                                                                                                                                                                                       | No                   | Not yet run                                              | Complete |
 | merged      | `src/griddyn/measurement`                                                                                               | Phase 3 | Low-risk measurement member and parameter cleanup, plus collector and grabber warning fixes                                                                                                                                                                                          | No                   | CI `clang-tidy` run                                      | Complete |
 | merged      | `src/helics`                                                                                                            | Phase 5 | Subsystem public API cleanup covering HELICS loader and time helpers, coordinator-facing API renames, object-layer naming normalization, and the dependent grid-main/test/file-entry fallout                                                                                         | No                   | CI compile and `clang-tidy` run                          | Complete |
-| merged      | `src/fskit` + `src/coupling` + `src/fmi_export` + `src/gridDynMain` + `src/griddyn/loads`                               | Phase 5 | Subsystem public API cleanup covering FSKIT public type-family renames, coupling message and MPI helper API normalization, FMI export wrapper API cleanup, and the dependent main/load/test fallout                                                                                  | No                   | CI compile and `clang-tidy` run                          | Complete |
 | merged      | `src/fileInput`                                                                                                         | Phase 5 | Subsystem public API cleanup covering top-level reader/helper renames, format-loader normalization, dependent runner/test call-site updates, and the associated `clang-tidy` fallout cleanup                                                                                         | No                   | CI compile and `clang-tidy` run                          | Complete |
 | merged      | `src/fmi`                                                                                                               | Phase 5 | Subsystem public API cleanup covering FMI import/runtime wrapper API normalization, FMI submodel and wrapper call-site cleanup, expanded instance/helper renames across the model layer, and dependent test fallout                                                                  | No                   | CI compile and `clang-tidy` run                          | Complete |
 | merged      | `src/core`                                                                                                              | Phase 6 | Foundational type-family cleanup covering the `coreObject` to `CoreObject` base rename, immediate core infrastructure fallout, dependent repository-wide pointer/signature updates, and associated `clang-tidy` follow-through                                                       | No                   | CI compile and `clang-tidy` run                          | Complete |
@@ -642,7 +637,6 @@ Use this table to log each naming migration PR as it lands.
 | merged      | `src/fmi_export`                                                                                                        | Phase 4 | Internal enum/type cleanup covering FMI export collector/coordinator/event/runner/builder PascalCase renames, supporting alias cleanup, and the associated build and `clang-tidy` fixes                                                                                              | No                   | CI compile and `clang-tidy` run                          | Complete |
 | merged      | `src/fmi`                                                                                                               | Phase 4 | Internal enum/type cleanup covering FMI import/library PascalCase renames, remaining FMU wrapper and submodel type-family renames, plugin/test fallout cleanup, and the associated build and `clang-tidy` fixes                                                                      | No                   | CI compile and `clang-tidy` run                          | Complete |
 | merged      | `src/formatInterpreters`                                                                                                | Phase 3 | Low-risk formatter cleanup batch covering reader-wrapper state and local naming across JSON, YAML, XML, INI, and TOML element/reader adapters                                                                                                                                        | No                   | CI compile and `clang-tidy` run                          | Complete |
-| merged      | `src/fskit`                                                                                                             | Phase 3 | Low-risk FSKIT cleanup batch covering simulator, scheduler, runner, communicator, and protection/process wrapper naming                                                                                                                                                              | No                   | Not yet run                                              | Complete |
 | merged      | `src/fmi_export`                                                                                                        | Phase 3 | Low-risk FMI export cleanup batch covering collector, coordinator, event, runner, builder, and export-loader naming                                                                                                                                                                  | No                   | CI compile and `clang-tidy` run                          | Complete |
 | merged      | `src/runner` + `src/extraModels` + `src/gridDynLoader` + `src/gridDynMain` + `src/gridDynServer` + `src/griddyn_shared` | Phase 3 | Low-risk runtime/bootstrap cleanup batch covering runner state, transformer helper models, loader/main entrypoints, PMU server state, and shared-library wrapper local naming                                                                                                        | No                   | CI compile and `clang-tidy` run                          | Complete |
 | merged      | `src/fileInput`                                                                                                         | Phase 3 | Low-risk reader cleanup batch covering file-input reader helpers and element loaders with local naming normalization across the area/bus/link/relay/simulation/econ/event/collector reader path                                                                                      | No                   | CI compile and `clang-tidy` run                          | Complete |

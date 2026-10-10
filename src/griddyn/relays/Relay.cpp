@@ -22,6 +22,7 @@
 #include "Fuse.h"
 #include "LoadRelay.h"
 #include "Pmu.h"
+#include "TimeOverCurrentRelay.h"
 #include "ZonalRelay.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
@@ -60,6 +61,10 @@ namespace relays {
     static TypeFactory<BusRelay> gBusRelayFactory("relay", "bus");
     static TypeFactory<LoadRelay> gLoadRelayFactory("relay", "load");
     static TypeFactory<Fuse> gFuseFactory("relay", "fuse");
+    static TypeFactory<TimeOverCurrentRelay> gTimeOverCurrentRelayFactory(
+        "relay",
+        std::to_array<std::string_view>(
+            {"timeovercurrent", "time_over_current", "toc", "overcurrent"}));
     static TypeFactory<Breaker> gBreakerFactory("relay", "breaker");
     static ChildTypeFactory<Pmu, Sensor>
         gPmuFactory("relay",

@@ -31,6 +31,10 @@ Communicator::Communicator(std::uint64_t commId): mId(commId)
 {
     setName("comm_" + std::to_string(mId));
 }
+Communicator::~Communicator()
+{
+    Communicator::disconnect();
+}
 std::unique_ptr<Communicator> Communicator::clone() const
 {
     auto comm = std::make_unique<Communicator>();

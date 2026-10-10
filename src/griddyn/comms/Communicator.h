@@ -30,6 +30,7 @@ class Communicator:
     explicit Communicator(const std::string& name);
     Communicator(const std::string& name, std::uint64_t commId);
     explicit Communicator(std::uint64_t commId);
+    virtual ~Communicator();
 
     /** function to clone the communicator
     @return a unique ptr to a new communicator if one is created

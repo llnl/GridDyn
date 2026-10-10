@@ -6,7 +6,7 @@
         <flags>direct_io</flags>
         <input>current</input>
         <input>voltage</input>
-        <commtype>fskit</commtype>
+        <commtype>basic</commtype>
         <outputnames>current, voltage</outputnames>
     </sensor>
    </library>
@@ -17,34 +17,34 @@
 
 
    <relay flags="comm_enabled" name="76_82_1" target="LINK#74">
-       <commtype>fskit</commtype>
+       <commtype>basic</commtype>
        <terminal>1</terminal>
        <type>control</type>
    </relay>
    <relay flags="comm_enabled" name="76_82_2" target="LINK#75">
-       <commtype>fskit</commtype>
+       <commtype>basic</commtype>
        <terminal>1</terminal>
        <type>control</type>
    </relay>
    <relay flags="comm_enabled" name="76_82_3" target="LINK#76">
-       <commtype>fskit</commtype>
+       <commtype>basic</commtype>
        <terminal>1</terminal>
        <type>control</type>
    </relay>
 
    <relay flags="comm_enabled" name="86_180" target="LINK#198">
-       <commtype>fskit</commtype>
+       <commtype>basic</commtype>
        <terminal>2</terminal>
        <type>control</type>
    </relay>
 
    <relay flags="comm_enabled" name="454" target="LINK#135">
-       <commtype>fskit</commtype>
+       <commtype>basic</commtype>
        <terminal>2</terminal>
        <type>control</type>
    </relay>
    <relay flags="comm_enabled" name="455" target="LINK#136">
-       <commtype>fskit</commtype>
+       <commtype>basic</commtype>
        <terminal>2</terminal>
        <type>control</type>
    </relay>

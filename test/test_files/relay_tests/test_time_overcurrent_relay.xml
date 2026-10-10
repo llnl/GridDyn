@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<griddyn name="test_fault" version="0.0.1">
+<griddyn name="test_time_overcurrent_relay" version="0.0.1">
    <bus name="bus1">
       <type>SLK</type>
       <angle>0</angle>
       <voltage>1.04</voltage>
       <generator name="gen1" dynmodel="typical">
-          <P>0.7160</P>
+         <P>0.7160</P>
       </generator>
    </bus>
-
    <bus name="bus2">
       <type>PQ</type>
       <load name="load2">
@@ -23,13 +22,10 @@
          <Q>0.1</Q>
       </load>
    </bus>
-
-
    <link from="bus1" name="bus1_to_bus2" to="bus2">
       <b>0</b>
       <r>0</r>
       <x>0.0576</x>
-      <tapangle>0</tapangle>
    </link>
    <link from="bus1" name="bus1_to_bus3" to="bus3">
       <type>ac</type>
@@ -37,46 +33,27 @@
       <r>0.03</r>
       <x>0.085</x>
    </link>
-
    <link from="bus2" name="bus2_to_bus3" to="bus3">
-   <type>ac</type>
+      <type>ac</type>
       <b>0.0</b>
       <r>0.069</r>
       <x>0.2008</x>
       <event>
-      <field>fault</field>
-      <time>1.0,1.05></time>
-      <value>0.5,-1></value>
+         <field>fault</field>
+         <time>1.0,1.05</time>
+         <value>0.5,-1</value>
       </event>
    </link>
-
-   <link from="bus2" name="bus2_to_bus3b" to="bus3">
-   <type>ac</type>
-      <b>0.0</b>
-      <r>0.069</r>
-      <x>0.2008</x>
-   </link>
-
-   <relay target="bus2_to_bus3" flags="comm_enabled" commdest="bus2bus3" commtype="basic">
-   <name>bus2bus3</name>
-   <terminal>1</terminal>
-   <type>zonal</type>
-   <zones>2</zones>
-    <delay>0.005,0.15</delay>
-   </relay>
-    <relay target="bus2_to_bus3" flags="comm_enabled" commdest="bus3bus2" commtype="basic">
-   <name>bus3bus2</name>
-   <terminal>2</terminal>
-   <type>zonal</type>
-   <zones>2</zones>
-   <delay>0.007,0.15</delay>
+   <relay target="bus2_to_bus3">
+      <name>time_over_current_1</name>
+      <type>timeovercurrent</type>
+      <terminal>1</terminal>
+      <pickup>1.0</pickup>
+      <curve>definite_time</curve>
+      <delay>0.02</delay>
    </relay>
    <basepower>100</basepower>
    <timestart>0</timestart>
-   <timestop>10</timestop>
-   <recorder field="auto" period="0.001">
-   <file>relayfault.dat</file>
-   </recorder>
-
-
+   <timestop>2</timestop>
+   <timestep>0.001</timestep>
 </griddyn>

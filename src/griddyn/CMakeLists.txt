@@ -589,6 +589,7 @@ set(relay_headers
     relays/LoadRelay.h
     relays/BusRelay.h
     relays/Fuse.h
+    relays/TimeOverCurrentRelay.h
     relays/Breaker.h
     relays/Sensor.h
     relays/BusMeasurementSensor.h
@@ -606,6 +607,7 @@ set(relay_sources
     relays/LoadRelay.cpp
     relays/BusRelay.cpp
     relays/Fuse.cpp
+    relays/TimeOverCurrentRelay.cpp
     relays/Breaker.cpp
     relays/Sensor.cpp
     relays/BusMeasurementSensor.cpp

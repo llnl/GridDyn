@@ -14,6 +14,7 @@ CASE9_FILE = REPO_ROOT / "test" / "test_files" / "matlab_test_files" / "case9.m"
 DYNAMIC_FILE = REPO_ROOT / "test" / "test_files" / "pFlow_tests" / "two_bus_dynamic_example.xml"
 AREA_FILE = REPO_ROOT / "test" / "test_files" / "area_tests" / "area_test1.xml"
 RELAY_FILE = REPO_ROOT / "test" / "test_files" / "relay_tests" / "test_relay_comms.xml"
+RECORDER_FILE = REPO_ROOT / "python" / "griddyn" / "examples" / "data" / "two_bus_dynamic.xml"
 
 
 def _exported_matrix(text, output_format, matrix_name):
@@ -32,15 +33,91 @@ def _exported_matrix(text, output_format, matrix_name):
 def test_public_exports_are_available():
     assert isinstance(gd.__version__, str)
     assert gd.__version__
-    assert gd.Gen is gd.Generator
-    assert gd.GenCollection is gd.GeneratorCollection
+    assert gd.Generator is not None
+    assert gd.GeneratorCollection is not None
     assert gd.Model is not None
+    assert gd.Recorder is not None
+    assert gd.RecorderCollection is not None
+    assert gd.PowerFlowRoutine is not None
+    assert gd.TimeDomainRoutine is not None
     assert issubclass(gd.InvalidObjectError, gd.GridDynError)
     assert issubclass(gd.InvalidParameterError, gd.GridDynError)
     assert issubclass(gd.FileLoadError, gd.GridDynError)
     assert issubclass(gd.SolveError, gd.GridDynError)
     assert issubclass(gd.ExecutionError, gd.GridDynError)
     assert callable(gd.load)
+
+
+def test_python_api_uses_one_pythonic_name_per_interface():
+    sim = gd.Simulation()
+
+    collection_names = ("buses", "generators", "loads", "links", "areas", "sensors", "relays")
+    assert all(hasattr(sim, name) for name in collection_names)
+    assert not any(
+        hasattr(sim, name)
+        for name in (
+            "Bus",
+            "bus",
+            "Generator",
+            "generator",
+            "Gen",
+            "gen",
+            "gens",
+            "Load",
+            "Link",
+            "link",
+            "Area",
+            "area",
+            "Sensor",
+            "sensor",
+            "Relay",
+            "relay",
+            "PFlow",
+            "pflow",
+            "TDS",
+            "tds",
+        )
+    )
+    assert not hasattr(gd, "Gen")
+    assert not hasattr(gd, "GenCollection")
+
+    assert callable(sim.load)
+    assert not hasattr(sim, "load_file")
+    assert callable(sim.write_file)
+    assert not any(
+        hasattr(sim, name)
+        for name in (
+            "save_pypower_case",
+            "save_matpower_case",
+            "save_powerflow_csv",
+            "save_powerflow_xml",
+        )
+    )
+    assert not hasattr(sim, "run_until")
+    assert not hasattr(sim, "run_to")
+    assert not any(hasattr(sim, name) for name in ("initialize", "run", "step"))
+    assert callable(sim.execute)
+    assert callable(sim.reset)
+
+    time_domain = sim.time_domain
+    assert callable(time_domain.initialize)
+    assert callable(time_domain.run)
+    assert callable(time_domain.run_until)
+    assert callable(time_domain.step)
+    assert not hasattr(time_domain, "execute")
+    assert not hasattr(time_domain, "reset")
+    assert not hasattr(time_domain, "time")
+    assert not hasattr(time_domain, "init")
+    assert not hasattr(time_domain, "run_to")
+
+    for name in collection_names:
+        collection = getattr(sim, name)
+        assert callable(collection.as_dicts)
+        assert callable(collection.as_dataframe)
+        assert not hasattr(collection, "to_list")
+        assert not hasattr(collection, "to_dataframe")
+    assert callable(gd.Optimization.opf)
+    assert not hasattr(gd.Optimization, "solve_opf")
 
 
 def test_simulation_default_state_and_repr():
@@ -73,12 +150,76 @@ def test_missing_file_raises_file_load_error(tmp_path):
         sim.load(missing_file)
 
 
-def test_load_file_alias_uses_pathlike_protocol(tmp_path):
+def test_load_uses_pathlike_protocol(tmp_path):
     sim = gd.Simulation(name="loader")
     missing_file = tmp_path / "does-not-exist.grid"
 
     with pytest.raises(gd.FileLoadError):
-        sim.load_file(Path(missing_file))
+        sim.load(Path(missing_file))
+
+
+def test_load_rejects_unknown_or_missing_format(tmp_path):
+    unknown_format = tmp_path / "network.unknown"
+    no_extension = tmp_path / "network"
+    unknown_format.write_text("ignored", encoding="utf-8")
+    no_extension.write_text("ignored", encoding="utf-8")
+
+    with pytest.raises(gd.FileLoadError, match="unsupported input format"):
+        gd.load(unknown_format)
+    with pytest.raises(gd.FileLoadError, match="no extension"):
+        gd.load(no_extension)
+
+
+def test_reset_reloads_command_line_input_and_invalidates_old_handles():
+    sim = gd.Simulation()
+    sim.load_from_args(["--input", str(PFLOW_FILE)])
+    original_bus = sim.buses["bus1"]
+
+    sim.reset()
+
+    assert sim.buses["bus1"].name == "bus1"
+    with pytest.raises(gd.InvalidObjectError, match="previous simulation"):
+        _ = original_bus.name
+
+
+def test_command_line_load_rejects_invalid_arguments():
+    sim = gd.Simulation()
+    with pytest.raises(gd.ExecutionError, match="loading failed"):
+        sim.load_from_args(["--not-a-grid-option"])
+
+
+def test_recorder_collection_returns_numeric_time_samples(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    sim = gd.load(RECORDER_FILE)
+    sim.set("recorddirectory", str(tmp_path))
+    sim.time_domain.initialize()
+    sim.time_domain.run_until(0.1)
+
+    assert sim.recorders.names == ["signals"]
+    recorder = sim.recorders["signals"]
+    samples = recorder.as_dicts()
+    assert samples
+    assert isinstance(samples[0]["time"], float)
+
+
+def test_recorder_samples_keep_duplicate_signal_columns(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    source = RECORDER_FILE.read_text(encoding="utf-8")
+    duplicate_case = tmp_path / "duplicate_signals.xml"
+    duplicate_case.write_text(
+        source.replace(
+            "bus1:voltage, bus1::gen1:p, bus1:linkreal",
+            "bus1:voltage, bus1:voltage",
+        ),
+        encoding="utf-8",
+    )
+    sim = gd.load(duplicate_case)
+    sim.set("recorddirectory", str(tmp_path))
+    sim.time_domain.initialize()
+    sim.time_domain.run_until(0.1)
+
+    row = sim.recorders["signals"].as_dicts()[0]
+    assert row["bus1:voltage"] == pytest.approx(row["bus1:voltage_2"])
 
 
 def test_load_returns_self_for_chaining():
@@ -88,7 +229,7 @@ def test_load_returns_self_for_chaining():
 
     assert isinstance(loaded, gd.Simulation)
     assert loaded.name == "2bus_test"
-    loaded.powerflow()
+    loaded.power_flow.run()
 
 
 def test_simulation_from_file_loads_powerflow_case():
@@ -96,7 +237,7 @@ def test_simulation_from_file_loads_powerflow_case():
 
     assert sim.name == "2bus_test"
     assert sim.optimization is None
-    sim.powerflow()
+    sim.power_flow.run()
     assert sim.time == 0.0
 
 
@@ -109,37 +250,37 @@ def test_optimization_has_its_own_interface():
 
 
 @pytest.mark.parametrize(
-    ("method_name", "suffix"),
-    [("save_pypower_case", ".py"), ("save_matpower_case", ".m")],
+    "suffix",
+    [".py", ".m"],
 )
-def test_case_export_round_trips_from_python(tmp_path, method_name, suffix):
+def test_case_export_round_trips_from_python(tmp_path, suffix):
     sim = gd.load(CASE9_FILE, type="optimization")
-    sim.Bus[3].set("voltage", 1.012345678901234)
+    sim.buses[3].set("voltage", 1.012345678901234)
     output = tmp_path / ("exported case" + suffix)
 
-    warnings = getattr(sim, method_name)(output)
+    warnings = sim.write_file(output)
 
     assert warnings == []
     if suffix == ".py":
         source = output.read_text(encoding="utf-8")
         ast.parse(source)
     exported = gd.load(output, type="optimization")
-    assert len(exported.Bus) == len(sim.Bus)
-    assert len(exported.Gen) == len(sim.Gen)
-    assert len(exported.Load) == len(sim.Load)
-    assert len(exported.Link) == len(sim.Link)
+    assert len(exported.buses) == len(sim.buses)
+    assert len(exported.generators) == len(sim.generators)
+    assert len(exported.loads) == len(sim.loads)
+    assert len(exported.links) == len(sim.links)
     assert exported.optimization.get_generator_cost_curve(1) == (
         sim.optimization.get_generator_cost_curve(1)
     )
-    assert exported.Bus[3].voltage == pytest.approx(1.012345678901234, abs=1e-14)
-    exported.powerflow()
+    assert exported.buses[3].voltage == pytest.approx(1.012345678901234, abs=1e-14)
+    exported.power_flow.run()
 
 
 @pytest.mark.parametrize(
-    ("method_name", "suffix"),
-    [("save_pypower_case", ".py"), ("save_matpower_case", ".m")],
+    "suffix",
+    [".py", ".m"],
 )
-def test_case_export_preserves_matpower_operating_fields(tmp_path, method_name, suffix):
+def test_case_export_preserves_matpower_operating_fields(tmp_path, suffix):
     source = CASE9_FILE.read_text(encoding="utf-8")
     source = source.replace(
         "1    3    0    0    0    0    1    1    0    345    1    1.1    0.9;",
@@ -161,7 +302,7 @@ def test_case_export_preserves_matpower_operating_fields(tmp_path, method_name, 
     sim = gd.load(input_file, type="optimization")
     output_file = tmp_path / ("fidelity" + suffix)
 
-    assert getattr(sim, method_name)(output_file) == []
+    assert sim.write_file(output_file) == []
     output = output_file.read_text(encoding="utf-8")
     bus = _exported_matrix(output, suffix, "bus")
     gen = _exported_matrix(output, suffix, "gen")
@@ -180,7 +321,7 @@ def test_case_export_preserves_matpower_operating_fields(tmp_path, method_name, 
 def test_generator_cost_curves_can_be_edited_and_exported(tmp_path):
     sim = gd.load(CASE9_FILE, type="optimization")
     optimization = sim.optimization
-    gen = sim.Gen[0]
+    gen = sim.generators[0]
     optimization.set_generator_cost_curve(gen.uid, 1, [0.0, 10.0, 250.0, 1000.0], startup_cost=40.0)
     optimization.set_generator_cost_curve(gen.uid, 2, [0.01, 2.0], reactive=True, shutdown_cost=8.0)
     expected = {
@@ -199,7 +340,7 @@ def test_generator_cost_curves_can_be_edited_and_exported(tmp_path):
     assert optimization.get_generator_cost_curve(gen.uid, reactive=True) == (expected_reactive)
 
     output = tmp_path / "costed_case.py"
-    warnings = sim.save_pypower_case(output)
+    warnings = sim.write_file(output, type="pypower")
     assert len(warnings) == 2
     exported = gd.load(output, type="optimization")
     assert exported.optimization.get_generator_cost_curve(gen.uid) == expected
@@ -224,31 +365,31 @@ def test_pypower_export_reports_write_failures(tmp_path):
     sim = gd.load(PFLOW_FILE)
 
     with pytest.raises(gd.ExecutionError, match="PYPOWER export failed"):
-        sim.save_pypower_case(tmp_path / "missing" / "case.py")
+        sim.write_file(tmp_path / "missing" / "case.py")
 
 
 def test_powerflow_result_files_from_python(tmp_path):
     sim = gd.load(PFLOW_FILE)
-    sim.powerflow()
+    sim.power_flow.run()
     csv_path = tmp_path / "powerflow.csv"
     xml_path = tmp_path / "powerflow.xml"
 
-    sim.save_powerflow_csv(csv_path)
-    sim.save_powerflow_xml(xml_path)
+    sim.write_file(csv_path)
+    sim.write_file(xml_path)
 
     csv_output = csv_path.read_text(encoding="utf-8")
     assert '"voltage(pu)"' in csv_output
     assert '"Qgen(MVAr)"' in csv_output
     assert "<PowerFlow>" in xml_path.read_text(encoding="utf-8")
     with pytest.raises(gd.ExecutionError):
-        sim.save_powerflow_csv(tmp_path / "missing" / "powerflow.csv")
+        sim.write_file(tmp_path / "missing" / "powerflow.csv")
 
 
 def test_pypower_export_runs_with_pypower_when_installed(tmp_path):
     api = pytest.importorskip("pypower.api")
     sim = gd.load(CASE9_FILE, type="optimization")
     output = tmp_path / "case_generated.py"
-    assert sim.save_pypower_case(output) == []
+    assert sim.write_file(output) == []
 
     spec = importlib.util.spec_from_file_location("case_generated", output)
     assert spec is not None and spec.loader is not None
@@ -258,72 +399,72 @@ def test_pypower_export_runs_with_pypower_when_installed(tmp_path):
     results, success = api.runpf(case, api.ppoption(VERBOSE=0, OUT_ALL=0))
 
     assert success
-    assert results["bus"].shape[0] == len(sim.Bus)
+    assert results["bus"].shape[0] == len(sim.buses)
     opf_results = api.runopf(copy.deepcopy(case), api.ppoption(VERBOSE=0, OUT_ALL=0))
     assert opf_results["success"]
-    assert opf_results["gencost"].shape[0] == len(sim.Gen)
+    assert opf_results["gencost"].shape[0] == len(sim.generators)
 
 
 def test_andes_style_load_and_powerflow():
     sim = gd.load(PFLOW_FILE)
 
-    sim.PFlow.run()
+    sim.power_flow.run()
 
     assert sim.name == "2bus_test"
-    assert sim.pflow is not None
+    assert sim.power_flow is not None
 
 
 def test_powerflow_collections_expose_results():
     sim = gd.load(PFLOW_FILE)
 
-    sim.PFlow.run()
+    sim.power_flow.run()
 
-    assert len(sim.Bus) == 2
-    assert sim.Bus.names == ["bus1", "bus2"]
+    assert len(sim.buses) == 2
+    assert sim.buses.names == ["bus1", "bus2"]
     assert sim.buses[0].name == "bus1"
-    assert sim.Bus["bus1"].voltage == pytest.approx(1.05)
-    assert math.isfinite(sim.Bus["bus2"].angle)
-    assert {"name", "v", "a", "p_gen", "p_load", "p_link"} <= set(sim.Bus.as_dicts()[0])
+    assert sim.buses["bus1"].voltage == pytest.approx(1.05)
+    assert math.isfinite(sim.buses["bus2"].angle)
+    assert {"name", "voltage", "angle", "frequency", "p_gen", "p_load", "p_link"} <= set(
+        sim.buses.as_dicts()[0]
+    )
 
-    assert len(sim.Gen) == 1
-    assert len(sim.Generator) == 1
-    assert sim.Gen.names == ["gen1"]
-    assert isinstance(sim.Generator[0], gd.Generator)
-    assert sim.gens["gen1"].bus == "bus1"
+    assert len(sim.generators) == 1
+    assert sim.generators.names == ["gen1"]
+    assert isinstance(sim.generators[0], gd.Generator)
     assert sim.generators["gen1"].bus == "bus1"
-    assert math.isfinite(sim.Gen[0].p)
-    assert {"name", "bus", "p", "q", "pset"} <= set(sim.Gen.as_dicts()[0])
+    assert math.isfinite(sim.generators[0].p)
+    assert {"name", "bus", "p", "q", "pset"} <= set(sim.generators.as_dicts()[0])
 
-    assert len(sim.Load) == 2
-    assert sim.Load.names == ["load1", "load2"]
+    assert len(sim.loads) == 2
+    assert sim.loads.names == ["load1", "load2"]
     assert sim.loads["load2"].bus == "bus2"
-    assert sim.Load["load1"].p == pytest.approx(1.15)
-    assert {"name", "bus", "p", "q"} <= set(sim.Load.as_dicts()[0])
+    assert sim.loads["load1"].p == pytest.approx(1.15)
+    assert {"name", "bus", "p", "q"} <= set(sim.loads.as_dicts()[0])
 
-    assert len(sim.Link) == 1
-    assert sim.Link.names == ["bus1_to_bus2"]
+    assert len(sim.links) == 1
+    assert sim.links.names == ["bus1_to_bus2"]
     assert sim.links["bus1_to_bus2"].bus1 == "bus1"
     assert sim.links[0].bus2 == "bus2"
-    assert math.isfinite(sim.Link[0].p1)
-    assert {"name", "bus1", "bus2", "p1", "q1", "p2", "q2", "loss"} <= set(sim.Link.as_dicts()[0])
+    assert math.isfinite(sim.links[0].p1)
+    assert {"name", "bus1", "bus2", "p1", "q1", "p2", "q2", "loss"} <= set(sim.links.as_dicts()[0])
 
 
 def test_model_collections_are_available():
     sim = gd.load(PFLOW_FILE)
 
-    assert isinstance(sim.Bus[0], gd.Bus)
-    assert isinstance(sim.Load[0], gd.Load)
-    assert isinstance(sim.Link[0], gd.Link)
-    assert isinstance(sim.Area, gd.AreaCollection)
-    assert isinstance(sim.Relay, gd.RelayCollection)
-    assert isinstance(sim.Sensor, gd.SensorCollection)
+    assert isinstance(sim.buses[0], gd.Bus)
+    assert isinstance(sim.loads[0], gd.Load)
+    assert isinstance(sim.links[0], gd.Link)
+    assert isinstance(sim.areas, gd.AreaCollection)
+    assert isinstance(sim.relays, gd.RelayCollection)
+    assert isinstance(sim.sensors, gd.SensorCollection)
 
-    assert len(sim.Area) == 0
-    assert len(sim.Relay) == 0
-    assert len(sim.Sensor) == 0
+    assert len(sim.areas) == 0
+    assert len(sim.relays) == 0
+    assert len(sim.sensors) == 0
     assert sim.areas.names == []
     assert sim.relays.as_dicts() == []
-    assert sim.sensors.to_list() == []
+    assert sim.sensors.as_dicts() == []
 
 
 def test_find_returns_typed_models():
@@ -362,25 +503,25 @@ def test_models_support_griddyn_get_and_set():
         "python simulation"
     )
 
-    bus = sim.Bus["bus1"]
+    bus = sim.buses["bus1"]
     assert bus.set("period", 0.3) is bus
     assert bus.get("period") == pytest.approx(0.3)
     assert bus.set("voltage", 1.04).get("voltage") == pytest.approx(1.04)
     assert bus.set("description", "python bus").get_string("description") == "python bus"
 
-    gen = sim.Generator["gen1"]
+    gen = sim.generators["gen1"]
     assert gen.set("period", 0.35) is gen
     assert gen.get("period") == pytest.approx(0.35)
     assert gen.set("pset", 0.8).get("pset") == pytest.approx(0.8)
     assert gen.set("description", "python gen").get_string("description") == "python gen"
 
-    load = sim.Load["load1"]
+    load = sim.loads["load1"]
     assert load.set("period", 0.4) is load
     assert load.get("period") == pytest.approx(0.4)
     assert load.set("p", 1.2).get("p") == pytest.approx(1.2)
     assert load.set("description", "python load").get_string("description") == "python load"
 
-    link = sim.Link["bus1_to_bus2"]
+    link = sim.links["bus1_to_bus2"]
     assert link.set("period", 0.45) is link
     assert link.get("period") == pytest.approx(0.45)
     assert link.set("rating", 2.0).get("rating") == pytest.approx(2.0)
@@ -389,15 +530,15 @@ def test_models_support_griddyn_get_and_set():
 
 def test_area_relay_and_sensor_support_griddyn_get_and_set():
     area_sim = gd.load(AREA_FILE)
-    area = area_sim.Area["testArea"]
+    area = area_sim.areas["testArea"]
 
     assert area.set("period", 0.5) is area
     assert area.get("period") == pytest.approx(0.5)
     assert area.set("description", "python area").get_string("description") == "python area"
 
     relay_sim = gd.load(RELAY_FILE)
-    relay = relay_sim.Relay["load4control"]
-    sensor = relay_sim.Sensor["sensor1"]
+    relay = relay_sim.relays["load4control"]
+    sensor = relay_sim.sensors["sensor1"]
 
     assert relay.set("period", 0.55) is relay
     assert relay.get("period") == pytest.approx(0.55)
@@ -412,9 +553,9 @@ def test_simulation_can_run_dynamic_file(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
     sim = gd.Simulation.from_file(DYNAMIC_FILE)
 
-    sim.powerflow()
-    sim.initialize()
-    final_time = sim.run_until(0.1)
+    sim.power_flow.run()
+    sim.time_domain.initialize()
+    final_time = sim.time_domain.run_until(0.1)
 
     assert final_time >= 0.1
     assert sim.time >= 0.1
@@ -424,9 +565,9 @@ def test_andes_style_time_domain_run(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
     sim = gd.load(DYNAMIC_FILE)
 
-    sim.PFlow.run()
-    sim.TDS.init()
-    final_time = sim.TDS.run_until(0.1)
+    sim.power_flow.run()
+    sim.time_domain.initialize()
+    final_time = sim.time_domain.run_until(0.1)
 
     assert final_time >= 0.1
-    assert sim.TDS.time >= 0.1
+    assert sim.time >= 0.1

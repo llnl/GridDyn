@@ -33,7 +33,7 @@ void executeSql(sqlite3* database, const char* sql)
 
 std::filesystem::path makeSavFixture()
 {
-    auto filePath = std::filesystem::temp_directory_path() / "griddyn_pslf_sqlite_reader.save";
+    auto filePath = std::filesystem::temp_directory_path() / "griddyn_pslf_sqlite_reader.sav";
     std::error_code removeError;
     std::filesystem::remove(filePath, removeError);
 
@@ -75,7 +75,7 @@ std::filesystem::path makeSavFixture()
 
 TEST(SavReaderTests, RejectsLegacyOrMalformedSavBeforeObjectCreation)
 {
-    const auto filePath = std::filesystem::temp_directory_path() / "griddyn_not_a_pslf_sqlite.save";
+    const auto filePath = std::filesystem::temp_directory_path() / "griddyn_not_a_pslf_sqlite.sav";
     {
         std::ofstream output(filePath, std::ios::binary);
         ASSERT_TRUE(output.is_open());

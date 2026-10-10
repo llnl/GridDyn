@@ -14,7 +14,7 @@ def main() -> None:
     print(f"OPF status: {result['status']}")
     print(f"Objective value: {result['objective_value']:.3f}")
     print("Generator dispatch (GridDyn convention; generation is negative):")
-    for generator in sim.Gen.as_dicts():
+    for generator in sim.generators.as_dicts():
         print(f"  {generator['name']} at {generator['bus']}: {generator['p']:.4f}")
 
 

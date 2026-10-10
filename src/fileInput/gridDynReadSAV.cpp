@@ -39,7 +39,7 @@ namespace {
 
     [[noreturn]] void savError(const std::string& fileName, const std::string& detail)
     {
-        throw InvalidParameterValue("PSLF SQLite .save '" + fileName + "': " + detail);
+        throw InvalidParameterValue("PSLF SQLite .sav '" + fileName + "': " + detail);
     }
 
     class SqliteDatabase {
@@ -1167,7 +1167,7 @@ void loadSav(CoreObject* parentObject,
              const BasicReaderInfo& readerOptions)
 {
     if (parentObject == nullptr) {
-        throw InvalidParameterValue("PSLF SQLite .save reader requires a simulation parent object");
+        throw InvalidParameterValue("PSLF SQLite .sav reader requires a simulation parent object");
     }
 
     const SqliteDatabase database(fileName, fileName);
@@ -1198,7 +1198,7 @@ void loadSav(CoreObject* parentObject,
         database.fileName(), buses.size(), generators, loads, lines, transformers, shunts);
 
     // No GridDyn object is created until all database structure and all imported references have
-    // passed validation. This is important because legacy binary .save files are also common.
+    // passed validation. This is important because legacy binary .sav files are also common.
     GridSimulation::resetObjectCounters();
     parentObject->set("basepower", caseData.mBasePower, units::MW);
 

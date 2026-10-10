@@ -22,8 +22,8 @@ from pathlib import Path
 import griddyn as gd
 
 sim = gd.load(Path("network.xml"))
-sim.PFlow.run()
-print(sim.Bus.as_dicts())
+sim.power_flow.run()
+print(sim.buses.as_dicts())
 ```
 
 For dynamic simulations, initialize the time-domain simulation and advance it

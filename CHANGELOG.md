@@ -7,6 +7,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [unreleased]
 
+## [0.13.0] - 2026-10-10
+
+### Added
+
+- Exported `gridDynMain` (and `griddynServer` when built) as installed CMake
+  executable targets.
+- Expanded and streamlined the Python interface, including in-memory recorder results.
+
 ## [0.12.0] - 2026-09-25
 
 ### Added

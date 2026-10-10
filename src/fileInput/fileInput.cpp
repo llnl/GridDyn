@@ -171,10 +171,15 @@ void loadFile(CoreObject* parentObject,
 {
     if (ext.empty()) {
         const std::filesystem::path sourcePath(fileName);
-        ext = gmlc::utilities::convertToLowerCase(sourcePath.extension().string());
-        if (ext[0] == '.') {
-            ext.erase(0, 1);
-        }
+        ext = sourcePath.extension().string();
+    }
+    ext = gmlc::utilities::convertToLowerCase(ext);
+    if (!ext.empty() && ext.front() == '.') {
+        ext.erase(0, 1);
+    }
+    if (ext.empty()) {
+        throw FileOperationError("input file has no extension; pass a format explicitly: " +
+                                 fileName);
     }
 
     const std::unique_ptr<ReaderInfo> uniqueReaderInfo =
@@ -197,7 +202,6 @@ void loadFile(CoreObject* parentObject,
         loadDyd(parentObject, fileName, *readerInf);
     } else if ((ext == "cdf") || (ext == "txt")) {
         loadCdf(parentObject, fileName, *readerInf);
-    } else if (ext == "uct") {
     } else if (ext == "m" || ext == "matlab") {
         loadMatlabFile(parentObject, fileName, *readerInf);
     } else if (ext == "py") {
@@ -206,7 +210,7 @@ void loadFile(CoreObject* parentObject,
         loadPsp(parentObject, fileName, *readerInf);
     } else if (ext == "epc") {
         loadEpc(parentObject, fileName, *readerInf);
-    } else if ((ext == "save") || (ext == "save")) {
+    } else if (ext == "sav") {
         loadSav(parentObject, fileName, *readerInf);
     } else if (ext == "json") {
         if (!loadAndesJson(parentObject, fileName)) {
@@ -216,6 +220,8 @@ void loadFile(CoreObject* parentObject,
         loadElementFile<YamlReaderElement>(parentObject, fileName, readerInf);
     } else if (ext == "gdz") {  // gridDyn Zipped file
         loadGdz(parentObject, fileName, *readerInf);
+    } else {
+        throw FileOperationError("unsupported input format '" + ext + "' for " + fileName);
     }
 }
 

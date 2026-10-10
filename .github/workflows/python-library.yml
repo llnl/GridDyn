@@ -43,7 +43,10 @@ jobs:
             gcc-15 \
             g++-15
           python -m pip install --upgrade pip
-          python -m pip install build pytest
+          python -m pip install build pytest ruff==0.17.0
+
+      - name: Check Python naming conventions
+        run: ruff check python/griddyn python/tests
 
       - name: Build wheel
         shell: bash

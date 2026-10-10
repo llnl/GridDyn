@@ -87,9 +87,7 @@ MachineSignalDerivativeData
     addDerivative(MachineControllerSignal::VQ, diffLocation(0), directVoltage);
 
     addDerivative(MachineControllerSignal::ELECTRICAL_POWER, algLocation(0), directVoltage);
-    addDerivative(MachineControllerSignal::ELECTRICAL_POWER,
-                  algLocation(1),
-                  quadratureVoltage);
+    addDerivative(MachineControllerSignal::ELECTRICAL_POWER, algLocation(1), quadratureVoltage);
     addDerivative(MachineControllerSignal::ELECTRICAL_POWER,
                   voltageLocation,
                   (-sineAngle * algebraicState[0]) + (cosineAngle * algebraicState[1]));
@@ -146,12 +144,10 @@ MachineSignalDerivativeData
     fieldCurrentDerivatives.clear();
     const auto locations = offsets.getLocations(stateDataValue, sMode, this);
     if (hasAlgebraic(sMode)) {
-        fieldCurrentDerivatives.push_back({.location = locations.algOffset,
-                                           .value = -(Xd - Xdp)});
+        fieldCurrentDerivatives.push_back({.location = locations.algOffset, .value = -(Xd - Xdp)});
     }
     if (hasDifferential(sMode)) {
-        fieldCurrentDerivatives.push_back({.location = locations.diffOffset + 2,
-                                           .value = 1.0});
+        fieldCurrentDerivatives.push_back({.location = locations.diffOffset + 2, .value = 1.0});
     }
     return derivatives;
 }
@@ -182,12 +178,10 @@ MachineSignalDerivativeData
     fieldCurrentDerivatives.clear();
     const auto locations = offsets.getLocations(stateDataValue, sMode, this);
     if (hasAlgebraic(sMode)) {
-        fieldCurrentDerivatives.push_back({.location = locations.algOffset,
-                                           .value = -(Xd - Xdp)});
+        fieldCurrentDerivatives.push_back({.location = locations.algOffset, .value = -(Xd - Xdp)});
     }
     if (hasDifferential(sMode)) {
-        fieldCurrentDerivatives.push_back({.location = locations.diffOffset + 3,
-                                           .value = 1.0});
+        fieldCurrentDerivatives.push_back({.location = locations.diffOffset + 3, .value = 1.0});
     }
     return derivatives;
 }
@@ -217,8 +211,7 @@ MachineSignalDerivativeData
     fieldCurrentDerivatives.clear();
     const auto locations = offsets.getLocations(stateDataValue, sMode, this);
     if (hasDifferential(sMode)) {
-        fieldCurrentDerivatives.push_back({.location = locations.diffOffset + 2,
-                                           .value = 1.0});
+        fieldCurrentDerivatives.push_back({.location = locations.diffOffset + 2, .value = 1.0});
     }
     return derivatives;
 }

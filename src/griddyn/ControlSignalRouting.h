@@ -152,21 +152,20 @@ class ControlSignalRouting {
                 context.hostInputs[sourceIndex] :
                 kNullVal;
         };
-        route.derivatives =
-            [sourceIndex](const ControlSignalContext& context,
-                          std::vector<ControlSignalDerivative>& terms) {
-                bool hasSparseTerms = false;
-                if (context.hostInputDerivatives != nullptr &&
-                    std::cmp_less(sourceIndex, context.hostInputDerivatives->size())) {
-                    const auto& sourceTerms = (*context.hostInputDerivatives)[sourceIndex];
-                    hasSparseTerms = !sourceTerms.empty();
-                    terms.insert(terms.end(), sourceTerms.begin(), sourceTerms.end());
-                }
-                if (!hasSparseTerms && context.hostInputLocs != nullptr &&
-                    std::cmp_less(sourceIndex, context.hostInputLocs->size())) {
-                    terms.push_back({(*context.hostInputLocs)[sourceIndex], 1.0});
-                }
-            };
+        route.derivatives = [sourceIndex](const ControlSignalContext& context,
+                                          std::vector<ControlSignalDerivative>& terms) {
+            bool hasSparseTerms = false;
+            if (context.hostInputDerivatives != nullptr &&
+                std::cmp_less(sourceIndex, context.hostInputDerivatives->size())) {
+                const auto& sourceTerms = (*context.hostInputDerivatives)[sourceIndex];
+                hasSparseTerms = !sourceTerms.empty();
+                terms.insert(terms.end(), sourceTerms.begin(), sourceTerms.end());
+            }
+            if (!hasSparseTerms && context.hostInputLocs != nullptr &&
+                std::cmp_less(sourceIndex, context.hostInputLocs->size())) {
+                terms.push_back({(*context.hostInputLocs)[sourceIndex], 1.0});
+            }
+        };
         add(std::move(route));
     }
 

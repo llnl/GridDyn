@@ -61,22 +61,35 @@ void ExcitationLimiterMNLEX2::set(std::string_view param, double val, units::uni
 
 double ExcitationLimiterMNLEX2::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "kf2" || param == "k_f2") { return kF2; }
-    if (param == "tf2" || param == "t_f2") { return tF2; }
-    if (param == "km" || param == "k_m") { return kM; }
-    if (param == "tm" || param == "t_m") { return tM; }
-    if (param == "melmax" || param == "mel_max") { return melMax; }
-    if (param == "q0" || param == "q_0") { return q0; }
-    if (param == "radius") { return radius; }
+    if (param == "kf2" || param == "k_f2") {
+        return kF2;
+    }
+    if (param == "tf2" || param == "t_f2") {
+        return tF2;
+    }
+    if (param == "km" || param == "k_m") {
+        return kM;
+    }
+    if (param == "tm" || param == "t_m") {
+        return tM;
+    }
+    if (param == "melmax" || param == "mel_max") {
+        return melMax;
+    }
+    if (param == "q0" || param == "q_0") {
+        return q0;
+    }
+    if (param == "radius") {
+        return radius;
+    }
     return ExcitationLimiter::get(param, unitType);
 }
 
 void ExcitationLimiterMNLEX2::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
-    if (!std::isfinite(kF2) || !std::isfinite(tF2) || !std::isfinite(kM) ||
-        !std::isfinite(tM) || !std::isfinite(melMax) || !std::isfinite(q0) ||
-        !std::isfinite(radius) || kF2 < 0.0 || tF2 <= 0.0 || kM <= 0.0 ||
-        tM <= 0.0 || melMax <= 0.0 || radius <= 0.0) {
+    if (!std::isfinite(kF2) || !std::isfinite(tF2) || !std::isfinite(kM) || !std::isfinite(tM) ||
+        !std::isfinite(melMax) || !std::isfinite(q0) || !std::isfinite(radius) || kF2 < 0.0 ||
+        tF2 <= 0.0 || kM <= 0.0 || tM <= 0.0 || melMax <= 0.0 || radius <= 0.0) {
         throw InvalidParameterValue("MNLEX2 gains, time constants, or limits");
     }
     offsets.local().local.algSize = 1;
@@ -85,14 +98,13 @@ void ExcitationLimiterMNLEX2::dynObjectInitializeA(CoreTime time0, std::uint32_t
     prevTime = time0;
 }
 
-ExcitationLimiterMNLEX2::Circle
-    ExcitationLimiterMNLEX2::circleError(const IOdata& inputs) const
+ExcitationLimiterMNLEX2::Circle ExcitationLimiterMNLEX2::circleError(const IOdata& inputs) const
 {
     if (inputs.size() < excitationLimiterInputCount) {
         throw InvalidParameterValue("MNLEX2 input vector");
     }
-    for (auto index : {limiterIdInLocation, limiterIqInLocation,
-                       limiterVdInLocation, limiterVqInLocation}) {
+    for (auto index :
+         {limiterIdInLocation, limiterIqInLocation, limiterVdInLocation, limiterVqInLocation}) {
         if (!std::isfinite(inputs[index]) || std::abs(inputs[index]) > 1e20) {
             throw InvalidParameterValue("MNLEX2 requires compatible machine P, Q, and voltage");
         }
@@ -112,8 +124,7 @@ ExcitationLimiterMNLEX2::Circle
     const std::array<double, excitationLimiterInputCount> dq{0, vq, -vd, -iq, iDirect};
     const std::array<double, excitationLimiterInputCount> dv2{0, 0, 0, 2 * vd, 2 * vq};
     for (index_t index = 0; index < excitationLimiterInputCount; ++index) {
-        result.derivatives[index] =
-            2 * centeredQ * (q0 * dv2[index] - dq[index]) +
+        result.derivatives[index] = 2 * centeredQ * (q0 * dv2[index] - dq[index]) +
             2 * p * dp[index] - 2 * scaledRadius * radius * dv2[index];
     }
     return result;
@@ -131,8 +142,8 @@ double ExcitationLimiterMNLEX2::rate(double output, double feedback, double erro
 }
 
 void ExcitationLimiterMNLEX2::dynObjectInitializeB(const IOdata& inputs,
-                                                    const IOdata& /*desiredOutput*/,
-                                                    IOdata& fieldSet)
+                                                   const IOdata& /*desiredOutput*/,
+                                                   IOdata& fieldSet)
 {
     const double output = std::clamp(kM * circleError(inputs).error, 0.0, melMax);
     m_state[0] = output;
@@ -143,7 +154,8 @@ void ExcitationLimiterMNLEX2::dynObjectInitializeB(const IOdata& inputs,
 
 void ExcitationLimiterMNLEX2::residual(const IOdata& inputs,
                                        const StateData& stateData,
-                                       double resid[], const SolverMode& sMode)
+                                       double resid[],
+                                       const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, resid, sMode, this);
     const double mel = loc.diffStateLoc[0];
@@ -160,9 +172,12 @@ void ExcitationLimiterMNLEX2::residual(const IOdata& inputs,
 
 void ExcitationLimiterMNLEX2::derivative(const IOdata& inputs,
                                          const StateData& stateData,
-                                         double deriv[], const SolverMode& sMode)
+                                         double deriv[],
+                                         const SolverMode& sMode)
 {
-    if (!hasDifferential(sMode)) { return; }
+    if (!hasDifferential(sMode)) {
+        return;
+    }
     const auto loc = offsets.getLocations(stateData, deriv, sMode, this);
     const double output = std::clamp(loc.diffStateLoc[0], 0.0, melMax);
     loc.destDiffLoc[0] = rate(output, loc.diffStateLoc[1], circleError(inputs).error);
@@ -170,20 +185,23 @@ void ExcitationLimiterMNLEX2::derivative(const IOdata& inputs,
 }
 
 void ExcitationLimiterMNLEX2::algebraicUpdate(const IOdata& /*inputs*/,
-                                               const StateData& stateData,
-                                               double update[], const SolverMode& sMode,
-                                               double /*alpha*/)
+                                              const StateData& stateData,
+                                              double update[],
+                                              const SolverMode& sMode,
+                                              double /*alpha*/)
 {
-    if (!hasAlgebraic(sMode)) { return; }
+    if (!hasAlgebraic(sMode)) {
+        return;
+    }
     const auto loc = offsets.getLocations(stateData, update, sMode, this);
     loc.destLoc[0] = std::clamp(loc.diffStateLoc[0], 0.0, melMax);
 }
 
 void ExcitationLimiterMNLEX2::jacobianElements(const IOdata& inputs,
-                                                const StateData& stateData,
-                                                MatrixData<double>& matrixData,
-                                                const IOlocs& inputLocs,
-                                                const SolverMode& sMode)
+                                               const StateData& stateData,
+                                               MatrixData<double>& matrixData,
+                                               const IOlocs& inputLocs,
+                                               const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
     if (hasAlgebraic(sMode)) {
@@ -194,24 +212,27 @@ void ExcitationLimiterMNLEX2::jacobianElements(const IOdata& inputs,
             matrixData.assign(loc.algOffset, loc.diffOffset, outputSensitivity);
         }
     }
-    if (!hasDifferential(sMode)) { return; }
+    if (!hasDifferential(sMode)) {
+        return;
+    }
     const auto circle = circleError(inputs);
     const double mel = loc.diffStateLoc[0];
     const double output = std::clamp(mel, 0.0, melMax);
     const double outputSensitivity = (mel >= 0.0 && mel < melMax) ? 1.0 : 0.0;
     const double unconstrainedRate =
-        (kM * (circle.error - (kF2 / tF2) * (output - loc.diffStateLoc[1])) -
-         output) / tM;
-    const bool limited = (output <= 0.0 && unconstrainedRate < 0.0) ||
-        (output >= melMax && unconstrainedRate > 0.0);
+        (kM * (circle.error - (kF2 / tF2) * (output - loc.diffStateLoc[1])) - output) / tM;
+    const bool limited =
+        (output <= 0.0 && unconstrainedRate < 0.0) || (output >= melMax && unconstrainedRate > 0.0);
     const auto outputRow = loc.diffOffset;
-    matrixData.assign(outputRow, outputRow,
+    matrixData.assign(outputRow,
+                      outputRow,
                       (limited ? 0.0 : outputSensitivity * (-1.0 - kM * kF2 / tF2) / tM) -
                           stateData.cj);
     if (!limited) {
         matrixData.assign(outputRow, outputRow + 1, kM * kF2 / (tM * tF2));
         for (index_t index = 0; index < excitationLimiterInputCount; ++index) {
-            matrixData.assignCheckCol(outputRow, inputLocs[index],
+            matrixData.assignCheckCol(outputRow,
+                                      inputLocs[index],
                                       kM * circle.derivatives[index] / tM);
         }
     }
@@ -219,7 +240,8 @@ void ExcitationLimiterMNLEX2::jacobianElements(const IOdata& inputs,
     matrixData.assign(outputRow + 1, outputRow + 1, -1.0 / tF2 - stateData.cj);
 }
 
-void ExcitationLimiterMNLEX2::timestep(CoreTime time, const IOdata& inputs,
+void ExcitationLimiterMNLEX2::timestep(CoreTime time,
+                                       const IOdata& inputs,
                                        const SolverMode& /*sMode*/)
 {
     const double step = time - prevTime;

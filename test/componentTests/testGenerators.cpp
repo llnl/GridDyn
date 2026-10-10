@@ -8,26 +8,26 @@
 #include "core/CoreExceptions.h"
 #include "core/ObjectFactory.hpp"
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
-#include "griddyn/Exciter.h"
 #include "griddyn/ExcitationLimiter.h"
+#include "griddyn/Exciter.h"
+#include "griddyn/Generator.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/Stabilizer.h"
+#include "griddyn/VoltageCompensator.h"
+#include "griddyn/exciters/ExciterESAC6A.h"
+#include "griddyn/exciters/ExciterSCRX.h"
+#include "griddyn/generators/DynamicGenerator.h"
+#include "griddyn/genmodels/GenModel6.h"
+#include "griddyn/governors/GovernorIeeeSimple.h"
 #include "griddyn/limiters/ExcitationLimiterMNLEX2.h"
 #include "griddyn/limiters/ExcitationLimiterOEL3C.h"
 #include "griddyn/limiters/ExcitationLimiterOEL4C.h"
 #include "griddyn/limiters/ExcitationLimiterUEL1.h"
 #include "griddyn/limiters/ExcitationLimiterUEL2C.h"
-#include "griddyn/Generator.h"
-#include "griddyn/GridBus.h"
-#include "griddyn/Stabilizer.h"
-#include "griddyn/VoltageCompensator.h"
-#include "griddyn/generators/DynamicGenerator.h"
-#include "griddyn/exciters/ExciterSCRX.h"
-#include "griddyn/exciters/ExciterESAC6A.h"
-#include "griddyn/genmodels/GenModel6.h"
-#include "griddyn/governors/GovernorIeeeSimple.h"
 #include "utilities/MatrixDataSparse.hpp"
-#include <gtest/gtest.h>
 #include <algorithm>
 #include <array>
+#include <gtest/gtest.h>
 #include <memory>
 #include <string>
 
@@ -41,7 +41,10 @@ class InspectableDynamicGenerator: public DynamicGenerator {
   public:
     using DynamicGenerator::DynamicGenerator;
     const ControlSignalRouting& exciterRoutes() const { return signalRoutes[EXCITER_LOC]; }
-    const ControlSignalRouting& routes(SubModelLocations model) const { return signalRoutes[model]; }
+    const ControlSignalRouting& routes(SubModelLocations model) const
+    {
+        return signalRoutes[model];
+    }
     const IOdata& currentSignals() const { return signalFrame.values; }
 };
 
@@ -60,8 +63,10 @@ TEST(DynamicGeneratorModelTests, SignalRoutesFreezeUntilFullDynamicInitializatio
               excitationLimiterInputCount);
     EXPECT_EQ(host.routes(DynamicGenerator::UEL_LOC).bindings().size(),
               excitationLimiterInputCount);
-    const ControlSignalContext context{
-        host.currentSignals(), nullptr, emptyStateData, cLocalSolverMode};
+    const ControlSignalContext context{host.currentSignals(),
+                                       nullptr,
+                                       emptyStateData,
+                                       cLocalSolverMode};
     EXPECT_DOUBLE_EQ(host.exciterRoutes().values(context)[exciterVssInLocation], 0.0);
     EXPECT_EQ(host.exciterRoutes().inputLocations(context).locations[exciterVssInLocation],
               kNullLocation);
@@ -81,9 +86,10 @@ TEST(DynamicGeneratorModelTests, SignalRoutesFreezeUntilFullDynamicInitializatio
     stabilizer.release();
     EXPECT_NO_THROW(host.dynInitializeA(0.0, 0));
     const auto& bindings = host.exciterRoutes().bindings();
-    const auto stabilizerRoute = std::find_if(bindings.begin(), bindings.end(), [](const auto& route) {
-        return route.inputIndex == exciterVssInLocation;
-    });
+    const auto stabilizerRoute =
+        std::find_if(bindings.begin(), bindings.end(), [](const auto& route) {
+            return route.inputIndex == exciterVssInLocation;
+        });
     ASSERT_NE(stabilizerRoute, bindings.end());
     EXPECT_EQ(stabilizerRoute->sourceName, attached->getName());
     EXPECT_THROW(host.remove(attached), InvalidParameterValue);
@@ -122,10 +128,10 @@ TEST(DynamicGeneratorModelTests, LimiterRoutesRequireSupportedExciterAndFreeze)
     EXPECT_EQ(host.find("uel"), uel);
     const auto& bindings = host.exciterRoutes().bindings();
     const auto routeName = [&bindings](index_t input) {
-        const auto route = std::find_if(bindings.begin(), bindings.end(),
-                                        [input](const auto& item) {
-                                            return item.inputIndex == input;
-                                        });
+        const auto route =
+            std::find_if(bindings.begin(), bindings.end(), [input](const auto& item) {
+                return item.inputIndex == input;
+            });
         return route == bindings.end() ? std::string{} : route->sourceName;
     };
     EXPECT_EQ(routeName(exciterVoelInLocation), oel->getName());
@@ -280,8 +286,8 @@ TEST(ExcitationLimiterTests, Oel4cDelaySignedOutputAndTimerReset)
         inactiveLocations[index] = 10 + index;
     }
     MatrixDataSparse<double> inactiveJacobian;
-    limiter.jacobianElements(inputs, inactiveData, inactiveJacobian,
-                             inactiveLocations, cDaeSolverMode);
+    limiter.jacobianElements(
+        inputs, inactiveData, inactiveJacobian, inactiveLocations, cDaeSolverMode);
     EXPECT_DOUBLE_EQ(inactiveJacobian.at(0, 0), -1.0);
     EXPECT_DOUBLE_EQ(inactiveJacobian.at(0, 1), 0.0);
     EXPECT_DOUBLE_EQ(inactiveJacobian.at(1, 1), -2.0);
@@ -359,10 +365,10 @@ TEST(ExcitationLimiterTests, AdditionalWeccLimiterProfilesRegisterAndProvideCons
     constexpr double finiteDifferenceStep = 1e-6;
     perturbedInputs[limiterIqInLocation] += finiteDifferenceStep;
     std::array<double, 4> perturbedUel1Residual{};
-    uel1.residual(perturbedInputs, uel1ResidualData,
-                  perturbedUel1Residual.data(), cDaeSolverMode);
+    uel1.residual(perturbedInputs, uel1ResidualData, perturbedUel1Residual.data(), cDaeSolverMode);
     EXPECT_NEAR((perturbedUel1Residual[0] - uel1Residual[0]) / finiteDifferenceStep,
-                jacobian.at(0, 12), 1e-6);
+                jacobian.at(0, 12),
+                1e-6);
 
     limiters::ExcitationLimiterUEL1 cappedUel1;
     cappedUel1.set("kur", 0.1);
@@ -408,8 +414,7 @@ TEST(ExcitationLimiterTests, AdditionalWeccLimiterProfilesRegisterAndProvideCons
     StateData uel2cState(0.0, states.data());
     uel2cState.stateSize = static_cast<count_t>(states.size());
     MatrixDataSparse<double> uel2cJacobian;
-    uel2c.jacobianElements(inputs, uel2cState, uel2cJacobian,
-                           inputLocs, cDaeSolverMode);
+    uel2c.jacobianElements(inputs, uel2cState, uel2cJacobian, inputLocs, cDaeSolverMode);
     EXPECT_DOUBLE_EQ(uel2cJacobian.at(0, 1), 1.0);
     EXPECT_DOUBLE_EQ(uel2cJacobian.at(0, 12), 1.0);
     EXPECT_NEAR(uel2cJacobian.at(0, 13), 0.15, 1e-12);
@@ -421,10 +426,13 @@ TEST(ExcitationLimiterTests, AdditionalWeccLimiterProfilesRegisterAndProvideCons
     perturbedInputs = inputs;
     perturbedInputs[limiterIqInLocation] += finiteDifferenceStep;
     std::array<double, 2> perturbedUel2cResidual{};
-    uel2c.residual(perturbedInputs, uel2cResidualData,
-                   perturbedUel2cResidual.data(), cDaeSolverMode);
+    uel2c.residual(perturbedInputs,
+                   uel2cResidualData,
+                   perturbedUel2cResidual.data(),
+                   cDaeSolverMode);
     EXPECT_NEAR((perturbedUel2cResidual[0] - uel2cResidual[0]) / finiteDifferenceStep,
-                uel2cJacobian.at(0, 12), 1e-6);
+                uel2cJacobian.at(0, 12),
+                1e-6);
 
     limiters::ExcitationLimiterUEL2C cappedUel2c;
     for (std::size_t point = 0; point < curveP.size(); ++point) {
@@ -475,8 +483,7 @@ TEST(ExcitationLimiterTests, AdditionalWeccLimiterProfilesRegisterAndProvideCons
     EXPECT_DOUBLE_EQ(derivatives[1], 0.0);
     EXPECT_NEAR(derivatives[2], -0.44, 1e-12);
     MatrixDataSparse<double> oel3cJacobian;
-    oel3c.jacobianElements(inputs, oel3cState, oel3cJacobian,
-                           inputLocs, cDaeSolverMode);
+    oel3c.jacobianElements(inputs, oel3cState, oel3cJacobian, inputLocs, cDaeSolverMode);
     EXPECT_NEAR(oel3cJacobian.at(0, 10), 1.2, 1e-12);
     EXPECT_NEAR(oel3cJacobian.at(2, 10), -2.4, 1e-12);
     std::array<double, 3> oel3cResidual{};
@@ -486,10 +493,13 @@ TEST(ExcitationLimiterTests, AdditionalWeccLimiterProfilesRegisterAndProvideCons
     perturbedInputs = inputs;
     perturbedInputs[limiterFieldCurrentInLocation] += finiteDifferenceStep;
     std::array<double, 3> perturbedOel3cResidual{};
-    oel3c.residual(perturbedInputs, oel3cResidualData,
-                   perturbedOel3cResidual.data(), cDaeSolverMode);
+    oel3c.residual(perturbedInputs,
+                   oel3cResidualData,
+                   perturbedOel3cResidual.data(),
+                   cDaeSolverMode);
     EXPECT_NEAR((perturbedOel3cResidual[0] - oel3cResidual[0]) / finiteDifferenceStep,
-                oel3cJacobian.at(0, 10), 1e-6);
+                oel3cJacobian.at(0, 10),
+                1e-6);
     for (int step = 1; step <= 100; ++step) {
         oel3c.timestep(step * 0.1, inputs, cLocalSolverMode);
     }
@@ -505,8 +515,8 @@ TEST(ExcitationLimiterTests, AdditionalWeccLimiterProfilesRegisterAndProvideCons
     filteredState.stateSize = static_cast<count_t>(filteredStates.size());
     filteredState.cj = 0.0;
     MatrixDataSparse<double> filteredJacobian;
-    filteredOel3c.jacobianElements(inputs, filteredState, filteredJacobian,
-                                   inputLocs, cDaeSolverMode);
+    filteredOel3c.jacobianElements(
+        inputs, filteredState, filteredJacobian, inputLocs, cDaeSolverMode);
     EXPECT_NEAR(filteredJacobian.at(0, 1), 1.0 / 1.05, 1e-12);
     EXPECT_DOUBLE_EQ(filteredJacobian.at(1, 1), -50.0);
     EXPECT_DOUBLE_EQ(filteredJacobian.at(1, 10), 50.0);
@@ -578,7 +588,9 @@ TEST(ExcitationLimiterTests, Mnlex2SaturationClampsOutputAndKeepsResidualJacobia
     stateData.cj = 2.0;
     std::array<double, 3> residual{};
     limiter.residual(inputs, stateData, residual.data(), cDaeSolverMode);
-    for (double value : residual) { EXPECT_DOUBLE_EQ(value, 0.0); }
+    for (double value : residual) {
+        EXPECT_DOUBLE_EQ(value, 0.0);
+    }
 
     std::array<double, 3> derivative{};
     limiter.derivative(inputs, stateData, derivative.data(), cDaeSolverMode);
@@ -625,7 +637,9 @@ TEST(ExcitationLimiterTests, Mnlex2InactiveLowerLimitHasConsistentResidualAndJac
     stateData.cj = 2.0;
     std::array<double, 3> residual{};
     limiter.residual(inputs, stateData, residual.data(), cDaeSolverMode);
-    for (double value : residual) { EXPECT_DOUBLE_EQ(value, 0.0); }
+    for (double value : residual) {
+        EXPECT_DOUBLE_EQ(value, 0.0);
+    }
     std::array<double, 3> derivative{};
     limiter.derivative(inputs, stateData, derivative.data(), cDaeSolverMode);
     EXPECT_DOUBLE_EQ(derivative[1], 0.0);
@@ -655,33 +669,36 @@ TEST(DynamicGeneratorModelTests, ConcreteLimitersAttachToExistingRoutes)
     ASSERT_NO_THROW(host.dynInitializeA(0.0, 0));
     const auto& bindings = host.exciterRoutes().bindings();
     const auto sourceFor = [&bindings](index_t input) {
-        const auto found = std::find_if(bindings.begin(), bindings.end(),
-                                        [input](const auto& route) {
-                                            return route.inputIndex == input;
-                                        });
+        const auto found =
+            std::find_if(bindings.begin(), bindings.end(), [input](const auto& route) {
+                return route.inputIndex == input;
+            });
         return found == bindings.end() ? std::string{} : found->sourceName;
     };
     EXPECT_EQ(sourceFor(exciterVuelInLocation), "circle_uel");
     EXPECT_EQ(sourceFor(exciterVoelInLocation), "reactive_oel");
 
-    const auto verifyRoute = [](ExcitationLimiter* limiter, index_t exciterInput,
-                                const std::string& limiterName) {
-        InspectableDynamicGenerator candidate(DynamicGenerator::DynModel::SIMPLE);
-        candidate.add(new exciters::ExciterSCRX());
-        candidate.add(limiter);
-        EXPECT_NO_THROW(candidate.dynInitializeA(0.0, 0));
-        const auto& limiterRoutes = candidate.exciterRoutes().bindings();
-        const auto route = std::find_if(limiterRoutes.begin(), limiterRoutes.end(),
-                                        [exciterInput](const auto& binding) {
-                                            return binding.inputIndex == exciterInput;
-                                        });
-        ASSERT_NE(route, limiterRoutes.end());
-        EXPECT_EQ(route->sourceName, limiterName);
-    };
+    const auto verifyRoute =
+        [](ExcitationLimiter* limiter, index_t exciterInput, const std::string& limiterName) {
+            InspectableDynamicGenerator candidate(DynamicGenerator::DynModel::SIMPLE);
+            candidate.add(new exciters::ExciterSCRX());
+            candidate.add(limiter);
+            EXPECT_NO_THROW(candidate.dynInitializeA(0.0, 0));
+            const auto& limiterRoutes = candidate.exciterRoutes().bindings();
+            const auto route = std::find_if(limiterRoutes.begin(),
+                                            limiterRoutes.end(),
+                                            [exciterInput](const auto& binding) {
+                                                return binding.inputIndex == exciterInput;
+                                            });
+            ASSERT_NE(route, limiterRoutes.end());
+            EXPECT_EQ(route->sourceName, limiterName);
+        };
     verifyRoute(new limiters::ExcitationLimiterUEL1("circular_uel1"),
-                exciterVuelInLocation, "circular_uel1");
+                exciterVuelInLocation,
+                "circular_uel1");
     verifyRoute(new limiters::ExcitationLimiterOEL3C("field_oel3c"),
-                exciterVoelInLocation, "field_oel3c");
+                exciterVoelInLocation,
+                "field_oel3c");
 
     auto* curveUel = new limiters::ExcitationLimiterUEL2C("curve_uel2c");
     for (std::size_t point = 0; point < 2; ++point) {

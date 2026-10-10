@@ -6,8 +6,8 @@
 
 #include "DynamicGenerator.h"
 
-#include "../GridBus.h"
 #include "../ExcitationLimiter.h"
+#include "../GridBus.h"
 #include "../Source.h"
 #include "../Stabilizer.h"
 #include "../VoltageCompensator.h"
@@ -278,21 +278,19 @@ void DynamicGenerator::compileSignalRoutes()
         (uel != nullptr && uel->role() != ExcitationLimiter::Role::UNDER)) {
         throw InvalidParameterValue("excitation limiter role changed after attachment");
     }
-    if ((oel != nullptr && (ext == nullptr ||
-         !ext->supportsLimiterSignal(ExciterLimiterSignal::OVER))) ||
-        (uel != nullptr && (ext == nullptr ||
-         !ext->supportsLimiterSignal(ExciterLimiterSignal::UNDER)))) {
+    if ((oel != nullptr &&
+         (ext == nullptr || !ext->supportsLimiterSignal(ExciterLimiterSignal::OVER))) ||
+        (uel != nullptr &&
+         (ext == nullptr || !ext->supportsLimiterSignal(ExciterLimiterSignal::UNDER)))) {
         throw InvalidParameterValue("exciter does not support the attached OEL/UEL action");
     }
     signalFrame.values[stabilizerOutput] = 0.0;
     signalFrame.values[overExcitationAction] = 0.0;
     signalFrame.values[underExcitationAction] = 0.0;
-    auto bind = [this](SubModelLocations model,
-                       index_t input,
-                       index_t source,
-                       std::string sourceName) {
-        signalRoutes[model].addInput(input, source, std::move(sourceName));
-    };
+    auto bind =
+        [this](SubModelLocations model, index_t input, index_t source, std::string sourceName) {
+            signalRoutes[model].addInput(input, source, std::move(sourceName));
+        };
 
     bind(GEN_MODEL_LOC, VOLTAGE_IN_LOCATION, terminalVoltage, "terminal voltage");
     bind(GEN_MODEL_LOC, ANGLE_IN_LOCATION, terminalAngle, "terminal angle");
@@ -322,9 +320,13 @@ void DynamicGenerator::compileSignalRoutes()
          exciterVssInLocation,
          stabilizerOutput,
          (boundStabilizer != nullptr) ? boundStabilizer->getName() : "neutral stabilizer");
-    bind(EXCITER_LOC, exciterVuelInLocation, underExcitationAction,
+    bind(EXCITER_LOC,
+         exciterVuelInLocation,
+         underExcitationAction,
          (uel != nullptr) ? uel->getName() : "neutral UEL");
-    bind(EXCITER_LOC, exciterVoelInLocation, overExcitationAction,
+    bind(EXCITER_LOC,
+         exciterVoelInLocation,
+         overExcitationAction,
          (oel != nullptr) ? oel->getName() : "neutral OEL");
 
     bind(VOLTAGE_COMPENSATOR_LOC,
@@ -342,17 +344,26 @@ void DynamicGenerator::compileSignalRoutes()
     }
     bind(ISOC_CONTROL_LOC, 0, isochronousFrequency, "isochronous frequency error");
     for (auto model : {OEL_LOC, UEL_LOC}) {
-        bind(model, limiterFieldCurrentInLocation,
+        bind(model,
+             limiterFieldCurrentInLocation,
              machineSignalBase + static_cast<index_t>(MachineControllerSignal::XADIFD),
              "machine field current");
-        bind(model, limiterIdInLocation,
-             machineSignalBase + static_cast<index_t>(MachineControllerSignal::ID), "machine Id");
-        bind(model, limiterIqInLocation,
-             machineSignalBase + static_cast<index_t>(MachineControllerSignal::IQ), "machine Iq");
-        bind(model, limiterVdInLocation,
-             machineSignalBase + static_cast<index_t>(MachineControllerSignal::VD), "machine Vd");
-        bind(model, limiterVqInLocation,
-             machineSignalBase + static_cast<index_t>(MachineControllerSignal::VQ), "machine Vq");
+        bind(model,
+             limiterIdInLocation,
+             machineSignalBase + static_cast<index_t>(MachineControllerSignal::ID),
+             "machine Id");
+        bind(model,
+             limiterIqInLocation,
+             machineSignalBase + static_cast<index_t>(MachineControllerSignal::IQ),
+             "machine Iq");
+        bind(model,
+             limiterVdInLocation,
+             machineSignalBase + static_cast<index_t>(MachineControllerSignal::VD),
+             "machine Vd");
+        bind(model,
+             limiterVqInLocation,
+             machineSignalBase + static_cast<index_t>(MachineControllerSignal::VQ),
+             "machine Vq");
     }
     signalRoutesReady = true;
 }
@@ -364,8 +375,8 @@ void DynamicGenerator::writeModelInputs(SubModelLocations model,
     if (!signalRoutesReady) {
         throw InvalidParameterValue("dynamic generator signal routes require initialization");
     }
-    signalRoutes[model].writeValues(
-        {signalFrame.values, nullptr, stateDataValue, sMode}, subInputs.inputs[model]);
+    signalRoutes[model].writeValues({signalFrame.values, nullptr, stateDataValue, sMode},
+                                    subInputs.inputs[model]);
 }
 
 // initial conditions of dynamic states
@@ -508,8 +519,8 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
         // The machine, exciter, governor, and PSS above require their own
         // controller input contracts.  Do not initialize them again through
         // the generic empty-input path.
-        if ((sub->locIndex <= PSS_LOC) || (sub == voltageCompensator) ||
-            (sub == oel) || (sub == uel)) {
+        if ((sub->locIndex <= PSS_LOC) || (sub == voltageCompensator) || (sub == oel) ||
+            (sub == uel)) {
             continue;
         }
         if (sub->isEnabled()) {
@@ -857,10 +868,8 @@ void DynamicGenerator::timestep(CoreTime time, const IOdata& inputs, const Solve
         const double scale = machineBasePower / systemBasePower;
         signalFrame.values[terminalVoltage] = inputs[VOLTAGE_IN_LOCATION];
         signalFrame.values[terminalAngle] = inputs[ANGLE_IN_LOCATION];
-        signalFrame.values[controllerOmega] =
-            genModel->getFreq(emptyStateData, cLocalSolverMode);
-        signalFrame.values[isochronousFrequency] =
-            signalFrame.values[controllerOmega] - 1.0;
+        signalFrame.values[controllerOmega] = genModel->getFreq(emptyStateData, cLocalSolverMode);
+        signalFrame.values[isochronousFrequency] = signalFrame.values[controllerOmega] - 1.0;
         signalFrame.values[activePowerCommand] = Pset / scale;
         signalFrame.values[mechanicalPower] = m_Pmech;
         signalFrame.values[fieldVoltage] = m_Eft;
@@ -903,7 +912,8 @@ void DynamicGenerator::timestep(CoreTime time, const IOdata& inputs, const Solve
             if (limiter != nullptr && limiter->isEnabled()) {
                 writeModelInputs(model, emptyStateData, sMode);
                 limiter->timestep(time, subInputs.inputs[model], sMode);
-                signalFrame.values[(model == OEL_LOC) ? overExcitationAction : underExcitationAction] =
+                signalFrame
+                    .values[(model == OEL_LOC) ? overExcitationAction : underExcitationAction] =
                     limiter->getOutput();
             }
         }
@@ -932,9 +942,8 @@ void DynamicGenerator::timestep(CoreTime time, const IOdata& inputs, const Solve
         signalFrame.values[fieldVoltage] = m_Eft;
         writeModelInputs(GEN_MODEL_LOC, emptyStateData, sMode);
         genModel->timestep(time, subInputs.inputs[GEN_MODEL_LOC], sMode);
-        auto vals = genModel->getOutputs(subInputs.inputs[GEN_MODEL_LOC],
-                                        emptyStateData,
-                                        cLocalSolverMode);
+        auto vals =
+            genModel->getOutputs(subInputs.inputs[GEN_MODEL_LOC], emptyStateData, cLocalSolverMode);
         P = vals[POUT_LOCATION] * scale;
         Q = vals[QOUT_LOCATION] * scale;
     }
@@ -1052,7 +1061,8 @@ void DynamicGenerator::set(std::string_view param, double val, unit unitType)
     } else if ((param == "mechanical_power_output") || (param == "mechanicalpoweroutput") ||
                (param == "pmech_output") || (param == "pmechoutput")) {
         if (signalRoutesReady) {
-            throw InvalidParameterValue("dynamic generator structure requires a full dynamic reset");
+            throw InvalidParameterValue(
+                "dynamic generator structure requires a full dynamic reset");
         }
         const auto outputIndex = static_cast<index_t>(val);
         if ((val < 0.0) || (static_cast<double>(outputIndex) != val)) {
@@ -1313,12 +1323,11 @@ void DynamicGenerator::jacobianElements(const IOdata& inputs,
             const auto& routedLocations = routeInputLocations[sub->locIndex];
             if (routedLocations.needsTranslation()) {
                 MatrixDataCustomWriteOnly<double> translatedMatrix;
-                translatedMatrix.setFunction(
-                    [&matrixDataValue, &routedLocations](index_t row,
-                                                         index_t column,
-                                                         double value) {
-                        routedLocations.assign(matrixDataValue, row, column, value);
-                    });
+                translatedMatrix.setFunction([&matrixDataValue, &routedLocations](index_t row,
+                                                                                  index_t column,
+                                                                                  double value) {
+                    routedLocations.assign(matrixDataValue, row, column, value);
+                });
                 sub->jacobianElements(subInputs.inputs[sub->locIndex],
                                       stateDataValue,
                                       translatedMatrix,
@@ -1526,8 +1535,7 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
 
     const double scale = systemBasePower / machineBasePower;
     activePowerCommandUnclamped = pSetControlUpdate(inputs, stateDataValue, sMode);
-    const double pcontrol =
-        gmlc::utilities::valLimit(activePowerCommandUnclamped, Pmin, Pmax);
+    const double pcontrol = gmlc::utilities::valLimit(activePowerCommandUnclamped, Pmin, Pmax);
     signalFrame.values[activePowerCommand] = pcontrol * scale;
     // The governor's mechanical output is evaluated before the new machine
     // electrical-power snapshot, matching the existing feedback order.
@@ -1565,8 +1573,7 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
     }
     signalFrame.values[mechanicalPower] = pmech;
     signalFrame.values[voltageSetpoint] = vSetControlUpdate(inputs, stateDataValue, sMode);
-    signalFrame.values[fieldVoltage] =
-        subInputs.inputs[GEN_MODEL_LOC][genModelEftInLocation];
+    signalFrame.values[fieldVoltage] = subInputs.inputs[GEN_MODEL_LOC][genModelEftInLocation];
     writeModelInputs(GEN_MODEL_LOC, stateDataValue, sMode);
     const auto machineSignals =
         genModel->getMachineControllerSignals(subInputs.inputs[GEN_MODEL_LOC],
@@ -1696,8 +1703,7 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
             }
             sourceLocations[mechanicalPower] = location;
         } else {
-            signalFrame.derivatives[mechanicalPower] =
-                signalFrame.derivatives[activePowerCommand];
+            signalFrame.derivatives[mechanicalPower] = signalFrame.derivatives[activePowerCommand];
         }
     }
 
@@ -1735,14 +1741,9 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
     }
 
     const ControlSignalContext context{
-        signalFrame.values,
-        &sourceLocations,
-        stateDataValue,
-        sMode,
-        &signalFrame.derivatives};
+        signalFrame.values, &sourceLocations, stateDataValue, sMode, &signalFrame.derivatives};
     signalRoutes[GEN_MODEL_LOC].writeInputLocations(context, routeInputLocations[GEN_MODEL_LOC]);
-    subInputLocs.inputLocs[GEN_MODEL_LOC] =
-        routeInputLocations[GEN_MODEL_LOC].locations;
+    subInputLocs.inputLocs[GEN_MODEL_LOC] = routeInputLocations[GEN_MODEL_LOC].locations;
     subInputLocs.genModelInputLocsInternal = subInputLocs.inputLocs[GEN_MODEL_LOC];
     subInputLocs.genModelInputLocsInternal[VOLTAGE_IN_LOCATION] = kNullLocation;
     subInputLocs.genModelInputLocsInternal[ANGLE_IN_LOCATION] = kNullLocation;
@@ -1756,8 +1757,7 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
     }
 
     const bool machineSignalsUsed =
-        ((ext != nullptr) && ext->isEnabled() &&
-         (ext->numInputs() > exciterMachineSignalBase)) ||
+        ((ext != nullptr) && ext->isEnabled() && (ext->numInputs() > exciterMachineSignalBase)) ||
         ((gov != nullptr) && gov->isEnabled() &&
          (gov->numInputs() > govElectricalPowerInLocation)) ||
         ((pss != nullptr) && pss->isEnabled()) ||
@@ -1765,27 +1765,33 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
         ((oel != nullptr) && oel->isEnabled()) || ((uel != nullptr) && uel->isEnabled());
     if (machineSignalsUsed) {
         const auto machineDerivatives =
-            genModel->getMachineControllerSignalDerivatives(
-                subInputs.inputs[GEN_MODEL_LOC],
-                stateDataValue,
-                subInputLocs.inputLocs[GEN_MODEL_LOC],
-                sMode);
+            genModel->getMachineControllerSignalDerivatives(subInputs.inputs[GEN_MODEL_LOC],
+                                                            stateDataValue,
+                                                            subInputLocs.inputLocs[GEN_MODEL_LOC],
+                                                            sMode);
         for (index_t signalIndex = 0; signalIndex < machineControllerSignalCount; ++signalIndex) {
             auto& terms = signalFrame.derivatives[machineSignalBase + signalIndex];
             for (const auto& derivative : machineDerivatives[signalIndex]) {
-                routeInputLocations[GEN_MODEL_LOC].appendExpanded(
-                    derivative.location, derivative.value, terms);
+                routeInputLocations[GEN_MODEL_LOC].appendExpanded(derivative.location,
+                                                                  derivative.value,
+                                                                  terms);
             }
         }
     }
     if (!isDifferentialOnly(sMode)) {
         signalFrame.derivatives[governorElectricalPower] =
-            signalFrame.derivatives[machineSignalBase +
-                                    static_cast<index_t>(MachineControllerSignal::ELECTRICAL_POWER)];
+            signalFrame
+                .derivatives[machineSignalBase +
+                             static_cast<index_t>(MachineControllerSignal::ELECTRICAL_POWER)];
     }
 
-    for (auto model : {EXCITER_LOC, GOVERNOR_LOC, PSS_LOC,
-                       VOLTAGE_COMPENSATOR_LOC, ISOC_CONTROL_LOC, OEL_LOC, UEL_LOC}) {
+    for (auto model : {EXCITER_LOC,
+                       GOVERNOR_LOC,
+                       PSS_LOC,
+                       VOLTAGE_COMPENSATOR_LOC,
+                       ISOC_CONTROL_LOC,
+                       OEL_LOC,
+                       UEL_LOC}) {
         if ((model == EXCITER_LOC && (ext == nullptr || !ext->isEnabled())) ||
             (model == GOVERNOR_LOC && (gov == nullptr || !gov->isEnabled())) ||
             (model == PSS_LOC && (pss == nullptr || !pss->isEnabled())) ||

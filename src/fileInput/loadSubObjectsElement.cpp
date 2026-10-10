@@ -15,9 +15,10 @@
 #include <string>
 
 // A bunch of includes to load these kinds of objects
+#include "gmlc/utilities/stringOps.h"
 #include "griddyn/Block.h"
-#include "griddyn/Exciter.h"
 #include "griddyn/ExcitationLimiter.h"
+#include "griddyn/Exciter.h"
 #include "griddyn/GenModel.h"
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
@@ -31,7 +32,6 @@
 #include "griddyn/controllers/Scheduler.h"
 #include "griddyn/loads/ZipLoad.h"
 #include "griddyn/renewables/RenewableComponent.h"
-#include "gmlc/utilities/stringOps.h"
 
 namespace griddyn {
 namespace {
@@ -84,11 +84,13 @@ namespace {
             updateSearchObject<ExcitationLimiter>(currentElement, readerInf, parentObject);
         ExcitationLimiter* limiter = nullptr;
         if (searchObject != nullptr) {
-            limiter = locateObjectFromElement<ExcitationLimiter>(
-                currentElement, "excitationlimiter", readerInf, searchObject);
+            limiter = locateObjectFromElement<ExcitationLimiter>(currentElement,
+                                                                 "excitationlimiter",
+                                                                 readerInf,
+                                                                 searchObject);
         }
-        limiter = buildObject(
-            currentElement, limiter, "excitationlimiter", readerInf, searchObject);
+        limiter =
+            buildObject(currentElement, limiter, "excitationlimiter", readerInf, searchObject);
         if (limiter == nullptr) {
             readerInf.closeScope(scope);
             return nullptr;
@@ -101,11 +103,8 @@ namespace {
             limiter->set("role", role);
         }
         loadParentInfo(currentElement, limiter, readerInf, searchObject);
-        loadElementInformation(limiter,
-                               currentElement,
-                               "excitationlimiter",
-                               readerInf,
-                               emptyIgnoreList);
+        loadElementInformation(
+            limiter, currentElement, "excitationlimiter", readerInf, emptyIgnoreList);
         readerInf.closeScope(scope);
         return limiter;
     }

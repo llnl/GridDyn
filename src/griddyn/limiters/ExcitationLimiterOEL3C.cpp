@@ -13,7 +13,7 @@
 
 namespace griddyn::limiters {
 namespace {
-constexpr double signalTolerance = 1e-14;
+    constexpr double signalTolerance = 1e-14;
 }
 
 ExcitationLimiterOEL3C::ExcitationLimiterOEL3C(const std::string& objName):
@@ -49,7 +49,8 @@ void ExcitationLimiterOEL3C::set(std::string_view param, double val, units::unit
 {
     if (param == "oelinput" || param == "oel_input") {
         if (val != 0.0) {
-            throw InvalidParameterValue("OEL3C currently supports OELInput=0 (machine field current)");
+            throw InvalidParameterValue(
+                "OEL3C currently supports OELInput=0 (machine field current)");
         }
     } else if (param == "itfpu" || param == "itf_pu") {
         itfpu = val;
@@ -83,18 +84,42 @@ void ExcitationLimiterOEL3C::set(std::string_view param, double val, units::unit
 
 double ExcitationLimiterOEL3C::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "oelinput" || param == "oel_input") { return 0.0; }
-    if (param == "itfpu" || param == "itf_pu") { return itfpu; }
-    if (param == "kscale" || param == "k_scale") { return kscale; }
-    if (param == "tf") { return tf; }
-    if (param == "k1") { return static_cast<double>(k1); }
-    if (param == "koel" || param == "k_oel") { return koel; }
-    if (param == "toel" || param == "t_oel") { return toel; }
-    if (param == "kpoel" || param == "kp_oel") { return kpoel; }
-    if (param == "voelmax1" || param == "voel_max1") { return voelMax1; }
-    if (param == "voelmin1" || param == "voel_min1") { return voelMin1; }
-    if (param == "voelmax2" || param == "voel_max2") { return voelMax2; }
-    if (param == "voelmin2" || param == "voel_min2") { return voelMin2; }
+    if (param == "oelinput" || param == "oel_input") {
+        return 0.0;
+    }
+    if (param == "itfpu" || param == "itf_pu") {
+        return itfpu;
+    }
+    if (param == "kscale" || param == "k_scale") {
+        return kscale;
+    }
+    if (param == "tf") {
+        return tf;
+    }
+    if (param == "k1") {
+        return static_cast<double>(k1);
+    }
+    if (param == "koel" || param == "k_oel") {
+        return koel;
+    }
+    if (param == "toel" || param == "t_oel") {
+        return toel;
+    }
+    if (param == "kpoel" || param == "kp_oel") {
+        return kpoel;
+    }
+    if (param == "voelmax1" || param == "voel_max1") {
+        return voelMax1;
+    }
+    if (param == "voelmin1" || param == "voel_min1") {
+        return voelMin1;
+    }
+    if (param == "voelmax2" || param == "voel_max2") {
+        return voelMax2;
+    }
+    if (param == "voelmin2" || param == "voel_min2") {
+        return voelMin2;
+    }
     return ExcitationLimiter::get(param, unitType);
 }
 
@@ -102,11 +127,10 @@ void ExcitationLimiterOEL3C::dynObjectInitializeA(CoreTime time0, std::uint32_t 
 {
     if (!std::isfinite(itfpu) || !std::isfinite(kscale) || !std::isfinite(tf) ||
         !std::isfinite(koel) || !std::isfinite(toel) || !std::isfinite(kpoel) ||
-        !std::isfinite(voelMax1) || !std::isfinite(voelMin1) ||
-        !std::isfinite(voelMax2) || !std::isfinite(voelMin2) || itfpu <= 0.0 ||
-        kscale <= 0.0 || tf < 0.0 || koel <= 0.0 || toel <= 0.0 || kpoel < 0.0 ||
-        voelMin1 > voelMax1 || voelMin1 > 0.0 || voelMin2 > voelMax2 ||
-        voelMax2 > 0.0 || voelMin2 > 0.0) {
+        !std::isfinite(voelMax1) || !std::isfinite(voelMin1) || !std::isfinite(voelMax2) ||
+        !std::isfinite(voelMin2) || itfpu <= 0.0 || kscale <= 0.0 || tf < 0.0 || koel <= 0.0 ||
+        toel <= 0.0 || kpoel < 0.0 || voelMin1 > voelMax1 || voelMin1 > 0.0 ||
+        voelMin2 > voelMax2 || voelMax2 > 0.0 || voelMin2 > 0.0) {
         throw InvalidParameterValue("OEL3C parameters and signed VOEL limits");
     }
     offsets.local().local.algSize = 1;
@@ -125,8 +149,8 @@ double ExcitationLimiterOEL3C::fieldCurrent(const IOdata& inputs) const
     return inputs[limiterFieldCurrentInLocation];
 }
 
-ExcitationLimiterOEL3C::Evaluation
-    ExcitationLimiterOEL3C::evaluate(double scaledFieldCurrent, double integral) const
+ExcitationLimiterOEL3C::Evaluation ExcitationLimiterOEL3C::evaluate(double scaledFieldCurrent,
+                                                                    double integral) const
 {
     const double normalized = std::max(scaledFieldCurrent, 0.0) / itfpu;
     Evaluation result;
@@ -157,8 +181,8 @@ double ExcitationLimiterOEL3C::integralRate(double integral, double error) const
 }
 
 void ExcitationLimiterOEL3C::dynObjectInitializeB(const IOdata& inputs,
-                                                   const IOdata& /*desiredOutput*/,
-                                                   IOdata& fieldSet)
+                                                  const IOdata& /*desiredOutput*/,
+                                                  IOdata& fieldSet)
 {
     m_state[1] = kscale * fieldCurrent(inputs);
     m_state[2] = 0.0;
@@ -166,8 +190,10 @@ void ExcitationLimiterOEL3C::dynObjectInitializeB(const IOdata& inputs,
     fieldSet = {m_state[0]};
 }
 
-void ExcitationLimiterOEL3C::residual(const IOdata& inputs, const StateData& stateData,
-                                      double resid[], const SolverMode& sMode)
+void ExcitationLimiterOEL3C::residual(const IOdata& inputs,
+                                      const StateData& stateData,
+                                      double resid[],
+                                      const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, resid, sMode, this);
     const double measured = (tf > 0.0) ? loc.diffStateLoc[0] : kscale * fieldCurrent(inputs);
@@ -183,62 +209,72 @@ void ExcitationLimiterOEL3C::residual(const IOdata& inputs, const StateData& sta
     }
 }
 
-void ExcitationLimiterOEL3C::derivative(const IOdata& inputs, const StateData& stateData,
-                                        double deriv[], const SolverMode& sMode)
+void ExcitationLimiterOEL3C::derivative(const IOdata& inputs,
+                                        const StateData& stateData,
+                                        double deriv[],
+                                        const SolverMode& sMode)
 {
-    if (!hasDifferential(sMode)) { return; }
+    if (!hasDifferential(sMode)) {
+        return;
+    }
     const auto loc = offsets.getLocations(stateData, deriv, sMode, this);
     const double measured = (tf > 0.0) ? loc.diffStateLoc[0] : kscale * fieldCurrent(inputs);
     const auto result = evaluate(measured, loc.diffStateLoc[1]);
-    loc.destDiffLoc[0] = (tf > 0.0) ?
-        (kscale * fieldCurrent(inputs) - loc.diffStateLoc[0]) / tf : 0.0;
+    loc.destDiffLoc[0] =
+        (tf > 0.0) ? (kscale * fieldCurrent(inputs) - loc.diffStateLoc[0]) / tf : 0.0;
     loc.destDiffLoc[1] = integralRate(loc.diffStateLoc[1], result.error);
 }
 
 void ExcitationLimiterOEL3C::algebraicUpdate(const IOdata& inputs,
-                                              const StateData& stateData, double update[],
-                                              const SolverMode& sMode, double /*alpha*/)
+                                             const StateData& stateData,
+                                             double update[],
+                                             const SolverMode& sMode,
+                                             double /*alpha*/)
 {
-    if (!hasAlgebraic(sMode)) { return; }
+    if (!hasAlgebraic(sMode)) {
+        return;
+    }
     const auto loc = offsets.getLocations(stateData, update, sMode, this);
     const double measured = (tf > 0.0) ? loc.diffStateLoc[0] : kscale * fieldCurrent(inputs);
     loc.destLoc[0] = evaluate(measured, loc.diffStateLoc[1]).action;
 }
 
 void ExcitationLimiterOEL3C::jacobianElements(const IOdata& inputs,
-                                               const StateData& stateData,
-                                               MatrixData<double>& matrixData,
-                                               const IOlocs& inputLocs,
-                                               const SolverMode& sMode)
+                                              const StateData& stateData,
+                                              MatrixData<double>& matrixData,
+                                              const IOlocs& inputLocs,
+                                              const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
-    const auto result = evaluate(tf > 0.0 ? loc.diffStateLoc[0] :
-                                               kscale * fieldCurrent(inputs),
+    const auto result = evaluate(tf > 0.0 ? loc.diffStateLoc[0] : kscale * fieldCurrent(inputs),
                                  loc.diffStateLoc[1]);
-    const bool integrate = !((loc.diffStateLoc[1] <= voelMin1 &&
-                               -koel / toel * result.error < 0.0) ||
-                              (loc.diffStateLoc[1] >= voelMax1 &&
-                               -koel / toel * result.error > 0.0));
+    const bool integrate =
+        !((loc.diffStateLoc[1] <= voelMin1 && -koel / toel * result.error < 0.0) ||
+          (loc.diffStateLoc[1] >= voelMax1 && -koel / toel * result.error > 0.0));
     if (hasAlgebraic(sMode)) {
         matrixData.assign(loc.algOffset, loc.algOffset, -1.0);
         if (!isAlgebraicOnly(sMode)) {
             if (result.actionIntegralSlope != 0.0) {
-                matrixData.assign(loc.algOffset, loc.diffOffset + 1,
-                                  result.actionIntegralSlope);
+                matrixData.assign(loc.algOffset, loc.diffOffset + 1, result.actionIntegralSlope);
             }
             if (tf > 0.0 && result.actionErrorSlope * result.errorSlope != 0.0) {
-                matrixData.assign(loc.algOffset, loc.diffOffset,
+                matrixData.assign(loc.algOffset,
+                                  loc.diffOffset,
                                   result.actionErrorSlope * result.errorSlope);
             } else if (tf == 0.0 && result.actionErrorSlope * result.errorSlope != 0.0) {
-                matrixData.assignCheckCol(loc.algOffset, inputLocs[limiterFieldCurrentInLocation],
+                matrixData.assignCheckCol(loc.algOffset,
+                                          inputLocs[limiterFieldCurrentInLocation],
                                           result.actionErrorSlope * result.errorSlope * kscale);
             }
         }
     }
-    if (!hasDifferential(sMode)) { return; }
+    if (!hasDifferential(sMode)) {
+        return;
+    }
     matrixData.assign(loc.diffOffset, loc.diffOffset, (tf > 0.0 ? -1.0 / tf : 0.0) - stateData.cj);
     if (tf > 0.0 && inputLocs[limiterFieldCurrentInLocation] != kNullLocation) {
-        matrixData.assignCheckCol(loc.diffOffset, inputLocs[limiterFieldCurrentInLocation],
+        matrixData.assignCheckCol(loc.diffOffset,
+                                  inputLocs[limiterFieldCurrentInLocation],
                                   kscale / tf);
     }
     matrixData.assign(loc.diffOffset + 1, loc.diffOffset + 1, -stateData.cj);
@@ -254,7 +290,8 @@ void ExcitationLimiterOEL3C::jacobianElements(const IOdata& inputs,
     }
 }
 
-void ExcitationLimiterOEL3C::timestep(CoreTime time, const IOdata& inputs,
+void ExcitationLimiterOEL3C::timestep(CoreTime time,
+                                      const IOdata& inputs,
                                       const SolverMode& /*sMode*/)
 {
     const double step = time - prevTime;
@@ -265,8 +302,8 @@ void ExcitationLimiterOEL3C::timestep(CoreTime time, const IOdata& inputs,
         m_state[1] = field;
     }
     const auto result = evaluate(m_state[1], m_state[2]);
-    m_state[2] = std::clamp(m_state[2] + step * integralRate(m_state[2], result.error),
-                            voelMin1, voelMax1);
+    m_state[2] =
+        std::clamp(m_state[2] + step * integralRate(m_state[2], result.error), voelMin1, voelMax1);
     m_state[0] = evaluate(m_state[1], m_state[2]).action;
     prevTime = time;
 }

@@ -9,8 +9,8 @@
 #include "core/ObjectFactory.hpp"
 #include "fileInput/ReaderInfo.h"
 #include "fileInput/fileInput.h"
-#include "griddyn/GridArea.h"
 #include "griddyn/ControlSignalRouting.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/controllers/Scheduler.h"
 #include "griddyn/generators/DynamicGenerator.h"
@@ -537,8 +537,7 @@ TEST(ControlSignalRouting, HostFrameRoutesValuesAndSparseDerivatives)
 
     const IOdata values{3.0, 4.0};
     const IOlocs directLocations{10, kNullLocation};
-    const std::vector<std::vector<ControlSignalDerivative>> sparse{
-        {}, {{20, 0.5}, {21, -1.0}}};
+    const std::vector<std::vector<ControlSignalDerivative>> sparse{{}, {{20, 0.5}, {21, -1.0}}};
     const ControlSignalContext context{
         values, &directLocations, emptyStateData, cDaeSolverMode, &sparse};
     EXPECT_EQ(routing.values(context), (IOdata{7.0, 4.0}));

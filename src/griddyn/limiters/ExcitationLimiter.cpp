@@ -4,12 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "../ExcitationLimiter.h"
+
 #include "ExcitationLimiterMNLEX2.h"
 #include "ExcitationLimiterOEL3C.h"
 #include "ExcitationLimiterOEL4C.h"
 #include "ExcitationLimiterUEL1.h"
 #include "ExcitationLimiterUEL2C.h"
-
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
@@ -20,19 +20,20 @@
 
 namespace griddyn {
 namespace {
-static TypeFactory<ExcitationLimiter> gExcitationLimiterFactory(
-    "excitationlimiter", std::to_array<std::string_view>({"limiter"}));
-static ChildTypeFactory<limiters::ExcitationLimiterMNLEX2, ExcitationLimiter>
-    gMnlex2Factory("excitationlimiter", "mnlex2");
-static ChildTypeFactory<limiters::ExcitationLimiterOEL3C, ExcitationLimiter>
-    gOel3cFactory("excitationlimiter", "oel3c");
-static ChildTypeFactory<limiters::ExcitationLimiterOEL4C, ExcitationLimiter>
-    gOel4cFactory("excitationlimiter", "oel4c");
-static ChildTypeFactory<limiters::ExcitationLimiterUEL1, ExcitationLimiter>
-    gUel1Factory("excitationlimiter", "uel1");
-static ChildTypeFactory<limiters::ExcitationLimiterUEL2C, ExcitationLimiter>
-    gUel2cFactory("excitationlimiter", "uel2c");
-}
+    static TypeFactory<ExcitationLimiter>
+        gExcitationLimiterFactory("excitationlimiter",
+                                  std::to_array<std::string_view>({"limiter"}));
+    static ChildTypeFactory<limiters::ExcitationLimiterMNLEX2, ExcitationLimiter>
+        gMnlex2Factory("excitationlimiter", "mnlex2");
+    static ChildTypeFactory<limiters::ExcitationLimiterOEL3C, ExcitationLimiter>
+        gOel3cFactory("excitationlimiter", "oel3c");
+    static ChildTypeFactory<limiters::ExcitationLimiterOEL4C, ExcitationLimiter>
+        gOel4cFactory("excitationlimiter", "oel4c");
+    static ChildTypeFactory<limiters::ExcitationLimiterUEL1, ExcitationLimiter>
+        gUel1Factory("excitationlimiter", "uel1");
+    static ChildTypeFactory<limiters::ExcitationLimiterUEL2C, ExcitationLimiter>
+        gUel2cFactory("excitationlimiter", "uel2c");
+}  // namespace
 
 ExcitationLimiter::ExcitationLimiter(const std::string& objName): GridSubModel(objName)
 {
@@ -62,7 +63,8 @@ void ExcitationLimiter::setRole(Role role)
     }
     // DynamicGenerator assigns a role-specific slot when it attaches us.
     if (role != limiterRole && (roleInitialized || locIndex != kNullLocation)) {
-        throw InvalidParameterValue("set limiter role before attachment; replacement requires a full dynamic reset");
+        throw InvalidParameterValue(
+            "set limiter role before attachment; replacement requires a full dynamic reset");
     }
     limiterRole = role;
 }
@@ -138,8 +140,8 @@ ExcitationLimiter::Evaluation ExcitationLimiter::evaluate(const IOdata& inputs) 
         error = fieldCurrent - threshold;
         result.derivatives[limiterFieldCurrentInLocation] = gain;
     } else {
-        for (auto index : {limiterIdInLocation, limiterIqInLocation,
-                           limiterVdInLocation, limiterVqInLocation}) {
+        for (auto index :
+             {limiterIdInLocation, limiterIqInLocation, limiterVdInLocation, limiterVqInLocation}) {
             if (!std::isfinite(inputs[index]) || std::abs(inputs[index]) > 1e20) {
                 throw InvalidParameterValue("UEL requires compatible current and voltage signals");
             }
@@ -210,15 +212,14 @@ void ExcitationLimiter::jacobianElements(const IOdata& inputs,
     const auto evaluation = evaluate(inputs);
     for (index_t index = 0; index < excitationLimiterInputCount; ++index) {
         if (evaluation.derivatives[index] != 0.0) {
-            matrixData.assignCheckCol(loc.algOffset, inputLocs[index],
+            matrixData.assignCheckCol(loc.algOffset,
+                                      inputLocs[index],
                                       evaluation.derivatives[index]);
         }
     }
 }
 
-void ExcitationLimiter::timestep(CoreTime time,
-                                 const IOdata& inputs,
-                                 const SolverMode& /*sMode*/)
+void ExcitationLimiter::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     m_state[0] = evaluate(inputs).action;
     prevTime = time;

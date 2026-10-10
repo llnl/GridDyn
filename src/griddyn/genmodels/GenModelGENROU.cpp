@@ -411,7 +411,7 @@ IOdata GenModelGENROU::getMachineControllerSignals(const IOdata& inputs,
 }
 
 MachineSignalDerivativeData
-GenModelGENROU::getMachineControllerSignalDerivatives(const IOdata& inputs,
+    GenModelGENROU::getMachineControllerSignalDerivatives(const IOdata& inputs,
                                                           const StateData& stateDataValue,
                                                           const IOlocs& inputLocs,
                                                           const SolverMode& sMode) const

@@ -995,15 +995,13 @@ void RenewableGenerator::ioPartialDerivatives(const IOdata& inputs,
         return;
     }
     MatrixDataScale<double> scaled(matrixDataValue, -machineBasePower / systemBasePower);
-    const auto locations =
-        modelInputMap(electricalModel, inputs, stateDataValue, inputLocs, sMode);
+    const auto locations = modelInputMap(electricalModel, inputs, stateDataValue, inputLocs, sMode);
     if (locations.needsTranslation()) {
         MatrixDataCustomWriteOnly<double> translatedMatrix;
-        translatedMatrix.setFunction([&scaled, &locations](index_t row,
-                                                            index_t column,
-                                                            double value) {
-            locations.assign(scaled, row, column, value);
-        });
+        translatedMatrix.setFunction(
+            [&scaled, &locations](index_t row, index_t column, double value) {
+                locations.assign(scaled, row, column, value);
+            });
         electricalModel->ioPartialDerivatives(
             modelInputs(electricalModel, inputs, stateDataValue, sMode),
             stateDataValue,

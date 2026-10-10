@@ -16,21 +16,29 @@ class ExcitationLimiterUEL1 final: public ExcitationLimiter {
     using ExcitationLimiter::set;
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     bool supportsRole(Role role) const override { return role == Role::UNDER; }
-    void set(std::string_view param, double val,
-             units::unit unitType = units::defunit) override;
-    double get(std::string_view param,
-               units::unit unitType = units::defunit) const override;
+    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
-    void dynObjectInitializeB(const IOdata& inputs, const IOdata& desiredOutput,
+    void dynObjectInitializeB(const IOdata& inputs,
+                              const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
-    void residual(const IOdata& inputs, const StateData& stateData, double resid[],
+    void residual(const IOdata& inputs,
+                  const StateData& stateData,
+                  double resid[],
                   const SolverMode& sMode) override;
-    void derivative(const IOdata& inputs, const StateData& stateData, double deriv[],
+    void derivative(const IOdata& inputs,
+                    const StateData& stateData,
+                    double deriv[],
                     const SolverMode& sMode) override;
-    void algebraicUpdate(const IOdata& inputs, const StateData& stateData,
-                         double update[], const SolverMode& sMode, double alpha) override;
-    void jacobianElements(const IOdata& inputs, const StateData& stateData,
-                          MatrixData<double>& matrixData, const IOlocs& inputLocs,
+    void algebraicUpdate(const IOdata& inputs,
+                         const StateData& stateData,
+                         double update[],
+                         const SolverMode& sMode,
+                         double alpha) override;
+    void jacobianElements(const IOdata& inputs,
+                          const StateData& stateData,
+                          MatrixData<double>& matrixData,
+                          const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     stringVec localStateNames() const override;
@@ -48,8 +56,7 @@ class ExcitationLimiterUEL1 final: public ExcitationLimiter {
         double secondLagGain = 0.0;
     };
     Characteristic characteristic(const IOdata& inputs) const;
-    Control control(const IOdata& inputs, double integral, double lag1,
-                    double lag2) const;
+    Control control(const IOdata& inputs, double integral, double lag1, double lag2) const;
     double integralRate(double integral, double error) const;
 
     double kur = 1.95;

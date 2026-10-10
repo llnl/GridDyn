@@ -7,10 +7,8 @@
 #include "../gtestHelper.h"
 #include "core/CoreExceptions.h"
 #include "fileInput/fileInput.h"
-#include "griddyn/Generator.h"
 #include "griddyn/ExcitationLimiter.h"
-#include "griddyn/limiters/ExcitationLimiterMNLEX2.h"
-#include "griddyn/limiters/ExcitationLimiterOEL4C.h"
+#include "griddyn/Generator.h"
 #include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/GridComponentHelperClasses.h"
@@ -52,6 +50,8 @@
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorReheat.h"
 #include "griddyn/governors/GovernorTgov1.h"
+#include "griddyn/limiters/ExcitationLimiterMNLEX2.h"
+#include "griddyn/limiters/ExcitationLimiterOEL4C.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include "griddyn/loads/CompositeLoad.h"
@@ -1289,7 +1289,9 @@ TEST(DynamicComparisonTests, Mnlex2ActivatesAndRemainsBoundedAfterReactiveLimitS
     EXPECT_TRUE(std::isfinite(uel->getOutput()));
     const auto finalState = simulation->getState(griddyn::cDaeSolverMode);
     ASSERT_FALSE(finalState.empty());
-    for (double stateValue : finalState) { EXPECT_TRUE(std::isfinite(stateValue)); }
+    for (double stateValue : finalState) {
+        EXPECT_TRUE(std::isfinite(stateValue));
+    }
 }
 
 TEST(DynamicComparisonTests, Oel4cActivatesAfterReactiveLimitDelay)
@@ -1330,7 +1332,9 @@ TEST(DynamicComparisonTests, Oel4cActivatesAfterReactiveLimitDelay)
     EXPECT_TRUE(std::isfinite(oel->getOutput()));
     const auto finalState = simulation->getState(griddyn::cDaeSolverMode);
     ASSERT_FALSE(finalState.empty());
-    for (double stateValue : finalState) { EXPECT_TRUE(std::isfinite(stateValue)); }
+    for (double stateValue : finalState) {
+        EXPECT_TRUE(std::isfinite(stateValue));
+    }
 }
 
 TEST(DyrReaderComparisonTests, GensalLimiterSignalsHavePartitionedJacobians)

@@ -14,7 +14,7 @@
 
 namespace griddyn::limiters {
 namespace {
-constexpr double inputTolerance = 1e-14;
+    constexpr double inputTolerance = 1e-14;
 }
 
 ExcitationLimiterUEL2C::ExcitationLimiterUEL2C(const std::string& objName):
@@ -101,33 +101,56 @@ void ExcitationLimiterUEL2C::set(std::string_view param, double val, units::unit
 
 double ExcitationLimiterUEL2C::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "k1") { return static_cast<double>(k1); }
-    if (param == "k2") { return static_cast<double>(k2); }
-    if (param == "kui" || param == "ku_i") { return kuI; }
-    if (param == "kul" || param == "ku_l") { return kuL; }
-    if (param == "vuimax" || param == "vui_max") { return vuiMax; }
-    if (param == "vuimin" || param == "vui_min") { return vuiMin; }
-    if (param == "vulmax1" || param == "vuelmax" || param == "vul_max1") { return vulMax1; }
-    if (param == "vulmin1" || param == "vuelmin" || param == "vul_min1") { return vulMin1; }
-    if (param == "vulmax2" || param == "vul_max2") { return vulMax2; }
-    if (param == "vulmin2" || param == "vul_min2") { return vulMin2; }
+    if (param == "k1") {
+        return static_cast<double>(k1);
+    }
+    if (param == "k2") {
+        return static_cast<double>(k2);
+    }
+    if (param == "kui" || param == "ku_i") {
+        return kuI;
+    }
+    if (param == "kul" || param == "ku_l") {
+        return kuL;
+    }
+    if (param == "vuimax" || param == "vui_max") {
+        return vuiMax;
+    }
+    if (param == "vuimin" || param == "vui_min") {
+        return vuiMin;
+    }
+    if (param == "vulmax1" || param == "vuelmax" || param == "vul_max1") {
+        return vulMax1;
+    }
+    if (param == "vulmin1" || param == "vuelmin" || param == "vul_min1") {
+        return vulMin1;
+    }
+    if (param == "vulmax2" || param == "vul_max2") {
+        return vulMax2;
+    }
+    if (param == "vulmin2" || param == "vul_min2") {
+        return vulMin2;
+    }
     for (std::size_t point = 0; point < pPoints.size(); ++point) {
         const auto index = std::to_string(point);
-        if (param == ("p" + index)) { return pPoints[point]; }
-        if (param == ("q" + index)) { return qPoints[point]; }
+        if (param == ("p" + index)) {
+            return pPoints[point];
+        }
+        if (param == ("q" + index)) {
+            return qPoints[point];
+        }
     }
     return ExcitationLimiter::get(param, unitType);
 }
 
-void ExcitationLimiterUEL2C::dynObjectInitializeA(CoreTime time0,
-                                                  std::uint32_t /*flags*/)
+void ExcitationLimiterUEL2C::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
-    if ((k1 != 0 && k1 != 1 && k1 != 2) || (k2 != 0 && k2 != 1 && k2 != 2) ||
-        !std::isfinite(kuI) || !std::isfinite(kuL) || !std::isfinite(vuiMax) ||
-        !std::isfinite(vuiMin) || !std::isfinite(vulMax1) || !std::isfinite(vulMin1) ||
-        !std::isfinite(vulMax2) || !std::isfinite(vulMin2) || kuI < 0.0 || kuL < 0.0 ||
-        vuiMin > vuiMax || vulMin1 < 0.0 || vulMin1 > vulMax1 ||
-        vulMin2 < 0.0 || vulMin2 > vulMax2 || pointCount < 2 || pointCount > pPoints.size()) {
+    if ((k1 != 0 && k1 != 1 && k1 != 2) || (k2 != 0 && k2 != 1 && k2 != 2) || !std::isfinite(kuI) ||
+        !std::isfinite(kuL) || !std::isfinite(vuiMax) || !std::isfinite(vuiMin) ||
+        !std::isfinite(vulMax1) || !std::isfinite(vulMin1) || !std::isfinite(vulMax2) ||
+        !std::isfinite(vulMin2) || kuI < 0.0 || kuL < 0.0 || vuiMin > vuiMax || vulMin1 < 0.0 ||
+        vulMin1 > vulMax1 || vulMin2 < 0.0 || vulMin2 > vulMax2 || pointCount < 2 ||
+        pointCount > pPoints.size()) {
         throw InvalidParameterValue("UEL2C fixed-profile parameters or curve");
     }
     for (std::size_t point = 0; point < pointCount; ++point) {
@@ -142,29 +165,32 @@ void ExcitationLimiterUEL2C::dynObjectInitializeA(CoreTime time0,
     prevTime = time0;
 }
 
-ExcitationLimiterUEL2C::CurveEvaluation
-    ExcitationLimiterUEL2C::curve(double normalizedP) const
+ExcitationLimiterUEL2C::CurveEvaluation ExcitationLimiterUEL2C::curve(double normalizedP) const
 {
-    if (normalizedP <= pPoints[0]) { return {qPoints[0], 0.0}; }
-    if (normalizedP >= pPoints[pointCount - 1]) { return {qPoints[pointCount - 1], 0.0}; }
+    if (normalizedP <= pPoints[0]) {
+        return {qPoints[0], 0.0};
+    }
+    if (normalizedP >= pPoints[pointCount - 1]) {
+        return {qPoints[pointCount - 1], 0.0};
+    }
     for (std::size_t point = 1; point < pointCount; ++point) {
         if (normalizedP <= pPoints[point]) {
-            const double slope = (qPoints[point] - qPoints[point - 1]) /
-                (pPoints[point] - pPoints[point - 1]);
+            const double slope =
+                (qPoints[point] - qPoints[point - 1]) / (pPoints[point] - pPoints[point - 1]);
             return {qPoints[point - 1] + slope * (normalizedP - pPoints[point - 1]), slope};
         }
     }
     return {qPoints[pointCount - 1], 0.0};
 }
 
-ExcitationLimiterUEL2C::Evaluation
-    ExcitationLimiterUEL2C::evaluate(const IOdata& inputs, double integral) const
+ExcitationLimiterUEL2C::Evaluation ExcitationLimiterUEL2C::evaluate(const IOdata& inputs,
+                                                                    double integral) const
 {
     if (inputs.size() < excitationLimiterInputCount) {
         throw InvalidParameterValue("UEL2C input vector");
     }
-    for (auto index : {limiterIdInLocation, limiterIqInLocation,
-                       limiterVdInLocation, limiterVqInLocation}) {
+    for (auto index :
+         {limiterIdInLocation, limiterIqInLocation, limiterVdInLocation, limiterVqInLocation}) {
         if (!std::isfinite(inputs[index]) || std::abs(inputs[index]) > 1e20) {
             throw InvalidParameterValue("UEL2C requires compatible machine P, Q, and voltage");
         }
@@ -187,16 +213,14 @@ ExcitationLimiterUEL2C::Evaluation
     Evaluation result;
     result.error = qReference - q;
 
-    const std::array<double, excitationLimiterInputCount> dp{
-        0.0, vd, vq, idCurrent, iq};
-    const std::array<double, excitationLimiterInputCount> dq{
-        0.0, vq, -vd, -iq, idCurrent};
+    const std::array<double, excitationLimiterInputCount> dp{0.0, vd, vq, idCurrent, iq};
+    const std::array<double, excitationLimiterInputCount> dq{0.0, vq, -vd, -iq, idCurrent};
     const std::array<double, excitationLimiterInputCount> dv{
         0.0, 0.0, 0.0, vd / voltage, vq / voltage};
-    const double f1Derivative = (k1 == 0) ? 0.0 :
-        static_cast<double>(k1) * std::pow(voltage, k1 - 1);
-    const double f2Derivative = (k2 == 0) ? 0.0 :
-        static_cast<double>(k2) * std::pow(voltage, k2 - 1);
+    const double f1Derivative =
+        (k1 == 0) ? 0.0 : static_cast<double>(k1) * std::pow(voltage, k1 - 1);
+    const double f2Derivative =
+        (k2 == 0) ? 0.0 : static_cast<double>(k2) * std::pow(voltage, k2 - 1);
     for (index_t input = 0; input < excitationLimiterInputCount; ++input) {
         const double dNormalizedP = dp[input] / f1 - p * f1Derivative * dv[input] / (f1 * f1);
         result.errorDerivatives[input] =
@@ -225,16 +249,18 @@ double ExcitationLimiterUEL2C::integralRate(double integral, double error) const
 }
 
 void ExcitationLimiterUEL2C::dynObjectInitializeB(const IOdata& inputs,
-                                                   const IOdata& /*desiredOutput*/,
-                                                   IOdata& fieldSet)
+                                                  const IOdata& /*desiredOutput*/,
+                                                  IOdata& fieldSet)
 {
     m_state[1] = 0.0;
     m_state[0] = evaluate(inputs, m_state[1]).output;
     fieldSet = {m_state[0]};
 }
 
-void ExcitationLimiterUEL2C::residual(const IOdata& inputs, const StateData& stateData,
-                                      double resid[], const SolverMode& sMode)
+void ExcitationLimiterUEL2C::residual(const IOdata& inputs,
+                                      const StateData& stateData,
+                                      double resid[],
+                                      const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, resid, sMode, this);
     const auto result = evaluate(inputs, loc.diffStateLoc[0]);
@@ -246,10 +272,14 @@ void ExcitationLimiterUEL2C::residual(const IOdata& inputs, const StateData& sta
     }
 }
 
-void ExcitationLimiterUEL2C::derivative(const IOdata& inputs, const StateData& stateData,
-                                        double deriv[], const SolverMode& sMode)
+void ExcitationLimiterUEL2C::derivative(const IOdata& inputs,
+                                        const StateData& stateData,
+                                        double deriv[],
+                                        const SolverMode& sMode)
 {
-    if (!hasDifferential(sMode)) { return; }
+    if (!hasDifferential(sMode)) {
+        return;
+    }
     const auto loc = offsets.getLocations(stateData, deriv, sMode, this);
     const auto result = evaluate(inputs, loc.diffStateLoc[0]);
     loc.destDiffLoc[0] = integralRate(loc.diffStateLoc[0], result.error);
@@ -257,19 +287,22 @@ void ExcitationLimiterUEL2C::derivative(const IOdata& inputs, const StateData& s
 
 void ExcitationLimiterUEL2C::algebraicUpdate(const IOdata& inputs,
                                              const StateData& stateData,
-                                             double update[], const SolverMode& sMode,
+                                             double update[],
+                                             const SolverMode& sMode,
                                              double /*alpha*/)
 {
-    if (!hasAlgebraic(sMode)) { return; }
+    if (!hasAlgebraic(sMode)) {
+        return;
+    }
     const auto loc = offsets.getLocations(stateData, update, sMode, this);
     loc.destLoc[0] = evaluate(inputs, loc.diffStateLoc[0]).output;
 }
 
 void ExcitationLimiterUEL2C::jacobianElements(const IOdata& inputs,
-                                               const StateData& stateData,
-                                               MatrixData<double>& matrixData,
-                                               const IOlocs& inputLocs,
-                                               const SolverMode& sMode)
+                                              const StateData& stateData,
+                                              MatrixData<double>& matrixData,
+                                              const IOlocs& inputLocs,
+                                              const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
     const auto result = evaluate(inputs, loc.diffStateLoc[0]);
@@ -284,29 +317,35 @@ void ExcitationLimiterUEL2C::jacobianElements(const IOdata& inputs,
             }
             for (index_t input = 0; input < excitationLimiterInputCount; ++input) {
                 if (result.outputErrorSlope * result.errorDerivatives[input] != 0.0) {
-                    matrixData.assignCheckCol(loc.algOffset, inputLocs[input],
-                                              result.outputErrorSlope * result.errorDerivatives[input]);
+                    matrixData.assignCheckCol(loc.algOffset,
+                                              inputLocs[input],
+                                              result.outputErrorSlope *
+                                                  result.errorDerivatives[input]);
                 }
             }
         }
     }
-    if (!hasDifferential(sMode)) { return; }
+    if (!hasDifferential(sMode)) {
+        return;
+    }
     matrixData.assign(loc.diffOffset, loc.diffOffset, -stateData.cj);
     if (integrate) {
         for (index_t input = 0; input < excitationLimiterInputCount; ++input) {
-            matrixData.assignCheckCol(loc.diffOffset, inputLocs[input],
+            matrixData.assignCheckCol(loc.diffOffset,
+                                      inputLocs[input],
                                       kuI * result.errorDerivatives[input]);
         }
     }
 }
 
-void ExcitationLimiterUEL2C::timestep(CoreTime time, const IOdata& inputs,
+void ExcitationLimiterUEL2C::timestep(CoreTime time,
+                                      const IOdata& inputs,
                                       const SolverMode& /*sMode*/)
 {
     const double step = time - prevTime;
     const auto result = evaluate(inputs, m_state[1]);
-    m_state[1] = std::clamp(m_state[1] + step * integralRate(m_state[1], result.error),
-                            vuiMin, vuiMax);
+    m_state[1] =
+        std::clamp(m_state[1] + step * integralRate(m_state[1], result.error), vuiMin, vuiMax);
     m_state[0] = evaluate(inputs, m_state[1]).output;
     prevTime = time;
 }

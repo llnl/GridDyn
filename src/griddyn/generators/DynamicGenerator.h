@@ -115,6 +115,7 @@ class DynamicGenerator: public Generator {
     double activePowerCommandUnclamped = 0.0;
     bool mechanicalPowerWasInvalid = false;
     bool signalRoutesReady = false;
+
   public:
     static DynModel dynModelFromString(const std::string& dynModelType);
     /** @brief default constructor

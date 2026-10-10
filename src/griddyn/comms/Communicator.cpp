@@ -33,7 +33,7 @@ Communicator::Communicator(std::uint64_t commId): mId(commId)
 }
 Communicator::~Communicator()
 {
-    disconnect();
+    Communicator::disconnect();
 }
 std::unique_ptr<Communicator> Communicator::clone() const
 {

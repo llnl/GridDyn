@@ -1389,11 +1389,12 @@ namespace {
         }
 
         std::array<relays::TimeOverCurrentRelay::TimeCurrentPoint, 6> points{};
-        for (index_t point = 0; point < points.size(); ++point) {
+        for (std::size_t point = 0; point < points.size(); ++point) {
             // The observed TIOCR1 values are interpreted as kA on the
             // monitored transformer terminal.  Convert to A here because the
             // relay's public table API accepts an explicit units argument.
-            points[point] = {params[17U + (2U * point)] * 1000.0, params[18U + (2U * point)]};
+            points[point] = {.current = params[17U + (2U * point)] * 1000.0,
+                             .time = params[18U + (2U * point)]};
         }
 
         auto relay = std::make_unique<relays::TimeOverCurrentRelay>(relayName);

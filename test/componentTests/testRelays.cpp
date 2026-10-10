@@ -48,7 +48,7 @@ TEST(TimeOverCurrentRelayTests, IECAndIEEECharacteristics)
     EXPECT_NEAR(relay.operatingTime(2.0), 13.5, 1e-12);
 
     relay.set("curve", "ieee_very_inverse");
-    EXPECT_NEAR(relay.operatingTime(2.0), 19.61 / 3.0 + 0.491, 1e-9);
+    EXPECT_NEAR(relay.operatingTime(2.0), (19.61 / 3.0) + 0.491, 1e-9);
 
     relay.set("curve", "definite_time");
     relay.set("delay", 0.25);
@@ -69,9 +69,9 @@ TEST(TimeOverCurrentRelayTests, PiecewiseTimeCurrentCurveInterpolatesAndClones)
     relay.set("voltagebase", 20.0, units::kV);
     EXPECT_NEAR(relay.get("voltagebase", units::kV), 20.0, 1e-12);
     std::array<relays::TimeOverCurrentRelay::TimeCurrentPoint, 3> points{{
-        {10.0, 9999.0},
-        {12.0, 120.0},
-        {20.0, 10.0},
+        {.current = 10.0, .time = 9999.0},
+        {.current = 12.0, .time = 120.0},
+        {.current = 20.0, .time = 10.0},
     }};
     for (auto& point : points) {
         point.current *= 1000.0;
@@ -177,23 +177,23 @@ TEST_F(RelayTests, RelayTest2)
 
     ASSERT_EQ(gds->dynInitialize(timeZero), 0);
 
-    relays::ZonalRelay* Yp = dynamic_cast<relays::ZonalRelay*>(gds->getRelay(0));
-    ASSERT_NE(Yp, nullptr);
-    ASSERT_NE(Yp->getCondition(0), nullptr);
-    ASSERT_NE(Yp->getCondition(1), nullptr);
-    EXPECT_EQ(Yp->getConditionStatus(0), Relay::ConditionStatus::ACTIVE);
-    EXPECT_EQ(Yp->getConditionStatus(1), Relay::ConditionStatus::ACTIVE);
-    Yp = dynamic_cast<relays::ZonalRelay*>(gds->getRelay(1));
-    ASSERT_NE(Yp, nullptr);
-    ASSERT_NE(Yp->getCondition(0), nullptr);
-    ASSERT_NE(Yp->getCondition(1), nullptr);
+    auto* firstRelay = dynamic_cast<relays::ZonalRelay*>(gds->getRelay(0));
+    ASSERT_NE(firstRelay, nullptr);
+    ASSERT_NE(firstRelay->getCondition(0), nullptr);
+    ASSERT_NE(firstRelay->getCondition(1), nullptr);
+    EXPECT_EQ(firstRelay->getConditionStatus(0), Relay::ConditionStatus::ACTIVE);
+    EXPECT_EQ(firstRelay->getConditionStatus(1), Relay::ConditionStatus::ACTIVE);
+    auto* secondRelay = dynamic_cast<relays::ZonalRelay*>(gds->getRelay(1));
+    ASSERT_NE(secondRelay, nullptr);
+    ASSERT_NE(secondRelay->getCondition(0), nullptr);
+    ASSERT_NE(secondRelay->getCondition(1), nullptr);
 
     auto obj = dynamic_cast<Link*>(gds->find("bus2_to_bus3"));
     ASSERT_NE(obj, nullptr);
     EXPECT_TRUE(obj->isConnected());
-    std::vector<double> v;
-    gds->getVoltage(v);
-    EXPECT_EQ(v.size(), 3U);
+    std::vector<double> voltageValues;
+    gds->getVoltage(voltageValues);
+    EXPECT_EQ(voltageValues.size(), 3U);
     requireState(GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
 }
 
@@ -214,10 +214,10 @@ TEST_F(RelayTests, RelayTestMulti)
     EXPECT_TRUE(obj->isConnected());
     EXPECT_FALSE(obj->switchTest(1));
     EXPECT_FALSE(obj->switchTest(2));
-    std::vector<double> v;
-    gds->getVoltage(v);
+    std::vector<double> voltageValues;
+    gds->getVoltage(voltageValues);
 
-    EXPECT_EQ(v.size(), 4U);
+    EXPECT_EQ(voltageValues.size(), 4U);
     for (int index = 0; index < cnt; ++index) {
         auto* relay = dynamic_cast<relays::ZonalRelay*>(gds->getRelay(index));
         ASSERT_NE(relay, nullptr);

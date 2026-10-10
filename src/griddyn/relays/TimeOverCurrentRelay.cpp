@@ -20,13 +20,14 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace griddyn::relays {
 namespace {
     struct CurveParameters {
-        double coefficient;
-        double exponent;
-        double offset;
+        double mCoefficient;
+        double mExponent;
+        double mOffset;
     };
 
     CurveParameters curveParameters(TimeOverCurrentRelay::Curve curve)
@@ -34,23 +35,21 @@ namespace {
         using Curve = TimeOverCurrentRelay::Curve;
         switch (curve) {
             case Curve::IEC_STANDARD_INVERSE:
-                return {0.14, 0.02, 0.0};
+                return {.mCoefficient = 0.14, .mExponent = 0.02, .mOffset = 0.0};
             case Curve::IEC_VERY_INVERSE:
-                return {13.5, 1.0, 0.0};
+                return {.mCoefficient = 13.5, .mExponent = 1.0, .mOffset = 0.0};
             case Curve::IEC_EXTREMELY_INVERSE:
-                return {80.0, 2.0, 0.0};
+                return {.mCoefficient = 80.0, .mExponent = 2.0, .mOffset = 0.0};
             case Curve::IEC_LONG_TIME_INVERSE:
-                return {120.0, 1.0, 0.0};
+                return {.mCoefficient = 120.0, .mExponent = 1.0, .mOffset = 0.0};
             case Curve::IEEE_MODERATELY_INVERSE:
-                return {0.0515, 0.02, 0.114};
+                return {.mCoefficient = 0.0515, .mExponent = 0.02, .mOffset = 0.114};
             case Curve::IEEE_VERY_INVERSE:
-                return {19.61, 2.0, 0.491};
+                return {.mCoefficient = 19.61, .mExponent = 2.0, .mOffset = 0.491};
             case Curve::IEEE_EXTREMELY_INVERSE:
-                return {28.2, 2.0, 0.1217};
-            case Curve::DEFINITE_TIME:
-                return {0.0, 0.0, 0.0};
+                return {.mCoefficient = 28.2, .mExponent = 2.0, .mOffset = 0.1217};
             default:
-                return {0.0, 0.0, 0.0};
+                return {.mCoefficient = 0.0, .mExponent = 0.0, .mOffset = 0.0};
         }
     }
 
@@ -115,8 +114,8 @@ void TimeOverCurrentRelay::setTimeCurrentCurve(std::span<const TimeCurrentPoint>
     std::vector<TimeCurrentPoint> converted;
     converted.reserve(points.size());
     for (const auto& point : points) {
-        if (!std::isfinite(point.current) || point.current <= 0.0 || !std::isfinite(point.time) ||
-            point.time < timeZero) {
+        if (!std::isfinite(point.current) || point.current <= 0.0 ||
+            !std::isfinite(static_cast<double>(point.time)) || point.time < timeZero) {
             throw InvalidParameterValue("time-current curve point is invalid");
         }
         const auto current =
@@ -132,7 +131,7 @@ void TimeOverCurrentRelay::setTimeCurrentCurve(std::span<const TimeCurrentPoint>
                     "time-current curve currents must be nondecreasing and duplicate points must match");
             }
         }
-        converted.push_back({current, point.time});
+        converted.push_back({.current = current, .time = point.time});
     }
 
     mTimeCurrentCurve = std::move(converted);
@@ -327,25 +326,31 @@ CoreTime TimeOverCurrentRelay::operatingTime(double current) const
         const double fraction =
             (current - leftPoint.current) / (rightPoint.current - leftPoint.current);
         const auto time = leftPoint.time + (fraction * (rightPoint.time - leftPoint.time));
-        return std::isfinite(time) ? std::max(timeZero, mDefiniteTime + CoreTime(time)) : maxTime;
+        return std::isfinite(static_cast<double>(time)) ?
+            std::max(timeZero, mDefiniteTime + CoreTime(time)) :
+            maxTime;
     }
     const auto parameters = curveParameters(mCurve);
     const double multiple = current / mPickup;
-    const double denominator = std::pow(multiple, parameters.exponent) - 1.0;
+    const double denominator = std::pow(multiple, parameters.mExponent) - 1.0;
     if (!(denominator > 0.0)) {
         return maxTime;
     }
     const double time =
-        mDefiniteTime + mTimeDial * (parameters.coefficient / denominator + parameters.offset);
-    return std::isfinite(time) ? ((time < timeZero) ? timeZero : CoreTime(time)) : maxTime;
+        mDefiniteTime + mTimeDial * ((parameters.mCoefficient / denominator) + parameters.mOffset);
+    if (!std::isfinite(time)) {
+        return maxTime;
+    }
+    return (time < timeZero) ? timeZero : CoreTime(time);
 }
 
 void TimeOverCurrentRelay::validateParameters() const
 {
     if (m_sourceObject == nullptr || m_sinkObject == nullptr || mPickup <= 0.0 ||
         !std::isfinite(mPickup) || mTimeDial < 0.0 || !std::isfinite(mTimeDial) ||
-        mDefiniteTime < timeZero || !std::isfinite(mDefiniteTime) ||
-        mInstantaneousDelay < timeZero || !std::isfinite(mInstantaneousDelay) ||
+        mDefiniteTime < timeZero || !std::isfinite(static_cast<double>(mDefiniteTime)) ||
+        mInstantaneousDelay < timeZero ||
+        !std::isfinite(static_cast<double>(mInstantaneousDelay)) ||
         mResetMargin < 0.0 || !std::isfinite(mResetMargin) || mTerminal < 1 || mTerminal > 2 ||
         mVoltageBase <= 0.0 || !std::isfinite(mVoltageBase)) {
         throw InvalidParameterValue("time-over-current relay parameters or source/sink");

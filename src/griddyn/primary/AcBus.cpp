@@ -972,6 +972,17 @@ void AcBus::dynObjectInitializeB(const IOdata& /*inputs*/,
         auto* proxy = busController.proxyPControlObject[static_cast<std::size_t>(proxyIndex++)];
         proxy->fixPower(requestedPower, proxy->getReactivePower(cid), cid, cid);
     };
+    // A slack generator can have zero MATPOWER APF while still being the only
+    // source available to cover the solved network injection.
+    const bool useUniformPowerWeights = !busController.pcfrac.empty() &&
+        busController.pControlLinks.empty() &&
+        std::all_of(busController.pcfrac.begin(), busController.pcfrac.end(), [](double weight) {
+            return weight <= 0.0;
+        });
+    const auto powerControlWeight = [this, useUniformPowerWeights](size_t index) {
+        return useUniformPowerWeights ? 1.0 / busController.pcfrac.size() :
+                                        busController.pcfrac[index];
+    };
     switch (type) {
         case BusType::PQ:
             break;
@@ -1000,7 +1011,6 @@ void AcBus::dynObjectInitializeB(const IOdata& /*inputs*/,
             computePowerAdjustments();
             qgap = -(S.sumQ());
             pgap = -(S.sumP());
-
             if (opFlags[IDENTICAL_PQ_CONTROL_OBJECTS])  // adjust the power levels together
             {
                 for (auto& vco : busController.vControlObjects) {
@@ -1008,12 +1018,12 @@ void AcBus::dynObjectInitializeB(const IOdata& /*inputs*/,
                         if (busController.vcfrac[vci] > 0.0) {
                             vco->set("q", -qgap * busController.vcfrac[vci]);
                         }
-                        if (busController.pcfrac[vci] > 0.0) {
-                            vco->set("p", -pgap * busController.pcfrac[vci]);
+                        if (powerControlWeight(vci) > 0.0) {
+                            vco->set("p", -pgap * powerControlWeight(vci));
                         }
                     } else {  // use both together on fixpower function
                         busController.proxyVControlObject[poi]->fixPower(
-                            -pgap * busController.pcfrac[vci],
+                            -pgap * powerControlWeight(vci),
                             -qgap * busController.vcfrac[vci],
                             cid,
                             cid);
@@ -1024,7 +1034,7 @@ void AcBus::dynObjectInitializeB(const IOdata& /*inputs*/,
             } else {  // adjust the power levels separately
                 // adjust the real power flow
                 for (auto& pco : busController.pControlObjects) {
-                    setActivePowerCommand(pco, -pgap * busController.pcfrac[vci], poi);
+                    setActivePowerCommand(pco, -pgap * powerControlWeight(vci), poi);
                     ++vci;
                 }
                 // adjust the reactive power
@@ -1050,7 +1060,7 @@ void AcBus::dynObjectInitializeB(const IOdata& /*inputs*/,
             pgap = -(S.sumP());
             // adjust the real power flow
             for (auto& pco : busController.pControlObjects) {
-                setActivePowerCommand(pco, -pgap * busController.pcfrac[vci], poi);
+                setActivePowerCommand(pco, -pgap * powerControlWeight(vci), poi);
                 ++vci;
             }
             break;

@@ -28,6 +28,7 @@ namespace griddyn {
 using gmlc::utilities::numeric_conversion;
 using gmlc::utilities::string_viewOps::delimiter_compression;
 using gmlc::utilities::string_viewOps::split;
+using gmlc::utilities::string_viewOps::trimString;
 using std::string_view;
 using units::deg;
 using units::MVAR;
@@ -40,6 +41,27 @@ static void
 static void
     loadGenGovArray(CoreObject* parentObject, mArray& govData, std::vector<Generator*>& genList);
 
+static size_t findMatlabAssignment(string_view fileView, string_view variable, size_t start)
+{
+    while (start < fileView.size()) {
+        const auto lineEnd = fileView.find('\n', start);
+        const auto line = fileView.substr(start, lineEnd - start);
+        const auto nameStart = line.find_first_not_of(" \t\r");
+        if (nameStart != string_view::npos && line.substr(nameStart).starts_with(variable)) {
+            const auto rest = line.substr(nameStart + variable.size());
+            const auto equalsOffset = rest.find_first_not_of(" \t");
+            if (equalsOffset != string_view::npos && rest[equalsOffset] == '=') {
+                return start + nameStart + variable.size() + equalsOffset;
+            }
+        }
+        if (lineEnd == string_view::npos) {
+            break;
+        }
+        start = lineEnd + 1;
+    }
+    return string_view::npos;
+}
+
 void loadMatDyn(CoreObject* parentObject,
                 const std::string& fileText,
                 const BasicReaderInfo& /*bri*/)
@@ -50,56 +72,53 @@ void loadMatDyn(CoreObject* parentObject,
     std::vector<Generator*> genList;
     // read the frequency
     size_t openBracketPos = fileView.find_first_of('[', 0);
-    size_t closeBracketPos = fileView.find_first_of(']', 0);
+    const size_t closeBracketPos = fileView.find_first_of(']', 0);
     auto tokenString = fileView.substr(openBracketPos + 1, closeBracketPos - openBracketPos - 1);
     auto tokens = split(tokenString, "\t ,", delimiter_compression::on);
 
     const size_t dataIndex = closeBracketPos;
     size_t terminatorPos;
-    openBracketPos = fileView.find(tokens[3], dataIndex);  // freq
+    openBracketPos = findMatlabAssignment(fileView, tokens[3], dataIndex);  // freq
     if (openBracketPos != std::string_view::npos) {
-        closeBracketPos = fileView.find_first_of('=', openBracketPos);
         terminatorPos = fileView.find_first_of(";\n", openBracketPos);
-        tokenString = fileView.substr(closeBracketPos + 1, terminatorPos - closeBracketPos - 1);
+        tokenString = fileView.substr(openBracketPos + 1, terminatorPos - openBracketPos - 1);
+        trimString(tokenString);
         const double freq = numeric_conversion(tokenString, kNullVal);
         parentObject->set("basefreq", freq);
     }
     // get the timestep parameter
-    openBracketPos = fileView.find(tokens[4], dataIndex);  // steptime
+    openBracketPos = findMatlabAssignment(fileView, tokens[4], dataIndex);  // steptime
     if (openBracketPos != std::string_view::npos) {
-        closeBracketPos = fileView.find_first_of('=', openBracketPos);
         terminatorPos = fileView.find_first_of(";\n", openBracketPos);
-        tokenString = fileView.substr(closeBracketPos + 1, terminatorPos - closeBracketPos - 1);
+        tokenString = fileView.substr(openBracketPos + 1, terminatorPos - openBracketPos - 1);
+        trimString(tokenString);
         const double timestep = numeric_conversion(tokenString, kNullVal);
         parentObject->set("timestep", timestep);
     }
     // get the stoptime parameter
-    openBracketPos = fileView.find(tokens[5], dataIndex);  // stoptime
+    openBracketPos = findMatlabAssignment(fileView, tokens[5], dataIndex);  // stoptime
     if (openBracketPos != std::string_view::npos) {
-        closeBracketPos = fileView.find_first_of('=', openBracketPos);
         terminatorPos = fileView.find_first_of(";\n", openBracketPos);
-        tokenString = fileView.substr(closeBracketPos + 1, terminatorPos - closeBracketPos - 1);
+        tokenString = fileView.substr(openBracketPos + 1, terminatorPos - openBracketPos - 1);
+        trimString(tokenString);
         const double stopTime = numeric_conversion(tokenString, kNullVal);
         parentObject->set("timestop", stopTime);
     }
-    openBracketPos = fileView.find(tokens[0], dataIndex);  // gen
+    openBracketPos = findMatlabAssignment(fileView, tokens[0], dataIndex);  // gen
     if (openBracketPos != std::string_view::npos) {
-        closeBracketPos = fileView.find_first_of('=', openBracketPos);
-        readMatlabArray(fileText, closeBracketPos + 1, matrixData);
+        readMatlabArray(fileText, openBracketPos + 1, matrixData);
         loadGenDynArray(parentObject, matrixData, genList);
     }
 
-    openBracketPos = fileView.find(tokens[1], dataIndex);  // exc
+    openBracketPos = findMatlabAssignment(fileView, tokens[1], dataIndex);  // exc
     if (openBracketPos != std::string_view::npos) {
-        closeBracketPos = fileView.find_first_of('=', openBracketPos);
-        readMatlabArray(fileText, closeBracketPos + 1, matrixData);
+        readMatlabArray(fileText, openBracketPos + 1, matrixData);
         loadGenExcArray(parentObject, matrixData, genList);
     }
 
-    openBracketPos = fileView.find(tokens[2], dataIndex);  // gov
+    openBracketPos = findMatlabAssignment(fileView, tokens[2], dataIndex);  // gov
     if (openBracketPos != std::string_view::npos) {
-        closeBracketPos = fileView.find_first_of('=', openBracketPos);
-        readMatlabArray(fileText, closeBracketPos + 1, matrixData);
+        readMatlabArray(fileText, openBracketPos + 1, matrixData);
         loadGenGovArray(parentObject, matrixData, genList);
     }
     int generatorIndex = 1;
@@ -113,21 +132,17 @@ void loadMatDyn(CoreObject* parentObject,
                    "matpower file first\n";
             return;
         }
-        // now we load the existing components of our generator onto the existing one
-        CoreObject* subObject = nextGenerator->getSubObject("exciter", 0);
-        if (subObject != nullptr) {
-            gen->add(subObject);
-        }
-
-        subObject = nextGenerator->getSubObject("genmodel", 0);
-        if (subObject != nullptr) {
-            gen->add(subObject);
-        }
-
-        subObject = nextGenerator->getSubObject("governor", 0);
-        if (subObject != nullptr) {
-            gen->add(subObject);
-        }
+        // Transfer the temporary components to the matching network generator.
+        const auto transferSubObject = [gen, nextGenerator](std::string_view objectName) {
+            auto* subObject = nextGenerator->find(objectName);
+            if (subObject != nullptr) {
+                gen->add(subObject);
+                nextGenerator->remove(subObject);
+            }
+        };
+        transferSubObject("exciter");
+        transferSubObject("genmodel");
+        transferSubObject("governor");
     }
     // now delete the temporary generators the subobjects should have transferred ownership
     for (auto* subg : genList) {
@@ -157,7 +172,7 @@ static void
                 genModel->set("h", genLine[3]);
                 genModel->set("d", genLine[4]);
                 genModel->set("x", genLine[5]);
-                genModel->set("xp", genLine[6]);
+                genModel->set("xdp", genLine[6]);
                 gen->add(genModel);
                 break;
             case 2:  // fourth order model
@@ -168,8 +183,8 @@ static void
                 genModel->set("xq", genLine[6]);
                 genModel->set("xdp", genLine[7]);
                 genModel->set("xqp", genLine[8]);
-                genModel->set("tdp", genLine[9]);
-                genModel->set("tqp", genLine[10]);
+                genModel->set("tdop", genLine[9]);
+                genModel->set("tqop", genLine[10]);
                 gen->add(genModel);
                 break;
             default:
@@ -227,10 +242,9 @@ static void
     for (const auto& excLine : excData) {
         Exciter* exc = nullptr;
         auto ind1 = static_cast<index_t>(excLine[0]);
-
-        if (isValidIndex(ind1, genList)) {
+        if (ind1 >= 1 && static_cast<size_t>(ind1) <= genList.size()) {
             const Generator* const gen = genList[ind1 - 1];  // zero based in C vs 1 based in matlab
-            exc = static_cast<Exciter*>(gen->getSubObject("exciter", 0));
+            exc = dynamic_cast<Exciter*>(gen->find("exciter"));
         }
         if (exc == nullptr) {
             continue;
@@ -267,13 +281,13 @@ static void
         Governor* gov = nullptr;
         Generator* gen = nullptr;
         auto ind1 = static_cast<index_t>(govLine[0]);
-        if (isValidIndex(ind1, genList)) {
+        if (ind1 >= 1 && static_cast<size_t>(ind1) <= genList.size()) {
             gen = genList[ind1 - 1];  // zero based in C vs 1 based in matlab
             if (gen == nullptr) {
                 // probably throw some sort of error here
                 continue;
             }
-            gov = static_cast<Governor*>(gen->getSubObject("governor", 0));
+            gov = dynamic_cast<Governor*>(gen->find("governor"));
         }
         if (gov == nullptr) {
             continue;

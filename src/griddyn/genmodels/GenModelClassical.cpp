@@ -447,6 +447,11 @@ void GenModelClassical::set(std::string_view param, double val, units::unit unit
         // equation.
         return;
     }
+    if (param == "kp") {
+        // Retained as an accepted legacy/PSAT parameter. GridDyn's synchronous
+        // machine models do not include this active-power feedback term.
+        return;
+    }
     if ((param == "xd1") || (param == "xdp")) {
         Xd = val;
     } else if (param == "ra") {

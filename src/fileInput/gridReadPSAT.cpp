@@ -8,6 +8,8 @@
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/Generator.h"
 #include "griddyn/events/Event.h"
+#include "griddyn/exciters/ExciterIEEEtype1.h"
+#include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/griddyn-config.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/links/AdjustableTransformer.h"
@@ -47,6 +49,7 @@ namespace {
                           const mArray& swingBuses,
                           const mArray& pvBuses,
                           const mArray& pqBuses,
+                          bool dynamicGenerators,
                           const stringVec& busnames,
                           std::vector<GridBus*>& busList);
     void loadPSATGenArray(CoreObject* parentObject,
@@ -190,6 +193,7 @@ void loadPSAT(CoreObject* parentObject,
                          swingBusData,
                          pvBusData,
                          pqBusData,
+                         filetext.contains("Syn.con"),
                          busNames,
                          busList);
     }
@@ -219,6 +223,7 @@ namespace {
                           const mArray& swingBuses,
                           const mArray& pvBuses,
                           const mArray& pqBuses,
+                          bool dynamicGenerators,
                           const stringVec& busnames,
                           std::vector<GridBus*>& busList)
     {
@@ -252,7 +257,8 @@ namespace {
             bus->set("vtarget", swInfo[3]);
             bus->set("atarget", swInfo[4]);
 
-            auto* gen = new Generator();
+            Generator* gen = dynamicGenerators ? static_cast<Generator*>(new DynamicGenerator()) :
+                                                 new Generator();
             bus->add(gen);
             if (swInfo.size() >= 7) {
                 gen->set("qmax", swInfo[5]);
@@ -271,7 +277,8 @@ namespace {
             auto* bus = busList[ind1];
             bus->set("type", "PV");
             bus->set("vtarget", pvInfo[4]);
-            auto* gen = new Generator;
+            Generator* gen = dynamicGenerators ? static_cast<Generator*>(new DynamicGenerator()) :
+                                                 new Generator();
             bus->add(gen);
             gen->set("p", pvInfo[3]);
 
@@ -672,6 +679,7 @@ namespace {
         using genmodels::GenModel5type3;
         using genmodels::GenModel6type2;
         using genmodels::GenModel8;
+        using genmodels::GenModelClassical;
 
         int index = 1;
         for (const auto& genData : syn) {
@@ -688,7 +696,7 @@ namespace {
             GenModel* generatorModel = nullptr;
             if (mode < 2.1) {
                 // second order classical model
-                generatorModel = new GenModel();
+                generatorModel = new GenModelClassical();
             } else if (mode < 3.1) {
                 // 3rd order model
                 generatorModel = new GenModel3();
@@ -715,10 +723,12 @@ namespace {
                 std::cout << "genModel " << mode << " not implemented yet\n";
                 continue;
             }
-            generatorModel->set("rating", genData[1], units::MW);
+            gen->set("rating", genData[1], units::MW);
             gen->set("basevoltage", genData[2], units::kV);
             const double leakageReactance = genData[5];
-            generatorModel->set("xl", genData[5]);
+            if (mode > 2.1) {
+                generatorModel->set("xl", genData[5]);
+            }
             generatorModel->set("r", genData[6]);
             generatorModel->set("xdp", genData[8] - leakageReactance);
             generatorModel->set("h", genData[17] / 2.0);
@@ -750,6 +760,7 @@ namespace {
                 generatorModel->set("tdopp", genData[11]);
                 generatorModel->set("xqpp", genData[14] - leakageReactance);
             }
+            gen->add(generatorModel);
         }
     }
 
@@ -774,9 +785,7 @@ namespace {
                           const std::vector<GridBus*>& /*busList*/)
     {
         Generator* gen;
-        Exciter* exciter = nullptr;
         index_t ind1;
-        double mode;
         for (const auto& eData : excData) {
             ind1 = static_cast<index_t>(eData[0]);
 
@@ -785,23 +794,23 @@ namespace {
                 continue;
             }
 
-            mode = eData[1];
-            if (mode < 2.1) {  // second and third order models
-                exciter = new Exciter();
-            }
-
-            if (exciter == nullptr) {
-                std::cout << "exciter " << mode << " not implemented yet\n";
+            if ((eData[1] != 2.0) || (eData.size() < 13)) {
+                std::cout << "exciter " << eData[1] << " not implemented yet\n";
                 continue;
             }
-            exciter->set("r", eData[3]);
-            exciter->set("pmax", eData[4]);
-            exciter->set("pmin", eData[5]);
 
-            exciter->set("t1", eData[6]);
-            exciter->set("t2", eData[7]);
-            exciter->set("t3", eData[8]);
-            exciter->set("t4", eData[9]);
+            auto* exciter = new exciters::ExciterIEEEtype1();
+            exciter->set("vrmax", eData[2]);
+            exciter->set("vrmin", eData[3]);
+            exciter->set("ka", eData[4]);
+            exciter->set("ta", eData[5]);
+            exciter->set("kf", eData[6]);
+            exciter->set("tf", eData[7]);
+            exciter->set("te", eData[9]);
+            exciter->set("tr", eData[10]);
+            exciter->set("aex", eData[11]);
+            exciter->set("bex", eData[12]);
+            gen->add(exciter);
         }
     }
 

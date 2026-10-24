@@ -52,6 +52,12 @@ std::filesystem::path makeExamplePath(std::string_view fileName)
         std::string{fileName};
 }
 
+std::filesystem::path makeMatlabTestPath(std::string_view fileName)
+{
+    return std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "matlab_test_files" /
+        std::string{fileName};
+}
+
 void expectInternalLinksBelongToArea(griddyn::GridArea* area)
 {
     const auto linkCount = area->getInt("linkcount");
@@ -121,6 +127,42 @@ TEST(ExampleReaderTests, LoadTopLevelExamples)
         EXPECT_EQ(gds->getInt("gencount"), exampleCase.genCount);
         EXPECT_EQ(gds->getInt("loadcount"), exampleCase.loadCount);
     }
+}
+
+TEST(ExampleReaderTests, LoadAndSolveMatDynModel)
+{
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    const auto networkPath = makeMatlabTestPath("case9.m");
+    const auto dynamicPath = makeMatlabTestPath("case9dyn.m");
+    const auto eventPath = makeMatlabTestPath("fault.m");
+
+    ASSERT_TRUE(std::filesystem::exists(networkPath));
+    ASSERT_TRUE(std::filesystem::exists(dynamicPath));
+    ASSERT_TRUE(std::filesystem::exists(eventPath));
+    griddyn::loadFile(gds, networkPath.string());
+    griddyn::loadFile(gds, dynamicPath.string());
+    griddyn::loadFile(gds, eventPath.string());
+
+    EXPECT_DOUBLE_EQ(gds->get("basefrequency", units::Hz), 50.0);
+    EXPECT_EQ(gds->getInt("totalbuscount"), 9);
+    EXPECT_EQ(gds->getInt("totallinkcount"), 9);
+    EXPECT_EQ(gds->getInt("gencount"), 3);
+    auto* firstGenerator = gds->findByUserID("gen", 1);
+    ASSERT_NE(firstGenerator, nullptr);
+    ASSERT_NE(firstGenerator->find("genmodel"), nullptr);
+    auto* thirdGenerator = gds->findByUserID("gen", 3);
+    ASSERT_NE(thirdGenerator, nullptr);
+    auto* exciter = thirdGenerator->find("exciter");
+    ASSERT_NE(exciter, nullptr);
+    ASSERT_EQ(gds->pFlowInitialize(), 0);
+    ASSERT_EQ(gds->powerflow(), 0);
+    EXPECT_EQ(gds->currentProcessState(),
+              griddyn::GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_EQ(gds->currentProcessState(),
+              griddyn::GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
+    ASSERT_TRUE(gds->hasDynamics());
+    EXPECT_EQ(gds->run(0.1), 0);
 }
 
 TEST(ExampleReaderTests, LoadRawAreaDefinitions)
@@ -1096,10 +1138,53 @@ TEST(ExampleReaderTests, LoadPyPowerCase)
     EXPECT_EQ(gds->getInt("loadcount"), 1);
 }
 
+TEST(ExampleReaderTests, LoadAndSolvePsatDynamicModel)
+{
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    const auto filePath = makeMatlabTestPath("d_009_fault_mdl.m");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds, filePath.string());
+
+    EXPECT_EQ(gds->getInt("totalbuscount"), 9);
+    EXPECT_EQ(gds->getInt("gencount"), 3);
+    auto* firstGenerator = gds->findByUserID("gen", 1);
+    ASSERT_NE(firstGenerator, nullptr);
+    ASSERT_NE(firstGenerator->find("genmodel"), nullptr);
+    ASSERT_EQ(gds->pFlowInitialize(), 0);
+    ASSERT_EQ(gds->powerflow(), 0);
+    EXPECT_EQ(gds->currentProcessState(),
+              griddyn::GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_EQ(gds->currentProcessState(),
+              griddyn::GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
+    ASSERT_TRUE(gds->hasDynamics());
+    EXPECT_EQ(gds->run(0.1), 0);
+}
+
+TEST(ExampleReaderTests, LoadAndInitializePsatDetailedModels)
+{
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    const auto filePath = makeMatlabTestPath("d_014_dyn_mdl.m");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds, filePath.string());
+
+    EXPECT_EQ(gds->getInt("totalbuscount"), 14);
+    EXPECT_EQ(gds->getInt("gencount"), 5);
+    auto* firstGenerator = gds->findByUserID("gen", 1);
+    ASSERT_NE(firstGenerator, nullptr);
+    ASSERT_NE(firstGenerator->find("genmodel"), nullptr);
+    ASSERT_NE(firstGenerator->find("exciter"), nullptr);
+    ASSERT_EQ(gds->pFlowInitialize(), 0);
+    ASSERT_EQ(gds->powerflow(), 0);
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_TRUE(gds->hasDynamics());
+}
+
 TEST(ExampleReaderTests, ExportPyPowerRoundTrip)
 {
-    const auto source =
-        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "matlab_test_files" / "case9.m";
+    const auto source = makeMatlabTestPath("case9.m");
     const auto exported = std::filesystem::temp_directory_path() / "griddyn_pypower_roundtrip.py";
     auto original = std::make_unique<griddyn::GridDynSimulation>();
     griddyn::loadFile(original, source.string());
@@ -1116,8 +1201,7 @@ TEST(ExampleReaderTests, ExportPyPowerRoundTrip)
 }
 TEST(ExampleReaderTests, ExportMatPowerRoundTrip)
 {
-    const auto source =
-        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "matlab_test_files" / "case9.m";
+    const auto source = makeMatlabTestPath("case9.m");
     const auto exported = std::filesystem::temp_directory_path() / "griddyn_matpower_roundtrip.m";
     auto original = std::make_unique<griddyn::GridDynSimulation>();
     griddyn::loadFile(original, source.string());

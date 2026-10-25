@@ -91,6 +91,8 @@ class GridGrabber: public ObjectOperatorInterface {
     virtual void getObjects(std::vector<CoreObject*>& objects) const override;
 
   protected:
+    /** Prepare a field without evaluating its generic getter. */
+    bool prepareField(std::string_view fld);
     /** @brief generate the description(s)*/
     virtual void makeDescription() const;
     /** @brief check if the grabber is ready to actually grab data

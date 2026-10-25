@@ -24,6 +24,7 @@
 #include "MeasurementExpression.hpp"
 #include "ObjectGrabbers.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -152,12 +153,12 @@ std::vector<std::unique_ptr<GridGrabber>> makeGrabbers(std::string_view command,
     gmlc::utilities::stringOps::trim(gstr);
     for (auto& cmd : gstr) {
         const auto firstGrabber = grabbers.size();
-        auto renameloc = cmd.find(" as ");  // spaces are important
+        const auto renameloc = cmd.find(" as ");  // spaces are important
         // extract out a rename
         std::string rname;
         if (renameloc != std::string::npos) {
             rname = gmlc::utilities::stringOps::trim(cmd.substr(renameloc + 4));
-            cmd.erase(renameloc, std::string::npos);
+            cmd.resize(renameloc);
         }
         const auto lowerCommand = gmlc::utilities::convertToLowerCase(cmd);
         if (lowerCommand.starts_with("all")) {

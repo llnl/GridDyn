@@ -15,6 +15,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace griddyn {
 using gmlc::utilities::fsize_t;

@@ -13,6 +13,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 namespace griddyn {
 GrabberSet::GrabberSet(std::string_view fld, CoreObject* obj, bool stepOnly)

@@ -87,12 +87,14 @@ class ObjectGrabber: public GridGrabber {
 
     void updateField(std::string_view fld) override
     {
-        GridGrabber::updateField(fld);
+        if (!prepareField(fld)) {
+            return;
+        }
         auto fret = getObjectFunction(mTypedObject, fld);
         if (fret.first) {
             mGrabberFunction = fret.first;
             inputUnits = fret.second;
-            loaded = checkIfLoaded();
+            loaded = (mTypedObject != nullptr);
             return;
         }
         auto fvecret = getObjectVectorFunction(mTypedObject, fld);
@@ -101,10 +103,10 @@ class ObjectGrabber: public GridGrabber {
             inputUnits = fvecret.second;
             vectorGrab = true;
             mVectorDescriptionFunction = getObjectVectorDescFunction(mTypedObject, fld);
-            loaded = checkIfLoaded();
+            loaded = (mTypedObject != nullptr);
             return;
         }
-        GridGrabber::updateField(fld);
+        loaded = GridGrabber::checkIfLoaded();
     }
 
     void updateObject(CoreObject* obj, ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override
@@ -166,13 +168,15 @@ class ObjectOffsetGrabber: public GridGrabber {
     void updateField(std::string_view fld) override
     {
         mOffset = kInvalidLocation;
-        GridGrabber::updateField(fld);
+        if (!prepareField(fld)) {
+            return;
+        }
         const std::string fldString{fld};
         auto fret = getObjectFunction(mTypedObject, fldString);
         if (fret.first) {
             mGrabberFunction = fret.first;
             inputUnits = fret.second;
-            loaded = GridGrabber::checkIfLoaded();
+            loaded = (mTypedObject != nullptr);
             return;
         }
         auto fvecret = getObjectVectorFunction(mTypedObject, fldString);
@@ -181,14 +185,14 @@ class ObjectOffsetGrabber: public GridGrabber {
             inputUnits = fvecret.second;
             vectorGrab = true;
             mVectorDescriptionFunction = getObjectVectorDescFunction(mTypedObject, fldString);
-            loaded = GridGrabber::checkIfLoaded();
+            loaded = (mTypedObject != nullptr);
             return;
         }
         mOffset = (mTypedObject != nullptr) ? mTypedObject->findIndex(fldString, cLocalSolverMode) :
                                               kInvalidLocation;
 
         if (mOffset == kInvalidLocation) {
-            GridGrabber::updateField(fld);
+            loaded = GridGrabber::checkIfLoaded();
         } else {
             loaded = true;
             makeDescription();

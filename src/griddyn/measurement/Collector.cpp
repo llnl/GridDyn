@@ -282,7 +282,7 @@ count_t Collector::grabData(double* outputData, index_t outputCount)
             } else {
                 datapoint.mStateGrabber->grabVectorData(emptyStateData, cLocalSolverMode, vals);
             }
-            if (static_cast<int>(vals.size()) != datapoint.mColumnCount) {
+            if (std::cmp_not_equal(vals.size(), datapoint.mColumnCount)) {
                 throw InvalidParameterValue(
                     "collector vector size changed; recheck columns before sampling");
             }

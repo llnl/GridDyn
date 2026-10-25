@@ -76,6 +76,15 @@ static const std::map<std::string, std::function<double(CoreObject*)>> CORE_FUNC
 
 void GridGrabber::updateField(std::string_view fld)
 {
+    if (!prepareField(fld)) {
+        return;
+    }
+
+    loaded = checkIfLoaded();
+}
+
+bool GridGrabber::prepareField(std::string_view fld)
+{
     mGrabberFunction = nullptr;
     mVectorGrabberFunction = nullptr;
     mVectorDescriptionFunction = nullptr;
@@ -87,15 +96,14 @@ void GridGrabber::updateField(std::string_view fld)
     if (fld == "null")  // this is an escape hatch for the clone function
     {
         loaded = false;
-        return;
+        return false;
     }
     field = fld;
     auto fnd = CORE_FUNCTIONS.find(field);
     if (fnd != CORE_FUNCTIONS.end()) {
         mGrabberFunction = fnd->second;
     }
-
-    loaded = checkIfLoaded();
+    return true;
 }
 
 const std::string& GridGrabber::getDesc() const

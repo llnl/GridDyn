@@ -18,6 +18,7 @@
 #include <string_view>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace griddyn {
 /** Split only at top-level separators, preserving empty arguments for validation. */

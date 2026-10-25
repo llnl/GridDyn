@@ -27,23 +27,23 @@ parentheses and brackets; commas inside function calls separate arguments.
 ` as name` assigns a column label. A label on a vector becomes `name[0]`,
 `name[1]`, and so on.
 
-| Setting | Meaning |
-| --- | --- |
-| `period` | Sampling interval in seconds; finite, positive, and representable by the simulation clock. Default: 1. |
-| `frequency` | Sampling rate in samples per second; its reciprocal becomes the period. |
-| `period_resolution` | Round the requested period to a positive resolution, with a minimum of one resolution interval. |
-| `start`, `starttime` | First scheduled sample time. |
-| `stop`, `stoptime` | Last allowed sample time, inclusive. |
-| `gain`, `bias` | Apply `value * gain + bias` to every selected signal, including expanded fields and vectors. |
-| `units`, `unit` | Requested units for a field; conversion precedes gain and bias. A field can also specify units as `angle(deg)`. |
-| `column` | Zero based column for the first selected signal. Following signals append after it, including its full vector width. |
-| `offset` | Zero based local state index, including index 0. A nonempty `field` takes precedence. |
-| `file`, `filename` | Output path; XML also accepts `sink`. `.csv` and `.txt`, ignoring extension case, select comma-separated text; other extensions select GridDyn binary. |
-| `directory` | Base directory for relative output paths. Parent directories are created when saving. |
-| `precision` | Text data precision, from 1 to 17 significant digits. Values 0 and -1 select the writer default of 8. |
-| `reserve`, `reservecount` | Preallocate storage for a nonnegative integer number of samples. |
-| `autosave` | Save and release the in-memory buffer after this many samples. Zero disables automatic saving. Requires a file. |
-| `vector_name` flag | Use the vector selection name with numeric indexes instead of individual object names. |
+| Setting                   | Meaning                                                                                                                                                |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `period`                  | Sampling interval in seconds; finite, positive, and representable by the simulation clock. Default: 1.                                                 |
+| `frequency`               | Sampling rate in samples per second; its reciprocal becomes the period.                                                                                |
+| `period_resolution`       | Round the requested period to a positive resolution, with a minimum of one resolution interval.                                                        |
+| `start`, `starttime`      | First scheduled sample time.                                                                                                                           |
+| `stop`, `stoptime`        | Last allowed sample time, inclusive.                                                                                                                   |
+| `gain`, `bias`            | Apply `value * gain + bias` to every selected signal, including expanded fields and vectors.                                                           |
+| `units`, `unit`           | Requested units for a field; conversion precedes gain and bias. A field can also specify units as `angle(deg)`.                                        |
+| `column`                  | Zero based column for the first selected signal. Following signals append after it, including its full vector width.                                   |
+| `offset`                  | Zero based local state index, including index 0. A nonempty `field` takes precedence.                                                                  |
+| `file`, `filename`        | Output path; XML also accepts `sink`. `.csv` and `.txt`, ignoring extension case, select comma-separated text; other extensions select GridDyn binary. |
+| `directory`               | Base directory for relative output paths. Parent directories are created when saving.                                                                  |
+| `precision`               | Text data precision, from 1 to 17 significant digits. Values 0 and -1 select the writer default of 8.                                                  |
+| `reserve`, `reservecount` | Preallocate storage for a nonnegative integer number of samples.                                                                                       |
+| `autosave`                | Save and release the in-memory buffer after this many samples. Zero disables automatic saving. Requires a file.                                        |
+| `vector_name` flag        | Use the vector selection name with numeric indexes instead of individual object names.                                                                 |
 
 Recorders use delayed event execution so samples normally include model changes
 made by other events at the same time. Direct C++ calls to `trigger(time)`
@@ -63,14 +63,14 @@ Externally driven collectors, such as FMI outputs, can use the constructor pair
 
 Use expressions to transform fields or reduce an area vector to one column:
 
-| Expression | Result |
-| --- | --- |
-| `bus2:angle(deg)-bus1:angle(deg) as phase_difference` | Difference after converting both angles to degrees. |
-| `clamp(voltage,0.9,1.1)` | Bound a scalar or each element of a vector. |
-| `hypot(p,q)` | Two-component magnitude. |
-| `angle*180/pi()` | Convert radians using the named mathematical constant. |
-| `avg(voltage)` | Mean bus voltage when the target is an area or simulation. |
-| `vecprod(voltage-1,voltage-1)` | Sum of squared bus-voltage deviations. |
+| Expression                                            | Result                                                     |
+| ----------------------------------------------------- | ---------------------------------------------------------- |
+| `bus2:angle(deg)-bus1:angle(deg) as phase_difference` | Difference after converting both angles to degrees.        |
+| `clamp(voltage,0.9,1.1)`                              | Bound a scalar or each element of a vector.                |
+| `hypot(p,q)`                                          | Two-component magnitude.                                   |
+| `angle*180/pi()`                                      | Convert radians using the named mathematical constant.     |
+| `avg(voltage)`                                        | Mean bus voltage when the target is an area or simulation. |
+| `vecprod(voltage-1,voltage-1)`                        | Sum of squared bus-voltage deviations.                     |
 
 The target determines shape: bus `voltage` is scalar, while area `voltage` is
 vector-valued. Scalar operands broadcast over vectors; vector operands must

@@ -37,6 +37,7 @@ class GridGrabber: public ObjectOperatorInterface {
     double gain = 1.0;  //!< gain multiplier on the output data
     double bias = 0.0;  //!< bias shift on the output
   protected:
+    void scaleVector(std::vector<double>& values) const;
     mutable std::string mDescription;  //!< a description of the grabber
     CoreObject* mObject = nullptr;  //!< the target core object to grab the data from
     std::function<double(CoreObject*)>
@@ -71,9 +72,9 @@ class GridGrabber: public ObjectOperatorInterface {
      */
     virtual void grabVectorData(std::vector<double>& vdata);
     /** @brief get the descriptions of the data
-     *@param[out] desc_list the list of descriptions
+     *@param[out] descriptions the list of descriptions
      **/
-    virtual void getDesc(std::vector<std::string>& desc_list) const;
+    virtual void getDesc(std::vector<std::string>& descriptions) const;
     /** get the current time associated with the grabber*/
     virtual CoreTime getTime() const;
     /** get a single description of the grabber*/
@@ -102,6 +103,7 @@ class GridGrabber: public ObjectOperatorInterface {
  */
 class CustomGrabber: public GridGrabber {
   public:
+    std::unique_ptr<GridGrabber> clone() const override;
     void setGrabberFunction(std::string_view fld, std::function<double(CoreObject*)> nfptr);
     void setGrabberFunction(std::function<void(CoreObject*, std::vector<double>&)> nVptr);
 
@@ -132,7 +134,7 @@ class FunctionGrabber: public GridGrabber {
 
   public:
     FunctionGrabber() = default;
-    FunctionGrabber(std::shared_ptr<GridGrabber> ggb, std::string func);
+    FunctionGrabber(std::shared_ptr<GridGrabber> ggb, std::string_view func);
     virtual std::unique_ptr<GridGrabber> clone() const override;
     virtual void cloneTo(GridGrabber* ggb) const override;
     virtual double grabData() override;
@@ -143,10 +145,11 @@ class FunctionGrabber: public GridGrabber {
     virtual void getObjects(std::vector<CoreObject*>& objects) const override;
     virtual void updateField(std::string_view fld) override;
     using GridGrabber::getDesc;
-    virtual void getDesc(std::vector<std::string>& desc_list) const override;
+    virtual void getDesc(std::vector<std::string>& descriptions) const override;
     virtual CoreTime getTime() const override;
 
   protected:
+    void makeDescription() const override;
     virtual bool checkIfLoaded() override;
 };
 
@@ -179,10 +182,11 @@ class OpGrabber: public GridGrabber {
     virtual void updateField(std::string_view fld) override;
     using GridGrabber::getDesc;
 
-    virtual void getDesc(std::vector<std::string>& desc_list) const override;
+    virtual void getDesc(std::vector<std::string>& descriptions) const override;
     virtual CoreTime getTime() const override;
 
   protected:
+    void makeDescription() const override;
     virtual bool checkIfLoaded() override;
 };
 

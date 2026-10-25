@@ -328,7 +328,7 @@ std::shared_ptr<Collector> ReaderInfo::findCollector(const std::string& name,
 {
     for (auto& col : collectors) {
         if ((name.empty()) || (col->getName() == name)) {
-            if ((fileName.empty()) || (col->getSinkName().empty()) ||
+            if ((fileName.empty()) || (!name.empty() && col->getSinkName().empty()) ||
                 (col->getSinkName() == fileName)) {
                 return col;
             }

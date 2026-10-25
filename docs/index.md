@@ -10,6 +10,10 @@ then follow the [quick start](quickStart.md) or the detailed
 [Python interface guide](python-interface.md). Source-build instructions and
 the C++ documentation workflow are in [Building GridDyn](building.md).
 For GridDyn-specific network files, see [GridDyn XML inputs](xml-input.md).
+For measurement configuration, start with
+[Recorders and grabbers](recorders-and-grabbers.md), then consult the
+[expression reference](grabber-expressions.md) and
+[field and selector reference](grabber-fields.md).
 Release history is available in the
 [GridDyn changelog](https://github.com/LLNL/GridDyn/blob/main/CHANGELOG.md).
 
@@ -21,6 +25,9 @@ overview
 installation
 quickStart
 xml-input
+recorders-and-grabbers
+grabber-expressions
+grabber-fields
 python-interface
 capabilities
 building

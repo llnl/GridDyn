@@ -33,6 +33,7 @@ class GrabberSet: public ObjectOperatorInterface {
   private:
     std::shared_ptr<GridGrabber> mGrabber;  //!< the non state grabber
     std::shared_ptr<StateGrabber> mStateGrabber;  //!< the state grabber
+    std::string mDescription;  //!< description for state-only or empty sets
     std::unique_ptr<utilities::valuePredictor<CoreTime, double, double>>
         mPredictor;  //!< pointer to a predictor object
 
@@ -40,9 +41,9 @@ class GrabberSet: public ObjectOperatorInterface {
     /** create a grabber from a field String and object
     @param[in] fld the field to grab from an object
     @param[in] obj the object to get the field from
-    @param[in] step_only if set to true the underlying StateGrabber is not constructed
+    @param[in] stepOnly if set to true the underlying StateGrabber is not constructed
     */
-    GrabberSet(std::string_view fld, CoreObject* obj, bool step_only = false);
+    GrabberSet(std::string_view fld, CoreObject* obj, bool stepOnly = false);
     /** create a grabber from an offset index
     @param[in] noffset the offset into the state to grab
     @param[in] obj the object to get the field from
@@ -77,10 +78,13 @@ class GrabberSet: public ObjectOperatorInterface {
      *@param[out] data the vector to store the data in
      */
     virtual void grabData(std::vector<double>& data);
+    virtual void grabData(const StateData& stateDataValue,
+                          const SolverMode& sMode,
+                          std::vector<double>& data);
     /** @brief get the descriptions of the data
-     *@param[out] desc_list  the list of descriptions
+     *@param[out] descriptions  the list of descriptions
      **/
-    virtual void getDesc(std::vector<std::string>& desc_list) const;
+    virtual void getDesc(std::vector<std::string>& descriptions) const;
     virtual double grabData(const StateData& stateDataValue, const SolverMode& sMode);
     virtual void outputPartialDerivatives(const StateData& stateDataValue,
                                           MatrixData<double>& matrixDataValue,

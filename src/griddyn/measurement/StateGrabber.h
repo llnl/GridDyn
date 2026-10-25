@@ -45,6 +45,7 @@ class StateGrabber: public ObjectOperatorInterface {
     units::unit inputUnits = units::defunit;  //!< units of the input
     index_t offset = kInvalidLocation;  //!< the state offset location
     bool loaded = false;  //!< flag indicating the grabber is loaded
+    bool vectorGrab = false;  //!< selects a vector instead of one scalar
     bool cacheUpdateRequired =
         false;  //!< flag indicating that the cache should be updated before the call
     double gain = 1.0;  //!< multiplier on the input
@@ -77,6 +78,15 @@ class StateGrabber: public ObjectOperatorInterface {
     @param[in] stateDataValue the StateData to grab the data from
     @param[in] sMode the solver mode associated with the StateData*/
     virtual double grabData(const StateData& stateDataValue, const SolverMode& sMode);
+    virtual void grabVectorData(const StateData& stateDataValue,
+                                const SolverMode& sMode,
+                                std::vector<double>& values);
+    /** Derivative of one vector element, written to row zero. */
+    virtual void outputVectorPartialDerivatives(const StateData& data,
+                                                MatrixData<double>& matrix,
+                                                const SolverMode& mode,
+                                                size_t element);
+    virtual void getDesc(stringVec& descriptions) const;
     /** compute the partial derivatives of a grabber
     @param[in] stateDataValue the StateData for computing the information
     @param[in] matrixDataValue the  matrix to store the computed Jacobian information into
@@ -117,6 +127,9 @@ using fstateobjectPair = std::pair<
 */
 std::vector<std::unique_ptr<StateGrabber>> makeStateGrabbers(std::string_view command,
                                                              CoreObject* obj);
+
+/** Select a scalar field or an area/simulation vector of fields. */
+std::unique_ptr<StateGrabber> createStateGrabber(std::string_view field, CoreObject* object);
 
 /**
 class with an additional capability of a totally custom function grabber call
@@ -160,6 +173,7 @@ class StateFunctionGrabber: public StateGrabber {
                               ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
     virtual CoreObject* getObject() const override;
     virtual void updateField(std::string_view fld) override;
+    void getObjects(std::vector<CoreObject*>& objects) const override;
 };
 
 /** a state grabber with operation or two argument functions*/
@@ -192,6 +206,7 @@ class StateOpGrabber: public StateGrabber {
     void updateObject(CoreObject* obj, int num);
     virtual CoreObject* getObject() const override;
     virtual void updateField(std::string_view opName) override;
+    void getObjects(std::vector<CoreObject*>& objects) const override;
 };
 
 }  // namespace griddyn

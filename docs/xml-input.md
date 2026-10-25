@@ -93,6 +93,12 @@ shows these pieces together:
 </griddyn>
 ```
 
+See [Recorders and grabbers](recorders-and-grabbers.md) for field expressions,
+sampling settings, unit conversion, file output, autosave, and reset behavior.
+The [expression reference](grabber-expressions.md) lists supported functions
+and operators; [fields and selectors](grabber-fields.md) describes target
+fields, aliases, vectors, and selection scope.
+
 ## Imports and reader directives
 
 An XML input can import other files, including supported power-system data

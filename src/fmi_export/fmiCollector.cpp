@@ -8,6 +8,7 @@
 
 #include "fmiCoordinator.h"
 #include "griddyn/measurement/GridGrabbers.h"
+#include "griddyn/measurement/StateGrabber.h"
 #include <memory>
 #include <string>
 
@@ -75,7 +76,9 @@ void FmiCollector::dataPointAdded(const CollectorPoint& collectorDataPoint)
 {
     if (mCoordinator == nullptr) {
         // find the coordinator first
-        auto* gridObject = collectorDataPoint.mDataGrabber->getObject();
+        auto* gridObject = collectorDataPoint.mDataGrabber ?
+            collectorDataPoint.mDataGrabber->getObject() :
+            collectorDataPoint.mStateGrabber->getObject();
         if (gridObject != nullptr) {
             auto* rootObject = gridObject->getRoot();
             if (rootObject != nullptr) {
@@ -87,12 +90,10 @@ void FmiCollector::dataPointAdded(const CollectorPoint& collectorDataPoint)
         }
     }
     if (mCoordinator != nullptr) {
-        if (collectorDataPoint.mColumnCount == 1) {
-            mCoordinator->registerOutput(collectorDataPoint.mColumnName,
-                                         collectorDataPoint.mColumn,
-                                         this);
-        } else {
-            // TODO(phlpt): Deal with output vectors later.
+        const auto descriptions = getColumnDescriptions();
+        for (int index = 0; index < collectorDataPoint.mColumnCount; ++index) {
+            const auto column = collectorDataPoint.mColumn + index;
+            mCoordinator->registerOutput(descriptions[column], column, this);
         }
     }
 }

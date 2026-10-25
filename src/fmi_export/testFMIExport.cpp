@@ -18,6 +18,8 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/GridBus.h"
 #include "griddyn/loads/ThreePhaseLoad.h"
+#include "griddyn/measurement/StateGrabber.h"
+#include "griddyn/primary/AcBus.h"
 #include "griddyn/simulation/Diagnostics.h"
 #include <filesystem>
 #include <gtest/gtest.h>
@@ -101,6 +103,49 @@ TEST_F(FmiExportTests, TestFmiOutput)
     ASSERT_EQ(outputEvents.size(), 1U);
 
     EXPECT_EQ(outputEvents[0].second.name, "load");
+}
+
+TEST_F(FmiExportTests, CollectorRegistersDefaultScalarAndStateOnlyNames)
+{
+    auto coordinator = makeOwningPtr<griddyn::fmi::FmiCoordinator>();
+    gds = std::make_unique<GridDynSimulation>();
+    gds->add(coordinator.get());
+    auto* bus = new griddyn::AcBus("source");
+    bus->set("voltage", 1.1);
+    bus->set("angle", 0.25);
+    gds->add(bus);
+    griddyn::fmi::FmiCollector collector;
+    EXPECT_EQ(collector.nextTriggerTime(), griddyn::maxTime);
+    collector.add("voltage", bus);
+    collector.add(std::make_shared<griddyn::StateGrabber>("angle", bus));
+    EXPECT_NE(coordinator->findVR("source:voltage"), kNullLocation);
+    EXPECT_NE(coordinator->findVR("angle"), kNullLocation);
+    coordinator->updateOutputs(0.0);
+    EXPECT_DOUBLE_EQ(coordinator->getOutput(coordinator->findVR("source:voltage")), 1.1);
+    EXPECT_DOUBLE_EQ(coordinator->getOutput(coordinator->findVR("angle")), 0.25);
+}
+
+TEST_F(FmiExportTests, CollectorRegistersEveryVectorColumn)
+{
+    auto coordinator = makeOwningPtr<griddyn::fmi::FmiCoordinator>();
+    gds = std::make_unique<GridDynSimulation>();
+    gds->add(coordinator.get());
+    auto* first = new griddyn::AcBus("first");
+    auto* second = new griddyn::AcBus("second");
+    first->set("voltage", 1.1);
+    second->set("voltage", 0.9);
+    gds->add(first);
+    gds->add(second);
+    griddyn::fmi::FmiCollector collector;
+    collector.add("voltage as terminals", gds.get());
+    ASSERT_EQ(coordinator->getOutputs().size(), 2U);
+    const auto firstReference = coordinator->findVR("terminals[0]");
+    const auto secondReference = coordinator->findVR("terminals[1]");
+    ASSERT_NE(firstReference, kNullLocation);
+    ASSERT_NE(secondReference, kNullLocation);
+    coordinator->updateOutputs(0.0);
+    EXPECT_DOUBLE_EQ(coordinator->getOutput(firstReference), 1.1);
+    EXPECT_DOUBLE_EQ(coordinator->getOutput(secondReference), 0.9);
 }
 
 TEST_F(FmiExportTests, TestFmiSimulation)

@@ -22,35 +22,35 @@
 #include <array>
 #include <cctype>
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <numbers>
+#include <numeric>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
 
-static constexpr double local_pi = std::numbers::pi_v<double>;
-static constexpr double local_nan = std::numeric_limits<double>::quiet_NaN();
-static constexpr double local_inf = 1e48;
+static constexpr double localPi = std::numbers::pi_v<double>;
+static constexpr double localNan = std::numeric_limits<double>::quiet_NaN();
+static constexpr double localInf = 1e48;
 static constexpr double log2val = std::numbers::ln2_v<double>;
 static constexpr double log10val = std::numbers::ln10_v<double>;
 
 using gmlc::utilities::absMax;
-using gmlc::utilities::absMin;
 using gmlc::utilities::mult_sum;
-using gmlc::utilities::product;
 using gmlc::utilities::stdev;
 using gmlc::utilities::sum;
 using utilities::GridRandom;
 
 namespace {
 template<class Fn>
-struct functionEntry {
-    std::string_view name;
-    Fn function;
+struct FunctionEntry {
+    std::string_view mName;
+    Fn mFunction;
 
-    constexpr functionEntry(std::string_view entryName, Fn entryFunction):
-        name(entryName), function(entryFunction)
+    constexpr FunctionEntry(std::string_view entryName, Fn entryFunction):
+        mName(entryName), mFunction(entryFunction)
     {
     }
 };
@@ -69,60 +69,60 @@ bool isLowerAscii(std::string_view str) noexcept
 }
 
 template<class Fn, std::size_t N>
-Fn lookupFunctionExact(const std::array<functionEntry<Fn>, N>& functions,
+Fn lookupFunctionExact(const std::array<FunctionEntry<Fn>, N>& functions,
                        std::string_view functionName)
 {
     const auto functionMatch =
         std::find_if(functions.begin(), functions.end(), [functionName](const auto& entry) {
-            return entry.name == functionName;
+            return entry.mName == functionName;
         });
-    return (functionMatch != functions.end()) ? functionMatch->function : nullptr;
+    return (functionMatch != functions.end()) ? functionMatch->mFunction : nullptr;
 }
 
 template<std::size_t N>
-bool containsFunction(const std::array<functionEntry<function0_t>, N>& functions,
+bool containsFunction(const std::array<FunctionEntry<function0_t>, N>& functions,
                       std::string_view functionName)
 {
     return lookupFunction(functions, functionName) != nullptr;
 }
 
 template<std::size_t N>
-bool containsFunction(const std::array<functionEntry<function1_t>, N>& functions,
+bool containsFunction(const std::array<FunctionEntry<function1_t>, N>& functions,
                       std::string_view functionName)
 {
     return lookupFunction(functions, functionName) != nullptr;
 }
 
 template<std::size_t N>
-bool containsFunction(const std::array<functionEntry<function2_t>, N>& functions,
+bool containsFunction(const std::array<FunctionEntry<function2_t>, N>& functions,
                       std::string_view functionName)
 {
     return lookupFunction(functions, functionName) != nullptr;
 }
 
 template<std::size_t N>
-bool containsFunction(const std::array<functionEntry<function3_t>, N>& functions,
+bool containsFunction(const std::array<FunctionEntry<function3_t>, N>& functions,
                       std::string_view functionName)
 {
     return lookupFunction(functions, functionName) != nullptr;
 }
 
 template<std::size_t N>
-bool containsFunction(const std::array<functionEntry<vector_function1_t>, N>& functions,
+bool containsFunction(const std::array<FunctionEntry<vector_function1_t>, N>& functions,
                       std::string_view functionName)
 {
     return lookupFunction(functions, functionName) != nullptr;
 }
 
 template<std::size_t N>
-bool containsFunction(const std::array<functionEntry<vector_function2_t>, N>& functions,
+bool containsFunction(const std::array<FunctionEntry<vector_function2_t>, N>& functions,
                       std::string_view functionName)
 {
     return lookupFunction(functions, functionName) != nullptr;
 }
 
 template<class Fn, std::size_t N>
-Fn lookupFunction(const std::array<functionEntry<Fn>, N>& functions, std::string_view functionName)
+Fn lookupFunction(const std::array<FunctionEntry<Fn>, N>& functions, std::string_view functionName)
 {
     if (isLowerAscii(functionName)) {
         return lookupFunctionExact(functions, functionName);
@@ -152,15 +152,15 @@ double localMedian(std::vector<double> values)
 
 double infValue()
 {
-    return local_inf;
+    return localInf;
 }
 double nanValue()
 {
-    return local_nan;
+    return localNan;
 }
 double piValue()
 {
-    return local_pi;
+    return localPi;
 }
 double randUniform()
 {
@@ -279,7 +279,8 @@ double sqrtDerivative(double val)
 }
 double cbrtDerivative(double val)
 {
-    return (1.0 / 3.0) * std::pow(val, -2.0 / 3.0);
+    const auto root = std::cbrt(val);
+    return 1.0 / (3.0 * root * root);
 }
 double pow2Derivative(double val)
 {
@@ -295,11 +296,11 @@ double logDerivative(double val)
 }
 double log10Derivative(double val)
 {
-    return (1.0 / val) * log10val;
+    return 1.0 / (val * log10val);
 }
 double log2Derivative(double val)
 {
-    return (1.0 / val) * log2val;
+    return 1.0 / (val * log2val);
 }
 double unityDerivative(double /*val*/)
 {
@@ -409,11 +410,13 @@ double minArray(const std::vector<double>& ar1)
 }
 double absMinArray(const std::vector<double>& ar1)
 {
-    return absMin(ar1);
+    return std::abs(*std::min_element(ar1.begin(), ar1.end(), [](double first, double second) {
+        return std::abs(first) < std::abs(second);
+    }));
 }
 double productArray(const std::vector<double>& ar1)
 {
-    return product(ar1);
+    return std::accumulate(ar1.begin(), ar1.end(), 1.0, std::multiplies<double>{});
 }
 double avgArray(const std::vector<double>& ar1)
 {
@@ -433,13 +436,13 @@ double vectorProductArray(const std::vector<double>& ar1, const std::vector<doub
 }
 
 template<class Fn, std::size_t N>
-constexpr auto makeFunctionTable(const functionEntry<Fn> (&entries)[N])
+constexpr auto makeFunctionTable(const FunctionEntry<Fn> (&entries)[N])
 {
     return std::to_array(entries);
 }
 }  // namespace
 
-static constexpr auto FuncList0 = makeFunctionTable<function0_t>({
+static constexpr auto funcList0 = makeFunctionTable<function0_t>({
     {"inf", infValue},
     {"nan", nanValue},
     {"pi", piValue},
@@ -449,61 +452,63 @@ static constexpr auto FuncList0 = makeFunctionTable<function0_t>({
     {"randlogn", randLognormal},
 });
 
-static constexpr auto FuncList1 = makeFunctionTable<function1_t>({
-    {"sin", static_cast<function1_t>(std::sin)},
-    {"cos", static_cast<function1_t>(std::cos)},
-    {"tan", static_cast<function1_t>(std::tan)},
-    {"sinh", static_cast<function1_t>(std::sinh)},
-    {"cosh", static_cast<function1_t>(std::cosh)},
-    {"tanh", static_cast<function1_t>(std::tanh)},
-    {"abs", static_cast<function1_t>(std::abs)},
+// Captureless wrappers keep the tables constant-initialized across standard libraries,
+// including MSVC math intrinsics when parsed by Clang.
+static constexpr auto funcList1 = makeFunctionTable<function1_t>({
+    {"sin", [](double value) { return std::sin(value); }},
+    {"cos", [](double value) { return std::cos(value); }},
+    {"tan", [](double value) { return std::tan(value); }},
+    {"sinh", [](double value) { return std::sinh(value); }},
+    {"cosh", [](double value) { return std::cosh(value); }},
+    {"tanh", [](double value) { return std::tanh(value); }},
+    {"abs", [](double value) { return std::abs(value); }},
     {"sign", signValue},
-    {"asin", static_cast<function1_t>(std::asin)},
-    {"acos", static_cast<function1_t>(std::acos)},
-    {"atan", static_cast<function1_t>(std::atan)},
-    {"sqrt", static_cast<function1_t>(std::sqrt)},
-    {"cbrt", static_cast<function1_t>(std::cbrt)},
-    {"pow2", static_cast<function1_t>(std::exp2)},
+    {"asin", [](double value) { return std::asin(value); }},
+    {"acos", [](double value) { return std::acos(value); }},
+    {"atan", [](double value) { return std::atan(value); }},
+    {"sqrt", [](double value) { return std::sqrt(value); }},
+    {"cbrt", [](double value) { return std::cbrt(value); }},
+    {"pow2", [](double value) { return std::exp2(value); }},
     {"pow10", pow10Value},
-    {"log", static_cast<function1_t>(std::log)},
-    {"ln", static_cast<function1_t>(std::log)},
-    {"log10", static_cast<function1_t>(std::log10)},
-    {"log2", static_cast<function1_t>(std::log2)},
-    {"exp", static_cast<function1_t>(std::exp)},
-    {"exp2", static_cast<function1_t>(std::exp2)},
-    {"ceil", static_cast<function1_t>(std::ceil)},
-    {"floor", static_cast<function1_t>(std::floor)},
-    {"round", static_cast<function1_t>(std::round)},
-    {"trunc", static_cast<function1_t>(std::trunc)},
-    {"erf", static_cast<function1_t>(std::erf)},
-    {"erfc", static_cast<function1_t>(std::erfc)},
+    {"log", [](double value) { return std::log(value); }},
+    {"ln", [](double value) { return std::log(value); }},
+    {"log10", [](double value) { return std::log10(value); }},
+    {"log2", [](double value) { return std::log2(value); }},
+    {"exp", [](double value) { return std::exp(value); }},
+    {"exp2", [](double value) { return std::exp2(value); }},
+    {"ceil", [](double value) { return std::ceil(value); }},
+    {"floor", [](double value) { return std::floor(value); }},
+    {"round", [](double value) { return std::round(value); }},
+    {"trunc", [](double value) { return std::trunc(value); }},
+    {"erf", [](double value) { return std::erf(value); }},
+    {"erfc", [](double value) { return std::erfc(value); }},
     {"none", identityValue},
     {"dec", decimalValue},
     {"", identityValue},
 });
 
 static constexpr auto invFuncList1 = makeFunctionTable<function1_t>({
-    {"sin", static_cast<function1_t>(std::asin)},
-    {"cos", static_cast<function1_t>(std::acos)},
-    {"tan", static_cast<function1_t>(std::atan)},
-    {"sinh", static_cast<function1_t>(std::asinh)},
-    {"cosh", static_cast<function1_t>(std::acosh)},
-    {"tanh", static_cast<function1_t>(std::atanh)},
+    {"sin", [](double value) { return std::asin(value); }},
+    {"cos", [](double value) { return std::acos(value); }},
+    {"tan", [](double value) { return std::atan(value); }},
+    {"sinh", [](double value) { return std::asinh(value); }},
+    {"cosh", [](double value) { return std::acosh(value); }},
+    {"tanh", [](double value) { return std::atanh(value); }},
     {"abs", absIdentity},
     {"sign", signValue},
-    {"asin", static_cast<function1_t>(std::sin)},
-    {"acos", static_cast<function1_t>(std::cos)},
-    {"atan", static_cast<function1_t>(std::tan)},
+    {"asin", [](double value) { return std::sin(value); }},
+    {"acos", [](double value) { return std::cos(value); }},
+    {"atan", [](double value) { return std::tan(value); }},
     {"sqrt", sqrtInverse},
     {"cbrt", cbrtInverse},
-    {"pow2", static_cast<function1_t>(std::log2)},
-    {"pow10", static_cast<function1_t>(std::log10)},
-    {"log", static_cast<function1_t>(std::exp)},
-    {"ln", static_cast<function1_t>(std::exp)},
+    {"pow2", [](double value) { return std::log2(value); }},
+    {"pow10", [](double value) { return std::log10(value); }},
+    {"log", [](double value) { return std::exp(value); }},
+    {"ln", [](double value) { return std::exp(value); }},
     {"log10", inversePow10Value},
     {"log2", inversePow2Value},
-    {"exp", static_cast<function1_t>(std::log)},
-    {"exp2", static_cast<function1_t>(std::log2)},
+    {"exp", [](double value) { return std::log(value); }},
+    {"exp2", [](double value) { return std::log2(value); }},
     {"ceil", ceilIdentity},
     {"floor", floorIdentity},
     {"round", roundIdentity},
@@ -515,11 +520,11 @@ static constexpr auto invFuncList1 = makeFunctionTable<function1_t>({
 });
 
 static constexpr auto derivFuncList1 = makeFunctionTable<function1_t>({
-    {"sin", static_cast<function1_t>(std::cos)},
+    {"sin", [](double value) { return std::cos(value); }},
     {"cos", negSinValue},
     {"tan", tanDerivative},
-    {"sinh", static_cast<function1_t>(std::cosh)},
-    {"cosh", static_cast<function1_t>(std::sinh)},
+    {"sinh", [](double value) { return std::cosh(value); }},
+    {"cosh", [](double value) { return std::sinh(value); }},
     {"tanh", tanhDerivative},
     {"abs", absDerivative},
     {"asin", asinDerivative},
@@ -533,13 +538,13 @@ static constexpr auto derivFuncList1 = makeFunctionTable<function1_t>({
     {"ln", logDerivative},
     {"log10", log10Derivative},
     {"log2", log2Derivative},
-    {"exp", static_cast<function1_t>(std::exp)},
+    {"exp", [](double value) { return std::exp(value); }},
     {"exp2", pow2Derivative},
     {"none", unityDerivative},
     {"", unityDerivative},
 });
 
-static constexpr auto FuncList2 = makeFunctionTable<function2_t>({
+static constexpr auto funcList2 = makeFunctionTable<function2_t>({
     {"atan2", static_cast<function2_t>(std::atan2)},
     {"pow", static_cast<function2_t>(std::pow)},
     {"+", addValue},
@@ -569,7 +574,7 @@ static constexpr auto FuncList2 = makeFunctionTable<function2_t>({
     {"randgamma", randGammaRange},
 });
 
-static constexpr auto FuncList3 = makeFunctionTable<function3_t>({
+static constexpr auto funcList3 = makeFunctionTable<function3_t>({
     {"clamp", clampValue},
     {"max", max3},
     {"min", min3},
@@ -580,7 +585,7 @@ static constexpr auto FuncList3 = makeFunctionTable<function3_t>({
     {"median", median3},
 });
 
-static constexpr auto ArrFuncList1 = makeFunctionTable<vector_function1_t>({
+static constexpr auto arrFuncList1 = makeFunctionTable<vector_function1_t>({
     {"sum", sumArray},
     {"absmax", absMaxArray},
     {"max", maxArray},
@@ -592,34 +597,34 @@ static constexpr auto ArrFuncList1 = makeFunctionTable<vector_function1_t>({
     {"median", medianArray},
 });
 
-static constexpr auto ArrFuncList2 = makeFunctionTable<vector_function2_t>({
+static constexpr auto arrFuncList2 = makeFunctionTable<vector_function2_t>({
     {"vecprod", vectorProductArray},
 });
 
 bool isFunctionName(std::string_view functionName, FunctionType ftype)
 {
     if (((ftype == FunctionType::ALL) || (ftype == FunctionType::ARG)) &&
-        containsFunction(FuncList1, functionName)) {
+        containsFunction(funcList1, functionName)) {
         return true;
     }
     if (((ftype == FunctionType::ALL) || (ftype == FunctionType::ARG2)) &&
-        containsFunction(FuncList2, functionName)) {
+        containsFunction(funcList2, functionName)) {
         return true;
     }
     if (((ftype == FunctionType::ALL) || (ftype == FunctionType::ARG3)) &&
-        containsFunction(FuncList3, functionName)) {
+        containsFunction(funcList3, functionName)) {
         return true;
     }
     if (((ftype == FunctionType::ALL) || (ftype == FunctionType::NO_ARGS)) &&
-        containsFunction(FuncList0, functionName)) {
+        containsFunction(funcList0, functionName)) {
         return true;
     }
     if (((ftype == FunctionType::ALL) || (ftype == FunctionType::VECT_ARG)) &&
-        containsFunction(ArrFuncList1, functionName)) {
+        containsFunction(arrFuncList1, functionName)) {
         return true;
     }
     if (((ftype == FunctionType::ALL) || (ftype == FunctionType::VECT_ARG2)) &&
-        containsFunction(ArrFuncList2, functionName)) {
+        containsFunction(arrFuncList2, functionName)) {
         return true;
     }
     return false;
@@ -627,50 +632,57 @@ bool isFunctionName(std::string_view functionName, FunctionType ftype)
 
 double evalFunction(std::string_view functionName)
 {
-    const auto function = lookupFunction(FuncList0, functionName);
-    return (function != nullptr) ? function() : local_nan;
+    const auto function = lookupFunction(funcList0, functionName);
+    return (function != nullptr) ? function() : localNan;
 }
 
 double evalFunction(std::string_view functionName, double val)
 {
-    const auto function = lookupFunction(FuncList1, functionName);
-    return (function != nullptr) ? function(val) : local_nan;
+    const auto function = lookupFunction(funcList1, functionName);
+    return (function != nullptr) ? function(val) : localNan;
 }
 
 double evalFunction(std::string_view functionName, double val1, double val2)
 {
-    const auto function = lookupFunction(FuncList2, functionName);
-    return (function != nullptr) ? function(val1, val2) : local_nan;
+    const auto function = lookupFunction(funcList2, functionName);
+    return (function != nullptr) ? function(val1, val2) : localNan;
 }
 
 double evalFunction(std::string_view functionName, double val1, double val2, double val3)
 {
-    const auto function = lookupFunction(FuncList3, functionName);
-    return (function != nullptr) ? function(val1, val2, val3) : local_nan;
+    const auto function = lookupFunction(funcList3, functionName);
+    return (function != nullptr) ? function(val1, val2, val3) : localNan;
 }
 
 double evalFunction(std::string_view functionName, const std::vector<double>& arr)
 {
-    const auto function = lookupFunction(ArrFuncList1, functionName);
-    return (function != nullptr) ? function(arr) : local_nan;
+    const auto function = lookupFunction(arrFuncList1, functionName);
+    return (function != nullptr) ? function(arr) : localNan;
 }
 
 double evalFunction(std::string_view functionName,
                     const std::vector<double>& arr1,
                     const std::vector<double>& arr2)
 {
-    const auto function = lookupFunction(ArrFuncList2, functionName);
-    return (function != nullptr) ? function(arr1, arr2) : local_nan;
+    const auto function = lookupFunction(arrFuncList2, functionName);
+    return (function != nullptr) ? function(arr1, arr2) : localNan;
 }
 
 function0_t get0ArgFunction(std::string_view functionName)
 {
-    return lookupFunction(FuncList0, functionName);
+    return lookupFunction(funcList0, functionName);
+}
+
+bool isPureFunction(std::string_view functionName)
+{
+    std::string lowerName(functionName);
+    std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), asciiToLower);
+    return isFunctionName(lowerName) && !lowerName.starts_with("rand");
 }
 
 function1_t get1ArgFunction(std::string_view functionName)
 {
-    return lookupFunction(FuncList1, functionName);
+    return lookupFunction(funcList1, functionName);
 }
 
 function1_t getInverse1ArgFunction(std::string_view functionName)
@@ -685,20 +697,20 @@ function1_t getDerivative1ArgFunction(std::string_view functionName)
 
 function2_t get2ArgFunction(std::string_view functionName)
 {
-    return lookupFunction(FuncList2, functionName);
+    return lookupFunction(funcList2, functionName);
 }
 
 function3_t get3ArgFunction(std::string_view functionName)
 {
-    return lookupFunction(FuncList3, functionName);
+    return lookupFunction(funcList3, functionName);
 }
 
 vector_function1_t getArrayFunction(std::string_view functionName)
 {
-    return lookupFunction(ArrFuncList1, functionName);
+    return lookupFunction(arrFuncList1, functionName);
 }
 
 vector_function2_t get2ArrayFunction(std::string_view functionName)
 {
-    return lookupFunction(ArrFuncList2, functionName);
+    return lookupFunction(arrFuncList2, functionName);
 }

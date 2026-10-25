@@ -47,6 +47,8 @@ class Collector: public HelperObject, public EventInterface, public ObjectOperat
     CoreTime mStartTime = negTime;  //!< the time to start collecting
     CoreTime mStopTime = maxTime;  //!< the time to stop collecting
     CoreTime mTriggerTime = maxTime;  //!< the next trigger time for the Collector
+    CoreTime mInitialTriggerTime =
+        timeZero;  //!< configured scheduling origin, retained across resets
     CoreTime mLastTriggerTime = negTime;  //!< the last time the Collector was triggered
 
     /** data structure to capture the grabbers and location for a specific grabber*/
@@ -57,6 +59,7 @@ class Collector: public HelperObject, public EventInterface, public ObjectOperat
         std::shared_ptr<StateGrabber>
             mStateGrabber;  //!< the grabber for the data from the object state
         int mColumn = -1;  //!< the starting column for the data
+        int mRequestedColumn = -1;  //!< explicit column, or -1 for automatic placement
         int mColumnCount = 1;  //!< the number of columns associated with the point
         std::string mColumnName;  //!< the name for the data collected
         CollectorPoint(std::shared_ptr<GridGrabber> dg,
@@ -65,13 +68,14 @@ class Collector: public HelperObject, public EventInterface, public ObjectOperat
                        int ccnt = 1,
                        const std::string& cname = ""):
             mDataGrabber(std::move(dg)), mStateGrabber(std::move(sg)), mColumn(ncol),
-            mColumnCount(ccnt), mColumnName(cname)
+            mRequestedColumn(ncol), mColumnCount(ccnt), mColumnName(cname)
         {
         }
     };
 
     std::vector<CollectorPoint> mPoints;  //!< the data grabbers
     std::vector<double> mData;  //!< vector to grab store the most recent data
+    std::vector<double> mVectorBuffer;  //!< reusable scratch space for vector measurements
     count_t mColumns = 0;  //!< the length of the data vector
     bool mRecheck = false;  //!< flag indicating that the recorder should recheck all the fields
     bool mArmed = true;  //!< flag indicating if the recorder is armed and ready to go
@@ -156,11 +160,12 @@ class Collector: public HelperObject, public EventInterface, public ObjectOperat
     }
 
     /** clear all grabbers from the Collector*/
-    void reset();
+    virtual void reset();
     /** get the number of points in the Collector*/
     count_t numberOfPoints() const { return static_cast<count_t>(mPoints.size()); }
 
   protected:
+    void resetSchedule();
     /** callback intended more for derived classes to indicate that a dataPoint has been added*/
     virtual void dataPointAdded(const CollectorPoint& cp);
     /** get a column number, the requested column is a request only

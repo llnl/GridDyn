@@ -552,6 +552,9 @@ set(measurement_headers
     measurement/Condition.h
     measurement/GrabberSet.h
     measurement/GrabberInterpreter.hpp
+    measurement/GrabberUnitConversion.hpp
+    measurement/MeasurementExpression.hpp
+    measurement/MeasurementMath.hpp
 )
 
 set(measurement_sources
@@ -560,6 +563,7 @@ set(measurement_sources
     measurement/GridGrabbers.cpp
     measurement/GrabberInterpreter.cpp
     measurement/stateGrabbers.cpp
+    measurement/StateVectorGrabber.cpp
     measurement/Condition.cpp
     measurement/ObjectGrabbers.cpp
     measurement/CompoundCondition.cpp

@@ -13,9 +13,10 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 namespace griddyn {
-GrabberSet::GrabberSet(std::string_view fld, CoreObject* obj, bool step_only)
+GrabberSet::GrabberSet(std::string_view fld, CoreObject* obj, bool stepOnly)
 {
     auto ggb = makeGrabbers(fld, obj);
     if (!ggb.empty()) {
@@ -23,7 +24,7 @@ GrabberSet::GrabberSet(std::string_view fld, CoreObject* obj, bool step_only)
     } else {
         mGrabber = nullptr;  // TODO(phlpt): Consider a default grabber here.
     }
-    if (!step_only) {
+    if (!stepOnly) {
         auto ggbst = makeStateGrabbers(fld, obj);
         if (!ggbst.empty()) {
             mStateGrabber = std::move(ggbst[0]);
@@ -47,8 +48,9 @@ GrabberSet::~GrabberSet() = default;
 
 std::unique_ptr<GrabberSet> GrabberSet::clone() const
 {
-    auto gset = std::make_unique<GrabberSet>(mGrabber->clone(),
+    auto gset = std::make_unique<GrabberSet>(mGrabber ? mGrabber->clone() : nullptr,
                                              (mStateGrabber) ? mStateGrabber->clone() : nullptr);
+    gset->mDescription = mDescription;
     if (mPredictor) {
         gset->mPredictor =
             std::make_unique<utilities::valuePredictor<CoreTime, double>>(*mPredictor);
@@ -58,7 +60,13 @@ std::unique_ptr<GrabberSet> GrabberSet::clone() const
 
 void GrabberSet::cloneTo(GrabberSet* gset) const
 {
-    gset->updateGrabbers(mGrabber->clone(), (mStateGrabber) ? mStateGrabber->clone() : nullptr);
+    if (gset == this) {
+        return;
+    }
+    gset->updateGrabbers(mGrabber ? mGrabber->clone() : nullptr,
+                         mStateGrabber ? mStateGrabber->clone() : nullptr);
+    gset->mDescription = mDescription;
+    gset->mPredictor.reset();
     if (mPredictor) {
         gset->mPredictor =
             std::make_unique<utilities::valuePredictor<CoreTime, double>>(*mPredictor);
@@ -92,7 +100,7 @@ double GrabberSet::grabData()
     } else if (mStateGrabber) {
         lastOutput = grabData(emptyStateData, cLocalSolverMode);
     }
-    if (mPredictor) {
+    if (mPredictor && mGrabber) {
         mPredictor->update(lastOutput, mGrabber->getTime());
     }
     return lastOutput;
@@ -102,7 +110,22 @@ double GrabberSet::grabData()
  */
 void GrabberSet::grabData(std::vector<double>& data)
 {
-    mGrabber->grabVectorData(data);
+    grabData(emptyStateData, cLocalSolverMode, data);
+}
+
+void GrabberSet::grabData(const StateData& stateDataValue,
+                          const SolverMode& sMode,
+                          std::vector<double>& data)
+{
+    if (mStateGrabber && mStateGrabber->vectorGrab) {
+        mStateGrabber->grabVectorData(stateDataValue, sMode, data);
+        return;
+    }
+    if (mGrabber) {
+        mGrabber->grabVectorData(data);
+    } else {
+        data.clear();
+    }
 }
 double GrabberSet::grabData(const StateData& stateDataValue, const SolverMode& sMode)
 {
@@ -126,21 +149,31 @@ void GrabberSet::outputPartialDerivatives(const StateData& stateDataValue,
         mStateGrabber->outputPartialDerivatives(stateDataValue, matrixDataValue, sMode);
     }
 }
-void GrabberSet::getDesc(std::vector<std::string>& desc_list) const
+void GrabberSet::getDesc(std::vector<std::string>& descriptions) const
 {
-    mGrabber->getDesc(desc_list);
+    if (mGrabber) {
+        mGrabber->getDesc(descriptions);
+    } else {
+        descriptions.assign(1, getDesc());
+    }
 }
 const std::string& GrabberSet::getDesc() const
 {
-    return mGrabber->getDesc();
+    if (mGrabber) {
+        return mGrabber->getDesc();
+    }
+    return mDescription.empty() && mStateGrabber ? mStateGrabber->field : mDescription;
 }
 std::string GrabberSet::getDesc()
 {
-    return mGrabber->getDesc();
+    return std::as_const(*this).getDesc();
 }
 void GrabberSet::setDescription(const std::string& newDesc)
 {
-    mGrabber->setDescription(newDesc);
+    mDescription = newDesc;
+    if (mGrabber) {
+        mGrabber->setDescription(newDesc);
+    }
 }
 void GrabberSet::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
@@ -164,7 +197,10 @@ void GrabberSet::setGain(double newGain)
 
 CoreObject* GrabberSet::getObject() const
 {
-    return mGrabber->getObject();
+    if (mGrabber) {
+        return mGrabber->getObject();
+    }
+    return mStateGrabber ? mStateGrabber->getObject() : nullptr;
 }
 void GrabberSet::getObjects(std::vector<CoreObject*>& objects) const
 {
@@ -186,7 +222,7 @@ bool GrabberSet::stateCapable() const
 
 bool GrabberSet::hasJacobian() const
 {
-    if (mStateGrabber) {
+    if (mStateGrabber && mStateGrabber->loaded) {
         if (mStateGrabber->getJacobianMode() != JacobianMode::NONE) {
             return true;
         }

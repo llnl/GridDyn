@@ -34,5 +34,10 @@ recorder and reading its CSV output:
 python -m griddyn.examples.dynamic_time_series
 ```
 
+For recorder configuration and measurement syntax, see
+[Recorders and grabbers](recorders-and-grabbers.md), the
+[expression reference](grabber-expressions.md), and
+[field and selector reference](grabber-fields.md).
+
 See [Python interface](python-interface.md) for file readers, object access,
 units, exports, the DC OPF interface, and current limitations.

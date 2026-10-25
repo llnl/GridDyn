@@ -77,6 +77,8 @@ set(event_component_gtest_sources
     componentTests/ConditionTests.cpp
     componentTests/testEvents.cpp
     componentTests/testRecorders.cpp
+    componentTests/testMeasurements.cpp
+    componentTests/testGrabberFunctions.cpp
 )
 
 set(system_component_gtest_sources gtestHelperFunctions.cpp componentTests/testArea.cpp

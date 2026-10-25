@@ -17,6 +17,8 @@
 #include <vector>
 
 namespace griddyn {
+/** Normalize a lower-case field alias using the object-grabber registry. */
+std::string_view canonicalGrabberField(std::string_view field);
 class GridSubModel;
 class GridComponent;
 class GridBus;
@@ -85,12 +87,14 @@ class ObjectGrabber: public GridGrabber {
 
     void updateField(std::string_view fld) override
     {
-        field = fld;
+        if (!prepareField(fld)) {
+            return;
+        }
         auto fret = getObjectFunction(mTypedObject, fld);
         if (fret.first) {
             mGrabberFunction = fret.first;
             inputUnits = fret.second;
-            loaded = checkIfLoaded();
+            loaded = (mTypedObject != nullptr);
             return;
         }
         auto fvecret = getObjectVectorFunction(mTypedObject, fld);
@@ -99,10 +103,10 @@ class ObjectGrabber: public GridGrabber {
             inputUnits = fvecret.second;
             vectorGrab = true;
             mVectorDescriptionFunction = getObjectVectorDescFunction(mTypedObject, fld);
-            loaded = checkIfLoaded();
+            loaded = (mTypedObject != nullptr);
             return;
         }
-        GridGrabber::updateField(fld);
+        loaded = GridGrabber::checkIfLoaded();
     }
 
     void updateObject(CoreObject* obj, ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override
@@ -163,13 +167,16 @@ class ObjectOffsetGrabber: public GridGrabber {
 
     void updateField(std::string_view fld) override
     {
-        field = fld;
+        mOffset = kInvalidLocation;
+        if (!prepareField(fld)) {
+            return;
+        }
         const std::string fldString{fld};
         auto fret = getObjectFunction(mTypedObject, fldString);
         if (fret.first) {
             mGrabberFunction = fret.first;
             inputUnits = fret.second;
-            loaded = GridGrabber::checkIfLoaded();
+            loaded = (mTypedObject != nullptr);
             return;
         }
         auto fvecret = getObjectVectorFunction(mTypedObject, fldString);
@@ -178,13 +185,14 @@ class ObjectOffsetGrabber: public GridGrabber {
             inputUnits = fvecret.second;
             vectorGrab = true;
             mVectorDescriptionFunction = getObjectVectorDescFunction(mTypedObject, fldString);
-            loaded = GridGrabber::checkIfLoaded();
+            loaded = (mTypedObject != nullptr);
             return;
         }
-        mOffset = mTypedObject->findIndex(fldString, cLocalSolverMode);
+        mOffset = (mTypedObject != nullptr) ? mTypedObject->findIndex(fldString, cLocalSolverMode) :
+                                              kInvalidLocation;
 
         if (mOffset == kInvalidLocation) {
-            GridGrabber::updateField(fld);
+            loaded = GridGrabber::checkIfLoaded();
         } else {
             loaded = true;
             makeDescription();
@@ -198,18 +206,11 @@ class ObjectOffsetGrabber: public GridGrabber {
             (mode == ObjectUpdateMode::DIRECT) ? obj : findMatchingObject(mObject, obj);
         if (dynamic_cast<X*>(newObject)) {
             mTypedObject = static_cast<X*>(newObject);
-            if (mOffset == kInvalidLocation) {
-                GridGrabber::updateObject(newObject);
-            } else {
-                mOffset = mTypedObject->findIndex(field, cLocalSolverMode);
-
-                if (mOffset == kInvalidLocation) {
-                    GridGrabber::updateField(field);
-                } else {
-                    loaded = true;
-                    makeDescription();
-                    inputUnits = units::defunit;
-                }
+            GridGrabber::updateObject(newObject);
+            if (field.empty() && mOffset != kInvalidLocation) {
+                updateOffset(mOffset);
+            } else if (!field.empty()) {
+                updateField(std::string{field});
             }
         } else {
             throw(ObjectUpdateFailException());
@@ -218,9 +219,14 @@ class ObjectOffsetGrabber: public GridGrabber {
 
     void updateOffset(index_t nOffset)
     {
+        field.clear();
+        vectorGrab = false;
+        inputUnits = units::defunit;
         mOffset = nOffset;
         if (mTypedObject) {
-            if (mOffset < mTypedObject->stateSize(cLocalSolverMode)) {
+            if (mOffset >= 0 &&
+                (std::cmp_less(mOffset, mTypedObject->stateSize(cLocalSolverMode)) ||
+                 std::cmp_less(mOffset, mTypedObject->localStateNames().size()))) {
                 loaded = true;
                 if (!customDesc) {
                     mDescription = mTypedObject->getName() + ':' + std::to_string(nOffset);

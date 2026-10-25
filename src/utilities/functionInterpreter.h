@@ -82,6 +82,9 @@ double evalFunction(std::string_view functionName,
 */
 bool isFunctionName(std::string_view functionName, FunctionType ftype = FunctionType::ALL);
 
+/** Whether a registered function is deterministic and safe to fold at setup. */
+bool isPureFunction(std::string_view functionName);
+
 /** @brief find a no argument function and return the corresponding lambda function
 @param[in] functionName the function name
 @return a std::Function with the appropriate function

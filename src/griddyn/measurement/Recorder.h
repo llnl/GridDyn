@@ -9,7 +9,9 @@
 #include "Collector.h"
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
 #include <memory>
+#include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace griddyn {
@@ -17,12 +19,13 @@ namespace griddyn {
 class Recorder: public Collector {
   protected:
     CoreTime mLastSaveTime = negTime;  //!< the last time the recorder saved to file
+    size_t mSavedSamples = 0;  //!< buffered samples already written to the configured sink
     gmlc::utilities::TimeSeriesMulti<double, CoreTime> mDataset;  //!< the actual time series data
     std::string mFileName;  //!< the fileName to store the data
     std::string mDirectory;  //!< the directory to generate the specified file
 
-    bool mBinaryFile = true;  //!< flag indicating if the file is binary
     bool mFirstTrigger = true;  //!< flag indicating that the recorder has not been triggered yet
+    bool mLayoutChanged = false;  //!< signals changed since the recording schema was established
     std::int16_t mPrecision = -1;  //!< precision for writing text files.
     count_t mAutosave =
         0;  //!< flag indicating the recorder should autosave after the given number of points
@@ -39,6 +42,8 @@ class Recorder: public Collector {
     virtual void cloneTo(Collector* col) const override;
 
     virtual ChangeCode trigger(CoreTime time) override;
+    void updateObject(CoreObject* object,
+                      ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
 
     /** save the data to a file
     @param[in] fileName the name of the file to save the data to
@@ -67,7 +72,7 @@ class Recorder: public Collector {
     /** reset the recorder
     @details clears all the stored data
     */
-    void reset();
+    void reset() override;
 
     /** get the underlying timeSeries object*/
     const auto& getTimeSeries() const { return mDataset; }
@@ -79,8 +84,14 @@ class Recorder: public Collector {
     */
     const std::vector<double>& getData(count_t col) const
     {
-        return mDataset.data((col < mColumns) ? col : 0);
+        if (std::cmp_greater_equal(col, mDataset.columns())) {
+            throw std::out_of_range("recorder column index");
+        }
+        return mDataset.data(col);
     }
+
+  protected:
+    void dataPointAdded(const CollectorPoint& point) override;
 
   private:
     /** generate the field names for the data set*/

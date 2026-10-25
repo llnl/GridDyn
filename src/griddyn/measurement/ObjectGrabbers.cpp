@@ -656,6 +656,13 @@ fvecPair getObjectVectorFunction(const GridArea* area, std::string_view field)
     return getObjectVectorFunction(static_cast<const GridComponent*>(area), field);
 }
 
+std::string_view canonicalGrabberField(std::string_view field)
+{
+    const auto& aliases = getStringTranslate();
+    const auto found = aliases.find(field);
+    return found == aliases.end() ? field : found->second;
+}
+
 descVecFunc getObjectVectorDescFunction(const GridComponent* comp, std::string_view /*field*/)
 {
     static_cast<void>(comp);

@@ -18,8 +18,19 @@ static constexpr char nameString[] = "name";
 namespace {
     const IgnoreListType& collectorIgnoreStrings()
     {
-        static const auto* ignoreStrings = new IgnoreListType{
-            "file", "name", "column", "offset", "units", "gain", "bias", "field", "target", "type"};
+        static const auto* ignoreStrings = new IgnoreListType{"file",
+                                                              "filename",
+                                                              "sink",
+                                                              "name",
+                                                              "column",
+                                                              "offset",
+                                                              "units",
+                                                              "unit",
+                                                              "gain",
+                                                              "bias",
+                                                              "field",
+                                                              "target",
+                                                              "type"};
         return *ignoreStrings;
     }
 }  // namespace
@@ -34,7 +45,7 @@ int loadCollectorElement(std::shared_ptr<ReaderElement>& element,
     std::string name = readerInformation.checkDefines(
         getElementField(element, nameString, readerConfig::defMatchType));
     const std::string fileName = readerInformation.checkDefines(
-        getElementFieldOptions(element, {"file", "sink"}, readerConfig::defMatchType));
+        getElementFieldOptions(element, {"file", "filename", "sink"}, readerConfig::defMatchType));
     std::string type = readerInformation.checkDefines(
         getElementField(element, "type", readerConfig::defMatchType));
 
@@ -51,10 +62,10 @@ int loadCollectorElement(std::shared_ptr<ReaderElement>& element,
     if (!collectorObject) {
         collectorObject = makeCollector(type, name);
 
-        if (!fileName.empty()) {
-            collectorObject->set("file", fileName);
-        }
         readerInformation.collectors.push_back(collectorObject);
+    }
+    if (!fileName.empty()) {
+        collectorObject->set("file", fileName);
     }
 
     GridGrabberInfo grabberInfo;
@@ -98,8 +109,7 @@ int loadCollectorElement(std::shared_ptr<ReaderElement>& element,
     if (!elementText.empty()) {
         grabberInfo.offset = static_cast<int>(interpretString(elementText, readerInformation));
         if (!grabberInfo.field.empty()) {
-            WARNPRINT(READER_WARN_ALL,
-                      "specifying offset in Collector overrides field specification");
+            WARNPRINT(READER_WARN_ALL, "specifying a field in Collector overrides the offset");
         }
     }
     // now load the other fields for the Collector

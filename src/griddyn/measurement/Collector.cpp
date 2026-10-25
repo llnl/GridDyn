@@ -30,9 +30,29 @@ static ClassFactory<Collector> gCollFac("collector");
 static ChildClassFactory<Recorder, Collector>
     gRFac(std::vector<std::string>{"recorder", "rec", "file"}, "recorder");
 
+namespace {
+    CoreTime checkedPeriod(double seconds)
+    {
+        if (!std::isfinite(seconds) || seconds <= 0.0 || seconds >= static_cast<double>(maxTime)) {
+            throw InvalidParameterValue(
+                "collector interval must be finite and within the clock range");
+        }
+        const CoreTime interval(seconds);
+        if (interval <= timeZero || interval >= maxTime) {
+            throw InvalidParameterValue(
+                "collector interval is outside the clock resolution or range");
+        }
+        return interval;
+    }
+}  // namespace
+
 Collector::Collector(CoreTime time0, CoreTime period):
-    mTimePeriod(period), mRequestedPeriod(period), mTriggerTime(time0)
+    mTimePeriod(period), mRequestedPeriod(period), mTriggerTime(time0), mInitialTriggerTime(time0)
 {
+    // FMI and other externally driven collectors use this pair to disable scheduling.
+    if (time0 != maxTime || period != maxTime) {
+        static_cast<void>(checkedPeriod(period));
+    }
 }
 
 Collector::Collector(const std::string& collectorName):
@@ -49,39 +69,34 @@ std::unique_ptr<Collector> Collector::clone() const
 
 void Collector::cloneTo(Collector* col) const
 {
+    if (col == this) {
+        return;
+    }
     col->mRequestedPeriod = mRequestedPeriod;
     col->mTimePeriod = mTimePeriod;
     col->setName(getName());
+    col->setDescription(getDescription());
     col->mStartTime = mStartTime;
     col->mStopTime = mStopTime;
     col->mTriggerTime = mTriggerTime;
+    col->mInitialTriggerTime = mInitialTriggerTime;
     col->mLastTriggerTime = mLastTriggerTime;
-    for (size_t kk = 0; kk < mPoints.size(); ++kk) {
-        if (kk >= col->mPoints.size()) {
-            auto ggb = (mPoints[kk].mDataGrabber) ? mPoints[kk].mDataGrabber->clone() : nullptr;
-            auto ggbst = (mPoints[kk].mStateGrabber) ? mPoints[kk].mStateGrabber->clone() : nullptr;
-            col->mPoints.emplace_back(std::move(ggb), std::move(ggbst), mPoints[kk].mColumn);
-        } else {
-            if (col->mPoints[kk].mDataGrabber) {
-                if (mPoints[kk].mDataGrabber) {
-                    mPoints[kk].mDataGrabber->cloneTo(col->mPoints[kk].mDataGrabber.get());
-                }
-            } else if (mPoints[kk].mDataGrabber) {
-                col->mPoints[kk].mDataGrabber = mPoints[kk].mDataGrabber->clone();
-            }
-
-            if (col->mPoints[kk].mStateGrabber) {
-                if (mPoints[kk].mStateGrabber) {
-                    mPoints[kk].mStateGrabber->cloneTo(col->mPoints[kk].mStateGrabber.get());
-                }
-            } else if (mPoints[kk].mStateGrabber) {
-                col->mPoints[kk].mStateGrabber = mPoints[kk].mStateGrabber->clone();
-            }
-
-            col->mPoints[kk].mColumn = mPoints[kk].mColumn;
-        }
+    col->mArmed = mArmed;
+    col->mDelayProcess = mDelayProcess;
+    col->mVectorName = mVectorName;
+    col->mColumns = mColumns;
+    col->mRecheck = mRecheck;
+    col->clearWarnings();
+    col->mPoints.clear();
+    for (const auto& point : mPoints) {
+        col->mPoints.emplace_back(point.mDataGrabber ? point.mDataGrabber->clone() : nullptr,
+                                  point.mStateGrabber ? point.mStateGrabber->clone() : nullptr,
+                                  point.mRequestedColumn,
+                                  point.mColumnCount,
+                                  point.mColumnName);
+        col->mPoints.back().mColumn = point.mColumn;
     }
-    col->mData.resize(mData.size());
+    col->mData.assign(mData.size(), 0.0);
 }
 
 void Collector::updateObject(CoreObject* gco, ObjectUpdateMode mode)
@@ -92,7 +107,8 @@ void Collector::updateObject(CoreObject* gco, ObjectUpdateMode mode)
             if (dataPoint.mDataGrabber->vectorGrab) {
                 mRecheck = true;
             }
-        } else if (dataPoint.mStateGrabber) {
+        }
+        if (dataPoint.mStateGrabber) {
             dataPoint.mStateGrabber->updateObject(gco, mode);
         }
     }
@@ -125,26 +141,41 @@ void Collector::getObjects(std::vector<CoreObject*>& objects) const
 std::vector<std::string> Collector::getColumnDescriptions() const
 {
     stringVec res;
-    res.resize(mData.size());
+    size_t nextColumn = 0;
     for (const auto& datapoint : mPoints) {
-        if (datapoint.mDataGrabber->vectorGrab) {
-            stringVec vdesc;
-            datapoint.mDataGrabber->getDesc(vdesc);
-            for (size_t kk = 0; kk < vdesc.size(); ++kk) {
-                if ((datapoint.mColumnName.empty()) || (!mVectorName)) {
-                    res[datapoint.mColumn + kk] = vdesc[kk];
-                } else {
-                    res[datapoint.mColumn + kk] =
-                        datapoint.mColumnName + "[" + std::to_string(kk) + "]";
+        const auto column = datapoint.mRequestedColumn >= 0 ?
+            static_cast<size_t>(datapoint.mRequestedColumn) :
+            nextColumn;
+        stringVec descriptions;
+        if ((datapoint.mDataGrabber && datapoint.mDataGrabber->vectorGrab) ||
+            (!datapoint.mDataGrabber && datapoint.mStateGrabber->vectorGrab)) {
+            if (datapoint.mDataGrabber) {
+                datapoint.mDataGrabber->getDesc(descriptions);
+            } else {
+                datapoint.mStateGrabber->getDesc(descriptions);
+            }
+            if (mVectorName) {
+                auto name = datapoint.mColumnName;
+                if (name.empty()) {
+                    name = datapoint.mDataGrabber ? datapoint.mDataGrabber->getDesc() :
+                                                    datapoint.mStateGrabber->field;
+                }
+                for (size_t index = 0; index < descriptions.size(); ++index) {
+                    descriptions[index] = name + '[' + std::to_string(index) + ']';
                 }
             }
         } else {
-            if (datapoint.mColumnName.empty()) {
-                res[datapoint.mColumn] = datapoint.mDataGrabber->getDesc();
+            if (!datapoint.mColumnName.empty()) {
+                descriptions.push_back(datapoint.mColumnName);
+            } else if (datapoint.mDataGrabber) {
+                descriptions.push_back(datapoint.mDataGrabber->getDesc());
             } else {
-                res[datapoint.mColumn] = datapoint.mColumnName;
+                descriptions.push_back(datapoint.mStateGrabber->field);
             }
         }
+        nextColumn = std::max(nextColumn, column + descriptions.size());
+        res.resize(nextColumn);
+        std::copy(descriptions.begin(), descriptions.end(), res.begin() + column);
     }
     return res;
 }
@@ -152,23 +183,28 @@ std::vector<std::string> Collector::getColumnDescriptions() const
 void Collector::set(std::string_view param, double val)
 {
     if (param == "period") {
-        mRequestedPeriod = val;
-        mTimePeriod = val;
+        mRequestedPeriod = checkedPeriod(val);
+        mTimePeriod = mRequestedPeriod;
     } else if (param == "frequency") {
-        mRequestedPeriod = 1.0 / val;
-        mTimePeriod = val;
+        if (!std::isfinite(val) || val <= 0.0 || !std::isfinite(1.0 / val)) {
+            throw InvalidParameterValue("collector frequency must be finite and positive");
+        }
+        mRequestedPeriod = checkedPeriod(1.0 / val);
+        mTimePeriod = mRequestedPeriod;
     } else if ((param == "triggertime") || (param == "trigger") || (param == "time")) {
         mTriggerTime = val;
+        mInitialTriggerTime = mTriggerTime;
     } else if ((param == "starttime") || (param == "start")) {
         mStartTime = val;
         mTriggerTime = mStartTime;
+        mInitialTriggerTime = mTriggerTime;
     } else if ((param == "stoptime") || (param == "stop")) {
         mStopTime = val;
     } else if (param == "period_resolution") {
-        if (val > 0) {
-            auto per = static_cast<int>(std::round(mRequestedPeriod / val));
-            mTimePeriod = (per == 0) ? val : val * per;
-        }
+        const double resolution = checkedPeriod(val);
+        const auto periods =
+            std::max(1.0, std::round(static_cast<double>(mRequestedPeriod) / resolution));
+        mTimePeriod = checkedPeriod(resolution * periods);
     } else {
         HelperObject::set(param, val);
     }
@@ -176,7 +212,7 @@ void Collector::set(std::string_view param, double val)
 
 void Collector::set(std::string_view param, std::string_view val)
 {
-    if (param.front() == '#') {
+    if (!param.empty() && param.front() == '#') {
     } else {
         HelperObject::set(param, val);
     }
@@ -200,30 +236,34 @@ void Collector::setTime(CoreTime time)
 
 void Collector::recheckColumns()
 {
-    fsize_t columnTracker = 0;
-    std::vector<double> vals;
-    // for (size_t kk = 0; kk < mPoints.size(); ++kk)
+    int columnTracker = 0;
+    auto& vals = mVectorBuffer;
     for (auto& dataPoint : mPoints) {
-        if (dataPoint.mColumn == -1) {
-            dataPoint.mColumn = columnTracker;
-        }
-
-        if (dataPoint.mDataGrabber->vectorGrab) {
-            dataPoint.mDataGrabber->grabVectorData(vals);
-            columnTracker += static_cast<fsize_t>(vals.size());
+        dataPoint.mColumn =
+            dataPoint.mRequestedColumn >= 0 ? dataPoint.mRequestedColumn : columnTracker;
+        if ((dataPoint.mDataGrabber && dataPoint.mDataGrabber->vectorGrab) ||
+            (!dataPoint.mDataGrabber && dataPoint.mStateGrabber->vectorGrab)) {
+            if (dataPoint.mDataGrabber) {
+                dataPoint.mDataGrabber->grabVectorData(vals);
+            } else {
+                dataPoint.mStateGrabber->grabVectorData(emptyStateData, cLocalSolverMode, vals);
+            }
+            dataPoint.mColumnCount = static_cast<int>(vals.size());
         } else {
-            ++columnTracker;
+            dataPoint.mColumnCount = 1;
         }
+        columnTracker = std::max(columnTracker, dataPoint.mColumn + dataPoint.mColumnCount);
     }
+    mColumns = static_cast<count_t>(columnTracker);
     mData.resize(columnTracker);
     mRecheck = false;
 }
 
 count_t Collector::grabData(double* outputData, index_t outputCount)
 {
-    std::vector<double> vals;
+    auto& vals = mVectorBuffer;
     count_t currentCount = 0;
-    if (outputCount <= 0) {
+    if (outputData == nullptr || outputCount <= 0) {
         return 0;
     }
     const auto outputLimit = static_cast<count_t>(outputCount);
@@ -235,18 +275,32 @@ count_t Collector::grabData(double* outputData, index_t outputCount)
         if (column < 0 || column >= outputCount) {
             continue;
         }
-        if (datapoint.mDataGrabber->vectorGrab) {
-            datapoint.mDataGrabber->grabVectorData(vals);
+        if ((datapoint.mDataGrabber && datapoint.mDataGrabber->vectorGrab) ||
+            (!datapoint.mDataGrabber && datapoint.mStateGrabber->vectorGrab)) {
+            if (datapoint.mDataGrabber) {
+                datapoint.mDataGrabber->grabVectorData(vals);
+            } else {
+                datapoint.mStateGrabber->grabVectorData(emptyStateData, cLocalSolverMode, vals);
+            }
+            if (std::cmp_not_equal(vals.size(), datapoint.mColumnCount)) {
+                throw InvalidParameterValue(
+                    "collector vector size changed; recheck columns before sampling");
+            }
             const auto remaining = outputCount - column;
             const auto valueCount = static_cast<index_t>(vals.size());
             const auto copyCount = std::min(remaining, valueCount);
+            if (copyCount == 0) {
+                continue;
+            }
             std::copy_n(vals.begin(), copyCount, outputData + column);
             const auto nextCount = (copyCount >= remaining) ?
                 outputLimit :
                 static_cast<count_t>(column) + static_cast<count_t>(copyCount);
             currentCount = std::max(currentCount, nextCount);
         } else {
-            outputData[column] = datapoint.mDataGrabber->grabData();
+            outputData[column] = datapoint.mDataGrabber ?
+                datapoint.mDataGrabber->grabData() :
+                datapoint.mStateGrabber->grabData(emptyStateData, cLocalSolverMode);
             const auto nextCount =
                 (column >= (outputCount - 1)) ? outputLimit : static_cast<count_t>(column) + 1;
             currentCount = std::max(currentCount, nextCount);
@@ -258,25 +312,14 @@ count_t Collector::grabData(double* outputData, index_t outputCount)
 
 ChangeCode Collector::trigger(CoreTime time)
 {
-    std::vector<double> vals;
-
     if (mRecheck) {
         recheckColumns();
     }
-    for (auto& datapoint : mPoints) {
-        if (datapoint.mDataGrabber->vectorGrab) {
-            datapoint.mDataGrabber->grabVectorData(vals);
-            std::copy(vals.begin(), vals.end(), mData.begin() + datapoint.mColumn);
-        } else {
-            mData[datapoint.mColumn] = datapoint.mDataGrabber->grabData();
-        }
-    }
+    grabData(mData.data(), static_cast<index_t>(mData.size()));
     mLastTriggerTime = time;
-    int cnt = 0;
-    while (time >= mTriggerTime) {
-        mTriggerTime += mTimePeriod;
-        ++cnt;
-        if (cnt > 5) {
+    if (time >= mTriggerTime) {
+        mTriggerTime += (std::floor((time - mTriggerTime) / mTimePeriod) + 1.0) * mTimePeriod;
+        if (mTriggerTime <= time) {
             mTriggerTime = time + mTimePeriod;
         }
     }
@@ -310,45 +353,14 @@ void Collector::updateColumns(int requestedColumn)
     }
 }
 
-// TODO(phlpt): Merge the repeated add-path code.
 void Collector::add(std::shared_ptr<GridGrabber> ggb, int requestedColumn)  // NOLINT
 {
-    const int newColumn = getColumn(requestedColumn);
-
-    if (ggb->vectorGrab) {
-        mRecheck = true;
-    }
-
-    updateColumns(newColumn);
-    mPoints.emplace_back(ggb, nullptr, newColumn);
-    if (!ggb->getDesc().empty()) {
-        mPoints.back().mColumnName = ggb->getDesc();
-    }
-    dataPointAdded(mPoints.back());
-    if (!ggb->loaded) {
-        if (ggb->getObject() != nullptr) {
-            addWarning("grabber not loaded invalid field:" + ggb->field);
-        } else {
-            addWarning("grabber object not valid");
-        }
-    }
+    add(std::move(ggb), nullptr, requestedColumn);
 }
 
 void Collector::add(std::shared_ptr<StateGrabber> sst, int requestedColumn)  // NOLINT
 {
-    const int newColumn = getColumn(requestedColumn);
-    updateColumns(newColumn);
-
-    mPoints.emplace_back(nullptr, sst, newColumn);
-
-    dataPointAdded(mPoints.back());
-    if (!sst->loaded) {
-        if (sst->getObject() != nullptr) {
-            addWarning("grabber not loaded invalid field:" + sst->field);
-        } else {
-            addWarning("grabber object not valid");
-        }
-    }
+    add(nullptr, std::move(sst), requestedColumn);
 }
 
 // NOLINTNEXTLINE
@@ -356,15 +368,19 @@ void Collector::add(std::shared_ptr<GridGrabber> ggb,
                     std::shared_ptr<StateGrabber> sst,  // NOLINT
                     int requestedColumn)
 {
-    const int newColumn = getColumn(requestedColumn);
-    updateColumns(newColumn);
-
-    mPoints.emplace_back(ggb, sst, newColumn);
-    if (!ggb->getDesc().empty()) {
+    if (!ggb && !sst) {
+        throw AddFailureException();
+    }
+    const bool needsRecheck = mRecheck || (ggb ? ggb->vectorGrab : sst->vectorGrab);
+    mPoints.emplace_back(ggb, sst, requestedColumn);
+    mRecheck = true;
+    if (ggb && ggb->customDesc) {
         mPoints.back().mColumnName = ggb->getDesc();
     }
+    recheckColumns();
+    mRecheck = needsRecheck;
     dataPointAdded(mPoints.back());
-    if ((!ggb->loaded) && (!sst->loaded)) {
+    if ((!ggb || !ggb->loaded) && (!sst || !sst->loaded)) {
         addWarning("grabber not loaded");
     }
 }
@@ -376,7 +392,7 @@ void Collector::add(const GridGrabberInfo& gdRI, CoreObject* obj)
 {
     if (gdRI.field.empty())  // any field specification overrides the offset
     {
-        if (gdRI.offset > 0) {
+        if (gdRI.offset >= 0) {
             auto ggb = createGrabber(gdRI.offset, obj);
             // auto sst = makeStateGrabbers(gdRI.offset, obj);
             if (ggb) {
@@ -387,58 +403,30 @@ void Collector::add(const GridGrabberInfo& gdRI, CoreObject* obj)
             }
             throw(AddFailureException());
         }
-        obj->log(obj,
-                 PrintLevel::WARNING,
-                 "unable to create Collector no field or offset specified");
+        if (obj != nullptr) {
+            obj->log(obj,
+                     PrintLevel::WARNING,
+                     "unable to create Collector no field or offset specified");
+        }
         addWarning("unable to create Collector no field or offset specified");
         return;
     }
 
-    if (gdRI.field.find_first_of(",;") !=
-        std::string::npos) {  // now go into a loop of the comma variables
-        // if multiple fields were specified by comma or semicolon separation
-        auto splitFields = gmlc::utilities::stringOps::splitlineBracket(gdRI.field, ",;");
-        if (splitFields.size() > 1) {
-            int ccol = gdRI.column;
-            auto tempInfo = gdRI;
-            for (const auto& fld : splitFields) {
-                tempInfo.field = fld;
-                if (ccol >= 0) {
-                    /* this wouldn't work if the data was a vector grab, but in that case the
-                     * recheck flag would be activated and this information overridden*/
-                    tempInfo.column = ccol++;  // post increment intended
-                }
-                add(tempInfo, obj);
-            }
-            return;
-        }
-    }
-
-    // now we get to the interesting bit
     auto fldGrabbers = makeGrabbers(gdRI.field, obj);
-    auto stGrabbers = makeStateGrabbers(gdRI.field, obj);
-    if (fldGrabbers.size() == 1) {
-        // merge the gain and bias
-        fldGrabbers[0]->gain *= gdRI.gain;
-        fldGrabbers[0]->bias *= gdRI.gain;
-        fldGrabbers[0]->bias += gdRI.bias;
+    int requestedColumn = gdRI.column;
+    for (auto& grabber : fldGrabbers) {
+        grabber->gain *= gdRI.gain;
+        grabber->bias = std::fma(grabber->bias, gdRI.gain, gdRI.bias);
         if (gdRI.outputUnits != units::defunit) {
-            fldGrabbers[0]->outputUnits = gdRI.outputUnits;
+            grabber->outputUnits = gdRI.outputUnits;
         }
-        // TODO(PT) incorporate state grabbers properly
-        add(std::shared_ptr<GridGrabber>(std::move(fldGrabbers[0])), gdRI.column);
-    } else {
-        int ccol = gdRI.column;
-        for (auto& ggb : fldGrabbers) {
-            if (ccol > 0) {
-                add(std::shared_ptr<GridGrabber>(std::move(ggb)), ccol++);
-            } else {
-                add(std::shared_ptr<GridGrabber>(std::move(ggb)));
-            }
-        }
+        add(std::shared_ptr<GridGrabber>(std::move(grabber)), requestedColumn);
+        requestedColumn = -1;
     }
     if (fldGrabbers.empty()) {
-        obj->log(obj, PrintLevel::WARNING, "no grabbers created from " + gdRI.field);
+        if (obj != nullptr) {
+            obj->log(obj, PrintLevel::WARNING, "no grabbers created from " + gdRI.field);
+        }
         addWarning("no grabbers created from " + gdRI.field);
         throw(AddFailureException());
     }
@@ -447,26 +435,9 @@ void Collector::add(const GridGrabberInfo& gdRI, CoreObject* obj)
 // NOLINTNEXTLINE(misc-no-recursion)
 void Collector::add(std::string_view field, CoreObject* obj)
 {
-    if (field.find_first_of(",;") !=
-        std::string::npos) {  // now go into a loop of the comma variables
-        // if multiple fields were delimited by comma or semicolon
-        auto grabberStrings = gmlc::utilities::stringOps::splitlineBracket(field, ",;");
-        for (const auto& fld : grabberStrings) {
-            add(fld, obj);
-        }
-    } else {  // now we get to the interesting bit
-        auto fldGrabbers = makeGrabbers(std::string{field}, obj);
-        for (auto& ggb : fldGrabbers) {
-            add(std::shared_ptr<GridGrabber>(std::move(ggb)));
-        }
-        if (fldGrabbers.empty()) {
-            obj->log(obj,
-                     PrintLevel::WARNING,
-                     std::string{"no grabbers created from "} + std::string{field});
-            addWarning(std::string{"no grabbers created from "} + std::string{field});
-            throw(AddFailureException());
-        }
-    }
+    GridGrabberInfo info;
+    info.field = field;
+    add(info, obj);
 }
 
 void Collector::reset()
@@ -475,7 +446,15 @@ void Collector::reset()
     mData.clear();
     mWarnList.clear();
     mWarningCount = 0;
-    mTriggerTime = maxTime;
+    mColumns = 0;
+    mRecheck = false;
+    resetSchedule();
+}
+
+void Collector::resetSchedule()
+{
+    mLastTriggerTime = negTime;
+    mTriggerTime = mTimePeriod == maxTime ? maxTime : mInitialTriggerTime;
 }
 
 void Collector::flush() {}

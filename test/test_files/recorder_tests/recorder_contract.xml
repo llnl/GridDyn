@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="measurements">
+  <bus name="source">
+    <voltage>2</voltage>
+    <angle>0.5</angle>
+  </bus>
+  <recorder name="phase_signal" target="source" frequency="4" gain="2" bias="1" unit="deg">
+    <field>angle as phase</field>
+  </recorder>
+  <recorder name="voltage_vector" gain="3" bias="-1" column="2">
+    <field>voltage</field>
+  </recorder>
+  <recorder target="source" file="measurement_alias.csv" field="angle" />
+  <recorder target="source" filename="measurement_alias.csv" field="voltage" />
+  <recorder target="source" sink="measurement_alias.csv" field="enabled" />
+</griddyn>

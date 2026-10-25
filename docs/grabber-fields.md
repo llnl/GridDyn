@@ -186,7 +186,7 @@ index written directly after the name, for example `condition0` or `block1`:
 
 | Target | Fields                              | Meaning                                |
 | ------ | ----------------------------------- | -------------------------------------- |
-| Relay  | `condition`, `cN`                  | Condition value.                       |
+| Relay  | `condition`, `cN`                   | Condition value.                       |
 | Relay  | `statusN`                           | Condition status returned as a number. |
 | Sensor | `blockN`, `bN`                      | Block output.                          |
 | Sensor | `blockderivN`, `dblockdtN`, `dbdtN` | Block derivative output.               |

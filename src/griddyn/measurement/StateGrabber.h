@@ -128,7 +128,17 @@ using fstateobjectPair = std::pair<
 std::vector<std::unique_ptr<StateGrabber>> makeStateGrabbers(std::string_view command,
                                                              CoreObject* obj);
 
-/** Select a scalar field or an area/simulation vector of fields. */
+/** @brief Select a scalar field or a supported area/simulation field vector.
+ * @param field Single field name or alias; not a formula or field list.
+ * @param object Target supplying the field; must outlive the returned reader.
+ * @return Owned reader. Check loaded and getJacobianMode() separately: a readable
+ *         value does not imply solver derivatives are available.
+ *
+ * Supported area vectors reuse scalar state readers in nested-area-first order.
+ * Their membership binds at setup or retargeting; refresh it after topology
+ * changes. Other selections use the ordinary scalar StateGrabber path.
+ * @see makeStateGrabbers
+ */
 std::unique_ptr<StateGrabber> createStateGrabber(std::string_view field, CoreObject* object);
 
 /**

@@ -642,7 +642,7 @@ void StateGrabber::outputPartialDerivatives(const StateData& stateDataValue,
     double scale = gain;
     if (outputUnits != units::defunit) {
         const GrabberUnitConversion conversion(inputUnits, outputUnits, cobj);
-        scale *= conversion.convert(1.0) - conversion.convert(0.0);
+        scale *= conversion.affineScale();
     }
     if (scale != 1.0) {
         MatrixDataScale<double> scaledMatrix(matrixDataValue, scale);

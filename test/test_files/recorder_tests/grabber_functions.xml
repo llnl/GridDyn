@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="grabber_functions">
+  <bus name="source" voltage="2" angle="0.5" />
+  <recorder name="scalar_functions" target="source">
+    <field>clamp(voltage,0,1) as limited; hypot(voltage,angle,pi()) as magnitude</field>
+  </recorder>
+  <recorder name="vector_functions">
+    <field>sum(voltage) as total; vecprod(voltage,voltage) as squared_sum</field>
+  </recorder>
+</griddyn>

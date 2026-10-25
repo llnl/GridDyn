@@ -4,6 +4,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+/** @file
+ * @brief Parse object measurements and expand built-in object/state selectors.
+ *
+ * Mathematical calls use MeasurementExpression; object-only all_state/all_model
+ * selectors use a late-bound reader so submodels created during initialization
+ * can supply both values and matching column descriptions.
+ */
+
 #include "GrabberInterpreter.hpp"
 
 #include "../Generator.h"
@@ -33,6 +41,15 @@ static void perObjectGrabbers(std::string_view cmd,
                               std::vector<std::unique_ptr<GridGrabber>>& grabbers);
 
 namespace {
+    /** @brief Collect current local states or their labels from a component subtree.
+     * @param object Root component; other object types produce empty outputs.
+     * @param[out] values Values in traversal order, or null to skip value collection.
+     * @param[out] descriptions Component:state labels, or null to skip labels.
+     *
+     * Clears requested outputs and visits root states before children in stored
+     * order. Repeating discovery at read time includes internal controller
+     * blocks created during initialization; values and labels use one traversal.
+     */
     void collectStates(CoreObject* object, std::vector<double>* values, stringVec* descriptions)
     {
         if (values != nullptr) {
@@ -63,9 +80,21 @@ namespace {
         }
     }
 
-    // Controllers can attach internal blocks during dynamic initialization.
+    /** @brief Read all current local states below an object as a recorder vector.
+     *
+     * Used by all_state and model/controller selectors. Discovers membership on
+     * each read/description request so configuration can precede initialization.
+     * Reads stored object states, not an externally supplied solver StateData,
+     * and supplies no solver Jacobian. Targets must outlive the reader.
+     *
+     * This class serves object-side state enumeration; the state-field vector
+     * factory in StateVectorGrabber.cpp instead binds bus/link field membership
+     * and supports solver-state access. If discovery changes the output width,
+     * the owning collector/recorder layout must be rechecked/reset.
+     */
     class StateVectorGrabber final: public GridGrabber {
       public:
+        /** @brief Bind value and label discovery to the selected component subtree. */
         explicit StateVectorGrabber(CoreObject* object)
         {
             field = "state";
@@ -79,6 +108,7 @@ namespace {
             GridGrabber::updateObject(object);
         }
 
+        /** @brief Copy reader configuration while retaining its target association. */
         std::unique_ptr<GridGrabber> clone() const override
         {
             auto copy = std::make_unique<StateVectorGrabber>(mObject);
@@ -87,6 +117,7 @@ namespace {
         }
 
         using GridGrabber::getDesc;
+        /** @brief Rediscover state labels, or use indexed labels for a custom description. */
         void getDesc(stringVec& descriptions) const override
         {
             if (customDesc) {
@@ -97,6 +128,7 @@ namespace {
         }
     };
 
+    /** @brief Append a late-bound state vector when the target is a component. */
     void appendStateGrabbers(CoreObject* object,
                              std::vector<std::unique_ptr<GridGrabber>>& grabbers)
     {

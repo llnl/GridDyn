@@ -789,6 +789,8 @@ TEST(RecorderOperations, TimeWindowAndInvalidColumnAccess)
     EXPECT_THROW(recorder.set("reserve", -1.0), InvalidParameterValue);
     EXPECT_THROW(recorder.setSpace(-1.0), InvalidParameterValue);
     EXPECT_THROW(recorder.addSpace(-1.0), InvalidParameterValue);
+    EXPECT_THROW(recorder.setSpace(maxTime), InvalidParameterValue);
+    EXPECT_THROW(recorder.addSpace(maxTime), InvalidParameterValue);
     recorder.setSpace(10.0);
     recorder.addSpace(10.0);
     recorder.set("precision", 12.0);

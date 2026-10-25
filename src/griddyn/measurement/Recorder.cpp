@@ -193,7 +193,7 @@ void Recorder::reset()
 }
 void Recorder::setSpace(CoreTime span)
 {
-    if (!std::isfinite(span) || span < 0.0 ||
+    if (span < 0.0 || span >= maxTime ||
         span / mTimePeriod >= std::numeric_limits<count_t>::max()) {
         throw InvalidParameterValue("invalid recorder reserve span");
     }
@@ -203,7 +203,7 @@ void Recorder::setSpace(CoreTime span)
 
 void Recorder::addSpace(CoreTime span)
 {
-    if (!std::isfinite(span) || span < 0.0 ||
+    if (span < 0.0 || span >= maxTime ||
         span / mTimePeriod + mDataset.time().capacity() >= std::numeric_limits<fsize_t>::max()) {
         throw InvalidParameterValue("invalid recorder reserve span");
     }

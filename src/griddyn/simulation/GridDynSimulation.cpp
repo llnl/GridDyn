@@ -1263,6 +1263,8 @@ double GridDynSimulation::get(std::string_view param, units::unit unitType) cons
         }
     } else if (param == "voltagetolerance") {
         fval = tols.voltageTolerance;
+    } else if (param == "tolerance" || param == "rtol") {
+        fval = tols.rtol;
     } else if (param == "angletolerance") {
         fval = tols.angleTolerance;
     } else if (param == "timetolerance") {

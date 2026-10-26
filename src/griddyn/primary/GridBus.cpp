@@ -9,9 +9,11 @@
 
 #include "../Generator.h"
 #include "../GridArea.h"
+#include "../GridDynSimulation.h"
 #include "../Link.h"
 #include "../loads/ZipLoad.h"
 #include "../measurement/ObjectGrabbers.h"
+#include "../solvers/SolverInterface.h"
 #include "AcBus.h"
 #include "DcBus.h"
 #include "InfiniteBus.h"
@@ -29,6 +31,7 @@
 #include <print>
 #include <queue>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace griddyn {
@@ -51,23 +54,22 @@ using units::puV;
 using units::rad;
 using units::unit;
 
-GridBus::GridBus(const std::string& objName): GridPrimary(objName), outputs(3), outLocs(3)
+GridBus::GridBus(const std::string& objName):
+    GridPrimary(objName), outputs(3), outLocs(3, kNullLocation)
 {
     // default values
     m_outputSize = 3;
     setUserID(++busCount);
     updateName();
     localBaseVoltage = 120.0;
+    GridComponent::localBaseVoltage = 120000.0;
 }
 
 GridBus::GridBus(double voltageStart, double angleStart, const std::string& objName):
-    GridPrimary(objName), angle(angleStart), voltage(voltageStart)
+    GridBus(objName)
 {
-    m_outputSize = 3;
-    // default values
-    setUserID(++busCount);
-    updateName();
-    localBaseVoltage = 120.0;
+    angle = angleStart;
+    voltage = voltageStart;
 }
 
 CoreObject* GridBus::clone(CoreObject* obj) const
@@ -99,28 +101,34 @@ bool GridBus::checkCapable()
         return true;
     }
     for (auto& load : attachedLoads) {
-        if (load->isConnected()) {
+        if (load->isConnected() && load->isEnabled()) {
             remainingCapacity -= load->getRealPower();
             excessCapacity -= load->getRealPower();
         }
     }
     for (auto& gen : attachedGens) {
-        if (gen->isConnected()) {
+        if (gen->isConnected() && gen->isEnabled()) {
             remainingCapacity += gen->getPmax();
             excessCapacity += gen->getPmin();
         }
     }
     for (auto& link : attachedLinks) {
-        if (link->isConnected()) {
+        if (link->isConnected() && link->isEnabled()) {
             remainingCapacity += link->getMaxTransfer();
             excessCapacity -= link->getMaxTransfer();
         }
     }
-    if (remainingCapacity >= 0.0) {
-        return true;
+    double capacityTolerance = 1.0e-8;
+    if (auto* simulation = dynamic_cast<GridDynSimulation*>(getRoot()); simulation != nullptr) {
+        const auto mode = simulation->getSolverMode("powerflow");
+        const auto solver = static_cast<const GridDynSimulation*>(simulation)->getSolverInterface(mode);
+        const double configuredTolerance =
+            solver ? solver->get("tolerance") : simulation->get("tolerance");
+        if (std::isfinite(configuredTolerance) && configuredTolerance > 0.0) {
+            capacityTolerance = configuredTolerance;
+        }
     }
-
-    if (excessCapacity <= 0.0) {
+    if ((remainingCapacity >= -capacityTolerance) && (excessCapacity <= capacityTolerance)) {
         return true;
     }
     logging::warning(this, "BUS failed");
@@ -165,7 +173,7 @@ void addObject(GridBus* bus, X* obj, objVector<X*>& oVector)
     if (foundObj == nullptr) {
         obj->locIndex = static_cast<index_t>(oVector.size());
         oVector.push_back(obj);
-        obj->set("basevoltage", bus->localBaseVoltage);
+        obj->set("basevoltage", bus->localBaseVoltage, kV);
         bus->addSubObject(obj);
         if (bus->checkFlag(POWERFLOW_INITIALIZED)) {
             bus->alert(bus, OBJECT_COUNT_INCREASE);
@@ -195,8 +203,14 @@ void GridBus::replaceLoad(GridLoad* previous, GridLoad* replacement)
         throw ObjectAddFailure(this);
     }
     const auto position = previous->locIndex;
+    if (previous == replacement) {
+        return;
+    }
+    if (!replacement->isRoot()) {
+        throw ObjectAddFailure(this);
+    }
     replacement->locIndex = position;
-    replacement->set("basevoltage", localBaseVoltage);
+    replacement->set("basevoltage", localBaseVoltage, kV);
     replaceSubObject(replacement, previous);
     attachedLoads[position] = replacement;
 }
@@ -209,8 +223,14 @@ void GridBus::replaceGenerator(Generator* previous, Generator* replacement)
         throw ObjectAddFailure(this);
     }
     const auto position = previous->locIndex;
+    if (previous == replacement) {
+        return;
+    }
+    if (!replacement->isRoot()) {
+        throw ObjectAddFailure(this);
+    }
     replacement->locIndex = position;
-    replacement->set("basevoltage", localBaseVoltage);
+    replacement->set("basevoltage", localBaseVoltage, kV);
     replaceSubObject(replacement, previous);
     attachedGens[position] = replacement;
 }
@@ -261,7 +281,11 @@ static bool removeObject(X* obj, objVector<X*>& oVector)
             obj->getParent()->alert(obj->getParent(), STATE_COUNT_DECREASE);
         }
 
-        oVector.erase(oVector.begin() + obj->locIndex);
+        const auto position = obj->locIndex;
+        oVector.erase(oVector.begin() + position);
+        for (auto index = position; index < static_cast<index_t>(oVector.size()); ++index) {
+            oVector[index]->locIndex = index;
+        }
         return true;
     }
     return false;
@@ -515,6 +539,8 @@ void GridBus::setAll(std::string_view objtype,
                 continue;
             }
         }
+    } else {
+        GridPrimary::setAll(objtype, param, val, unitType);
     }
 }
 
@@ -534,13 +560,11 @@ void GridBus::setFlag(std::string_view flag, bool val)
 {
     if (flag == "connected") {
         if (val) {
-            if (isConnected()) {
-                disconnect();
-            }
-        } else {
             if (!isConnected()) {
                 reconnect();
             }
+        } else if (isConnected()) {
+            disconnect();
         }
     } else {
         GridPrimary::setFlag(flag, val);
@@ -564,7 +588,7 @@ void GridBus::set(std::string_view param, double val, unit unitType)
                 alert(this, POTENTIAL_FAULT_CHANGE);
             }
         }
-        voltage = convert(val, unitType, puV, systemBasePower, localBaseVoltage);
+        voltage = convert(val, unitType, puV, localBaseVoltage * 1000.0);
     } else if ((param == "angle") || (param == "ang")) {
         angle = convert(val, unitType, rad);
     } else if ((param == "freq") || (param == "frequency") || (param == "dadt")) {
@@ -572,11 +596,12 @@ void GridBus::set(std::string_view param, double val, unit unitType)
     } else if ((param == "basevoltage") || (param == "base vol") || (param == "vbase") ||
                (param == "voltagebase")) {
         localBaseVoltage = convert(val, unitType, kV);
+        GridComponent::localBaseVoltage = convert(localBaseVoltage, kV, units::V);
         for (auto& gen : attachedGens) {
-            gen->set("basevoltage", val);
+            gen->set("basevoltage", localBaseVoltage, kV);
         }
         for (auto& load : attachedLoads) {
-            load->set("basevoltage", val);
+            load->set("basevoltage", localBaseVoltage, kV);
         }
     } else if ((param == "p") || (param == "gen p")) {
         S.genP = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
@@ -592,7 +617,7 @@ void GridBus::set(std::string_view param, double val, unit unitType)
             }
         }
     } else if ((param == "q") || (param == "gen q")) {
-        S.genQ = convert(val, unitType, puMW);
+        S.genQ = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
         if (attachedGens.size() == 1) {
             attachedGens[0]->set("q", S.genQ);
         } else if (attachedGens.empty()) {
@@ -653,6 +678,11 @@ IOlocs GridBus::getOutputLocs(const SolverMode& /*sMode*/) const
     return NO_LOCS;
 }
 
+index_t GridBus::getOutputLoc(const SolverMode& /*sMode*/, index_t /*num*/) const
+{
+    return kNullLocation;
+}
+
 const IOdata& GridBus::getOutputsRef() const
 {
     return outputs;
@@ -660,7 +690,7 @@ const IOdata& GridBus::getOutputsRef() const
 
 const IOlocs& GridBus::getOutputLocsRef() const
 {
-    return NO_LOCS;
+    return outLocs;
 }
 
 double GridBus::getOutput(const IOdata& /*inputs*/,
@@ -724,119 +754,51 @@ double GridBus::getFreq(const StateData& /*stateDataValue*/, const SolverMode& /
     return freq;
 }
 
-// NOLINTNEXTLINE(misc-no-recursion)
 bool GridBus::directPath(GridComponent* target, GridComponent* source)
 {
-    auto tid = target->getID();
-    if (isSameObject(tid, this)) {
-        return true;
-    }
-    for (auto& gen : attachedGens) {
-        if (isSameObject(tid, gen)) {
-            return true;
-        }
-    }
-    for (auto& load : attachedLoads) {
-        if (isSameObject(tid, load)) {
-            return true;
-        }
-    }
-    auto sid = (source != nullptr) ? source->getID() : 0;
-    int lnkcnt = 0;
-    Link* nLink = nullptr;
-    for (auto& lnk : attachedLinks) {
-        if (lnk->isConnected()) {
-            if (isSameObject(lnk, sid)) {
-                ++lnkcnt;
-                if (lnkcnt > 1) {
-                    return false;
-                }
-                nLink = lnk;
-            }
-        }
-    }
-    if (nLink != nullptr) {
-        if (isSameObject(nLink->getBus(1), tid)) {
-            return true;
-        }
-        if (isSameObject(nLink->getBus(2), tid)) {
-            return true;
-        }
-        if (isSameObject(nLink->getBus(1), this)) {
-            return nLink->getBus(2)->directPath(target, nLink);
-        }
-        return nLink->getBus(1)->directPath(target, nLink);
-    }
-    return false;
+    return !getDirectPath(target, source).empty();
 }
 
-// NOLINTNEXTLINE(misc-no-recursion)
 std::vector<GridComponent*> GridBus::getDirectPath(GridComponent* target, GridComponent* source)
 {
-    std::vector<GridComponent*> opath{source};
-
-    auto tid = target->getID();
-    if (isSameObject(tid, this)) {
-        opath.push_back(target);
-        return opath;
+    if (target == nullptr) {
+        return {};
     }
-    for (auto& gen : attachedGens) {
-        if (isSameObject(tid, gen)) {
-            opath.push_back(target);
-            return opath;
+    std::vector<GridComponent*> path{(source != nullptr) ? source : this};
+    std::unordered_set<const GridBus*> visited;
+    auto* current = this;
+    GridComponent* incoming = source;
+    while (current != nullptr && current->isEnabled() && current->isConnected() &&
+           visited.insert(current).second) {
+        if (target == current ||
+            std::find(current->attachedGens.begin(), current->attachedGens.end(), target) !=
+                current->attachedGens.end() ||
+            std::find(current->attachedLoads.begin(), current->attachedLoads.end(), target) !=
+                current->attachedLoads.end()) {
+            path.push_back(target);
+            return path;
         }
-    }
-    for (auto& load : attachedLoads) {
-        if (isSameObject(tid, load)) {
-            opath.push_back(target);
-            return opath;
-        }
-    }
-    auto sid = (source != nullptr) ? source->getID() : 0;
-    int lnkcnt = 0;
-    Link* nLink = nullptr;
-    for (auto& lnk : attachedLinks) {
-        if (lnk->isConnected()) {
-            if (isSameObject(lnk, sid)) {
-                ++lnkcnt;
-                if (lnkcnt > 1) {
+        Link* next = nullptr;
+        for (auto* link : current->attachedLinks) {
+            if (link != incoming && link->isEnabled() && link->isConnected()) {
+                if (next != nullptr) {
                     return {};
                 }
-                nLink = lnk;
+                next = link;
             }
         }
-    }
-    if (nLink != nullptr) {
-        if (isSameObject(nLink->getBus(1), tid)) {
-            opath.push_back(nLink);
-            opath.push_back(target);
-            return opath;
+        if (next == nullptr) {
+            return {};
         }
-        if (isSameObject(nLink->getBus(2), tid)) {
-            opath.push_back(nLink);
-            opath.push_back(target);
-            return opath;
+        path.push_back(next);
+        incoming = next;
+        if (next->getBus(1) == current) {
+            current = next->getBus(2);
+        } else if (next->getBus(2) == current) {
+            current = next->getBus(1);
+        } else {
+            return {};
         }
-        if (isSameObject(nLink->getBus(1), this)) {
-            auto npath = nLink->getBus(2)->getDirectPath(target, nLink);
-            if (npath.empty()) {
-                return npath;
-            }
-
-            for (auto& pathComponent : npath) {
-                opath.push_back(pathComponent);
-            }
-            return opath;
-        }
-        auto npath = nLink->getBus(1)->getDirectPath(target, nLink);
-        if (npath.empty()) {
-            return npath;
-        }
-
-        for (auto& pathComponent : npath) {
-            opath.push_back(pathComponent);
-        }
-        return opath;
     }
     return {};
 }
@@ -1050,6 +1012,8 @@ void GridBus::disconnect()
         logging::debug(this, "disconnecting bus");
         voltage = 0.0;
         angle = 0.0;
+        outputs = {voltage, angle, freq};
+        S.reset();
         for (auto& lnk : attachedLinks) {
             lnk->disconnect();
         }
@@ -1137,7 +1101,7 @@ void GridBus::updateLocalCache(const IOdata& /*inputs*/,
     if (isExtended(sMode)) {
         auto offset = offsets.getAlgOffset(sMode);
         S.loadP = stateDataValue.state[offset];
-        S.loadQ = stateDataValue.state[offset + 1];
+        S.loadQ = isDC(sMode) ? 0.0 : stateDataValue.state[offset + 1];
         return;
     }
 
@@ -1183,7 +1147,7 @@ bool busPowers::needsUpdate(const StateData& stateDataValue) const
 void GridBus::updateLocalCache()
 {
     S.reset();
-    if (!isEnabled()) {
+    if (!isEnabled() || !isConnected()) {
         return;
     }
 
@@ -1399,7 +1363,7 @@ double GridBus::get(std::string_view param, unit unitType) const
 {
     double val;
     if (param == "voltage") {
-        val = convert(voltage, puV, unitType, systemBasePower, localBaseVoltage);
+        val = convert(voltage, puV, unitType, localBaseVoltage * 1000.0);
     } else if (param == "angle") {
         val = convert(angle, rad, unitType);
     } else if (param == "vtol") {
@@ -1407,7 +1371,7 @@ double GridBus::get(std::string_view param, unit unitType) const
     } else if (param == "atol") {
         val = Atol;
     } else if ((param == "basevoltage") || (param == "vbase")) {
-        val = localBaseVoltage;
+        val = convert(localBaseVoltage, kV, unitType);
     } else if ((param == "general") || (param == "generationreal")) {
         val = convert(getGenerationReal(), puMW, unitType, systemBasePower, localBaseVoltage);
     } else if ((param == "genreactive") || (param == "generationreactive")) {

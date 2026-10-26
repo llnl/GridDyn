@@ -17,6 +17,7 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixDataCompact.hpp"
 #include <algorithm>
+#include <array>
 #include <iostream>
 #include <string>
 
@@ -58,8 +59,6 @@ void DcBus::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 void DcBus::pFlowObjectInitializeB()
 {
     GridBus::pFlowObjectInitializeB();
-
-    propogatePower();
 }
 
 StateSizes DcBus::localStateSizes(const SolverMode& sMode) const
@@ -252,6 +251,22 @@ void DcBus::set(std::string_view param, double val, unit unitType)
     }
 }
 
+void DcBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    static constexpr std::array<std::string_view, 0> numeric{};
+    static constexpr auto strings = std::to_array<std::string_view>({"pflowtype", "dyntype"});
+    static constexpr std::array<std::string_view, 0> flags{};
+    getParamString<DcBus, GridBus>(this, pstr, numeric, strings, flags, pstype);
+}
+
+void DcBus::updateLocalCache(const IOdata& inputs,
+                             const StateData& stateDataValue,
+                             const SolverMode& sMode)
+{
+    outLocs = getOutputLocs(sMode);
+    GridBus::updateLocalCache(inputs, stateDataValue, sMode);
+}
+
 void DcBus::getStateName(stringVec& stNames,
                          const SolverMode& sMode,
                          const std::string& prefix) const
@@ -264,7 +279,7 @@ void DcBus::getStateName(stringVec& stNames,
             if (std::cmp_less_equal(stNames.size(), static_cast<stringVec::size_type>(voffset))) {
                 stNames.resize(static_cast<stringVec::size_type>(voffset) + 1U);
             }
-            stNames[voffset] = getName() + ":voltage";
+            stNames[voffset] = prefix + getName() + ":voltage";
             ++bst;
         }
 
@@ -333,6 +348,13 @@ void DcBus::residual(const IOdata& inputs,
             resid[voffset] = stateDataValue.state[voffset] - voltage;
         }
     }
+    if (hasAlgebraic(sMode) && isExtended(sMode)) {
+        const auto offset = offsets.getAlgOffset(sMode);
+        resid[offset] = 0.0;
+        if (!isDC(sMode)) {
+            resid[offset + 1] = 0.0;
+        }
+    }
 
     // printf("[%d] Bus %d V=%f theta=%f\n", seqID, id, v1,t1);
 }
@@ -342,6 +364,7 @@ static const IOlocs IN_LOC{0, 1, 2};
 void DcBus::computeDerivatives(const StateData& stateDataValue, const SolverMode& sMode)
 {
     MatrixDataCompact<2, 3> partDeriv;
+    dVdP = 0.0;
     if (!isConnected()) {
         return;
     }
@@ -355,13 +378,13 @@ void DcBus::computeDerivatives(const StateData& stateDataValue, const SolverMode
     }
     if (!isExtended(sMode)) {
         for (auto& gen : attachedGens) {
-            if (gen->isConnected()) {
+            if (gen->isConnected() && gen->isEnabled()) {
                 gen->updateLocalCache(outputs, stateDataValue, sMode);
                 gen->ioPartialDerivatives(outputs, stateDataValue, partDeriv, IN_LOC, sMode);
             }
         }
         for (auto& load : attachedLoads) {
-            if (load->isConnected()) {
+            if (load->isConnected() && load->isEnabled()) {
                 load->updateLocalCache(outputs, stateDataValue, sMode);
                 load->ioPartialDerivatives(outputs, stateDataValue, partDeriv, IN_LOC, sMode);
             }
@@ -376,6 +399,7 @@ void DcBus::jacobianElements(const IOdata& /*inputs*/,
                              const IOlocs& /*inputLocs*/,
                              const SolverMode& sMode)
 {
+    updateLocalCache(noInputs, stateDataValue, sMode);
     auto inputs = getOutputs(noInputs, stateDataValue, sMode);
 
     // kinsolJacDense(state, J, ind, true);
@@ -396,6 +420,9 @@ void DcBus::jacobianElements(const IOdata& /*inputs*/,
             inputLocs[VOLTAGE_IN_LOCATION] = kNullLocation;
         }
     }
+    if (!isConnected()) {
+        return;
+    }
 
     // MatrixDataSparse of;
     of.setArray(matrixDataValue);
@@ -404,7 +431,7 @@ void DcBus::jacobianElements(const IOdata& /*inputs*/,
     for (auto& gen : attachedGens) {
         if (gen->jacSize(sMode) > 0) {
             gen->jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
-            if (gen->isConnected()) {
+            if (gen->isConnected() && !isExtended(sMode)) {
                 gen->outputPartialDerivatives(inputs, stateDataValue, of, sMode);
             }
         }
@@ -412,14 +439,19 @@ void DcBus::jacobianElements(const IOdata& /*inputs*/,
     for (auto& load : attachedLoads) {
         if (load->jacSize(sMode) > 0) {
             load->jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
-            if (load->isConnected()) {
+            if (load->isConnected() && !isExtended(sMode)) {
                 load->outputPartialDerivatives(inputs, stateDataValue, of, sMode);
             }
         }
     }
+    if (isExtended(sMode)) {
+        of.assign(POUT_LOCATION, offsets.getAlgOffset(sMode), 1.0);
+    }
     const id_type_t gid = getID();
     for (auto& link : attachedLinks) {
-        link->outputPartialDerivatives(gid, stateDataValue, of, sMode);
+        if (link->isEnabled()) {
+            link->outputPartialDerivatives(gid, stateDataValue, of, sMode);
+        }
     }
     /*if (inputLocs[VOLTAGE_IN_LOCATION] != kNullLocation)
       {
@@ -471,7 +503,7 @@ int DcBus::getMode(const SolverMode& sMode) const
 
 double DcBus::getVoltage(const double state[], const SolverMode& sMode) const
 {
-    if (isLocal(sMode)) {
+    if (isLocal(sMode) || state == nullptr) {
         return voltage;
     }
     if (useVoltage(sMode)) {
@@ -486,9 +518,15 @@ double DcBus::getVoltage(const StateData& stateDataValue, const SolverMode& sMod
     if (isLocal(sMode)) {
         return voltage;
     }
-    if (useVoltage(sMode)) {
-        auto voffset = offsets.getVOffset(sMode);
-        return (voffset != kNullLocation) ? stateDataValue.state[voffset] : voltage;
+    if (hasAlgebraic(sMode)) {
+        return getVoltage(stateDataValue.state, sMode);
+    }
+    const auto& pairedMode = offsets.getSolverMode(sMode.pairedOffsetIndex);
+    if (stateDataValue.algState != nullptr) {
+        return getVoltage(stateDataValue.algState, pairedMode);
+    }
+    if (stateDataValue.fullState != nullptr) {
+        return getVoltage(stateDataValue.fullState, pairedMode);
     }
     return voltage;
 }
@@ -496,7 +534,7 @@ double DcBus::getVoltage(const StateData& stateDataValue, const SolverMode& sMod
 bool DcBus::useVoltage(const SolverMode& sMode) const
 {
     bool ret = true;
-    if (isDifferentialOnly(sMode)) {
+    if (!hasAlgebraic(sMode) || !isConnected()) {
         ret = false;
     } else if (isDynamic(sMode)) {
         if ((dynType == DynBusType::FIX_VOLTAGE) || (dynType == DynBusType::DYN_SLK)) {
@@ -542,17 +580,19 @@ void DcBus::computePowerAdjustments()
     S.reset();
 
     for (auto& link : attachedLinks) {
-        if ((link->isConnected()) && (!busController.hasAdjustments(link->getID()))) {
+        if (link->isConnected() && link->isEnabled() &&
+            !busController.hasAdjustments(link->getID())) {
             S.linkP += link->getRealPower(cid);
         }
     }
     for (auto& load : attachedLoads) {
-        if ((load->isConnected()) && (!busController.hasAdjustments(load->getID()))) {
+        if (load->isConnected() && load->isEnabled() &&
+            !busController.hasAdjustments(load->getID())) {
             S.loadP += load->getRealPower(voltage);
         }
     }
     for (auto& gen : attachedGens) {
-        if ((gen->isConnected()) && (!busController.hasAdjustments(gen->getID()))) {
+        if (gen->isConnected() && gen->isEnabled() && !busController.hasAdjustments(gen->getID())) {
             S.genP += gen->getRealPower();
         }
     }

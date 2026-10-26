@@ -249,9 +249,13 @@ void DcLink::ioPartialDerivatives(id_type_t busId,
         return;
     }
     if ((busId == 2) || (busId == B2->getID())) {
-        jacobian.assignCheckCol(POUT_LOCATION, inputLocs[VOLTAGE_IN_LOCATION], -Idc);
+        const double derivative =
+            -Idc + ((!isDynamic(sMode) && r > 0.0 && !isOpenInPowerFlow()) ? linkInfo.v2 / r : 0.0);
+        jacobian.assignCheckCol(POUT_LOCATION, inputLocs[VOLTAGE_IN_LOCATION], derivative);
     } else {
-        jacobian.assignCheckCol(POUT_LOCATION, inputLocs[VOLTAGE_IN_LOCATION], Idc);
+        const double derivative =
+            Idc + ((!isDynamic(sMode) && r > 0.0 && !isOpenInPowerFlow()) ? linkInfo.v1 / r : 0.0);
+        jacobian.assignCheckCol(POUT_LOCATION, inputLocs[VOLTAGE_IN_LOCATION], derivative);
     }
 }
 
@@ -270,7 +274,7 @@ void DcLink::outputPartialDerivatives(id_type_t busId,
     if (!isDynamic(sMode)) {
         if ((r > 0.0) && !isOpenInPowerFlow()) {
             p1v2 = -linkInfo.v1 / r;
-            p2v1 = -linkInfo.v1 / r;
+            p2v1 = -linkInfo.v2 / r;
         } else {
         }
     } else {  // in some other mode

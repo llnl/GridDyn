@@ -41,7 +41,7 @@ class GridComponent: public CoreObject {
     model_parameter systemBaseFrequency =
         kWS;  //!<[radians per second] the base frequency of the system default to 60Hz
     model_parameter systemBasePower = 100;  //!<[MVA] base power for all PU computations
-    model_parameter localBaseVoltage = kNullVal;  //!< [kV] base voltage for object
+    model_parameter localBaseVoltage = kNullVal;  //!< [V] base voltage for object
 
     std::vector<double> m_state;  //!< storage location for internal state
     std::vector<double> m_dstate_dt;  //!< storage location for internal state differential

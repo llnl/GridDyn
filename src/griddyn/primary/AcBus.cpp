@@ -84,7 +84,8 @@ AcBus::AcBus(const std::string& objName): GridBus(objName), busController(this)
 }
 
 AcBus::AcBus(double vStart, double angleStart, const std::string& objName):
-    GridBus(vStart, angleStart, objName), aTarget(angleStart), vTarget(vStart), busController(this)
+    GridBus(vStart, angleStart, objName), aTarget(angleStart), vTarget(vStart),
+    lastAcceptedVoltage(vStart), lastAcceptedAngle(angleStart), busController(this)
 {
     // default values
 }
@@ -99,12 +100,18 @@ CoreObject* AcBus::clone(CoreObject* obj) const
     }
 
     nobj->vTarget = vTarget;
+    nobj->aTarget = aTarget;
 
     nobj->Vmin = Vmin;
     nobj->Vmax = Vmax;
     nobj->prevType = prevType;
+    nobj->prevDynType = prevDynType;
+    nobj->refAngle = refAngle;
     nobj->freq = freq;
     nobj->prevPower = prevPower;
+    nobj->lastSetTime = lastSetTime;
+    nobj->lastAcceptedVoltage = lastAcceptedVoltage;
+    nobj->lastAcceptedAngle = lastAcceptedAngle;
     nobj->participation = participation;
     nobj->Tw = Tw;
     nobj->frequencyFilterTf = frequencyFilterTf;
@@ -150,6 +157,14 @@ void AcBus::configureFrequencyFilter(double filterTime, double washoutTime, doub
         (washoutTime <= 0.0) || !std::isfinite(nominalFrequency) || (nominalFrequency <= 0.0)) {
         throw InvalidParameterValue("bus frequency filter parameters");
     }
+    if (opFlags[DYN_INITIALIZED]) {
+        throw InvalidParameterValue(
+            "configure the bus frequency filter before dynamic initialization");
+    }
+    if (fblock && dynamic_cast<blocks::FilteredDerivativeBlock*>(fblock.get()) == nullptr) {
+        removeSubObject(fblock.get());
+        fblock = nullptr;
+    }
     frequencyFilterTf = filterTime;
     frequencyFilterTw = washoutTime;
     frequencyFilterFn = nominalFrequency;
@@ -162,7 +177,6 @@ void AcBus::configureFrequencyFilter(double filterTime, double washoutTime, doub
             makeOwningPtr<blocks::FilteredDerivativeBlock>(frequencyFilterTf, frequencyFilterTw);
         fblock->set("k", frequencyFilterTw / (2.0 * std::numbers::pi * frequencyFilterFn));
         fblock->setName("frequency_calc");
-        fblock->addOwningReference();
         addSubObject(fblock.get());
         fblock->parentSetFlag(SEPARATE_PROCESSING, true, this);
     }
@@ -390,7 +404,7 @@ void AcBus::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
             if (busController.Pmin > -kHalfBigNum) {
                 auto temp = busController.pControlObjects[0]->get("pmin");
                 if (temp < -kHalfBigNum) {
-                    busController.pControlObjects[0]->set("qmin", busController.Pmin);
+                    busController.pControlObjects[0]->set("pmin", busController.Pmin);
                 }
             }
         }
@@ -422,6 +436,8 @@ void AcBus::pFlowObjectInitializeB()
     outputs[ANGLE_IN_LOCATION] = angle;
     outputs[FREQUENCY_IN_LOCATION] = freq;
     lastSetTime = prevTime;
+    lastAcceptedVoltage = voltage;
+    lastAcceptedAngle = angle;
     computePowerAdjustments();
     if (opFlags[USE_AUTOGEN]) {
         if (busController.autogenP < kHalfBigNum) {
@@ -907,7 +923,6 @@ void AcBus::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
             if (!frequencyFilterConfigured) {
                 fblock->set("k", 1.0 / systemBaseFrequency);
             }
-            fblock->addOwningReference();
             addSubObject(fblock.get());
             fblock->parentSetFlag(SEPARATE_PROCESSING, true, this);
         }
@@ -922,19 +937,25 @@ void AcBus::dynObjectInitializeB(const IOdata& /*inputs*/,
                                  IOdata& fieldSet)
 {
     // TODO(PT):: clean up this function
-    if (!desiredOutput.empty()) {
+    if (desiredOutput.size() > VOLTAGE_IN_LOCATION) {
         if (desiredOutput[VOLTAGE_IN_LOCATION] > 0) {
             voltage = desiredOutput[VOLTAGE_IN_LOCATION];
         }
+    }
+    if (desiredOutput.size() > ANGLE_IN_LOCATION) {
         if (desiredOutput[ANGLE_IN_LOCATION] > -kHalfBigNum) {
             angle = desiredOutput[ANGLE_IN_LOCATION];
         }
+    }
+    if (desiredOutput.size() > FREQUENCY_IN_LOCATION) {
         if (std::abs(desiredOutput[FREQUENCY_IN_LOCATION] - 1.0) < 0.5) {
             freq = desiredOutput[FREQUENCY_IN_LOCATION];
         }
     }
     updateLocalCache();
     lastSetTime = prevTime;
+    lastAcceptedVoltage = voltage;
+    lastAcceptedAngle = angle;
     m_state[VOLTAGE_IN_LOCATION] = voltage;
     m_state[ANGLE_IN_LOCATION] = angle;
     m_state[FREQUENCY_IN_LOCATION] = freq;
@@ -1117,11 +1138,27 @@ void AcBus::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& 
     prevTime = time;
 }
 
-static constexpr auto locNumStrings =
-    std::array<std::string_view, 4>{"vtarget", "atarget", "p", "q"};
+static constexpr auto locNumStrings = std::to_array<std::string_view>({"vtarget",
+                                                                       "atarget",
+                                                                       "p",
+                                                                       "q",
+                                                                       "pmin",
+                                                                       "pmax",
+                                                                       "qmin",
+                                                                       "qmax",
+                                                                       "vmin",
+                                                                       "vmax",
+                                                                       "participation",
+                                                                       "tw",
+                                                                       "autogenp",
+                                                                       "autogenq",
+                                                                       "autogendelay",
+                                                                       "vtol",
+                                                                       "atol"});
 static constexpr auto locStrStrings = std::array<std::string_view, 2>{"pflowtype", "dyntype"};
 
-static constexpr auto flagStrings = std::array<std::string_view, 1>{"use_frequency"};
+static constexpr auto flagStrings =
+    std::to_array<std::string_view>({"compute_frequency", "use_frequency"});
 
 void AcBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
@@ -1130,9 +1167,21 @@ void AcBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 
 void AcBus::setFlag(std::string_view flag, bool val)
 {
-    if (flag == "compute_frequency") {
+    if (flag == "compute_frequency" || flag == "use_frequency") {
+        if (opFlags[DYN_INITIALIZED] && opFlags[COMPUTE_FREQUENCY] != val) {
+            throw InvalidParameterValue(
+                "change frequency estimation before dynamic initialization");
+        }
         if (!opFlags[DYN_INITIALIZED]) {
-            opFlags.set(COMPUTE_FREQUENCY);
+            opFlags.set(COMPUTE_FREQUENCY, val);
+            opFlags.set(USES_BUS_FREQUENCY, val);
+            if (!val) {
+                if (fblock) {
+                    removeSubObject(fblock.get());
+                    fblock = nullptr;
+                }
+                return;
+            }
             if (!fblock) {
                 if (frequencyFilterConfigured) {
                     fblock = makeOwningPtr<blocks::FilteredDerivativeBlock>(frequencyFilterTf,
@@ -1146,7 +1195,6 @@ void AcBus::setFlag(std::string_view flag, bool val)
                 if (!frequencyFilterConfigured) {
                     fblock->set("k", 1.0 / systemBaseFrequency);
                 }
-                fblock->addOwningReference();
                 addSubObject(fblock.get());
                 fblock->parentSetFlag(SEPARATE_PROCESSING, true, this);
             }
@@ -1154,6 +1202,14 @@ void AcBus::setFlag(std::string_view flag, bool val)
     } else {
         GridBus::setFlag(flag, val);
     }
+}
+
+bool AcBus::getFlag(std::string_view flag) const
+{
+    if (flag == "compute_frequency" || flag == "use_frequency") {
+        return opFlags[COMPUTE_FREQUENCY];
+    }
+    return GridBus::getFlag(flag);
 }
 
 // set properties
@@ -1213,7 +1269,7 @@ void AcBus::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "voltage") || (param == "vol") || (param == "v") || (param == "vmag") ||
         (param == "v0") || (param == "voltage0")) {
-        voltage = convert(val, unitType, puV, systemBasePower, localBaseVoltage);
+        voltage = convert(val, unitType, puV, localBaseVoltage * 1000.0);
         if ((type == BusType::PV) || (type == BusType::SLK)) {
             vTarget = voltage;
         }
@@ -1236,7 +1292,7 @@ void AcBus::set(std::string_view param, double val, unit unitType)
             fblock->set("k", 1.0 / systemBaseFrequency);
         }
     } else if (param == "vtarget") {
-        vTarget = convert(val, unitType, puV, systemBasePower, localBaseVoltage);
+        vTarget = convert(val, unitType, puV, localBaseVoltage * 1000.0);
         /*powerFlowAdjust the target in all the generators as well*/
         for (auto& gen : attachedGens) {
             gen->set(param, vTarget);
@@ -1288,9 +1344,9 @@ void AcBus::set(std::string_view param, double val, unit unitType)
             busController.Pmin = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
         }
     } else if (param == "vmax") {
-        Vmax = val;
+        Vmax = convert(val, unitType, puV, localBaseVoltage * 1000.0);
     } else if (param == "vmin") {
-        Vmin = val;
+        Vmin = convert(val, unitType, puV, localBaseVoltage * 1000.0);
     } else if (param == "autogenp") {
         busController.autogenP = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
         opFlags.set(USE_AUTOGEN);
@@ -1371,26 +1427,16 @@ IOlocs AcBus::getOutputLocs(const SolverMode& sMode) const
         return outLocs;
     }
 
-    IOlocs newOutLocs(3, kNullLocation);
-    if (hasAlgebraic(sMode)) {
-        newOutLocs[VOLTAGE_IN_LOCATION] = offsets.getVOffset(sMode);
-        newOutLocs[ANGLE_IN_LOCATION] = offsets.getAOffset(sMode);
-    }
-    if (opFlags[COMPUTE_FREQUENCY]) {
-        index_t toff = fblock->getOutputLoc(sMode);
-        if ((toff == kNullLocation) && (keyGen != nullptr)) {
-            keyGen->getFreq(emptyStateData, sMode, &toff);
-        }
-
-        newOutLocs[FREQUENCY_IN_LOCATION] = toff;
-    } else {
-        newOutLocs[FREQUENCY_IN_LOCATION] = kNullLocation;
-    }
-    return newOutLocs;
+    return {getOutputLoc(sMode, VOLTAGE_IN_LOCATION),
+            getOutputLoc(sMode, ANGLE_IN_LOCATION),
+            getOutputLoc(sMode, FREQUENCY_IN_LOCATION)};
 }
 
 index_t AcBus::getOutputLoc(const SolverMode& sMode, index_t num) const
 {
+    if (!isConnected()) {
+        return kNullLocation;
+    }
     if (sMode.offsetIndex == lastSmode) {
         if (num < 3) {
             return outLocs[num];
@@ -1401,13 +1447,19 @@ index_t AcBus::getOutputLoc(const SolverMode& sMode, index_t num) const
     switch (num) {
         case VOLTAGE_IN_LOCATION:
             // return useVoltage(sMode) ? offsets.getVOffset(sMode) : kNullLocation;
-            return offsets.getVOffset(sMode);
+            return hasAlgebraic(sMode) ? offsets.getVOffset(sMode) : kNullLocation;
         case ANGLE_IN_LOCATION:
             // return useAngle(sMode) ? offsets.getAOffset(sMode) : kNullLocation;
-            return offsets.getAOffset(sMode);
+            return hasAlgebraic(sMode) ? offsets.getAOffset(sMode) : kNullLocation;
         case FREQUENCY_IN_LOCATION: {
+            if (!isDynamic(sMode) || !hasDifferential(sMode)) {
+                return kNullLocation;
+            }
             if (opFlags[COMPUTE_FREQUENCY]) {
-                return fblock->getOutputLoc(sMode);
+                const auto location = fblock->getOutputLoc(sMode);
+                if (location != kNullLocation) {
+                    return location;
+                }
             }
             if (keyGen != nullptr) {
                 index_t loc;
@@ -1423,7 +1475,7 @@ index_t AcBus::getOutputLoc(const SolverMode& sMode, index_t num) const
 
 double AcBus::getVoltage(const double state[], const SolverMode& sMode) const
 {
-    if (isLocal(sMode)) {
+    if (isLocal(sMode) || state == nullptr) {
         return voltage;
     }
     const auto voltageOffset = offsets.getVOffset(sMode);
@@ -1432,7 +1484,7 @@ double AcBus::getVoltage(const double state[], const SolverMode& sMode) const
 
 double AcBus::getAngle(const double state[], const SolverMode& sMode) const
 {
-    if (isLocal(sMode)) {
+    if (isLocal(sMode) || state == nullptr) {
         return angle;
     }
     const auto angleOffset = offsets.getAOffset(sMode);
@@ -1444,7 +1496,7 @@ double AcBus::getVoltage(const StateData& stateDataValue, const SolverMode& sMod
     if (isLocal(sMode)) {
         return voltage;
     }
-    if (hasAlgebraic(sMode)) {
+    if (hasAlgebraic(sMode) && stateDataValue.state != nullptr) {
         const auto voltageOffset = offsets.getVOffset(sMode);
         return (voltageOffset != kNullLocation) ? stateDataValue.state[voltageOffset] : voltage;
     }
@@ -1466,7 +1518,7 @@ double AcBus::getAngle(const StateData& stateDataValue, const SolverMode& sMode)
     if (isLocal(sMode)) {
         return angle;
     }
-    if (hasAlgebraic(sMode)) {
+    if (hasAlgebraic(sMode) && stateDataValue.state != nullptr) {
         const auto angleOffset = offsets.getAOffset(sMode);
         return (angleOffset != kNullLocation) ? stateDataValue.state[angleOffset] : angle;
     }
@@ -1487,7 +1539,9 @@ double AcBus::getFreq(const StateData& stateDataValue, const SolverMode& sMode) 
     if (opFlags[USES_BUS_FREQUENCY]) {
         if (isDynamic(sMode)) {
             if (opFlags[COMPUTE_FREQUENCY]) {
-                frequencyValue = fblock->getOutput(K_NULL_VEC, stateDataValue, sMode) + 1.0;
+                if (fblock && fblock->checkFlag(DYN_INITIALIZED)) {
+                    frequencyValue = fblock->getOutput(K_NULL_VEC, stateDataValue, sMode) + 1.0;
+                }
             } else if (keyGen != nullptr) {
                 frequencyValue = keyGen->getFreq(stateDataValue, sMode);
             }
@@ -1707,23 +1761,28 @@ void AcBus::setState(CoreTime time,
             m_dstate_dt[ANGLE_IN_LOCATION] = dstateDt[aoffset];
         }
     } else if (hasAlgebraic(sMode)) {
+        const double sampleInterval = time - lastSetTime;
         if (voffset != kNullLocation) {
-            if (time > prevTime) {
+            if (sampleInterval > 0.0) {
                 m_dstate_dt[VOLTAGE_IN_LOCATION] =
-                    (state[voffset] - m_state[VOLTAGE_IN_LOCATION]) / (time - lastSetTime);
+                    (state[voffset] - lastAcceptedVoltage) / sampleInterval;
             }
             voltage = state[voffset];
         }
         if (aoffset != kNullLocation) {
-            if (time > prevTime) {
+            if (sampleInterval > 0.0) {
                 m_dstate_dt[ANGLE_IN_LOCATION] =
-                    (state[aoffset] - -m_state[ANGLE_IN_LOCATION]) / (time - lastSetTime);
+                    (state[aoffset] - lastAcceptedAngle) / sampleInterval;
             }
             angle = state[aoffset];
         }
-        lastSetTime = time;
     }
     GridBus::setState(time, state, dstateDt, sMode);
+    if (hasAlgebraic(sMode)) {
+        lastSetTime = time;
+        lastAcceptedVoltage = voltage;
+        lastAcceptedAngle = angle;
+    }
 
     if (opFlags[COMPUTE_FREQUENCY]) {
         // fblock->setState(time, state, dstate_dt, sMode);
@@ -1780,7 +1839,9 @@ void AcBus::residual(const IOdata& inputs,
             auto offset = offsets.getAlgOffset(sMode);
             // there is no function for this, the control must come from elsewhere in the state
             resid[offset] = 0;
-            resid[offset + 1] = 0;
+            if (!isDC(sMode)) {
+                resid[offset + 1] = 0;
+            }
         }
     }
 
@@ -1883,7 +1944,9 @@ void AcBus::jacobianElements(const IOdata& inputs,
     } else {  // make the assignments for the extended state
         auto offset = offsets.getAlgOffset(sMode);
         of.assign(POUT_LOCATION, offset, 1);
-        of.assign(QOUT_LOCATION, offset + 1, 1);
+        if (!isDC(sMode)) {
+            of.assign(QOUT_LOCATION, offset + 1, 1);
+        }
     }
     auto gid = getID();
     for (auto& link : attachedLinks) {
@@ -3034,19 +3097,23 @@ double AcBus::get(std::string_view param, unit unitType) const
 {
     double val = kNullVal;
     if (param == "vtarget") {
-        val = convert(vTarget, puV, unitType, systemBasePower, localBaseVoltage);
+        val = convert(vTarget, puV, unitType, localBaseVoltage * 1000.0);
     } else if (param == "atarget") {
         val = convert(aTarget, rad, unitType);
     } else if (param == "participation") {
         val = participation;
     } else if (param == "vmax") {
-        val = Vmax;
+        val = convert(Vmax, puV, unitType, localBaseVoltage * 1000.0);
     } else if (param == "vmin") {
-        val = Vmin;
+        val = convert(Vmin, puV, unitType, localBaseVoltage * 1000.0);
     } else if (param == "qmin") {
-        val = busController.Qmin;
+        val = convert(busController.Qmin, puMW, unitType, systemBasePower, localBaseVoltage);
     } else if (param == "qmax") {
-        val = busController.Qmax;
+        val = convert(busController.Qmax, puMW, unitType, systemBasePower, localBaseVoltage);
+    } else if (param == "pmin") {
+        val = convert(busController.Pmin, puMW, unitType, systemBasePower, localBaseVoltage);
+    } else if (param == "pmax") {
+        val = convert(busController.Pmax, puMW, unitType, systemBasePower, localBaseVoltage);
     } else if (param == "tw") {
         val = Tw;
     } else if (param == "tf") {

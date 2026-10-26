@@ -249,6 +249,8 @@ double ZipLoad::get(std::string_view param, unit unitType) const
         val = convert(Iq, puMW, unitType, systemBasePower);
     } else if (param == "pf") {
         val = pfq;
+    } else if (param == "basevoltage" || param == "vbase") {
+        val = convert(localBaseVoltage, units::kV, unitType);
     } else {
         val = GridLoad::get(param, unitType);
     }
@@ -389,9 +391,10 @@ void ZipLoad::set(std::string_view param, double val, unit unitType)
                 }
             }
         }
-    } else if ((param == "basevoltage") || (param == "base vol")) {
-        // SGS added to set the base voltage 2015-01-30
-        localBaseVoltage = val;
+    } else if (param == "basevoltage" || param == "base vol" || param == "vbase" ||
+               param == "voltagebase" || param == "basev" || param == "bv" ||
+               param == "base voltage") {
+        localBaseVoltage = convert(val, unitType, units::kV);
     } else {
         GridLoad::set(param, val, unitType);
     }

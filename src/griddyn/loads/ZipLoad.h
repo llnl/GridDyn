@@ -58,6 +58,10 @@ class ZipLoad: public GridLoad {
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
 
+    /** @brief Read a load parameter, including basevoltage/vbase in the requested units.
+     * @details The ZIP family retains its legacy kV storage and default base-voltage units.
+     * Explicit units are converted at the API boundary; derived load models retain kV storage.
+     */
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 

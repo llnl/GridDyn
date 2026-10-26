@@ -5,11 +5,11 @@ and network traversal operations. Their numerical and controller capabilities
 differ. A physical DC bus is also distinct from the DC power-flow approximation
 used for an AC network.
 
-| Class | Local network variables | Balance equations and fixed variables |
-| --- | --- | --- |
-| `GridBus` | No local voltage or angle solver variables | Holds configured voltage/angle; attached components can still have states. Base convergence and generation-adjustment hooks do nothing. |
-| `AcBus` | Voltage and angle; optional frequency-estimator states | Real-power balance determines angle, reactive-power balance determines voltage. Fixed variables keep identity constraint equations in their solver slots. |
-| `DcBus` | One voltage slot; attached components may add states | Real-power balance determines voltage. Fixed-voltage types constrain the slot to the stored voltage. Only DC-compatible links attach. |
+| Class     | Local network variables                                | Balance equations and fixed variables                                                                                                                     |
+| --------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GridBus` | No local voltage or angle solver variables             | Holds configured voltage/angle; attached components can still have states. Base convergence and generation-adjustment hooks do nothing.                   |
+| `AcBus`   | Voltage and angle; optional frequency-estimator states | Real-power balance determines angle, reactive-power balance determines voltage. Fixed variables keep identity constraint equations in their solver slots. |
+| `DcBus`   | One voltage slot; attached components may add states   | Real-power balance determines voltage. Fixed-voltage types constrain the slot to the stored voltage. Only DC-compatible links attach.                     |
 
 ## Types and state access
 
@@ -152,15 +152,15 @@ analytical high-voltage solution. These small cases avoid long transients.
 
 The review leaves these larger capabilities for follow-up:
 
-| Area | Remaining work |
-| --- | --- |
-| Initialized component mutation | Define transactional controller deregistration/re-registration, remote-controller lifetime handling, and frequency-reference invalidation for removal/replacement. Add tests through full simulation initialization. |
-| DC controller integration | `DcBusControls` has bookkeeping operations, but `DcBus` does not override the common controller-registration hooks. Do not assume AC-style automatic controller aggregation, redispatch, or aggregate limit handling is complete. |
-| DC convergence recovery | `DcBus::converge()` is a no-op; the global solver performs convergence. A bounded voltage-recovery algorithm needs its own numerical tests. |
-| DC bus merging | DC control helper methods exist, but the public bus merge/unmerge hooks still inherit base no-ops. Full node/breaker behavior needs implementation and topology tests. |
-| Legacy adjustment API | `propogatePower()` retains its spelling and inconsistent legacy status values. A future replacement should define a typed result rather than merely rename the method. |
-| Legacy aggregate queries | Base generation maxima use sentinel bounds; adjustable capacity/regulation defaults are placeholders. DC inherits those defaults. Callers should query actual equipment limits until a complete aggregate contract is implemented. |
-| Broader numerical validation | Add loaded-network recovery, PV/PQ limit cycling, zero-impedance merge/unmerge, remote-controller proxy, and DC transient tests. Small Jacobian checks do not establish those larger behaviors. |
+| Area                           | Remaining work                                                                                                                                                                                                                     |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Initialized component mutation | Define transactional controller deregistration/re-registration, remote-controller lifetime handling, and frequency-reference invalidation for removal/replacement. Add tests through full simulation initialization.               |
+| DC controller integration      | `DcBusControls` has bookkeeping operations, but `DcBus` does not override the common controller-registration hooks. Do not assume AC-style automatic controller aggregation, redispatch, or aggregate limit handling is complete.  |
+| DC convergence recovery        | `DcBus::converge()` is a no-op; the global solver performs convergence. A bounded voltage-recovery algorithm needs its own numerical tests.                                                                                        |
+| DC bus merging                 | DC control helper methods exist, but the public bus merge/unmerge hooks still inherit base no-ops. Full node/breaker behavior needs implementation and topology tests.                                                             |
+| Legacy adjustment API          | `propogatePower()` retains its spelling and inconsistent legacy status values. A future replacement should define a typed result rather than merely rename the method.                                                             |
+| Legacy aggregate queries       | Base generation maxima use sentinel bounds; adjustable capacity/regulation defaults are placeholders. DC inherits those defaults. Callers should query actual equipment limits until a complete aggregate contract is implemented. |
+| Broader numerical validation   | Add loaded-network recovery, PV/PQ limit cycling, zero-impedance merge/unmerge, remote-controller proxy, and DC transient tests. Small Jacobian checks do not establish those larger behaviors.                                    |
 
 Further API consolidation should preserve existing callers while making the
 contracts easier to test:

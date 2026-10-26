@@ -23,11 +23,13 @@ class Generator;
 #define VLIMIT_VIOLATION (2)
 #define PLIMIT_VIOLATION (3)
 
-/** @brief helper class for GridBus to store the power information
+/** @brief Cached bus power balance on the system power base.
+ * @details Loads and outward link flows are positive; generator injections are negative.
+ * Call GridBus::updateLocalCache() before inspecting these values after a model change.
  */
 class busPowers {
   public:
-    double linkP = 0.0;  //!< [puMW]    reactive power coming from Links
+    double linkP = 0.0;  //!< [puMW] real power flowing out through links
     double loadP = 0.0;  //!< [puMW] real power coming from the loads
     double genP = 0.0;  //!< [puMW] real power from the generators
 
@@ -46,12 +48,14 @@ class busPowers {
     double sumQ() const { return (linkQ + loadQ + genQ); }
 };
 
-/** @brief basic node in a power systems
-  This Bus class is primarily a base Class for other types of buses, but it can be instantiated it
-provides the basic management of subObjects and defines the interface.  It has no states and fixes
-the voltage and angle at whatever it gets set to
-
-*/
+/** @brief Fixed-voltage node and common interface for AC and DC buses.
+ * @details Owns references to attached loads and generators and borrows attached links.
+ * The base bus has no voltage/angle solver states; attached components may have states.
+ * AcBus and DcBus supply the network balance equations. Bus outputs are ordered as
+ * voltage [pu], angle [rad], and frequency [pu of the system frequency].
+ * Numeric setters/getters accept explicit units. With default units, basevoltage is kV,
+ * voltage is pu, angle is rad, and real/reactive powers are on the system power base.
+ */
 class GridBus: public GridPrimary {
   public:
     /** @brief flags for the buses*/
@@ -59,14 +63,14 @@ class GridBus: public GridPrimary {
     static std::atomic<count_t> busCount;  //!<  counter for the buses
     static const int LOW_VOLTAGE_CHECK_FLAG = OBJECT_FLAG1;
     // afix is a fixed angle bus for power flow
-    /* @brief enumeration to define potential busTypes for power flow*/
+    /** @brief Power-flow equations: bit 0 fixes angle and bit 1 fixes voltage. */
     enum class BusType : char {
         PQ = 0,  //!< a bus that defines the real and reactive power calculates V and theta
         AFIX = 1,  //!< a bus that defines the angle and reactive power calculates V and P
         PV = 2,  //!< a bus that defines P and V computes Q and angle
         SLK = 3  //!< a bus that defines V and theta and computes P & Q
     };
-    /* @brief enumeration to define potential busTypes for dynamic calculations*/
+    /** @brief Dynamic bus equations, with the same fixed-variable bits as BusType. */
     enum class DynBusType : char {
         NORMAL = 0,  //!< a bus that computes V and theta
         FIX_ANGLE = 1,  //!< a bus that computes V and has a fixed theta
@@ -93,7 +97,8 @@ class GridBus: public GridPrimary {
     IOdata outputs;  //!< the current output values
     IOlocs outLocs;  //!< the current output locations
 
-    model_parameter localBaseVoltage = 120.0;  //!< [kV]    base voltage level
+    // The inherited GridComponent base voltage is kept in volts for child models.
+    model_parameter localBaseVoltage = 120.0;  //!< [kV] bus base voltage
 
     model_parameter Vtol =
         -1.0;  //!<[pu] voltage tolerance value <0 implies automatic setting from global levels
@@ -106,30 +111,43 @@ class GridBus: public GridPrimary {
     /** @brief default constructor*/
     explicit GridBus(const std::string& objName = "bus_$");
     /** @brief alternate constructor to specify voltage and angle
-    @param[in] voltageStart  the initial voltage
-    @param[in] angleStart the initial angle
+    @param[in] voltageStart the initial voltage [pu]
+    @param[in] angleStart the initial angle [rad]
+    @param[in] objName the object name
     */
     GridBus(double voltageStart, double angleStart, const std::string& objName = "bus_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
     virtual void add(CoreObject* obj) override;
-    /** @brief  add a GridLoad object*/
+    /** @brief Attach a load and acquire an owning reference.
+     * @pre loadObject is non-null and is not owned by another bus.
+     * @details Sets the parent, base values, and load position. A repeated add of the same
+     * object is a no-op. Retain a CoreOwningPtr if the load must outlive removal.
+     */
     virtual void add(GridLoad* loadObject);
-    /** @brief  add a gridGenerator object*/
+    /** @brief Attach a generator with the same ownership rules as add(GridLoad*). */
     virtual void add(Generator* gen);
-    /** Replace an attached load without changing its bus position. */
+    /** @brief Replace a load without changing the remaining load order.
+     * @pre replacement is unattached, or is identical to previous (a no-op).
+     * @details Acquires the replacement before returning and releases the old bus reference.
+     * The old object may be destroyed; borrowed pointers to it must not be reused.
+     * @throws ObjectAddFailure if previous is not attached, either pointer is null,
+     * or replacement already has a parent.
+     */
     virtual void replaceLoad(GridLoad* previous, GridLoad* replacement);
-    /** Replace an attached generator without changing its machine position. */
+    /** @brief Replace a generator using the ownership contract of replaceLoad(). */
     virtual void replaceGenerator(Generator* previous, Generator* replacement);
-    /** @brief  add a Link object*/
+    /** @brief Borrow a link reference without taking ownership.
+     * @details Prefer Link::updateBus() to keep both terminals and bus lists consistent.
+     */
     virtual void add(Link* lnk);
 
     // remove components
     virtual void remove(CoreObject* obj) override;
-    /** @brief  remove a GridLoad object*/
+    /** @brief Detach a load, release ownership, and reindex remaining loads. */
     virtual void remove(GridLoad* loadObject);
-    /** @brief  remove a Generator object*/
+    /** @brief Detach a generator, release ownership, and reindex remaining generators. */
     virtual void remove(Generator* gen);
     /** @brief  remove a Link object*/
     virtual void remove(Link* lnk);
@@ -145,8 +163,7 @@ class GridBus: public GridPrimary {
     virtual ChangeCode powerFlowAdjust(const IOdata& inputs,
                                        std::uint32_t flags,
                                        CheckLevel level) override;  // only applicable in pFlow
-    /** @brief  adjust the power levels of the contained adjustable secondary objects
-    @param[in] adjustment the amount of the adjustment requested*/
+    /** @brief Request a real-power adjustment [pu]; the base implementation is a no-op. */
     virtual void generationAdjust(double adjustment);
     virtual void reset(ResetLevels level = ResetLevels::MINIMAL) override;
     // dynInitializeB dynamics
@@ -158,21 +175,26 @@ class GridBus: public GridPrimary {
 
   public:
     virtual void disable() override;
-    /** @brief  disconnect the bus*/
+    /** @brief Disconnect this bus and all attached links; set voltage and angle to zero. */
     virtual void disconnect() override;
     /** @brief  reconnect the bus
     @param[in] mapBus  a bus to pick of startup parameters from can be nullptr*/
     virtual void reconnect(GridBus* mapBus);
     virtual void reconnect() override;
     // parameter set functions
-    /** Return the static power-flow bus type. */
+    /** @brief Legacy integer view of getType(); prefer the typed getter in new code. */
     int getBusType() const { return static_cast<int>(type); }
+    /** @brief Apply a numeric setting to loads, generators, or all owned subobjects.
+     * @details Supports load, gen/generator, secondary, and inherited all/sub/object groups.
+     * Type-specific groups skip unsupported parameters; explicit units are forwarded.
+     */
     virtual void setAll(std::string_view objtype,
                         std::string_view param,
                         double val,
                         units::unit unitType = units::defunit) override;
     virtual void getParameterStrings(stringVec& pstr,
                                      ParamStringType pstype = ParamStringType::all) const override;
+    /** @brief Set connected or an inherited flag; true means connected for that flag. */
     virtual void setFlag(std::string_view flag, bool val) override;
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
@@ -215,6 +237,7 @@ class GridBus: public GridPrimary {
                                const SolverMode& sMode,
                                double alpha);
 
+    /** @brief Local recovery hook; the fixed base bus performs no recovery iterations. */
     virtual void converge(CoreTime time,
                           double state[],
                           double dstateDt[],
@@ -222,7 +245,7 @@ class GridBus: public GridPrimary {
                           ConvergeMode = ConvergeMode::HIGH_ERROR_ONLY,
                           double tol = 0.01) override;
 
-    /** @brief  return the last error in the real power*/
+    /** @brief Return the cached absolute real plus reactive power imbalance [pu]. */
     virtual double lastError() const;
 
     virtual void updateLocalCache() override;
@@ -244,7 +267,12 @@ class GridBus: public GridPrimary {
     @param[in,out] bstk  a queue containing the stack of buses that have yet to be checked
     */
     virtual void followNetwork(int networkID, std::queue<GridBus*>& bstk);
-    /** @brief check if the bus is capable of operating
+    /** @brief Check necessary local real-power capacity bounds.
+     * @details Before power-flow initialization this returns true. Afterwards, connected,
+     * enabled generation and link transfer ranges must bracket active demand within the
+     * configured power-flow solver tolerance (simulation tolerance before solver creation,
+     * or 1e-8 pu for a standalone bus). This is a local screen, not proof that the network
+     * power flow will converge.
      */
     virtual bool checkCapable();
     // find components
@@ -271,23 +299,25 @@ class GridBus: public GridPrimary {
     @return a pointer to the requested generator or nullptr
     **/
     Generator* getGen(index_t x = 0) const;
-    /** @brief for identifying if there is a direct path from object to another in the system
-     * @param target the object to search for
-     * @param source the object from back up the path
-     * @return whether there is a singular path to the object or not
-     **/
+    /** @brief Test for an unbranched active path using getDirectPath().
+     * @param target destination bus or one of its attached generators/loads; null fails
+     * @param source originating object or incoming link to exclude; may be null
+     * @return false for a branch, dead end, disabled/disconnected path, or cycle
+     */
     bool directPath(GridComponent* target, GridComponent* source = nullptr);
-    /** @brief for obtaining the complete path to another object
-     * @param target the object to search for
-     * @param source the object from back up the path
-     * @return a vector of objects with the path information  (NOTE: not necessarily the shortest
-     *path)
-     **/
+    /** @brief Follow exactly one onward enabled, connected link at each bus.
+     * @details This is a controller-routing check, not a shortest-path search.
+     * @param target destination bus or attached component; null returns an empty path
+     * @param source originating object or incoming link; null starts the path with this bus
+     * @return source (or this bus), traversed links in order, then target; empty on failure.
+     * Returned pointers are borrowed. Intermediate buses are implicit in the link terminals.
+     */
     std::vector<GridComponent*> getDirectPath(GridComponent* target,
                                               GridComponent* source = nullptr);
     /** @brief propagate and fix a power level for a bus
      * @param[in] makeSlack boolean indicating if the bus should be made into a slack bus or not
-     * @return value indicating success 0 on success -1 on failure
+     * @return legacy adjustment status, which varies by bus/link implementation;
+     * callers must not interpret it as a universal boolean success flag
      **/
     virtual int propogatePower(bool makeSlack = false);
     /** @brief get the bus type for power flow mode
@@ -299,15 +329,15 @@ class GridBus: public GridPrimary {
      **/
     DynBusType getDynType() const { return dynType; }
     /** @brief get the bus voltage
-     * @return the bus voltage
+     * @return the stored bus voltage [pu]
      **/
     double getVoltage() const { return voltage; }
     /** @brief get the bus angle
-     * @return the bus angle
+     * @return the stored bus angle [rad]
      **/
     double getAngle() const { return angle; }
     /** @brief get the bus frequency
-     * @return the bus frequency
+     * @return the stored bus frequency [pu of system base frequency]
      **/
     double getFreq() const { return freq; }
     /** @brief get the bus real generation
@@ -331,13 +361,10 @@ class GridBus: public GridPrimary {
     **/
     double getGenerationReactiveNominal() const;
 
-    /** @brief get the maximumreal power generation
-     * @return the maximum real power generation
-     **/
+    /** @brief Return the real-generation limit [pu]; the base bus returns an unbounded sentinel. */
     virtual double getMaxGenReal() const { return kBigNum; }
-    /** @brief get the maximum reactive power generation
-     * @return the maximum reactive power generation
-     **/
+    /** @brief Return the reactive-generation limit [pu]; the base bus returns an unbounded
+     * sentinel. */
     virtual double getMaxGenReactive() const { return kBigNum; }
 
     double getLoadReal() const { return S.loadP; }
@@ -353,17 +380,15 @@ class GridBus: public GridPrimary {
      * @return the reactive link power
      **/
     double getLinkReactive() const { return S.linkQ; }
-    /** @brief get the available controllable upward adjustments within a time period
-    @ details this means power production or load reduction
-    @param[in] time  the time period within which to do the adjustments
-    * @return the reactive link power
-    **/
+    /** @brief Return available real-power increase or load reduction [pu].
+     * @param time response horizon; maxTime requests unrestricted capacity
+     * @details The base implementation returns zero; derived buses may aggregate controllers.
+     */
     virtual double getAdjustableCapacityUp(CoreTime time = maxTime) const;
-    /** @brief get the available controllable upward adjustments within a time period
-    @ details this means power production or load reduction
-    @param[in] time  the time period within which to do the adjustments
-    * @return the reactive link power
-    **/
+    /** @brief Return available real-power reduction or load increase [pu].
+     * @param time response horizon; maxTime requests unrestricted capacity
+     * @details The base implementation returns zero; derived buses may aggregate controllers.
+     */
     virtual double getAdjustableCapacityDown(CoreTime time = maxTime) const;
     /** @brief the dPdf partial derivative  (may be deprecated in the future)
      * @return the @f$\frac{\partial P}{\partial f}@f$
@@ -376,9 +401,7 @@ class GridBus: public GridPrimary {
      * @return the tie error
      **/
     virtual double getTieError() const { return kNullVal; }
-    /** @brief get the frequency response
-     * @return the tie error
-     **/
+    /** @brief Return the frequency-response contribution; the base implementation returns zero. */
     virtual double getFreqResp() const;
     /** @brief get available regulation
      * @return the available regulation
@@ -393,10 +416,16 @@ class GridBus: public GridPrimary {
                               const StateData& stateDataValue,
                               const SolverMode& sMode) const override;
     virtual IOlocs getOutputLocs(const SolverMode& sMode) const override;
+    /** @brief Return no solver location for a fixed base-bus output. */
+    virtual index_t getOutputLoc(const SolverMode& sMode, index_t num = 0) const override;
 
-    /** @brief get a const ref to the outputs*/
+    /** @brief Borrow the voltage/angle/frequency cache from the last state-based update.
+     * @details Call updateLocalCache(inputs, stateData, mode) first. The reference remains
+     * valid for the bus lifetime, but its contents change on subsequent updates.
+     */
     const IOdata& getOutputsRef() const;
-    /** @brief get a const ref to the output Locations
+    /** @brief Borrow locations from the last state-based cache update.
+     * @details Prefer getOutputLocs(mode) when no cache update has been performed for that mode.
      */
     virtual const IOlocs& getOutputLocsRef() const;
 

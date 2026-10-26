@@ -18,19 +18,15 @@ namespace griddyn {
 class GridBlock;
 class Generator;
 
-/** @brief basic power system bus for a power grid simulation
-  The GridBus class provides the basic node in a power systems analysis.  It is a locational basis
-for voltages and angles.  For the power systems analysis the equations include a power balance
-equations \f[ f(V)=\sum Q_{load}+ \sum Q_{gen}+ \sum Q_{link} \f] \f[ f(\theta)=\sum P_{load}+\sum
-P_{gen}+\sum P_{link} \f] Buses can have a number of different configurations SLK buses fix the
-voltage and angle,  PV buses fix the voltage and real power,  PQ buses have known real and reactive
-generation/load, afix buses fix the angle and reactive power.  there are different setting for power
-flow calculations and dynamic calculations.
-
-Buses act as connection points for links to tie to other buses and GridSecondary components such as
-generators and loads.
-
-*/
+/** @brief AC network node with voltage, angle, and controller balance equations.
+ * @details Uses the GridBus power/sign and ownership conventions. PQ solves real/reactive
+ * balance for angle/voltage; PV fixes voltage; AFIX fixes angle; SLK fixes both.
+ * Fixed variables retain solver slots with identity constraint equations.
+ * Dynamic modes independently select the fixed variables. A DC power-flow approximation
+ * suppresses the AC voltage variable; it is distinct from a physical DcBus.
+ * Optional frequency estimation adds differential block states. Configure topology and
+ * estimation before initialization; state arrays must match the assigned SolverMode offsets.
+ */
 class AcBus: public GridBus {
     friend class BusControls;
 
@@ -74,7 +70,9 @@ class AcBus: public GridBus {
     double pFlowInitialVoltage = 1.0;  //!< original bus voltage before PV target initialization
     bool pFlowInitialVoltageCaptured = false;
 
-    CoreTime lastSetTime = negTime;  //!< last set time
+    CoreTime lastSetTime = negTime;  //!< time of the last accepted algebraic sample
+    double lastAcceptedVoltage = 1.0;  //!< accepted voltage [pu], unaffected by prediction
+    double lastAcceptedAngle = 0.0;  //!< accepted angle [rad], unaffected by prediction
     CoreOwningPtr<GridBlock> fblock;  //!< pointer to frequency estimator block
 
     BusControls busController;  //!< pointer to the eControls object
@@ -88,6 +86,7 @@ class AcBus: public GridBus {
     /** @brief alternate constructor to specify voltage and angle
     @param[in] vStart the initial voltage
     @param[in] angleStart the initial angle
+    @param[in] objName the object name
     */
     AcBus(double vStart, double angleStart, const std::string& objName = "bus_$");
 
@@ -140,7 +139,14 @@ class AcBus: public GridBus {
   public:
     virtual void disable() override;
     virtual void disconnect() override;
-    /** Configure the optional lag/washout bus-frequency measurement block. */
+    /** @brief Configure the optional lag/washout frequency estimator before dynamic initialization.
+     * @param filterTime positive, finite input-filter time constant [s]
+     * @param washoutTime positive, finite derivative-filter time constant [s]
+     * @param nominalFrequency positive, finite nominal frequency [Hz]
+     * @details Enables frequency estimation and replaces an existing simple derivative estimator.
+     * Repeated calls before initialization update the same filter.
+     * @throws InvalidParameterValue for invalid parameters or configuration after initialization
+     */
     void configureFrequencyFilter(double filterTime,
                                   double washoutTime,
                                   double nominalFrequency = 60.0);
@@ -149,7 +155,14 @@ class AcBus: public GridBus {
     // parameter set functions
     virtual void getParameterStrings(stringVec& pstr,
                                      ParamStringType pstype = ParamStringType::all) const override;
+    /** @brief Set compute_frequency (alias use_frequency) or an inherited flag.
+     * @details Enabling/disabling the estimator changes its owned subobject and must precede
+     * dynamic initialization. Repeating the current setting is a no-op.
+     * @throws InvalidParameterValue if an estimator state change is requested after initialization
+     */
     virtual void setFlag(std::string_view flag, bool val) override;
+    /** @brief Query the estimator-enabled flag or an inherited flag. */
+    virtual bool getFlag(std::string_view flag) const override;
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
@@ -185,11 +198,9 @@ class AcBus: public GridBus {
                             double dstateDt[],
                             const SolverMode& sMode) override;
 
-    /** @brief  try to shift the states to something more consistent
-      called when the current states do not make a consistent condition,  calling converge will
-    attempt to move them to a more valid state mode controls how this is done  0- does a single
-    iteration loop mode=1 tries to iterate until convergence based on tol mode=2  tries harder
-    mode=3 does it with voltage only
+    /** @brief Attempt bounded local recovery of the assigned bus state.
+    @details Uses ConvergeMode to select single, repeated, strong, or voltage-only iterations.
+    This is a recovery aid, not a substitute for solving the network equations.
     @param[in] time  the time of the corresponding states
     @param[in,out]  state the states of the system at present and shifted to match the updates
     @param[in,out] dstateDt  the derivatives of the state that get updated
@@ -213,8 +224,7 @@ class AcBus: public GridBus {
     @param[in] tol  the tolerance to converge to
     */
     virtual void localConverge(const SolverMode& sMode, int mode = 0, double tol = 0.01);
-    /** @brief  return the last error in the real power*/
-
+    /** @brief Refresh cached power totals from the stored bus voltage and angle. */
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,
                                   const StateData& stateDataValue,
@@ -251,11 +261,10 @@ class AcBus: public GridBus {
     // dynamic simulation
     virtual stringVec localStateNames() const override;
 
-    /** @brief find a link based on the bus desiring to be connected to
+    /** @brief Propagate the local real/reactive balance to adjustable components or a link.
     @param[in] makeSlack  flag indicating that the bus should be made a slack bus after propagating
     the power
-    @return  a pointer to a Link that connects the current bus to the bus specified by bs or nullptr
-    if none exists
+    @return legacy adjustment status; see GridBus::propogatePower()
     */
     virtual int propogatePower(bool makeSlack = false) override;
 
@@ -268,17 +277,13 @@ class AcBus: public GridBus {
      **/
     virtual double getMaxGenReactive() const override;
 
-    /** @brief get the available controllable upward adjustments within a time period
-    @ details this means power production or load reduction
-    @param[in] time  the time period within which to do the adjustments
-    * @return the reactive link power
-    **/
+    /** @brief Return upward real-power capacity [pu] from registered controllers.
+     * @param time response horizon; maxTime requests unrestricted capacity
+     */
     virtual double getAdjustableCapacityUp(CoreTime time = maxTime) const override;
-    /** @brief get the available controllable upward adjustments within a time period
-    @ details this means power production or load reduction
-    @param[in] time  the time period within which to do the adjustments
-    * @return the reactive link power
-    **/
+    /** @brief Return downward real-power capacity [pu] from registered controllers.
+     * @param time response horizon; maxTime requests unrestricted capacity
+     */
     virtual double getAdjustableCapacityDown(CoreTime time = maxTime) const override;
     /** @brief the dPdf partial derivative  (may be deprecated in the future)
      * @return the @f$\frac{\partial P}{\partial f}@f$
@@ -290,9 +295,7 @@ class AcBus: public GridBus {
      **/
     virtual double getTieError() const override;
 
-    /** @brief get the frequency response
-     * @return the tie error
-     **/
+    /** @brief Return the frequency-response contribution of the reference generator, if present. */
     virtual double getFreqResp() const override;
 
     /** @brief get available regulation
@@ -311,6 +314,9 @@ class AcBus: public GridBus {
     virtual index_t getOutputLoc(const SolverMode& sMode, index_t num) const override;
 
     virtual IOlocs getOutputLocs(const SolverMode& sMode) const override;
+    using GridBus::getAngle;
+    using GridBus::getFreq;
+    using GridBus::getVoltage;
     /** @brief get the voltage
     * @param[in] state the system state
     @param[in] sMode the corresponding SolverMode to the state
@@ -348,20 +354,20 @@ class AcBus: public GridBus {
                                  const StateData& stateDataValue,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
-    /** @brief function used for returning the mode of the bus
-     depends on the interaction of the SolverInterface and the bus type
+    /** @brief Return fixed-variable bits: bit 0 for angle, bit 1 for voltage.
+     * @details Includes solver restrictions such as differential-only and DC approximation modes.
     @param[in] sMode the corresponding SolverMode to the state
     @return the system mode
     **/
     virtual int getMode(const SolverMode& sMode) const;
-    /** @brief function to determine there is a state representing the angle
+    /** @brief Whether the angle slot uses real-power balance instead of a fixed-angle equation.
     @param[in] sMode the corresponding SolverMode to the state
-    @return true if there is an angle state false otherwise
+    @return true for a connected bus with an algebraic angle balance equation
     **/
     virtual bool useAngle(const SolverMode& sMode) const;
-    /** @brief function to determine there is a state representing the voltage
+    /** @brief Whether the voltage slot uses reactive balance instead of a fixed-voltage equation.
     @param[in] sMode the corresponding SolverMode to the state
-    @return true if there is an voltage state false otherwise
+    @return true for a connected bus with an AC algebraic voltage balance equation
     **/
     virtual bool useVoltage(const SolverMode& sMode) const;
 

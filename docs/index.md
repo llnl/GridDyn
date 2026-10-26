@@ -42,6 +42,7 @@ developer-guide/wecc-model-coverage-audit
 developer-guide/tiocr1-dyr-compatibility
 developer-guide/fskit-retirement
 developer-guide/powerworld-aux-reader
+developer-guide/bus-models
 ```
 
 The Doxygen API reference is generated from the C++ source separately. Its

@@ -764,7 +764,7 @@ double GridComponent::get(std::string_view param, units::unit unitType) const
     } else if (param == "basefrequency") {
         out = units::convert(systemBaseFrequency, units::rad / units::s, unitType);
     } else if (param == "basevoltage") {
-        out = units::convert(localBaseVoltage, units::kV, unitType);
+        out = units::convert(localBaseVoltage, units::V, unitType);
     } else if (param == "jacsize") {
         if (opFlags[DYN_INITIALIZED]) {
             out = jacSize(cDaeSolverMode);

@@ -82,7 +82,7 @@ set(event_component_gtest_sources
 )
 
 set(system_component_gtest_sources gtestHelperFunctions.cpp componentTests/testArea.cpp
-                                   componentTests/simulationTests.cpp
+                                   componentTests/testBus.cpp componentTests/simulationTests.cpp
 )
 
 set(optional_component_gtest_sources gtestHelperFunctions.cpp componentTests/testExtraModels.cpp)

@@ -768,7 +768,7 @@ std::vector<GridComponent*> GridBus::getDirectPath(GridComponent* target, GridCo
     std::vector<GridComponent*> path{(source != nullptr) ? source : this};
     std::unordered_set<const GridBus*> visited;
     auto* current = this;
-    GridComponent* incoming = source;
+    const GridComponent* incoming = source;
     while (current != nullptr && current->isEnabled() && current->isConnected() &&
            visited.insert(current).second) {
         if (target == current ||

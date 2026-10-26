@@ -42,7 +42,7 @@ class FixedCapacityLink: public Link {
   public:
     explicit FixedCapacityLink(double capacity): transferCapacity(capacity) {}
 
-    double getMaxTransfer() const override { return transferCapacity; }
+    [[nodiscard]] double getMaxTransfer() const override { return transferCapacity; }
 
   private:
     double transferCapacity;
@@ -50,8 +50,8 @@ class FixedCapacityLink: public Link {
 
 class SampledAcBus: public AcBus {
   public:
-    double angleRate() const { return m_dstate_dt[ANGLE_IN_LOCATION]; }
-    double voltageRate() const { return m_dstate_dt[VOLTAGE_IN_LOCATION]; }
+    [[nodiscard]] double angleRate() const { return m_dstate_dt[ANGLE_IN_LOCATION]; }
+    [[nodiscard]] double voltageRate() const { return m_dstate_dt[VOLTAGE_IN_LOCATION]; }
 };
 
 class KeyGeneratorProbe: public DynamicGenerator {
@@ -272,8 +272,8 @@ TEST(BusTests, CheckCapableIgnoresDisabledLinkTransfer)
 TEST(BusTests, AlternateConstructorsSupportCachingAndDisconnect)
 {
     GridBus fixed(1.04, 0.2);
-    AcBus ac(1.04, 0.2);
-    for (GridBus* bus : std::array<GridBus*, 2>{&fixed, &ac}) {
+    AcBus acBus(1.04, 0.2);
+    for (GridBus* bus : std::array<GridBus*, 2>{&fixed, &acBus}) {
         bus->updateLocalCache(noInputs, emptyStateData, cLocalSolverMode);
         ASSERT_EQ(bus->getOutputsRef().size(), 3U);
         EXPECT_DOUBLE_EQ(bus->getOutputsRef()[VOLTAGE_IN_LOCATION], 1.04);
@@ -391,8 +391,13 @@ TEST(BusTests, DefaultBaseVoltageReachesNewAndExistingComponentsInVolts)
 
 TEST(BusTests, DirectPathsFollowUnbranchedActiveLinks)
 {
-    GridBus start("start"), middle("middle"), target("target"), branch("branch");
-    Link first("first"), second("second"), extra("extra");
+    GridBus start("start");
+    GridBus middle("middle");
+    GridBus target("target");
+    GridBus branch("branch");
+    Link first("first");
+    Link second("second");
+    Link extra("extra");
     first.updateBus(&start, 1);
     first.updateBus(&middle, 2);
     second.updateBus(&middle, 1);
@@ -413,8 +418,13 @@ TEST(BusTests, DirectPathsFollowUnbranchedActiveLinks)
 
 TEST(BusTests, DirectPathTerminatesOnCycles)
 {
-    GridBus first("first"), second("second"), third("third"), absent("absent");
-    Link one("one"), two("two"), three("three");
+    GridBus first("first");
+    GridBus second("second");
+    GridBus third("third");
+    GridBus absent("absent");
+    Link one("one");
+    Link two("two");
+    Link three("three");
     one.updateBus(&first, 1);
     one.updateBus(&second, 2);
     two.updateBus(&second, 1);
@@ -576,9 +586,9 @@ TEST(AcBusTests, SampledRatesUseAcceptedStatesAcrossPredictorSteps)
 
 TEST(BusTests, StateAccessFallsBackWithoutAnExternalState)
 {
-    AcBus ac;
-    DcBus dc;
-    for (GridBus* bus : std::array<GridBus*, 2>{&ac, &dc}) {
+    AcBus acBus;
+    DcBus dcBus;
+    for (GridBus* bus : std::array<GridBus*, 2>{&acBus, &dcBus}) {
         bus->setVoltageAngle(1.03, 0.25);
         bus->stateSize(cPflowSolverMode);
         bus->setOffset(0, cPflowSolverMode);
@@ -590,11 +600,11 @@ TEST(BusTests, StateAccessFallsBackWithoutAnExternalState)
 
 TEST(BusTests, PartitionedVoltageAccessUsesPairedAlgebraicState)
 {
-    AcBus ac;
-    DcBus dc;
+    AcBus acBus;
+    DcBus dcBus;
     SolverMode differential = cDynDiffSolverMode;
     differential.pairedOffsetIndex = DYNAMIC_ALGEBRAIC;
-    for (GridBus* bus : std::array<GridBus*, 2>{&ac, &dc}) {
+    for (GridBus* bus : std::array<GridBus*, 2>{&acBus, &dcBus}) {
         const auto count = bus->stateSize(cDynAlgSolverMode);
         bus->setOffset(0, cDynAlgSolverMode);
         std::vector<double> algebraic(count, 1.07);
@@ -611,13 +621,13 @@ TEST(BusTests, PartitionedVoltageAccessUsesPairedAlgebraicState)
 TEST(DcBusTests, AcceptsOnlyDcCapableLinksThroughEitherAddOverload)
 {
     DcBus bus;
-    Link ac;
-    links::DcLink dc;
-    EXPECT_THROW(bus.add(&ac), UnrecognizedObjectException);
-    EXPECT_THROW(bus.add(static_cast<CoreObject*>(&ac)), UnrecognizedObjectException);
-    bus.add(&dc);
-    bus.add(&dc);
-    EXPECT_EQ(bus.getLink(0), &dc);
+    Link acLink;
+    links::DcLink dcLink;
+    EXPECT_THROW(bus.add(&acLink), UnrecognizedObjectException);
+    EXPECT_THROW(bus.add(static_cast<CoreObject*>(&acLink)), UnrecognizedObjectException);
+    bus.add(&dcLink);
+    bus.add(&dcLink);
+    EXPECT_EQ(bus.getLink(0), &dcLink);
     EXPECT_EQ(bus.getLink(1), nullptr);
 }
 
@@ -651,9 +661,9 @@ TEST(DcBusTests, StateNamesRetainCallerPrefix)
 
 TEST(BusTests, AcAndDcJacobiansMatchPowerBalanceResiduals)
 {
-    AcBus ac;
-    DcBus dc;
-    for (GridBus* bus : std::array<GridBus*, 2>{&ac, &dc}) {
+    AcBus acBus;
+    DcBus dcBus;
+    for (GridBus* bus : std::array<GridBus*, 2>{&acBus, &dcBus}) {
         auto* load = new ZipLoad;
         load->set("yp", 2.0);
         load->set("yq", 1.0);
@@ -669,12 +679,12 @@ TEST(BusTests, AcAndDcJacobiansMatchPowerBalanceResiduals)
 
 TEST(BusTests, ExtendedDcStatesDoNotReadOrWriteReactivePowerSlots)
 {
-    AcBus ac;
-    DcBus dc;
+    AcBus acBus;
+    DcBus dcBus;
     SolverMode mode = cPflowSolverMode;
     mode.extended_state = true;
     setDC(mode);
-    for (GridBus* bus : std::array<GridBus*, 2>{&ac, &dc}) {
+    for (GridBus* bus : std::array<GridBus*, 2>{&acBus, &dcBus}) {
         expectJacobianMatchesResidual(*bus, mode);
         EXPECT_DOUBLE_EQ(bus->getLoadReactive(), 0.0);
     }
@@ -683,9 +693,9 @@ TEST(BusTests, ExtendedDcStatesDoNotReadOrWriteReactivePowerSlots)
 TEST(BusTests, CachedOutputLocationsMatchModeSpecificQueries)
 {
     GridBus fixed;
-    AcBus ac;
-    DcBus dc;
-    for (GridBus* bus : std::array<GridBus*, 3>{&fixed, &ac, &dc}) {
+    AcBus acBus;
+    DcBus dcBus;
+    for (GridBus* bus : std::array<GridBus*, 3>{&fixed, &acBus, &dcBus}) {
         bus->stateSize(cPflowSolverMode);
         bus->setOffset(2, cPflowSolverMode);
         std::array<double, 6> state{1.0, 1.0, 1.0, 0.2, 0.0, 0.0};
@@ -709,17 +719,23 @@ TEST(AcBusTests, BusTypesSelectExpectedPowerBalanceEquations)
         bool angle;
         bool voltage;
     };
-    const std::array<Case, 4> powerflow{
-        {{"pq", true, true}, {"afix", false, true}, {"pv", true, false}, {"slk", false, false}}};
+    const std::array<Case, 4> powerflow{{
+        {.name = "pq", .angle = true, .voltage = true},
+        {.name = "afix", .angle = false, .voltage = true},
+        {.name = "pv", .angle = true, .voltage = false},
+        {.name = "slk", .angle = false, .voltage = false},
+    }};
     for (const auto& entry : powerflow) {
         bus.set("pflowtype", entry.name);
         EXPECT_EQ(bus.useAngle(cPflowSolverMode), entry.angle) << entry.name;
         EXPECT_EQ(bus.useVoltage(cPflowSolverMode), entry.voltage) << entry.name;
     }
-    const std::array<Case, 4> dynamics{{{"normal", true, true},
-                                        {"fixedangle", false, true},
-                                        {"fixedvoltage", true, false},
-                                        {"dynslk", false, false}}};
+    const std::array<Case, 4> dynamics{{
+        {.name = "normal", .angle = true, .voltage = true},
+        {.name = "fixedangle", .angle = false, .voltage = true},
+        {.name = "fixedvoltage", .angle = true, .voltage = false},
+        {.name = "dynslk", .angle = false, .voltage = false},
+    }};
     for (const auto& entry : dynamics) {
         bus.set("dyntype", entry.name);
         EXPECT_EQ(bus.useAngle(cDaeSolverMode), entry.angle) << entry.name;
@@ -777,7 +793,7 @@ TEST(DcBusTests, TwoBusResistiveNetworkSolvesToAnalyticalVoltage)
     ASSERT_EQ(simulation.currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     EXPECT_EQ(demand->getType(), GridBus::BusType::PQ);
     // V * (1 - V) / R = P for a constant-power load and a 1 pu source.
-    const double expectedVoltage = (1.0 + std::sqrt(1.0 - 4.0 * 0.1 * 0.5)) / 2.0;
+    const double expectedVoltage = (1.0 + std::sqrt(1.0 - (4.0 * 0.1 * 0.5))) / 2.0;
     EXPECT_NEAR(demand->getVoltage(), expectedVoltage, 1.0e-7);
     EXPECT_DOUBLE_EQ(source->getVoltage(), 1.0);
     demand->updateLocalCache();
@@ -786,7 +802,8 @@ TEST(DcBusTests, TwoBusResistiveNetworkSolvesToAnalyticalVoltage)
 
 TEST(DcBusTests, CoupledLinkJacobianMatchesBothBusPowerBalances)
 {
-    DcBus source("source"), demand("demand");
+    DcBus source("source");
+    DcBus demand("demand");
     links::DcLink line(0.1, 0.0);
     line.updateBus(&source, 1);
     line.updateBus(&demand, 2);
@@ -802,7 +819,8 @@ TEST(DcBusTests, CoupledLinkJacobianMatchesBothBusPowerBalances)
     demand.jacobianElements(noInputs, data, jacobian, {}, cPflowSolverMode);
     constexpr double delta = 1.0e-6;
     for (index_t column = 0; column < 2; ++column) {
-        std::array<double, 2> lower{}, upper{};
+        std::array<double, 2> lower{};
+        std::array<double, 2> upper{};
         state[column] -= delta;
         source.residual(noInputs, data, lower.data(), cPflowSolverMode);
         demand.residual(noInputs, data, lower.data(), cPflowSolverMode);
@@ -821,9 +839,9 @@ TEST(DcBusTests, CoupledLinkJacobianMatchesBothBusPowerBalances)
 TEST(BusTests, DisconnectionClearsCachedPowerAndVoltage)
 {
     GridBus fixed;
-    AcBus ac;
-    DcBus dc;
-    for (GridBus* bus : std::array<GridBus*, 3>{&fixed, &ac, &dc}) {
+    AcBus acBus;
+    DcBus dcBus;
+    for (GridBus* bus : std::array<GridBus*, 3>{&fixed, &acBus, &dcBus}) {
         bus->add(new GridLoad(0.25, 0.0));
         bus->updateLocalCache();
         ASSERT_DOUBLE_EQ(bus->getLoadReal(), 0.25);

@@ -174,7 +174,6 @@ void DcBus::pFlowCheck(std::vector<Violation>& violationVector)
 void DcBus::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     GridBus::dynObjectInitializeA(time0, flags);
-    return;
 }
 
 // dynInitializeB states for dynamic solution part 2  //final clean up

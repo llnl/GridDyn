@@ -121,7 +121,8 @@ bool GridBus::checkCapable()
     double capacityTolerance = 1.0e-8;
     if (auto* simulation = dynamic_cast<GridDynSimulation*>(getRoot()); simulation != nullptr) {
         const auto mode = simulation->getSolverMode("powerflow");
-        const auto solver = static_cast<const GridDynSimulation*>(simulation)->getSolverInterface(mode);
+        const auto solver =
+            static_cast<const GridDynSimulation*>(simulation)->getSolverInterface(mode);
         const double configuredTolerance =
             solver ? solver->get("tolerance") : simulation->get("tolerance");
         if (std::isfinite(configuredTolerance) && configuredTolerance > 0.0) {

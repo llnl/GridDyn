@@ -171,6 +171,7 @@ TEST(RunnerTests, RawCompatibilityOptionsApplyBeforeInputRegardlessOfArgumentOrd
             arguments.push_back(input);
         }
         std::vector<char*> argv;
+        argv.reserve(arguments.size());
         for (auto& argument : arguments) {
             argv.push_back(argument.data());
         }

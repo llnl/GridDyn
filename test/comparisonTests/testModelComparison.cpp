@@ -2852,11 +2852,11 @@ class AndesIeee14FaultDynamicTest: public ::testing::Test {
     bool faultCleared = false;
     std::vector<std::pair<double, double>> generatorReactiveBounds;
 
-    double toleranceFor(std::string_view signal, double expected) const
+    [[nodiscard]] double toleranceFor(std::string_view signal, double expected) const
     {
         const auto& tolerance = reference.at("tolerances").at(std::string(signal));
         return tolerance.at("absolute").get<double>() +
-            tolerance.at("relative").get<double>() * std::abs(expected);
+            (tolerance.at("relative").get<double>() * std::abs(expected));
     }
 
     void SetUp() override
@@ -2895,7 +2895,11 @@ class AndesIeee14FaultDynamicTest: public ::testing::Test {
         std::vector<griddyn::GridBus*> buses;
         simulation->getBusVector(buses);
         for (auto* bus : buses) {
-            for (index_t index = 0; auto* load = bus->getLoad(index); ++index) {
+            for (index_t index = 0;; ++index) {
+                auto* load = bus->getLoad(index);
+                if (load == nullptr) {
+                    break;
+                }
                 // Match ANDES PQ.config.p2z=q2z=1 during TDS.
                 load->setFlag("converttoimpedance");
             }
@@ -2908,7 +2912,8 @@ class AndesIeee14FaultDynamicTest: public ::testing::Test {
         ASSERT_NE(faultBus, nullptr);
         const auto resistance = faultMetadata.at("resistance").get<double>();
         const auto reactance = faultMetadata.at("reactance").get<double>();
-        const auto impedanceSquared = resistance * resistance + reactance * reactance;
+        const auto impedanceSquared =
+            (resistance * resistance) + (reactance * reactance);
         ASSERT_GT(impedanceSquared, 0.0);
         faultConductance = resistance / impedanceSquared;
         faultReactiveAdmittance = reactance / impedanceSquared;
@@ -3126,7 +3131,11 @@ class AndesIeeeG1PulseTest: public ::testing::Test {
         std::vector<griddyn::GridBus*> buses;
         simulation->getBusVector(buses);
         for (auto* bus : buses) {
-            for (index_t index = 0; auto* load = bus->getLoad(index); ++index) {
+            for (index_t index = 0;; ++index) {
+                auto* load = bus->getLoad(index);
+                if (load == nullptr) {
+                    break;
+                }
                 load->setFlag("converttoimpedance");
             }
         }

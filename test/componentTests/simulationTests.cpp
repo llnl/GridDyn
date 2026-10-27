@@ -40,10 +40,10 @@ class CachedRootTestSimulation: public griddyn::GridDynSimulation {
 
   public:
     CachedRootTestSimulation() { residCount = 1; }
-    void rootTest(const griddyn::IOdata&,
+    void rootTest([[maybe_unused]] const griddyn::IOdata& inputs,
                   const griddyn::StateData& stateData,
                   double roots[],
-                  const griddyn::SolverMode&) override
+                  [[maybe_unused]] const griddyn::SolverMode& sMode) override
     {
         if (stateData.updateRequired(cachedGeneration)) {
             cachedInput = stateData.state[0];
@@ -69,7 +69,10 @@ class FaultResetTestSolver: public griddyn::SolverInterface {
     double* stateData() noexcept override { return state.data(); }
     double* derivData() noexcept override { return derivative.data(); }
     void getCurrentData() override {}
-    int calcIC(griddyn::CoreTime, griddyn::CoreTime, IcModes, bool) override
+    int calcIC([[maybe_unused]] griddyn::CoreTime t0,
+               [[maybe_unused]] griddyn::CoreTime tstep0,
+               [[maybe_unused]] IcModes solverMode,
+               [[maybe_unused]] bool constraints) override
     {
         ++initialConditionCalls;
         if (successfulCall > 0 && initialConditionCalls >= successfulCall) {

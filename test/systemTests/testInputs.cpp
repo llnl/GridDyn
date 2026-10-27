@@ -17,6 +17,7 @@
 #include <array>
 #include <cmath>
 #include <filesystem>
+#include <fstream>
 #include <functional>
 #include <gtest/gtest.h>
 #include <map>
@@ -33,6 +34,81 @@ using namespace griddyn;
 using namespace gmlc::utilities;
 
 class InputTests: public GridDynSimulationTestFixture, public ::testing::Test {};
+
+struct TemporaryRawFile {
+    std::filesystem::path path;
+
+    ~TemporaryRawFile()
+    {
+        std::error_code error;
+        std::filesystem::remove(path, error);
+    }
+};
+
+TEST_F(InputTests, RawImportWarnsWhenCoreSectionMarkersAreMissing)
+{
+    const TemporaryRawFile rawFile{
+        std::filesystem::temp_directory_path() / "griddyn_raw_missing_sections.raw"};
+    {
+        std::ofstream output(rawFile.path);
+        ASSERT_TRUE(output.is_open());
+        output << "0, 100.0, 33, 0, 1, 60.0\n"
+                  "Missing section test\n"
+                  "A one-bus case with no section headers after the bus records\n"
+                  "1,'SLACK',230.0,3,0,0,1,1.0,0.0,1.1,0.9,1.1,0.9\n"
+                  "0 / END OF BUS DATA\n"
+                  "Q\n";
+    }
+
+    auto simulation = std::make_unique<GridDynSimulation>();
+    std::vector<std::string> logMessages;
+    simulation->setLogger(
+        [&logMessages](int, const std::string& message) { logMessages.push_back(message); });
+    ASSERT_NO_THROW(loadFile(simulation.get(), rawFile.path.string()));
+
+    ASSERT_EQ(logMessages.size(), 1U);
+    const auto& message = logMessages.front();
+    EXPECT_NE(message.find(rawFile.path.string()), std::string::npos);
+    EXPECT_NE(message.find("BEGIN LOAD DATA"), std::string::npos);
+    EXPECT_NE(message.find("BEGIN GENERATOR DATA"), std::string::npos);
+    EXPECT_NE(message.find("BEGIN BRANCH DATA"), std::string::npos);
+    EXPECT_NE(message.find("BEGIN TRANSFORMER DATA"), std::string::npos);
+}
+
+TEST_F(InputTests, RawImportWarnsWhenUnsupportedSectionsContainRecords)
+{
+    const TemporaryRawFile rawFile{
+        std::filesystem::temp_directory_path() / "griddyn_raw_unsupported_section.raw"};
+    {
+        std::ofstream output(rawFile.path);
+        ASSERT_TRUE(output.is_open());
+        output << "0, 100.0, 33, 0, 1, 60.0\n"
+                  "Unsupported section test\n"
+                  "A one-bus case with an unsupported section record\n"
+                  "1,'SLACK',230.0,3,0,0,1,1.0,0.0,1.1,0.9,1.1,0.9\n"
+                  "0 / END OF BUS DATA, BEGIN LOAD DATA\n"
+                  "0 / END OF LOAD DATA, BEGIN GENERATOR DATA\n"
+                  "0 / END OF GENERATOR DATA, BEGIN BRANCH DATA\n"
+                  "0 / END OF BRANCH DATA, BEGIN TRANSFORMER DATA\n"
+                  "0 / END OF TRANSFORMER DATA, BEGIN MULTI-TERMINAL DC DATA\n"
+                  "unsupported record payload\n"
+                  "0 / END OF MULTI-TERMINAL DC DATA\n"
+                  "Q\n";
+    }
+
+    auto simulation = std::make_unique<GridDynSimulation>();
+    std::vector<std::string> logMessages;
+    simulation->setLogger(
+        [&logMessages](int, const std::string& message) { logMessages.push_back(message); });
+    ASSERT_NO_THROW(loadFile(simulation.get(), rawFile.path.string()));
+
+    ASSERT_EQ(logMessages.size(), 1U);
+    const auto& message = logMessages.front();
+    EXPECT_NE(message.find(rawFile.path.string()), std::string::npos);
+    EXPECT_NE(message.find("BEGIN MULTI-TERMINAL DC DATA"), std::string::npos);
+    EXPECT_NE(message.find("1 non-comment data line that"), std::string::npos);
+    EXPECT_EQ(message.find("missing section marker"), std::string::npos);
+}
 
 TEST_F(InputTests, InterAreaTransferLoadsFromRaw)
 {

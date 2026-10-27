@@ -115,6 +115,11 @@ int GriddynRunner::Initialize(int argc, char* argv[], bool allowUnrecognized)
 void GriddynRunner::simInitialize()
 {
     m_startTime = std::chrono::high_resolution_clock::now();
+    if (isNetworkCaseOutputFile(m_gds->getString("powerflowfile"))) {
+        // Case writers run after the simulation completes; avoid the legacy result writer
+        // interpreting a case filename as a binary power-flow result file.
+        m_gds->setFlag("savepowerflow", false);
+    }
     m_gds->dynInitialize();
     if (!(m_gds->hasDynamics())) {
         mEventMode = true;
@@ -154,6 +159,14 @@ CoreTime GriddynRunner::Run()
         throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
 
+    const auto caseOutputFile = m_gds->getString("powerflowfile");
+    const bool saveNetworkCase = isNetworkCaseOutputFile(caseOutputFile);
+    if (saveNetworkCase) {
+        // Case writers run after the simulation completes; avoid the legacy result writer
+        // interpreting a case filename as a binary power-flow result file.
+        m_gds->setFlag("savepowerflow", false);
+    }
+
     m_startTime = std::chrono::high_resolution_clock::now();
     const int returnValue = m_gds->run();
     m_stopTime = std::chrono::high_resolution_clock::now();
@@ -173,6 +186,9 @@ CoreTime GriddynRunner::Run()
     });
     if (invalidVoltage != buses.end()) {
         throw(ExecutionFailure(m_gds.get(), "GridDyn produced a non-finite power-flow state"));
+    }
+    if (saveNetworkCase && !saveNetworkCaseByExtension(m_gds.get(), caseOutputFile)) {
+        throw(FileOperationError("unable to save network case to '" + caseOutputFile + "'"));
     }
     return m_gds->getSimulationTime();
 }
@@ -368,7 +384,7 @@ std::shared_ptr<CLI::App>
     ptr->add_option_function<std::string>(
            "--powerflow-output,-o,--power_flow_output",
            [this](const std::string& input) { m_gds->set("powerflowfile", input); },
-           "file output for the powerflow solution")
+           "powerflow result output; .raw, .m, and .py export a network case")
         ->ignore_case()
         ->ignore_underscore()
         ->transform(defineTransform);

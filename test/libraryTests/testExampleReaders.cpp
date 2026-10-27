@@ -1199,6 +1199,48 @@ TEST(ExampleReaderTests, ExportPyPowerRoundTrip)
     EXPECT_EQ(imported->getInt("loadcount"), original->getInt("loadcount"));
     std::filesystem::remove(exported);
 }
+
+TEST(ExampleReaderTests, ExportPyPowerInputToRawRoundTrip)
+{
+    const auto source = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "pypower_tests" /
+        "case2.py";
+    const auto exported =
+        std::filesystem::temp_directory_path() / "griddyn_pypower_to_raw_roundtrip.raw";
+    auto original = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(original, source.string());
+
+    griddyn::stringVec warnings;
+    ASSERT_TRUE(griddyn::saveNetworkCaseByExtension(
+        original.get(), exported.string(), &warnings))
+        << (warnings.empty() ? "RAW export failed" : warnings.front());
+    EXPECT_TRUE(warnings.empty()) << (warnings.empty() ? "" : warnings.front());
+
+    auto imported = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(imported, exported.string());
+    EXPECT_EQ(imported->getInt("totalbuscount"), original->getInt("totalbuscount"));
+    EXPECT_EQ(imported->getInt("totallinkcount"), original->getInt("totallinkcount"));
+    EXPECT_EQ(imported->getInt("gencount"), original->getInt("gencount"));
+    EXPECT_EQ(imported->getInt("loadcount"), original->getInt("loadcount"));
+    EXPECT_DOUBLE_EQ(imported->get("basepower"), original->get("basepower"));
+
+    ASSERT_EQ(original->pFlowInitialize(), 0);
+    ASSERT_EQ(original->powerflow(), 0);
+    ASSERT_EQ(imported->pFlowInitialize(), 0);
+    ASSERT_EQ(imported->powerflow(), 0);
+    for (index_t busIndex = 1; busIndex <= original->getInt("totalbuscount"); ++busIndex) {
+        const auto* originalBus = dynamic_cast<const griddyn::GridBus*>(
+            original->findByUserID("bus", busIndex));
+        const auto* importedBus = dynamic_cast<const griddyn::GridBus*>(
+            imported->findByUserID("bus", busIndex));
+        ASSERT_NE(originalBus, nullptr);
+        ASSERT_NE(importedBus, nullptr);
+        EXPECT_NEAR(importedBus->getVoltage(), originalBus->getVoltage(), 1.0e-8);
+        EXPECT_NEAR(importedBus->getAngle(), originalBus->getAngle(), 1.0e-8);
+    }
+
+    std::filesystem::remove(exported);
+}
+
 TEST(ExampleReaderTests, ExportMatPowerRoundTrip)
 {
     const auto source = makeMatlabTestPath("case9.m");
@@ -1218,5 +1260,72 @@ TEST(ExampleReaderTests, ExportMatPowerRoundTrip)
     EXPECT_EQ(imported->powerflow(), 0);
     EXPECT_EQ(imported->currentProcessState(),
               griddyn::GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+    std::filesystem::remove(exported);
+}
+
+TEST(ExampleReaderTests, ExportRawRoundTripByExtension)
+{
+    const auto source = makeMatlabTestPath("case9.m");
+    const auto exported = std::filesystem::temp_directory_path() / "griddyn_raw_roundtrip.raw";
+    auto original = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(original, source.string());
+
+    ASSERT_TRUE(griddyn::isNetworkCaseOutputFile(exported.string()));
+    griddyn::stringVec warnings;
+    ASSERT_TRUE(griddyn::saveNetworkCaseByExtension(
+        original.get(), exported.string(), &warnings))
+        << (warnings.empty() ? "RAW export failed" : warnings.front());
+    EXPECT_TRUE(warnings.empty()) << (warnings.empty() ? "" : warnings.front());
+
+    auto imported = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(imported, exported.string());
+    EXPECT_EQ(imported->getInt("totalbuscount"), original->getInt("totalbuscount"));
+    EXPECT_EQ(imported->getInt("totallinkcount"), original->getInt("totallinkcount"));
+    EXPECT_EQ(imported->getInt("gencount"), original->getInt("gencount"));
+    EXPECT_EQ(imported->getInt("loadcount"), original->getInt("loadcount"));
+    EXPECT_DOUBLE_EQ(imported->get("basepower"), original->get("basepower"));
+
+    for (index_t busIndex = 1; busIndex <= original->getInt("totalbuscount"); ++busIndex) {
+        auto* originalBus = dynamic_cast<griddyn::GridBus*>(
+            original->findByUserID("bus", busIndex));
+        auto* importedBus = dynamic_cast<griddyn::GridBus*>(
+            imported->findByUserID("bus", busIndex));
+        ASSERT_NE(originalBus, nullptr);
+        ASSERT_NE(importedBus, nullptr);
+        EXPECT_EQ(importedBus->getBusType(), originalBus->getBusType());
+        EXPECT_DOUBLE_EQ(importedBus->get("basevoltage"), originalBus->get("basevoltage"));
+        EXPECT_EQ(importedBus->getInt("gencount"), originalBus->getInt("gencount"));
+        EXPECT_EQ(importedBus->getInt("loadcount"), originalBus->getInt("loadcount"));
+    }
+
+    for (index_t linkIndex = 1; linkIndex <= original->getInt("totallinkcount"); ++linkIndex) {
+        auto* originalLink = dynamic_cast<griddyn::AcLine*>(
+            original->findByUserID("link", linkIndex));
+        auto* importedLink = dynamic_cast<griddyn::AcLine*>(
+            imported->findByUserID("link", linkIndex));
+        ASSERT_NE(originalLink, nullptr);
+        ASSERT_NE(importedLink, nullptr);
+        EXPECT_EQ(importedLink->getBus(1)->getUserID(), originalLink->getBus(1)->getUserID());
+        EXPECT_EQ(importedLink->getBus(2)->getUserID(), originalLink->getBus(2)->getUserID());
+        EXPECT_DOUBLE_EQ(importedLink->get("r"), originalLink->get("r"));
+        EXPECT_DOUBLE_EQ(importedLink->get("x"), originalLink->get("x"));
+        EXPECT_DOUBLE_EQ(importedLink->get("b"), originalLink->get("b"));
+    }
+
+    ASSERT_EQ(original->pFlowInitialize(), 0);
+    ASSERT_EQ(original->powerflow(), 0);
+    ASSERT_EQ(imported->pFlowInitialize(), 0);
+    ASSERT_EQ(imported->powerflow(), 0);
+    for (index_t busIndex = 1; busIndex <= original->getInt("totalbuscount"); ++busIndex) {
+        const auto* originalBus = dynamic_cast<const griddyn::GridBus*>(
+            original->findByUserID("bus", busIndex));
+        const auto* importedBus = dynamic_cast<const griddyn::GridBus*>(
+            imported->findByUserID("bus", busIndex));
+        ASSERT_NE(originalBus, nullptr);
+        ASSERT_NE(importedBus, nullptr);
+        EXPECT_NEAR(importedBus->getVoltage(), originalBus->getVoltage(), 1.0e-8);
+        EXPECT_NEAR(importedBus->getAngle(), originalBus->getAngle(), 1.0e-8);
+    }
+
     std::filesystem::remove(exported);
 }

@@ -183,6 +183,19 @@ bool saveMatPowerCase(const CoreObject* parentObject,
                       const std::string& fileName,
                       stringVec* warnings = nullptr);
 
+/** Export a static AC network as a normalized PSS/E RAW version-33 case. */
+bool saveRawCase(const CoreObject* parentObject,
+                 const std::string& fileName,
+                 stringVec* warnings = nullptr);
+
+/** Return whether the filename extension selects a supported network case writer. */
+bool isNetworkCaseOutputFile(const std::string& fileName);
+
+/** Export a static AC network using the writer selected by the filename extension. */
+bool saveNetworkCaseByExtension(const CoreObject* parentObject,
+                                const std::string& fileName,
+                                stringVec* warnings = nullptr);
+
 void loadCsv(CoreObject* parentObject,
              const std::string& fileName,
              ReaderInfo& readerInformation,

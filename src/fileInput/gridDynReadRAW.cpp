@@ -602,9 +602,7 @@ static ChildTypeFactory<AcLine, Link>* gLinkfactory = nullptr;
 static TypeFactory<Generator>* gGenfactory = nullptr;
 
 static const std::pair<std::string_view, SectionType>* findRawSection(const std::string& line);
-static std::size_t skipRawSection(std::ifstream& file,
-                                  std::string& line,
-                                  bool& moreSections);
+static std::size_t skipRawSection(std::ifstream& file, std::string& line, bool& moreSections);
 static bool isRawSectionHeader(const std::string& line);
 static std::string rawSectionLabel(const std::string& line);
 
@@ -846,8 +844,7 @@ void loadRaw(CoreObject* parentObject,
     const auto& impedanceCorrectionTables = preparseData.mImpedanceCorrectionTables;
     readRawCaseDescription(file, parentObject, opt, line, busSectionHeaderFound);
     // Bus data does not have a header but is always the first section.
-    readRawBusSection(
-        parentObject, file, line, busList, opt, preparseData.mAreas, busRecordCount);
+    readRawBusSection(parentObject, file, line, busList, opt, preparseData.mAreas, busRecordCount);
 
     stringVec txlines;
     txlines.resize(5);
@@ -1150,10 +1147,10 @@ void loadRaw(CoreObject* parentObject,
                 const auto skippedRecords = skipRawSection(file, line, moreSections);
                 if (skippedRecords > 0 && section != nullptr) {
                     const auto label = std::string{section->first};
-                    const auto existing = std::find_if(
-                        ignoredRawSections.begin(),
-                        ignoredRawSections.end(),
-                        [&label](const auto& entry) { return entry.first == label; });
+                    const auto existing =
+                        std::find_if(ignoredRawSections.begin(),
+                                     ignoredRawSections.end(),
+                                     [&label](const auto& entry) { return entry.first == label; });
                     if (existing == ignoredRawSections.end()) {
                         ignoredRawSections.emplace_back(label, skippedRecords);
                     } else {
@@ -1173,10 +1170,11 @@ void loadRaw(CoreObject* parentObject,
                     const auto label = rawSectionLabel(line);
                     const auto skippedRecords = skipRawSection(file, line, moreSections);
                     if (skippedRecords > 0) {
-                        const auto existing = std::find_if(
-                            ignoredRawSections.begin(),
-                            ignoredRawSections.end(),
-                            [&label](const auto& entry) { return entry.first == label; });
+                        const auto existing = std::find_if(ignoredRawSections.begin(),
+                                                           ignoredRawSections.end(),
+                                                           [&label](const auto& entry) {
+                                                               return entry.first == label;
+                                                           });
                         if (existing == ignoredRawSections.end()) {
                             ignoredRawSections.emplace_back(label, skippedRecords);
                         } else {
@@ -1192,14 +1190,14 @@ void loadRaw(CoreObject* parentObject,
 
     std::string diagnostics;
     if (!busSectionHeaderFound) {
-        diagnostics = fileName + ": RAW import did not find the required BEGIN BUS DATA section; "
+        diagnostics = fileName +
+            ": RAW import did not find the required BEGIN BUS DATA section; "
             "bus records may be missing.";
     } else if (busRecordCount == 0) {
         diagnostics = fileName + ": RAW import found no bus records.";
     }
     std::vector<std::string_view> missingSections;
-    const auto appendMissingSection = [&missingSections](bool seen,
-                                                         std::string_view sectionName) {
+    const auto appendMissingSection = [&missingSections](bool seen, std::string_view sectionName) {
         if (!seen) {
             missingSections.push_back(sectionName);
         }
@@ -1258,9 +1256,7 @@ static std::string rawSectionLabel(const std::string& line)
     return std::string{label};
 }
 
-static std::size_t skipRawSection(std::ifstream& file,
-                                  std::string& line,
-                                  bool& moreSections)
+static std::size_t skipRawSection(std::ifstream& file, std::string& line, bool& moreSections)
 {
     std::size_t recordCount = 0;
     while (std::getline(file, line)) {

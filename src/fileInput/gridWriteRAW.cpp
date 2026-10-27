@@ -56,7 +56,9 @@ namespace {
         return result;
     }
 
-    std::string rawQuoted(std::string value, std::size_t maxLength, const std::string& label,
+    std::string rawQuoted(std::string value,
+                          std::size_t maxLength,
+                          const std::string& label,
                           const std::function<void(const std::string&)>& warning)
     {
         for (char& character : value) {
@@ -152,9 +154,8 @@ namespace {
         bool transformer{false};
     };
 
-    bool saveRawV33(const CoreObject* parentObject,
-                    const std::string& fileName,
-                    stringVec* warnings)
+    bool
+        saveRawV33(const CoreObject* parentObject, const std::string& fileName, stringVec* warnings)
     {
         if (warnings != nullptr) {
             warnings->clear();
@@ -311,8 +312,8 @@ namespace {
             const auto* bus2 = busLookup.at(bus2Object);
             const auto lowBus = (std::min)(bus1->number, bus2->number);
             const auto highBus = (std::max)(bus1->number, bus2->number);
-            const auto pairKey = (static_cast<std::uint64_t>(lowBus) << 32U) ^
-                static_cast<std::uint64_t>(highBus);
+            const auto pairKey =
+                (static_cast<std::uint64_t>(lowBus) << 32U) ^ static_cast<std::uint64_t>(highBus);
             auto& sequence = circuitIds[pairKey];
             const bool transformer =
                 (dynamic_cast<const links::AdjustableTransformer*>(acLine) != nullptr) ||
@@ -345,8 +346,8 @@ namespace {
             warning("invalid system frequency; exported the PSS/E default of 60 Hz");
             baseFrequency = 60.0;
         }
-        output << "0, " << rawNumber(basePower) << ", 33, 0, 1, "
-               << rawNumber(baseFrequency) << " / PSS(R)E-33 GridDyn export\n";
+        output << "0, " << rawNumber(basePower) << ", 33, 0, 1, " << rawNumber(baseFrequency)
+               << " / PSS(R)E-33 GridDyn export\n";
         auto caseName = safeComment(parentObject->getName());
         if (caseName.empty()) {
             caseName = "GridDyn network";
@@ -373,32 +374,23 @@ namespace {
             if (busName.empty()) {
                 busName = "BUS_" + std::to_string(bus.number);
             }
-            writeRawRecord(output,
-                           {std::to_string(bus.number),
-                            rawQuoted(busName, 12, object->getName(), warning),
-                            rawNumber(object->get("basevoltage", units::kV)),
-                            std::to_string(type),
-                            std::to_string(bus.area),
-                            std::to_string(bus.zone),
-                            "1",
-                            rawNumber(object->get("voltage")),
-                            rawNumber(object->get("angle", units::deg)),
-                            finiteRawLimit(object->get("vmax"),
-                                           1.1,
-                                           object->getName() + ".vmax",
-                                           warning),
-                            finiteRawLimit(object->get("vmin"),
-                                           0.9,
-                                           object->getName() + ".vmin",
-                                           warning),
-                            finiteRawLimit(object->get("vmax"),
-                                           1.1,
-                                           object->getName() + ".emergency vmax",
-                                           warning),
-                            finiteRawLimit(object->get("vmin"),
-                                           0.9,
-                                           object->getName() + ".emergency vmin",
-                                           warning)});
+            writeRawRecord(
+                output,
+                {std::to_string(bus.number),
+                 rawQuoted(busName, 12, object->getName(), warning),
+                 rawNumber(object->get("basevoltage", units::kV)),
+                 std::to_string(type),
+                 std::to_string(bus.area),
+                 std::to_string(bus.zone),
+                 "1",
+                 rawNumber(object->get("voltage")),
+                 rawNumber(object->get("angle", units::deg)),
+                 finiteRawLimit(object->get("vmax"), 1.1, object->getName() + ".vmax", warning),
+                 finiteRawLimit(object->get("vmin"), 0.9, object->getName() + ".vmin", warning),
+                 finiteRawLimit(
+                     object->get("vmax"), 1.1, object->getName() + ".emergency vmax", warning),
+                 finiteRawLimit(
+                     object->get("vmin"), 0.9, object->getName() + ".emergency vmin", warning)});
         }
         output << "0 / END OF BUS DATA, BEGIN LOAD DATA\n";
 
@@ -422,8 +414,8 @@ namespace {
                         " switched-shunt control was reduced to its present admittance");
             }
             if (object->isFixedShunt() || svd != nullptr) {
-                if (std::abs(p) > 1.0e-12 || std::abs(q) > 1.0e-12 ||
-                    std::abs(ip) > 1.0e-12 || std::abs(iq) > 1.0e-12) {
+                if (std::abs(p) > 1.0e-12 || std::abs(q) > 1.0e-12 || std::abs(ip) > 1.0e-12 ||
+                    std::abs(iq) > 1.0e-12) {
                     warning(object->getName() +
                             " has non-admittance terms and was exported as a RAW load record");
                 } else {
@@ -475,9 +467,8 @@ namespace {
                 writeRawRecord(output,
                                {std::to_string(link.bus2->number),
                                 rawQuoted(id, 2, link.object->getName(), warning),
-                                (link.object->isEnabled() && link.object->isConnected()) ?
-                                    "1" :
-                                    "0",
+                                (link.object->isEnabled() && link.object->isConnected()) ? "1" :
+                                                                                           "0",
                                 rawNumber(g2),
                                 rawNumber(-b2)});
                 warning(link.object->getName() +
@@ -507,8 +498,7 @@ namespace {
             if (!std::isfinite(voltageTarget) || voltageTarget <= 0.0) {
                 voltageTarget = generator.bus->object->get("voltage");
             }
-            double participation = (remoteBus == 0) ? 100.0 :
-                100.0 * object->get("vcontrolfrac");
+            double participation = (remoteBus == 0) ? 100.0 : 100.0 * object->get("vcontrolfrac");
             if (remoteBus != 0) {
                 const auto key = (static_cast<std::uint64_t>(remoteBus) << 32U) ^
                     static_cast<std::uint64_t>(generator.bus->number);
@@ -518,7 +508,8 @@ namespace {
                 }
             }
             if (!std::isfinite(participation) || participation <= 0.0 || participation > 100.0) {
-                warning(object->getName() + ".vcontrolfrac is outside RAW's 0-100 range; "
+                warning(object->getName() +
+                        ".vcontrolfrac is outside RAW's 0-100 range; "
                         "exported as 100");
                 participation = 100.0;
             }
@@ -578,38 +569,42 @@ namespace {
                 warning(link.object->getName() +
                         " has an open terminal; RAW branch status disables the whole link");
             }
-            writeRawRecord(output,
-                           {std::to_string(link.bus1->number),
-                            std::to_string(link.bus2->number),
-                            rawQuoted(link.id, 2, link.object->getName(), warning),
-                            rawNumber(line->get("r")),
-                            rawNumber(line->get("x")),
-                            rawNumber(totalB),
-                            rawRating(link.object->get("ratinga"), basePower,
-                                      link.object->getName() + ".ratingA", warning),
-                            rawRating(link.object->get("ratingb"), basePower,
-                                      link.object->getName() + ".ratingB", warning),
-                            rawRating(link.object->get("erating"), basePower,
-                                      link.object->getName() + ".ratingC", warning),
-                            rawNumber(line->get("g1")),
-                            rawNumber(line->get("b1") - halfB),
-                            rawNumber(line->get("g2")),
-                            rawNumber(line->get("b2") - halfB),
-                            std::to_string(status),
-                            "1",
-                            rawNumber(line->get("length", units::km)),
-                            "1",
-                            "1.0",
-                            "0",
-                            "0.0",
-                            "0",
-                            "0.0",
-                            "0",
-                            "0.0",
-                            rawQuoted(link.object->getName(),
-                                      40,
-                                      link.object->getName(),
-                                      warning)});
+            writeRawRecord(
+                output,
+                {std::to_string(link.bus1->number),
+                 std::to_string(link.bus2->number),
+                 rawQuoted(link.id, 2, link.object->getName(), warning),
+                 rawNumber(line->get("r")),
+                 rawNumber(line->get("x")),
+                 rawNumber(totalB),
+                 rawRating(link.object->get("ratinga"),
+                           basePower,
+                           link.object->getName() + ".ratingA",
+                           warning),
+                 rawRating(link.object->get("ratingb"),
+                           basePower,
+                           link.object->getName() + ".ratingB",
+                           warning),
+                 rawRating(link.object->get("erating"),
+                           basePower,
+                           link.object->getName() + ".ratingC",
+                           warning),
+                 rawNumber(line->get("g1")),
+                 rawNumber(line->get("b1") - halfB),
+                 rawNumber(line->get("g2")),
+                 rawNumber(line->get("b2") - halfB),
+                 std::to_string(status),
+                 "1",
+                 rawNumber(line->get("length", units::km)),
+                 "1",
+                 "1.0",
+                 "0",
+                 "0.0",
+                 "0",
+                 "0.0",
+                 "0",
+                 "0.0",
+                 rawQuoted(link.object->getName(), 40, link.object->getName(), warning)});
         }
         output << "0 / END OF BRANCH DATA, BEGIN TRANSFORMER DATA\n";
 
@@ -618,8 +613,7 @@ namespace {
                 continue;
             }
             const auto* line = link.line;
-            const auto* adjustable =
-                dynamic_cast<const links::AdjustableTransformer*>(link.object);
+            const auto* adjustable = dynamic_cast<const links::AdjustableTransformer*>(link.object);
             if (adjustable != nullptr && adjustable->get("control_mode") != 0.0) {
                 warning(link.object->getName() +
                         " transformer control was exported at its present tap setting");
@@ -659,12 +653,18 @@ namespace {
                            {rawNumber(line->get("tap")),
                             "0",
                             rawNumber(line->get("tapangle", units::deg)),
-                            rawRating(link.object->get("ratinga"), basePower,
-                                      link.object->getName() + ".ratingA", warning),
-                            rawRating(link.object->get("ratingb"), basePower,
-                                      link.object->getName() + ".ratingB", warning),
-                            rawRating(link.object->get("erating"), basePower,
-                                      link.object->getName() + ".ratingC", warning),
+                            rawRating(link.object->get("ratinga"),
+                                      basePower,
+                                      link.object->getName() + ".ratingA",
+                                      warning),
+                            rawRating(link.object->get("ratingb"),
+                                      basePower,
+                                      link.object->getName() + ".ratingB",
+                                      warning),
+                            rawRating(link.object->get("erating"),
+                                      basePower,
+                                      link.object->getName() + ".ratingC",
+                                      warning),
                             "0",
                             "0",
                             "0",
@@ -723,14 +723,12 @@ namespace {
         output << "0 / END OF ZONE DATA, BEGIN INTER-AREA TRANSFER DATA\n";
         if (const auto* rootArea = dynamic_cast<const GridArea*>(parentObject->getRoot())) {
             for (const auto& transfer : rootArea->getInterAreaTransfers()) {
-                writeRawRecord(output,
-                               {std::to_string(transfer.fromAreaID),
-                                std::to_string(transfer.toAreaID),
-                                rawQuoted(transfer.transferID,
-                                          2,
-                                          "inter-area transfer ID",
-                                          warning),
-                                rawNumber(transfer.scheduledMW)});
+                writeRawRecord(
+                    output,
+                    {std::to_string(transfer.fromAreaID),
+                     std::to_string(transfer.toAreaID),
+                     rawQuoted(transfer.transferID, 2, "inter-area transfer ID", warning),
+                     rawNumber(transfer.scheduledMW)});
             }
         }
         output << "0 / END OF INTER-AREA TRANSFER DATA, BEGIN OWNER DATA\n";
@@ -748,9 +746,7 @@ namespace {
     }
 }  // namespace
 
-bool saveRawCase(const CoreObject* parentObject,
-                 const std::string& fileName,
-                 stringVec* warnings)
+bool saveRawCase(const CoreObject* parentObject, const std::string& fileName, stringVec* warnings)
 {
     return saveRawV33(parentObject, fileName, warnings);
 }

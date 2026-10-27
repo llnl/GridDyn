@@ -26,6 +26,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 using namespace griddyn;
@@ -470,6 +471,66 @@ TEST(AcBusTests, PowerMinimumInitializationDoesNotOverwriteReactiveMinimum)
     bus.pFlowInitializeA(0.0, 0);
     EXPECT_DOUBLE_EQ(generator->getPmin(), 0.2);
     EXPECT_DOUBLE_EQ(generator->getQmin(), -0.4);
+}
+
+TEST(AcBusTests, ReactiveLimitBypassPreservesBoundsAndDispatchesBeyondThem)
+{
+    for (const auto busType : {"pv", "slk"}) {
+        for (const double requiredQ : {-0.3, 0.3}) {
+            for (const bool ignoreLimits : {false, true}) {
+                SCOPED_TRACE(busType);
+                SCOPED_TRACE(requiredQ);
+                SCOPED_TRACE(ignoreLimits);
+                AcBus bus;
+                bus.set("type", busType);
+                bus.set("vtol", 1e-6);
+                bus.set("atol", 1e-6);
+                auto* generator = new Generator;
+                generator->set("qmin", -0.1);
+                generator->set("qmax", 0.1);
+                bus.add(generator);
+                bus.add(new ZipLoad(0.0, requiredQ));
+                const auto flags = ignoreLimits ? (1U << IGNORE_REACTIVE_POWER_LIMITS) : 0U;
+                bus.pFlowInitializeA(0.0, flags);
+                bus.pFlowInitializeB();
+                bus.powerFlowAdjust(noInputs, flags, CheckLevel::FULL_CHECK);
+                if (ignoreLimits) {
+                    EXPECT_EQ(bus.getType(),
+                              std::string_view(busType) == "pv" ? GridBus::BusType::PV :
+                                                                  GridBus::BusType::SLK);
+                    EXPECT_NEAR(-generator->getReactivePower(), requiredQ, 1e-12);
+                } else {
+                    EXPECT_EQ(bus.getType(),
+                              std::string_view(busType) == "pv" ? GridBus::BusType::PQ :
+                                                                  GridBus::BusType::AFIX);
+                    EXPECT_NEAR(-generator->getReactivePower(),
+                                std::copysign(0.1, requiredQ),
+                                1e-12);
+                }
+                EXPECT_DOUBLE_EQ(generator->getQmin(), -0.1);
+                EXPECT_DOUBLE_EQ(generator->getQmax(), 0.1);
+            }
+        }
+    }
+}
+
+TEST(AcBusTests, ReactiveLimitBypassStillEnforcesRealPowerLimits)
+{
+    AcBus bus;
+    bus.set("type", "afix");
+    bus.set("vtol", 1e-6);
+    bus.set("atol", 1e-6);
+    auto* generator = new Generator;
+    generator->set("pmin", -0.1);
+    generator->set("pmax", 0.1);
+    bus.add(generator);
+    bus.add(new ZipLoad(0.3, 0.0));
+    const auto flags = 1U << IGNORE_REACTIVE_POWER_LIMITS;
+    bus.pFlowInitializeA(0.0, flags);
+    bus.pFlowInitializeB();
+    bus.powerFlowAdjust(noInputs, flags, CheckLevel::FULL_CHECK);
+    EXPECT_EQ(bus.getType(), GridBus::BusType::PQ);
+    EXPECT_DOUBLE_EQ(-generator->getRealPower(), 0.1);
 }
 
 TEST(AcBusTests, ClonePreservesTargetsAndBusTypes)

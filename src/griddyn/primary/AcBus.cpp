@@ -120,6 +120,7 @@ CoreObject* AcBus::clone(CoreObject* obj) const
     nobj->frequencyFilterConfigured = frequencyFilterConfigured;
     nobj->pFlowInitialVoltage = pFlowInitialVoltage;
     nobj->pFlowInitialVoltageCaptured = pFlowInitialVoltageCaptured;
+    nobj->ignoreReactivePowerLimits = ignoreReactivePowerLimits;
 
     nobj->busController.autogenP = busController.autogenP;
     nobj->busController.autogenQ = busController.autogenQ;
@@ -280,6 +281,7 @@ void AcBus::alert(CoreObject* obj, int code)
 // dynInitializeB states
 void AcBus::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
+    ignoreReactivePowerLimits = CHECK_CONTROLFLAG(flags, IGNORE_REACTIVE_POWER_LIMITS);
     if (!pFlowInitialVoltageCaptured) {
         pFlowInitialVoltage = voltage;
         pFlowInitialVoltageCaptured = true;
@@ -681,7 +683,8 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, Che
         switch (type) {
             case BusType::SLK:
 
-                if (S.genQ < (busController.Qmin - reactiveLimitTolerance)) {
+                if (!ignoreReactivePowerLimits &&
+                    S.genQ < (busController.Qmin - reactiveLimitTolerance)) {
                     S.genQ = busController.Qmin;
                     for (auto& vco : busController.vControlObjects) {
                         vco->set("q", "min");
@@ -689,7 +692,8 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, Che
                     type = BusType::AFIX;
                     alert(this, JAC_COUNT_CHANGE);
                     out = ChangeCode::JACOBIAN_CHANGE;
-                } else if (S.genQ > (busController.Qmax + reactiveLimitTolerance)) {
+                } else if (!ignoreReactivePowerLimits &&
+                           S.genQ > (busController.Qmax + reactiveLimitTolerance)) {
                     S.genQ = busController.Qmax;
                     for (auto& vco : busController.vControlObjects) {
                         vco->set("q", "max");
@@ -759,7 +763,8 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, Che
 
                 break;
             case BusType::PV:
-                if (S.genQ < (busController.Qmin - reactiveLimitTolerance)) {
+                if (!ignoreReactivePowerLimits &&
+                    S.genQ < (busController.Qmin - reactiveLimitTolerance)) {
                     S.genQ = busController.Qmin;
                     for (auto& vco : busController.vControlObjects) {
                         vco->set("q", "min");
@@ -768,7 +773,8 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, Che
                     alert(this, JAC_COUNT_CHANGE);
                     out = ChangeCode::JACOBIAN_CHANGE;
                     logging::trace(this, "changing from PV to PQ from Qmin");
-                } else if (S.genQ > (busController.Qmax + reactiveLimitTolerance)) {
+                } else if (!ignoreReactivePowerLimits &&
+                           S.genQ > (busController.Qmax + reactiveLimitTolerance)) {
                     S.genQ = busController.Qmax;
                     for (auto& vco : busController.vControlObjects) {
                         vco->set("q", "max");
@@ -2982,8 +2988,8 @@ bool AcBus::dispatchLocalVoltageControls(double requiredReactivePower, bool allo
     double currentQTotal = 0.0;
     for (std::size_t index = 0; index < localGenerators.size(); ++index) {
         auto* gen = localGenerators[index];
-        qMins[index] = gen->getQmin();
-        qMaxs[index] = gen->getQmax();
+        qMins[index] = ignoreReactivePowerLimits ? -kBigNum : gen->getQmin();
+        qMaxs[index] = ignoreReactivePowerLimits ? kBigNum : gen->getQmax();
         qValues[index] = std::clamp(-gen->getReactivePower(), qMins[index], qMaxs[index]);
         currentQTotal += qValues[index];
     }

@@ -142,6 +142,7 @@ CoreObject* Generator::clone(CoreObject* obj) const
 
     gen->P = P;
     gen->Q = Q;
+    gen->ignoreReactivePowerLimits = ignoreReactivePowerLimits;
     gen->Qbias = Qbias;
     gen->Pset = Pset;
     gen->Qmax = Qmax;
@@ -182,6 +183,10 @@ void Generator::updateObjectLinkages(CoreObject* newRoot)
 
 void Generator::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
+    ignoreReactivePowerLimits = CHECK_CONTROLFLAG(flags, IGNORE_REACTIVE_POWER_LIMITS);
+    if (ignoreReactivePowerLimits) {
+        opFlags.reset(AT_LIMIT);
+    }
     if (isConnected() && isEnabled()) {
         if (opFlags[LOCAL_VOLTAGE_CONTROL]) {
             if (bus->getType() != GridBus::BusType::PQ) {
@@ -206,7 +211,8 @@ void Generator::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
         // Keep RAW dispatches at a reactive limit fixed for the first solve;
         // the remote voltage group can release them after its initial bus
         // voltage is known.
-        if (opFlags[INDIRECT_VOLTAGE_CONTROL] || opFlags[REMOTE_VOLTAGE_CONTROL]) {
+        if (!ignoreReactivePowerLimits &&
+            (opFlags[INDIRECT_VOLTAGE_CONTROL] || opFlags[REMOTE_VOLTAGE_CONTROL])) {
             const double qLimitTolerance = 1.0e-8 * (std::max)(1.0, std::abs(Q));
             if ((std::abs(Q - getQmax()) <= qLimitTolerance) ||
                 (std::abs(Q - getQmin()) <= qLimitTolerance)) {
@@ -250,8 +256,9 @@ void Generator::configureIndirectVoltageControl(GridBus* controlBus)
         m_Vtarget = controlBus->get("vtarget");
         Qbias = Q;
         const double qLimitTolerance = 1.0e-8 * (std::max)(1.0, std::abs(Q));
-        if ((std::abs(Q - getQmax()) <= qLimitTolerance) ||
-            (std::abs(Q - getQmin()) <= qLimitTolerance)) {
+        if (!ignoreReactivePowerLimits &&
+            ((std::abs(Q - getQmax()) <= qLimitTolerance) ||
+             (std::abs(Q - getQmin()) <= qLimitTolerance))) {
             opFlags.set(AT_LIMIT);
         }
     }
@@ -510,6 +517,9 @@ ChangeCode Generator::powerFlowAdjust(const IOdata& /*inputs*/,
                                       std::uint32_t /*flags*/,
                                       CheckLevel /*level*/)
 {
+    if (ignoreReactivePowerLimits) {
+        return ChangeCode::NO_CHANGE;
+    }
     if (opFlags[AT_LIMIT]) {
         // A zero-width reactive range is a fixed-Q controller and must not be
         // released just because the remote bus is on the opposite side of VS.

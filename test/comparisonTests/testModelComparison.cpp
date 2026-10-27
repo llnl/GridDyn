@@ -61,6 +61,7 @@
 #include "griddyn/loads/MotorDLoad.h"
 #include "griddyn/loads/WECCMotor3.h"
 #include "griddyn/loads/ZipLoad.h"
+#include "griddyn/solvers/SolverInterface.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerPss2b.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
@@ -89,10 +90,11 @@ std::string makeComparisonTestPath(std::string_view fileName)
 
 std::unique_ptr<griddyn::GridDynSimulation>
     loadComparisonDynamicCase(std::string_view machineDyrFile,
-                              const std::vector<std::string_view>& controllerDyrFiles)
+                              const std::vector<std::string_view>& controllerDyrFiles,
+                              griddyn::ReaderInfo* readerInfo = nullptr)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"), readerInfo);
     if (!machineDyrFile.empty()) {
         griddyn::loadFile(simulation.get(), makeComparisonTestPath(machineDyrFile));
     }
@@ -182,6 +184,7 @@ std::vector<double>
     EXPECT_GT(maximumControllerChange, minimumControllerChange);
     return finalState;
 }
+
 }  // namespace
 
 TEST(DyrReaderComparisonTests, LoadsGenrouAndMatchesIeee14Initialization)
@@ -2832,6 +2835,424 @@ TEST(DynamicComparisonTests, Tgov1DownwardTrajectoryMatchesAndesReference)
             ASSERT_GT(genModel->getStates().size(), 3U);
             EXPECT_NEAR(genModel->getStates()[3], expectedOmega[timeIndex][generatorIndex], 0.005)
                 << "time=" << times[timeIndex] << " generator=" << generatorIndex;
+        }
+    }
+}
+
+namespace {
+
+class AndesIeee14FaultDynamicTest: public ::testing::Test {
+  protected:
+    nlohmann::json reference;
+    std::unique_ptr<griddyn::GridDynSimulation> simulation;
+    griddyn::ZipLoad* fault = nullptr;
+    double faultConductance = 0.0;
+    double faultReactiveAdmittance = 0.0;
+    bool faultApplied = false;
+    bool faultCleared = false;
+    std::vector<std::pair<double, double>> generatorReactiveBounds;
+
+    double toleranceFor(std::string_view signal, double expected) const
+    {
+        const auto& tolerance = reference.at("tolerances").at(std::string(signal));
+        return tolerance.at("absolute").get<double>() +
+            tolerance.at("relative").get<double>() * std::abs(expected);
+    }
+
+    void SetUp() override
+    {
+        std::ifstream input(
+            makeComparisonTestPath("ieee14_fault_controller_trajectory_reference.json"));
+        ASSERT_TRUE(input.is_open());
+        input >> reference;
+        const auto& configuration = reference.at("configuration");
+        ASSERT_FALSE(configuration.at("pv_to_pq_conversion").get<bool>());
+        ASSERT_EQ(configuration.at("dynamic_load_model").get<std::string>(), "constant_impedance");
+
+        griddyn::ReaderInfo readerInfo;
+        griddyn::addFlags(readerInfo, "use_generator_voltage_targets");
+        simulation =
+            loadComparisonDynamicCase("ieee14_genrou.dyr",
+                                      {"ieee14_esst3a.dyr", "ieee14_fault_tgov1_exst1.dyr"},
+                                      &readerInfo);
+        simulation->consolePrintLevel = griddyn::PrintLevel::NO_PRINT;
+        simulation->set("tolerance", 1e-9);
+        simulation->getSolverInterface("powerflow")->set("tolerance", 1e-10);
+        // Match ANDES PV.config.pv2pq=0, including generator Q dispatch.
+        simulation->setFlag("ignore_reactive_limits");
+        const auto& generatorBusIds = reference.at("generator_bus_ids");
+        const auto& voltageSetpoints = configuration.at("generator_voltage_setpoints");
+        ASSERT_EQ(generatorBusIds.size(), voltageSetpoints.size());
+        for (std::size_t index = 0; index < generatorBusIds.size(); ++index) {
+            auto* bus = dynamic_cast<griddyn::GridBus*>(
+                simulation->findByUserID("bus", generatorBusIds[index].get<index_t>()));
+            ASSERT_NE(bus, nullptr);
+            EXPECT_DOUBLE_EQ(bus->get("vtarget"), voltageSetpoints[index].get<double>());
+            auto* generator = bus->getGen(0);
+            ASSERT_NE(generator, nullptr);
+            generatorReactiveBounds.emplace_back(generator->getQmin(), generator->getQmax());
+        }
+        std::vector<griddyn::GridBus*> buses;
+        simulation->getBusVector(buses);
+        for (auto* bus : buses) {
+            for (index_t index = 0; auto* load = bus->getLoad(index); ++index) {
+                // Match ANDES PQ.config.p2z=q2z=1 during TDS.
+                load->setFlag("converttoimpedance");
+            }
+        }
+
+        const auto& faultMetadata = reference.at("event");
+        ASSERT_EQ(faultMetadata.at("model").get<std::string>(), "Fault");
+        auto* faultBus = dynamic_cast<griddyn::GridBus*>(
+            simulation->findByUserID("bus", faultMetadata.at("bus").get<index_t>()));
+        ASSERT_NE(faultBus, nullptr);
+        const auto resistance = faultMetadata.at("resistance").get<double>();
+        const auto reactance = faultMetadata.at("reactance").get<double>();
+        const auto impedanceSquared = resistance * resistance + reactance * reactance;
+        ASSERT_GT(impedanceSquared, 0.0);
+        faultConductance = resistance / impedanceSquared;
+        faultReactiveAdmittance = reactance / impedanceSquared;
+        fault = new griddyn::ZipLoad("andes_fault");
+        faultBus->add(fault);
+        const auto& faultTimes = faultMetadata.at("time");
+        ASSERT_EQ(faultTimes.size(), 2U);
+        for (std::size_t index = 0; index < faultTimes.size(); ++index) {
+            for (const auto& [field, admittance] :
+                 std::array<std::pair<std::string_view, double>, 2>{
+                     {{"yp", faultConductance}, {"yq", faultReactiveAdmittance}}}) {
+                auto event = std::make_shared<griddyn::Event>(faultTimes[index].get<double>());
+                ASSERT_TRUE(event->setTarget(fault, field));
+                event->setValue(index == 0 ? admittance : 0.0);
+                simulation->add(event);
+            }
+        }
+        ASSERT_EQ(simulation->dynInitialize(), 0);
+
+        const auto& initialization = reference.at("initialization");
+        const auto& busIds = reference.at("bus_ids");
+        ASSERT_EQ(busIds.size(), initialization.at("bus_voltage").size());
+        ASSERT_EQ(busIds.size(), initialization.at("bus_angle").size());
+        for (std::size_t index = 0; index < busIds.size(); ++index) {
+            const auto busId = busIds[index].get<index_t>();
+            auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", busId));
+            ASSERT_NE(bus, nullptr);
+            const auto voltage = initialization.at("bus_voltage")[index].get<double>();
+            const auto angle = initialization.at("bus_angle")[index].get<double>();
+            EXPECT_NEAR(bus->getVoltage(), voltage, toleranceFor("initial_bus_voltage", voltage))
+                << "initial voltage at bus " << busId;
+            EXPECT_NEAR(bus->getAngle(), angle, toleranceFor("initial_bus_angle", angle))
+                << "initial angle at bus " << busId;
+        }
+        for (std::size_t index = 0; index < generatorBusIds.size(); ++index) {
+            const auto busId = generatorBusIds[index].get<index_t>();
+            auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", busId));
+            ASSERT_NE(bus, nullptr);
+            auto* exciter = dynamic_cast<griddyn::GridSubModel*>(bus->getGen(0)->find("exciter"));
+            ASSERT_NE(exciter, nullptr);
+            const auto expected = initialization.at("field_voltage")[index].get<double>();
+            EXPECT_NEAR(exciter->getOutput(),
+                        expected,
+                        toleranceFor("initial_field_voltage", expected))
+                << "initial field voltage at bus " << busId;
+        }
+    }
+
+    void advanceToSample(const nlohmann::json& sample)
+    {
+        const auto time = sample.at("time").get<double>();
+        const auto& eventTimes = reference.at("event").at("time");
+        if (!faultApplied && time >= eventTimes[0].get<double>()) {
+            const auto eventTime = eventTimes[0].get<double>();
+            ASSERT_EQ(simulation->run(eventTime), 0);
+            ASSERT_NEAR(static_cast<double>(simulation->getSimulationTime()), eventTime, 1e-9);
+            EXPECT_DOUBLE_EQ(fault->get("yp"), faultConductance);
+            EXPECT_DOUBLE_EQ(fault->get("yq"), faultReactiveAdmittance);
+            faultApplied = true;
+        }
+        if (!faultCleared && time >= eventTimes[1].get<double>()) {
+            const auto eventTime = eventTimes[1].get<double>();
+            ASSERT_EQ(simulation->run(eventTime), 0);
+            ASSERT_NEAR(static_cast<double>(simulation->getSimulationTime()), eventTime, 1e-9);
+            EXPECT_DOUBLE_EQ(fault->get("yp"), 0.0);
+            EXPECT_DOUBLE_EQ(fault->get("yq"), 0.0);
+            EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+            faultCleared = true;
+        }
+        ASSERT_EQ(simulation->run(time), 0);
+        ASSERT_NEAR(static_cast<double>(simulation->getSimulationTime()), time, 1e-9);
+        const auto& generatorBusIds = reference.at("generator_bus_ids");
+        for (std::size_t index = 0; index < generatorBusIds.size(); ++index) {
+            auto* bus = dynamic_cast<griddyn::GridBus*>(
+                simulation->findByUserID("bus", generatorBusIds[index].get<index_t>()));
+            ASSERT_NE(bus, nullptr);
+            EXPECT_DOUBLE_EQ(bus->getGen(0)->getQmin(), generatorReactiveBounds[index].first);
+            EXPECT_DOUBLE_EQ(bus->getGen(0)->getQmax(), generatorReactiveBounds[index].second);
+        }
+    }
+};
+
+}  // namespace
+
+TEST_F(AndesIeee14FaultDynamicTest, GenrouSpeedMatchesAndesReference)
+{
+    const auto& busIds = reference.at("generator_bus_ids");
+    for (const auto& sample : reference.at("samples")) {
+        SCOPED_TRACE(sample.at("time").get<double>());
+        ASSERT_NO_FATAL_FAILURE(advanceToSample(sample));
+        const auto& expectedSpeed = sample.at("generator_speed");
+        ASSERT_EQ(busIds.size(), expectedSpeed.size());
+        for (std::size_t index = 0; index < busIds.size(); ++index) {
+            const auto busId = busIds[index].get<index_t>();
+            auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", busId));
+            ASSERT_NE(bus, nullptr);
+            auto* machine =
+                dynamic_cast<griddyn::genmodels::GenModelGENROU*>(bus->getGen(0)->find("genmodel"));
+            ASSERT_NE(machine, nullptr);
+            ASSERT_GT(machine->getStates().size(), 3U);
+            const auto expected = expectedSpeed[index].get<double>();
+            EXPECT_NEAR(machine->getStates()[3],
+                        expected,
+                        toleranceFor("generator_speed", expected))
+                << "bus " << busId;
+        }
+    }
+}
+
+TEST_F(AndesIeee14FaultDynamicTest, Tgov1MechanicalPowerMatchesAndesReference)
+{
+    const auto& busIds = reference.at("generator_bus_ids");
+    for (const auto& sample : reference.at("samples")) {
+        SCOPED_TRACE(sample.at("time").get<double>());
+        ASSERT_NO_FATAL_FAILURE(advanceToSample(sample));
+        const auto& expectedPower = sample.at("mechanical_power");
+        ASSERT_EQ(busIds.size(), expectedPower.size());
+        const auto& expectedValve = sample.at("governor_valve");
+        ASSERT_EQ(busIds.size(), expectedValve.size());
+        for (std::size_t index = 0; index < busIds.size(); ++index) {
+            const auto busId = busIds[index].get<index_t>();
+            auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", busId));
+            ASSERT_NE(bus, nullptr);
+            auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+            ASSERT_NE(generator, nullptr);
+            auto* governor = generator->getMechanicalPowerSource();
+            ASSERT_NE(governor, nullptr);
+            const auto expected = expectedPower[index].get<double>();
+            EXPECT_NEAR(governor->getOutput(generator->getMechanicalPowerOutput()),
+                        expected,
+                        toleranceFor("mechanical_power", expected))
+                << "bus " << busId;
+            ASSERT_EQ(governor->getStates().size(), 3U);
+            const auto valve = expectedValve[index].get<double>();
+            EXPECT_NEAR(governor->getStates()[2], valve, toleranceFor("governor_valve", valve))
+                << "valve at bus " << busId;
+        }
+    }
+}
+
+TEST_F(AndesIeee14FaultDynamicTest, ExciterFieldVoltageMatchesAndesReference)
+{
+    const auto& busIds = reference.at("generator_bus_ids");
+    for (const auto& sample : reference.at("samples")) {
+        SCOPED_TRACE(sample.at("time").get<double>());
+        ASSERT_NO_FATAL_FAILURE(advanceToSample(sample));
+        const auto& expectedVoltage = sample.at("field_voltage");
+        ASSERT_EQ(busIds.size(), expectedVoltage.size());
+        for (std::size_t index = 0; index < busIds.size(); ++index) {
+            const auto busId = busIds[index].get<index_t>();
+            auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", busId));
+            ASSERT_NE(bus, nullptr);
+            auto* exciter = dynamic_cast<griddyn::GridSubModel*>(bus->getGen(0)->find("exciter"));
+            ASSERT_NE(exciter, nullptr);
+            const auto expected = expectedVoltage[index].get<double>();
+            EXPECT_NEAR(exciter->getOutput(), expected, toleranceFor("field_voltage", expected))
+                << "bus " << busId;
+        }
+    }
+}
+
+TEST_F(AndesIeee14FaultDynamicTest, BusVoltagesMatchAndesReference)
+{
+    const auto& busIds = reference.at("bus_ids");
+    for (const auto& sample : reference.at("samples")) {
+        SCOPED_TRACE(sample.at("time").get<double>());
+        ASSERT_NO_FATAL_FAILURE(advanceToSample(sample));
+        const auto& expectedVoltage = sample.at("bus_voltage");
+        ASSERT_EQ(busIds.size(), expectedVoltage.size());
+        for (std::size_t index = 0; index < busIds.size(); ++index) {
+            const auto busId = busIds[index].get<index_t>();
+            auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", busId));
+            ASSERT_NE(bus, nullptr);
+            const auto expected = expectedVoltage[index].get<double>();
+            EXPECT_NEAR(bus->getVoltage(), expected, toleranceFor("bus_voltage", expected))
+                << "bus " << busId;
+        }
+    }
+}
+
+namespace {
+
+class AndesIeeeG1PulseTest: public ::testing::Test {
+  protected:
+    nlohmann::json reference;
+    std::unique_ptr<griddyn::GridDynSimulation> simulation;
+    griddyn::governors::GovernorIeeeG1* governor = nullptr;
+    griddyn::genmodels::GenModelGENROU* machine = nullptr;
+    std::size_t nextEvent = 0;
+
+    void SetUp() override
+    {
+        std::ifstream input(makeComparisonTestPath("ieee14_ieeeg1_pulse_reference.json"));
+        ASSERT_TRUE(input.is_open());
+        input >> reference;
+        griddyn::ReaderInfo readerInfo;
+        griddyn::addFlags(readerInfo, "use_generator_voltage_targets");
+        simulation =
+            loadComparisonDynamicCase("ieee14_genrou.dyr", {"ieee14_ieeeg1.dyr"}, &readerInfo);
+        simulation->consolePrintLevel = griddyn::PrintLevel::NO_PRINT;
+        simulation->setFlag("ignore_reactive_limits");
+        simulation->set("tolerance", 1e-9);
+        simulation->getSolverInterface("powerflow")->set("tolerance", 1e-10);
+        const auto& configuration = reference.at("configuration");
+        ASSERT_FALSE(configuration.at("pv_to_pq_conversion").get<bool>());
+        ASSERT_EQ(configuration.at("dynamic_load_model").get<std::string>(), "constant_impedance");
+        const auto& busIds = reference.at("generator_bus_ids");
+        for (std::size_t index = 0; index < busIds.size(); ++index) {
+            auto* bus = dynamic_cast<griddyn::GridBus*>(
+                simulation->findByUserID("bus", busIds[index].get<index_t>()));
+            ASSERT_NE(bus, nullptr);
+            EXPECT_DOUBLE_EQ(bus->get("vtarget"),
+                             configuration.at("generator_voltage_setpoints")[index].get<double>());
+        }
+        std::vector<griddyn::GridBus*> buses;
+        simulation->getBusVector(buses);
+        for (auto* bus : buses) {
+            for (index_t index = 0; auto* load = bus->getLoad(index); ++index) {
+                load->setFlag("converttoimpedance");
+            }
+        }
+        const auto& event = reference.at("event");
+        ASSERT_EQ(event.at("model").get<std::string>(), "IEEEG1");
+        ASSERT_EQ(event.at("source").get<std::string>(), "paux0");
+        auto* target = dynamic_cast<griddyn::GridBus*>(
+            simulation->findByUserID("bus", event.at("bus").get<index_t>()));
+        ASSERT_NE(target, nullptr);
+        ASSERT_NE(target->getGen(0), nullptr);
+        governor =
+            dynamic_cast<griddyn::governors::GovernorIeeeG1*>(target->getGen(0)->find("governor"));
+        machine =
+            dynamic_cast<griddyn::genmodels::GenModelGENROU*>(target->getGen(0)->find("genmodel"));
+        ASSERT_NE(governor, nullptr);
+        ASSERT_NE(machine, nullptr);
+        ASSERT_EQ(simulation->dynInitialize(), 0);
+        EXPECT_NEAR(governor->getOutput(), event.at("initial_reference").get<double>(), 1e-7);
+        for (const auto& pulse : event.at("pulse")) {
+            auto action = std::make_shared<griddyn::Event>(pulse.at("time").get<double>());
+            ASSERT_TRUE(action->setTarget(governor, "paux"));
+            action->setValue(pulse.at("offset").get<double>());
+            simulation->add(action);
+        }
+        EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    }
+
+    void advanceToSample(const nlohmann::json& sample)
+    {
+        const auto time = sample.at("time").get<double>();
+        const auto& pulse = reference.at("event").at("pulse");
+        while (nextEvent < pulse.size() && time >= pulse[nextEvent].at("time").get<double>()) {
+            const auto eventTime = pulse[nextEvent].at("time").get<double>();
+            ASSERT_EQ(simulation->run(eventTime), 0);
+            ASSERT_NEAR(static_cast<double>(simulation->getSimulationTime()), eventTime, 1e-9);
+            EXPECT_DOUBLE_EQ(governor->get("paux"), pulse[nextEvent].at("offset").get<double>());
+            ++nextEvent;
+        }
+        ASSERT_EQ(simulation->run(time), 0);
+        ASSERT_NEAR(static_cast<double>(simulation->getSimulationTime()), time, 1e-9);
+    }
+};
+
+}  // namespace
+
+TEST_F(AndesIeeeG1PulseTest, ValveTurbineStagesAndPowerMatchAndes)
+{
+    const auto& tolerances = reference.at("tolerances");
+    bool upperRateReached = false;
+    bool lowerRateReached = false;
+    bool releasedAfterUpperRate = false;
+    bool releasedAfterLowerRate = false;
+    for (const auto& sample : reference.at("samples")) {
+        SCOPED_TRACE(sample.at("time").get<double>());
+        ASSERT_NO_FATAL_FAILURE(advanceToSample(sample));
+        const auto& states = governor->getStates();
+        const auto valveIndex = governor->findIndex("valve", griddyn::cLocalSolverMode);
+        ASSERT_LT(valveIndex, states.size());
+        EXPECT_NEAR(states[valveIndex],
+                    sample.at("valve")[0].get<double>(),
+                    tolerances.at("valve").get<double>());
+        EXPECT_GE(states[valveIndex], governor->get("pmin") - 1e-7);
+        EXPECT_LE(states[valveIndex], governor->get("pmax") + 1e-7);
+        EXPECT_NEAR(governor->getOutput(),
+                    sample.at("mechanical_power")[0].get<double>(),
+                    tolerances.at("mechanical_power").get<double>());
+        for (std::size_t stage = 0; stage < 4; ++stage) {
+            const auto field = "p" + std::to_string(stage + 4);
+            const auto index = governor->findIndex(field, griddyn::cLocalSolverMode);
+            ASSERT_LT(index, states.size());
+            EXPECT_NEAR(states[index],
+                        sample.at("turbine_stages")[stage].get<double>(),
+                        tolerances.at("turbine_stages").get<double>())
+                << field;
+        }
+        std::vector<double> derivatives(states.size(), 0.0);
+        governor->derivative({machine->getStates()[3], 0.0},
+                             griddyn::emptyStateData,
+                             derivatives.data(),
+                             griddyn::cLocalSolverMode);
+        const auto expectedRate = sample.at("valve_rate")[0].get<double>();
+        EXPECT_NEAR(derivatives[valveIndex],
+                    expectedRate,
+                    tolerances.at("valve_rate").get<double>());
+        if (std::abs(expectedRate - governor->get("uo")) < 1e-6) {
+            upperRateReached = true;
+            EXPECT_TRUE(governor->checkFlag(griddyn::governors::GovernorIeeeG1::RATE_LIMITED));
+        } else if (std::abs(expectedRate - governor->get("uc")) < 1e-6) {
+            lowerRateReached = true;
+            EXPECT_TRUE(governor->checkFlag(griddyn::governors::GovernorIeeeG1::RATE_LIMITED));
+        } else {
+            if (upperRateReached) {
+                releasedAfterUpperRate = true;
+                EXPECT_FALSE(governor->checkFlag(griddyn::governors::GovernorIeeeG1::RATE_LIMITED));
+            }
+            if (lowerRateReached) {
+                releasedAfterLowerRate = true;
+                EXPECT_FALSE(governor->checkFlag(griddyn::governors::GovernorIeeeG1::RATE_LIMITED));
+            }
+        }
+    }
+    EXPECT_TRUE(upperRateReached);
+    EXPECT_TRUE(lowerRateReached);
+    EXPECT_TRUE(releasedAfterUpperRate);
+    EXPECT_TRUE(releasedAfterLowerRate);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST_F(AndesIeeeG1PulseTest, AllFiveMachineSpeedsMatchAndes)
+{
+    const auto& busIds = reference.at("generator_bus_ids");
+    for (const auto& sample : reference.at("samples")) {
+        SCOPED_TRACE(sample.at("time").get<double>());
+        ASSERT_NO_FATAL_FAILURE(advanceToSample(sample));
+        ASSERT_EQ(busIds.size(), sample.at("generator_speed").size());
+        for (std::size_t index = 0; index < busIds.size(); ++index) {
+            const auto busId = busIds[index].get<index_t>();
+            auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", busId));
+            ASSERT_NE(bus, nullptr);
+            auto* genModel =
+                dynamic_cast<griddyn::genmodels::GenModelGENROU*>(bus->getGen(0)->find("genmodel"));
+            ASSERT_NE(genModel, nullptr);
+            EXPECT_NEAR(genModel->getStates()[3],
+                        sample.at("generator_speed")[index].get<double>(),
+                        reference.at("tolerances").at("generator_speed").get<double>())
+                << "bus " << busId;
         }
     }
 }

@@ -56,6 +56,7 @@ CoreObject* GovernorIeeeG1::clone(CoreObject* obj) const
     }
     governorClone->Uo = Uo;
     governorClone->Uc = Uc;
+    governorClone->auxiliaryPower = auxiliaryPower;
     governorClone->turbineTime = turbineTime;
     governorClone->powerFraction = powerFraction;
     governorClone->initializationTarget = initializationTarget;
@@ -215,7 +216,7 @@ double GovernorIeeeG1::leadLagOutput(const IOdata& inputs, const double diffStat
 
 double GovernorIeeeG1::unlimitedValveRate(const IOdata& inputs, const double diffState[]) const
 {
-    return (leadLagOutput(inputs, diffState) + Pset - diffState[valveState]) / T3;
+    return (leadLagOutput(inputs, diffState) + Pset + auxiliaryPower - diffState[valveState]) / T3;
 }
 
 double GovernorIeeeG1::limitedValveRate(const IOdata& inputs, const double diffState[]) const
@@ -577,6 +578,11 @@ void GovernorIeeeG1::set(std::string_view param, double val, units::unit unitTyp
             throw InvalidParameterValue("IEEEG1 UC must be nonpositive and finite");
         }
         Uc = val;
+    } else if (param == "paux") {
+        if (!std::isfinite(val)) {
+            throw InvalidParameterValue("IEEEG1 auxiliary reference must be finite");
+        }
+        auxiliaryPower = units::convert(val, unitType, units::puMW, systemBasePower);
     } else if ((param == "pmax") || (param == "pmin")) {
         if (!std::isfinite(val)) {
             throw InvalidParameterValue("IEEEG1 valve limit must be finite");
@@ -599,6 +605,9 @@ void GovernorIeeeG1::set(std::string_view param, double val, units::unit unitTyp
 
 double GovernorIeeeG1::get(std::string_view param, units::unit unitType) const
 {
+    if (param == "paux") {
+        return units::convert(auxiliaryPower, units::puMW, unitType, systemBasePower);
+    }
     if (param == "uo") {
         return Uo;
     }

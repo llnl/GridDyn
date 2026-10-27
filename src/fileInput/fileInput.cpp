@@ -123,10 +123,11 @@ int setObjectParameter(const std::string& label, CoreObject* obj, GridParameter&
     return (-1);
 }
 
-static constexpr std::array<std::pair<std::string_view, int>, 5> flagStringMap{{
+static constexpr std::array<std::pair<std::string_view, int>, 6> flagStringMap{{
     {"ignore_step_up_transformers", IGNORE_STEP_UP_TRANSFORMER},
     {"powerflow_only", ASSUME_POWERFLOW_ONLY},
     {"use_bus_voltage_targets", USE_BUS_VOLTAGE_TARGETS},
+    {"use_generator_voltage_targets", USE_GENERATOR_VOLTAGE_TARGETS},
     {"no_generator_bus_reset", USE_BUS_VOLTAGE_TARGETS},
     {"no_generator_bus_voltage_reset", USE_BUS_VOLTAGE_TARGETS},
 }};

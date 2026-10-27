@@ -10,11 +10,14 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/griddyn-config.h"
+#include "griddyn/simulation/FaultResetRecovery.h"
+#include "griddyn/solvers/SolverInterface.h"
 #include <algorithm>
 #include <array>
 #include <cstdio>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <memory>
 #include <set>
 #include <string>
 #include <string_view>
@@ -30,7 +33,106 @@ class OrderingTestSimulation: public griddyn::GridDynSimulation {
   public:
     OffsetOrdering ordering() const { return default_ordering; }
 };
+
+class CachedRootTestSimulation: public griddyn::GridDynSimulation {
+    count_t cachedGeneration = 0;
+    double cachedInput = 0.0;
+
+  public:
+    CachedRootTestSimulation() { residCount = 1; }
+    void rootTest(const griddyn::IOdata&,
+                  const griddyn::StateData& stateData,
+                  double roots[],
+                  const griddyn::SolverMode&) override
+    {
+        if (stateData.updateRequired(cachedGeneration)) {
+            cachedInput = stateData.state[0];
+            cachedGeneration = stateData.seqID;
+        }
+        roots[0] = cachedInput;
+    }
+};
+
+class FaultResetTestSolver: public griddyn::SolverInterface {
+  public:
+    int initialConditionCalls = 0;
+    int successfulCall = 0;
+    int result;
+    std::array<double, 1> state{};
+    std::array<double, 1> derivative{};
+
+    FaultResetTestSolver(griddyn::GridDynSimulation* simulation, int solveResult):
+        SolverInterface(simulation, griddyn::cDaeSolverMode), result(solveResult)
+    {
+    }
+
+    double* stateData() noexcept override { return state.data(); }
+    double* derivData() noexcept override { return derivative.data(); }
+    void getCurrentData() override {}
+    int calcIC(griddyn::CoreTime, griddyn::CoreTime, IcModes, bool) override
+    {
+        ++initialConditionCalls;
+        if (successfulCall > 0 && initialConditionCalls >= successfulCall) {
+            return 0;
+        }
+        return result;
+    }
+};
 }  // namespace
+
+TEST(SimulationRootTests, EachInterpolatedRootCallbackRefreshesCachedInputs)
+{
+    CachedRootTestSimulation simulation;
+    double state = 1.0;
+    double derivative = 0.0;
+    double root = 0.0;
+    ASSERT_EQ(
+        simulation.rootFindingFunction(1.0, &state, &derivative, &root, griddyn::cDaeSolverMode),
+        0);
+    EXPECT_DOUBLE_EQ(root, 1.0);
+    state = -1.0;
+    ASSERT_EQ(
+        simulation.rootFindingFunction(1.0, &state, &derivative, &root, griddyn::cDaeSolverMode),
+        0);
+    EXPECT_DOUBLE_EQ(root, -1.0);
+}
+
+TEST(FaultResetRecoveryTests, StopsAfterFirstSuccessfulRecovery)
+{
+    griddyn::GridDynSimulation simulation;
+    auto solver = std::make_shared<FaultResetTestSolver>(&simulation, 0);
+    griddyn::faultResetRecovery recovery(&simulation, solver);
+
+    EXPECT_EQ(recovery.attemptFix(), 0);
+    EXPECT_EQ(recovery.attempts(), 1);
+    EXPECT_EQ(solver->initialConditionCalls, 1);
+}
+
+TEST(FaultResetRecoveryTests, ExhaustedSolvesCannotReportSuccess)
+{
+    griddyn::GridDynSimulation simulation;
+    auto solver = std::make_shared<FaultResetTestSolver>(&simulation, SOLVER_CONVERGENCE_ERROR);
+    griddyn::faultResetRecovery recovery(&simulation, solver);
+
+    EXPECT_EQ(recovery.attemptFix(), SOLVER_CONVERGENCE_ERROR);
+    EXPECT_FALSE(recovery.hasMoreFixes());
+    EXPECT_GT(solver->initialConditionCalls, 0);
+    EXPECT_LT(recovery.attemptFix(), 0);
+}
+
+TEST(FaultResetRecoveryTests, VoltageSearchStopsAtFirstValidSolution)
+{
+    griddyn::GridDynSimulation simulation;
+    auto solver = std::make_shared<FaultResetTestSolver>(&simulation, SOLVER_CONVERGENCE_ERROR);
+    // The first four strategies make seven failed IC calls. The voltage-search
+    // strategy then obtains a valid solution on its first trial.
+    solver->successfulCall = 8;
+    griddyn::faultResetRecovery recovery(&simulation, solver);
+
+    EXPECT_EQ(recovery.attemptFix(), 0);
+    EXPECT_EQ(recovery.attempts(), 5);
+    EXPECT_EQ(solver->initialConditionCalls, 8);
+}
 
 TEST(SimulationOrderingTests, SupportedNamesSelectExpectedOrdering)
 {

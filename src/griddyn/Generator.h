@@ -55,6 +55,8 @@ class Generator: public GridSecondary {
   protected:
     double P = 0.0;  //!< [pu] Electrical generation real power output
     double Q = 0.0;  //!< [pu] Electrical generation reactive power output
+    bool ignoreReactivePowerLimits =
+        false;  //!< power-flow Q enforcement policy from initialization
     model_parameter Pset = -kBigNum;  //!< [pu] target power set point
     model_parameter dPdt = 0.0;  //!< define the power ramp
     model_parameter dQdt = 0.0;  //!< define the reactive power ramp

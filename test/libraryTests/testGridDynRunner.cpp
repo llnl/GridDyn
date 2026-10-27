@@ -7,6 +7,7 @@
 // test case for element readers
 
 #include "../gtestHelper.h"
+#include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/Load.h"
 #include "griddyn/events/Event.h"
@@ -149,6 +150,42 @@ TEST(RunnerTests, CoupledStepWithTenMillisecondTimestepStopsBeforePreScheduledEv
 TEST(RunnerTests, CoupledStepWithOneMillisecondTimestepStopsBeforePreScheduledEvent)
 {
     runCoupledTimeStepWithPreScheduledEvent(0.001);
+}
+
+TEST(RunnerTests, RawCompatibilityOptionsApplyBeforeInputRegardlessOfArgumentOrder)
+{
+    for (const bool optionsFirst : {false, true}) {
+        SCOPED_TRACE(optionsFirst);
+        auto simulation = std::make_shared<griddyn::GridDynSimulation>();
+        simulation->consolePrintLevel = griddyn::PrintLevel::NO_PRINT;
+        griddyn::GriddynRunner runner(simulation);
+        std::vector<std::string> arguments{"griddyn"};
+        const std::string input = GRIDDYN_TEST_DIRECTORY "/comparison_tests/ieee14.raw";
+        if (!optionsFirst) {
+            arguments.push_back(input);
+        }
+        arguments.emplace_back("--file-flags=use_generator_voltage_targets");
+        arguments.emplace_back("--flags=ignore_reactive_limits");
+        arguments.emplace_back("--powerflow-only");
+        if (optionsFirst) {
+            arguments.push_back(input);
+        }
+        std::vector<char*> argv;
+        for (auto& argument : arguments) {
+            argv.push_back(argument.data());
+        }
+        ASSERT_EQ(runner.Initialize(static_cast<int>(argv.size()), argv.data()),
+                  FUNCTION_EXECUTION_SUCCESS);
+        auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+        ASSERT_NE(bus, nullptr);
+        EXPECT_DOUBLE_EQ(bus->get("vtarget"), 1.03);
+        EXPECT_DOUBLE_EQ(bus->getVoltage(), 1.01970);
+        ASSERT_EQ(simulation->powerflow(), 0);
+        EXPECT_NEAR(bus->getVoltage(), 1.03, 1e-6);
+        ASSERT_NE(bus->getGen(0), nullptr);
+        EXPECT_DOUBLE_EQ(bus->getGen(0)->getQmax(), 0.15);
+        EXPECT_GT(-bus->getGen(0)->getReactivePower(), 0.15);
+    }
 }
 
 TEST(RunnerTests, UnresolvedCommandLineEventWarnsAndIsIgnored)

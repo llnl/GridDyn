@@ -25,14 +25,14 @@ faultResetRecovery::~faultResetRecovery() = default;
 
 bool faultResetRecovery::hasMoreFixes() const
 {
-    return (attempt_number < 7);
+    return (attempt_number < 5);
 }
 
 int faultResetRecovery::attemptFix()
 {
     int retval = -101;
     std::vector<double> nVolts;
-    while (attempt_number < 7) {
+    while (hasMoreFixes()) {
         ++attempt_number;
         switch (attempt_number) {
             case 1:
@@ -50,9 +50,6 @@ int faultResetRecovery::attemptFix()
             case 5:
                 retval = faultResetFix3();
                 break;
-            case 6:
-                retval = faultResetFix4();
-                break;
             default:
                 break;
         }
@@ -62,6 +59,8 @@ int faultResetRecovery::attemptFix()
             if (!checkResetVoltages(initVolts, nVolts)) {
                 sim->log(sim, PrintLevel::SUMMARY, "bad voltage reset");
                 retval = -47;
+            } else {
+                return FUNCTION_EXECUTION_SUCCESS;
             }
         }
     }
@@ -170,6 +169,8 @@ int faultResetRecovery::faultResetFix3()
             if (!checkResetVoltages(initVolts, nVolts)) {
                 sim->log(sim, PrintLevel::SUMMARY, "bad voltage reset");
                 retval = -47;
+            } else {
+                return FUNCTION_EXECUTION_SUCCESS;
             }
         } else {
             sim->converge(sim->getSimulationTime(),
@@ -200,12 +201,6 @@ int faultResetRecovery::faultResetFix3()
         }
     }
     return retval;
-}
-
-// Don't know what to do here yet
-int faultResetRecovery::faultResetFix4()
-{
-    return 0;
 }
 
 bool checkResetVoltages(const std::vector<double>& prev, const std::vector<double>& curr)

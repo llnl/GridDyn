@@ -75,6 +75,8 @@ enum ReaderFlags {
         5,  //!< use the bus voltage specification instead of generator VG targets
     NO_GENERATOR_BUS_VOLTAGE_RESET =
         USE_BUS_VOLTAGE_TARGETS,  //!< legacy alias for USE_BUS_VOLTAGE_TARGETS
+    USE_GENERATOR_VOLTAGE_TARGETS =
+        6,  //!< opt in to local RAW generator VS targets; bus-target flag takes precedence
 
 };
 

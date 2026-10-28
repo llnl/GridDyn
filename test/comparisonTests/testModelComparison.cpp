@@ -2912,8 +2912,7 @@ class AndesIeee14FaultDynamicTest: public ::testing::Test {
         ASSERT_NE(faultBus, nullptr);
         const auto resistance = faultMetadata.at("resistance").get<double>();
         const auto reactance = faultMetadata.at("reactance").get<double>();
-        const auto impedanceSquared =
-            (resistance * resistance) + (reactance * reactance);
+        const auto impedanceSquared = (resistance * resistance) + (reactance * reactance);
         ASSERT_GT(impedanceSquared, 0.0);
         faultConductance = resistance / impedanceSquared;
         faultReactiveAdmittance = reactance / impedanceSquared;

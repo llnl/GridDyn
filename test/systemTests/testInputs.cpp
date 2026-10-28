@@ -47,8 +47,8 @@ struct TemporaryRawFile {
 
 TEST_F(InputTests, RawImportWarnsWhenCoreSectionMarkersAreMissing)
 {
-    const TemporaryRawFile rawFile{
-        std::filesystem::temp_directory_path() / "griddyn_raw_missing_sections.raw"};
+    const TemporaryRawFile rawFile{std::filesystem::temp_directory_path() /
+                                   "griddyn_raw_missing_sections.raw"};
     {
         std::ofstream output(rawFile.path);
         ASSERT_TRUE(output.is_open());
@@ -77,8 +77,8 @@ TEST_F(InputTests, RawImportWarnsWhenCoreSectionMarkersAreMissing)
 
 TEST_F(InputTests, RawImportWarnsWhenUnsupportedSectionsContainRecords)
 {
-    const TemporaryRawFile rawFile{
-        std::filesystem::temp_directory_path() / "griddyn_raw_unsupported_section.raw"};
+    const TemporaryRawFile rawFile{std::filesystem::temp_directory_path() /
+                                   "griddyn_raw_unsupported_section.raw"};
     {
         std::ofstream output(rawFile.path);
         ASSERT_TRUE(output.is_open());

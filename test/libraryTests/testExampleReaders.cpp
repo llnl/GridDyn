@@ -1210,16 +1210,15 @@ TEST(ExampleReaderTests, ExportPyPowerRoundTrip)
 
 TEST(ExampleReaderTests, ExportPyPowerInputToRawRoundTrip)
 {
-    const auto source = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "pypower_tests" /
-        "case2.py";
+    const auto source =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "pypower_tests" / "case2.py";
     const auto exported =
         std::filesystem::temp_directory_path() / "griddyn_pypower_to_raw_roundtrip.raw";
     auto original = std::make_unique<griddyn::GridDynSimulation>();
     griddyn::loadFile(original, source.string());
 
     griddyn::stringVec warnings;
-    ASSERT_TRUE(griddyn::saveNetworkCaseByExtension(
-        original.get(), exported.string(), &warnings))
+    ASSERT_TRUE(griddyn::saveNetworkCaseByExtension(original.get(), exported.string(), &warnings))
         << (warnings.empty() ? "RAW export failed" : warnings.front());
     expectRawDefaultFrequencyWarning(warnings);
 
@@ -1237,10 +1236,10 @@ TEST(ExampleReaderTests, ExportPyPowerInputToRawRoundTrip)
     ASSERT_EQ(imported->pFlowInitialize(), 0);
     ASSERT_EQ(imported->powerflow(), 0);
     for (index_t busIndex = 1; busIndex <= original->getInt("totalbuscount"); ++busIndex) {
-        const auto* originalBus = dynamic_cast<const griddyn::GridBus*>(
-            original->findByUserID("bus", busIndex));
-        const auto* importedBus = dynamic_cast<const griddyn::GridBus*>(
-            imported->findByUserID("bus", busIndex));
+        const auto* originalBus =
+            dynamic_cast<const griddyn::GridBus*>(original->findByUserID("bus", busIndex));
+        const auto* importedBus =
+            dynamic_cast<const griddyn::GridBus*>(imported->findByUserID("bus", busIndex));
         ASSERT_NE(originalBus, nullptr);
         ASSERT_NE(importedBus, nullptr);
         EXPECT_NEAR(importedBus->getVoltage(), originalBus->getVoltage(), 1.0e-8);
@@ -1281,8 +1280,7 @@ TEST(ExampleReaderTests, ExportRawRoundTripByExtension)
 
     ASSERT_TRUE(griddyn::isNetworkCaseOutputFile(exported.string()));
     griddyn::stringVec warnings;
-    ASSERT_TRUE(griddyn::saveNetworkCaseByExtension(
-        original.get(), exported.string(), &warnings))
+    ASSERT_TRUE(griddyn::saveNetworkCaseByExtension(original.get(), exported.string(), &warnings))
         << (warnings.empty() ? "RAW export failed" : warnings.front());
     expectRawDefaultFrequencyWarning(warnings);
 
@@ -1296,10 +1294,10 @@ TEST(ExampleReaderTests, ExportRawRoundTripByExtension)
     EXPECT_DOUBLE_EQ(imported->get("basefrequency", units::Hz), 60.0);
 
     for (index_t busIndex = 1; busIndex <= original->getInt("totalbuscount"); ++busIndex) {
-        auto* originalBus = dynamic_cast<griddyn::GridBus*>(
-            original->findByUserID("bus", busIndex));
-        auto* importedBus = dynamic_cast<griddyn::GridBus*>(
-            imported->findByUserID("bus", busIndex));
+        auto* originalBus =
+            dynamic_cast<griddyn::GridBus*>(original->findByUserID("bus", busIndex));
+        auto* importedBus =
+            dynamic_cast<griddyn::GridBus*>(imported->findByUserID("bus", busIndex));
         ASSERT_NE(originalBus, nullptr);
         ASSERT_NE(importedBus, nullptr);
         EXPECT_EQ(importedBus->getBusType(), originalBus->getBusType());
@@ -1309,10 +1307,10 @@ TEST(ExampleReaderTests, ExportRawRoundTripByExtension)
     }
 
     for (index_t linkIndex = 1; linkIndex <= original->getInt("totallinkcount"); ++linkIndex) {
-        auto* originalLink = dynamic_cast<griddyn::AcLine*>(
-            original->findByUserID("link", linkIndex));
-        auto* importedLink = dynamic_cast<griddyn::AcLine*>(
-            imported->findByUserID("link", linkIndex));
+        auto* originalLink =
+            dynamic_cast<griddyn::AcLine*>(original->findByUserID("link", linkIndex));
+        auto* importedLink =
+            dynamic_cast<griddyn::AcLine*>(imported->findByUserID("link", linkIndex));
         ASSERT_NE(originalLink, nullptr);
         ASSERT_NE(importedLink, nullptr);
         EXPECT_EQ(importedLink->getBus(1)->getUserID(), originalLink->getBus(1)->getUserID());
@@ -1327,10 +1325,10 @@ TEST(ExampleReaderTests, ExportRawRoundTripByExtension)
     ASSERT_EQ(imported->pFlowInitialize(), 0);
     ASSERT_EQ(imported->powerflow(), 0);
     for (index_t busIndex = 1; busIndex <= original->getInt("totalbuscount"); ++busIndex) {
-        const auto* originalBus = dynamic_cast<const griddyn::GridBus*>(
-            original->findByUserID("bus", busIndex));
-        const auto* importedBus = dynamic_cast<const griddyn::GridBus*>(
-            imported->findByUserID("bus", busIndex));
+        const auto* originalBus =
+            dynamic_cast<const griddyn::GridBus*>(original->findByUserID("bus", busIndex));
+        const auto* importedBus =
+            dynamic_cast<const griddyn::GridBus*>(imported->findByUserID("bus", busIndex));
         ASSERT_NE(originalBus, nullptr);
         ASSERT_NE(importedBus, nullptr);
         EXPECT_NEAR(importedBus->getVoltage(), originalBus->getVoltage(), 1.0e-8);

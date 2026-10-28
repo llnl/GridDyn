@@ -120,37 +120,128 @@ namespace {
     }
 
     struct RawBus {
-        const GridBus* object{};
-        index_t number{};
-        int area{1};
-        int zone{1};
+        const GridBus* mObject{};
+        index_t mNumber{};
+        int mArea{1};
+        int mZone{1};
     };
 
     struct RawArea {
-        const GridArea* object{};
-        int number{1};
+        const GridArea* mObject{};
+        int mNumber{1};
     };
 
     struct RawLoad {
-        const RawBus* bus{};
-        const GridLoad* object{};
-        std::string id;
+        const RawBus* mBus{};
+        const GridLoad* mObject{};
+        std::string mId;
     };
 
     struct RawGenerator {
-        const RawBus* bus{};
-        const Generator* object{};
-        std::string id;
+        const RawBus* mBus{};
+        const Generator* mObject{};
+        std::string mId;
     };
 
     struct RawLink {
-        const Link* object{};
-        const AcLine* line{};
-        const RawBus* bus1{};
-        const RawBus* bus2{};
-        std::string id;
-        bool transformer{false};
+        const Link* mObject{};
+        const AcLine* mLine{};
+        const RawBus* mBus1{};
+        const RawBus* mBus2{};
+        std::string mId;
+        bool mTransformer{false};
     };
+
+    void writeRawLoadAndShuntData(std::ostream& output,
+                                  const std::vector<RawLoad>& loads,
+                                  const std::vector<RawLink>& links,
+                                  const std::function<void(const std::string&)>& warning)
+    {
+        std::vector<std::vector<std::string>> fixedShuntRows;
+        for (const auto& load : loads) {
+            const auto* object = load.mObject;
+            const auto* zip = dynamic_cast<const ZipLoad*>(object);
+            const auto* svd = dynamic_cast<const loads::Svd*>(object);
+            const double activePower = object->get("p", units::MW);
+            const double reactivePower = object->get("q", units::MVAR);
+            const double activeCurrent = (zip != nullptr) ? zip->get("ip", units::MW) : 0.0;
+            const double reactiveCurrent = (zip != nullptr) ? zip->get("iq", units::MVAR) : 0.0;
+            const double activeAdmittance = (zip != nullptr) ? zip->get("yp", units::MW) : 0.0;
+            const double reactiveAdmittance = (zip != nullptr) ? zip->get("yq", units::MVAR) : 0.0;
+            if (zip == nullptr && svd == nullptr) {
+                warning(object->getName() +
+                        " is not a ZIP load; exported only its constant-power operating point");
+            }
+            if (svd != nullptr) {
+                warning(object->getName() +
+                        " switched-shunt control was reduced to its present admittance");
+            }
+            if (object->isFixedShunt() || svd != nullptr) {
+                if (std::abs(activePower) > 1.0e-12 || std::abs(reactivePower) > 1.0e-12 ||
+                    std::abs(activeCurrent) > 1.0e-12 || std::abs(reactiveCurrent) > 1.0e-12) {
+                    warning(object->getName() +
+                            " has non-admittance terms and was exported as a RAW load record");
+                } else {
+                    fixedShuntRows.push_back({std::to_string(load.mBus->mNumber),
+                                              rawQuoted(load.mId, 2, object->getName(), warning),
+                                              object->isEnabled() ? "1" : "0",
+                                              rawNumber(activeAdmittance),
+                                              rawNumber(-reactiveAdmittance)});
+                    continue;
+                }
+            }
+            writeRawRecord(output,
+                           {std::to_string(load.mBus->mNumber),
+                            rawQuoted(load.mId, 2, object->getName(), warning),
+                            object->isEnabled() ? "1" : "0",
+                            std::to_string(load.mBus->mArea),
+                            std::to_string(load.mBus->mZone),
+                            rawNumber(activePower),
+                            rawNumber(reactivePower),
+                            rawNumber(activeCurrent),
+                            rawNumber(reactiveCurrent),
+                            rawNumber(activeAdmittance),
+                            rawNumber(-reactiveAdmittance),
+                            "1",
+                            "1",
+                            "0"});
+        }
+        output << "0 / END OF LOAD DATA, BEGIN FIXED SHUNT DATA\n";
+        for (const auto& row : fixedShuntRows) {
+            writeRawRecord(output, row);
+        }
+        // The transformer records below can carry first-winding magnetizing data.
+        // Extra second-terminal admittance is emitted here as a bus shunt.
+        std::unordered_map<index_t, std::size_t> shuntIds;
+        for (const auto& load : loads) {
+            if (load.mObject->isFixedShunt() ||
+                dynamic_cast<const loads::Svd*>(load.mObject) != nullptr) {
+                ++shuntIds[load.mBus->mNumber];
+            }
+        }
+        for (const auto& link : links) {
+            if (!link.mTransformer) {
+                continue;
+            }
+            const double secondConductance = link.mLine->get("g2");
+            const double secondSusceptance = link.mLine->get("b2");
+            if (std::abs(secondConductance) > 1.0e-12 ||
+                std::abs(secondSusceptance) > 1.0e-12) {
+                const auto shuntId = rawId(++shuntIds[link.mBus2->mNumber]);
+                writeRawRecord(output,
+                               {std::to_string(link.mBus2->mNumber),
+                                rawQuoted(shuntId, 2, link.mObject->getName(), warning),
+                                (link.mObject->isEnabled() && link.mObject->isConnected()) ?
+                                    "1" :
+                                    "0",
+                                rawNumber(secondConductance),
+                                rawNumber(-secondSusceptance)});
+                warning(link.mObject->getName() +
+                        " second-terminal transformer admittance was represented as a bus shunt");
+            }
+        }
+        output << "0 / END OF FIXED SHUNT DATA, BEGIN GENERATOR DATA\n";
+    }
 
     bool saveRawV33(const CoreObject* parentObject,
                     const std::string& fileName,
@@ -199,7 +290,7 @@ namespace {
                 warning(bus->getName() + " has no usable unique RAW bus number; assigned " +
                         std::to_string(number));
             }
-            buses.push_back({bus, number, 1, 1});
+            buses.push_back({.mObject = bus, .mNumber = number, .mArea = 1, .mZone = 1});
             busLookup.emplace(bus, &buses.back());
         }
         if (buses.empty()) {
@@ -210,7 +301,7 @@ namespace {
         // collection is complete.
         busLookup.clear();
         for (const auto& bus : buses) {
-            busLookup.emplace(bus.object, &bus);
+            busLookup.emplace(bus.mObject, &bus);
         }
 
         std::vector<RawArea> areas;
@@ -220,16 +311,16 @@ namespace {
         int nextArea = 2;
         for (auto& rawBus : buses) {
             const GridArea* area = nullptr;
-            for (auto* object = rawBus.object->getParent(); object != nullptr;
+            for (auto* object = rawBus.mObject->getParent(); object != nullptr;
                  object = object->getParent()) {
-                auto* candidate = dynamic_cast<const GridArea*>(object);
+                const auto* candidate = dynamic_cast<const GridArea*>(object);
                 if (candidate != nullptr && candidate != parentObject) {
                     area = candidate;
                     break;
                 }
             }
             if (area == nullptr) {
-                rawBus.area = 1;
+                rawBus.mArea = 1;
                 continue;
             }
             auto found = areaNumbers.find(area);
@@ -247,21 +338,21 @@ namespace {
                 areaIds.insert(areaNumber);
                 areaNumbers.emplace(area, areaNumber);
                 areasByNumber.emplace(areaNumber, area);
-                areas.push_back({area, areaNumber});
+                areas.push_back({.mObject = area, .mNumber = areaNumber});
                 found = areaNumbers.find(area);
             }
-            rawBus.area = found->second;
+            rawBus.mArea = found->second;
         }
         if (!areasByNumber.contains(1)) {
             areasByNumber.emplace(1, nullptr);
         }
 
         for (auto& rawBus : buses) {
-            const double zoneValue = rawBus.object->get("zone");
+            const double zoneValue = rawBus.mObject->get("zone");
             if (std::isfinite(zoneValue) && zoneValue >= 1.0 && zoneValue <= 999999.0) {
-                rawBus.zone = static_cast<int>(std::lround(zoneValue));
+                rawBus.mZone = static_cast<int>(std::lround(zoneValue));
             } else {
-                rawBus.zone = 1;
+                rawBus.mZone = 1;
             }
         }
 
@@ -270,23 +361,24 @@ namespace {
         std::unordered_map<index_t, std::size_t> loadIds;
         std::unordered_map<index_t, std::size_t> generatorIds;
         for (const auto& bus : buses) {
-            const auto loadCount = static_cast<index_t>(bus.object->get("loadcount"));
+            const auto loadCount = static_cast<index_t>(bus.mObject->get("loadcount"));
             for (index_t loadIndex = 0; loadIndex < loadCount; ++loadIndex) {
-                const auto* load = bus.object->getLoad(loadIndex);
+                const auto* load = bus.mObject->getLoad(loadIndex);
                 if (load == nullptr) {
                     continue;
                 }
-                auto& sequence = loadIds[bus.number];
-                loads.push_back({&bus, load, rawId(++sequence)});
+                auto& sequence = loadIds[bus.mNumber];
+                loads.push_back({.mBus = &bus, .mObject = load, .mId = rawId(++sequence)});
             }
-            const auto genCount = static_cast<index_t>(bus.object->get("gencount"));
+            const auto genCount = static_cast<index_t>(bus.mObject->get("gencount"));
             for (index_t genIndex = 0; genIndex < genCount; ++genIndex) {
-                const auto* generator = bus.object->getGen(genIndex);
+                const auto* generator = bus.mObject->getGen(genIndex);
                 if (generator == nullptr) {
                     continue;
                 }
-                auto& sequence = generatorIds[bus.number];
-                generators.push_back({&bus, generator, rawId(++sequence)});
+                auto& sequence = generatorIds[bus.mNumber];
+                generators.push_back(
+                    {.mBus = &bus, .mObject = generator, .mId = rawId(++sequence)});
             }
         }
 
@@ -309,8 +401,8 @@ namespace {
             }
             const auto* bus1 = busLookup.at(bus1Object);
             const auto* bus2 = busLookup.at(bus2Object);
-            const auto lowBus = (std::min)(bus1->number, bus2->number);
-            const auto highBus = (std::max)(bus1->number, bus2->number);
+            const auto lowBus = (std::min)(bus1->mNumber, bus2->mNumber);
+            const auto highBus = (std::max)(bus1->mNumber, bus2->mNumber);
             const auto pairKey = (static_cast<std::uint64_t>(lowBus) << 32U) ^
                 static_cast<std::uint64_t>(highBus);
             auto& sequence = circuitIds[pairKey];
@@ -318,19 +410,24 @@ namespace {
                 (dynamic_cast<const links::AdjustableTransformer*>(acLine) != nullptr) ||
                 (std::abs(acLine->get("tap") - 1.0) > 1.0e-12) ||
                 (std::abs(acLine->get("tapangle")) > 1.0e-12);
-            links.push_back({link, acLine, bus1, bus2, rawId(++sequence), transformer});
+            links.push_back({.mObject = link,
+                             .mLine = acLine,
+                             .mBus1 = bus1,
+                             .mBus2 = bus2,
+                             .mId = rawId(++sequence),
+                             .mTransformer = transformer});
         }
 
         std::unordered_map<std::uint64_t, std::size_t> remotePlantGeneratorCounts;
         for (const auto& generator : generators) {
-            const auto* controlBus = generator.object->getRemoteBus();
-            if (controlBus == nullptr || controlBus == generator.bus->object ||
+            const auto* controlBus = generator.mObject->getRemoteBus();
+            if (controlBus == nullptr || controlBus == generator.mBus->mObject ||
                 !busLookup.contains(controlBus)) {
                 continue;
             }
-            const auto controlNumber = busLookup.at(controlBus)->number;
+            const auto controlNumber = busLookup.at(controlBus)->mNumber;
             const auto key = (static_cast<std::uint64_t>(controlNumber) << 32U) ^
-                static_cast<std::uint64_t>(generator.bus->number);
+                static_cast<std::uint64_t>(generator.mBus->mNumber);
             ++remotePlantGeneratorCounts[key];
         }
 
@@ -356,7 +453,7 @@ namespace {
 
         // PSS/E 33 bus records have no section header before the first bus card.
         for (const auto& bus : buses) {
-            const auto* object = bus.object;
+            const auto* object = bus.mObject;
             int type = 1;
             if (!object->isEnabled()) {
                 type = 4;
@@ -371,15 +468,15 @@ namespace {
             }
             auto busName = object->getName();
             if (busName.empty()) {
-                busName = "BUS_" + std::to_string(bus.number);
+                busName = "BUS_" + std::to_string(bus.mNumber);
             }
             writeRawRecord(output,
-                           {std::to_string(bus.number),
+                           {std::to_string(bus.mNumber),
                             rawQuoted(busName, 12, object->getName(), warning),
                             rawNumber(object->get("basevoltage", units::kV)),
                             std::to_string(type),
-                            std::to_string(bus.area),
-                            std::to_string(bus.zone),
+                            std::to_string(bus.mArea),
+                            std::to_string(bus.mZone),
                             "1",
                             rawNumber(object->get("voltage")),
                             rawNumber(object->get("angle", units::deg)),
@@ -402,92 +499,10 @@ namespace {
         }
         output << "0 / END OF BUS DATA, BEGIN LOAD DATA\n";
 
-        std::vector<std::vector<std::string>> fixedShuntRows;
-        for (const auto& load : loads) {
-            const auto* object = load.object;
-            const auto* zip = dynamic_cast<const ZipLoad*>(object);
-            const auto* svd = dynamic_cast<const loads::Svd*>(object);
-            const double p = object->get("p", units::MW);
-            const double q = object->get("q", units::MVAR);
-            const double ip = (zip != nullptr) ? zip->get("ip", units::MW) : 0.0;
-            const double iq = (zip != nullptr) ? zip->get("iq", units::MVAR) : 0.0;
-            const double yp = (zip != nullptr) ? zip->get("yp", units::MW) : 0.0;
-            const double yq = (zip != nullptr) ? zip->get("yq", units::MVAR) : 0.0;
-            if (zip == nullptr && svd == nullptr) {
-                warning(object->getName() +
-                        " is not a ZIP load; exported only its constant-power operating point");
-            }
-            if (svd != nullptr) {
-                warning(object->getName() +
-                        " switched-shunt control was reduced to its present admittance");
-            }
-            if (object->isFixedShunt() || svd != nullptr) {
-                if (std::abs(p) > 1.0e-12 || std::abs(q) > 1.0e-12 ||
-                    std::abs(ip) > 1.0e-12 || std::abs(iq) > 1.0e-12) {
-                    warning(object->getName() +
-                            " has non-admittance terms and was exported as a RAW load record");
-                } else {
-                    fixedShuntRows.push_back({std::to_string(load.bus->number),
-                                              rawQuoted(load.id, 2, object->getName(), warning),
-                                              object->isEnabled() ? "1" : "0",
-                                              rawNumber(yp),
-                                              rawNumber(-yq)});
-                    continue;
-                }
-            }
-            writeRawRecord(output,
-                           {std::to_string(load.bus->number),
-                            rawQuoted(load.id, 2, object->getName(), warning),
-                            object->isEnabled() ? "1" : "0",
-                            std::to_string(load.bus->area),
-                            std::to_string(load.bus->zone),
-                            rawNumber(p),
-                            rawNumber(q),
-                            rawNumber(ip),
-                            rawNumber(iq),
-                            rawNumber(yp),
-                            rawNumber(-yq),
-                            "1",
-                            "1",
-                            "0"});
-        }
-        output << "0 / END OF LOAD DATA, BEGIN FIXED SHUNT DATA\n";
-        for (const auto& row : fixedShuntRows) {
-            writeRawRecord(output, row);
-        }
-        // The transformer records below can carry first-winding magnetizing data.
-        // Extra second-terminal admittance is emitted here as a bus shunt.
-        std::unordered_map<index_t, std::size_t> shuntIds;
-        for (const auto& load : loads) {
-            if (load.object->isFixedShunt() ||
-                dynamic_cast<const loads::Svd*>(load.object) != nullptr) {
-                ++shuntIds[load.bus->number];
-            }
-        }
-        for (const auto& link : links) {
-            if (!link.transformer) {
-                continue;
-            }
-            const double g2 = link.line->get("g2");
-            const double b2 = link.line->get("b2");
-            if (std::abs(g2) > 1.0e-12 || std::abs(b2) > 1.0e-12) {
-                const auto id = rawId(++shuntIds[link.bus2->number]);
-                writeRawRecord(output,
-                               {std::to_string(link.bus2->number),
-                                rawQuoted(id, 2, link.object->getName(), warning),
-                                (link.object->isEnabled() && link.object->isConnected()) ?
-                                    "1" :
-                                    "0",
-                                rawNumber(g2),
-                                rawNumber(-b2)});
-                warning(link.object->getName() +
-                        " second-terminal transformer admittance was represented as a bus shunt");
-            }
-        }
-        output << "0 / END OF FIXED SHUNT DATA, BEGIN GENERATOR DATA\n";
+        writeRawLoadAndShuntData(output, loads, links, warning);
 
         for (const auto& generator : generators) {
-            const auto* object = generator.object;
+            const auto* object = generator.mObject;
             if (object->getSubObject("genmodel", 0) != nullptr ||
                 object->getSubObject("governor", 0) != nullptr ||
                 object->getSubObject("exciter", 0) != nullptr) {
@@ -495,9 +510,9 @@ namespace {
             }
             int remoteBus = 0;
             if (const auto* controlBus = object->getRemoteBus();
-                controlBus != nullptr && controlBus != generator.bus->object) {
+                controlBus != nullptr && controlBus != generator.mBus->mObject) {
                 if (busLookup.contains(controlBus)) {
-                    remoteBus = static_cast<int>(busLookup.at(controlBus)->number);
+                    remoteBus = static_cast<int>(busLookup.at(controlBus)->mNumber);
                 } else {
                     warning(object->getName() +
                             " regulates a bus outside the exported network; its IREG was cleared");
@@ -505,13 +520,13 @@ namespace {
             }
             double voltageTarget = object->get("vtarget");
             if (!std::isfinite(voltageTarget) || voltageTarget <= 0.0) {
-                voltageTarget = generator.bus->object->get("voltage");
+                voltageTarget = generator.mBus->mObject->get("voltage");
             }
             double participation = (remoteBus == 0) ? 100.0 :
                 100.0 * object->get("vcontrolfrac");
             if (remoteBus != 0) {
                 const auto key = (static_cast<std::uint64_t>(remoteBus) << 32U) ^
-                    static_cast<std::uint64_t>(generator.bus->number);
+                    static_cast<std::uint64_t>(generator.mBus->mNumber);
                 if (const auto count = remotePlantGeneratorCounts.find(key);
                     count != remotePlantGeneratorCounts.end()) {
                     participation *= static_cast<double>(count->second);
@@ -523,8 +538,8 @@ namespace {
                 participation = 100.0;
             }
             writeRawRecord(output,
-                           {std::to_string(generator.bus->number),
-                            rawQuoted(generator.id, 2, object->getName(), warning),
+                           {std::to_string(generator.mBus->mNumber),
+                            rawQuoted(generator.mId, 2, object->getName(), warning),
                             rawNumber(-object->get("p") * basePower),
                             rawNumber(-object->get("q") * basePower),
                             finiteRawLimit(object->get("qmax", units::MVAR),
@@ -567,30 +582,30 @@ namespace {
         output << "0 / END OF GENERATOR DATA, BEGIN BRANCH DATA\n";
 
         for (const auto& link : links) {
-            if (link.transformer) {
+            if (link.mTransformer) {
                 continue;
             }
-            const auto* line = link.line;
+            const auto* line = link.mLine;
             const double totalB = line->get("b");
             const double halfB = totalB / 2.0;
-            const int status = (link.object->isEnabled() && link.object->isConnected()) ? 1 : 0;
-            if (link.object->isEnabled() && !link.object->isConnected()) {
-                warning(link.object->getName() +
+            const int status = (link.mObject->isEnabled() && link.mObject->isConnected()) ? 1 : 0;
+            if (link.mObject->isEnabled() && !link.mObject->isConnected()) {
+                warning(link.mObject->getName() +
                         " has an open terminal; RAW branch status disables the whole link");
             }
             writeRawRecord(output,
-                           {std::to_string(link.bus1->number),
-                            std::to_string(link.bus2->number),
-                            rawQuoted(link.id, 2, link.object->getName(), warning),
+                           {std::to_string(link.mBus1->mNumber),
+                            std::to_string(link.mBus2->mNumber),
+                            rawQuoted(link.mId, 2, link.mObject->getName(), warning),
                             rawNumber(line->get("r")),
                             rawNumber(line->get("x")),
                             rawNumber(totalB),
-                            rawRating(link.object->get("ratinga"), basePower,
-                                      link.object->getName() + ".ratingA", warning),
-                            rawRating(link.object->get("ratingb"), basePower,
-                                      link.object->getName() + ".ratingB", warning),
-                            rawRating(link.object->get("erating"), basePower,
-                                      link.object->getName() + ".ratingC", warning),
+                            rawRating(link.mObject->get("ratinga"), basePower,
+                                      link.mObject->getName() + ".ratingA", warning),
+                            rawRating(link.mObject->get("ratingb"), basePower,
+                                      link.mObject->getName() + ".ratingB", warning),
+                            rawRating(link.mObject->get("erating"), basePower,
+                                      link.mObject->getName() + ".ratingC", warning),
                             rawNumber(line->get("g1")),
                             rawNumber(line->get("b1") - halfB),
                             rawNumber(line->get("g2")),
@@ -606,41 +621,44 @@ namespace {
                             "0.0",
                             "0",
                             "0.0",
-                            rawQuoted(link.object->getName(),
+                            rawQuoted(link.mObject->getName(),
                                       40,
-                                      link.object->getName(),
+                                      link.mObject->getName(),
                                       warning)});
         }
         output << "0 / END OF BRANCH DATA, BEGIN TRANSFORMER DATA\n";
 
         for (const auto& link : links) {
-            if (!link.transformer) {
+            if (!link.mTransformer) {
                 continue;
             }
-            const auto* line = link.line;
+            const auto* line = link.mLine;
             const auto* adjustable =
-                dynamic_cast<const links::AdjustableTransformer*>(link.object);
+                dynamic_cast<const links::AdjustableTransformer*>(link.mObject);
             if (adjustable != nullptr && adjustable->get("control_mode") != 0.0) {
-                warning(link.object->getName() +
+                warning(link.mObject->getName() +
                         " transformer control was exported at its present tap setting");
             }
-            const int status = (link.object->isEnabled() && link.object->isConnected()) ? 1 : 0;
-            if (link.object->isEnabled() && !link.object->isConnected()) {
-                warning(link.object->getName() +
+            const int status = (link.mObject->isEnabled() && link.mObject->isConnected()) ? 1 : 0;
+            if (link.mObject->isEnabled() && !link.mObject->isConnected()) {
+                warning(link.mObject->getName() +
                         " has an open terminal; RAW transformer status disables the whole link");
             }
             writeRawRecord(output,
-                           {std::to_string(link.bus1->number),
-                            std::to_string(link.bus2->number),
+                           {std::to_string(link.mBus1->mNumber),
+                            std::to_string(link.mBus2->mNumber),
                             "0",
-                            rawQuoted(link.id, 2, link.object->getName(), warning),
+                            rawQuoted(link.mId, 2, link.mObject->getName(), warning),
                             "1",
                             "1",
                             "1",
                             rawNumber(line->get("g1")),
                             rawNumber(line->get("b1")),
                             "2",
-                            rawQuoted(link.object->getName(), 12, link.object->getName(), warning),
+                            rawQuoted(link.mObject->getName(),
+                                      12,
+                                      link.mObject->getName(),
+                                      warning),
                             std::to_string(status),
                             "1",
                             "1.0",
@@ -650,7 +668,7 @@ namespace {
                             "0.0",
                             "0",
                             "0.0",
-                            rawQuoted("", 12, link.object->getName(), warning)});
+                            rawQuoted("", 12, link.mObject->getName(), warning)});
             writeRawRecord(output,
                            {rawNumber(line->get("r")),
                             rawNumber(line->get("x")),
@@ -659,12 +677,12 @@ namespace {
                            {rawNumber(line->get("tap")),
                             "0",
                             rawNumber(line->get("tapangle", units::deg)),
-                            rawRating(link.object->get("ratinga"), basePower,
-                                      link.object->getName() + ".ratingA", warning),
-                            rawRating(link.object->get("ratingb"), basePower,
-                                      link.object->getName() + ".ratingB", warning),
-                            rawRating(link.object->get("erating"), basePower,
-                                      link.object->getName() + ".ratingC", warning),
+                            rawRating(link.mObject->get("ratinga"), basePower,
+                                      link.mObject->getName() + ".ratingA", warning),
+                            rawRating(link.mObject->get("ratingb"), basePower,
+                                      link.mObject->getName() + ".ratingB", warning),
+                            rawRating(link.mObject->get("erating"), basePower,
+                                      link.mObject->getName() + ".ratingC", warning),
                             "0",
                             "0",
                             "0",
@@ -682,10 +700,10 @@ namespace {
 
         std::map<int, RawArea> sortedAreas;
         for (const auto& area : areas) {
-            sortedAreas.emplace(area.number, area);
+            sortedAreas.emplace(area.mNumber, area);
         }
         for (const auto& [number, area] : sortedAreas) {
-            const auto* object = area.object;
+            const auto* object = area.mObject;
             int slackBus = 0;
             double scheduledMW = 0.0;
             double toleranceMW = 0.0;
@@ -693,7 +711,7 @@ namespace {
             if (object != nullptr) {
                 if (const auto* slack = object->getInterchangeSlackBus();
                     slack != nullptr && busLookup.contains(slack)) {
-                    slackBus = static_cast<int>(busLookup.at(slack)->number);
+                    slackBus = static_cast<int>(busLookup.at(slack)->mNumber);
                 }
                 if (const auto schedule = object->getScheduledNetInterchangeMW()) {
                     scheduledMW = *schedule;

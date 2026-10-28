@@ -8,19 +8,22 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdint>
 #include <filesystem>
 #include <iostream>
+#include <string>
 
 namespace griddyn {
 namespace {
-    enum class NetworkCaseFormat { UNSUPPORTED, MATPOWER, PYPOWER, PSSE_RAW };
+    enum class NetworkCaseFormat : std::uint8_t { UNSUPPORTED, MATPOWER, PYPOWER, PSSE_RAW };
 
     NetworkCaseFormat caseFormatFromFileName(const std::string& fileName)
     {
         auto extension = std::filesystem::path(fileName).extension().string();
-        std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char ch) {
-            return static_cast<char>(std::tolower(ch));
-        });
+        std::transform(
+            extension.begin(), extension.end(), extension.begin(), [](unsigned char character) {
+                return static_cast<char>(std::tolower(character));
+            });
 
         if (extension == ".m" || extension == ".matpower") {
             return NetworkCaseFormat::MATPOWER;

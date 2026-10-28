@@ -832,15 +832,14 @@ void Generator::algebraicUpdate(const IOdata& /*inputs*/,
     if ((!isDynamic(sMode)) &&
         (opFlags[INDIRECT_VOLTAGE_CONTROL])) {  // the bus is managing a remote bus voltage
         auto offset = offsets.getAlgOffset(sMode);
-        if (indirectVoltageControlReference(remoteBus) != nullptr) {
-            // Group members start from their RAW reactive-power operating point.
+        auto* reference = indirectVoltageControlReference(remoteBus);
+        if ((reference != nullptr) || opFlags[AT_LIMIT]) {
+            // Group members and generators at a reactive limit use their current Q.
             update[offset] = -Q;
-        } else if (!opFlags[AT_LIMIT]) {
+        } else {
             const double voltage = remoteBus->getVoltage(stateDataValue, sMode);
             constexpr double remoteVoltageGain = 10000.0;
             update[offset] = -Qbias + ((voltage - m_Vtarget) * vRegFraction * remoteVoltageGain);
-        } else {
-            update[offset] = -Q;
         }
     }
 }

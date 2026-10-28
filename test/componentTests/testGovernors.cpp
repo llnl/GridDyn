@@ -33,6 +33,7 @@
 #include <cmath>
 #include <cstddef>
 #include <gtest/gtest.h>
+#include <limits>
 #include <memory>
 #include <print>
 #include <string>

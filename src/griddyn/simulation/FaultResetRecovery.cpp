@@ -14,10 +14,14 @@
 #include <vector>
 
 namespace griddyn {
+namespace {
 bool checkResetVoltages(const std::vector<double>& prev, const std::vector<double>& curr);
+}  // namespace
 
-faultResetRecovery::faultResetRecovery(GridDynSimulation* gds, std::shared_ptr<SolverInterface> sd):
-    sim(gds), solver(std::move(sd))
+faultResetRecovery::faultResetRecovery(
+    GridDynSimulation* gds,
+    std::shared_ptr<SolverInterface> solverInterface):
+    sim(gds), solver(std::move(solverInterface))
 {
     sim->getVoltage(initVolts);
 }
@@ -73,9 +77,9 @@ void faultResetRecovery::reset()
     attempt_number = 0;
 }
 
-void faultResetRecovery::updateInfo(std::shared_ptr<SolverInterface> sd)
+void faultResetRecovery::updateInfo(std::shared_ptr<SolverInterface> solverInterface)
 {
-    solver = std::move(sd);
+    solver = std::move(solverInterface);
 }
 int faultResetRecovery::attempts() const
 {
@@ -88,13 +92,14 @@ int faultResetRecovery::faultResetFix1()
 
     sim->reset(ResetLevels::LOW_VOLTAGE_DYN0);
 
-    if ((retval = sim->handleStateChange(solver->getSolverMode())) != HANDLER_NO_RETURN) {
+    retval = sim->handleStateChange(solver->getSolverMode());
+    if (retval != HANDLER_NO_RETURN) {
         return retval;
     }
     // auto err = jacobianCheck(sMode, -1, true);
     //      dynamicSolverConvergenceTest(sMode, "convFile.dat",0,3);
     double* states = solver->stateData();
-    CoreTime timeCurr = sim->getSimulationTime();
+    const CoreTime timeCurr = sim->getSimulationTime();
     sim->guessState(timeCurr, states, solver->derivData(), solver->getSolverMode());
     std::vector<double> vstates(solver->size(), 0);
     sim->getVoltageStates(vstates.data(), solver->getSolverMode());
@@ -113,10 +118,11 @@ int faultResetRecovery::faultResetFix2(ResetLevels rlevel)
 {
     sim->reset(rlevel);
     int retval = -101;
-    if ((retval = sim->handleStateChange(solver->getSolverMode())) != HANDLER_NO_RETURN) {
+    retval = sim->handleStateChange(solver->getSolverMode());
+    if (retval != HANDLER_NO_RETURN) {
         return retval;
     }
-    CoreTime timeCurr = sim->getSimulationTime();
+    const CoreTime timeCurr = sim->getSimulationTime();
     sim->guessState(timeCurr, solver->stateData(), solver->derivData(), solver->getSolverMode());
     // int mmatch = jacobianCheck(sim, solver->getSolverMode());
 
@@ -149,13 +155,13 @@ int faultResetRecovery::faultResetFix3()
     double* states = solver->stateData();
     int retval = -10;
     for (int vv = 1; vv < 10; ++vv) {
-        double rv1 = static_cast<double>(vv) * 0.1;
-        int kk = 0;
+        const double rv1 = static_cast<double>(vv) * 0.1;
+        int initialVoltageIndex = 0;
         logging::logTo(sim, sim, PrintLevel::DEBUG, "increment voltage by {}", rv1);
         for (index_t pp = 0; pp < solver->size(); ++pp) {
             if (vstates[pp] != 0.0) {
-                states[pp] = rv1 + (1.0 - rv1) * initVolts[kk];
-                ++kk;
+                states[pp] = rv1 + ((1.0 - rv1) * initVolts[initialVoltageIndex]);
+                ++initialVoltageIndex;
             }
         }
         //  dynData->printStates(true);
@@ -208,25 +214,27 @@ int faultResetRecovery::faultResetFix4()
     return 0;
 }
 
+namespace {
 bool checkResetVoltages(const std::vector<double>& prev, const std::vector<double>& curr)
 {
-    bool Acond = false;
-    int Bcond = 0;
+    bool hasUnexpectedVoltageRise = false;
+    int restoredVoltageCount = 0;
     for (size_t jj = 0; jj < prev.size(); ++jj) {
         if ((prev[jj] < 0.001) && (curr[jj] > 0.1)) {
-            Acond = true;
+            hasUnexpectedVoltageRise = true;
         }
         if ((prev[jj] > 0.1) && (curr[jj] < 0.001)) {
-            ++Bcond;
+            ++restoredVoltageCount;
         }
     }
-    if ((Acond) && (Bcond > 0)) {
+    if (hasUnexpectedVoltageRise && (restoredVoltageCount > 0)) {
         return false;
     }
-    if (Bcond > 1) {
+    if (restoredVoltageCount > 1) {
         return false;
     }
     return true;
 }
+}  // namespace
 
 }  // namespace griddyn

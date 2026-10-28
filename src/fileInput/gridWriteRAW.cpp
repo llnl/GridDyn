@@ -56,7 +56,9 @@ namespace {
         return result;
     }
 
-    std::string rawQuoted(std::string value, std::size_t maxLength, const std::string& label,
+    std::string rawQuoted(std::string value,
+                          std::size_t maxLength,
+                          const std::string& label,
                           const std::function<void(const std::string&)>& warning)
     {
         for (char& character : value) {
@@ -225,15 +227,13 @@ namespace {
             }
             const double secondConductance = link.mLine->get("g2");
             const double secondSusceptance = link.mLine->get("b2");
-            if (std::abs(secondConductance) > 1.0e-12 ||
-                std::abs(secondSusceptance) > 1.0e-12) {
+            if (std::abs(secondConductance) > 1.0e-12 || std::abs(secondSusceptance) > 1.0e-12) {
                 const auto shuntId = rawId(++shuntIds[link.mBus2->mNumber]);
                 writeRawRecord(output,
                                {std::to_string(link.mBus2->mNumber),
                                 rawQuoted(shuntId, 2, link.mObject->getName(), warning),
-                                (link.mObject->isEnabled() && link.mObject->isConnected()) ?
-                                    "1" :
-                                    "0",
+                                (link.mObject->isEnabled() && link.mObject->isConnected()) ? "1" :
+                                                                                             "0",
                                 rawNumber(secondConductance),
                                 rawNumber(-secondSusceptance)});
                 warning(link.mObject->getName() +
@@ -243,9 +243,8 @@ namespace {
         output << "0 / END OF FIXED SHUNT DATA, BEGIN GENERATOR DATA\n";
     }
 
-    bool saveRawV33(const CoreObject* parentObject,
-                    const std::string& fileName,
-                    stringVec* warnings)
+    bool
+        saveRawV33(const CoreObject* parentObject, const std::string& fileName, stringVec* warnings)
     {
         if (warnings != nullptr) {
             warnings->clear();
@@ -403,8 +402,8 @@ namespace {
             const auto* bus2 = busLookup.at(bus2Object);
             const auto lowBus = (std::min)(bus1->mNumber, bus2->mNumber);
             const auto highBus = (std::max)(bus1->mNumber, bus2->mNumber);
-            const auto pairKey = (static_cast<std::uint64_t>(lowBus) << 32U) ^
-                static_cast<std::uint64_t>(highBus);
+            const auto pairKey =
+                (static_cast<std::uint64_t>(lowBus) << 32U) ^ static_cast<std::uint64_t>(highBus);
             auto& sequence = circuitIds[pairKey];
             const bool transformer =
                 (dynamic_cast<const links::AdjustableTransformer*>(acLine) != nullptr) ||
@@ -442,8 +441,8 @@ namespace {
             warning("invalid system frequency; exported the PSS/E default of 60 Hz");
             baseFrequency = 60.0;
         }
-        output << "0, " << rawNumber(basePower) << ", 33, 0, 1, "
-               << rawNumber(baseFrequency) << " / PSS(R)E-33 GridDyn export\n";
+        output << "0, " << rawNumber(basePower) << ", 33, 0, 1, " << rawNumber(baseFrequency)
+               << " / PSS(R)E-33 GridDyn export\n";
         auto caseName = safeComment(parentObject->getName());
         if (caseName.empty()) {
             caseName = "GridDyn network";
@@ -470,32 +469,23 @@ namespace {
             if (busName.empty()) {
                 busName = "BUS_" + std::to_string(bus.mNumber);
             }
-            writeRawRecord(output,
-                           {std::to_string(bus.mNumber),
-                            rawQuoted(busName, 12, object->getName(), warning),
-                            rawNumber(object->get("basevoltage", units::kV)),
-                            std::to_string(type),
-                            std::to_string(bus.mArea),
-                            std::to_string(bus.mZone),
-                            "1",
-                            rawNumber(object->get("voltage")),
-                            rawNumber(object->get("angle", units::deg)),
-                            finiteRawLimit(object->get("vmax"),
-                                           1.1,
-                                           object->getName() + ".vmax",
-                                           warning),
-                            finiteRawLimit(object->get("vmin"),
-                                           0.9,
-                                           object->getName() + ".vmin",
-                                           warning),
-                            finiteRawLimit(object->get("vmax"),
-                                           1.1,
-                                           object->getName() + ".emergency vmax",
-                                           warning),
-                            finiteRawLimit(object->get("vmin"),
-                                           0.9,
-                                           object->getName() + ".emergency vmin",
-                                           warning)});
+            writeRawRecord(
+                output,
+                {std::to_string(bus.mNumber),
+                 rawQuoted(busName, 12, object->getName(), warning),
+                 rawNumber(object->get("basevoltage", units::kV)),
+                 std::to_string(type),
+                 std::to_string(bus.mArea),
+                 std::to_string(bus.mZone),
+                 "1",
+                 rawNumber(object->get("voltage")),
+                 rawNumber(object->get("angle", units::deg)),
+                 finiteRawLimit(object->get("vmax"), 1.1, object->getName() + ".vmax", warning),
+                 finiteRawLimit(object->get("vmin"), 0.9, object->getName() + ".vmin", warning),
+                 finiteRawLimit(
+                     object->get("vmax"), 1.1, object->getName() + ".emergency vmax", warning),
+                 finiteRawLimit(
+                     object->get("vmin"), 0.9, object->getName() + ".emergency vmin", warning)});
         }
         output << "0 / END OF BUS DATA, BEGIN LOAD DATA\n";
 
@@ -522,8 +512,7 @@ namespace {
             if (!std::isfinite(voltageTarget) || voltageTarget <= 0.0) {
                 voltageTarget = generator.mBus->mObject->get("voltage");
             }
-            double participation = (remoteBus == 0) ? 100.0 :
-                100.0 * object->get("vcontrolfrac");
+            double participation = (remoteBus == 0) ? 100.0 : 100.0 * object->get("vcontrolfrac");
             if (remoteBus != 0) {
                 const auto key = (static_cast<std::uint64_t>(remoteBus) << 32U) ^
                     static_cast<std::uint64_t>(generator.mBus->mNumber);
@@ -533,7 +522,8 @@ namespace {
                 }
             }
             if (!std::isfinite(participation) || participation <= 0.0 || participation > 100.0) {
-                warning(object->getName() + ".vcontrolfrac is outside RAW's 0-100 range; "
+                warning(object->getName() +
+                        ".vcontrolfrac is outside RAW's 0-100 range; "
                         "exported as 100");
                 participation = 100.0;
             }
@@ -593,38 +583,42 @@ namespace {
                 warning(link.mObject->getName() +
                         " has an open terminal; RAW branch status disables the whole link");
             }
-            writeRawRecord(output,
-                           {std::to_string(link.mBus1->mNumber),
-                            std::to_string(link.mBus2->mNumber),
-                            rawQuoted(link.mId, 2, link.mObject->getName(), warning),
-                            rawNumber(line->get("r")),
-                            rawNumber(line->get("x")),
-                            rawNumber(totalB),
-                            rawRating(link.mObject->get("ratinga"), basePower,
-                                      link.mObject->getName() + ".ratingA", warning),
-                            rawRating(link.mObject->get("ratingb"), basePower,
-                                      link.mObject->getName() + ".ratingB", warning),
-                            rawRating(link.mObject->get("erating"), basePower,
-                                      link.mObject->getName() + ".ratingC", warning),
-                            rawNumber(line->get("g1")),
-                            rawNumber(line->get("b1") - halfB),
-                            rawNumber(line->get("g2")),
-                            rawNumber(line->get("b2") - halfB),
-                            std::to_string(status),
-                            "1",
-                            rawNumber(line->get("length", units::km)),
-                            "1",
-                            "1.0",
-                            "0",
-                            "0.0",
-                            "0",
-                            "0.0",
-                            "0",
-                            "0.0",
-                            rawQuoted(link.mObject->getName(),
-                                      40,
-                                      link.mObject->getName(),
-                                      warning)});
+            writeRawRecord(
+                output,
+                {std::to_string(link.mBus1->mNumber),
+                 std::to_string(link.mBus2->mNumber),
+                 rawQuoted(link.mId, 2, link.mObject->getName(), warning),
+                 rawNumber(line->get("r")),
+                 rawNumber(line->get("x")),
+                 rawNumber(totalB),
+                 rawRating(link.mObject->get("ratinga"),
+                           basePower,
+                           link.mObject->getName() + ".ratingA",
+                           warning),
+                 rawRating(link.mObject->get("ratingb"),
+                           basePower,
+                           link.mObject->getName() + ".ratingB",
+                           warning),
+                 rawRating(link.mObject->get("erating"),
+                           basePower,
+                           link.mObject->getName() + ".ratingC",
+                           warning),
+                 rawNumber(line->get("g1")),
+                 rawNumber(line->get("b1") - halfB),
+                 rawNumber(line->get("g2")),
+                 rawNumber(line->get("b2") - halfB),
+                 std::to_string(status),
+                 "1",
+                 rawNumber(line->get("length", units::km)),
+                 "1",
+                 "1.0",
+                 "0",
+                 "0.0",
+                 "0",
+                 "0.0",
+                 "0",
+                 "0.0",
+                 rawQuoted(link.mObject->getName(), 40, link.mObject->getName(), warning)});
         }
         output << "0 / END OF BRANCH DATA, BEGIN TRANSFORMER DATA\n";
 
@@ -644,31 +638,29 @@ namespace {
                 warning(link.mObject->getName() +
                         " has an open terminal; RAW transformer status disables the whole link");
             }
-            writeRawRecord(output,
-                           {std::to_string(link.mBus1->mNumber),
-                            std::to_string(link.mBus2->mNumber),
-                            "0",
-                            rawQuoted(link.mId, 2, link.mObject->getName(), warning),
-                            "1",
-                            "1",
-                            "1",
-                            rawNumber(line->get("g1")),
-                            rawNumber(line->get("b1")),
-                            "2",
-                            rawQuoted(link.mObject->getName(),
-                                      12,
-                                      link.mObject->getName(),
-                                      warning),
-                            std::to_string(status),
-                            "1",
-                            "1.0",
-                            "0",
-                            "0.0",
-                            "0",
-                            "0.0",
-                            "0",
-                            "0.0",
-                            rawQuoted("", 12, link.mObject->getName(), warning)});
+            writeRawRecord(
+                output,
+                {std::to_string(link.mBus1->mNumber),
+                 std::to_string(link.mBus2->mNumber),
+                 "0",
+                 rawQuoted(link.mId, 2, link.mObject->getName(), warning),
+                 "1",
+                 "1",
+                 "1",
+                 rawNumber(line->get("g1")),
+                 rawNumber(line->get("b1")),
+                 "2",
+                 rawQuoted(link.mObject->getName(), 12, link.mObject->getName(), warning),
+                 std::to_string(status),
+                 "1",
+                 "1.0",
+                 "0",
+                 "0.0",
+                 "0",
+                 "0.0",
+                 "0",
+                 "0.0",
+                 rawQuoted("", 12, link.mObject->getName(), warning)});
             writeRawRecord(output,
                            {rawNumber(line->get("r")),
                             rawNumber(line->get("x")),
@@ -677,12 +669,18 @@ namespace {
                            {rawNumber(line->get("tap")),
                             "0",
                             rawNumber(line->get("tapangle", units::deg)),
-                            rawRating(link.mObject->get("ratinga"), basePower,
-                                      link.mObject->getName() + ".ratingA", warning),
-                            rawRating(link.mObject->get("ratingb"), basePower,
-                                      link.mObject->getName() + ".ratingB", warning),
-                            rawRating(link.mObject->get("erating"), basePower,
-                                      link.mObject->getName() + ".ratingC", warning),
+                            rawRating(link.mObject->get("ratinga"),
+                                      basePower,
+                                      link.mObject->getName() + ".ratingA",
+                                      warning),
+                            rawRating(link.mObject->get("ratingb"),
+                                      basePower,
+                                      link.mObject->getName() + ".ratingB",
+                                      warning),
+                            rawRating(link.mObject->get("erating"),
+                                      basePower,
+                                      link.mObject->getName() + ".ratingC",
+                                      warning),
                             "0",
                             "0",
                             "0",
@@ -741,14 +739,12 @@ namespace {
         output << "0 / END OF ZONE DATA, BEGIN INTER-AREA TRANSFER DATA\n";
         if (const auto* rootArea = dynamic_cast<const GridArea*>(parentObject->getRoot())) {
             for (const auto& transfer : rootArea->getInterAreaTransfers()) {
-                writeRawRecord(output,
-                               {std::to_string(transfer.fromAreaID),
-                                std::to_string(transfer.toAreaID),
-                                rawQuoted(transfer.transferID,
-                                          2,
-                                          "inter-area transfer ID",
-                                          warning),
-                                rawNumber(transfer.scheduledMW)});
+                writeRawRecord(
+                    output,
+                    {std::to_string(transfer.fromAreaID),
+                     std::to_string(transfer.toAreaID),
+                     rawQuoted(transfer.transferID, 2, "inter-area transfer ID", warning),
+                     rawNumber(transfer.scheduledMW)});
             }
         }
         output << "0 / END OF INTER-AREA TRANSFER DATA, BEGIN OWNER DATA\n";
@@ -766,9 +762,7 @@ namespace {
     }
 }  // namespace
 
-bool saveRawCase(const CoreObject* parentObject,
-                 const std::string& fileName,
-                 stringVec* warnings)
+bool saveRawCase(const CoreObject* parentObject, const std::string& fileName, stringVec* warnings)
 {
     return saveRawV33(parentObject, fileName, warnings);
 }

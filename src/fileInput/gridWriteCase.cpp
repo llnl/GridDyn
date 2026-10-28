@@ -19,10 +19,12 @@ namespace {
     NetworkCaseFormat caseFormatFromFileName(const std::string& fileName)
     {
         auto extension = std::filesystem::path(fileName).extension().string();
-        std::transform(
-            extension.begin(), extension.end(), extension.begin(), [](unsigned char character) {
-                return static_cast<char>(std::tolower(character));
-            });
+        std::transform(extension.begin(),
+                       extension.end(),
+                       extension.begin(),
+                       [](unsigned char character) {
+                           return static_cast<char>(std::tolower(character));
+                       });
 
         if (extension == ".m" || extension == ".matpower") {
             return NetworkCaseFormat::MATPOWER;

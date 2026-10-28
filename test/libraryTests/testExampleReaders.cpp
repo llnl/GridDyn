@@ -5,9 +5,9 @@
  */
 
 #include "../gtestHelper.h"
+#include "griddyn/Generator.h"
 #include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
-#include "griddyn/Generator.h"
 #include "griddyn/Link.h"
 #include "griddyn/Load.h"
 #include "griddyn/exciters/ExciterDC1A.h"
@@ -1340,8 +1340,8 @@ TEST(ExampleReaderTests, ExportRawRoundTripByExtension)
 
 TEST(ExampleReaderTests, ExportActivsG500ToRawRoundTripPreservesPowerFlow)
 {
-    const auto source =
-        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "texas_am" / "ACTIVSg500" / "ACTIVSg500.RAW";
+    const auto source = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "texas_am" / "ACTIVSg500" /
+        "ACTIVSg500.RAW";
     const auto exported =
         std::filesystem::temp_directory_path() / "griddyn_activsg500_raw_roundtrip.raw";
     auto original = std::make_unique<griddyn::GridDynSimulation>();
@@ -1355,8 +1355,7 @@ TEST(ExampleReaderTests, ExportActivsG500ToRawRoundTripPreservesPowerFlow)
     EXPECT_EQ(original->getInt("loadcount"), 221);
 
     griddyn::stringVec warnings;
-    ASSERT_TRUE(griddyn::saveNetworkCaseByExtension(
-        original.get(), exported.string(), &warnings))
+    ASSERT_TRUE(griddyn::saveNetworkCaseByExtension(original.get(), exported.string(), &warnings))
         << (warnings.empty() ? "RAW export failed" : warnings.front());
     std::string warningTrace;
     for (const auto& warning : warnings) {
@@ -1374,10 +1373,10 @@ TEST(ExampleReaderTests, ExportActivsG500ToRawRoundTripPreservesPowerFlow)
     EXPECT_DOUBLE_EQ(imported->get("basepower"), original->get("basepower"));
 
     for (index_t busNumber = 1; busNumber <= original->getInt("totalbuscount"); ++busNumber) {
-        const auto* originalBus = dynamic_cast<const griddyn::GridBus*>(
-            original->findByUserID("bus", busNumber));
-        const auto* importedBus = dynamic_cast<const griddyn::GridBus*>(
-            imported->findByUserID("bus", busNumber));
+        const auto* originalBus =
+            dynamic_cast<const griddyn::GridBus*>(original->findByUserID("bus", busNumber));
+        const auto* importedBus =
+            dynamic_cast<const griddyn::GridBus*>(imported->findByUserID("bus", busNumber));
         ASSERT_NE(originalBus, nullptr);
         ASSERT_NE(importedBus, nullptr);
         EXPECT_EQ(importedBus->getBusType(), originalBus->getBusType());
@@ -1391,10 +1390,10 @@ TEST(ExampleReaderTests, ExportActivsG500ToRawRoundTripPreservesPowerFlow)
     ASSERT_EQ(original->powerflow(), 0);
     ASSERT_EQ(imported->powerflow(), 0);
     for (index_t busNumber = 1; busNumber <= original->getInt("totalbuscount"); ++busNumber) {
-        const auto* originalBus = dynamic_cast<const griddyn::GridBus*>(
-            original->findByUserID("bus", busNumber));
-        const auto* importedBus = dynamic_cast<const griddyn::GridBus*>(
-            imported->findByUserID("bus", busNumber));
+        const auto* originalBus =
+            dynamic_cast<const griddyn::GridBus*>(original->findByUserID("bus", busNumber));
+        const auto* importedBus =
+            dynamic_cast<const griddyn::GridBus*>(imported->findByUserID("bus", busNumber));
         ASSERT_NE(originalBus, nullptr);
         ASSERT_NE(importedBus, nullptr);
         EXPECT_NEAR(importedBus->getVoltage(), originalBus->getVoltage(), 1.0e-6);

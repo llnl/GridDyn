@@ -15,12 +15,11 @@
 
 namespace griddyn {
 namespace {
-bool checkResetVoltages(const std::vector<double>& prev, const std::vector<double>& curr);
+    bool checkResetVoltages(const std::vector<double>& prev, const std::vector<double>& curr);
 }  // namespace
 
-faultResetRecovery::faultResetRecovery(
-    GridDynSimulation* gds,
-    std::shared_ptr<SolverInterface> solverInterface):
+faultResetRecovery::faultResetRecovery(GridDynSimulation* gds,
+                                       std::shared_ptr<SolverInterface> solverInterface):
     sim(gds), solver(std::move(solverInterface))
 {
     sim->getVoltage(initVolts);
@@ -215,26 +214,26 @@ int faultResetRecovery::faultResetFix4()
 }
 
 namespace {
-bool checkResetVoltages(const std::vector<double>& prev, const std::vector<double>& curr)
-{
-    bool hasUnexpectedVoltageRise = false;
-    int restoredVoltageCount = 0;
-    for (size_t jj = 0; jj < prev.size(); ++jj) {
-        if ((prev[jj] < 0.001) && (curr[jj] > 0.1)) {
-            hasUnexpectedVoltageRise = true;
+    bool checkResetVoltages(const std::vector<double>& prev, const std::vector<double>& curr)
+    {
+        bool hasUnexpectedVoltageRise = false;
+        int restoredVoltageCount = 0;
+        for (size_t jj = 0; jj < prev.size(); ++jj) {
+            if ((prev[jj] < 0.001) && (curr[jj] > 0.1)) {
+                hasUnexpectedVoltageRise = true;
+            }
+            if ((prev[jj] > 0.1) && (curr[jj] < 0.001)) {
+                ++restoredVoltageCount;
+            }
         }
-        if ((prev[jj] > 0.1) && (curr[jj] < 0.001)) {
-            ++restoredVoltageCount;
+        if (hasUnexpectedVoltageRise && (restoredVoltageCount > 0)) {
+            return false;
         }
+        if (restoredVoltageCount > 1) {
+            return false;
+        }
+        return true;
     }
-    if (hasUnexpectedVoltageRise && (restoredVoltageCount > 0)) {
-        return false;
-    }
-    if (restoredVoltageCount > 1) {
-        return false;
-    }
-    return true;
-}
 }  // namespace
 
 }  // namespace griddyn

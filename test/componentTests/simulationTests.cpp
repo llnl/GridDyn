@@ -69,7 +69,7 @@ class FaultResetTestSolver: public griddyn::SolverInterface {
     double* stateData() noexcept override { return state.data(); }
     double* derivData() noexcept override { return derivative.data(); }
     void getCurrentData() override {}
-    int calcIC([[maybe_unused]] griddyn::CoreTime t0,
+    int calcIC([[maybe_unused]] griddyn::CoreTime initialTime,
                [[maybe_unused]] griddyn::CoreTime tstep0,
                [[maybe_unused]] IcModes solverMode,
                [[maybe_unused]] bool constraints) override

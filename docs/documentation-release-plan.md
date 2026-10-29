@@ -25,22 +25,23 @@ make the entire C++ implementation a release blocker.
   1.18. The CMake `doc` target completed and generated HTML after correcting
   the missing logo path and Doxygen target working directory.
 - `config/Doxyfile.in` is now a compact project configuration instead of the
-  large generated template. The CMake target was rebuilt with it, and the
-  warning count stayed at 3,786 after the focused API pass.
+  large generated template. The CMake target was rebuilt with it, and its
+  output remains directed to the build tree.
 - Doxygen warnings remain enabled. Doxygen writes the full report to
   `build/doxygen_warnings.log`; the HTML output is directed to a build folder.
   The current scan reads `src/` and `docs/`, and excludes test sources and
   presentations. This is broader than a curated public C++ API list.
-- The initial local Doxygen baseline reported 3,798 warning entries: about
-  3,753 undocumented declarations and 45 other warnings. A focused pass on
-  `GridDynSimulation.h` documented the dynamic solver choices, residual
-  parallelism policy, partitioned initialization, and parameter sensitivities.
-  The current count is 3,786 entries, including 3,741 undocumented
-  declarations; the 45 other warnings remain. The largest clusters are in
-  PARADAE, optimization, and FMI headers. Many other warnings are Doxygen's
-  ambiguous association of inherited overloaded `set()` documentation, where
-  the candidate list makes the log especially large. Counts depend on the
-  Doxygen version and source revision.
+- The 2026-10-28 local Doxygen 1.18.0 run reports 3,930 warning entries:
+  3,767 undocumented declarations, 41 ambiguous member-documentation
+  associations, and 122 other warnings. The `src/formatInterpreters/` pass and
+  a focused pass over four optimization framework headers cleared their
+  warnings; the latter removed 206 entries. The same documentation work fixed
+  Doxygen math-block and unresolved-reference warnings in the scanned Markdown.
+  The remaining log still includes broad API documentation debt; counts depend
+  on the Doxygen version and source revision.
+- The generated naming inventory and its redirect-only audit page were removed
+  from the developer guides. Their historical summary remains in the naming
+  migration plan.
 - The live Read the Docs pages still show older content until this branch is
   published and Read the Docs builds it. This source update does not publish
   the site by itself.

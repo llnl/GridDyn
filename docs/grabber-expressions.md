@@ -89,8 +89,8 @@ Parentheses are required; a bare name still refers to an object field.
 
 Examples include `sin(pi()/2)` and `angle*180/pi()`.
 Deterministic constant subexpressions are evaluated during setup. Constants
-have no solver-state derivatives. Random zero-argument calls are listed
-[separately](#random-functions-object-grabbers-only).
+have no solver-state derivatives. The section on random functions below lists
+the zero-argument calls available to object grabbers.
 
 ## One-argument elementwise functions
 

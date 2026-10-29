@@ -22,12 +22,14 @@ namespace griddyn {
 class GridDynOptimization;
 class GridOptObject;
 
+/** GridDyn log severity used for optimizer messages. */
 enum class OptimizerPrintLevel {
     DEBUG_PRINT = 2,
     ERROR_LOG = 1,
     ERROR_TRAP = 0,
 };
 
+/** Flags selecting optimizer storage, lifecycle, and logging behavior. */
 enum OptimizerFlags : int {
     OPT_DENSE_FLAG = 0,  //!< if the optimizer should use dense storage/linear algebra
     OPT_CONSTANT_JACOBIAN_FLAG = 1,  //!< if the constraint Jacobian can be reused
@@ -41,6 +43,14 @@ enum OptimizerFlags : int {
     OPT_PRINT_RESIDUALS_FLAG = 28,  //!< debug print of constraint residuals
 };
 
+/** Common storage and callback interface for GridDyn optimization backends.
+ *
+ * Distributed GridOptObject instances contribute objective terms, bounds,
+ * constraints, derivatives, and write-back operations. This class owns the
+ * decision and constraint arrays passed to those callbacks. A solve backend
+ * may stage a candidate in these arrays; writeBack commits an accepted result
+ * to the physical GridDyn model.
+ */
 class OptimizerInterface: public HelperObject {
   public:
     vectData<double> linearObjective;  //!< sparse linear objective coefficients
@@ -64,72 +74,137 @@ class OptimizerInterface: public HelperObject {
     std::vector<double> scratch1;  //!< callback scratch storage
     std::vector<double> scratch2;  //!< callback scratch storage
 
-    OptimizationMode mode;
+    OptimizationMode mode;  //!< optimization mode shared with the distributed model tree
     double rtol = 1e-6;  //!< solver relative solution tolerance
-    bool sparse = false;
-    bool constantJacobian = false;
+    bool sparse = false;  //!< whether the backend uses sparse matrix storage
+    bool constantJacobian = false;  //!< whether a constant constraint Jacobian may be reused
 
   protected:
     std::string lastErrorString;  //!< string containing the last error
-    void* mSolverMem = nullptr;
-    bool mAllocated = false;
+    void* mSolverMem = nullptr;  //!< backend-specific solver state
+    bool mAllocated = false;  //!< whether problem arrays have been allocated
     bool mInitialized = false;  //!< flag indicating if these vectors have been initialized
-    GridDynOptimization* mGridDynOptimization = nullptr;
-    count_t mVariableCount = 0;
-    count_t mConstraintCount = 0;
-    count_t mEvaluationCount = 0;
-    count_t mObjectiveCallCount = 0;
-    count_t mGradientCallCount = 0;
-    count_t mConstraintCallCount = 0;
-    count_t mJacobianCallCount = 0;
-    count_t max_iterations = 10000;
-    count_t nnz = 0;
-    double solveTime = kNullVal;
-    OptimizerPrintLevel printLevel = OptimizerPrintLevel::ERROR_TRAP;
-    int optimizerPrintLevel = 1;
-    std::bitset<32> flags;
-    int lastErrorCode = 0;
+    GridDynOptimization* mGridDynOptimization =
+        nullptr;  //!< optimization model bound to this backend
+    count_t mVariableCount = 0;  //!< number of decision variables
+    count_t mConstraintCount = 0;  //!< number of constraint rows
+    count_t mEvaluationCount = 0;  //!< total callback evaluation count
+    count_t mObjectiveCallCount = 0;  //!< objective callback count
+    count_t mGradientCallCount = 0;  //!< objective-gradient callback count
+    count_t mConstraintCallCount = 0;  //!< constraint callback count
+    count_t mJacobianCallCount = 0;  //!< constraint-Jacobian callback count
+    count_t max_iterations = 10000;  //!< maximum backend iteration count
+    count_t nnz = 0;  //!< nonzero count used to size sparse storage
+    double solveTime = kNullVal;  //!< time of the latest solve or evaluation
+    OptimizerPrintLevel printLevel = OptimizerPrintLevel::ERROR_TRAP;  //!< GridDyn log severity
+    int optimizerPrintLevel = 1;  //!< backend-specific print-level value
+    std::bitset<32> flags;  //!< optimizer options indexed by OptimizerFlags
+    int lastErrorCode = 0;  //!< status from the most recent failed operation
 
   public:
+    /** Creates an unbound optimizer with a registry name.
+     * @param[in] optName name used to register or identify the optimizer
+     */
     OptimizerInterface(std::string_view optName = "optim");
 
+    /** Creates an optimizer bound to a GridDyn optimization model.
+     * @param[in] gdo optimization model that supplies distributed callbacks
+     * @param[in] oMode mode describing the problem being assembled
+     */
     OptimizerInterface(GridDynOptimization* gdo, const OptimizationMode& oMode);
+
+    /** Destroys the optimizer interface. */
     virtual ~OptimizerInterface() {}
+
+    /** Gets mutable access to the decision-variable array. */
     virtual double* val_data() { return values.data(); }
+    /** Gets read-only access to the decision-variable array. */
     virtual const double* val_data() const { return values.data(); }
+    /** Gets mutable access to evaluated constraint values. */
     virtual double* constraint_data() { return constraintValues.data(); }
+    /** Gets read-only access to evaluated constraint values. */
     virtual const double* constraint_data() const { return constraintValues.data(); }
+    /** Gets mutable access to decision-variable lower bounds. */
     virtual double* lowerBoundData() { return lowerBounds.data(); }
+    /** Gets read-only access to decision-variable lower bounds. */
     virtual const double* lowerBoundData() const { return lowerBounds.data(); }
+    /** Gets mutable access to decision-variable upper bounds. */
     virtual double* upperBoundData() { return upperBounds.data(); }
+    /** Gets read-only access to decision-variable upper bounds. */
     virtual const double* upperBoundData() const { return upperBounds.data(); }
+    /** Gets mutable access to constraint lower bounds. */
     virtual double* constraintLowerBoundData() { return constraintLowerBounds.data(); }
+    /** Gets read-only access to constraint lower bounds. */
     virtual const double* constraintLowerBoundData() const { return constraintLowerBounds.data(); }
+    /** Gets mutable access to constraint upper bounds. */
     virtual double* constraintUpperBoundData() { return constraintUpperBounds.data(); }
+    /** Gets read-only access to constraint upper bounds. */
     virtual const double* constraintUpperBoundData() const { return constraintUpperBounds.data(); }
+    /** Gets mutable access to the objective gradient array. */
     virtual double* gradientData() { return gradient.data(); }
+    /** Gets read-only access to the objective gradient array. */
     virtual const double* gradientData() const { return gradient.data(); }
+    /** Gets mutable access to variable-type markers. */
     virtual double* variableTypeData() { return variableType.data(); }
+    /** Gets read-only access to variable-type markers. */
     virtual const double* variableTypeData() const { return variableType.data(); }
+    /** Gets mutable access to variable scaling and tolerance hints. */
     virtual double* toleranceData() { return tolerances.data(); }
+    /** Gets read-only access to variable scaling and tolerance hints. */
     virtual const double* toleranceData() const { return tolerances.data(); }
+    /** Gets mutable access to optional constraint/objective multipliers. */
     virtual double* multiplierData() { return multipliers.data(); }
+    /** Gets read-only access to optional constraint/objective multipliers. */
     virtual const double* multiplierData() const { return multipliers.data(); }
 
+    /** Allocates decision, constraint, derivative, and sparse callback storage.
+     * @param[in] variableCount number of decision variables
+     * @param[in] constraintCount number of constraint rows
+     * @return backend status code
+     */
     virtual int allocate(count_t variableCount, count_t constraintCount = 0);
+
+    /** Initializes backend storage and evaluates mode-specific setup.
+     * @param[in] initTime time passed to distributed model callbacks
+     */
     virtual void initialize(double initTime);
+
+    /** Rebuilds sparse Jacobian storage after the nonzero count changes. */
     virtual void sparseReInit();
+
+    /** Runs the optimization object's first initialization stage. */
     virtual void dynObjectInitializeA(double /*t0*/) {}
 
+    /** Creates a callback view over the optimizer-owned arrays.
+     * @param[in] time callback evaluation time
+     */
     OptimizationData makeOptimizationData(double time);
+
+    /** Creates a callback view using a caller-supplied decision vector.
+     * @param[in] time callback evaluation time
+     * @param[in] values candidate decision-variable values
+     */
     OptimizationData makeOptimizationData(double time, const double values[]);
 
+    /** Loads the distributed model's initial decision vector. */
     virtual int loadInitialGuess(double time);
+
+    /** Loads lower and upper bounds for decision variables. */
     virtual int loadVariableBounds(double time);
+
+    /** Loads continuous, integer, or binary variable markers. */
     virtual int loadVariableTypes();
+
+    /** Loads variable scaling and tolerance hints. */
     virtual int loadTolerances();
+
+    /** Loads linear objective coefficients, optionally at candidate values. */
     virtual int loadLinearObjective(double time, const double candidateValues[] = nullptr);
+
+    /** Loads diagonal quadratic objective coefficients. */
     virtual int loadQuadraticObjective(double time, const double candidateValues[] = nullptr);
+
+    /** Loads explicitly linear constraint coefficients and bounds. */
     virtual int loadLinearConstraints(double time, const double candidateValues[] = nullptr);
     /** @brief write the current optimizer solution vector back into the source power-system model
      *
@@ -143,74 +218,155 @@ class OptimizerInterface: public HelperObject {
      * @return FUNCTION_EXECUTION_SUCCESS on success.
      */
     virtual int writeBack(double time = kNullVal);
+
+    /** Commits the current solution using the writeBack implementation. */
     virtual int applySolution(double time = kNullVal) { return writeBack(time); }
+
+    /** Evaluates the objective for a candidate decision vector. */
     virtual double objectiveFunction(double time, const double candidateValues[] = nullptr);
+
+    /** Evaluates the objective gradient for a candidate decision vector. */
     virtual int gradientFunction(double time, const double candidateValues[], double grad[]);
+
+    /** Evaluates nonlinear and linear constraint residuals. */
     virtual int
         constraintFunction(double time, const double candidateValues[], double constraints[]);
+
+    /** Evaluates constraint-Jacobian entries into caller-provided storage. */
     virtual int constraintJacobianFunction(double time,
                                            const double candidateValues[],
                                            MatrixData<double>& matrixDataRef);
+
+    /** Gets the optimizer-owned sparse constraint Jacobian. */
     virtual MatrixDataSparse<double>&
         constraintJacobianFunction(double time, const double candidateValues[] = nullptr);
 
     virtual double get(std::string_view param) const override;
+    /** Sets a text-valued optimizer option.
+     * @param[in] param option name
+     * @param[in] val option value
+     */
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void set(std::string_view param, double val) override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual bool getFlag(std::string_view flag) const override;
+    /** Runs the backend solve.
+     * @return backend status; the base implementation returns -101 to indicate
+     * that no solve backend is provided
+     */
     virtual int solve(double /*tStop*/, double& /*tReturn*/) { return -101; }
+
+    /** Allocates or resizes the sparse Jacobian entry array. */
     virtual void initializeJacArray(count_t size);
+
+    /** Sets the expected number of nonzero Jacobian entries. */
     virtual void setMaxNonZeros(count_t nonZeroCount);
+
+    /** Writes optimizer statistics to the GridDyn logger. */
     virtual void logSolverStats(int logLevel, bool iconly = false) const;
+
+    /** Writes backend-specific error weights when supported. */
     virtual void logErrorWeights(int /*logLevel*/) {}
 
+    /** Gets the number of decision variables. */
     count_t getSize() const { return mVariableCount; }
+
+    /** Alias for getSize(). */
     count_t size() const { return mVariableCount; }
+
+    /** Gets the number of constraint rows. */
     count_t constraintSize() const { return mConstraintCount; }
+
+    /** Alias for constraintSize(). */
     count_t constraintCount() const { return mConstraintCount; }
+
+    /** Gets the number of stored nonzero entries. */
     count_t nonZeros() const { return nnz; }
+
+    /** Gets the optimization mode bound to this optimizer. */
     const OptimizationMode& getOptimizationMode() const { return mode; }
+
+    /** Gets the time recorded for the latest optimizer operation. */
     double getSolverTime() const { return solveTime; }
+
+    /** Alias for getSolverTime(). */
     double getOptimizationTime() const { return solveTime; }
+
+    /** Prevents further changes to the optimization mode. */
     void lock() { flags.set(OPT_LOCKED_FLAG); }
+
+    /** Sets the base index used by this object's optimization mode. */
     void setIndex(index_t newIndex) { mode.offsetIndex = newIndex; }
+
+    /** Binds this optimizer to a model and mode.
+     * @param[in] gdo optimization model that supplies distributed callbacks
+     * @param[in] oMode mode describing the problem being assembled
+     */
     virtual void setOptimizationData(GridDynOptimization* gdo, const OptimizationMode& oMode);
+
+    /** Handles a backend flag callback and optionally logs an unsupported flag. */
     virtual int
         check_flag(void* flagvalue, std::string_view funcname, int opt, bool printError = true);
+
+    /** Stores and logs an optimizer diagnostic.
+     * @param[in] errorCode backend or callback status
+     * @param[in] message diagnostic text
+     */
     void logMessage(int errorCode, std::string_view message);
+
+    /** Checks whether optimizer storage has been initialized. */
     bool isInitialized() const { return mInitialized; }
+
+    /** Gets the status code from the most recent failed operation. */
     int getLastError() const { return lastErrorCode; }
+
+    /** Gets the diagnostic text from the most recent failed operation. */
     const std::string& getLastErrorString() const { return lastErrorString; }
 
   protected:
+    /** Gets the root distributed optimization object, if one is attached. */
     GridOptObject* rootOptimizationObject() const;
 };
 
+/** Dry-run optimizer used to exercise allocation and initialization paths. */
 class BasicOptimizer: public OptimizerInterface {
   private:
   public:
+    /** Creates an unbound basic optimizer.
+     * @param[in] optName name used to register or identify the optimizer
+     */
     explicit BasicOptimizer(std::string_view optName = "basic");
 
+    /** Creates a basic optimizer bound to a model and mode. */
     BasicOptimizer(GridDynOptimization* gdo, const OptimizationMode& oMode);
 
+    /** Allocates the base arrays and initializes dry-run storage. */
     int allocate(count_t variableCount, count_t constraintCount = 0) override;
+
+    /** Initializes the optimization object during the first model stage. */
     void dynObjectInitializeA(double initTime) override;
 };
 
+/** Merit-order economic-dispatch optimizer for simple dispatch studies. */
 class EconomicDispatchOptimizer: public OptimizerInterface {
   private:
     double dispatchImbalance = 0.0;
 
   public:
+    /** Creates an unbound economic-dispatch optimizer. */
     explicit EconomicDispatchOptimizer(std::string_view optName = "dispatch");
 
+    /** Creates an economic-dispatch optimizer bound to a model and mode. */
     EconomicDispatchOptimizer(GridDynOptimization* gdo, const OptimizationMode& oMode);
 
+    /** Computes and stages a merit-order dispatch for the current problem. */
     int solve(double tStop, double& tReturn) override;
+
+    /** Gets an economic-dispatch property by name. */
     double get(std::string_view param) const override;
 };
 
+/** Built-in optimizer that solves a materialized native DC problem. */
 class NativeOptimizer: public OptimizerInterface {
   private:
     bool mProblemDataLoaded = false;

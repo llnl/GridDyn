@@ -15,10 +15,22 @@
 
 class TomlElement;
 
-/** @brief class defines a reader element around the toml reader*/
+/** ReaderElement adapter for TOML documents.
+ *
+ * Tables and arrays are exposed through the common child and sibling
+ * navigation interface. Table order is retained by the underlying ordered
+ * TOML value.
+ */
 class TomlReaderElement: public ReaderElement {
   public:
+    /** Creates an empty TOML reader. */
     TomlReaderElement();
+
+    /** Loads a TOML file.
+     * Check isValid() after construction to determine whether loading
+     * succeeded.
+     * @param[in] fileName path to the TOML file
+     */
     explicit TomlReaderElement(const std::string& fileName);
 
     std::shared_ptr<ReaderElement> clone() const override;

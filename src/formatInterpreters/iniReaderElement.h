@@ -13,10 +13,21 @@
 
 class GridDynIniReader;
 
-/** @brief class defines a reader element around the ini reader*/
+/** ReaderElement adapter for GridDyn INI files.
+ *
+ * INI sections are exposed as one level of child elements and their entries as
+ * attributes. This backend loads from a file; parse does not accept INI text.
+ */
 class IniReaderElement: public ReaderElement {
   public:
+    /** Creates an empty INI reader. */
     IniReaderElement();
+
+    /** Loads an INI file.
+     * Check isValid() after construction to determine whether loading
+     * succeeded.
+     * @param[in] fileName path to the INI file
+     */
     explicit IniReaderElement(const std::string& fileName);
 
     std::shared_ptr<ReaderElement> clone() const override;

@@ -15,10 +15,21 @@ class Node;
 }
 
 class YamlElement;
-/** @brief class defines a reader element around the yaml-cpp reader*/
+/** ReaderElement adapter for YAML documents using yaml-cpp.
+ *
+ * Mapping entries and sequence values are exposed through the common child
+ * and sibling navigation interface.
+ */
 class YamlReaderElement: public ReaderElement {
   public:
+    /** Creates an empty YAML reader. */
     YamlReaderElement();
+
+    /** Loads a YAML file.
+     * Check isValid() after construction to determine whether loading
+     * succeeded.
+     * @param[in] fileName path to the YAML file
+     */
     explicit YamlReaderElement(const std::string& fileName);
 
     std::shared_ptr<ReaderElement> clone() const override;

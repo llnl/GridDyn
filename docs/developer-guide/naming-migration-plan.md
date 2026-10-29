@@ -120,8 +120,8 @@ Goal: establish the measurable list of remaining work.
 
 - First-party source file count observed during initial planning: about 769
   files
-- Baseline naming inventory report:
-  [naming-inventory.md](naming-inventory.md)
+- The row-level inventory is no longer published; the relevant snapshot totals
+  are summarized below.
 - Historical initial heuristic finding total: 13,907
 - Historical initial findings by category:
   - `class_type`: 576
@@ -152,8 +152,10 @@ Goal: establish the measurable list of remaining work.
 - Late-stage planning baseline was regenerated on 2026-05-31 after the merged
   Phase 9 cleanup batches, including the canonical `MatrixData*` / `TxLifeSpan`
   filename cleanup and follow-on `clang-tidy` fallout fixes.
-- That 2026-05-31 snapshot is preserved as a historical late-campaign baseline
-  in [naming-inventory.md](naming-inventory.md).
+- The generated row-level report is no longer published as a developer guide:
+  its findings predate the campaign closeout and are superseded by the
+  post-campaign audit below. The summary counts here preserve its relevant
+  historical context.
 - Historical late-stage heuristic finding total at that checkpoint: 1,108
 - Historical late-stage findings by category:
   - `class_type`: 66

@@ -14,10 +14,21 @@
 
 class JsonElement;
 
-/** @brief class defines a reader element around the nlohmann/json reader*/
+/** ReaderElement adapter for JSON documents using nlohmann::json.
+ *
+ * JSON object fields are exposed as attributes or child elements according to
+ * their value shape; array elements are traversed as repeated values.
+ */
 class JsonReaderElement: public ReaderElement {
   public:
+    /** Creates an empty JSON reader. */
     JsonReaderElement();
+
+    /** Loads a JSON file.
+     * Check isValid() after construction to determine whether loading
+     * succeeded.
+     * @param[in] fileName path to the JSON file
+     */
     explicit JsonReaderElement(const std::string& fileName);
 
     std::shared_ptr<ReaderElement> clone() const override;
@@ -26,7 +37,12 @@ class JsonReaderElement: public ReaderElement {
     virtual bool isDocument() const override;
 
     virtual bool loadFile(const std::string& fileName) override;
-    virtual bool parse(const std::string& inputString) override;
+    /** Parses JSON text, or loads it as a file if inputString names an
+     * readable file.
+     * @param[in] inputString JSON text or a path to a JSON file
+     * @return true when the input is valid JSON
+     */
+    bool parse(const std::string& inputString) override;
     virtual std::string getName() const override;
     virtual double getValue() const override;
     virtual std::string getText() const override;

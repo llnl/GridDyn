@@ -28,7 +28,7 @@ namespace griddyn::governors {
  * y_g=K\left[x_g+\frac{T_2}{T_1}(w_d-x_g)\right],
  * @f]
  * @f[
- * v_s=\frac{y_g+P_0-p_v}{T_3},\quad
+ * v_s=\frac{y_g+P_0+P_{aux}-p_v}{T_3},\quad
  * \dot p_v=\operatorname{AW}_{[P_{MIN},P_{MAX}]}
  *             (\operatorname{limit}_{[U_C,U_O]}(v_s)),
  * @f]
@@ -53,6 +53,7 @@ class GovernorIeeeG1: public Governor {
   protected:
     model_parameter Uo = 0.1;
     model_parameter Uc = -0.1;
+    model_parameter auxiliaryPower = 0.0;  //!< optional auxiliary reference input [pu]
     std::array<model_parameter, 4> turbineTime{{0.4, 8.0, 0.5, 0.05}};
     std::array<model_parameter, 8> powerFraction{{0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0}};
 

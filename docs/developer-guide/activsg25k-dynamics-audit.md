@@ -101,8 +101,8 @@ repeated dips, and release timing. A checked-in two-bus ANDES fault reference
 compares the shared `REGCA1`/`REECA1`, `REECB1`, `REPCA1`, and newer WECC wind
 branches at eight times. The REECB1 comparison exposed and corrected its
 post-fault voltage-error injection: it decays with filtered voltage after
-clearing, unlike the REECA1 injection branch. See
-[`test/reference/renewable_fault/README.md`](../../test/reference/renewable_fault/README.md)
+clearing, unlike the REECA1 injection branch. See the
+[renewable fault reference README](https://github.com/LLNL/GridDyn/blob/main/test/reference/renewable_fault/README.md)
 for the fixture and its limits. Full-case and PowerWorld or PSS/E trajectory
 comparisons remain to be done.
 

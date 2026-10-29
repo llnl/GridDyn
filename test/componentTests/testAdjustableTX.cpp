@@ -212,3 +212,15 @@ TEST_F(AdjustableTransformerTests, NtpControlsTapModeAndPositionCount)
     EXPECT_NEAR(transformer.get("stepsize"), 0.02, 1.0e-12);
     EXPECT_NEAR(transformer.get("nsteps"), 11.0, 1.0e-12);
 }
+
+TEST_F(AdjustableTransformerTests, ManualInitializationPreservesImportedTapRatio)
+{
+    links::AdjustableTransformer transformer;
+    transformer.set("mode", "manual");
+    transformer.set("mintap", 0.9);
+    transformer.set("maxtap", 1.1);
+    transformer.set("nsteps", 32.0);
+    transformer.set("tap", 0.99677);
+    transformer.pFlowInitializeA(0.0, 0);
+    EXPECT_DOUBLE_EQ(transformer.get("tap"), 0.99677);
+}

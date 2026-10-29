@@ -27,19 +27,28 @@ namespace griddyn {
  * dense matrix is created only inside the small native reference solver.
  */
 struct NativeSparseMatrix {
-    std::size_t rowCount = 0;
-    std::size_t columnCount = 0;
-    std::vector<std::size_t> rowStarts;
-    std::vector<std::size_t> columnIndices;
-    std::vector<double> values;
+    std::size_t rowCount = 0;  //!< number of matrix rows
+    std::size_t columnCount = 0;  //!< number of matrix columns
+    std::vector<std::size_t> rowStarts;  //!< CSR offsets; has rowCount + 1 entries
+    std::vector<std::size_t> columnIndices;  //!< column index for each stored value
+    std::vector<double> values;  //!< nonzero coefficients in row-major order
 
+    /** Creates an empty sparse matrix. */
     NativeSparseMatrix() = default;
 
+    /** Creates an empty matrix with the specified dimensions.
+     * @param[in] rows number of rows
+     * @param[in] columns number of columns
+     */
     NativeSparseMatrix(std::size_t rows, std::size_t columns):
         rowCount(rows), columnCount(columns), rowStarts(rows + 1, 0)
     {
     }
 
+    /** Resets dimensions and clears all stored coefficients.
+     * @param[in] rows new row count
+     * @param[in] columns new column count
+     */
     void setDimensions(std::size_t rows, std::size_t columns)
     {
         rowCount = rows;
@@ -49,6 +58,7 @@ struct NativeSparseMatrix {
         values.clear();
     }
 
+    /** Clears dimensions and all stored coefficients. */
     void clear()
     {
         rowCount = 0;
@@ -58,7 +68,10 @@ struct NativeSparseMatrix {
         values.clear();
     }
 
+    /** Checks whether the matrix contains any stored coefficients. */
     bool empty() const { return values.empty(); }
+
+    /** Gets the number of stored coefficients. */
     std::size_t size() const { return values.size(); }
 
     /** Assign a row-major dense vector, primarily for compact solver tests. */
@@ -127,6 +140,10 @@ struct NativeSparseMatrix {
         return dense;
     }
 
+    /** Checks compressed-row dimensions, ordering, and coefficient values.
+     * @param[out] error optional destination for a validation diagnostic
+     * @return true when storage is canonical and internally consistent
+     */
     bool validate(std::string* error = nullptr) const
     {
         const auto fail = [error](std::string message) {
@@ -163,6 +180,7 @@ struct NativeSparseMatrix {
         return true;
     }
 
+    /** Compares dimensions and compressed storage for exact equality. */
     bool operator==(const NativeSparseMatrix&) const = default;
 };
 
@@ -198,33 +216,33 @@ enum class NativeProblemClass {
  * future HiGHS adapter consume the same model without re-deriving physics.
  */
 struct NativeQpProblem {
-    std::uint64_t modelVersion = 0;
-    OptimizationMode mode{};
-    NativeProblemClass classification = NativeProblemClass::INVALID;
-    bool valid = false;
-    std::string validationError;
+    std::uint64_t modelVersion = 0;  //!< source-model revision used to build this snapshot
+    OptimizationMode mode{};  //!< optimization formulation used for materialization
+    NativeProblemClass classification = NativeProblemClass::INVALID;  //!< supported solver class
+    bool valid = false;  //!< whether validation succeeded
+    std::string validationError;  //!< reason validation or materialization failed
 
-    std::size_t variableCount = 0;
-    std::size_t constraintCount = 0;
+    std::size_t variableCount = 0;  //!< number of decision variables
+    std::size_t constraintCount = 0;  //!< number of constraint rows
 
-    std::vector<double> initialValues;
-    std::vector<double> variableLowerBounds;
-    std::vector<double> variableUpperBounds;
-    std::vector<double> linearObjective;
-    std::vector<double> quadraticObjective;
-    double objectiveConstant = 0.0;
+    std::vector<double> initialValues;  //!< initial decision vector in GridDyn variable order
+    std::vector<double> variableLowerBounds;  //!< lower bound for each decision variable
+    std::vector<double> variableUpperBounds;  //!< upper bound for each decision variable
+    std::vector<double> linearObjective;  //!< linear objective coefficient c
+    std::vector<double> quadraticObjective;  //!< diagonal quadratic coefficient q
+    double objectiveConstant = 0.0;  //!< constant objective contribution
 
-    std::vector<double> constraintLowerBounds;
-    std::vector<double> constraintUpperBounds;
-    std::vector<double> constraintOffsets;
+    std::vector<double> constraintLowerBounds;  //!< lower bound for each affine row
+    std::vector<double> constraintUpperBounds;  //!< upper bound for each affine row
+    std::vector<double> constraintOffsets;  //!< affine row offsets retained outside the matrix
     NativeSparseMatrix constraintMatrix;  //!< canonical compressed-row constraint matrix A
-    std::vector<double> initialConstraintValues;
-    std::vector<double> initialGradient;
+    std::vector<double> initialConstraintValues;  //!< row values evaluated at initialValues
+    std::vector<double> initialGradient;  //!< objective gradient evaluated at initialValues
 
-    std::vector<double> variableTypes;
-    std::vector<double> tolerances;
-    std::vector<std::string> variableNames;
-    std::vector<std::string> constraintNames;
+    std::vector<double> variableTypes;  //!< continuous, integer, or binary marker per variable
+    std::vector<double> tolerances;  //!< variable scaling or tolerance hints
+    std::vector<std::string> variableNames;  //!< names in GridDyn variable order
+    std::vector<std::string> constraintNames;  //!< names in constraint-row order
 
     /**
      * Evaluate one canonical affine row.

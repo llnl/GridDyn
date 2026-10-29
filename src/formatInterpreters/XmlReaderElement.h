@@ -13,14 +13,31 @@
 #include <utility>
 #include <vector>
 
-/** @brief class defines a reader element backed by pugixml. */
+/** ReaderElement adapter for XML documents backed by pugixml.
+ *
+ * Element text, attributes, and child elements are exposed through the common
+ * reader interface. A reader created from an existing pugixml node is a
+ * non-owning view and must not outlive the document that owns the node.
+ */
 class XmlReaderElement: public ReaderElement {
   public:
+    /** Creates an empty XML reader. */
     XmlReaderElement();
+
+    /** Loads an XML file.
+     * Check isValid() after construction to determine whether loading
+     * succeeded.
+     * @param[in] fileName path to the XML file
+     */
     explicit XmlReaderElement(const std::string& fileName);
 
+    /** Creates a reader view over an existing XML node.
+     * @param[in] xmlElement node represented by this reader
+     * @param[in] xmlParent parent node used for navigation
+     */
     XmlReaderElement(pugi::xml_node xmlElement, pugi::xml_node xmlParent);
 
+    /** Releases this reader's document and cursor handles. */
     ~XmlReaderElement() override;
 
     std::shared_ptr<ReaderElement> clone() const override;
@@ -28,7 +45,10 @@ class XmlReaderElement: public ReaderElement {
     bool isValid() const override;
     bool isDocument() const override;
 
-    /** brief load the xml from a string instead of a file*/
+    /** Parses XML text instead of loading a file.
+     * @param[in] inputString XML document text
+     * @return true when the text is valid XML
+     */
     bool parse(const std::string& inputString) override;
 
     bool loadFile(const std::string& fileName) override;

@@ -19,8 +19,11 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <gtest/gtest.h>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <string_view>
 
@@ -42,6 +45,114 @@ namespace {
         ASSERT_NE(namedSolver, nullptr);
         EXPECT_EQ(gds->getSolverInterface("powerflow"), namedSolver);
         EXPECT_EQ(readerConfig::warnCount, 0);
+    }
+
+    TEST_F(SolverReaderTests, RawLocalGeneratorVoltageTargetsAreOptIn)
+    {
+        const std::string path =
+            std::string{GRIDDYN_TEST_DIRECTORY} + "/comparison_tests/ieee14.raw";
+        for (const auto flags : {"",
+                                 "use_generator_voltage_targets",
+                                 "use_generator_voltage_targets,use_bus_voltage_targets"}) {
+            SCOPED_TRACE(flags);
+            ReaderInfo info;
+            addFlags(info, flags);
+            auto simulation = std::make_unique<GridDynSimulation>();
+            loadFile(simulation, path, &info);
+            auto* bus = dynamic_cast<GridBus*>(simulation->findByUserID("bus", 2));
+            ASSERT_NE(bus, nullptr);
+            EXPECT_DOUBLE_EQ(bus->getVoltage(), 1.01970);
+            const bool generatorTarget = info.checkFlag(USE_GENERATOR_VOLTAGE_TARGETS) &&
+                !info.checkFlag(USE_BUS_VOLTAGE_TARGETS);
+            EXPECT_DOUBLE_EQ(bus->get("vtarget"), generatorTarget ? 1.03 : 1.01970);
+            ASSERT_NE(bus->getGen(0), nullptr);
+            EXPECT_DOUBLE_EQ(bus->getGen(0)->get("qmax", units::MVAR), 15.0);
+            EXPECT_DOUBLE_EQ(bus->getGen(0)->get("qmin", units::MVAR), -40.0);
+        }
+    }
+
+    TEST_F(SolverReaderTests, RawLocalTargetOptionPreservesRemoteVoltageControl)
+    {
+        ReaderInfo info;
+        addFlags(info, "use_generator_voltage_targets");
+        auto simulation = std::make_unique<GridDynSimulation>();
+        loadFile(simulation,
+                 std::string{inputTestDirectory} + "raw_remote_voltage_control.raw",
+                 &info);
+        auto* terminal = dynamic_cast<GridBus*>(simulation->findByUserID("bus", 3));
+        auto* remote = dynamic_cast<GridBus*>(simulation->findByUserID("bus", 2));
+        ASSERT_NE(terminal, nullptr);
+        ASSERT_NE(remote, nullptr);
+        EXPECT_DOUBLE_EQ(terminal->get("vtarget"), 0.98);
+        EXPECT_DOUBLE_EQ(remote->get("vtarget"), 1.04);
+        EXPECT_DOUBLE_EQ(terminal->getGen(0)->get("vtarget"), 1.04);
+    }
+
+    TEST_F(SolverReaderTests, RawLocalTargetsIgnoreDisabledGeneratorsAndRejectConflicts)
+    {
+        const auto sourcePath = std::string{inputTestDirectory} + "raw_local_voltage_targets.raw";
+        ReaderInfo info;
+        addFlags(info, "use_generator_voltage_targets");
+        auto simulation = std::make_unique<GridDynSimulation>();
+        loadFile(simulation, sourcePath, &info);
+        auto* bus = dynamic_cast<GridBus*>(simulation->findByUserID("bus", 3));
+        ASSERT_NE(bus, nullptr);
+        ASSERT_NE(bus->getGen(2), nullptr);
+        EXPECT_FALSE(bus->getGen(2)->isEnabled());
+        EXPECT_DOUBLE_EQ(bus->get("vtarget"), 1.04);
+        EXPECT_DOUBLE_EQ(bus->getVoltage(), 0.98);
+
+        std::ifstream source(sourcePath);
+        ASSERT_TRUE(source.is_open());
+        std::ostringstream content;
+        content << source.rdbuf();
+        auto conflicting = content.str();
+        const auto position = conflicting.find("3,'2 ',10.000,0.000,200.000,-200.000,1.04000");
+        ASSERT_NE(position, std::string::npos);
+        conflicting.replace(conflicting.find("1.04000", position), 7, "1.06000");
+        const auto temporary =
+            std::filesystem::temp_directory_path() / "griddyn_conflicting_local_raw_targets.raw";
+        {
+            std::ofstream output(temporary);
+            ASSERT_TRUE(output.is_open());
+            output << conflicting;
+        }
+        auto rejected = std::make_unique<GridDynSimulation>();
+        EXPECT_THROW(loadFile(rejected, temporary.string(), &info), std::runtime_error);
+        // The default bus-target interpretation does not depend on these VS values.
+        auto defaultTargets = std::make_unique<GridDynSimulation>();
+        EXPECT_NO_THROW(loadFile(defaultTargets, temporary.string()));
+        std::error_code error;
+        std::filesystem::remove(temporary, error);
+    }
+
+    TEST_F(SolverReaderTests, ReactiveLimitOptionPreservesRawBounds)
+    {
+        for (const bool ignoreLimits : {false, true}) {
+            SCOPED_TRACE(ignoreLimits);
+            auto simulation = std::make_unique<GridDynSimulation>();
+            loadFile(simulation,
+                     std::string{inputTestDirectory} + "raw_remote_voltage_control.raw");
+            auto* terminal = dynamic_cast<GridBus*>(simulation->findByUserID("bus", 3));
+            auto* remote = dynamic_cast<GridBus*>(simulation->findByUserID("bus", 2));
+            ASSERT_NE(terminal, nullptr);
+            ASSERT_NE(remote, nullptr);
+            auto* generator = terminal->getGen(0);
+            ASSERT_NE(generator, nullptr);
+            generator->set("qmin", -1.0, units::MVAR);
+            generator->set("qmax", 1.0, units::MVAR);
+            simulation->setFlag("ignore_reactive_limits", ignoreLimits);
+            ASSERT_EQ(simulation->powerflow(), 0);
+            EXPECT_DOUBLE_EQ(generator->get("qmin", units::MVAR), -1.0);
+            EXPECT_DOUBLE_EQ(generator->get("qmax", units::MVAR), 1.0);
+            if (ignoreLimits) {
+                EXPECT_NEAR(remote->getVoltage(), 1.04, 1e-6);
+                EXPECT_GT(-generator->getReactivePower(), 0.01);
+            } else {
+                EXPECT_LE(-generator->getReactivePower(), 0.01 + 1e-6);
+                EXPECT_GT(std::abs(remote->getVoltage() - 1.04), 1e-3);
+            }
+        }
     }
 
     TEST(MatlabArrayReaderTests, AcceptsNewlineRowsWithoutChangingSemicolonRows)

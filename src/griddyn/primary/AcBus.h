@@ -69,6 +69,8 @@ class AcBus: public GridBus {
     bool frequencyFilterConfigured = false;  //!< use the lag/washout frequency block
     double pFlowInitialVoltage = 1.0;  //!< original bus voltage before PV target initialization
     bool pFlowInitialVoltageCaptured = false;
+    bool ignoreReactivePowerLimits =
+        false;  //!< power-flow Q enforcement policy from initialization
 
     CoreTime lastSetTime = negTime;  //!< time of the last accepted algebraic sample
     double lastAcceptedVoltage = 1.0;  //!< accepted voltage [pu], unaffected by prediction

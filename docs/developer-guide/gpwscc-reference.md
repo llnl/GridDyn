@@ -18,19 +18,19 @@ droop/power feedback `R`, input filter `1/(1+s Td)`, PID controller
 servo `Kg/(1+s Tp)`, gate velocity and position limits, a nonlinear `N_GV`
 curve, and the turbine transfer function
 
-\[
+\f[
 \frac{1+s A_{turb}T_{turb}}{1+s B_{turb}T_{turb}}.
-\]
+\f]
 
 The turbine lead-lag is represented without differentiating the gate curve:
 for `Tturb > 0`, GridDyn stores an internal lag state `z`, with
 
-\[
-B_{turb}T_{turb}\dot z=P_{GV}-z,
+\f[
+B_{turb}T_{turb}\frac{dz}{dt}=P_{GV}-z,
 \qquad
 P_{turb}=\frac{A_{turb}}{B_{turb}}P_{GV}+
 \left(1-\frac{A_{turb}}{B_{turb}}\right)z.
-\]
+\f]
 
 This is exactly the source transfer function. The final GridDyn mechanical
 power is `MWCap/MVABase * Pturb`, because GridDyn exchanges governor signals on

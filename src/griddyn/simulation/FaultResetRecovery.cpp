@@ -14,13 +14,11 @@
 #include <vector>
 
 namespace griddyn {
-namespace {
-    bool checkResetVoltages(const std::vector<double>& prev, const std::vector<double>& curr);
-}  // namespace
+static bool checkResetVoltages(const std::vector<double>& prev, const std::vector<double>& curr);
 
 faultResetRecovery::faultResetRecovery(GridDynSimulation* gds,
-                                       std::shared_ptr<SolverInterface> solverInterface):
-    sim(gds), solver(std::move(solverInterface))
+                                       std::shared_ptr<SolverInterface> solverData):
+    sim(gds), solver(std::move(solverData))
 {
     sim->getVoltage(initVolts);
 }
@@ -28,14 +26,14 @@ faultResetRecovery::~faultResetRecovery() = default;
 
 bool faultResetRecovery::hasMoreFixes() const
 {
-    return (attempt_number < 7);
+    return (attempt_number < 5);
 }
 
 int faultResetRecovery::attemptFix()
 {
     int retval = -101;
     std::vector<double> nVolts;
-    while (attempt_number < 7) {
+    while (hasMoreFixes()) {
         ++attempt_number;
         switch (attempt_number) {
             case 1:
@@ -53,9 +51,6 @@ int faultResetRecovery::attemptFix()
             case 5:
                 retval = faultResetFix3();
                 break;
-            case 6:
-                retval = faultResetFix4();
-                break;
             default:
                 break;
         }
@@ -65,6 +60,8 @@ int faultResetRecovery::attemptFix()
             if (!checkResetVoltages(initVolts, nVolts)) {
                 sim->log(sim, PrintLevel::SUMMARY, "bad voltage reset");
                 retval = -47;
+            } else {
+                return FUNCTION_EXECUTION_SUCCESS;
             }
         }
     }
@@ -76,9 +73,9 @@ void faultResetRecovery::reset()
     attempt_number = 0;
 }
 
-void faultResetRecovery::updateInfo(std::shared_ptr<SolverInterface> solverInterface)
+void faultResetRecovery::updateInfo(std::shared_ptr<SolverInterface> solverData)
 {
-    solver = std::move(solverInterface);
+    solver = std::move(solverData);
 }
 int faultResetRecovery::attempts() const
 {
@@ -154,13 +151,14 @@ int faultResetRecovery::faultResetFix3()
     double* states = solver->stateData();
     int retval = -10;
     for (int vv = 1; vv < 10; ++vv) {
-        const double rv1 = static_cast<double>(vv) * 0.1;
-        int initialVoltageIndex = 0;
-        logging::logTo(sim, sim, PrintLevel::DEBUG, "increment voltage by {}", rv1);
+        const double voltageIncrement = static_cast<double>(vv) * 0.1;
+        int voltageIndex = 0;
+        logging::logTo(sim, sim, PrintLevel::DEBUG, "increment voltage by {}", voltageIncrement);
         for (index_t pp = 0; pp < solver->size(); ++pp) {
             if (vstates[pp] != 0.0) {
-                states[pp] = rv1 + ((1.0 - rv1) * initVolts[initialVoltageIndex]);
-                ++initialVoltageIndex;
+                states[pp] =
+                    voltageIncrement + ((1.0 - voltageIncrement) * initVolts[voltageIndex]);
+                ++voltageIndex;
             }
         }
         //  dynData->printStates(true);
@@ -175,6 +173,8 @@ int faultResetRecovery::faultResetFix3()
             if (!checkResetVoltages(initVolts, nVolts)) {
                 sim->log(sim, PrintLevel::SUMMARY, "bad voltage reset");
                 retval = -47;
+            } else {
+                return FUNCTION_EXECUTION_SUCCESS;
             }
         } else {
             sim->converge(sim->getSimulationTime(),
@@ -207,33 +207,25 @@ int faultResetRecovery::faultResetFix3()
     return retval;
 }
 
-// Don't know what to do here yet
-int faultResetRecovery::faultResetFix4()
+static bool checkResetVoltages(const std::vector<double>& prev, const std::vector<double>& curr)
 {
-    return 0;
-}
-
-namespace {
-    bool checkResetVoltages(const std::vector<double>& prev, const std::vector<double>& curr)
-    {
-        bool hasUnexpectedVoltageRise = false;
-        int restoredVoltageCount = 0;
-        for (size_t jj = 0; jj < prev.size(); ++jj) {
-            if ((prev[jj] < 0.001) && (curr[jj] > 0.1)) {
-                hasUnexpectedVoltageRise = true;
-            }
-            if ((prev[jj] > 0.1) && (curr[jj] < 0.001)) {
-                ++restoredVoltageCount;
-            }
+    bool hasUnexpectedVoltageRise = false;
+    int restoredVoltageCount = 0;
+    for (size_t jj = 0; jj < prev.size(); ++jj) {
+        if ((prev[jj] < 0.001) && (curr[jj] > 0.1)) {
+            hasUnexpectedVoltageRise = true;
         }
-        if (hasUnexpectedVoltageRise && (restoredVoltageCount > 0)) {
-            return false;
+        if ((prev[jj] > 0.1) && (curr[jj] < 0.001)) {
+            ++restoredVoltageCount;
         }
-        if (restoredVoltageCount > 1) {
-            return false;
-        }
-        return true;
     }
-}  // namespace
+    if (hasUnexpectedVoltageRise && (restoredVoltageCount > 0)) {
+        return false;
+    }
+    if (restoredVoltageCount > 1) {
+        return false;
+    }
+    return true;
+}
 
 }  // namespace griddyn

@@ -60,10 +60,9 @@ void GovernorTgov1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
         (T1 <= 0.0) || (T3 <= 0.0) || (Pmax < Pmin)) {
         throw InvalidParameterValue("TGOV1 R, T1, T3, or valve limits");
     }
-    // ANDES exposes the turbine output as its state and uses
-    // T3 * pmdot = valve - pm - T2 * valvedot.  This is the output-state
-    // realization of (1 - T2 s)/(1 + T3 s), hence the negative lead time.
-    turbineTransfer.setParameters(-T2, T3);
+    // ANDES LeadLag uses (1 + T2 s)/(1 + T3 s). In this equivalent
+    // output-state realization, T3 * pmdot = valve - pm + T2 * valvedot.
+    turbineTransfer.setParameters(T2, T3);
     GovernorIeeeSimple::dynObjectInitializeA(time0, flags);
 }
 
@@ -72,7 +71,6 @@ void GovernorTgov1::dynObjectInitializeB(const IOdata& /*inputs*/,
                                          const IOdata& desiredOutput,
                                          IOdata& fieldSet)
 {
-    const double originalUpperLimit = Pmax;
     if (desiredOutput.empty() || !std::isfinite(desiredOutput[POUT_LOCATION]) ||
         !adjustInitialUpperLimit(desiredOutput[POUT_LOCATION], "TGOV1 initial valve")) {
         throw InvalidParameterValue("TGOV1 initial valve outside upper limit");
@@ -82,19 +80,10 @@ void GovernorTgov1::dynObjectInitializeB(const IOdata& /*inputs*/,
     m_state[0] = desiredOutput[POUT_LOCATION];
     fieldSet[govpSetInLocation] = desiredOutput[POUT_LOCATION];
     if (opFlags[USES_POWER_LIMITS]) {
-        const double correction = std::max(0.0, Pmax - originalUpperLimit);
-        // TGOV1's speed input is scaled by K in the valve equation. Keep the
-        // initialized limit active through small speed perturbations by
-        // providing headroom in the same power-reference units as K*deltaW.
-        const double margin = std::max({0.2 * correction,
-                                        10.0 * powerLimitRootTolerance * K,
-                                        10.0 * powerLimitRootTolerance * T1});
         if (m_state[1] >= Pmax) {
-            initialSetpointOverdrive = margin;
             opFlags.set(POWER_LIMIT_HIGH);
             opFlags.set(POWER_LIMITED);
         } else if (m_state[1] <= Pmin) {
-            initialSetpointOverdrive = -margin;
             opFlags.reset(POWER_LIMIT_HIGH);
             opFlags.set(POWER_LIMITED);
         }
@@ -291,12 +280,19 @@ void GovernorTgov1::rootTrigger(CoreTime /*time*/,
       */
     if (opFlags[USES_POWER_LIMITS]) {
         if (rootMask[rootOffset] != 0) {
+            double& valve = m_state[offsets.local().local.algSize + 1];
             if (opFlags[POWER_LIMITED]) {
+                // The entry root permits a small overshoot. Project it onto
+                // the bound before releasing, so the distance root is positive
+                // after the restart instead of immediately re-entering.
+                valve = std::clamp(valve, Pmin, Pmax);
                 opFlags.reset(POWER_LIMITED);
                 opFlags.reset(POWER_LIMIT_HIGH);
                 alert(this, JAC_COUNT_INCREASE);
                 logging::debug(this, "at max power limit");
             } else {
+                opFlags.set(POWER_LIMIT_HIGH, valve >= (Pmax + Pmin) / 2.0);
+                valve = opFlags[POWER_LIMIT_HIGH] ? Pmax : Pmin;
                 if (opFlags[POWER_LIMIT_HIGH]) {
                     logging::debug(this, "at max power limit");
                 } else {

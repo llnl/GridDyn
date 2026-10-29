@@ -16,12 +16,12 @@ namespace griddyn::governors {
  * @brief PSS/e TGOV1 turbine governor.
  *
  * The valve state follows \f$\dot v=(-v+P_{ref}-\Delta\omega/R)/T_1\f$,
- * with the PSS/e VMIN/VMAX limits.  ANDES publishes the turbine section in
- * its output-state form,
+ * with the PSS/e VMIN/VMAX limits. The turbine section is the output-state
+ * realization of ANDES's LeadLag block,
  * \f[
- * T_3\dot p_m=v-p_m-T_2\dot v,
+ * T_3\dot p_m=v-p_m+T_2\dot v,
  * \f]
- * which has transfer function \f$(1-sT_2)/(1+sT_3)\f$ from valve position
+ * which has transfer function \f$(1+sT_2)/(1+sT_3)\f$ from valve position
  * \f$v\f$ to turbine output \f$p_m\f$.  The mechanical output is
  * \f$p_m-D_t\Delta\omega\f$.
  *

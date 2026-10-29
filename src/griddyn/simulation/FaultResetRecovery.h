@@ -31,25 +31,25 @@ class faultResetRecovery {
 
     /** @brief constructor
     @param[in] gds the GridDynSimulation object to work from
-    @param[in] sd the SolverInterface object to work from
+    @param[in] solverData the SolverInterface object to work from
     */
-    faultResetRecovery(GridDynSimulation* gds, std::shared_ptr<SolverInterface> sd);
+    faultResetRecovery(GridDynSimulation* gds, std::shared_ptr<SolverInterface> solverData);
 
     /** @brief virtual destructor*/
     virtual ~faultResetRecovery();
 
     /** @brief attempt the various fixes in order
-    @return RecoveryReturnCodes::more_options if attemptFix can be called again without reset
-    RecoveryReturnCodes::out_of_options if no more fix attempts are available
+    @return FUNCTION_EXECUTION_SUCCESS only after a successful solve and voltage check;
+    a negative error code if all remaining strategies fail.
     */
     virtual int attemptFix();
 
     /** @brief reset the fix counter so it can try again*/
     void reset();
     /** @brief update recovery mechanism to use a different solver
-    @param[in] sd the new solver Data object to use
+    @param[in] solverData the new solver Data object to use
     */
-    void updateInfo(std::shared_ptr<SolverInterface> sd);
+    void updateInfo(std::shared_ptr<SolverInterface> solverData);
 
     /** @brief return the number of attempts taken so far
     @return the number of attempts
@@ -65,7 +65,6 @@ class faultResetRecovery {
     int faultResetFix1();
     int faultResetFix2(ResetLevels rlevel);
     int faultResetFix3();
-    int faultResetFix4();
 };
 
 }  // namespace griddyn

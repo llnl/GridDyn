@@ -178,6 +178,8 @@ enum InitControlFlags {
     DISABLE_SHUNT_ADJUSTMENTS =
         17,  //!< keep switched shunts at their imported settings during power flow
     DISABLE_TAP_CHANGER_ADJUSTMENTS = 18,  //!< disable discrete tap and phase-shift adjustments
+    IGNORE_REACTIVE_POWER_LIMITS =
+        19,  //!< bypass power-flow Q limits without changing stored bounds
 };
 
 #define CHECK_CONTROLFLAG(flag, flagName) (((flag) & (1U << flagName)) != 0)

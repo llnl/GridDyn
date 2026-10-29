@@ -33,6 +33,7 @@
 #include <cmath>
 #include <cstddef>
 #include <gtest/gtest.h>
+#include <limits>
 #include <memory>
 #include <print>
 #include <string>
@@ -855,6 +856,37 @@ TEST(GovernorModelTests, HygovFactoryCloneAndParameterValidation)
     EXPECT_ANY_THROW(singularGovernor.dynInitializeB({1.0, 0.0}, {0.0}, fieldSet));
 }
 
+TEST(GovernorModelTests, IeeeG1AuxiliaryReferencePreservesDefaultAndConvertsUnits)
+{
+    governors::GovernorIeeeG1 governor;
+    configureIeeeG1(governor);
+    governor.dynInitializeA(0.0, 0);
+    governor.setOutputInitializationTarget(governors::GovernorIeeeG1::lpOutput, 0.3);
+    IOdata inputs{1.0, 1.0};
+    IOdata fieldSet;
+    governor.dynInitializeB(inputs, {0.7}, fieldSet);
+    const auto valve = governor.findIndex("valve", cLocalSolverMode);
+    std::vector<double> derivative(governor.getStates().size(), 0.0);
+    ASSERT_LT(valve, derivative.size());
+    EXPECT_DOUBLE_EQ(governor.get("paux"), 0.0);
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[valve], 0.0, 1e-14);
+
+    governor.set("paux", 1.0, units::MW);
+    EXPECT_DOUBLE_EQ(governor.get("paux"), 0.01);
+    EXPECT_DOUBLE_EQ(governor.get("paux", units::MW), 1.0);
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[valve], 0.1, 1e-14);
+    std::unique_ptr<governors::GovernorIeeeG1> copy(
+        static_cast<governors::GovernorIeeeG1*>(governor.clone()));
+    EXPECT_DOUBLE_EQ(copy->get("paux"), 0.01);
+    governor.set("paux", 0.0);
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[valve], 0.0, 1e-14);
+    EXPECT_THROW(governor.set("paux", std::numeric_limits<double>::quiet_NaN()),
+                 InvalidParameterValue);
+}
+
 TEST(GovernorModelTests, IeeeG1MatchesAndesInitializationAndPerturbedEquations)
 {
     governors::GovernorIeeeG1 governor;
@@ -1518,7 +1550,7 @@ TEST(GovernorModelTests, Tgov1MatchesAndesInitializationAndPerturbedEquations)
     EXPECT_DOUBLE_EQ(initialized[2], 0.8);
     EXPECT_DOUBLE_EQ(fieldSet[govpSetInLocation], 0.8);
 
-    // Local storage order is [pmech, lead-lag state, valve state].  The
+    // Local storage order is [pmech, turbine output state, valve state]. The
     // expected values are a direct evaluation of ANDES TGOV1Model away from
     // equilibrium, using its 1/R gain and T2/T3 lead-lag convention.
     std::vector<double> state{0.85, 0.75, 0.80};
@@ -1529,13 +1561,13 @@ TEST(GovernorModelTests, Tgov1MatchesAndesInitializationAndPerturbedEquations)
 
     std::vector<double> derivative(3, 0.0);
     governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
-    EXPECT_NEAR(derivative[1], 41.0 / 42.0, 1e-14);
+    EXPECT_NEAR(derivative[1], -13.0 / 14.0, 1e-14);
     EXPECT_NEAR(derivative[2], -2.0, 1e-14);
 
     std::vector<double> residual(3, 0.0);
     governor.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
     EXPECT_NEAR(residual[0], 0.101, 1e-14);
-    EXPECT_NEAR(residual[1], 41.0 / 42.0, 1e-14);
+    EXPECT_NEAR(residual[1], -13.0 / 14.0, 1e-14);
     EXPECT_NEAR(residual[2], -2.0, 1e-14);
 }
 
@@ -1589,7 +1621,7 @@ TEST(GovernorModelTests, Tgov1AppliesValveLimitsAndRejectsSingularParameters)
     EXPECT_ANY_THROW(invalidGovernor.dynInitializeA(0.0, 0));
 }
 
-TEST(GovernorModelTests, Tgov1InitializedUpperLimitIsQuietUnderSmallFrequencyNoise)
+TEST(GovernorModelTests, Tgov1InitializedUpperLimitReleasesForInwardDrive)
 {
     governors::GovernorTgov1 governor;
     configureTgov1(governor);
@@ -1601,12 +1633,39 @@ TEST(GovernorModelTests, Tgov1InitializedUpperLimitIsQuietUnderSmallFrequencyNoi
 
     double root = 0.0;
     governor.rootTest(inputs, emptyStateData, &root, cLocalSolverMode);
-    const double expectedRoot = (10.0 * 1e-5 * governor.get("k") / governor.get("t1")) + 1e-5;
-    EXPECT_NEAR(root, expectedRoot, 1e-12);
-    for (const double speed : {1.0 - 1e-5, 1.0 + 1e-5}) {
-        governor.rootTest({speed, 1.05}, emptyStateData, &root, cLocalSolverMode);
-        EXPECT_GT(root, 0.0) << speed;
-    }
+    EXPECT_NEAR(root, 1e-5, 1e-12);
+    governor.rootTest({1.0 - 1e-5, 1.05}, emptyStateData, &root, cLocalSolverMode);
+    EXPECT_GT(root, 0.0);
+    governor.rootTest({1.0 + 1e-5, 1.05}, emptyStateData, &root, cLocalSolverMode);
+    EXPECT_LT(root, 0.0);
+    governor.rootTrigger(0.0, {1.0 + 1e-5, 1.05}, {1}, cLocalSolverMode);
+    EXPECT_FALSE(governor.checkFlag(Governor::POWER_LIMITED));
+    governor.rootTest({1.0 + 1e-5, 1.05}, emptyStateData, &root, cLocalSolverMode);
+    EXPECT_GT(root, 0.0);
+}
+
+TEST(GovernorModelTests, Tgov1LowerLimitProjectsValveAndRearmsAfterRelease)
+{
+    governors::GovernorTgov1 governor;
+    configureTgov1(governor);
+    governor.dynInitializeA(0.0, 0);
+    governor.setRootOffset(0, cLocalSolverMode);
+    IOdata fieldSet(2, 0.0);
+    governor.dynInitializeB({1.0, 0.8}, {0.8}, fieldSet);
+    std::vector<double> state{0.5, 0.5, 0.3 - 1e-5};
+    std::vector<double> derivative(3, 0.0);
+    governor.setState(0.0, state.data(), derivative.data(), cLocalSolverMode);
+    governor.rootTrigger(0.0, {1.03, 0.8}, {1}, cLocalSolverMode);
+    EXPECT_TRUE(governor.checkFlag(Governor::POWER_LIMITED));
+    EXPECT_DOUBLE_EQ(governor.getStates()[2], 0.3);
+    EXPECT_DOUBLE_EQ(governor.getStates()[1], 0.5);
+    double root = 0.0;
+    governor.rootTest({1.0, 0.8}, emptyStateData, &root, cLocalSolverMode);
+    EXPECT_LT(root, 0.0);
+    governor.rootTrigger(0.0, {1.0, 0.8}, {1}, cLocalSolverMode);
+    EXPECT_FALSE(governor.checkFlag(Governor::POWER_LIMITED));
+    governor.rootTest({1.0, 0.8}, emptyStateData, &root, cLocalSolverMode);
+    EXPECT_GT(root, 0.0);
 }
 
 TEST(GovernorModelTests, Tgov1SpeedStepTrajectoryMatchesAndesEquations)
@@ -1621,9 +1680,10 @@ TEST(GovernorModelTests, Tgov1SpeedStepTrajectoryMatchesAndesEquations)
     governor.dynInitializeB(inputs, desiredOutput, fieldSet);
     inputs[govOmegaInLocation] = 0.99;
 
-    // Reference values are the 0.1, 0.5, and 1.0 s samples from a
-    // high-accuracy integration of the frozen ANDES v2.0.0 TGOV1Model
-    // equations for this speed step.  The GridDyn explicit local step is
+    // Closed-form samples of ANDES's positive-lead turbine section:
+    // valve = 1 - 0.2 exp(-t/0.05),
+    // turbine = 1 - (4.4/41) exp(-t/2.1) - (3.8/41) exp(-t/0.05).
+    // Pmech includes the +0.001 damping contribution. The explicit local step is
     // deliberately small enough that its discretization error stays below
     // the declared tolerance.
     constexpr double step = 1e-4;
@@ -1631,16 +1691,16 @@ TEST(GovernorModelTests, Tgov1SpeedStepTrajectoryMatchesAndesEquations)
         governor.timestep(index * step, inputs, cLocalSolverMode);
         const auto& state = governor.getStates();
         if (index == 1000) {
-            EXPECT_NEAR(state[0], 0.7264889256014327, 2e-4);
-            EXPECT_NEAR(state[1], 0.7254889256014327, 2e-4);
+            EXPECT_NEAR(state[0], 0.8861302273764285, 2e-4);
+            EXPECT_NEAR(state[1], 0.8851302273764285, 2e-4);
             EXPECT_NEAR(state[2], 0.9729329433526738, 2e-4);
         } else if (index == 5000) {
-            EXPECT_NEAR(state[0], 0.7626440998942028, 2e-4);
-            EXPECT_NEAR(state[1], 0.7616440998942028, 2e-4);
+            EXPECT_NEAR(state[0], 0.9164162419070131, 2e-4);
+            EXPECT_NEAR(state[1], 0.9154162419070131, 2e-4);
             EXPECT_NEAR(state[2], 0.9999909200140873, 2e-4);
         } else if (index == 10000) {
-            EXPECT_NEAR(state[0], 0.8131414647372036, 2e-4);
-            EXPECT_NEAR(state[1], 0.8121414647372036, 2e-4);
+            EXPECT_NEAR(state[0], 0.9343405194795031, 2e-4);
+            EXPECT_NEAR(state[1], 0.9333405194795031, 2e-4);
             EXPECT_NEAR(state[2], 0.9999999995877648, 2e-4);
         }
     }

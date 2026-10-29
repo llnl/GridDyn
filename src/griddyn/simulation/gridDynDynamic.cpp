@@ -1490,7 +1490,10 @@ int GridDynSimulation::rootFindingFunction(CoreTime time,
             return algStatus;
         }
     }
-    StateData stateDataValue(time, state, dstateDt, residCount);
+    // Root solvers evaluate interpolated states between residual evaluations.
+    // Sequence zero forces cached controller inputs (notably governor speed)
+    // to belong to this state rather than the last residual trial.
+    StateData stateDataValue(time, state, dstateDt);
     fillExtraStateData(stateDataValue, sMode);
     rootTest(noInputs, stateDataValue, roots, sMode);
     return FUNCTION_EXECUTION_SUCCESS;

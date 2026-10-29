@@ -1067,6 +1067,7 @@ static const std::unordered_map<std::string, int>& getFlagControlMap()
         {"no_reset", NO_RESET},
         {"NO_RESET", NO_RESET},
         {"ignore_bus_limits", IGNORE_BUS_LIMITS},
+        {"ignore_reactive_limits", IGNORE_REACTIVE_POWER_LIMITS},
         {"IGNORE_BUS_LIMITS", IGNORE_BUS_LIMITS},
         {"no_auto_slack_bus", DISABLE_AUTO_SLACK_BUS},
         {"DISABLE_AUTO_SLACK_BUS", DISABLE_AUTO_SLACK_BUS},

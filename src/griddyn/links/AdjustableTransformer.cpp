@@ -497,7 +497,11 @@ void AdjustableTransformer::pFlowObjectInitializeA(CoreTime time0, std::uint32_t
     }
     adjCount = 0;
     oCount = 0;
-    tap = getValidTapRatio(tap);
+    // A manually held/imported tap is an operating-point value, which may
+    // contain source-file rounding relative to the automatic tap-step grid.
+    if (cMode != ControlMode::MANUAL_CONTROL && !opFlags[NO_PFLOW_ADJUSTMENTS]) {
+        tap = getValidTapRatio(tap);
+    }
     tap0 = tap;
     tapAngle0 = tapAngle;
     AcLine::pFlowObjectInitializeA(time0, flags);

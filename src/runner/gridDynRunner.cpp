@@ -478,8 +478,11 @@ std::shared_ptr<CLI::App>
     // Reader group should run before the main files are processed
     auto* readerGroup =
         ptr->add_option_group("reader_flags",
-                              "Flags and options impacting the file parser and reader")
-            ->immediate_callback();
+                              "Flags and options impacting the file parser and reader");
+    // CLI11 prioritizes option groups only when a parse-complete callback is
+    // present. immediate_callback() alone leaves that callback empty, so input
+    // files would be loaded before their reader options were applied.
+    readerGroup->parse_complete_callback([]() {});
     readerGroup->add_option("--file-flags", "specify flags to feed to the file reader")
         ->delimiter(',')
         ->type_size(-1)

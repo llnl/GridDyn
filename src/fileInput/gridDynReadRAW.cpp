@@ -348,7 +348,8 @@ static void rawReadGen(Generator* gen,
                        const std::string& line,
                        BasicReaderInfo& opt,
                        std::unordered_map<int, Generator*>& remoteControllers,
-                       std::unordered_map<int, std::vector<Generator*>>& remoteControllerGroups);
+                       std::unordered_map<int, std::vector<Generator*>>& remoteControllerGroups,
+                       std::unordered_map<int, double>& localVoltageTargets);
 static void rawReadBranch(CoreObject* parentObject,
                           const std::string& line,
                           std::vector<GridBus*>& busList,
@@ -792,6 +793,7 @@ void loadRaw(CoreObject* parentObject,
     // normalized together after the generator section is read.
     std::unordered_map<int, Generator*> remoteControllers;
     std::unordered_map<int, std::vector<Generator*>> remoteControllerGroups;
+    std::unordered_map<int, double> localVoltageTargets;
     std::unordered_map<int, std::vector<Generator*>> generatorsByTerminalBus;
     std::unordered_set<int> remoteTerminalBuses;
     std::unordered_map<int, loads::Svd*> remoteSwitchedShunts;
@@ -849,7 +851,12 @@ void loadRaw(CoreObject* parentObject,
                             bus->add(gen);
                             generatorsByTerminalBus[static_cast<int>(bus->getUserID())].push_back(
                                 gen);
-                            rawReadGen(gen, line, opt, remoteControllers, remoteControllerGroups);
+                            rawReadGen(gen,
+                                       line,
+                                       opt,
+                                       remoteControllers,
+                                       remoteControllerGroups,
+                                       localVoltageTargets);
                         } else {
                             std::cerr << "Invalid bus number for fixed shunt " << line.substr(0, 30)
                                       << '\n';
@@ -1634,7 +1641,8 @@ static void rawReadGen(Generator* gen,
                        const std::string& line,
                        BasicReaderInfo& opt,
                        std::unordered_map<int, Generator*>& remoteControllers,
-                       std::unordered_map<int, std::vector<Generator*>>& remoteControllerGroups)
+                       std::unordered_map<int, std::vector<Generator*>>& remoteControllerGroups,
+                       std::unordered_map<int, double>& localVoltageTargets)
 {
     // PSS/E v35 adds NREG after IREG.  All generator fields from MBASE
     // onward consequently move one column to the right.
@@ -1713,6 +1721,27 @@ static void rawReadGen(Generator* gen,
         gen->set("qmin", qmin, MVAR);
     }
     const auto voltageTarget = numeric_conversion<double>(strvec[6], 1.0);
+    if (rbus == 0 && gen->isEnabled() && opt.checkFlag(USE_GENERATOR_VOLTAGE_TARGETS) &&
+        !opt.checkFlag(USE_BUS_VOLTAGE_TARGETS)) {
+        auto* terminalBus = dynamic_cast<GridBus*>(gen->getParent());
+        if (terminalBus != nullptr && terminalBus->isEnabled() &&
+            (terminalBus->getType() == GridBus::BusType::PV ||
+             terminalBus->getType() == GridBus::BusType::SLK)) {
+            if (!std::isfinite(voltageTarget) || voltageTarget <= 0.0) {
+                throw std::runtime_error("invalid local generator VS on bus " +
+                                         std::to_string(terminalBus->getUserID()));
+            }
+            const auto [existing, inserted] =
+                localVoltageTargets.try_emplace(static_cast<int>(terminalBus->getUserID()),
+                                                voltageTarget);
+            if (!inserted && std::abs(existing->second - voltageTarget) > 1e-6) {
+                throw std::runtime_error("inconsistent local generator VS targets on bus " +
+                                         std::to_string(terminalBus->getUserID()));
+            }
+            // Keep VM as the initial voltage; only the control target changes.
+            terminalBus->set("vtarget", voltageTarget);
+        }
+    }
     GridBus* remoteControlBus = nullptr;
     const auto remoteParticipation =
         numeric_conversion<double>(strvec[15 + generatorFieldOffset], 100.0);

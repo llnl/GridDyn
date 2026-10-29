@@ -31,7 +31,7 @@ class faultResetRecovery {
 
     /** @brief constructor
     @param[in] gds the GridDynSimulation object to work from
-    @param[in] sd the SolverInterface object to work from
+    @param[in] solverData the SolverInterface object to work from
     */
     faultResetRecovery(GridDynSimulation* gds, std::shared_ptr<SolverInterface> solverData);
 
@@ -47,7 +47,7 @@ class faultResetRecovery {
     /** @brief reset the fix counter so it can try again*/
     void reset();
     /** @brief update recovery mechanism to use a different solver
-    @param[in] sd the new solver Data object to use
+    @param[in] solverData the new solver Data object to use
     */
     void updateInfo(std::shared_ptr<SolverInterface> solverData);
 

@@ -424,11 +424,11 @@ TEST_F(ActivsG500Tests, CvodeKinsolPartitionedPreservesInitialOperatingPoint)
     EXPECT_NEAR(static_cast<double>(gds->getSimulationTime()), 30.0, 1e-8);
     expectBusOperatingPointStable(gds.get(), initialVoltage, initialAngle);
     // The small GENROU iq change at CHESNEE 2 5 varies with the CVODE
-    // integration path (about +7.4e-5 locally and -1.53e-4 on macOS). Keep
-    // the bus voltage/angle checks at 1e-4 and report the state name here.
+    // integration path (about +7.4e-5 locally and up to -2.04e-4 on Linux).
+    // Keep the bus voltage/angle checks at 1e-4 and report the state name here.
     expectStable(initialAlgebraicState,
                  gds->getState(algebraicMode),
-                 2e-4,
+                 2.5e-4,
                  "KINSOL algebraic state",
                  &algebraicStateNames);
     // The partitioned algebraic projection shifts the YORK 1 1 terminal

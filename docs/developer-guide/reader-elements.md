@@ -42,13 +42,13 @@ reader does not advance its clone.
 
 ## Backend differences
 
-| Reader | Input and traversal notes |
-| --- | --- |
-| `XmlReaderElement` | Reads XML files or text. Element text and XML attributes map directly to the reader operations. A reader constructed from an existing pugixml node is a non-owning view; keep its document alive for the reader's lifetime. |
+| Reader              | Input and traversal notes                                                                                                                                                                                                            |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `XmlReaderElement`  | Reads XML files or text. Element text and XML attributes map directly to the reader operations. A reader constructed from an existing pugixml node is a non-owning view; keep its document alive for the reader's lifetime.          |
 | `JsonReaderElement` | Reads JSON files or text. `parse` treats its argument as a file path when that path can be opened, otherwise as JSON text. Scalar object values are exposed as attributes, while objects and arrays are traversed as child elements. |
-| `TomlReaderElement` | Reads TOML files or text. Tables and arrays are exposed through child and sibling navigation. |
-| `YamlReaderElement` | Reads YAML files or text. Mapping entries and sequence values are exposed through child and sibling navigation. |
-| `IniReaderElement` | Loads INI files. Sections appear as one level of child elements and entries as attributes. `parse` is unsupported and returns `false`. |
+| `TomlReaderElement` | Reads TOML files or text. Tables and arrays are exposed through child and sibling navigation.                                                                                                                                        |
+| `YamlReaderElement` | Reads YAML files or text. Mapping entries and sequence values are exposed through child and sibling navigation.                                                                                                                      |
+| `IniReaderElement`  | Loads INI files. Sections appear as one level of child elements and entries as attributes. `parse` is unsupported and returns `false`.                                                                                               |
 
 The shared interface does not erase these format differences. In particular,
 callers should check the return value of `loadFile` or `parse`, then check

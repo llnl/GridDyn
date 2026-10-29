@@ -84,7 +84,8 @@ class OptimizerInterface: public HelperObject {
     void* mSolverMem = nullptr;  //!< backend-specific solver state
     bool mAllocated = false;  //!< whether problem arrays have been allocated
     bool mInitialized = false;  //!< flag indicating if these vectors have been initialized
-    GridDynOptimization* mGridDynOptimization = nullptr;  //!< optimization model bound to this backend
+    GridDynOptimization* mGridDynOptimization =
+        nullptr;  //!< optimization model bound to this backend
     count_t mVariableCount = 0;  //!< number of decision variables
     count_t mConstraintCount = 0;  //!< number of constraint rows
     count_t mEvaluationCount = 0;  //!< total callback evaluation count

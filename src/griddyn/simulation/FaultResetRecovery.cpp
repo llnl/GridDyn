@@ -209,20 +209,20 @@ int faultResetRecovery::faultResetFix3()
 
 static bool checkResetVoltages(const std::vector<double>& prev, const std::vector<double>& curr)
 {
-    bool acond = false;
-    int bcond = 0;
+    bool hasUnexpectedVoltageRise = false;
+    int restoredVoltageCount = 0;
     for (size_t jj = 0; jj < prev.size(); ++jj) {
         if ((prev[jj] < 0.001) && (curr[jj] > 0.1)) {
-            acond = true;
+            hasUnexpectedVoltageRise = true;
         }
         if ((prev[jj] > 0.1) && (curr[jj] < 0.001)) {
-            ++bcond;
+            ++restoredVoltageCount;
         }
     }
-    if (acond && bcond > 0) {
+    if (hasUnexpectedVoltageRise && (restoredVoltageCount > 0)) {
         return false;
     }
-    if (bcond > 1) {
+    if (restoredVoltageCount > 1) {
         return false;
     }
     return true;

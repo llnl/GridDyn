@@ -576,6 +576,8 @@ static void rawReadVscDc(CoreObject* parentObject,
 namespace {
     enum class SectionType : std::uint8_t {
         UNKNOWN,
+        PREPARSED,
+        UNSUPPORTED,
         BUS,
         BRANCH,
         LOAD,
@@ -600,7 +602,10 @@ static ChildTypeFactory<AcLine, Link>* gLinkfactory = nullptr;
 // get the basic Generator Factory
 static TypeFactory<Generator>* gGenfactory = nullptr;
 
-static SectionType findSectionType(const std::string& line);
+static const std::pair<std::string_view, SectionType>* findRawSection(const std::string& line);
+static std::size_t skipRawSection(std::ifstream& file, std::string& line, bool& moreSections);
+static bool isRawSectionHeader(const std::string& line);
+static std::string rawSectionLabel(const std::string& line);
 
 static bool checkNextLine(std::ifstream& file, std::string& nextLine)
 {
@@ -635,7 +640,8 @@ static void readRawBusSection(CoreObject* parentObject,
                               std::string& line,
                               std::vector<GridBus*>& busList,
                               BasicReaderInfo& opt,
-                              const std::unordered_map<int, GridArea*>& areas)
+                              const std::unordered_map<int, GridArea*>& areas,
+                              std::size_t& busCount)
 {
     while (checkNextLine(file, line)) {
         const auto pos = line.find_first_of(',');
@@ -673,6 +679,7 @@ static void readRawBusSection(CoreObject* parentObject,
                     addToParentWithRename(busList[index], busParent);
                 }
             }
+            ++busCount;
         } else {
             std::cerr << "Invalid bus code " << index << '\n';
         }
@@ -734,7 +741,8 @@ static bool readRawCaseHeader(std::ifstream& file,
 static void readRawCaseDescription(std::ifstream& file,
                                    CoreObject* parentObject,
                                    const BasicReaderInfo& readerOptions,
-                                   std::string& line)
+                                   std::string& line,
+                                   bool& busSectionHeaderFound)
 {
     if (std::getline(file, line)) {
         const auto pos = line.find_first_of(',');
@@ -753,9 +761,15 @@ static void readRawCaseDescription(std::ifstream& file,
     // two comment lines and the bus section.  Skip it through its explicit
     // bus-section marker before treating subsequent records as bus cards.
     if (readerOptions.version >= 35) {
+        busSectionHeaderFound = false;
         while (!line.contains("BEGIN BUS DATA") && std::getline(file, line)) {
             trimString(line);
         }
+        busSectionHeaderFound = line.contains("BEGIN BUS DATA");
+    } else {
+        // In RAW versions before 35, bus records begin immediately after the
+        // case description and do not have an explicit section header.
+        busSectionHeaderFound = true;
     }
 }
 
@@ -797,10 +811,17 @@ void loadRaw(CoreObject* parentObject,
     std::unordered_map<int, std::vector<Generator*>> generatorsByTerminalBus;
     std::unordered_set<int> remoteTerminalBuses;
     std::unordered_map<int, loads::Svd*> remoteSwitchedShunts;
+    std::vector<std::pair<std::string, std::size_t>> ignoredRawSections;
     BasicReaderInfo readerOptionsCopy(readerOptions);
     auto& opt = readerOptionsCopy;
     Generator* gen;
     GridBus* bus;
+    std::size_t busRecordCount = 0;
+    bool busSectionHeaderFound = false;
+    bool loadSectionSeen = false;
+    bool generatorSectionSeen = false;
+    bool branchSectionSeen = false;
+    bool transformerSectionSeen = false;
 
     /*load up the factories*/
     loadRawFactories();
@@ -823,9 +844,9 @@ void loadRaw(CoreObject* parentObject,
     }
     const auto preparseData = preparseRawFile(parentObject, fileName, opt);
     const auto& impedanceCorrectionTables = preparseData.mImpedanceCorrectionTables;
-    readRawCaseDescription(file, parentObject, opt, line);
+    readRawCaseDescription(file, parentObject, opt, line, busSectionHeaderFound);
     // Bus data does not have a header but is always the first section.
-    readRawBusSection(parentObject, file, line, busList, opt, preparseData.mAreas);
+    readRawBusSection(parentObject, file, line, busList, opt, preparseData.mAreas, busRecordCount);
 
     stringVec txlines;
     txlines.resize(5);
@@ -836,13 +857,16 @@ void loadRaw(CoreObject* parentObject,
     bool moreSections = true;
 
     while (moreSections) {
-        const SectionType currSection = findSectionType(line);
+        const auto* section = findRawSection(line);
+        const auto currSection = (section != nullptr) ? section->second : SectionType::UNKNOWN;
         bool moreData = true;
         switch (currSection) {
             case SectionType::LOAD:
+                loadSectionSeen = true;
                 readRawLoadSection(file, line, busList, opt);
                 break;
             case SectionType::GENERATOR:
+                generatorSectionSeen = true;
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         bus = findBus(busList, line);
@@ -959,6 +983,7 @@ void loadRaw(CoreObject* parentObject,
                 }
                 break;
             case SectionType::BRANCH:
+                branchSectionSeen = true;
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         rawReadBranch(parentObject, line, busList, opt);
@@ -1004,6 +1029,7 @@ void loadRaw(CoreObject* parentObject,
                 }
                 break;
             case SectionType::TX:
+                transformerSectionSeen = true;
 
                 while (moreData) {
                     if (tline == 5) {
@@ -1124,25 +1150,134 @@ void loadRaw(CoreObject* parentObject,
                     }
                 }
                 break;
+            case SectionType::UNSUPPORTED: {
+                const auto skippedRecords = skipRawSection(file, line, moreSections);
+                if (skippedRecords > 0 && section != nullptr) {
+                    const auto label = std::string{section->first};
+                    const auto existing =
+                        std::find_if(ignoredRawSections.begin(),
+                                     ignoredRawSections.end(),
+                                     [&label](const auto& entry) { return entry.first == label; });
+                    if (existing == ignoredRawSections.end()) {
+                        ignoredRawSections.emplace_back(label, skippedRecords);
+                    } else {
+                        existing->second += skippedRecords;
+                    }
+                }
+                break;
+            }
+            case SectionType::PREPARSED:
+                // Area and impedance-correction data were read in the
+                // existing preparse pass; consume them here without warning.
+                skipRawSection(file, line, moreSections);
+                break;
             case SectionType::UNKNOWN:
             default:
-                while (moreData) {
-                    if (std::getline(file, line)) {
-                        trimString(line);
-                        if (line[0] == '0') {
-                            moreData = false;
-                            continue;
+                if (isRawSectionHeader(line)) {
+                    const auto label = rawSectionLabel(line);
+                    const auto skippedRecords = skipRawSection(file, line, moreSections);
+                    if (skippedRecords > 0) {
+                        const auto existing = std::find_if(ignoredRawSections.begin(),
+                                                           ignoredRawSections.end(),
+                                                           [&label](const auto& entry) {
+                                                               return entry.first == label;
+                                                           });
+                        if (existing == ignoredRawSections.end()) {
+                            ignoredRawSections.emplace_back(label, skippedRecords);
+                        } else {
+                            existing->second += skippedRecords;
                         }
-                    } else {
-                        moreData = false;
-                        moreSections = false;
                     }
+                } else {
+                    skipRawSection(file, line, moreSections);
                 }
                 break;
         }
     }
 
+    std::string diagnostics;
+    if (!busSectionHeaderFound) {
+        diagnostics = fileName +
+            ": RAW import did not find the required BEGIN BUS DATA section; "
+            "bus records may be missing.";
+    } else if (busRecordCount == 0) {
+        diagnostics = fileName + ": RAW import found no bus records.";
+    }
+    std::vector<std::string_view> missingSections;
+    const auto appendMissingSection = [&missingSections](bool seen, std::string_view sectionName) {
+        if (!seen) {
+            missingSections.push_back(sectionName);
+        }
+    };
+    appendMissingSection(loadSectionSeen, "LOAD DATA");
+    appendMissingSection(generatorSectionSeen, "GENERATOR DATA");
+    appendMissingSection(branchSectionSeen, "BRANCH DATA");
+    if (opt.version >= 29) {
+        appendMissingSection(transformerSectionSeen, "TRANSFORMER DATA");
+    }
+    if (!missingSections.empty()) {
+        if (diagnostics.empty()) {
+            diagnostics = fileName + ": RAW import is missing section marker(s):";
+        } else {
+            diagnostics += "\nMissing section marker(s):";
+        }
+        for (const auto sectionName : missingSections) {
+            diagnostics += "\n  BEGIN ";
+            diagnostics += sectionName;
+        }
+        diagnostics += "\n  These record types may not have been imported.";
+    }
+    for (const auto& [sectionName, count] : ignoredRawSections) {
+        if (diagnostics.empty()) {
+            diagnostics = fileName + ": RAW import diagnostic:";
+        }
+        diagnostics += "\n  ";
+        diagnostics += sectionName;
+        diagnostics += " contains ";
+        diagnostics += std::to_string(count);
+        diagnostics += (count == 1U) ?
+            " non-comment data line that the RAW reader does not import." :
+            " non-comment data lines that the RAW reader does not import.";
+    }
+    if (!diagnostics.empty()) {
+        parentObject->log(parentObject, PrintLevel::WARNING, diagnostics);
+    }
+
     file.close();
+}
+
+static bool isRawSectionHeader(const std::string& line)
+{
+    const auto upperLine = convertToUpperCase(line);
+    return !line.empty() && (line[0] == '0') && upperLine.contains("BEGIN");
+}
+
+static std::string rawSectionLabel(const std::string& line)
+{
+    const auto upperLine = convertToUpperCase(line);
+    const auto beginPosition = upperLine.find("BEGIN");
+    if (beginPosition == std::string::npos) {
+        return "unrecognized RAW section";
+    }
+    const auto label = trim(std::string_view{line}.substr(beginPosition));
+    return std::string{label};
+}
+
+static std::size_t skipRawSection(std::ifstream& file, std::string& line, bool& moreSections)
+{
+    std::size_t recordCount = 0;
+    while (std::getline(file, line)) {
+        trimString(line);
+        if (line.empty() || line.starts_with("@!")) {
+            continue;
+        }
+        if (line[0] == '0') {
+            return recordCount;
+        }
+        ++recordCount;
+    }
+    moreSections = false;
+    return recordCount;
 }
 
 static GridBus* rawDcLookupBus(const std::vector<GridBus*>& busList, int busNumber)
@@ -1401,39 +1536,46 @@ static int getPSSversion(const std::string& line)
     return ver;
 }
 
-static constexpr std::array<std::pair<std::string_view, SectionType>, 22> sectionNames{{
+static constexpr std::array<std::pair<std::string_view, SectionType>, 28> sectionNames{{
     {"BEGIN FIXED SHUNT", SectionType::FIXED_SHUNT},
     {"BEGIN SWITCHED SHUNT DATA", SectionType::SWITCHED_SHUNT},
-    {"BEGIN AREA DATA", SectionType::UNKNOWN},
-    {"BEGIN AREA INTERCHANGE DATA", SectionType::UNKNOWN},
+    {"BEGIN AREA DATA", SectionType::PREPARSED},
+    {"BEGIN AREA INTERCHANGE DATA", SectionType::PREPARSED},
     {"BEGIN TWO-TERMINAL DC LINE DATA", SectionType::TWO_TERMINAL_DC},
     {"BEGIN TWO-TERMINAL DC DATA", SectionType::TWO_TERMINAL_DC},
     {"BEGIN VOLTAGE SOURCE CONVERTER DATA", SectionType::VSC_DC},
     {"BEGIN VSC DC LINE DATA", SectionType::VSC_DC},
-    {"BEGIN TRANSFORMER IMPEDANCE CORRECTION DATA", SectionType::UNKNOWN},
-    {"BEGIN IMPEDANCE CORRECTION DATA", SectionType::UNKNOWN},
-    {"BEGIN MULTI-TERMINAL DC LINE DATA", SectionType::UNKNOWN},
-    {"BEGIN MULTI-SECTION LINE GROUP DATA", SectionType::UNKNOWN},
-    {"BEGIN ZONE DATA", SectionType::UNKNOWN},
+    {"BEGIN TRANSFORMER IMPEDANCE CORRECTION DATA", SectionType::UNSUPPORTED},
+    {"BEGIN IMPEDANCE CORRECTION TABLE DATA", SectionType::PREPARSED},
+    {"BEGIN IMPEDANCE CORRECTION DATA", SectionType::PREPARSED},
+    {"BEGIN MULTI-TERMINAL DC LINE DATA", SectionType::UNSUPPORTED},
+    {"BEGIN MULTI-TERMINAL DC DATA", SectionType::UNSUPPORTED},
+    {"BEGIN MULTI-SECTION LINE GROUP DATA", SectionType::UNSUPPORTED},
+    {"BEGIN MULTI-SECTION LINE DATA", SectionType::UNSUPPORTED},
+    {"BEGIN ZONE DATA", SectionType::UNSUPPORTED},
     {"BEGIN INTER-AREA TRANSFER DATA", SectionType::INTER_AREA_TRANSFER},
-    {"BEGIN OWNER DATA", SectionType::UNKNOWN},
-    {"BEGIN FACTS CONTROL DEVICE DATA", SectionType::UNKNOWN},
+    {"BEGIN OWNER DATA", SectionType::UNSUPPORTED},
+    {"BEGIN FACTS CONTROL DEVICE DATA", SectionType::UNSUPPORTED},
+    {"BEGIN FACTS DEVICE DATA", SectionType::UNSUPPORTED},
     {"BEGIN LOAD DATA", SectionType::LOAD},
     {"BEGIN GENERATOR DATA", SectionType::GENERATOR},
     {"BEGIN BRANCH DATA", SectionType::BRANCH},
     {"BEGIN TRANSFORMER ADJUSTMENT DATA", SectionType::TXADJ},
     {"BEGIN TRANSFORMER DATA", SectionType::TX},
+    {"BEGIN GNE DEVICE DATA", SectionType::UNSUPPORTED},
+    {"BEGIN GNE DATA", SectionType::UNSUPPORTED},
+    {"BEGIN INDUCTION MACHINE DATA", SectionType::UNSUPPORTED},
 }};
 
-static SectionType findSectionType(const std::string& line)
+static const std::pair<std::string_view, SectionType>* findRawSection(const std::string& line)
 {
     const auto upperLine = convertToUpperCase(line);
     for (const auto& sectionName : sectionNames) {
-        if (line.contains(sectionName.first) || upperLine.contains(sectionName.first)) {
-            return sectionName.second;
+        if (!sectionName.first.empty() && upperLine.contains(sectionName.first)) {
+            return &sectionName;
         }
     }
-    return SectionType::UNKNOWN;
+    return nullptr;
 }
 
 static int rawReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& opt)

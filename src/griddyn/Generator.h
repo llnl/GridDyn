@@ -105,6 +105,9 @@ class Generator: public GridSecondary {
     /** Configure a local voltage controller after it joins a remote bus group. */
     void configureIndirectVoltageControl(GridBus* controlBus);
 
+    /** Return the bus whose voltage this generator regulates, if configured. */
+    GridBus* getRemoteBus() const noexcept { return remoteBus; }
+
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;

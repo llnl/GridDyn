@@ -1,19 +1,24 @@
-function [state,Jac]=loadJacState(fname)
-%function to load the jacobian and state from gridDyn
-fid=fopen(fname);
-if (fid<=0)
-    error('Unable to open file\n');
+function [state, Jac, names] = loadJacState(filename)
+%LOADJACSTATE Read a GridDyn state and sparse Jacobian capture.
+%   [STATE, JAC, NAMES] = LOADJACSTATE(FILENAME) reads the diagnostic file
+%   produced by captureJacState. JAC is a sparse matrix; NAMES is optional.
+if exist('readStateFile', 'file') ~= 2
+    repo = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+    addpath(fullfile(repo, 'matlab'));
 end
-%read the state size and state
-stateSize=fread(fid,1,'uint32');
-state=fread(fid,stateSize,'double');
-
-%read the jacobian
-
-Jac=fread(fid,stateSize*stateSize,'double');
-%reshape the jacobian
-Jac=reshape(Jac,[stateSize,stateSize]);
-
-Jac=Jac';
-
-fclose(fid);
+records = readStateFile(filename);
+stateIndex = find(records.typecode == 0 & records.code == 0, 1);
+matrixIndex = find(records.typecode == 1, 1);
+if isempty(stateIndex) || isempty(matrixIndex)
+    error('GridDyn:JacStateFormat', 'The file must contain a state and a Jacobian');
+end
+state = records.data{stateIndex};
+matrix = records.data{matrixIndex};
+n = numel(state);
+Jac = sparse(double(matrix.row) + 1, double(matrix.col) + 1, matrix.val, n, n);
+namesIndex = find(records.typecode == 2, 1);
+names = {};
+if ~isempty(namesIndex)
+    names = records.data{namesIndex};
+end
+end

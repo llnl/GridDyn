@@ -535,7 +535,7 @@ int kinsolFunc(N_Vector state, N_Vector resid, void* userData)
             writeVector(sd->solveTime,
                         STATE_INFORMATION,
                         sd->funcCallCount,
-                        sd->mode.offsetIndex,
+                        sd->mode,
                         sd->svsize,
                         NVECTOR_DATA(sd->use_omp, state),
                         sd->stateFile,
@@ -543,7 +543,7 @@ int kinsolFunc(N_Vector state, N_Vector resid, void* userData)
             writeVector(sd->solveTime,
                         RESIDUAL_INFORMATION,
                         sd->funcCallCount,
-                        sd->mode.offsetIndex,
+                        sd->mode,
                         sd->svsize,
                         NVECTOR_DATA(sd->use_omp, resid),
                         sd->stateFile);

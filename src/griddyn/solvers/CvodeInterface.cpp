@@ -511,7 +511,7 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDat
             writeVector(time,
                         STATE_INFORMATION,
                         sd->funcCallCount,
-                        sd->mode.offsetIndex,
+                        sd->mode,
                         sd->svsize,
                         NVECTOR_DATA(sd->use_omp, state),
                         sd->stateFile,
@@ -519,7 +519,7 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDat
             writeVector(time,
                         DERIVATIVE_INFORMATION,
                         sd->funcCallCount,
-                        sd->mode.offsetIndex,
+                        sd->mode,
                         sd->svsize,
                         NVECTOR_DATA(sd->use_omp, dstateDt),
                         sd->stateFile);

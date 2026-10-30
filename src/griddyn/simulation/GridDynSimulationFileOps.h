@@ -19,6 +19,14 @@ namespace griddyn {
 class SolverMode;
 class GridDynSimulation;
 
+/** @brief One binary solver-state snapshot, as recorded by saveStateBinary(). */
+struct BinaryStateData {
+    CoreTime time = timeZero;  //!< simulation time at capture
+    SolverMode mode = cEmptySolverMode;  //!< recorded solver mode
+    std::vector<double> state;
+    std::vector<double> derivatives;  //!< empty for modes without differential states
+};
+
 /** @brief save the current state to a file
 @param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to save the state to
@@ -48,11 +56,13 @@ void saveStateXML(GridDynSimulation* gds,
                   const std::string& fileName,
                   const SolverMode& sMode = cEmptySolverMode);
 
-/** @brief save the current state to a binary file
+/** @brief save the current solver state to a versioned binary file
 @param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to save the state to
 @param[in] sMode the SolverMode to save the state
 @param[in] append  boolean indicating the file should be appended
+@details Each call writes one snapshot; appending requires a compatible binary state file.
+The file stores solver vectors only, not the full simulation or event state.
 */
 void saveStateBinary(GridDynSimulation* gds,
                      const std::string& fileName,
@@ -67,9 +77,18 @@ void loadState(GridDynSimulation* gds,
                const std::string& fileName,
                const SolverMode& sMode = cEmptySolverMode);
 
-/** @brief load a binary state file
+/** @brief read the last snapshot from a versioned binary state file
+@throws FileOperationError for an unsupported, invalid, or truncated file
+*/
+BinaryStateData readStateBinary(const std::string& fileName);
+
+/** @brief load the last binary solver-state snapshot into an initialized solver
 @param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to load
+@details This copies solver vectors only. It does not change simulation time, component
+state, event queues, or the solver's integration history and is not a checkpoint restore.
+The solver mode and vector size must match the snapshot.
+@throws FileOperationError on file, layout, or solver mismatch
 */
 void loadStateBinary(GridDynSimulation* gds,
                      const std::string& fileName,
@@ -150,6 +169,19 @@ void loadPowerFlow(GridDynSimulation* gds, const std::string& fileName);
 */
 void loadPowerFlowXML(GridDynSimulation* gds, const std::string& fileName);
 
+/** @brief Save the current power-flow solution in a readable checkpoint file.
+ * @details This state-only checkpoint contains the power-flow solver state and bus
+ * voltage/angle values. It does not save model parameters, simulation time, events,
+ * or time-dependent component history. The power flow must already be initialized.
+ */
+void savePowerFlowCheckpoint(GridDynSimulation* gds, const std::string& fileName);
+
+/** @brief Restore a power-flow solution into an already initialized compatible model.
+ * @details Parameters, simulation time, events, and time-dependent component history
+ * are left unchanged. This is not a dynamic or full-simulation checkpoint.
+ */
+void loadPowerFlowCheckpoint(GridDynSimulation* gds, const std::string& fileName);
+
 /** @brief load the powerflow results from an CDF file
 @param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to load
@@ -168,23 +200,10 @@ void loadPowerFlowBinary(GridDynSimulation* gds, const std::string& fileName);
 */
 void loadPowerFlowCSV(GridDynSimulation* gds, const std::string& fileName);
 
-/** struct containing binary Data information
- */
-struct dataInfo {
-    CoreTime time = 0.0;
-    std::uint32_t code = 0;
-    std::uint32_t index = 0;
-    std::uint32_t key = 0;
-    std::uint32_t numElements = 0;
-};
-
 #define STATE_INFORMATION (0)
 #define DERIVATIVE_INFORMATION (1)
 #define RESIDUAL_INFORMATION (2)
-/** @brief write a vector (state, resid, deriv, etc) to a file
-encodes a header into the file
-time(8 bytes), code(4 bytes), index(4 bytes), key(4 bytes), length(4 bytes),
-then write data (NumElements*8 Bytes);
+/** @brief write a diagnostic vector in the versioned binary state format
 
 @param[in] time the time associated with the data
 @param[in] index an indexing value associated with the data
@@ -192,8 +211,7 @@ then write data (NumElements*8 Bytes);
 0 -state information
 1 -derivative information
 2 -residual information
-@param[in] key a code indicating the source of the information (typically the index of the solver
-data object)
+@param[in] mode the solver mode and offset index associated with the record
 @param[in] numElements the number of elements
 @param[in] data the data to write to the file
 @param[in] fileName the name of the file
@@ -204,21 +222,17 @@ data object)
 void writeVector(CoreTime time,
                  std::uint32_t code,
                  std::uint32_t index,
-                 std::uint32_t key,
+                 const SolverMode& mode,
                  std::uint32_t numElements,
                  const double* data,
                  const std::string& fileName,
                  bool append = true);
 
-/** @brief write a array to a file
-encodes a header into the file
-time(8 bytes), code(0x0001|code) for Jacobian data (4 bytes), index(4 bytes), key(4 bytes), length(4
-bytes), then write data in triplets (4byte row, 4 byte col, 8 byte double data)
+/** @brief write a diagnostic sparse matrix in the versioned binary state format
 @param[in] time the time associated with the data
 @param[in] code a code describing the type of information in the array
 @param[in] index an indexing value associated with the data
-@param[in] key a code indicating the source of the information (typically the index of the solver
-data object)
+@param[in] mode the solver mode and offset index associated with the record
 @param[in] matrixValues the Jacobian data to write to the file
 @param[in] fileName the name of the file
 @param[in] append indicator if the file should be appended or overwritten(def true)
@@ -229,7 +243,7 @@ data object)
 void writeArray(CoreTime time,
                 std::uint32_t code,
                 std::uint32_t index,
-                std::uint32_t key,
+                const SolverMode& mode,
                 MatrixData<double>& matrixValues,
                 const std::string& fileName,
                 bool append = true);

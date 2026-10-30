@@ -1264,25 +1264,25 @@ int idaFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, N_Vector resid,
     }
     if (sd->flags[FILE_CAPTURE_FLAG]) {
         if (!sd->stateFile.empty()) {
-            writeVector(sd->solveTime,
+            writeVector(time,
                         STATE_INFORMATION,
                         sd->funcCallCount,
-                        sd->mode.offsetIndex,
+                        sd->mode,
                         sd->svsize,
                         NVECTOR_DATA(sd->use_omp, state),
                         sd->stateFile,
                         (sd->funcCallCount != 1));
-            writeVector(sd->solveTime,
+            writeVector(time,
                         DERIVATIVE_INFORMATION,
                         sd->funcCallCount,
-                        sd->mode.offsetIndex,
+                        sd->mode,
                         sd->svsize,
                         NVECTOR_DATA(sd->use_omp, dstateDt),
                         sd->stateFile);
-            writeVector(sd->solveTime,
+            writeVector(time,
                         RESIDUAL_INFORMATION,
                         sd->funcCallCount,
-                        sd->mode.offsetIndex,
+                        sd->mode,
                         sd->svsize,
                         NVECTOR_DATA(sd->use_omp, resid),
                         sd->stateFile);

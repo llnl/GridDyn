@@ -1,5 +1,9 @@
 # Optimizer framework work plan
 
+The [binary-state architecture review](binary-state-architecture-review.md)
+describes how the canonical optimization problem and result contracts can use
+the same numeric record layer as simulation snapshots and diagnostics.
+
 ## Purpose
 
 This plan takes GridDyn's distributed optimization objects from the current

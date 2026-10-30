@@ -518,7 +518,7 @@ int arkodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDa
             writeVector(time,
                         STATE_INFORMATION,
                         sd->funcCallCount,
-                        sd->mode.offsetIndex,
+                        sd->mode,
                         sd->svsize,
                         NVECTOR_DATA(sd->use_omp, state),
                         sd->stateFile,
@@ -526,7 +526,7 @@ int arkodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDa
             writeVector(time,
                         DERIVATIVE_INFORMATION,
                         sd->funcCallCount,
-                        sd->mode.offsetIndex,
+                        sd->mode,
                         sd->svsize,
                         NVECTOR_DATA(sd->use_omp, dstateDt),
                         sd->stateFile);

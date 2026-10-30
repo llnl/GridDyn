@@ -17,15 +17,22 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "units/units.hpp"
 #include "utilities/MatrixDataSparse.hpp"
+#include <algorithm>
+#include <array>
+#include <bit>
+#include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <limits>
+#include <nlohmann/json.hpp>
 #include <pugixml.hpp>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace griddyn {
@@ -690,9 +697,9 @@ void saveState(GridDynSimulation* gds,
     const std::string ext = convertToLowerCase(filePath.extension().string());
 
     if (ext == ".xml") {
-        saveStateXML(gds, fileName, sMode);
+        saveStateXML(gds, filePath.string(), sMode);
     } else {
-        saveStateBinary(gds, fileName, sMode, append);
+        saveStateBinary(gds, filePath.string(), sMode, append);
     }
 }
 
@@ -702,118 +709,268 @@ void saveStateXML(GridDynSimulation* /*gds*/,
 {
 }
 
+namespace {
+    // State snapshots and solver diagnostics share this record format.
+    constexpr std::array<char, 8> stateMagic{'G', 'D', 'S', 'T', 'A', 'T', 'E', '1'};
+    constexpr std::uint32_t snapshotMarker = 0x31544153U;  // SAT1
+    constexpr std::uint32_t snapshotEnd = 0x31444E45U;  // END1
+    constexpr std::uint32_t dynamicFlag = 1U;
+    constexpr std::uint32_t differentialFlag = 2U;
+    constexpr std::uint32_t algebraicFlag = 4U;
+    constexpr std::uint32_t localFlag = 8U;
+    constexpr std::uint32_t extendedFlag = 16U;
+    constexpr std::uint32_t parameterFlag = 32U;
+    constexpr std::uint32_t knownStateFlags = 63U;
+    constexpr std::uint64_t snapshotHeaderSize = 48U;
+    constexpr std::uint64_t snapshotTrailerSize = 4U;
+    constexpr std::uint32_t snapshotSource = 0U;
+    constexpr std::uint32_t diagnosticSource = 1U;
+    constexpr std::uint32_t snapshotRecord = 0U;
+    constexpr std::uint32_t vectorRecord = 1U;
+    constexpr std::uint32_t matrixRecord = 2U;
+    constexpr std::uint32_t namesRecord = 3U;
+
+    static_assert(sizeof(double) == 8 && std::numeric_limits<double>::is_iec559,
+                  "binary state files require IEEE-754 binary64 doubles");
+
+    std::uint32_t stateModeFlags(const SolverMode& mode)
+    {
+        return (mode.dynamic ? dynamicFlag : 0U) |
+            (mode.differential ? differentialFlag : 0U) |
+            (mode.algebraic ? algebraicFlag : 0U) | (mode.local ? localFlag : 0U) |
+            (mode.extended_state ? extendedFlag : 0U) | (mode.parameters ? parameterFlag : 0U);
+    }
+
+    template<class UInt>
+    void writeStateInteger(std::ostream& output, UInt value)
+    {
+        std::array<char, sizeof(UInt)> bytes{};
+        for (std::size_t index = 0; index < bytes.size(); ++index) {
+            bytes[index] = static_cast<char>(value & 0xffU);
+            value >>= 8U;
+        }
+        output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+    }
+
+    template<class UInt>
+    UInt readStateInteger(std::istream& input)
+    {
+        std::array<unsigned char, sizeof(UInt)> bytes{};
+        input.read(reinterpret_cast<char*>(bytes.data()),
+                   static_cast<std::streamsize>(bytes.size()));
+        if (!input) {
+            throw FileOperationError("truncated binary state file");
+        }
+        UInt value = 0;
+        for (std::size_t index = 0; index < bytes.size(); ++index) {
+            value |= static_cast<UInt>(bytes[index]) << (8U * index);
+        }
+        return value;
+    }
+
+    void writeStateValues(std::ostream& output, const double* values, count_t count)
+    {
+        if constexpr (std::endian::native == std::endian::little) {
+            if (count > 0) {
+                output.write(reinterpret_cast<const char*>(values),
+                             static_cast<std::streamsize>(count) * sizeof(double));
+            }
+        } else {
+            for (count_t index = 0; index < count; ++index) {
+                writeStateInteger(output, std::bit_cast<std::uint64_t>(values[index]));
+            }
+        }
+    }
+
+    void readStateValues(std::istream& input, std::vector<double>& values)
+    {
+        if constexpr (std::endian::native == std::endian::little) {
+            if (!values.empty()) {
+                input.read(reinterpret_cast<char*>(values.data()),
+                           static_cast<std::streamsize>(values.size() * sizeof(double)));
+                if (!input) {
+                    throw FileOperationError("truncated binary state values");
+                }
+            }
+        } else {
+            for (auto& value : values) {
+                value = std::bit_cast<double>(readStateInteger<std::uint64_t>(input));
+            }
+        }
+    }
+
+    void checkStateMagic(std::istream& input)
+    {
+        std::array<char, stateMagic.size()> magic{};
+        input.read(magic.data(), static_cast<std::streamsize>(magic.size()));
+        if (!input || magic != stateMagic) {
+            throw FileOperationError("unsupported binary state file format or version");
+        }
+    }
+
+    std::ofstream openStateOutput(const std::string& path, bool append)
+    {
+        bool addHeader = true;
+        if (append && std::filesystem::exists(path) && std::filesystem::file_size(path) > 0) {
+            std::ifstream existing(path, std::ios::binary | std::ios::ate);
+            const auto length = existing.tellg();
+            if (!existing || length < static_cast<std::streamoff>(stateMagic.size() + 4)) {
+                throw FileOperationError("invalid binary state file for append: " + path);
+            }
+            existing.seekg(0);
+            checkStateMagic(existing);
+            existing.seekg(-static_cast<std::streamoff>(sizeof(std::uint32_t)), std::ios::end);
+            if (readStateInteger<std::uint32_t>(existing) != snapshotEnd) {
+                throw FileOperationError("cannot append to an incomplete binary state file: " + path);
+            }
+            addHeader = false;
+        }
+        std::ofstream output(path, std::ios::binary | std::ios::out |
+                                       (append ? std::ios::app : std::ios::trunc));
+        if (!output) {
+            throw FileOperationError("unable to open binary state file " + path);
+        }
+        if (addHeader) {
+            output.write(stateMagic.data(), static_cast<std::streamsize>(stateMagic.size()));
+        }
+        return output;
+    }
+
+    void writeStateHeader(std::ostream& output,
+                          CoreTime time,
+                          std::uint32_t source,
+                          std::uint32_t type,
+                          std::uint32_t code,
+                          std::uint32_t index,
+                          const SolverMode& mode,
+                          std::uint64_t count)
+    {
+        if (std::cmp_less(mode.offsetIndex, 0) ||
+            std::cmp_greater(mode.offsetIndex, (std::numeric_limits<std::uint32_t>::max)())) {
+            throw FileOperationError("solver offset is outside the binary state format range");
+        }
+        writeStateInteger(output, snapshotMarker);
+        writeStateInteger(output, source);
+        writeStateInteger(output, type);
+        writeStateInteger(output, code);
+        writeStateInteger(output, index);
+        writeStateInteger(output, stateModeFlags(mode));
+        writeStateInteger(output, static_cast<std::uint32_t>(mode.approx.to_ulong()));
+        writeStateInteger(output, static_cast<std::uint32_t>(mode.offsetIndex));
+        writeStateInteger(output, std::bit_cast<std::uint64_t>(time.to_ns().count()));
+        writeStateInteger(output, count);
+    }
+
+    void closeStateOutput(std::ofstream& output, const std::string& path)
+    {
+        writeStateInteger(output, snapshotEnd);
+        output.close();
+        if (!output) {
+            throw FileOperationError("unable to write binary state file " + path);
+        }
+    }
+}  // namespace
+
 void saveStateBinary(GridDynSimulation* gds,
                      const std::string& fileName,
                      const SolverMode& sMode,
                      bool append)
 {
-    const auto& currentMode = gds->getCurrentMode(sMode);
-    auto solverInterface = gds->getSolverInterface(currentMode);
-    if (!solverInterface) {
-        return;
+    const auto mode = gds->getCurrentMode(sMode);
+    auto solver = gds->getSolverInterface(mode);
+    if (!solver || !solver->isInitialized()) {
+        throw FileOperationError("solver must be initialized before saving binary state");
     }
-    auto* stateData = solverInterface->stateData();
-    auto dataSize = solverInterface->size();
+    const auto count = solver->size();
+    if (count > 0 && (!solver->stateData() ||
+                      (hasDifferential(mode) && !solver->derivData()))) {
+        throw FileOperationError("solver state or derivative data is unavailable");
+    }
+    const auto path = fileName.empty() ? gds->getString("statefile") : fileName;
+    if (path.empty()) {
+        throw FileOperationError("no binary state file specified");
+    }
 
-    auto index = gds->getInt("residcount");
-    if (fileName.empty()) {
-        auto stateFile = gds->getString("statefile");
-        writeVector(gds->getSimulationTime(),
-                    index,
-                    STATE_INFORMATION,
-                    currentMode.offsetIndex,
-                    dataSize,
-                    stateData,
-                    stateFile,
-                    append);
-        if (hasDifferential(currentMode)) {
-            writeVector(gds->getSimulationTime(),
-                        index,
-                        DERIVATIVE_INFORMATION,
-                        currentMode.offsetIndex,
-                        dataSize,
-                        solverInterface->derivData(),
-                        stateFile);
-        }
-    } else {
-        writeVector(gds->getSimulationTime(),
-                    index,
-                    STATE_INFORMATION,
-                    currentMode.offsetIndex,
-                    dataSize,
-                    stateData,
-                    fileName,
-                    append);
-        if (hasDifferential(currentMode)) {
-            writeVector(gds->getSimulationTime(),
-                        index,
-                        DERIVATIVE_INFORMATION,
-                        currentMode.offsetIndex,
-                        dataSize,
-                        solverInterface->derivData(),
-                        fileName);
-        }
+    auto output = openStateOutput(path, append);
+    writeStateHeader(output, gds->getSimulationTime(), snapshotSource, snapshotRecord,
+                     STATE_INFORMATION, 0U, mode, count);
+    writeStateValues(output, solver->stateData(), count);
+    if (hasDifferential(mode)) {
+        writeStateValues(output, solver->derivData(), count);
     }
+    closeStateOutput(output, path);
 }
 
 void writeVector(CoreTime time,
                  std::uint32_t code,
                  std::uint32_t index,
-                 std::uint32_t key,
+                 const SolverMode& mode,
                  std::uint32_t numElements,
                  const double* data,
                  const std::string& fileName,
                  bool append)
 {
-    std::ofstream bFile;
-    if (append) {
-        bFile.open(fileName.c_str(), std::ios::out | std::ios::binary | std::ios::app);
-    } else {
-        bFile.open(fileName.c_str(), std::ios::out | std::ios::binary);
+    if (numElements > 0 && data == nullptr) {
+        throw FileOperationError("diagnostic vector data is unavailable");
     }
-    if (!bFile.is_open()) {
-        throw(FileOperationError("unable to open file " + fileName));
-    }
-    code &= 0x0000FFFFU;  // make sure we don't change the data type
-    bFile.write(reinterpret_cast<char*>(&time), sizeof(double));
-    bFile.write(reinterpret_cast<char*>(&code), sizeof(std::uint32_t));
-    bFile.write(reinterpret_cast<char*>(&index), sizeof(std::uint32_t));
-    bFile.write(reinterpret_cast<char*>(&key), sizeof(std::uint32_t));
-    bFile.write(reinterpret_cast<char*>(&numElements), sizeof(std::uint32_t));
-    bFile.write(reinterpret_cast<const char*>(data), sizeof(double) * numElements);
+    auto output = openStateOutput(fileName, append);
+    writeStateHeader(output, time, diagnosticSource, vectorRecord, code, index, mode, numElements);
+    writeStateValues(output, data, numElements);
+    closeStateOutput(output, fileName);
 }
 
 void writeArray(CoreTime time,
                 std::uint32_t code,
                 std::uint32_t index,
-                std::uint32_t key,
+                const SolverMode& mode,
                 MatrixData<double>& matrixValues,
                 const std::string& fileName,
                 bool append)
 {
-    std::ofstream bFile;
-    if (append) {
-        bFile.open(fileName.c_str(), std::ios::out | std::ios::binary | std::ios::app);
-    } else {
-        bFile.open(fileName.c_str(), std::ios::out | std::ios::binary);
-    }
-    if (!bFile.is_open()) {
-        throw(FileOperationError("unable to open file " + fileName));
-    }
-    code &= 0x0000FFFFU;
-    code |= 0x00010000U;
-    bFile.write(reinterpret_cast<char*>(&time), sizeof(double));
-    bFile.write(reinterpret_cast<char*>(&code), sizeof(std::uint32_t));
-    bFile.write(reinterpret_cast<char*>(&index), sizeof(std::uint32_t));
-    bFile.write(reinterpret_cast<char*>(&key), sizeof(std::uint32_t));
-    std::uint32_t numElements = matrixValues.size();
-    bFile.write(reinterpret_cast<char*>(&numElements), sizeof(std::uint32_t));
+    auto output = openStateOutput(fileName, append);
+    const auto numElements = matrixValues.size();
+    writeStateHeader(output, time, diagnosticSource, matrixRecord, code, index, mode, numElements);
     matrixValues.start();
     for (size_t elementIndex = 0; elementIndex < numElements; ++elementIndex) {
         const auto elementData = matrixValues.next();
-        bFile.write(reinterpret_cast<const char*>(&elementData), sizeof(MatrixElement<double>));
+        if (std::cmp_less(elementData.row, 0) || std::cmp_less(elementData.col, 0) ||
+            std::cmp_greater(elementData.row, (std::numeric_limits<std::uint32_t>::max)()) ||
+            std::cmp_greater(elementData.col, (std::numeric_limits<std::uint32_t>::max)())) {
+            throw FileOperationError("Jacobian index is outside the binary state format range");
+        }
+        writeStateInteger(output, static_cast<std::uint32_t>(elementData.row));
+        writeStateInteger(output, static_cast<std::uint32_t>(elementData.col));
+        writeStateInteger(output, std::bit_cast<std::uint64_t>(elementData.data));
     }
+    closeStateOutput(output, fileName);
 }
+
+namespace {
+    void writeStateNames(CoreTime time,
+                         const SolverMode& mode,
+                         const stringVec& names,
+                         const std::string& fileName)
+    {
+        std::uint64_t bytes = sizeof(std::uint32_t);
+        for (const auto& name : names) {
+            if (name.size() > (std::numeric_limits<std::uint32_t>::max)()) {
+                throw FileOperationError("state name is too long");
+            }
+            bytes += sizeof(std::uint32_t) + name.size();
+        }
+        if (names.size() > (std::numeric_limits<std::uint32_t>::max)()) {
+            throw FileOperationError("too many state names");
+        }
+        auto output = openStateOutput(fileName, true);
+        writeStateHeader(output, time, diagnosticSource, namesRecord, 0U, 0U, mode, bytes);
+        writeStateInteger(output, static_cast<std::uint32_t>(names.size()));
+        for (const auto& name : names) {
+            writeStateInteger(output, static_cast<std::uint32_t>(name.size()));
+            output.write(name.data(), static_cast<std::streamsize>(name.size()));
+        }
+        closeStateOutput(output, fileName);
+    }
+}  // namespace
 
 void loadState(GridDynSimulation* gds, const std::string& fileName, const SolverMode& sMode)
 {
@@ -843,44 +1000,151 @@ void loadState(GridDynSimulation* gds, const std::string& fileName, const Solver
     }
 }
 
-void loadStateBinary(GridDynSimulation* gds, const std::string& fileName, const SolverMode& sMode)
+BinaryStateData readStateBinary(const std::string& fileName)
 {
-    const SolverMode& currentMode = gds->getCurrentMode(sMode);
-    auto solverInterface = gds->getSolverInterface(currentMode);
-    if (!solverInterface) {
-        return;
+    std::ifstream input(fileName, std::ios::binary | std::ios::ate);
+    if (!input) {
+        throw FileOperationError("unable to open binary state file " + fileName);
     }
+    const auto end = input.tellg();
+    if (end < static_cast<std::streamoff>(stateMagic.size())) {
+        throw FileOperationError("truncated binary state file " + fileName);
+    }
+    input.seekg(0);
+    checkStateMagic(input);
 
-    std::ifstream bFile;
-    if (fileName.empty()) {
-        auto stateFile = gds->getString("statefile");
-
-        bFile.open(stateFile.c_str(), std::ios::in | std::ios::binary);
-    } else {
-        bFile.open(fileName.c_str(), std::ios::in | std::ios::binary);
-    }
-    if (!bFile.is_open()) {
-        gds->log(gds, PrintLevel::ERROR, "Unable to open file for writing:" + fileName);
-        throw(FileOperationError("unable to open file " + fileName));
-    }
-    count_t dsize;
-    bFile.read(reinterpret_cast<char*>(&dsize), sizeof(int));
-    if (solverInterface->size() != dsize) {
-        if (!solverInterface->isInitialized()) {
-            solverInterface->allocate(dsize);
+    BinaryStateData last;
+    std::streampos valuesPosition{};
+    std::uint64_t lastCount = 0;
+    bool found = false;
+    while (input.tellg() < end) {
+        const auto start = input.tellg();
+        const auto available = static_cast<std::uint64_t>(end - start);
+        if (available < snapshotHeaderSize + snapshotTrailerSize) {
+            throw FileOperationError("truncated binary state snapshot");
+        }
+        if (readStateInteger<std::uint32_t>(input) != snapshotMarker) {
+            throw FileOperationError("invalid binary state snapshot marker");
+        }
+        const auto source = readStateInteger<std::uint32_t>(input);
+        const auto type = readStateInteger<std::uint32_t>(input);
+        static_cast<void>(readStateInteger<std::uint32_t>(input));  // code
+        static_cast<void>(readStateInteger<std::uint32_t>(input));  // index
+        if ((source != snapshotSource && source != diagnosticSource) ||
+            (source == snapshotSource && type != snapshotRecord) ||
+            (source == diagnosticSource &&
+             type != vectorRecord && type != matrixRecord && type != namesRecord)) {
+            throw FileOperationError("unsupported binary state record type or source");
+        }
+        const auto flags = readStateInteger<std::uint32_t>(input);
+        if ((flags & ~knownStateFlags) != 0U) {
+            throw FileOperationError("unsupported binary state snapshot flags");
+        }
+        const auto approximation = readStateInteger<std::uint32_t>(input);
+        const auto offset = readStateInteger<std::uint32_t>(input);
+        const auto time = std::bit_cast<std::int64_t>(readStateInteger<std::uint64_t>(input));
+        const auto count = readStateInteger<std::uint64_t>(input);
+        const auto bytesPerElement = type == namesRecord ? 1U :
+            ((type == matrixRecord || (type == snapshotRecord && (flags & differentialFlag))) ?
+                 16U : 8U);
+        if (count > (available - snapshotHeaderSize - snapshotTrailerSize) / bytesPerElement ||
+            count > (std::numeric_limits<std::size_t>::max)() / sizeof(double) ||
+            count > static_cast<std::uint64_t>((std::numeric_limits<std::streamsize>::max)()) /
+                sizeof(double)) {
+            throw FileOperationError("invalid binary state vector length");
+        }
+        if (type == snapshotRecord) {
+            valuesPosition = input.tellg();
+            lastCount = count;
+            last.time = CoreTime(std::chrono::nanoseconds(time));
+            last.mode = SolverMode(static_cast<index_t>(offset));
+            last.mode.dynamic = (flags & dynamicFlag) != 0U;
+            last.mode.differential = (flags & differentialFlag) != 0U;
+            last.mode.algebraic = (flags & algebraicFlag) != 0U;
+            last.mode.local = (flags & localFlag) != 0U;
+            last.mode.extended_state = (flags & extendedFlag) != 0U;
+            last.mode.parameters = (flags & parameterFlag) != 0U;
+            last.mode.approx = approximation;
+            found = true;
+        }
+        if (type == namesRecord) {
+            if (count < sizeof(std::uint32_t)) {
+                throw FileOperationError("invalid binary state names record");
+            }
+            const auto namesStart = input.tellg();
+            const auto nameCount = readStateInteger<std::uint32_t>(input);
+            if (nameCount > (count - sizeof(std::uint32_t)) / sizeof(std::uint32_t)) {
+                throw FileOperationError("invalid binary state name count");
+            }
+            for (std::uint32_t index = 0; index < nameCount; ++index) {
+                const auto consumed = static_cast<std::uint64_t>(input.tellg() - namesStart);
+                if (consumed > count || count - consumed < sizeof(std::uint32_t)) {
+                    throw FileOperationError("truncated binary state name");
+                }
+                const auto length = readStateInteger<std::uint32_t>(input);
+                const auto offsetAfterLength = static_cast<std::uint64_t>(input.tellg() - namesStart);
+                if (length > count - offsetAfterLength) {
+                    throw FileOperationError("invalid binary state name length");
+                }
+                input.seekg(static_cast<std::streamoff>(length), std::ios::cur);
+            }
+            if (!input || static_cast<std::uint64_t>(input.tellg() - namesStart) != count) {
+                throw FileOperationError("invalid binary state names record length");
+            }
         } else {
-            gds->log(gds, PrintLevel::ERROR, "statefile does not match SolverMode in size");
-            return;
+            input.seekg(static_cast<std::streamoff>(count * bytesPerElement), std::ios::cur);
+        }
+        if (!input || readStateInteger<std::uint32_t>(input) != snapshotEnd) {
+            throw FileOperationError("invalid or truncated binary state snapshot trailer");
         }
     }
-    // TODO(phlpt): Check this index at some point; the right handling is still unclear,
-    // might be used for automatic SolverMode location  instead of what is done currently.
-    unsigned int outputIndex;
-    bFile.read(reinterpret_cast<char*>(&outputIndex), sizeof(int));
-    bFile.read(reinterpret_cast<char*>(solverInterface->stateData()), sizeof(double) * dsize);
-    if (isDynamic(sMode)) {
-        bFile.read(reinterpret_cast<char*>(solverInterface->derivData()), sizeof(double) * dsize);
+    if (!found) {
+        throw FileOperationError("binary state file contains no snapshots");
     }
+    input.seekg(valuesPosition);
+    last.state.resize(static_cast<std::size_t>(lastCount));
+    readStateValues(input, last.state);
+    if (last.mode.differential) {
+        last.derivatives.resize(static_cast<std::size_t>(lastCount));
+        readStateValues(input, last.derivatives);
+    }
+    return last;
+}
+
+namespace {
+    void applyBinaryState(GridDynSimulation* gds,
+                          const SolverMode& mode,
+                          const BinaryStateData& saved)
+    {
+        auto solver = gds->getSolverInterface(mode);
+        if (!solver || !solver->isInitialized()) {
+            throw FileOperationError("solver must be initialized before loading binary state");
+        }
+        if (stateModeFlags(saved.mode) != stateModeFlags(mode) || saved.mode.approx != mode.approx ||
+            saved.state.size() != solver->size()) {
+            throw FileOperationError("binary state file does not match the solver mode or size");
+        }
+        if (!saved.state.empty() && (!solver->stateData() ||
+                                     (hasDifferential(mode) && !solver->derivData()))) {
+            throw FileOperationError("solver state or derivative data is unavailable");
+        }
+        if (!saved.state.empty()) {
+            std::copy(saved.state.begin(), saved.state.end(), solver->stateData());
+        }
+        if (hasDifferential(mode) && !saved.derivatives.empty()) {
+            std::copy(saved.derivatives.begin(), saved.derivatives.end(), solver->derivData());
+        }
+    }
+}  // namespace
+
+void loadStateBinary(GridDynSimulation* gds, const std::string& fileName, const SolverMode& sMode)
+{
+    const auto path = fileName.empty() ? gds->getString("statefile") : fileName;
+    if (path.empty()) {
+        throw FileOperationError("no binary state file specified");
+    }
+    const auto saved = readStateBinary(path);
+    applyBinaryState(gds, gds->getCurrentMode(sMode), saved);
 }
 
 void loadStateXML(GridDynSimulation* /*gds*/,
@@ -948,16 +1212,150 @@ void loadPowerFlowXML(GridDynSimulation* gds, const std::string& fileName)
     }
 }
 
+namespace {
+    using CheckpointJson = nlohmann::json;
+
+    std::shared_ptr<SolverInterface> checkpointPowerFlowSolver(GridDynSimulation* gds,
+                                                                const SolverMode& mode)
+    {
+        auto solver = static_cast<const GridDynSimulation*>(gds)->getSolverInterface(mode);
+        if (!solver || !gds->getOffsets(mode).offsetsLoaded) {
+            throw FileOperationError("power flow must be initialized before using a checkpoint");
+        }
+        return gds->getSolverInterface(mode);
+    }
+
+    stringVec checkpointStateNames(GridDynSimulation* gds, const SolverMode& mode, count_t size)
+    {
+        stringVec names;
+        if (size > 0) {
+            gds->getStateName(names, mode);
+        }
+        names.resize(size);
+        return names;
+    }
+}  // namespace
+
+void savePowerFlowCheckpoint(GridDynSimulation* gds, const std::string& fileName)
+{
+    const auto mode = gds->getSolverMode("powerflow");
+    const auto solver = checkpointPowerFlowSolver(gds, mode);
+    const auto count = solver->size();
+    std::vector<double> state(count);
+    if (count > 0) {
+        gds->guessState(gds->getSimulationTime(), state.data(), nullptr, mode);
+    }
+    const auto names = checkpointStateNames(gds, mode, count);
+    CheckpointJson document{{"format", "griddyn-powerflow-checkpoint"},
+                            {"version", 1},
+                            {"scope", "solution"},
+                            {"state", CheckpointJson::array()},
+                            {"buses", CheckpointJson::array()}};
+    for (count_t index = 0; index < count; ++index) {
+        if (!std::isfinite(state[index])) {
+            throw FileOperationError("cannot save a non-finite power-flow state");
+        }
+        document["state"].push_back({{"name", names[index]}, {"value", state[index]}});
+    }
+    std::vector<GridBus*> buses;
+    gds->getBusVector(buses);
+    for (const auto* bus : buses) {
+        if (!std::isfinite(bus->getVoltage()) || !std::isfinite(bus->getAngle())) {
+            throw FileOperationError("cannot save a non-finite bus voltage or angle");
+        }
+        document["buses"].push_back({{"name", bus->getName()},
+                                     {"user_id", bus->getUserID()},
+                                     {"voltage_pu", bus->getVoltage()},
+                                     {"angle_rad", bus->getAngle()}});
+    }
+    auto output = makeOutputFile(fileName);
+    output << document.dump(2) << '\n';
+    output.close();
+    if (!output) {
+        throw FileOperationError("unable to write file " + fileName);
+    }
+}
+
+void loadPowerFlowCheckpoint(GridDynSimulation* gds, const std::string& fileName)
+{
+    std::ifstream input(fileName);
+    if (!input.is_open()) {
+        throw FileOperationError("unable to open file " + fileName);
+    }
+    CheckpointJson document;
+    try {
+        input >> document;
+        if (document.at("format") != "griddyn-powerflow-checkpoint" ||
+            document.at("version") != 1 || document.at("scope") != "solution") {
+            throw FileOperationError("unsupported power-flow checkpoint format or version");
+        }
+        const auto mode = gds->getSolverMode("powerflow");
+        const auto solver = checkpointPowerFlowSolver(gds, mode);
+        const auto count = solver->size();
+        const auto names = checkpointStateNames(gds, mode, count);
+        const auto& savedState = document.at("state");
+        const auto& savedBuses = document.at("buses");
+        std::vector<GridBus*> buses;
+        gds->getBusVector(buses);
+        if (!savedState.is_array() || savedState.size() != count || !savedBuses.is_array() ||
+            savedBuses.size() != buses.size()) {
+            throw FileOperationError("power-flow checkpoint does not match the model layout");
+        }
+        std::vector<double> values;
+        values.reserve(count);
+        for (count_t index = 0; index < count; ++index) {
+            const auto& entry = savedState.at(index);
+            if (entry.at("name").get<std::string>() != names[index]) {
+                throw FileOperationError("power-flow checkpoint state layout does not match");
+            }
+            const auto value = entry.at("value").get<double>();
+            if (!std::isfinite(value)) {
+                throw FileOperationError("invalid power-flow checkpoint state value");
+            }
+            values.push_back(value);
+        }
+        std::vector<std::pair<double, double>> busValues;
+        busValues.reserve(buses.size());
+        for (std::size_t index = 0; index < buses.size(); ++index) {
+            const auto& entry = savedBuses.at(index);
+            // Automatically assigned user IDs can differ between two loads of the same case.
+            if (entry.at("name").get<std::string>() != buses[index]->getName()) {
+                throw FileOperationError("power-flow checkpoint buses do not match");
+            }
+            const auto voltage = entry.at("voltage_pu").get<double>();
+            const auto angle = entry.at("angle_rad").get<double>();
+            if (!std::isfinite(voltage) || !std::isfinite(angle)) {
+                throw FileOperationError("invalid power-flow checkpoint bus value");
+            }
+            busValues.emplace_back(voltage, angle);
+        }
+        if (count > 0) {
+            std::copy(values.begin(), values.end(), solver->stateData());
+            gds->setState(gds->getSimulationTime(), values.data(), nullptr, mode);
+        }
+        for (std::size_t index = 0; index < buses.size(); ++index) {
+            buses[index]->setVoltageAngle(busValues[index].first, busValues[index].second);
+        }
+        // Explicit bus values also cover fixed-voltage and fixed-angle buses.
+        // Keep the solver vector in sync if those values were edited.
+        if (count > 0) {
+            gds->guessState(gds->getSimulationTime(), solver->stateData(), nullptr, mode);
+            gds->setState(gds->getSimulationTime(), solver->stateData(), nullptr, mode);
+        }
+        gds->updateLocalCache();
+    }
+    catch (const CheckpointJson::exception& exc) {
+        throw FileOperationError("invalid power-flow checkpoint " + fileName + ": " + exc.what());
+    }
+}
+
 void captureJacState(GridDynSimulation* gds, const std::string& fileName, const SolverMode& sMode)
 {
-    std::ofstream bFile(fileName.c_str(), std::ios::out | std::ios::binary);
-    if (!bFile.is_open()) {
-        gds->log(gds, PrintLevel::ERROR, "Unable to open file for writing:" + fileName);
-        throw(FileOperationError("unable to open file " + fileName));
-    }
-    // writing the state vector
     const auto& currentMode = gds->getCurrentMode(sMode);
     auto solverInterface = gds->getSolverInterface(currentMode);
+    if (!solverInterface || !solverInterface->isInitialized()) {
+        throw FileOperationError("solver must be initialized before capturing a Jacobian");
+    }
     MatrixDataSparse<double> matrixData;
     StateData stateDescription(gds->getSimulationTime(),
                                solverInterface->stateData(),
@@ -970,41 +1368,20 @@ void captureJacState(GridDynSimulation* gds, const std::string& fileName, const 
     stringVec stateNames;
     gds->getStateName(stateNames, currentMode);
 
-    count_t dsize = solverInterface->size();
-
-    bFile.write(reinterpret_cast<char*>(&dsize), sizeof(unsigned int));
-    for (auto& stN : stateNames) {
-        auto stnSize = static_cast<unsigned int>(stN.length());
-        bFile.write(reinterpret_cast<char*>(&stnSize), sizeof(int));
-        bFile.write(stN.c_str(), stnSize);
-    }
-
-    // write the state vector
-    bFile.write(reinterpret_cast<char*>(solverInterface->stateData()), dsize * sizeof(double));
-    // writing the Jacobian Matrix
-    dsize = matrixData.size();
-    bFile.write(reinterpret_cast<char*>(&dsize), sizeof(count_t));
-
-    for (index_t elementIndex = 0; elementIndex < dsize; ++elementIndex) {
-        const auto elementData = matrixData.element(elementIndex);
-        bFile.write(reinterpret_cast<const char*>(&(elementData.row)), sizeof(index_t));
-        bFile.write(reinterpret_cast<const char*>(&(elementData.col)), sizeof(index_t));
-        bFile.write(reinterpret_cast<const char*>(&(elementData.data)), sizeof(double));
-    }
-
-    bFile.close();
+    stateNames.resize(solverInterface->size());
+    writeVector(gds->getSimulationTime(), STATE_INFORMATION, 0U, currentMode,
+                solverInterface->size(), solverInterface->stateData(), fileName, false);
+    writeArray(gds->getSimulationTime(), JACOBIAN_DATA, 0U, currentMode, matrixData, fileName, true);
+    writeStateNames(gds->getSimulationTime(), currentMode, stateNames, fileName);
 }
 
 void saveJacobian(GridDynSimulation* gds, const std::string& fileName, const SolverMode& sMode)
 {
-    std::ofstream bFile(fileName.c_str(), std::ios::out | std::ios::binary);
-    if (!bFile.is_open()) {
-        gds->log(gds, PrintLevel::ERROR, "Unable to open file for writing:" + fileName);
-        throw(FileOperationError("unable to open file " + fileName));
-    }
-    // writing the state vector
     const auto& currentMode = gds->getCurrentMode(sMode);
     auto solverInterface = gds->getSolverInterface(currentMode);
+    if (!solverInterface || !solverInterface->isInitialized()) {
+        throw FileOperationError("solver must be initialized before saving a Jacobian");
+    }
 
     MatrixDataSparse<double> matrixData;
 
@@ -1018,23 +1395,9 @@ void saveJacobian(GridDynSimulation* gds, const std::string& fileName, const Sol
     stringVec stateNames;
     gds->getStateName(stateNames, currentMode);
 
-    count_t dsize = solverInterface->size();
-    bFile.write(reinterpret_cast<char*>(&dsize), sizeof(count_t));
-    for (auto& stN : stateNames) {
-        auto stnSize = static_cast<unsigned int>(stN.length());
-        bFile.write(reinterpret_cast<char*>(&stnSize), sizeof(int));
-        bFile.write(stN.c_str(), stnSize);
-    }
-    // writing the Jacobian Matrix
-    dsize = matrixData.size();
-    bFile.write(reinterpret_cast<char*>(&dsize), sizeof(count_t));
-
-    for (index_t elementIndex = 0; elementIndex < dsize; ++elementIndex) {
-        const auto elementData = matrixData.element(elementIndex);
-        bFile.write(reinterpret_cast<const char*>(&(elementData.row)), sizeof(index_t));
-        bFile.write(reinterpret_cast<const char*>(&(elementData.col)), sizeof(index_t));
-        bFile.write(reinterpret_cast<const char*>(&(elementData.data)), sizeof(double));
-    }
+    stateNames.resize(solverInterface->size());
+    writeArray(gds->getSimulationTime(), JACOBIAN_DATA, 0U, currentMode, matrixData, fileName, false);
+    writeStateNames(gds->getSimulationTime(), currentMode, stateNames, fileName);
 }
 
 void saveContingencyOutput(const std::vector<std::shared_ptr<Contingency>>& contList,

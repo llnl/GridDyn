@@ -8,12 +8,24 @@
 #include "core/CoreExceptions.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/GridBus.h"
+#include "griddyn/Load.h"
+#include "griddyn/measurement/Recorder.h"
+#include "griddyn/simulation/GridDynSimulationFileOps.h"
 #include "griddyn/solvers/SolverInterface.h"
+#include "utilities/MatrixDataSparse.hpp"
 #include <array>
+#include <atomic>
+#include <chrono>
+#include <cmath>
 #include <cstdint>
+#include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <iterator>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -25,6 +37,41 @@ using gmlc::utilities::countDiffs;
 static const char pFlow_test_directory[] = GRIDDYN_TEST_DIRECTORY "/pFlow_tests/";
 
 class PowerflowSystemTests: public GridDynSimulationTestFixture, public ::testing::Test {};
+
+namespace {
+class TemporaryStateFile {
+  public:
+    TemporaryStateFile()
+    {
+        static std::atomic<unsigned int> sequence{0};
+        const auto timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+        path = std::filesystem::temp_directory_path() /
+            ("griddyn-state-" + std::to_string(timestamp) + "-" +
+             std::to_string(sequence++) + ".bin");
+    }
+    ~TemporaryStateFile() { std::error_code error; std::filesystem::remove(path, error); }
+    std::filesystem::path path;
+};
+
+void exportMatlabStateFixture(const std::filesystem::path& source, const char* name)
+{
+    const auto* directory = std::getenv("GRIDDYN_MATLAB_STATE_FIXTURES");
+    if (directory != nullptr && *directory != '\0') {
+        std::filesystem::copy_file(source,
+                                   std::filesystem::path(directory) / name,
+                                   std::filesystem::copy_options::overwrite_existing);
+    }
+}
+
+void disableFixtureRecorderFiles(GridDynSimulation& simulation)
+{
+    for (const auto& collector : simulation.getCollectors()) {
+        if (auto* recorder = dynamic_cast<Recorder*>(collector.get())) {
+            recorder->set("file", "");
+        }
+    }
+}
+}  // namespace
 
 class FlagRecordingPowerFlowSimulation: public GridDynSimulation {
   public:
@@ -379,6 +426,352 @@ TEST_F(PowerflowSystemTests, TestIteratedPflow)
     gds->set("recorddirectory", pFlow_test_directory);
     gds->run();
     ASSERT_GT(gds->getSimulationTime(), 575.0);
+}
+
+TEST_F(PowerflowSystemTests, PowerFlowCheckpointRestoresSolutionAcrossIterations)
+{
+    const auto checkpoint = std::filesystem::temp_directory_path() / "griddyn-pflow-checkpoint.json";
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
+    ASSERT_NE(gds, nullptr);
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    auto* bus = gds->getBus(1);
+    ASSERT_NE(bus, nullptr);
+    auto* load = bus->getLoad();
+    ASSERT_NE(load, nullptr);
+    const double voltage = bus->getVoltage();
+    const double angle = bus->getAngle();
+    savePowerFlowCheckpoint(gds.get(), checkpoint.string());
+
+    load->set("p", 0.8);
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_GT(std::abs(bus->getVoltage() - voltage), 1e-4);
+    loadPowerFlowCheckpoint(gds.get(), checkpoint.string());
+    EXPECT_DOUBLE_EQ(bus->getVoltage(), voltage);
+    EXPECT_DOUBLE_EQ(bus->getAngle(), angle);
+    EXPECT_DOUBLE_EQ(load->get("p"), 0.8);
+
+    auto second = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
+    ASSERT_NE(second, nullptr);
+    ASSERT_EQ(second->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    loadPowerFlowCheckpoint(second.get(), checkpoint.string());
+    EXPECT_DOUBLE_EQ(second->getBus(1)->getVoltage(), voltage);
+    EXPECT_DOUBLE_EQ(second->getBus(1)->getAngle(), angle);
+    std::filesystem::remove(checkpoint);
+}
+
+TEST_F(PowerflowSystemTests, PowerFlowCheckpointRejectsInvalidFileBeforeChangingState)
+{
+    const auto checkpoint =
+        std::filesystem::temp_directory_path() / "griddyn-invalid-pflow-checkpoint.json";
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
+    ASSERT_NE(gds, nullptr);
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    auto* bus = gds->getBus(1);
+    const double voltage = bus->getVoltage();
+    {
+        std::ofstream output(checkpoint);
+        output << R"({"format":"griddyn-powerflow-checkpoint","version":1,"scope":"solution","state":[],"buses":[]})";
+    }
+    EXPECT_THROW(loadPowerFlowCheckpoint(gds.get(), checkpoint.string()), FileOperationError);
+    EXPECT_DOUBLE_EQ(bus->getVoltage(), voltage);
+    std::filesystem::remove(checkpoint);
+}
+
+TEST_F(PowerflowSystemTests, PowerFlowCheckpointInIteratedPowerFlow)
+{
+    const auto checkpoint =
+        std::filesystem::temp_directory_path() / "griddyn-iterated-pflow-checkpoint.json";
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "iterated_test_case.xml");
+    ASSERT_NE(gds, nullptr);
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(gds->eventDrivenPowerflow(10.0, 2.0), FUNCTION_EXECUTION_SUCCESS);
+    auto* bus = gds->findByUserID("bus", 25);
+    ASSERT_NE(bus, nullptr);
+    auto* gridBus = dynamic_cast<GridBus*>(bus);
+    ASSERT_NE(gridBus, nullptr);
+    const double voltage = gridBus->getVoltage();
+    const double angle = gridBus->getAngle();
+    savePowerFlowCheckpoint(gds.get(), checkpoint.string());
+    ASSERT_EQ(gds->eventDrivenPowerflow(20.0, 2.0), FUNCTION_EXECUTION_SUCCESS);
+    loadPowerFlowCheckpoint(gds.get(), checkpoint.string());
+    EXPECT_DOUBLE_EQ(gridBus->getVoltage(), voltage);
+    EXPECT_DOUBLE_EQ(gridBus->getAngle(), angle);
+    EXPECT_EQ(gds->getSimulationTime(), CoreTime(20.0));
+    std::filesystem::remove(checkpoint);
+}
+
+TEST_F(PowerflowSystemTests, PowerFlowCheckpointAllowsEditedBusValues)
+{
+    const auto checkpoint =
+        std::filesystem::temp_directory_path() / "griddyn-edited-pflow-checkpoint.json";
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
+    ASSERT_NE(gds, nullptr);
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    savePowerFlowCheckpoint(gds.get(), checkpoint.string());
+    nlohmann::json document;
+    {
+        std::ifstream input(checkpoint);
+        input >> document;
+    }
+    document["buses"][1]["voltage_pu"] = 0.91;
+    document["buses"][1]["angle_rad"] = 0.04;
+    {
+        std::ofstream output(checkpoint);
+        output << document.dump(2);
+    }
+    loadPowerFlowCheckpoint(gds.get(), checkpoint.string());
+    EXPECT_DOUBLE_EQ(gds->getBus(1)->getVoltage(), 0.91);
+    EXPECT_DOUBLE_EQ(gds->getBus(1)->getAngle(), 0.04);
+    std::filesystem::remove(checkpoint);
+}
+
+TEST_F(PowerflowSystemTests, BinaryStatePowerFlowRoundTrip)
+{
+    TemporaryStateFile file;
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
+    ASSERT_NE(gds, nullptr);
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    const auto mode = gds->getSolverMode("powerflow");
+    auto solver = gds->getSolverInterface(mode);
+    ASSERT_GT(solver->size(), 0U);
+    const std::vector<double> expected(solver->stateData(), solver->stateData() + solver->size());
+    gds->set("statefile", file.path.string());
+    saveState(gds.get(), "", cEmptySolverMode, false);
+    exportMatlabStateFixture(file.path, "powerflow.bin");
+    TemporaryStateFile diagnostic;
+    writeVector(CoreTime(0.25), STATE_INFORMATION, 7, mode, solver->size(),
+                expected.data(), diagnostic.path.string(), false);
+    exportMatlabStateFixture(diagnostic.path, "solver-diagnostic.bin");
+    EXPECT_THROW(readStateBinary(diagnostic.path.string()), FileOperationError);
+    TemporaryStateFile jacState;
+    captureJacState(gds.get(), jacState.path.string(), mode);
+    exportMatlabStateFixture(jacState.path, "jac-state.bin");
+    EXPECT_THROW(readStateBinary(jacState.path.string()), FileOperationError);
+    TemporaryStateFile jacobian;
+    saveJacobian(gds.get(), jacobian.path.string(), mode);
+    exportMatlabStateFixture(jacobian.path, "jacobian.bin");
+    writeVector(CoreTime(0.25), RESIDUAL_INFORMATION, 7, mode, solver->size(),
+                expected.data(), file.path.string(), true);
+    MatrixDataSparse<double> matrix;
+    matrix.assign(0, 1, 0.75);
+    writeArray(CoreTime(0.25), JACOBIAN_DATA, 7, mode, matrix, file.path.string(), true);
+    exportMatlabStateFixture(file.path, "mixed.bin");
+    EXPECT_EQ(readStateBinary(file.path.string()).state, expected);
+    const auto saved = readStateBinary(file.path.string());
+    EXPECT_EQ(saved.mode, mode);
+    EXPECT_EQ(saved.time, gds->getSimulationTime());
+    EXPECT_EQ(saved.state, expected);
+    EXPECT_TRUE(saved.derivatives.empty());
+
+    std::fill(solver->stateData(), solver->stateData() + solver->size(), -42.0);
+    loadStateBinary(gds.get(), "", cEmptySolverMode);
+    EXPECT_TRUE(std::equal(expected.begin(), expected.end(), solver->stateData()));
+
+}
+
+TEST_F(PowerflowSystemTests, BinaryStateDynamicRoundTripAndAppend)
+{
+    TemporaryStateFile file;
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_dynamic_example.xml");
+    ASSERT_NE(gds, nullptr);
+    disableFixtureRecorderFiles(*gds);
+    ASSERT_EQ(gds->dynInitialize(CoreTime(0.123456789)), FUNCTION_EXECUTION_SUCCESS);
+    const auto mode = gds->getCurrentMode();
+    auto solver = gds->getSolverInterface(mode);
+    ASSERT_TRUE(hasDifferential(mode));
+    ASSERT_GT(solver->size(), 0U);
+    std::vector<double> expectedState(solver->size());
+    std::vector<double> expectedDerivative(solver->size());
+    for (count_t index = 0; index < solver->size(); ++index) {
+        solver->stateData()[index] = 0.125 + index;
+        solver->derivData()[index] = -0.25 - index;
+        expectedState[index] = solver->stateData()[index];
+        expectedDerivative[index] = solver->derivData()[index];
+    }
+    saveStateBinary(gds.get(), file.path.string(), mode, false);
+    auto saved = readStateBinary(file.path.string());
+    EXPECT_EQ(saved.time, CoreTime(0.123456789));
+    EXPECT_EQ(saved.state, expectedState);
+    EXPECT_EQ(saved.derivatives, expectedDerivative);
+    {
+        std::ifstream input(file.path, std::ios::binary);
+        input.seekg(40);
+        std::array<unsigned char, 8> timeBytes{};
+        input.read(reinterpret_cast<char*>(timeBytes.data()), timeBytes.size());
+        const std::array<unsigned char, 8> expectedTime{0x15, 0xcd, 0x5b, 0x07, 0, 0, 0, 0};
+        EXPECT_EQ(timeBytes, expectedTime);
+        input.seekg(56);
+        std::array<unsigned char, 8> valueBytes{};
+        input.read(reinterpret_cast<char*>(valueBytes.data()), valueBytes.size());
+        const std::array<unsigned char, 8> expectedValue{0, 0, 0, 0, 0, 0, 0xc0, 0x3f};
+        EXPECT_EQ(valueBytes, expectedValue);
+    }
+
+    solver->stateData()[0] = 123.5;
+    solver->derivData()[0] = -456.5;
+    expectedState[0] = 123.5;
+    expectedDerivative[0] = -456.5;
+    saveStateBinary(gds.get(), file.path.string(), mode, true);
+    exportMatlabStateFixture(file.path, "dynamic.bin");
+    saved = readStateBinary(file.path.string());
+    EXPECT_EQ(saved.state, expectedState);
+    EXPECT_EQ(saved.derivatives, expectedDerivative);
+
+    std::fill(solver->stateData(), solver->stateData() + solver->size(), 1.0);
+    std::fill(solver->derivData(), solver->derivData() + solver->size(), 2.0);
+    loadStateBinary(gds.get(), file.path.string());
+    EXPECT_TRUE(std::equal(expectedState.begin(), expectedState.end(), solver->stateData()));
+    EXPECT_TRUE(
+        std::equal(expectedDerivative.begin(), expectedDerivative.end(), solver->derivData()));
+    EXPECT_EQ(gds->getSimulationTime(), CoreTime(0.123456789));
+    std::filesystem::resize_file(file.path, std::filesystem::file_size(file.path) - 1);
+    EXPECT_THROW(loadStateBinary(gds.get(), file.path.string()), FileOperationError);
+    EXPECT_TRUE(std::equal(expectedState.begin(), expectedState.end(), solver->stateData()));
+    EXPECT_TRUE(
+        std::equal(expectedDerivative.begin(), expectedDerivative.end(), solver->derivData()));
+}
+
+TEST_F(PowerflowSystemTests, BinaryStatePeriodicDynamicOutput)
+{
+    TemporaryStateFile file;
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_dynamic_example.xml");
+    ASSERT_NE(gds, nullptr);
+    disableFixtureRecorderFiles(*gds);
+    gds->set("statefile", file.path.string());
+    gds->set("staterecordperiod", 0.05);
+    ASSERT_EQ(gds->run(CoreTime(0.15)), FUNCTION_EXECUTION_SUCCESS);
+    exportMatlabStateFixture(file.path, "periodic.bin");
+    const auto saved = readStateBinary(file.path.string());
+    EXPECT_GE(saved.time, CoreTime(0.10));
+    EXPECT_LE(saved.time, CoreTime(0.15));
+    EXPECT_FALSE(saved.state.empty());
+    EXPECT_EQ(saved.derivatives.size(), saved.state.size());
+    EXPECT_GT(std::filesystem::file_size(file.path),
+              8U + 2U * (48U + 16U * saved.state.size() + 4U));
+}
+
+TEST_F(PowerflowSystemTests, BinaryStateSolverDiagnosticOutput)
+{
+    TemporaryStateFile stateFile;
+    TemporaryStateFile jacobianFile;
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
+    ASSERT_NE(gds, nullptr);
+    ASSERT_EQ(gds->pFlowInitialize(), FUNCTION_EXECUTION_SUCCESS);
+    auto solver = gds->getSolverInterface(gds->getSolverMode("powerflow"));
+    solver->set("statefile", stateFile.path.string());
+    solver->set("jacfile", jacobianFile.path.string());
+    solver->setFlag("filecapture", true);
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_TRUE(std::filesystem::exists(stateFile.path));
+    ASSERT_TRUE(std::filesystem::exists(jacobianFile.path));
+    EXPECT_THROW(readStateBinary(stateFile.path.string()), FileOperationError);
+    EXPECT_THROW(readStateBinary(jacobianFile.path.string()), FileOperationError);
+    exportMatlabStateFixture(stateFile.path, "solver-run.bin");
+    exportMatlabStateFixture(jacobianFile.path, "solver-jacobian.bin");
+}
+
+TEST_F(PowerflowSystemTests, BinaryStateDynamicSolverDiagnosticOutput)
+{
+    TemporaryStateFile stateFile;
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_dynamic_example.xml");
+    ASSERT_NE(gds, nullptr);
+    disableFixtureRecorderFiles(*gds);
+    ASSERT_EQ(gds->dynInitialize(), FUNCTION_EXECUTION_SUCCESS);
+    auto solver = gds->getSolverInterface(gds->getCurrentMode());
+    solver->set("statefile", stateFile.path.string());
+    solver->setFlag("filecapture", true);
+    ASSERT_EQ(gds->run(CoreTime(0.15)), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_TRUE(std::filesystem::exists(stateFile.path));
+    EXPECT_THROW(readStateBinary(stateFile.path.string()), FileOperationError);
+    exportMatlabStateFixture(stateFile.path, "dae-solver-run.bin");
+}
+
+TEST_F(PowerflowSystemTests, BinaryStatePartitionedSolverDiagnosticOutput)
+{
+    std::vector<std::string> solvers;
+#ifdef GRIDDYN_ENABLE_CVODE
+    solvers.emplace_back("cvode");
+#endif
+#ifdef GRIDDYN_ENABLE_ARKODE
+    solvers.emplace_back("arkode");
+#endif
+    for (const auto& solverName : solvers) {
+        SCOPED_TRACE(solverName);
+        TemporaryStateFile stateFile;
+        gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_dynamic_example.xml");
+        ASSERT_NE(gds, nullptr);
+        disableFixtureRecorderFiles(*gds);
+        gds->set("dynamicsolvermethod", "partitioned");
+        gds->set("defdyndiff", solverName);
+        ASSERT_EQ(gds->dynInitialize(), FUNCTION_EXECUTION_SUCCESS);
+        auto solver = gds->getSolverInterface(gds->getSolverMode("differential"));
+        solver->set("statefile", stateFile.path.string());
+        solver->setFlag("filecapture", true);
+        ASSERT_EQ(gds->run(CoreTime(0.05)), FUNCTION_EXECUTION_SUCCESS);
+        ASSERT_TRUE(std::filesystem::exists(stateFile.path));
+        EXPECT_THROW(readStateBinary(stateFile.path.string()), FileOperationError);
+        const auto fixtureName = solverName + "-solver-run.bin";
+        exportMatlabStateFixture(stateFile.path, fixtureName.c_str());
+    }
+}
+
+TEST_F(PowerflowSystemTests, BinaryStateRejectsTruncatedOrIncompatibleData)
+{
+    TemporaryStateFile file;
+    TemporaryStateFile corrupt;
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
+    ASSERT_NE(gds, nullptr);
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    const auto mode = gds->getSolverMode("powerflow");
+    auto solver = gds->getSolverInterface(mode);
+    saveStateBinary(gds.get(), file.path.string(), mode, false);
+    std::ifstream input(file.path, std::ios::binary);
+    const std::vector<char> bytes((std::istreambuf_iterator<char>(input)), {});
+    ASSERT_GT(bytes.size(), 8U);
+    const std::vector<double> original(solver->stateData(), solver->stateData() + solver->size());
+    for (std::size_t length = 0; length < bytes.size(); ++length) {
+        {
+            std::ofstream output(corrupt.path, std::ios::binary | std::ios::trunc);
+            output.write(bytes.data(), static_cast<std::streamsize>(length));
+        }
+        EXPECT_THROW(loadStateBinary(gds.get(), corrupt.path.string(), mode), FileOperationError)
+            << "length " << length;
+        EXPECT_TRUE(std::equal(original.begin(), original.end(), solver->stateData()));
+    }
+    auto invalidLength = bytes;
+    ASSERT_GE(invalidLength.size(), 56U);
+    std::fill(invalidLength.begin() + 48, invalidLength.begin() + 56, static_cast<char>(0xff));
+    {
+        std::ofstream output(corrupt.path, std::ios::binary | std::ios::trunc);
+        output.write(invalidLength.data(), static_cast<std::streamsize>(invalidLength.size()));
+    }
+    EXPECT_THROW(loadStateBinary(gds.get(), corrupt.path.string(), mode), FileOperationError);
+    EXPECT_TRUE(std::equal(original.begin(), original.end(), solver->stateData()));
+    auto invalidMode = bytes;
+    invalidMode[28] ^= 1;  // Toggle the dynamic flag while keeping the same vector length.
+    {
+        std::ofstream output(corrupt.path, std::ios::binary | std::ios::trunc);
+        output.write(invalidMode.data(), static_cast<std::streamsize>(invalidMode.size()));
+    }
+    EXPECT_THROW(loadStateBinary(gds.get(), corrupt.path.string(), mode), FileOperationError);
+    EXPECT_TRUE(std::equal(original.begin(), original.end(), solver->stateData()));
+    auto unsupportedVersion = bytes;
+    unsupportedVersion[7] = '2';
+    {
+        std::ofstream output(corrupt.path, std::ios::binary | std::ios::trunc);
+        output.write(unsupportedVersion.data(),
+                     static_cast<std::streamsize>(unsupportedVersion.size()));
+    }
+    EXPECT_THROW(loadStateBinary(gds.get(), corrupt.path.string(), mode), FileOperationError);
+    EXPECT_TRUE(std::equal(original.begin(), original.end(), solver->stateData()));
+    {
+        std::ofstream output(corrupt.path, std::ios::binary | std::ios::trunc);
+        output.write(bytes.data(), static_cast<std::streamsize>(bytes.size() - 1));
+    }
+    EXPECT_THROW(saveStateBinary(gds.get(), corrupt.path.string(), mode, true), FileOperationError);
+    EXPECT_THROW(loadStateBinary(gds.get(), file.path.string(), cDaeSolverMode), FileOperationError);
+    EXPECT_TRUE(std::equal(original.begin(), original.end(), solver->stateData()));
 }
 
 TEST_F(PowerflowSystemTests, PFlowOffsetsRestoredAfterDynamicInitialization)

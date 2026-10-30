@@ -16,6 +16,8 @@
 #include "core/FactoryTemplates.hpp"
 #include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringConversion.h"
+#include "griddyn/simulation/GridDynSimulationFileOps.h"
+#include "utilities/Hdf5DataFile.h"
 #include <algorithm>
 #include <charconv>
 #include <functional>
@@ -29,6 +31,60 @@
 #include <vector>
 
 namespace griddyn {
+void SolverInterface::captureDiagnosticState(CoreTime time,
+                                             const double* state,
+                                             const double* derivative,
+                                             const double* residual) noexcept
+{
+    try {
+        if (!stateCapture) {
+            stateCapture = std::make_shared<utilities::Hdf5DataFile>(
+                stateFile, utilities::Hdf5DataFile::OpenMode::CREATE_OR_JOIN);
+        }
+        writeDiagnosticState(
+            *stateCapture, time, funcCallCount, mode, svsize, state, derivative, residual);
+    }
+    catch (const std::exception& error) {
+        flags.reset(FILE_CAPTURE_FLAG);
+        try {
+            if (m_gds) {
+                logging::warning(m_gds, "Disabling solver HDF5 capture: {}", error.what());
+            }
+        }
+        catch (...) {
+        }
+    }
+    catch (...) {
+        flags.reset(FILE_CAPTURE_FLAG);
+    }
+}
+void SolverInterface::captureDiagnosticJacobian(CoreTime time,
+                                                MatrixData<double>& matrix,
+                                                double cj,
+                                                std::uint64_t index) noexcept
+{
+    try {
+        if (!jacobianCapture) {
+            jacobianCapture = std::make_shared<utilities::Hdf5DataFile>(
+                jacFile, utilities::Hdf5DataFile::OpenMode::CREATE_OR_JOIN);
+        }
+        writeDiagnosticJacobian(*jacobianCapture, time, index, mode, matrix, svsize, svsize, cj);
+    }
+    catch (const std::exception& error) {
+        flags.reset(FILE_CAPTURE_FLAG);
+        try {
+            if (m_gds) {
+                logging::warning(m_gds, "Disabling solver HDF5 capture: {}", error.what());
+            }
+        }
+        catch (...) {
+        }
+    }
+    catch (...) {
+        flags.reset(FILE_CAPTURE_FLAG);
+    }
+}
+
 namespace {
     std::vector<int> parseMaskElements(std::string_view text)
     {
@@ -261,11 +317,15 @@ void SolverInterface::set(std::string_view param, std::string_view val)
     } else if ((param == "file") || (param == "logfile")) {
         solverLogFile = std::string{val};
     } else if (param == "jacfile") {
+        jacobianCapture.reset();
         jacFile = std::string{val};
     } else if (param == "statefile") {
+        stateCapture.reset();
         stateFile = std::string{val};
     } else if (param == "capturefile") {
+        jacobianCapture.reset();
         jacFile = std::string{val};
+        stateCapture.reset();
         stateFile = std::string{val};
     } else {
         HelperObject::set(param, val);
@@ -338,6 +398,10 @@ static const std::map<std::string_view, int, std::less<std::string_view>> SOLVER
 
 void SolverInterface::setFlag(std::string_view flag, bool val)
 {
+    if (flag == "filecapture" && !val) {
+        stateCapture.reset();
+        jacobianCapture.reset();
+    }
     // DENSE_FLAG is bit 0, so it cannot be represented by the negative-index
     // convention used below for flags whose default is enabled.
     if (flag == "dense") {

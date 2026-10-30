@@ -515,21 +515,10 @@ int arkodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDa
                                             sd->mode);
     if (sd->flags[FILE_CAPTURE_FLAG]) {
         if (!sd->stateFile.empty()) {
-            writeVector(time,
-                        STATE_INFORMATION,
-                        sd->funcCallCount,
-                        sd->mode,
-                        sd->svsize,
-                        NVECTOR_DATA(sd->use_omp, state),
-                        sd->stateFile,
-                        (sd->funcCallCount != 1));
-            writeVector(time,
-                        DERIVATIVE_INFORMATION,
-                        sd->funcCallCount,
-                        sd->mode,
-                        sd->svsize,
-                        NVECTOR_DATA(sd->use_omp, dstateDt),
-                        sd->stateFile);
+            sd->captureDiagnosticState(time,
+                                       NVECTOR_DATA(sd->use_omp, state),
+                                       NVECTOR_DATA(sd->use_omp, dstateDt),
+                                       nullptr);
         }
     }
     return ret;

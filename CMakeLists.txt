@@ -458,6 +458,10 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/sundials/CMakeLists.txt")
     submod_update(ThirdParty/sundials)
 endif()
 
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/hdf5/CMakeLists.txt")
+    submod_update(ThirdParty/hdf5)
+endif()
+
 if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/pugixml/CMakeLists.txt")
     submod_update(ThirdParty/pugixml)
 endif()

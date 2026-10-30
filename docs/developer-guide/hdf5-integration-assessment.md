@@ -1,5 +1,18 @@
 # HDF5 integration and preliminary Parquet comparison
 
+Implementation update: state and diagnostic output now use the HDF5 submodule
+checkout supplied on `develop`. See [the current format and API](binary-state-output.md).
+The design inventory and earlier build experiments below retain their historical
+context; other application adapters are future work. LUT use is deferred until
+last, if it is pursued at all.
+
+The integrated `develop` checkout has now built with MSVC 19.44 in Debug.
+All 33 power-flow/validation tests and five selected DAE/partitioned dynamic
+regressions passed. Fifteen C++-generated fixtures were read independently with
+h5py, and the MATLAB reader and docgen entry point passed under MATLAB R2013a.
+These checks cover state/diagnostics; recorder-result adapters and the platform
+matrix below remain future validation work.
+
 Reviewed 2026-10-30 against the current working tree. This extends the
 [binary-state architecture review](binary-state-architecture-review.md):
 **simulation output data is a required application of the proposed common
@@ -307,8 +320,8 @@ additional export is implemented or required by this assessment.
 This source inventory covers the numerical persistence paths found in the main
 simulation, optional solvers, optimization, input-profile, FMI and analysis code.
 It distinguishes existing hooks from future capabilities: using HDF5 does not
-complete an unfinished study driver or supply missing model state. No production
-adapter below is implemented by this review.
+complete an unfinished study driver or supply missing model state. The state/diagnostic adapters are now implemented; the remaining entries are
+future consumers.
 
 | Application and present code | Proposed use | Readiness / priority |
 | --- | --- | --- |
@@ -460,7 +473,8 @@ Before adoption:
    and Clang 18/20/22/C++26 configurations, Linux ARM64, macOS arm64/x64 and
    Windows. Exercise wheels, installed CMake consumers and FMI packaging.
 2. Verify reused zlib, filters, UTF-8, file/array order and fixtures in C++,
-   Python and the selected MATLAB/Octave versions. Include large signed times,
+   Python and the selected MATLAB versions. Octave needs a separately tested
+   HDF5 reader. Include large signed times,
    integer indices, empty and nonfinite data, rectangular/all-zero matrices.
 3. Port recorder contract tests to HDF5: empty/repeated flush, autosave,
    independent exports and aliases, retry after failure, several recorders,

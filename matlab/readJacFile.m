@@ -1,5 +1,5 @@
 function [jdata, names] = readJacFile(filename)
-%READJACFILE Read the last sparse Jacobian in a GridDyn binary record file.
+%READJACFILE Read the last sparse Jacobian in a GridDyn HDF5 capture.
 %   JDATA contains zero-based row and col vectors and a val vector. NAMES
 %   contains state names if they were included in the file.
 records = readStateFile(filename);
@@ -9,7 +9,8 @@ if isempty(index)
 end
 jdata = records.data{index};
 names = {};
-nameIndex = find(records.typecode == 2, 1, 'last');
+nameIndex = find(records.typecode == 2 & records.frame == records.frame(index) & ...
+                 records.key == records.key(index), 1, 'last');
 if ~isempty(nameIndex)
     names = records.data{nameIndex};
 end

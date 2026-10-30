@@ -1,5 +1,11 @@
 # Binary state, diagnostics, and optimization review
 
+Implementation update: state and diagnostic output now use the HDF5 submodule
+checkout supplied on `develop`. See [the current format and API](binary-state-output.md).
+The design inventory and earlier build experiments below retain their historical
+context; other application adapters are future work. LUT use is deferred until
+last, if it is pursued at all.
+
 Reviewed 2026-10-30 against the working tree based on `c6d24432`, including the
 uncommitted binary-output changes. This is a source and architecture review;
 the historical large-case benchmarks below were not rerun for this review.

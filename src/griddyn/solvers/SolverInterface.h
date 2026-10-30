@@ -14,6 +14,11 @@
 #include <string>
 #include <string_view>
 #include <vector>
+template<class T>
+class MatrixData;
+namespace utilities {
+class Hdf5DataFile;
+}
 namespace griddyn {
 enum class SolverPrintLevel {
     DEBUG_PRINT = 2,
@@ -140,7 +145,19 @@ class SolverInterface: public HelperObject {
     count_t nnz = 0;  //!< the actual number of non-zeros in a Jacobian
     std::bitset<32> flags;  //!< flags for the solver
     int lastErrorCode = 0;  //!< the last error Code
+    std::shared_ptr<utilities::Hdf5DataFile> stateCapture;
+    std::shared_ptr<utilities::Hdf5DataFile> jacobianCapture;
+
   public:
+    /** Capture actual callback arrays; I/O failures disable optional capture and are logged. */
+    void captureDiagnosticState(CoreTime time,
+                                const double* state,
+                                const double* derivative,
+                                const double* residual) noexcept;
+    void captureDiagnosticJacobian(CoreTime time,
+                                   MatrixData<double>& matrix,
+                                   double cj,
+                                   std::uint64_t index) noexcept;
     /** @brief default constructor
      * @param[in] objName  the name of the solver
      */

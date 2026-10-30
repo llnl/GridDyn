@@ -16,6 +16,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "units/units.hpp"
+#include "utilities/Hdf5DataFile.h"
 #include "utilities/MatrixDataSparse.hpp"
 #include <algorithm>
 #include <array>
@@ -30,6 +31,7 @@
 #include <limits>
 #include <nlohmann/json.hpp>
 #include <pugixml.hpp>
+#include <span>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -681,192 +683,149 @@ void savePowerFlowBinary(GridDynSimulation* /*gds*/, const std::string& /*fileNa
 
 void saveState(GridDynSimulation* gds,
                const std::string& fileName,
-               const SolverMode& sMode,
+               const SolverMode& mode,
                bool append)
 {
-    std::filesystem::path filePath(fileName);
-    if (fileName.empty()) {
-        auto stateFile = gds->getString("statefile");
-        if (stateFile.empty()) {
-            std::cerr << "no file specified\n";
-            return;
-        }
-        filePath = std::filesystem::path(stateFile);
-    }
-
-    const std::string ext = convertToLowerCase(filePath.extension().string());
-
-    if (ext == ".xml") {
-        saveStateXML(gds, filePath.string(), sMode);
-    } else {
-        saveStateBinary(gds, filePath.string(), sMode, append);
-    }
-}
-
-void saveStateXML(GridDynSimulation* /*gds*/,
-                  const std::string& /*fileName*/,
-                  const SolverMode& /*sMode*/)
-{
+    saveStateBinary(gds, fileName, mode, append);
 }
 
 namespace {
-    // State snapshots and solver diagnostics share this record format.
-    constexpr std::array<char, 8> stateMagic{'G', 'D', 'S', 'T', 'A', 'T', 'E', '1'};
-    constexpr std::uint32_t snapshotMarker = 0x31544153U;  // SAT1
-    constexpr std::uint32_t snapshotEnd = 0x31444E45U;  // END1
-    constexpr std::uint32_t dynamicFlag = 1U;
-    constexpr std::uint32_t differentialFlag = 2U;
-    constexpr std::uint32_t algebraicFlag = 4U;
-    constexpr std::uint32_t localFlag = 8U;
-    constexpr std::uint32_t extendedFlag = 16U;
-    constexpr std::uint32_t parameterFlag = 32U;
-    constexpr std::uint32_t knownStateFlags = 63U;
-    constexpr std::uint64_t snapshotHeaderSize = 48U;
-    constexpr std::uint64_t snapshotTrailerSize = 4U;
-    constexpr std::uint32_t snapshotSource = 0U;
-    constexpr std::uint32_t diagnosticSource = 1U;
-    constexpr std::uint32_t snapshotRecord = 0U;
-    constexpr std::uint32_t vectorRecord = 1U;
-    constexpr std::uint32_t matrixRecord = 2U;
-    constexpr std::uint32_t namesRecord = 3U;
-
-    static_assert(sizeof(double) == 8 && std::numeric_limits<double>::is_iec559,
-                  "binary state files require IEEE-754 binary64 doubles");
+    using utilities::Hdf5DataFile;
+    using utilities::Hdf5RecordInfo;
+    using utilities::Hdf5RecordType;
+    using utilities::Hdf5RecordView;
+    constexpr std::uint32_t dynamicFlag = 1U, differentialFlag = 2U, algebraicFlag = 4U;
+    constexpr std::uint32_t localFlag = 8U, extendedFlag = 16U, parameterFlag = 32U;
+    constexpr std::uint32_t snapshotSource = 0U, diagnosticSource = 1U;
 
     std::uint32_t stateModeFlags(const SolverMode& mode)
     {
-        return (mode.dynamic ? dynamicFlag : 0U) |
-            (mode.differential ? differentialFlag : 0U) |
+        return (mode.dynamic ? dynamicFlag : 0U) | (mode.differential ? differentialFlag : 0U) |
             (mode.algebraic ? algebraicFlag : 0U) | (mode.local ? localFlag : 0U) |
             (mode.extended_state ? extendedFlag : 0U) | (mode.parameters ? parameterFlag : 0U);
     }
-
-    template<class UInt>
-    void writeStateInteger(std::ostream& output, UInt value)
+    Hdf5RecordInfo recordInfo(CoreTime time,
+                              std::uint32_t source,
+                              std::uint32_t code,
+                              std::uint64_t index,
+                              const SolverMode& mode)
     {
-        std::array<char, sizeof(UInt)> bytes{};
-        for (std::size_t index = 0; index < bytes.size(); ++index) {
-            bytes[index] = static_cast<char>(value & 0xffU);
-            value >>= 8U;
-        }
-        output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+        Hdf5RecordInfo info;
+        info.time_ns = time.to_ns().count();
+        info.source = source;
+        info.code = code;
+        info.index = index;
+        info.flags = stateModeFlags(mode);
+        info.approx = static_cast<std::uint32_t>(mode.approx.to_ulong());
+        info.key = mode.offsetIndex == kNullLocation ? utilities::hdf5NoIndex :
+                                                       static_cast<std::uint64_t>(mode.offsetIndex);
+        info.paired_key = mode.pairedOffsetIndex == kNullLocation ?
+            utilities::hdf5NoIndex :
+            static_cast<std::uint64_t>(mode.pairedOffsetIndex);
+        return info;
     }
-
-    template<class UInt>
-    UInt readStateInteger(std::istream& input)
+    SolverMode recordedMode(const Hdf5RecordInfo& info)
     {
-        std::array<unsigned char, sizeof(UInt)> bytes{};
-        input.read(reinterpret_cast<char*>(bytes.data()),
-                   static_cast<std::streamsize>(bytes.size()));
-        if (!input) {
-            throw FileOperationError("truncated binary state file");
+        if ((info.flags & ~63U) != 0 || info.key > static_cast<std::uint64_t>(kIndexMax) ||
+            (info.paired_key != utilities::hdf5NoIndex &&
+             info.paired_key > static_cast<std::uint64_t>(kIndexMax))) {
+            throw FileOperationError("invalid HDF5 solver mode");
         }
-        UInt value = 0;
-        for (std::size_t index = 0; index < bytes.size(); ++index) {
-            value |= static_cast<UInt>(bytes[index]) << (8U * index);
-        }
-        return value;
+        SolverMode mode(static_cast<index_t>(info.key));
+        mode.dynamic = (info.flags & dynamicFlag) != 0;
+        mode.differential = (info.flags & differentialFlag) != 0;
+        mode.algebraic = (info.flags & algebraicFlag) != 0;
+        mode.local = (info.flags & localFlag) != 0;
+        mode.extended_state = (info.flags & extendedFlag) != 0;
+        mode.parameters = (info.flags & parameterFlag) != 0;
+        mode.approx = info.approx;
+        mode.pairedOffsetIndex = info.paired_key == utilities::hdf5NoIndex ?
+            kNullLocation :
+            static_cast<index_t>(info.paired_key);
+        return mode;
     }
-
-    void writeStateValues(std::ostream& output, const double* values, count_t count)
+    Hdf5RecordView vectorRecord(CoreTime time,
+                                std::uint32_t source,
+                                std::uint32_t code,
+                                std::uint64_t index,
+                                const SolverMode& mode,
+                                std::uint64_t count,
+                                const double* data)
     {
-        if constexpr (std::endian::native == std::endian::little) {
-            if (count > 0) {
-                output.write(reinterpret_cast<const char*>(values),
-                             static_cast<std::streamsize>(count) * sizeof(double));
-            }
-        } else {
-            for (count_t index = 0; index < count; ++index) {
-                writeStateInteger(output, std::bit_cast<std::uint64_t>(values[index]));
-            }
+        if ((count > 0 && data == nullptr) ||
+            count > (std::numeric_limits<std::size_t>::max)() / sizeof(double)) {
+            throw FileOperationError("HDF5 vector data is unavailable or too large");
         }
+        Hdf5RecordView view;
+        view.info = recordInfo(time, source, code, index, mode);
+        view.values = std::span<const double>(data, static_cast<std::size_t>(count));
+        return view;
     }
-
-    void readStateValues(std::istream& input, std::vector<double>& values)
+    Hdf5RecordView matrixRecord(CoreTime time,
+                                std::uint32_t code,
+                                std::uint64_t index,
+                                const SolverMode& mode,
+                                MatrixData<double>& matrix,
+                                std::uint64_t rows,
+                                std::uint64_t columns,
+                                double cj)
     {
-        if constexpr (std::endian::native == std::endian::little) {
-            if (!values.empty()) {
-                input.read(reinterpret_cast<char*>(values.data()),
-                           static_cast<std::streamsize>(values.size() * sizeof(double)));
-                if (!input) {
-                    throw FileOperationError("truncated binary state values");
+        Hdf5RecordView view;
+        view.info = recordInfo(time, diagnosticSource, code, index, mode);
+        view.info.type = Hdf5RecordType::MATRIX;
+        view.info.count = matrix.size();
+        view.info.cj = cj;
+        if (rows == 0 && matrix.rowLimit() != kIndexMax) {
+            rows = matrix.rowLimit();
+        }
+        if (columns == 0 && matrix.colLimit() != kIndexMax) {
+            columns = matrix.colLimit();
+        }
+        if (rows == 0 || columns == 0) {
+            matrix.start();
+            std::uint64_t inferredRows = 0, inferredColumns = 0;
+            for (std::uint64_t i = 0; i < view.info.count; ++i) {
+                const auto entry = matrix.next();
+                if (std::cmp_less(entry.row, 0) || std::cmp_less(entry.col, 0)) {
+                    throw FileOperationError("negative sparse matrix index");
                 }
+                inferredRows = (std::max)(inferredRows, static_cast<std::uint64_t>(entry.row) + 1);
+                inferredColumns =
+                    (std::max)(inferredColumns, static_cast<std::uint64_t>(entry.col) + 1);
             }
-        } else {
-            for (auto& value : values) {
-                value = std::bit_cast<double>(readStateInteger<std::uint64_t>(input));
+            if (rows == 0) {
+                rows = inferredRows;
+            }
+            if (columns == 0) {
+                columns = inferredColumns;
             }
         }
-    }
-
-    void checkStateMagic(std::istream& input)
-    {
-        std::array<char, stateMagic.size()> magic{};
-        input.read(magic.data(), static_cast<std::streamsize>(magic.size()));
-        if (!input || magic != stateMagic) {
-            throw FileOperationError("unsupported binary state file format or version");
-        }
-    }
-
-    std::ofstream openStateOutput(const std::string& path, bool append)
-    {
-        bool addHeader = true;
-        if (append && std::filesystem::exists(path) && std::filesystem::file_size(path) > 0) {
-            std::ifstream existing(path, std::ios::binary | std::ios::ate);
-            const auto length = existing.tellg();
-            if (!existing || length < static_cast<std::streamoff>(stateMagic.size() + 4)) {
-                throw FileOperationError("invalid binary state file for append: " + path);
+        view.info.rows = rows;
+        view.info.columns = columns;
+        matrix.start();
+        view.matrix = [&matrix](std::span<double> values,
+                                std::span<std::uint64_t> row,
+                                std::span<std::uint64_t> column) {
+            for (std::size_t i = 0; i < values.size(); ++i) {
+                const auto entry = matrix.next();
+                if (std::cmp_less(entry.row, 0) || std::cmp_less(entry.col, 0)) {
+                    throw FileOperationError("negative sparse matrix index");
+                }
+                values[i] = entry.data;
+                row[i] = entry.row;
+                column[i] = entry.col;
             }
-            existing.seekg(0);
-            checkStateMagic(existing);
-            existing.seekg(-static_cast<std::streamoff>(sizeof(std::uint32_t)), std::ios::end);
-            if (readStateInteger<std::uint32_t>(existing) != snapshotEnd) {
-                throw FileOperationError("cannot append to an incomplete binary state file: " + path);
-            }
-            addHeader = false;
-        }
-        std::ofstream output(path, std::ios::binary | std::ios::out |
-                                       (append ? std::ios::app : std::ios::trunc));
-        if (!output) {
-            throw FileOperationError("unable to open binary state file " + path);
-        }
-        if (addHeader) {
-            output.write(stateMagic.data(), static_cast<std::streamsize>(stateMagic.size()));
-        }
-        return output;
+        };
+        return view;
     }
-
-    void writeStateHeader(std::ostream& output,
-                          CoreTime time,
-                          std::uint32_t source,
-                          std::uint32_t type,
-                          std::uint32_t code,
-                          std::uint32_t index,
-                          const SolverMode& mode,
-                          std::uint64_t count)
+    template<class Function>
+    auto stateFileOperation(Function&& function)
     {
-        if (std::cmp_less(mode.offsetIndex, 0) ||
-            std::cmp_greater(mode.offsetIndex, (std::numeric_limits<std::uint32_t>::max)())) {
-            throw FileOperationError("solver offset is outside the binary state format range");
+        try {
+            return function();
         }
-        writeStateInteger(output, snapshotMarker);
-        writeStateInteger(output, source);
-        writeStateInteger(output, type);
-        writeStateInteger(output, code);
-        writeStateInteger(output, index);
-        writeStateInteger(output, stateModeFlags(mode));
-        writeStateInteger(output, static_cast<std::uint32_t>(mode.approx.to_ulong()));
-        writeStateInteger(output, static_cast<std::uint32_t>(mode.offsetIndex));
-        writeStateInteger(output, std::bit_cast<std::uint64_t>(time.to_ns().count()));
-        writeStateInteger(output, count);
-    }
-
-    void closeStateOutput(std::ofstream& output, const std::string& path)
-    {
-        writeStateInteger(output, snapshotEnd);
-        output.close();
-        if (!output) {
-            throw FileOperationError("unable to write binary state file " + path);
+        catch (const std::runtime_error& error) {
+            throw FileOperationError(error.what());
         }
     }
 }  // namespace
@@ -876,239 +835,215 @@ void saveStateBinary(GridDynSimulation* gds,
                      const SolverMode& sMode,
                      bool append)
 {
-    const auto mode = gds->getCurrentMode(sMode);
-    auto solver = gds->getSolverInterface(mode);
-    if (!solver || !solver->isInitialized()) {
-        throw FileOperationError("solver must be initialized before saving binary state");
-    }
-    const auto count = solver->size();
-    if (count > 0 && (!solver->stateData() ||
-                      (hasDifferential(mode) && !solver->derivData()))) {
-        throw FileOperationError("solver state or derivative data is unavailable");
-    }
-    const auto path = fileName.empty() ? gds->getString("statefile") : fileName;
-    if (path.empty()) {
-        throw FileOperationError("no binary state file specified");
-    }
-
-    auto output = openStateOutput(path, append);
-    writeStateHeader(output, gds->getSimulationTime(), snapshotSource, snapshotRecord,
-                     STATE_INFORMATION, 0U, mode, count);
-    writeStateValues(output, solver->stateData(), count);
-    if (hasDifferential(mode)) {
-        writeStateValues(output, solver->derivData(), count);
-    }
-    closeStateOutput(output, path);
+    stateFileOperation([&]() {
+        const auto selected = gds->getSolverInterface(gds->getCurrentMode(sMode));
+        if (!selected) {
+            throw FileOperationError("solver is unavailable");
+        }
+        const auto mode = selected->getSolverMode();
+        const auto path = fileName.empty() ? gds->getString("statefile") : fileName;
+        if (path.empty()) {
+            throw FileOperationError("no HDF5 state file specified");
+        }
+        std::vector<Hdf5RecordView> records;
+        const auto addSolver = [&](const SolverMode& selected, std::uint64_t block) {
+            auto solver = gds->getSolverInterface(selected);
+            if (!solver || !solver->isInitialized()) {
+                throw FileOperationError("solver must be initialized before saving state");
+            }
+            records.push_back(vectorRecord(gds->getSimulationTime(),
+                                           snapshotSource,
+                                           STATE_INFORMATION,
+                                           block,
+                                           selected,
+                                           solver->size(),
+                                           solver->stateData()));
+            if (hasDifferential(selected)) {
+                records.push_back(vectorRecord(gds->getSimulationTime(),
+                                               snapshotSource,
+                                               DERIVATIVE_INFORMATION,
+                                               block,
+                                               selected,
+                                               solver->size(),
+                                               solver->derivData()));
+            }
+        };
+        addSolver(mode, 0);
+        if (mode.pairedOffsetIndex != kNullLocation) {
+            auto paired = gds->getSolverInterface(SolverMode(mode.pairedOffsetIndex));
+            if (!paired) {
+                throw FileOperationError("paired solver is unavailable");
+            }
+            addSolver(paired->getSolverMode(), 1);
+        }
+        Hdf5DataFile output(path,
+                            append ? Hdf5DataFile::OpenMode::APPEND :
+                                     Hdf5DataFile::OpenMode::TRUNCATE);
+        output.append(records);
+    });
 }
 
 void writeVector(CoreTime time,
                  std::uint32_t code,
-                 std::uint32_t index,
+                 std::uint64_t index,
                  const SolverMode& mode,
-                 std::uint32_t numElements,
+                 std::uint64_t count,
                  const double* data,
                  const std::string& fileName,
                  bool append)
 {
-    if (numElements > 0 && data == nullptr) {
-        throw FileOperationError("diagnostic vector data is unavailable");
-    }
-    auto output = openStateOutput(fileName, append);
-    writeStateHeader(output, time, diagnosticSource, vectorRecord, code, index, mode, numElements);
-    writeStateValues(output, data, numElements);
-    closeStateOutput(output, fileName);
+    stateFileOperation([&]() {
+        Hdf5DataFile output(fileName,
+                            append ? Hdf5DataFile::OpenMode::APPEND :
+                                     Hdf5DataFile::OpenMode::TRUNCATE);
+        const auto view = vectorRecord(time, diagnosticSource, code, index, mode, count, data);
+        output.append(std::span(&view, 1));
+    });
 }
-
 void writeArray(CoreTime time,
                 std::uint32_t code,
-                std::uint32_t index,
+                std::uint64_t index,
                 const SolverMode& mode,
-                MatrixData<double>& matrixValues,
+                MatrixData<double>& matrix,
                 const std::string& fileName,
-                bool append)
+                bool append,
+                std::uint64_t rows,
+                std::uint64_t columns,
+                double cj)
 {
-    auto output = openStateOutput(fileName, append);
-    const auto numElements = matrixValues.size();
-    writeStateHeader(output, time, diagnosticSource, matrixRecord, code, index, mode, numElements);
-    matrixValues.start();
-    for (size_t elementIndex = 0; elementIndex < numElements; ++elementIndex) {
-        const auto elementData = matrixValues.next();
-        if (std::cmp_less(elementData.row, 0) || std::cmp_less(elementData.col, 0) ||
-            std::cmp_greater(elementData.row, (std::numeric_limits<std::uint32_t>::max)()) ||
-            std::cmp_greater(elementData.col, (std::numeric_limits<std::uint32_t>::max)())) {
-            throw FileOperationError("Jacobian index is outside the binary state format range");
-        }
-        writeStateInteger(output, static_cast<std::uint32_t>(elementData.row));
-        writeStateInteger(output, static_cast<std::uint32_t>(elementData.col));
-        writeStateInteger(output, std::bit_cast<std::uint64_t>(elementData.data));
+    stateFileOperation([&]() {
+        Hdf5DataFile output(fileName,
+                            append ? Hdf5DataFile::OpenMode::APPEND :
+                                     Hdf5DataFile::OpenMode::TRUNCATE);
+        const auto view = matrixRecord(time, code, index, mode, matrix, rows, columns, cj);
+        output.append(std::span(&view, 1));
+    });
+}
+void writeDiagnosticState(Hdf5DataFile& output,
+                          CoreTime time,
+                          std::uint64_t index,
+                          const SolverMode& mode,
+                          std::uint64_t count,
+                          const double* state,
+                          const double* derivative,
+                          const double* residual)
+{
+    std::vector<Hdf5RecordView> records;
+    records.push_back(
+        vectorRecord(time, diagnosticSource, STATE_INFORMATION, index, mode, count, state));
+    if (derivative != nullptr) {
+        records.push_back(vectorRecord(
+            time, diagnosticSource, DERIVATIVE_INFORMATION, index, mode, count, derivative));
     }
-    closeStateOutput(output, fileName);
+    if (residual != nullptr) {
+        records.push_back(vectorRecord(
+            time, diagnosticSource, RESIDUAL_INFORMATION, index, mode, count, residual));
+    }
+    output.append(records);
+}
+void writeDiagnosticVector(Hdf5DataFile& output,
+                           CoreTime time,
+                           std::uint32_t code,
+                           std::uint64_t index,
+                           const SolverMode& mode,
+                           std::uint64_t count,
+                           const double* values)
+{
+    const auto record = vectorRecord(time, diagnosticSource, code, index, mode, count, values);
+    output.append(std::span(&record, 1));
+}
+void writeDiagnosticJacobian(Hdf5DataFile& output,
+                             CoreTime time,
+                             std::uint64_t index,
+                             const SolverMode& mode,
+                             MatrixData<double>& matrix,
+                             std::uint64_t rows,
+                             std::uint64_t columns,
+                             double cj)
+{
+    const auto record = matrixRecord(time, JACOBIAN_DATA, index, mode, matrix, rows, columns, cj);
+    output.append(std::span(&record, 1));
 }
 
-namespace {
-    void writeStateNames(CoreTime time,
-                         const SolverMode& mode,
-                         const stringVec& names,
-                         const std::string& fileName)
-    {
-        std::uint64_t bytes = sizeof(std::uint32_t);
-        for (const auto& name : names) {
-            if (name.size() > (std::numeric_limits<std::uint32_t>::max)()) {
-                throw FileOperationError("state name is too long");
-            }
-            bytes += sizeof(std::uint32_t) + name.size();
-        }
-        if (names.size() > (std::numeric_limits<std::uint32_t>::max)()) {
-            throw FileOperationError("too many state names");
-        }
-        auto output = openStateOutput(fileName, true);
-        writeStateHeader(output, time, diagnosticSource, namesRecord, 0U, 0U, mode, bytes);
-        writeStateInteger(output, static_cast<std::uint32_t>(names.size()));
-        for (const auto& name : names) {
-            writeStateInteger(output, static_cast<std::uint32_t>(name.size()));
-            output.write(name.data(), static_cast<std::streamsize>(name.size()));
-        }
-        closeStateOutput(output, fileName);
-    }
-}  // namespace
-
-void loadState(GridDynSimulation* gds, const std::string& fileName, const SolverMode& sMode)
+void loadState(GridDynSimulation* gds, const std::string& fileName, const SolverMode& mode)
 {
-    const std::filesystem::path filePath(fileName);
-    if (fileName.empty()) {
-        auto stateFile = gds->getString("statefile");
-        if (stateFile.empty()) {
-            std::cerr << "no file specified\n";
-            gds->log(gds, PrintLevel::ERROR, "no state file specified");
-            throw(InvalidFileName());
-        }
-        loadStateBinary(gds, stateFile, sMode);
-        return;
-    }
-
-    if (!std::filesystem::exists(filePath)) {
-        gds->log(gds, PrintLevel::ERROR, "file does not exist");
-        throw(InvalidFileName());
-    }
-
-    const std::string ext = convertToLowerCase(filePath.extension().string());
-
-    if (ext == ".xml") {
-        loadStateXML(gds, fileName, sMode);
-    } else {
-        loadStateBinary(gds, fileName, sMode);
-    }
+    loadStateBinary(gds, fileName, mode);
 }
 
 BinaryStateData readStateBinary(const std::string& fileName)
 {
-    std::ifstream input(fileName, std::ios::binary | std::ios::ate);
-    if (!input) {
-        throw FileOperationError("unable to open binary state file " + fileName);
-    }
-    const auto end = input.tellg();
-    if (end < static_cast<std::streamoff>(stateMagic.size())) {
-        throw FileOperationError("truncated binary state file " + fileName);
-    }
-    input.seekg(0);
-    checkStateMagic(input);
-
-    BinaryStateData last;
-    std::streampos valuesPosition{};
-    std::uint64_t lastCount = 0;
-    bool found = false;
-    while (input.tellg() < end) {
-        const auto start = input.tellg();
-        const auto available = static_cast<std::uint64_t>(end - start);
-        if (available < snapshotHeaderSize + snapshotTrailerSize) {
-            throw FileOperationError("truncated binary state snapshot");
-        }
-        if (readStateInteger<std::uint32_t>(input) != snapshotMarker) {
-            throw FileOperationError("invalid binary state snapshot marker");
-        }
-        const auto source = readStateInteger<std::uint32_t>(input);
-        const auto type = readStateInteger<std::uint32_t>(input);
-        static_cast<void>(readStateInteger<std::uint32_t>(input));  // code
-        static_cast<void>(readStateInteger<std::uint32_t>(input));  // index
-        if ((source != snapshotSource && source != diagnosticSource) ||
-            (source == snapshotSource && type != snapshotRecord) ||
-            (source == diagnosticSource &&
-             type != vectorRecord && type != matrixRecord && type != namesRecord)) {
-            throw FileOperationError("unsupported binary state record type or source");
-        }
-        const auto flags = readStateInteger<std::uint32_t>(input);
-        if ((flags & ~knownStateFlags) != 0U) {
-            throw FileOperationError("unsupported binary state snapshot flags");
-        }
-        const auto approximation = readStateInteger<std::uint32_t>(input);
-        const auto offset = readStateInteger<std::uint32_t>(input);
-        const auto time = std::bit_cast<std::int64_t>(readStateInteger<std::uint64_t>(input));
-        const auto count = readStateInteger<std::uint64_t>(input);
-        const auto bytesPerElement = type == namesRecord ? 1U :
-            ((type == matrixRecord || (type == snapshotRecord && (flags & differentialFlag))) ?
-                 16U : 8U);
-        if (count > (available - snapshotHeaderSize - snapshotTrailerSize) / bytesPerElement ||
-            count > (std::numeric_limits<std::size_t>::max)() / sizeof(double) ||
-            count > static_cast<std::uint64_t>((std::numeric_limits<std::streamsize>::max)()) /
-                sizeof(double)) {
-            throw FileOperationError("invalid binary state vector length");
-        }
-        if (type == snapshotRecord) {
-            valuesPosition = input.tellg();
-            lastCount = count;
-            last.time = CoreTime(std::chrono::nanoseconds(time));
-            last.mode = SolverMode(static_cast<index_t>(offset));
-            last.mode.dynamic = (flags & dynamicFlag) != 0U;
-            last.mode.differential = (flags & differentialFlag) != 0U;
-            last.mode.algebraic = (flags & algebraicFlag) != 0U;
-            last.mode.local = (flags & localFlag) != 0U;
-            last.mode.extended_state = (flags & extendedFlag) != 0U;
-            last.mode.parameters = (flags & parameterFlag) != 0U;
-            last.mode.approx = approximation;
-            found = true;
-        }
-        if (type == namesRecord) {
-            if (count < sizeof(std::uint32_t)) {
-                throw FileOperationError("invalid binary state names record");
-            }
-            const auto namesStart = input.tellg();
-            const auto nameCount = readStateInteger<std::uint32_t>(input);
-            if (nameCount > (count - sizeof(std::uint32_t)) / sizeof(std::uint32_t)) {
-                throw FileOperationError("invalid binary state name count");
-            }
-            for (std::uint32_t index = 0; index < nameCount; ++index) {
-                const auto consumed = static_cast<std::uint64_t>(input.tellg() - namesStart);
-                if (consumed > count || count - consumed < sizeof(std::uint32_t)) {
-                    throw FileOperationError("truncated binary state name");
+    return stateFileOperation([&]() {
+        Hdf5DataFile input(fileName, Hdf5DataFile::OpenMode::READ_ONLY);
+        std::vector<Hdf5RecordInfo> frame;
+        std::uint64_t selected = utilities::hdf5NoIndex;
+        auto end = input.recordCount();
+        bool finished = false;
+        while (end > 0 && !finished) {
+            const auto start = end > 128 ? end - 128 : 0;
+            const auto records = input.readRecords(start, end - start);
+            for (auto record = records.rbegin(); record != records.rend(); ++record) {
+                if (selected == utilities::hdf5NoIndex && record->source == snapshotSource) {
+                    selected = record->frame;
                 }
-                const auto length = readStateInteger<std::uint32_t>(input);
-                const auto offsetAfterLength = static_cast<std::uint64_t>(input.tellg() - namesStart);
-                if (length > count - offsetAfterLength) {
-                    throw FileOperationError("invalid binary state name length");
+                if (selected != utilities::hdf5NoIndex) {
+                    if (record->frame != selected) {
+                        finished = true;
+                        break;
+                    }
+                    frame.push_back(*record);
                 }
-                input.seekg(static_cast<std::streamoff>(length), std::ios::cur);
             }
-            if (!input || static_cast<std::uint64_t>(input.tellg() - namesStart) != count) {
-                throw FileOperationError("invalid binary state names record length");
+            end = start;
+        }
+        if (frame.empty()) {
+            throw FileOperationError("HDF5 file contains no state snapshots");
+        }
+        std::reverse(frame.begin(), frame.end());
+        BinaryStateData saved;
+        bool primary = true;
+        for (const auto& record : frame) {
+            if (record.source != snapshotSource || record.type != Hdf5RecordType::VECTOR ||
+                record.code != STATE_INFORMATION) {
+                continue;
             }
-        } else {
-            input.seekg(static_cast<std::streamoff>(count * bytesPerElement), std::ios::cur);
+            BinaryStateBlock block;
+            block.mode = recordedMode(record);
+            block.state = input.readValues(record);
+            if (hasDifferential(block.mode)) {
+                auto derivative = std::find_if(frame.begin(), frame.end(), [&](const auto& other) {
+                    return other.source == snapshotSource && other.type == Hdf5RecordType::VECTOR &&
+                        other.code == DERIVATIVE_INFORMATION && other.key == record.key;
+                });
+                if (derivative == frame.end() || derivative->count != record.count ||
+                    derivative->time_ns != record.time_ns) {
+                    throw FileOperationError("incomplete HDF5 differential state frame");
+                }
+                block.derivatives = input.readValues(*derivative);
+            }
+            if (primary) {
+                saved.time = CoreTime(std::chrono::nanoseconds(record.time_ns));
+                saved.mode = block.mode;
+                saved.state = std::move(block.state);
+                saved.derivatives = std::move(block.derivatives);
+                primary = false;
+            } else {
+                if (record.time_ns != saved.time.to_ns().count()) {
+                    throw FileOperationError("inconsistent state frame time");
+                }
+                saved.paired.push_back(std::move(block));
+            }
         }
-        if (!input || readStateInteger<std::uint32_t>(input) != snapshotEnd) {
-            throw FileOperationError("invalid or truncated binary state snapshot trailer");
+        if (primary) {
+            throw FileOperationError("HDF5 frame contains no state vector");
         }
-    }
-    if (!found) {
-        throw FileOperationError("binary state file contains no snapshots");
-    }
-    input.seekg(valuesPosition);
-    last.state.resize(static_cast<std::size_t>(lastCount));
-    readStateValues(input, last.state);
-    if (last.mode.differential) {
-        last.derivatives.resize(static_cast<std::size_t>(lastCount));
-        readStateValues(input, last.derivatives);
-    }
-    return last;
+        if (saved.mode.pairedOffsetIndex != kNullLocation &&
+            std::none_of(saved.paired.begin(), saved.paired.end(), [&](const auto& pair) {
+                return pair.mode.offsetIndex == saved.mode.pairedOffsetIndex;
+            })) {
+            throw FileOperationError("incomplete paired state frame");
+        }
+        return saved;
+    });
 }
 
 namespace {
@@ -1116,25 +1051,55 @@ namespace {
                           const SolverMode& mode,
                           const BinaryStateData& saved)
     {
-        auto solver = gds->getSolverInterface(mode);
-        if (!solver || !solver->isInitialized()) {
-            throw FileOperationError("solver must be initialized before loading binary state");
+        struct Target {
+            std::shared_ptr<SolverInterface> solver;
+            const std::vector<double>* state;
+            const std::vector<double>* derivative;
+        };
+        std::vector<Target> targets;
+        const auto validate = [&](const SolverMode& targetMode,
+                                  const SolverMode& storedMode,
+                                  const std::vector<double>& state,
+                                  const std::vector<double>& derivative) {
+            auto solver = gds->getSolverInterface(targetMode);
+            if (!solver || !solver->isInitialized()) {
+                throw FileOperationError("solver must be initialized before loading HDF5 state");
+            }
+            if (stateModeFlags(storedMode) != stateModeFlags(targetMode) ||
+                storedMode.approx != targetMode.approx || state.size() != solver->size() ||
+                (hasDifferential(targetMode) && derivative.size() != state.size())) {
+                throw FileOperationError("HDF5 state does not match the solver mode or size");
+            }
+            if (!state.empty() &&
+                (!solver->stateData() || (hasDifferential(targetMode) && !solver->derivData()))) {
+                throw FileOperationError("solver state or derivative data is unavailable");
+            }
+            targets.push_back({solver, &state, &derivative});
+        };
+        validate(mode, saved.mode, saved.state, saved.derivatives);
+        if (!saved.paired.empty()) {
+            if (saved.paired.size() != 1 || mode.pairedOffsetIndex == kNullLocation) {
+                throw FileOperationError(
+                    "HDF5 paired state does not match the solver configuration");
+            }
+            auto solver = gds->getSolverInterface(SolverMode(mode.pairedOffsetIndex));
+            if (!solver) {
+                throw FileOperationError("paired solver is unavailable");
+            }
+            const auto& pair = saved.paired.front();
+            validate(solver->getSolverMode(), pair.mode, pair.state, pair.derivatives);
         }
-        if (stateModeFlags(saved.mode) != stateModeFlags(mode) || saved.mode.approx != mode.approx ||
-            saved.state.size() != solver->size()) {
-            throw FileOperationError("binary state file does not match the solver mode or size");
-        }
-        if (!saved.state.empty() && (!solver->stateData() ||
-                                     (hasDifferential(mode) && !solver->derivData()))) {
-            throw FileOperationError("solver state or derivative data is unavailable");
-        }
-        if (!saved.state.empty()) {
-            std::copy(saved.state.begin(), saved.state.end(), solver->stateData());
-        }
-        if (hasDifferential(mode) && !saved.derivatives.empty()) {
-            std::copy(saved.derivatives.begin(), saved.derivatives.end(), solver->derivData());
+        // Check every block before modifying any solver array.
+        for (const auto& target : targets) {
+            std::copy(target.state->begin(), target.state->end(), target.solver->stateData());
+            if (hasDifferential(target.solver->getSolverMode())) {
+                std::copy(target.derivative->begin(),
+                          target.derivative->end(),
+                          target.solver->derivData());
+            }
         }
     }
+
 }  // namespace
 
 void loadStateBinary(GridDynSimulation* gds, const std::string& fileName, const SolverMode& sMode)
@@ -1144,13 +1109,11 @@ void loadStateBinary(GridDynSimulation* gds, const std::string& fileName, const 
         throw FileOperationError("no binary state file specified");
     }
     const auto saved = readStateBinary(path);
-    applyBinaryState(gds, gds->getCurrentMode(sMode), saved);
-}
-
-void loadStateXML(GridDynSimulation* /*gds*/,
-                  const std::string& /*fileName*/,
-                  const SolverMode& /*sMode*/)
-{
+    const auto solver = gds->getSolverInterface(gds->getCurrentMode(sMode));
+    if (!solver) {
+        throw FileOperationError("solver is unavailable");
+    }
+    applyBinaryState(gds, solver->getSolverMode(), saved);
 }
 
 void loadPowerFlow(GridDynSimulation* gds, const std::string& fileName)
@@ -1216,7 +1179,7 @@ namespace {
     using CheckpointJson = nlohmann::json;
 
     std::shared_ptr<SolverInterface> checkpointPowerFlowSolver(GridDynSimulation* gds,
-                                                                const SolverMode& mode)
+                                                               const SolverMode& mode)
     {
         auto solver = static_cast<const GridDynSimulation*>(gds)->getSolverInterface(mode);
         if (!solver || !gds->getOffsets(mode).offsetsLoaded) {
@@ -1369,10 +1332,30 @@ void captureJacState(GridDynSimulation* gds, const std::string& fileName, const 
     gds->getStateName(stateNames, currentMode);
 
     stateNames.resize(solverInterface->size());
-    writeVector(gds->getSimulationTime(), STATE_INFORMATION, 0U, currentMode,
-                solverInterface->size(), solverInterface->stateData(), fileName, false);
-    writeArray(gds->getSimulationTime(), JACOBIAN_DATA, 0U, currentMode, matrixData, fileName, true);
-    writeStateNames(gds->getSimulationTime(), currentMode, stateNames, fileName);
+    stateFileOperation([&]() {
+        Hdf5DataFile output(fileName, Hdf5DataFile::OpenMode::TRUNCATE);
+        auto state = vectorRecord(gds->getSimulationTime(),
+                                  diagnosticSource,
+                                  STATE_INFORMATION,
+                                  0,
+                                  currentMode,
+                                  solverInterface->size(),
+                                  solverInterface->stateData());
+        auto matrix = matrixRecord(gds->getSimulationTime(),
+                                   JACOBIAN_DATA,
+                                   0,
+                                   currentMode,
+                                   matrixData,
+                                   solverInterface->size(),
+                                   solverInterface->size(),
+                                   stateDescription.cj);
+        Hdf5RecordView names;
+        names.info = recordInfo(gds->getSimulationTime(), diagnosticSource, 0, 0, currentMode);
+        names.info.type = Hdf5RecordType::NAMES;
+        names.names = stateNames;
+        const std::array records{state, matrix, names};
+        output.append(records);
+    });
 }
 
 void saveJacobian(GridDynSimulation* gds, const std::string& fileName, const SolverMode& sMode)
@@ -1396,8 +1379,23 @@ void saveJacobian(GridDynSimulation* gds, const std::string& fileName, const Sol
     gds->getStateName(stateNames, currentMode);
 
     stateNames.resize(solverInterface->size());
-    writeArray(gds->getSimulationTime(), JACOBIAN_DATA, 0U, currentMode, matrixData, fileName, false);
-    writeStateNames(gds->getSimulationTime(), currentMode, stateNames, fileName);
+    stateFileOperation([&]() {
+        Hdf5DataFile output(fileName, Hdf5DataFile::OpenMode::TRUNCATE);
+        auto matrix = matrixRecord(gds->getSimulationTime(),
+                                   JACOBIAN_DATA,
+                                   0,
+                                   currentMode,
+                                   matrixData,
+                                   solverInterface->size(),
+                                   solverInterface->size(),
+                                   stateDescription.cj);
+        Hdf5RecordView names;
+        names.info = recordInfo(gds->getSimulationTime(), diagnosticSource, 0, 0, currentMode);
+        names.info.type = Hdf5RecordType::NAMES;
+        names.names = stateNames;
+        const std::array records{matrix, names};
+        output.append(records);
+    });
 }
 
 void saveContingencyOutput(const std::vector<std::shared_ptr<Contingency>>& contList,

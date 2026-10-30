@@ -1,13 +1,25 @@
-function [state, deriv, time] = processCVODEStatefile(filename, doPlot)
+function [state, deriv, time] = processCVODEStatefile(filename, doPlot, key)
 %PROCESSCVODESTATEFILE Extract and optionally plot GridDyn state records.
 %   [STATE, DERIV, TIME] = PROCESSCVODESTATEFILE(FILENAME, DOPLOT) returns
 %   one row per record and one column per state. DOPLOT defaults to true.
+%   Optional KEY selects a solver; by default select the first differential
+%   block so paired algebraic vectors are not mixed into the state rows.
 if nargin < 2
     doPlot = true;
 end
 records = readStateFile(filename);
-stateIndices = find(records.typecode == 0 & records.code == 0);
-derivIndices = find(records.typecode == 0 & records.code == 1);
+if nargin < 3
+    differential = find(records.typecode == 0 & records.code == 0 & ...
+                        bitand(records.flags, uint32(2)) ~= 0, 1);
+    if isempty(differential), key = []; else, key = records.key(differential); end
+end
+if ~isempty(key)
+    stateSelection = records.key == uint64(key);
+else
+    stateSelection = true(size(records.key));
+end
+stateIndices = find(stateSelection & records.typecode == 0 & records.code == 0);
+derivIndices = find(stateSelection & records.typecode == 0 & records.code == 1);
 state = vectorsToRows(records.data, stateIndices);
 deriv = vectorsToRows(records.data, derivIndices);
 time = records.time(stateIndices);

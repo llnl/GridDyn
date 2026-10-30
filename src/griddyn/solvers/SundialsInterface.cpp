@@ -731,8 +731,8 @@ int sundialsJac(sunrealtype time,
         }
         if (sd->flags[FILE_CAPTURE_FLAG]) {
             if (!sd->jacFile.empty()) {
-                auto val = static_cast<std::uint32_t>(sd->get("nliterations"));
-                writeArray(time, 1, val, sd->mode, *a1, sd->jacFile);
+                auto val = static_cast<std::uint64_t>(sd->get("nliterations"));
+                sd->captureDiagnosticJacobian(time, *a1, cj, val);
             }
         }
     } else if (partitionedSparse) {
@@ -807,7 +807,7 @@ int sundialsJac(sunrealtype time,
         ++sd->jacCallCount;
         sd->nnz = a1->size();
         if (sd->flags[FILE_CAPTURE_FLAG] && !sd->jacFile.empty()) {
-            writeArray(time, 1, sd->jacCallCount, sd->mode, *a1, sd->jacFile);
+            sd->captureDiagnosticJacobian(time, *a1, cj, sd->jacCallCount);
         }
     } else {
         // if it isn't the first we can use the SUNDIALS arraySparse object
@@ -843,7 +843,7 @@ int sundialsJac(sunrealtype time,
         sd->jacCallCount++;
         if (sd->flags[FILE_CAPTURE_FLAG]) {
             if (!sd->jacFile.empty()) {
-                writeArray(time, 1, sd->jacCallCount, sd->mode, *a1, sd->jacFile);
+                sd->captureDiagnosticJacobian(time, *a1, cj, sd->jacCallCount);
             }
         }
     }

@@ -140,7 +140,9 @@ int GridDynSimulation::dynInitialize(CoreTime tStart)
         currentTime = tStart;
         // Save the initialized solver vector once at tStart, then schedule
         // subsequent snapshots at each recording interval.
-        saveStateBinary(this, stateFile, solverModeRef, false);
+        if (defaultDynamicSolverMethod != DynamicSolverMethods::PARTITIONED) {
+            saveStateBinary(this, stateFile, solverModeRef, false);
+        }
         stateRecorder = std::make_shared<FunctionEventAdapter>(
             [=, this]() {
                 saveStateBinary(this, stateFile, solverModeRef);
@@ -559,6 +561,10 @@ int GridDynSimulation::dynamicPartitioned(CoreTime tStop, CoreTime tStep)
     int retval = dynamicPartitionedStartupConditions(dynDataDiff, dynDataAlg, sModeDiff, sModeAlg);
     if (retval != FUNCTION_EXECUTION_SUCCESS) {
         return retval;
+    }
+    if (pState == GridState::DYNAMIC_INITIALIZED && state_record_period > timeZero &&
+        !stateFile.empty()) {
+        saveStateBinary(this, stateFile, sModeDiff, false);
     }
     logging::normal(this,
                     "Partitioned initial-condition setup completed at t={} s",

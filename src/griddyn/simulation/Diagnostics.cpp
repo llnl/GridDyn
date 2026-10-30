@@ -8,10 +8,13 @@
 
 #include "../GridDynSimulation.h"
 #include "../solvers/SolverInterface.h"
+#include "GridDynSimulationFileOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/GridRandom.h"
+#include "utilities/Hdf5DataFile.h"
 #include "utilities/MatrixDataSparse.hpp"
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstdio>
 #include <fstream>
@@ -510,7 +513,8 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
     auto ssize = solverInterface->size();
 
     double* state = solverInterface->stateData();
-    std::ofstream bFile(file.c_str(), std::ios::out | std::ios::binary);
+    utilities::Hdf5DataFile output(file, utilities::Hdf5DataFile::OpenMode::TRUNCATE);
+    std::uint64_t sample = 0;
 
     std::vector<double> baseState(ssize, 0);
 
@@ -519,16 +523,17 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
     std::copy(state, state + ssize, baseState.begin());
     std::vector<double> vStates(ssize, 0);
     gds->getVoltageStates(vStates.data(), sMode);
-    bFile.write(reinterpret_cast<char*>(&ssize), sizeof(int));
     double inc = 1.51 / static_cast<double>(pts);
     double limitVal = 1.51;
-    bFile.write(reinterpret_cast<char*>(&inc), sizeof(double));
-    bFile.write(reinterpret_cast<char*>(&limitVal), sizeof(double));
     auto vsi = gmlc::utilities::vecFindgt(vStates, 0.5);
     auto lstate = vsi.back();
     size_t cvs = vsi.size();
-    bFile.write(reinterpret_cast<char*>(&cvs), sizeof(size_t));
 
+    const std::array<double, 2> sweep{inc, limitVal};
+    writeDiagnosticVector(
+        output, gds->getSimulationTime(), 10, 0, sMode, sweep.size(), sweep.data());
+    writeDiagnosticVector(
+        output, gds->getSimulationTime(), 11, 0, sMode, vStates.size(), vStates.data());
     auto tempLevel = solverInterface->get("printlevel");
     solverInterface->set("printLevel", "error");
 
@@ -540,7 +545,8 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
             }
 
             while (state[lstate] < limitVal) {
-                bFile.write(reinterpret_cast<char*>(state), ssize * sizeof(double));
+                writeDiagnosticVector(
+                    output, gds->getSimulationTime(), 0, ++sample, sMode, ssize, state);
                 std::copy(state, state + ssize, tempState.begin());
                 const int retval = solverInterface->calcIC(gds->getSimulationTime(),
                                                            0.001,
@@ -548,11 +554,13 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
                                                            true);
                 if (retval < 0) {
                     double rval2 = retval;
-                    bFile.write(reinterpret_cast<char*>(&rval2), sizeof(double));
+                    writeDiagnosticVector(
+                        output, gds->getSimulationTime(), 4, sample, sMode, 1, &rval2);
                     std::copy(tempState.begin(), tempState.begin() + ssize, state);
                 } else {
                     solverInterface->getCurrentData();
-                    bFile.write(reinterpret_cast<char*>(state), ssize * sizeof(double));
+                    writeDiagnosticVector(
+                        output, gds->getSimulationTime(), 3, sample, sMode, ssize, state);
                     std::copy(tempState.begin(), tempState.begin() + ssize, state);
                 }
 
@@ -579,7 +587,8 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
                 for (size_t jj = 0; jj < cvs; ++jj) {
                     state[vsi[jj]] = rvals[jj];
                 }
-                bFile.write(reinterpret_cast<char*>(state), ssize * sizeof(double));
+                writeDiagnosticVector(
+                    output, gds->getSimulationTime(), 0, ++sample, sMode, ssize, state);
                 std::copy(state, state + ssize, tempState.begin());
                 const int retval = solverInterface->calcIC(gds->getSimulationTime(),
                                                            0.001,
@@ -587,11 +596,13 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
                                                            true);
                 if (retval < 0) {
                     double rval2 = retval;
-                    bFile.write(reinterpret_cast<char*>(&rval2), sizeof(double));
+                    writeDiagnosticVector(
+                        output, gds->getSimulationTime(), 4, sample, sMode, 1, &rval2);
                     std::copy(tempState.begin(), tempState.begin() + ssize, state);
                 } else {
                     solverInterface->getCurrentData();
-                    bFile.write(reinterpret_cast<char*>(state), ssize * sizeof(double));
+                    writeDiagnosticVector(
+                        output, gds->getSimulationTime(), 3, sample, sMode, ssize, state);
                     std::copy(tempState.begin(), tempState.begin() + ssize, state);
                 }
             }
@@ -603,7 +614,8 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
                 for (auto& voltageStateIndex : vsi) {
                     state[voltageStateIndex] = val;
                 }
-                bFile.write(reinterpret_cast<char*>(state), ssize * sizeof(double));
+                writeDiagnosticVector(
+                    output, gds->getSimulationTime(), 0, ++sample, sMode, ssize, state);
                 std::copy(state, state + ssize, tempState.begin());
                 const int retval = solverInterface->calcIC(gds->getSimulationTime(),
                                                            0.001,
@@ -611,11 +623,13 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
                                                            true);
                 if (retval < 0) {
                     double rval2 = retval;
-                    bFile.write(reinterpret_cast<char*>(&rval2), sizeof(double));
+                    writeDiagnosticVector(
+                        output, gds->getSimulationTime(), 4, sample, sMode, 1, &rval2);
                     std::copy(tempState.begin(), tempState.begin() + ssize, state);
                 } else {
                     solverInterface->getCurrentData();
-                    bFile.write(reinterpret_cast<char*>(state), ssize * sizeof(double));
+                    writeDiagnosticVector(
+                        output, gds->getSimulationTime(), 3, sample, sMode, ssize, state);
                     std::copy(tempState.begin(), tempState.begin() + ssize, state);
                 }
                 val += inc;

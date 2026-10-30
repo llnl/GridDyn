@@ -532,21 +532,10 @@ int kinsolFunc(N_Vector state, N_Vector resid, void* userData)
     }
     if (sd->flags[FILE_CAPTURE_FLAG]) {
         if (!sd->stateFile.empty()) {
-            writeVector(sd->solveTime,
-                        STATE_INFORMATION,
-                        sd->funcCallCount,
-                        sd->mode,
-                        sd->svsize,
-                        NVECTOR_DATA(sd->use_omp, state),
-                        sd->stateFile,
-                        (sd->funcCallCount != 1));
-            writeVector(sd->solveTime,
-                        RESIDUAL_INFORMATION,
-                        sd->funcCallCount,
-                        sd->mode,
-                        sd->svsize,
-                        NVECTOR_DATA(sd->use_omp, resid),
-                        sd->stateFile);
+            sd->captureDiagnosticState(sd->solveTime,
+                                       NVECTOR_DATA(sd->use_omp, state),
+                                       nullptr,
+                                       NVECTOR_DATA(sd->use_omp, resid));
         }
     }
     return ret;

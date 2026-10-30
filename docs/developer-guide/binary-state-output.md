@@ -63,30 +63,30 @@ is performed.
 Root attributes are `format="griddyn-data"` and `schema_version=uint32(1)`.
 All payloads are ordinary typed, extendible one-dimensional datasets:
 
-| Dataset | Physical type | Meaning |
-| --- | --- | --- |
-| `/records` | Packed compound table | Capture metadata and offsets; fields below. |
-| `/values` | Little-endian IEEE binary64 | Vector and sparse-matrix values. |
-| `/indices` | Little-endian uint64 | Sparse rows followed by columns, or relative UTF-8 name offsets. |
-| `/bytes` | uint8 | UTF-8 name bytes. |
-| `/committed_records` | Scalar little-endian uint64 | Number of published index rows. |
+| Dataset              | Physical type               | Meaning                                                          |
+| -------------------- | --------------------------- | ---------------------------------------------------------------- |
+| `/records`           | Packed compound table       | Capture metadata and offsets; fields below.                      |
+| `/values`            | Little-endian IEEE binary64 | Vector and sparse-matrix values.                                 |
+| `/indices`           | Little-endian uint64        | Sparse rows followed by columns, or relative UTF-8 name offsets. |
+| `/bytes`             | uint8                       | UTF-8 name bytes.                                                |
+| `/committed_records` | Scalar little-endian uint64 | Number of published index rows.                                  |
 
 `/records` has these named fields:
 
-| Fields | Type / convention |
-| --- | --- |
-| `time_ns` | Signed int64 elapsed simulation nanoseconds. |
-| `frame`, `index` | uint64 frame identity and producer evaluation/block index. |
+| Fields                              | Type / convention                                                                                                                                          |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `time_ns`                           | Signed int64 elapsed simulation nanoseconds.                                                                                                               |
+| `frame`, `index`                    | uint64 frame identity and producer evaluation/block index.                                                                                                 |
 | `key`, `paired_key`, `parent_index` | uint64 producer keys; absent values are `UINT64_MAX`. Solver keys are offset indices. `parent_index` is reserved when no enclosing evaluation is supplied. |
-| `source` | uint32: 0 snapshot, 1 diagnostic. |
-| `type` | uint32: 0 vector, 1 sparse COO matrix, 2 names. |
-| `code` | uint32 vector role: 0 state, 1 derivative/RHS, 2 residual; matrix role 1 Jacobian. |
-| `flags`, `approx` | uint32 solver mode bits and approximation mask. Mode bits 0-5 mean dynamic, differential, algebraic, local, extended state and parameters. |
-| `value_offset`, `count` | uint64 zero-based offset into `/values` and element count; for names, count is number of names. |
-| `index_offset` | uint64 offset into `/indices`. A matrix stores `count` rows then `count` columns. Names store `count+1` nondecreasing offsets beginning at zero. |
-| `byte_offset`, `byte_count` | uint64 range in `/bytes` for names. |
-| `rows`, `columns` | uint64 explicit matrix dimensions; indices are zero based. |
-| `cj` | binary64 Jacobian integration coefficient; NaN means unspecified. |
+| `source`                            | uint32: 0 snapshot, 1 diagnostic.                                                                                                                          |
+| `type`                              | uint32: 0 vector, 1 sparse COUP matrix, 2 names.                                                                                                            |
+| `code`                              | uint32 vector role: 0 state, 1 derivative/RHS, 2 residual; matrix role 1 Jacobian.                                                                         |
+| `flags`, `approx`                   | uint32 solver mode bits and approximation mask. Mode bits 0-5 mean dynamic, differential, algebraic, local, extended state and parameters.                 |
+| `value_offset`, `count`             | uint64 zero-based offset into `/values` and element count; for names, count is number of names.                                                            |
+| `index_offset`                      | uint64 offset into `/indices`. A matrix stores `count` rows then `count` columns. Names store `count+1` nondecreasing offsets beginning at zero.           |
+| `byte_offset`, `byte_count`         | uint64 range in `/bytes` for names.                                                                                                                        |
+| `rows`, `columns`                   | uint64 explicit matrix dimensions; indices are zero based.                                                                                                 |
+| `cj`                                | binary64 Jacobian integration coefficient; NaN means unspecified.                                                                                          |
 
 Frames group related records; a differential snapshot has separate state and
 derivative records. A partitioned snapshot adds its paired block. The snapshot

@@ -65,6 +65,7 @@
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerPss2b.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
+#include "griddyn/stabilizers/StabilizerStab2a.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -305,9 +306,9 @@ TEST(DyrReaderComparisonTests, MapsCsvgn1ParametersAndRunsAsMachineModel)
     const double error = voltage - (voltage - states[0]);
     const double firstOutput = ((model->get("t1") / model->get("t3")) * error) +
         ((1.0 - (model->get("t1") / model->get("t3"))) * states[0]);
-    const double secondOutput = ((model->get("t2") / model->get("t4")) * firstOutput) +
-        ((1.0 - (model->get("t2") / model->get("t4"))) * states[1]);
-    const double regulatorOutput = model->get("k") * secondOutput;
+    const double regulatorOutput =
+        model->get("k") * (model->get("t2") / model->get("t4")) * firstOutput +
+        (1.0 - (model->get("t2") / model->get("t4"))) * states[1];
     ASSERT_GT(regulatorOutput, model->get("vmin"));
     ASSERT_LT(regulatorOutput, model->get("vmax"));
 
@@ -322,6 +323,45 @@ TEST(DyrReaderComparisonTests, MapsCsvgn1ParametersAndRunsAsMachineModel)
 
     simulation->run(0.1);
     EXPECT_EQ(simulation->getSimulationTime(), 0.1);
+}
+
+TEST(DyrReaderComparisonTests, Csvgn1BypassedLagsRunWithDaeAndPartitionedSolvers)
+{
+    for (double t4 : {0.0, 0.09}) {
+        for (double t5 : {0.0, 0.03}) {
+            for (bool partitioned : {false, true}) {
+                SCOPED_TRACE(::testing::Message()
+                             << "T4=" << t4 << " T5=" << t5 << " partitioned=" << partitioned);
+                auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+                griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+                griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_gentpj.dyr"));
+                auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 14));
+                ASSERT_NE(bus, nullptr);
+                auto* svc = new griddyn::DynamicGenerator("csvgn1_bypass");
+                svc->set("q", 20.0, units::MVAR);
+                bus->add(svc);
+                auto* model = new griddyn::genmodels::GenModelCSVGN1;
+                model->set("k", 23.5);
+                model->set("t1", 0.02);
+                model->set("t2", 0.0);
+                model->set("t3", 0.07);
+                model->set("t4", t4);
+                model->set("t5", t5);
+                model->set("cbase", 80.0);
+                svc->add(model);
+                if (partitioned) {
+                    simulation->set("dynamicsolvermethod", "partitioned");
+                    simulation->set("timestep", 0.001);
+                }
+                ASSERT_EQ(simulation->dynInitialize(), 0);
+                EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+                EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+                simulation->run(0.1);
+                EXPECT_EQ(simulation->getSimulationTime(), 0.1);
+                EXPECT_NEAR(model->getOutput(griddyn::QOUT_LOCATION), -0.2, 1e-6);
+            }
+        }
+    }
 }
 
 TEST(DyrReaderComparisonTests, CouplesGentpjToIeeet2Exciter)
@@ -2246,6 +2286,169 @@ TEST(NewControlReaderTests, DiagnosticSwitchZerosPssGainInBothFormats)
         ASSERT_EQ(simulation->dynInitialize(), 0);
         EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
         EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    }
+}
+
+TEST(Stab2aReaderTests, DyrAndDydMapAllParametersAndHonorDiagnosticSwitch)
+{
+    for (const auto file : {"ieee14_stab2a.dyr", "ieee14_stab2a.dyd"}) {
+        for (const bool disable : {false, true}) {
+            SCOPED_TRACE(testing::Message() << file << " disable=" << disable);
+            auto simulation = loadComparisonDynamicCase("ieee14_genrou.dyr", {});
+            if (disable) {
+                simulation->setFlag("disable_stabilizers");
+            }
+            griddyn::loadFile(simulation.get(), makeComparisonTestPath(file));
+            auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+            ASSERT_NE(bus, nullptr);
+            auto* stabilizer =
+                dynamic_cast<griddyn::stabilizers::StabilizerStab2a*>(bus->getGen(0)->find("pss"));
+            ASSERT_NE(stabilizer, nullptr);
+            const std::array<std::pair<std::string_view, double>, 8> parameters{
+                {{"k2", disable ? 0.0 : 0.5},
+                 {"t2", 0.51},
+                 {"k3", 0.31},
+                 {"t3", 0.23},
+                 {"k4", 0.13},
+                 {"k5", 0.81},
+                 {"t5", 0.17},
+                 {"hlim", 0.07}}};
+            for (const auto& [name, value] : parameters) {
+                EXPECT_DOUBLE_EQ(stabilizer->get(name), value) << name;
+            }
+            ASSERT_EQ(simulation->dynInitialize(), 0);
+            EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+            EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+            ASSERT_EQ(simulation->run(0.1), 0);
+            if (disable) {
+                EXPECT_NEAR(stabilizer->getOutput(), 0.0, 1e-12);
+            }
+        }
+    }
+}
+
+TEST(Stab2aReaderTests, MalformedRecordsAreRejectedWithoutAttachingAController)
+{
+    for (const auto extension : {"dyr", "dyd"}) {
+        const auto path = std::filesystem::temp_directory_path() /
+            (std::string("griddyn_stab2a_bad_record.") + extension);
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup()
+            {
+                std::error_code error;
+                std::filesystem::remove(path, error);
+            }
+        } cleanup{path};
+        for (const auto payload : {"0.5 0.51 0.31 0.23 0.13 0.81 0.17",
+                                   "0.5 0.51 0.31 0.23 0.13 0.81 0.17 0.07 99",
+                                   "bad 0.51 0.31 0.23 0.13 0.81 0.17 0.07",
+                                   "0.5 -0.51 0.31 0.23 0.13 0.81 0.17 0.07"}) {
+            SCOPED_TRACE(testing::Message() << extension << " " << payload);
+            {
+                std::ofstream output(path);
+                ASSERT_TRUE(output.is_open());
+                if (std::string_view(extension) == "dyr") {
+                    output << "2 'STAB2A' '1' " << payload << " /\n";
+                } else {
+                    output << "models\nstab2a 2 \"BUS2\" 69 \"1\" : " << payload << " /\n";
+                }
+            }
+            auto simulation = loadComparisonDynamicCase("ieee14_genrou.dyr", {});
+            EXPECT_THROW(griddyn::loadFile(simulation.get(), path.string()),
+                         griddyn::InvalidParameterValue);
+            auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+            ASSERT_NE(bus, nullptr);
+            EXPECT_EQ(bus->getGen(0)->find("pss"), nullptr);
+        }
+    }
+}
+
+TEST(Stab2aReaderTests, UsesTerminalPowerOnMachineBaseWithStatorLosses)
+{
+    auto simulation = loadComparisonDynamicCase("ieee14_genrou.dyr", {"ieee14_stab2a.dyr"});
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    auto* machine = dynamic_cast<griddyn::GenModel*>(generator->find("genmodel"));
+    auto* stabilizer =
+        dynamic_cast<griddyn::stabilizers::StabilizerStab2a*>(generator->find("pss"));
+    ASSERT_NE(machine, nullptr);
+    ASSERT_NE(stabilizer, nullptr);
+    machine->set("r", 0.02);
+    generator->set("mbase", 150.0);
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    const auto state = simulation->getState(griddyn::cDaeSolverMode);
+    const griddyn::StateData data(0.0, state.data(), nullptr, 9012);
+    const auto signals =
+        machine->getMachineControllerSignals({bus->getVoltage(), bus->getAngle(), 0.0, 0.0},
+                                             data,
+                                             griddyn::cDaeSolverMode);
+    const auto power =
+        signals[static_cast<index_t>(griddyn::MachineControllerSignal::ELECTRICAL_POWER)];
+    const auto torque =
+        signals[static_cast<index_t>(griddyn::MachineControllerSignal::ELECTRICAL_TORQUE)];
+    EXPECT_GT(std::abs(torque - power), 1e-5);
+    EXPECT_NEAR(stabilizer->getStates()[1], power, 1e-10);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(Stab2aReaderTests, AllBypassCombinationsRunWithDaeAndPartitionedSolvers)
+{
+    for (const bool partitioned : {false, true}) {
+        for (unsigned int bypasses = 0; bypasses < 8; ++bypasses) {
+            SCOPED_TRACE(testing::Message() << partitioned << " bypasses=" << bypasses);
+            auto simulation = loadComparisonDynamicCase("ieee14_genrou.dyr", {"ieee14_stab2a.dyr"});
+            auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+            ASSERT_NE(bus, nullptr);
+            auto* generator = bus->getGen(0);
+            auto* stabilizer =
+                dynamic_cast<griddyn::stabilizers::StabilizerStab2a*>(generator->find("pss"));
+            ASSERT_NE(stabilizer, nullptr);
+            const std::array<std::string_view, 3> names{"t2", "t3", "t5"};
+            for (unsigned int i = 0; i < names.size(); ++i) {
+                if ((bypasses & (1U << i)) != 0) {
+                    stabilizer->set(names[i], 0.0);
+                }
+            }
+            if (partitioned) {
+                simulation->set("dynamicsolvermethod", "partitioned");
+                simulation->set("defdyndiff", "basicode");
+                simulation->set("timestep", 0.001);
+            }
+            ASSERT_EQ(simulation->dynInitialize(), 0);
+            ASSERT_EQ(simulation->run(0.001), 0);
+            const std::vector<griddyn::SolverMode> modes = partitioned ?
+                std::vector<griddyn::SolverMode>{simulation->getSolverMode("dynalg"),
+                                                 simulation->getSolverMode("dyndiff")} :
+                std::vector<griddyn::SolverMode>{griddyn::cDaeSolverMode};
+            for (const auto& mode : modes) {
+                EXPECT_EQ(runResidualCheck(simulation, mode, false), 0);
+                EXPECT_EQ(runJacobianCheck(simulation, mode, false), 0);
+            }
+            if (partitioned) {
+                EXPECT_EQ(runAlgebraicCheck(simulation, modes[0], false), 0);
+                EXPECT_EQ(runDerivativeCheck(simulation, modes[1], false), 0);
+            }
+            auto* exciter = dynamic_cast<griddyn::Exciter*>(generator->find("exciter"));
+            ASSERT_NE(exciter, nullptr);
+            const double initialField = exciter->getOutput();
+            exciter->set("vref", 1.01);
+            ASSERT_EQ(simulation->run(0.2), 0);
+            EXPECT_GT(std::abs(exciter->getOutput() - initialField), 1e-5);
+            if ((bypasses & 1U) == 0) {
+                EXPECT_GT(std::abs(stabilizer->getOutput()), 1e-9);
+            } else {
+                EXPECT_NEAR(stabilizer->getOutput(), 0.0, 1e-10);
+            }
+            for (const auto& mode : modes) {
+                EXPECT_EQ(runJacobianCheck(simulation, mode, false), 0);
+                for (const double value : simulation->getState(mode)) {
+                    EXPECT_TRUE(std::isfinite(value));
+                }
+            }
+        }
     }
 }
 

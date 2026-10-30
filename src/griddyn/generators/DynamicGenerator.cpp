@@ -1633,8 +1633,21 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
     }
     if ((boundStabilizer != nullptr) && boundStabilizer->isEnabled()) {
         writeModelInputs(PSS_LOC, stateDataValue, sMode);
+        const SolverMode* outputMode = &sMode;
+        StateData outputStateData = stateDataValue;
+        if (isDifferentialOnly(sMode) && sMode.pairedOffsetIndex != kNullLocation &&
+            stateDataValue.algState != nullptr &&
+            !boundStabilizer->checkFlag(DIFFERENTIAL_OUTPUT)) {
+            const auto& pairedMode = offsets.getSolverMode(sMode.pairedOffsetIndex);
+            if (pairedMode.algebraic && boundStabilizer->algSize(pairedMode) > 0) {
+                // The stabilizing voltage is in the paired algebraic state,
+                // not the first internal filter state of this differential mode.
+                outputMode = &pairedMode;
+                outputStateData.state = stateDataValue.algState;
+            }
+        }
         signalFrame.values[stabilizerOutput] =
-            boundStabilizer->getOutput(subInputs.inputs[PSS_LOC], stateDataValue, sMode);
+            boundStabilizer->getOutput(subInputs.inputs[PSS_LOC], outputStateData, *outputMode);
     } else {
         signalFrame.values[stabilizerOutput] = 0.0;
     }
@@ -1741,7 +1754,15 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
         voltageCompensator->getOutputLoc(sMode, 0) :
         sourceLocations[terminalVoltage];
     if ((boundStabilizer != nullptr) && boundStabilizer->isEnabled()) {
-        sourceLocations[stabilizerOutput] = boundStabilizer->getOutputLoc(sMode, 0);
+        index_t location = boundStabilizer->getOutputLoc(sMode, 0);
+        if (isDifferentialOnly(sMode) && sMode.pairedOffsetIndex != kNullLocation &&
+            !boundStabilizer->checkFlag(DIFFERENTIAL_OUTPUT)) {
+            const auto& pairedMode = offsets.getSolverMode(sMode.pairedOffsetIndex);
+            if (pairedMode.algebraic && boundStabilizer->algSize(pairedMode) > 0) {
+                location = kNullLocation;
+            }
+        }
+        sourceLocations[stabilizerOutput] = location;
     }
     for (auto model : {OEL_LOC, UEL_LOC}) {
         auto* limiter = (model == OEL_LOC) ? oel : uel;

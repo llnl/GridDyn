@@ -49,8 +49,8 @@ void GenModel5type2::dynObjectInitializeB(const IOdata& inputs,
     // exciter - assign Ef
     double Eft = gm[6] - (Xd - Xdpp) * gm[0];
 
-    double drat = Tdopp * (Xdpp + Xl) / (Tdop * (Xqp + Xl));
-    gm[5] = gm[6] - (Xdp - Xdpp + drat * (Xd - Xdp)) * gm[0] + Taa / Tdop * Eft;
+    double drat = Tdopp * (Xdpp + Xl) / (Tdop * (Xdp + Xl));
+    gm[5] = gm[6] - (Xdp - Xdpp + drat * (Xd - Xdp)) * gm[0] - Taa / Tdop * Eft;
     // record Pm = Pset
     // this should be close to P from above
     double Pmt = gm[4] * gm[0] + gm[6] * gm[1] + (Xdpp - Xqpp) * gm[0] * gm[1];
@@ -73,7 +73,7 @@ void GenModel5type2::derivative(const IOdata& inputs,
     double Eft = inputs[genModelEftInLocation];
     double Pmt = inputs[genModelPmechInLocation];
 
-    double drat = Tdopp * (Xdpp + Xl) / (Tdop * (Xqp + Xl));
+    double drat = Tdopp * (Xdpp + Xl) / (Tdop * (Xdp + Xl));
     // Id and Iq
 
     // delta
@@ -211,7 +211,7 @@ void GenModel5type2::jacobianElements(const IOdata& inputs,
 
     md.assignCheckCol(refDiff + 1, inputLocs[genModelPmechInLocation], -kVal);  // governor: Pm
 
-    double drat = Tdopp * (Xdpp + Xl) / (Tdop * (Xqp + Xl));
+    double drat = Tdopp * (Xdpp + Xl) / (Tdop * (Xdp + Xl));
 
     // Edpp
     if (hasAlgebraic(sMode)) {

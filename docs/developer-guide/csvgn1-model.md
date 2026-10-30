@@ -18,6 +18,11 @@ transformer when present. The source gives a block diagram rather than numbered
 equations; the equations here spell out GridDyn's selected state realization
 and sign/base conventions.
 
+The limited regulator follows OpenIPSL `CSVGN1` and `LeadLagLim` at commit
+`9a595ebf` (2026-10-25), including the correction in `be1629ed` for `T2 = 0`.
+The output limit feeds the regulator state back, which changes recovery from
+saturation compared with clipping an otherwise unlimited lead-lag.
+
 The unsaturated regulator and thyristor transfer functions shown by the diagram
 are
 
@@ -39,13 +44,32 @@ machine base. GridDyn currently uses
 e       = V - Vref
 T3 dx1  = e - x1
 u1      = (T1/T3)e + (1 - T1/T3)x1
-T4 dx2  = u1 - x2
-u2      = (T2/T4)u1 + (1 - T2/T4)x2
-u       = clip(K u2, VMIN, VMAX)
+u2      = K (T2/T4)u1 + (1 - T2/T4)x2
+u       = clip(u2, VMIN, VMAX)
+T2 dx2  = u - x2
 rB      = (u - B)/T5
 ```
 
-The thyristor state follows `rB` until it reaches a reactor limit. At the
+These equations apply for `T2,T4,T5 > 0`. The gain `K` appears once, before
+the limited regulator. Its internal state is on the regulator output base.
+With `T2 = 0` and `T4 > 0`, the second block is a non-windup limited lag:
+
+```text
+u       = clip(x2, VMIN, VMAX)
+r2      = (K u1 - x2)/T4
+```
+
+Its derivative is zero at a limit when `r2` would push outward, and follows
+`r2` as soon as the input turns back. With `T2 = T4 = 0`, the second block is
+the algebraic equation `x2 = clip(K u1, VMIN, VMAX)` and `u = x2`. A positive
+lead `T2` with zero lag `T4` is rejected.
+
+With `T5 = 0`, the reactor is algebraic: `B = clip(u, Bmin, 1)`. Both bypasses
+retain algebraic states so the DAE and partitioned solvers can represent the
+output dependencies without artificial fast poles. Local state vectors and
+state names put algebraic states first, followed by differential states.
+
+With `T5 > 0`, the thyristor state follows `rB` until it reaches a reactor limit. At the
 minimum `Bmin = RMIN/MBASE`, its derivative is zero when `rB < 0`; at the
 maximum `Bmax = 1`, its derivative is zero when `rB > 0`. The implementation
 also clamps `B` to `[Bmin, 1]` when calculating shunt output.
@@ -73,11 +97,12 @@ RMIN, VMAX, VMIN, CBASE
 `K` is the regulator gain; `T1` through `T5` are seconds; `RMIN` and `CBASE`
 are Mvar; `VMIN` and `VMAX` are per-unit limits. `MBASE` comes from the RAW
 generator card and is used as the reactor base (`RBASE = MBASE`). The model
-requires `K > 0`, `T1,T2 >= 0`, `T3,T4,T5 > 0`, and `0 <= RMIN <= MBASE`.
+requires `K > 0`, `T1,T2,T4,T5 >= 0`, `T3 > 0`, `T4 > 0` when `T2 > 0`,
+and `0 <= RMIN <= MBASE`.
 
 ## Initialization
 
-Given initial voltage `V0` and GridDyn model-output target `q0` in per unit on
+Given initial voltage `V0` and reactive injection target `q0` in per unit on
 MBASE, the reactor command needed to reproduce the power-flow output is
 
 ```text
@@ -85,13 +110,13 @@ B0 = CBASE/MBASE - q0/V0^2
 e0 = B0/K
 Vref = V0 - e0
 x1 = e0
-x2 = e0
+x2 = B0
 B  = B0
 ```
 
-`q0` follows GridDyn's model-output sign convention; an SVC injecting positive
-reactive power has a negative `q0`. The lead-lag blocks have unity DC gain, so
-these states give zero derivatives when the command lies within its limits.
+`q0` is positive for capacitive injection; the model returns `-q0` in GridDyn's
+network load convention. These states give zero derivatives and satisfy any
+algebraic bypass equations when the command lies within its limits.
 Initialization rejects a power-flow reactive output that cannot be represented
 inside the reactor and regulator limits.
 
@@ -104,8 +129,9 @@ inside the reactor and regulator limits.
 - The model is a positive-sequence RMS controlled-susceptance model; it does not
   simulate thyristor firing waveforms or switching harmonics.
 - The DYR loader maps CSVGN1 onto the PSS/E machine record. The current
-  comparison test checks all DYR parameters, power-flow initialization,
-  residuals, Jacobian, and a short run. An external PSS/E trajectory comparison
+  tests check DYR parameters, power-flow initialization, saturation feedback,
+  residual and output Jacobians, zero-time-constant branches, and short DAE
+  and partitioned runs. An external PSS/E trajectory comparison
   remains future validation.
 
 The implementation is the [GenModelCSVGN1 class](classgriddyn_1_1genmodels_1_1GenModelCSVGN1.html) in

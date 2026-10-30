@@ -15,6 +15,19 @@
 #include <string>
 
 namespace griddyn::genmodels {
+namespace {
+    double clampSlope(double value, double lower, double upper)
+    {
+        // Right-sided derivative, including at the lower limit.
+        return (value >= lower && value < upper) ? 1.0 : 0.0;
+    }
+
+    bool outwardRate(double state, double rate, double lower, double upper)
+    {
+        return (state <= lower && rate < 0.0) || (state >= upper && rate > 0.0);
+    }
+}  // namespace
+
 GenModelCSVGN1::GenModelCSVGN1(const std::string& objName): GenModel(objName) {}
 
 CoreObject* GenModelCSVGN1::clone(CoreObject* obj) const
@@ -40,19 +53,19 @@ CoreObject* GenModelCSVGN1::clone(CoreObject* obj) const
 void GenModelCSVGN1::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     if (!std::isfinite(K) || (K <= 0.0) || !std::isfinite(T1) || (T1 < 0.0) || !std::isfinite(T2) ||
-        (T2 < 0.0) || !std::isfinite(T3) || (T3 <= 0.0) || !std::isfinite(T4) || (T4 <= 0.0) ||
-        !std::isfinite(T5) || (T5 <= 0.0) || !std::isfinite(VMIN) || !std::isfinite(VMAX) ||
-        (VMIN > VMAX) || !std::isfinite(RMIN) || (RMIN < 0.0) || !std::isfinite(CBASE) ||
-        (CBASE < 0.0) || !std::isfinite(machineBasePower) || (machineBasePower <= 0.0) ||
-        (RMIN > machineBasePower)) {
+        (T2 < 0.0) || !std::isfinite(T3) || (T3 <= 0.0) || !std::isfinite(T4) || (T4 < 0.0) ||
+        (T2 > 0.0 && T4 == 0.0) || !std::isfinite(T5) || (T5 < 0.0) || !std::isfinite(VMIN) ||
+        !std::isfinite(VMAX) || (VMIN > VMAX) || !std::isfinite(RMIN) || (RMIN < 0.0) ||
+        !std::isfinite(CBASE) || (CBASE < 0.0) || !std::isfinite(machineBasePower) ||
+        (machineBasePower <= 0.0) || (RMIN > machineBasePower)) {
         throw InvalidParameterValue("CSVGN1 parameters or machine MBASE");
     }
 
-    // This first realization uses one differential state for each documented
-    // lag. Zero denominator time constants need an algebraic-state realization
-    // and are rejected rather than approximated by a fast pole.
-    offsets.local().local.diffSize = 3;
-    offsets.local().local.jacSize = 9;
+    // Keep bypassed blocks as algebraic equations instead of introducing fast poles.
+    const count_t algebraicCount = (T4 == 0.0 ? 1 : 0) + (T5 == 0.0 ? 1 : 0);
+    offsets.local().local.algSize = algebraicCount;
+    offsets.local().local.diffSize = 3 - algebraicCount;
+    offsets.local().local.jacSize = 11;
 }
 
 void GenModelCSVGN1::dynObjectInitializeB(const IOdata& inputs,
@@ -79,12 +92,12 @@ void GenModelCSVGN1::dynObjectInitializeB(const IOdata& inputs,
     const double error = initializedReactor / K;
     m_voltageReference = voltage - error;
 
-    // At steady state each lead-lag section has unity DC gain. Initializing
-    // both regulator states to the input error and the thyristor state to the
-    // power-flow reactor command makes all three state derivatives zero.
-    m_state[0] = error;
-    m_state[1] = error;
-    m_state[2] = initializedReactor;
+    // The first state is before K; the limited regulator's state and the
+    // reactor command are after K, including for algebraic bypasses.
+    const auto stateLocs = stateLocations(0, offsets.local().local.algSize);
+    m_state[stateLocs[0]] = error;
+    m_state[stateLocs[1]] = initializedReactor;
+    m_state[stateLocs[2]] = initializedReactor;
 
     // CSVGN1 has no mechanical-power or exciter-field input. It injects only
     // the shunt reactive power represented by its machine record.
@@ -161,7 +174,30 @@ double GenModelCSVGN1::get(std::string_view param, units::unit unitType) const
 
 stringVec GenModelCSVGN1::localStateNames() const
 {
-    return {"regulator1", "regulator2", "thyristor"};
+    const auto stateLocs = stateLocations(0, (T4 == 0.0 ? 1 : 0) + (T5 == 0.0 ? 1 : 0));
+    stringVec names(3);
+    names[stateLocs[0]] = "regulator1";
+    names[stateLocs[1]] = "regulator2";
+    names[stateLocs[2]] = "thyristor";
+    return names;
+}
+
+std::array<double, 3> GenModelCSVGN1::stateValues(const double alg[], const double diff[]) const
+{
+    return {diff[0],
+            T4 == 0.0 ? alg[0] : diff[1],
+            T5 == 0.0 ? alg[T4 == 0.0 ? 1 : 0] : diff[T4 == 0.0 ? 1 : 2]};
+}
+
+std::array<index_t, 3> GenModelCSVGN1::stateLocations(index_t algOffset, index_t diffOffset) const
+{
+    auto location = [](index_t base, index_t index) {
+        return base == kNullLocation ? kNullLocation : base + index;
+    };
+    return {diffOffset,
+            T4 == 0.0 ? algOffset : location(diffOffset, 1),
+            T5 == 0.0 ? location(algOffset, T4 == 0.0 ? 1 : 0) :
+                        location(diffOffset, T4 == 0.0 ? 1 : 2)};
 }
 
 double GenModelCSVGN1::voltageReference() const
@@ -180,18 +216,36 @@ double GenModelCSVGN1::reactiveOutput(double voltage, double reactorCommand) con
     return ((CBASE / machineBasePower) - reactor) * voltage * voltage;
 }
 
-GenModelCSVGN1::RegulatorSignals GenModelCSVGN1::getRegulatorSignals(double voltage,
-                                                                     const double state[]) const
+GenModelCSVGN1::RegulatorSignals
+    GenModelCSVGN1::getRegulatorSignals(double voltage, const std::array<double, 3>& state) const
 {
     RegulatorSignals signals;
     signals.error = voltage - voltageReference();
-    signals.firstOutput = ((T1 / T3) * signals.error) + ((1.0 - (T1 / T3)) * state[0]);
-    signals.secondOutput = ((T2 / T4) * signals.firstOutput) + ((1.0 - (T2 / T4)) * state[1]);
-    const double rawOutput = K * signals.secondOutput;
+    const double firstInputGain = T1 / T3;
+    const double firstStateGain = 1.0 - firstInputGain;
+    signals.firstOutput = (firstInputGain * signals.error) + (firstStateGain * state[0]);
+    const double leadGain = T4 == 0.0 ? 1.0 : T2 / T4;
+    const double stateGain = T4 == 0.0 ? 0.0 : 1.0 - leadGain;
+    const double rawOutput = (K * leadGain * signals.firstOutput) + (stateGain * state[1]);
     signals.limitedOutput = std::clamp(rawOutput, VMIN, VMAX);
-    // The clamp is nondifferentiable at its limits. Use its right-sided slope,
-    // matching the forward perturbations used by the GridDyn Jacobian checker.
-    signals.limitedOutputGain = ((rawOutput >= VMIN) && (rawOutput < VMAX)) ? K : 0.0;
+    const double slope = clampSlope(rawOutput, VMIN, VMAX);
+    signals.outputDerivatives = {slope * K * leadGain * firstStateGain,
+                                 slope * stateGain,
+                                 slope * K * leadGain * firstInputGain};
+    if (T2 > 0.0) {
+        // Limited lead-lag: feed the limited output back to the internal lag,
+        // as OpenIPSL's LeadLagLim does, so saturation does not wind up the state.
+        signals.rate = (signals.limitedOutput - state[1]) / T2;
+        signals.rateDerivatives = {signals.outputDerivatives[0] / T2,
+                                   (signals.outputDerivatives[1] - 1.0) / T2,
+                                   signals.outputDerivatives[2] / T2};
+    } else if (T4 > 0.0) {
+        const double rate = ((K * signals.firstOutput) - state[1]) / T4;
+        if (!outwardRate(state[1], rate, VMIN, VMAX)) {
+            signals.rate = rate;
+            signals.rateDerivatives = {K * firstStateGain / T4, -1.0 / T4, K * firstInputGain / T4};
+        }
+    }
     return signals;
 }
 
@@ -204,19 +258,19 @@ void GenModelCSVGN1::derivative(const IOdata& inputs,
         return;
     }
     const auto locations = offsets.getLocations(stateDataValue, deriv, sMode, this);
-    const double* state = locations.diffStateLoc;
+    const auto state = stateValues(locations.algStateLoc, locations.diffStateLoc);
     double* stateDerivative = locations.destDiffLoc;
     const auto signals = getRegulatorSignals(inputs[VOLTAGE_IN_LOCATION], state);
 
     stateDerivative[0] = (signals.error - state[0]) / T3;
-    stateDerivative[1] = (signals.firstOutput - state[1]) / T4;
-
-    const double reactorMin = reactorMinimumPU();
-    const double reactorCommand = state[2];
-    const double thyristorRate = (signals.limitedOutput - reactorCommand) / T5;
-    const bool blockedAtLowerLimit = (state[2] <= reactorMin) && (thyristorRate < 0.0);
-    const bool blockedAtUpperLimit = (state[2] >= 1.0) && (thyristorRate > 0.0);
-    stateDerivative[2] = (blockedAtLowerLimit || blockedAtUpperLimit) ? 0.0 : thyristorRate;
+    if (T4 > 0.0) {
+        stateDerivative[1] = signals.rate;
+    }
+    if (T5 > 0.0) {
+        const double rate = (signals.limitedOutput - state[2]) / T5;
+        stateDerivative[T4 == 0.0 ? 1 : 2] =
+            outwardRate(state[2], rate, reactorMinimumPU(), 1.0) ? 0.0 : rate;
+    }
 }
 
 void GenModelCSVGN1::residual(const IOdata& inputs,
@@ -224,13 +278,44 @@ void GenModelCSVGN1::residual(const IOdata& inputs,
                               double resid[],
                               const SolverMode& sMode)
 {
-    if (!hasDifferential(sMode)) {
+    const auto locations = offsets.getLocations(stateDataValue, resid, sMode, this);
+    if (hasAlgebraic(sMode)) {
+        const auto state = stateValues(locations.algStateLoc, locations.diffStateLoc);
+        const auto signals = getRegulatorSignals(inputs[VOLTAGE_IN_LOCATION], state);
+        if (T4 == 0.0) {
+            locations.destLoc[0] = signals.limitedOutput - state[1];
+        }
+        if (T5 == 0.0) {
+            locations.destLoc[T4 == 0.0 ? 1 : 0] =
+                std::clamp(signals.limitedOutput, reactorMinimumPU(), 1.0) - state[2];
+        }
+    }
+    if (hasDifferential(sMode)) {
+        derivative(inputs, stateDataValue, resid, sMode);
+        for (index_t ii = 0; ii < locations.diffSize; ++ii) {
+            locations.destDiffLoc[ii] -= locations.dstateLoc[ii];
+        }
+    }
+}
+
+void GenModelCSVGN1::algebraicUpdate(const IOdata& inputs,
+                                     const StateData& stateDataValue,
+                                     double update[],
+                                     const SolverMode& sMode,
+                                     double /*alpha*/)
+{
+    if (!hasAlgebraic(sMode)) {
         return;
     }
-    derivative(inputs, stateDataValue, resid, sMode);
-    const auto locations = offsets.getLocations(stateDataValue, resid, sMode, this);
-    for (index_t ii = 0; ii < 3; ++ii) {
-        locations.destDiffLoc[ii] -= locations.dstateLoc[ii];
+    const auto locations = offsets.getLocations(stateDataValue, update, sMode, this);
+    const auto state = stateValues(locations.algStateLoc, locations.diffStateLoc);
+    const auto signals = getRegulatorSignals(inputs[VOLTAGE_IN_LOCATION], state);
+    if (T4 == 0.0) {
+        locations.destLoc[0] = signals.limitedOutput;
+    }
+    if (T5 == 0.0) {
+        locations.destLoc[T4 == 0.0 ? 1 : 0] =
+            std::clamp(signals.limitedOutput, reactorMinimumPU(), 1.0);
     }
 }
 
@@ -243,7 +328,8 @@ IOdata GenModelCSVGN1::getOutputs(const IOdata& inputs,
     // GenModel outputs use the network load convention (negative for machine
     // injection), while reactiveOutput is positive for capacitive injection.
     outputs[QOUT_LOCATION] =
-        -reactiveOutput(inputs[VOLTAGE_IN_LOCATION], locations.diffStateLoc[2]);
+        -reactiveOutput(inputs[VOLTAGE_IN_LOCATION],
+                        stateValues(locations.algStateLoc, locations.diffStateLoc)[2]);
     return outputs;
 }
 
@@ -259,7 +345,8 @@ double GenModelCSVGN1::getOutput(const IOdata& inputs,
         return kNullVal;
     }
     const auto locations = offsets.getLocations(stateDataValue, sMode, this);
-    return -reactiveOutput(inputs[VOLTAGE_IN_LOCATION], locations.diffStateLoc[2]);
+    return -reactiveOutput(inputs[VOLTAGE_IN_LOCATION],
+                           stateValues(locations.algStateLoc, locations.diffStateLoc)[2]);
 }
 
 double GenModelCSVGN1::getOutput(index_t outNum) const
@@ -270,7 +357,8 @@ double GenModelCSVGN1::getOutput(index_t outNum) const
     if ((outNum != QOUT_LOCATION) || (bus == nullptr) || (m_state.size() < 3U)) {
         return kNullVal;
     }
-    return -reactiveOutput(bus->getVoltage(), m_state[2]);
+    const auto stateLocs = stateLocations(0, offsets.local().local.algSize);
+    return -reactiveOutput(bus->getVoltage(), m_state[stateLocs[2]]);
 }
 
 void GenModelCSVGN1::jacobianElements(const IOdata& inputs,
@@ -279,47 +367,37 @@ void GenModelCSVGN1::jacobianElements(const IOdata& inputs,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode)
 {
-    if (!hasDifferential(sMode)) {
-        return;
-    }
     const auto locations = offsets.getLocations(stateDataValue, sMode, this);
-    const double* state = locations.diffStateLoc;
+    const auto state = stateValues(locations.algStateLoc, locations.diffStateLoc);
     const auto signals = getRegulatorSignals(inputs[VOLTAGE_IN_LOCATION], state);
-    const index_t row = locations.diffOffset;
-    const index_t col = locations.diffOffset;
-
-    const double firstOutputStateGain = 1.0 - (T1 / T3);
-    const double firstOutputInputGain = T1 / T3;
-    const double secondOutputFirstGain = T2 / T4;
-    const double secondOutputStateGain = 1.0 - (T2 / T4);
-
-    matrixDataValue.assign(row, col, (-1.0 / T3) - stateDataValue.cj);
-    matrixDataValue.assignCheckCol(row, inputLocs[VOLTAGE_IN_LOCATION], 1.0 / T3);
-
-    matrixDataValue.assign(row + 1, col, firstOutputStateGain / T4);
-    matrixDataValue.assign(row + 1, col + 1, (-1.0 / T4) - stateDataValue.cj);
-    matrixDataValue.assignCheckCol(row + 1,
-                                   inputLocs[VOLTAGE_IN_LOCATION],
-                                   firstOutputInputGain / T4);
-
-    const double reactorMin = reactorMinimumPU();
-    const double thyristorRate = (signals.limitedOutput - state[2]) / T5;
-    const bool blockedAtLowerLimit = (state[2] <= reactorMin) && (thyristorRate < 0.0);
-    const bool blockedAtUpperLimit = (state[2] >= 1.0) && (thyristorRate > 0.0);
-    if (blockedAtLowerLimit || blockedAtUpperLimit) {
-        matrixDataValue.assign(row + 2, col + 2, -stateDataValue.cj);
-        return;
+    const auto cols = stateLocations(hasAlgebraic(sMode) ? locations.algOffset : kNullLocation,
+                                     hasDifferential(sMode) ? locations.diffOffset : kNullLocation);
+    const auto voltageCol = inputLocs[VOLTAGE_IN_LOCATION];
+    if (hasDifferential(sMode)) {
+        matrixDataValue.assign(cols[0], cols[0], (-1.0 / T3) - stateDataValue.cj);
+        matrixDataValue.assignCheckCol(cols[0], voltageCol, 1.0 / T3);
     }
-
-    const double thirdRowScale = signals.limitedOutputGain / T5;
-    matrixDataValue.assign(row + 2,
-                           col,
-                           thirdRowScale * secondOutputFirstGain * firstOutputStateGain);
-    matrixDataValue.assign(row + 2, col + 1, thirdRowScale * secondOutputStateGain);
-    matrixDataValue.assign(row + 2, col + 2, (-1.0 / T5) - stateDataValue.cj);
-    matrixDataValue.assignCheckCol(row + 2,
-                                   inputLocs[VOLTAGE_IN_LOCATION],
-                                   thirdRowScale * secondOutputFirstGain * firstOutputInputGain);
+    if (cols[1] != kNullLocation) {
+        const auto partials = T4 == 0.0 ? signals.outputDerivatives : signals.rateDerivatives;
+        matrixDataValue.assignCheckCol(cols[1], cols[0], partials[0]);
+        matrixDataValue.assign(cols[1],
+                               cols[1],
+                               partials[1] - (T4 == 0.0 ? 1.0 : stateDataValue.cj));
+        matrixDataValue.assignCheckCol(cols[1], voltageCol, partials[2]);
+    }
+    if (cols[2] != kNullLocation) {
+        double scale;
+        if (T5 == 0.0) {
+            scale = clampSlope(signals.limitedOutput, reactorMinimumPU(), 1.0);
+        } else {
+            const double rate = (signals.limitedOutput - state[2]) / T5;
+            scale = outwardRate(state[2], rate, reactorMinimumPU(), 1.0) ? 0.0 : 1.0 / T5;
+        }
+        matrixDataValue.assignCheckCol(cols[2], cols[0], scale * signals.outputDerivatives[0]);
+        matrixDataValue.assignCheckCol(cols[2], cols[1], scale * signals.outputDerivatives[1]);
+        matrixDataValue.assign(cols[2], cols[2], T5 == 0.0 ? -1.0 : -scale - stateDataValue.cj);
+        matrixDataValue.assignCheckCol(cols[2], voltageCol, scale * signals.outputDerivatives[2]);
+    }
 }
 
 void GenModelCSVGN1::outputPartialDerivatives(const IOdata& inputs,
@@ -327,20 +405,22 @@ void GenModelCSVGN1::outputPartialDerivatives(const IOdata& inputs,
                                               MatrixData<double>& matrixDataValue,
                                               const SolverMode& sMode)
 {
-    if (!hasDifferential(sMode)) {
-        return;
-    }
     const auto locations = offsets.getLocations(stateDataValue, sMode, this);
-    const double reactor = locations.diffStateLoc[2];
-    if ((reactor >= reactorMinimumPU()) && (reactor <= 1.0)) {
+    const double reactor = stateValues(locations.algStateLoc, locations.diffStateLoc)[2];
+    if ((reactor >= reactorMinimumPU()) && (reactor < 1.0)) {
         const double voltage = inputs[VOLTAGE_IN_LOCATION];
-        matrixDataValue.assign(QOUT_LOCATION, locations.diffOffset + 2, voltage * voltage);
+        const auto cols =
+            stateLocations(hasAlgebraic(sMode) ? locations.algOffset : kNullLocation,
+                           hasDifferential(sMode) ? locations.diffOffset : kNullLocation);
+        matrixDataValue.assignCheckCol(QOUT_LOCATION, cols[2], voltage * voltage);
     }
 }
 
-count_t GenModelCSVGN1::outputDependencyCount(index_t outNum, const SolverMode& /*sMode*/) const
+count_t GenModelCSVGN1::outputDependencyCount(index_t outNum, const SolverMode& sMode) const
 {
-    return (outNum == QOUT_LOCATION) ? 1 : 0;
+    return outNum == QOUT_LOCATION && (T5 == 0.0 ? hasAlgebraic(sMode) : hasDifferential(sMode)) ?
+        1 :
+        0;
 }
 
 void GenModelCSVGN1::ioPartialDerivatives(const IOdata& inputs,
@@ -354,7 +434,9 @@ void GenModelCSVGN1::ioPartialDerivatives(const IOdata& inputs,
     }
     const auto locations = offsets.getLocations(stateDataValue, sMode, this);
     const double voltage = inputs[VOLTAGE_IN_LOCATION];
-    const double reactor = std::clamp(locations.diffStateLoc[2], reactorMinimumPU(), 1.0);
+    const double reactor = std::clamp(stateValues(locations.algStateLoc, locations.diffStateLoc)[2],
+                                      reactorMinimumPU(),
+                                      1.0);
     const double shuntSusceptance = (CBASE / machineBasePower) - reactor;
     matrixDataValue.assign(QOUT_LOCATION,
                            inputLocs[VOLTAGE_IN_LOCATION],

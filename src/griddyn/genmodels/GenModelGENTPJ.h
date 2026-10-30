@@ -85,8 +85,9 @@ namespace griddyn::genmodels {
  * \f]
  *
  * @par Initialization and PSS/e input
- * Initialization rotates terminal power-flow current into the rotor frame,
- * solves the q-axis steady-state constraint for \f$\delta\f$, and then forms
+ * Initialization evaluates saturation from the terminal phasors, obtains
+ * \f$\delta=\arg(V+(R_a+jx_{q,s})I)\f$ directly with
+ * \f$x_{q,s}=(x_q-x_l)/Q_s+x_l\f$, rotates current into the rotor frame, and forms
  * \f$\Psi''_{d,q}\f$, \f$E'_{d,q}\f$, \f$E_{f0}=D_sE_{q1}\f$, and
  * \f$P_{m0}=T_{e0}\f$. The PSS/e \c GENTPJ record maps 19 fields:
  * \c TDOP, \c TDOPP, \c TQOP, \c TQOPP, \c H, \c D, \c XD, \c XQ,

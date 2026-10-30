@@ -7,6 +7,7 @@
 #pragma once
 
 #include "../GenModel.h"
+#include <array>
 #include <string>
 
 namespace griddyn::genmodels {
@@ -30,12 +31,16 @@ namespace griddyn::genmodels {
  * \begin{aligned}
  * e &= V - V_{ref}, & T_3\dot{x}_1 &= e-x_1,\\
  * u_1 &= \frac{T_1}{T_3}e+\left(1-\frac{T_1}{T_3}\right)x_1,
- *   & T_4\dot{x}_2 &= u_1-x_2,\\
- * u_2 &= \frac{T_2}{T_4}u_1+\left(1-\frac{T_2}{T_4}\right)x_2,
- *   & u &= \operatorname{clip}(Ku_2, V_{min}, V_{max}),\\
+ *   & T_2\dot{x}_2 &= u-x_2,\\
+ * u_2 &= K\frac{T_2}{T_4}u_1+\left(1-\frac{T_2}{T_4}\right)x_2,
+ *   & u &= \operatorname{clip}(u_2, V_{min}, V_{max}),\\
  * r_B &= \frac{u-B}{T_5}, & \dot{B} &= r_B
  * \end{aligned}
  * \f]
+ * These equations apply when T2, T4, and T5 are positive. With T2 = 0,
+ * regulator 2 is a non-windup limited lag of K*u1 with time constant T4.
+ * With T2 = T4 = 0 it is an algebraic limited gain; with T5 = 0 the reactor
+ * command is algebraic too. T3 must be positive, and a positive T2 needs T4 > 0.
  * The reactor derivative is held at zero when it would move outward through
  * either limit, \f$B_{min}=R_{min}/M_{base}\f$ or \f$B_{max}=1\f$. The
  * compensator's capacitive injection is
@@ -54,6 +59,8 @@ namespace griddyn::genmodels {
  * PowerWorld, *PowerWorld Simulator 17 Block Diagrams*, p. 256,
  * “Machine Model CSVGN1” (identified as supported by PSS/E):
  * https://www.powerworld.com/files/Block-Diagrams-17.pdf
+ * The limited lead-lag realization and zero-time-constant branches also follow
+ * OpenIPSL CSVGN1 at commit 9a595ebf (2026-10-25).
  *
  * @see \ref csvgn1_model_equations "CSVGN1 model equations" for parameter
  * ordering, initialization equations, sign conventions, and implementation limits.
@@ -95,6 +102,11 @@ class GenModelCSVGN1: public GenModel {
                   const StateData& stateDataValue,
                   double resid[],
                   const SolverMode& sMode) override;
+    void algebraicUpdate(const IOdata& inputs,
+                         const StateData& stateDataValue,
+                         double update[],
+                         const SolverMode& sMode,
+                         double alpha) override;
     IOdata getOutputs(const IOdata& inputs,
                       const StateData& stateDataValue,
                       const SolverMode& sMode) const override;
@@ -126,12 +138,16 @@ class GenModelCSVGN1: public GenModel {
     struct RegulatorSignals {
         double error = 0.0;
         double firstOutput = 0.0;
-        double secondOutput = 0.0;
         double limitedOutput = 0.0;
-        double limitedOutputGain = 0.0;
+        double rate = 0.0;
+        // Derivatives with respect to regulator1, regulator2, and voltage.
+        std::array<double, 3> outputDerivatives{};
+        std::array<double, 3> rateDerivatives{};
     };
 
-    RegulatorSignals getRegulatorSignals(double voltage, const double state[]) const;
+    std::array<double, 3> stateValues(const double alg[], const double diff[]) const;
+    std::array<index_t, 3> stateLocations(index_t algOffset, index_t diffOffset) const;
+    RegulatorSignals getRegulatorSignals(double voltage, const std::array<double, 3>& state) const;
     double voltageReference() const;
     double reactorMinimumPU() const;
     double reactiveOutput(double voltage, double reactorCommand) const;

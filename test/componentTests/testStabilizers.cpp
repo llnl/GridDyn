@@ -5,6 +5,7 @@
  */
 
 #include "../gtestHelper.h"
+#include "core/CoreExceptions.h"
 #include "core/ObjectFactory.hpp"
 #include "griddyn/Stabilizer.h"
 #include "griddyn/generators/DynamicGenerator.h"
@@ -12,10 +13,14 @@
 #include "griddyn/stabilizers/StabilizerIee2st.h"
 #include "griddyn/stabilizers/StabilizerPss2a.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
+#include "griddyn/stabilizers/StabilizerStab2a.h"
 #include "griddyn/stabilizers/StabilizerStab3.h"
+#include "utilities/MatrixDataSparse.hpp"
+#include <algorithm>
 #include <cmath>
 #include <functional>
 #include <gtest/gtest.h>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -25,6 +30,69 @@ using namespace griddyn;
 class StabilizerTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 namespace {
+void configureStab2a(stabilizers::StabilizerStab2a& stabilizer)
+{
+    for (const auto& [name, value] :
+         std::initializer_list<std::pair<std::string_view, double>>{{"k2", 2.0},
+                                                                    {"t2", 0.5},
+                                                                    {"k3", 3.0},
+                                                                    {"t3", 0.4},
+                                                                    {"k4", 0.7},
+                                                                    {"k5", 0.8},
+                                                                    {"t5", 0.2},
+                                                                    {"hlim", 2.0}}) {
+        stabilizer.set(name, value);
+    }
+}
+
+void checkStab2aJacobian(stabilizers::StabilizerStab2a& stabilizer,
+                         const IOdata& inputs,
+                         const std::vector<double>& state)
+{
+    stabilizer.setOffset(0, cDaeSolverMode);
+    constexpr double step = 1e-6;
+    constexpr double coefficient = 0.73;
+    const auto count = static_cast<index_t>(state.size());
+    IOlocs inputLocs(inputs.size());
+    for (index_t i = 0; i < inputs.size(); ++i) {
+        inputLocs[i] = count + i;
+    }
+    std::vector<double> rate(state.size(), 0.0);
+    StateData data(0.0, state.data(), rate.data());
+    data.cj = coefficient;
+    MatrixDataSparse<double> matrix;
+    stabilizer.jacobianElements(inputs, data, matrix, inputLocs, cDaeSolverMode);
+    EXPECT_LE(matrix.size(), stabilizer.jacSize(cDaeSolverMode));
+    matrix.compact();
+    for (index_t col = 0; col < count + inputs.size(); ++col) {
+        auto plusState = state;
+        auto minusState = state;
+        auto plusRate = rate;
+        auto minusRate = rate;
+        auto plusInput = inputs;
+        auto minusInput = inputs;
+        if (col < count) {
+            plusState[col] += step;
+            minusState[col] -= step;
+            plusRate[col] += coefficient * step;
+            minusRate[col] -= coefficient * step;
+        } else {
+            plusInput[col - count] += step;
+            minusInput[col - count] -= step;
+        }
+        const StateData plusData(0.0, plusState.data(), plusRate.data());
+        const StateData minusData(0.0, minusState.data(), minusRate.data());
+        std::vector<double> plus(count, 0.0), minus(count, 0.0);
+        stabilizer.residual(plusInput, plusData, plus.data(), cDaeSolverMode);
+        stabilizer.residual(minusInput, minusData, minus.data(), cDaeSolverMode);
+        for (index_t row = 0; row < count; ++row) {
+            const double numerical = (plus[row] - minus[row]) / (2.0 * step);
+            EXPECT_NEAR(matrix.at(row, col), numerical, 2e-6 * std::max(1.0, std::abs(numerical)))
+                << "row " << row << " column " << col;
+        }
+    }
+}
+
 void configureSt2cut(stabilizers::StabilizerST2CUT& stabilizer)
 {
     stabilizer.set("mode", 1.0);
@@ -618,6 +686,189 @@ TEST(StabilizerModelTests, Stab3MatchesPowerSensitiveReferenceEquation)
     std::vector<double> residual(state.size(), 0.0);
     stabilizer.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
     EXPECT_NEAR(residual[0], 0.06666666666666667, 1e-14);
+}
+
+TEST(Stab2aTests, InitializationAndPerturbedEquationsMatchOpenIpsl)
+{
+    stabilizers::StabilizerStab2a stabilizer;
+    configureStab2a(stabilizer);
+    stabilizer.dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 1.0, 0.8, 0.7}, fields;
+    stabilizer.dynInitializeB(inputs, {0.0}, fields);
+    ASSERT_EQ(stabilizer.getStates().size(), 7U);
+    EXPECT_DOUBLE_EQ(stabilizer.getStates()[1], 0.7);
+    std::vector<double> residual(7, 0.0);
+    stabilizer.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    for (const double value : residual) {
+        EXPECT_NEAR(value, 0.0, 1e-14);
+    }
+    // Independent evaluation of the six OpenIPSL transfer-function blocks:
+    // washout outputs are -0.08, -0.24, -0.42; the parallel input is -0.244.
+    std::vector<double> state{0.02, 0.71, 0.04, -0.03, 0.05, -0.02, 0.03};
+    std::vector<double> rate(7, 0.0);
+    stabilizer.setState(0.0, state.data(), rate.data(), cLocalSolverMode);
+    inputs[pssElectricalPowerInLocation] = 0.75;
+    stabilizer.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    const std::array<double, 7> expected{0.01, 0.08, -0.24, -0.42, -3.275, -0.876, -0.23};
+    for (std::size_t i = 0; i < expected.size(); ++i) {
+        EXPECT_NEAR(residual[i], expected[i], 1e-13) << i;
+    }
+    checkStab2aJacobian(stabilizer, inputs, state);
+    EXPECT_EQ(stabilizer.findIndex("washout1", cLocalSolverMode), 1);
+    EXPECT_EQ(stabilizer.findIndex("outputlag2", cLocalSolverMode), 6);
+}
+
+TEST(Stab2aTests, ZeroTimeConstantsHaveExactBypassesAndJacobians)
+{
+    for (const double t2 : {0.0, 0.5}) {
+        for (const double t3 : {0.0, 0.4}) {
+            for (const double t5 : {0.0, 0.2}) {
+                SCOPED_TRACE(testing::Message() << t2 << ", " << t3 << ", " << t5);
+                stabilizers::StabilizerStab2a stabilizer;
+                configureStab2a(stabilizer);
+                stabilizer.set("t2", t2);
+                stabilizer.set("t3", t3);
+                stabilizer.set("t5", t5);
+                stabilizer.dynInitializeA(0.0, 0);
+                IOdata inputs{1.0, 1.0, 0.8, 0.7}, fields;
+                stabilizer.dynInitializeB(inputs, {0.0}, fields);
+                const auto count =
+                    1U + (t2 > 0.0 ? 3U : 0U) + (t3 > 0.0 ? 1U : 0U) + (t5 > 0.0 ? 2U : 0U);
+                ASSERT_EQ(stabilizer.getStates().size(), count);
+                std::vector<double> residual(count, 0.0);
+                stabilizer.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+                for (const double value : residual) {
+                    EXPECT_NEAR(value, 0.0, 1e-14);
+                }
+                auto state = stabilizer.getStates();
+                for (std::size_t i = 1; i < state.size(); ++i) {
+                    state[i] += 0.003 * static_cast<double>(i);
+                }
+                checkStab2aJacobian(stabilizer, inputs, state);
+                std::vector<double> rate(count, 0.0), update(count, 0.0);
+                stabilizer.setState(0.0, state.data(), rate.data(), cLocalSolverMode);
+                stabilizer.algebraicUpdate(
+                    inputs, emptyStateData, update.data(), cLocalSolverMode, 1.0);
+                state[0] = update[0];
+                stabilizer.setState(0.0, state.data(), rate.data(), cLocalSolverMode);
+                stabilizer.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+                EXPECT_NEAR(residual[0], 0.0, 1e-14);
+                if (t2 == 0.0 && t3 == 0.0 && t5 == 0.0) {
+                    EXPECT_DOUBLE_EQ(update[0], 0.0);
+                }
+            }
+        }
+    }
+    // Bypassing both output stages leaves K5 squared times the parallel gains.
+    stabilizers::StabilizerStab2a bypass;
+    configureStab2a(bypass);
+    bypass.set("t3", 0.0);
+    bypass.set("t5", 0.0);
+    bypass.dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 1.0, 0.8, 0.75}, fields;
+    bypass.dynInitializeB(inputs, {0.0}, fields);
+    std::vector<double> state{0.0, 0.71, 0.04, -0.03}, rate(4, 0.0), residual(4, 0.0);
+    bypass.setState(0.0, state.data(), rate.data(), cLocalSolverMode);
+    bypass.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    EXPECT_NEAR(residual[0], -0.99456, 1e-13);
+}
+
+TEST(Stab2aTests, StepResponseMatchesIndependentTransferFunction)
+{
+    stabilizers::StabilizerStab2a stabilizer;
+    stabilizer.set("k3", 0.0);
+    stabilizer.set("t2", 0.5);
+    stabilizer.set("t3", 0.5);
+    stabilizer.set("t5", 0.5);
+    stabilizer.dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 1.0, 0.8, 0.7}, fields;
+    stabilizer.dynInitializeB(inputs, {0.0}, fields);
+    constexpr double amplitude = 0.02;
+    inputs[pssElectricalPowerInLocation] += amplitude;
+    // H(s) = -(tau*s)^3/(1+tau*s)^5 with K3=0 and K2=K4=K5=1.
+    // Inverting H(s)/s gives -exp(-z)*(z^2/2-z^3/3+z^4/24), z=t/tau.
+    int step = 0;
+    for (const double sample : {0.25, 0.5, 1.0, 2.0, 4.0}) {
+        while (step < static_cast<int>(std::lround(sample / 0.0001))) {
+            stabilizer.timestep(++step * 0.0001, inputs, cLocalSolverMode);
+        }
+        const double z = sample / 0.5;
+        const double expected =
+            -amplitude * std::exp(-z) * (z * z / 2.0 - z * z * z / 3.0 + z * z * z * z / 24.0);
+        EXPECT_NEAR(stabilizer.getOutput(), expected, 2e-6) << sample;
+    }
+}
+
+TEST(Stab2aTests, OutputLimitsReleaseWithoutFreezingFilters)
+{
+    stabilizers::StabilizerStab2a stabilizer;
+    configureStab2a(stabilizer);
+    stabilizer.set("hlim", 0.1);
+    stabilizer.dynInitializeA(0.0, 0);
+    stabilizer.setRootOffset(0, cLocalSolverMode);
+    IOdata inputs{1.0, 1.0, 0.8, 0.7}, fields;
+    stabilizer.dynInitializeB(inputs, {0.0}, fields);
+    auto state = stabilizer.getStates();
+    std::vector<double> rate(state.size(), 0.0), residual(state.size(), 0.0);
+    for (const double outputState : {0.2, -0.2, 0.02}) {
+        state.back() = outputState;
+        stabilizer.setState(0.0, state.data(), rate.data(), cLocalSolverMode);
+        stabilizer.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+        EXPECT_NEAR(residual[0], std::clamp(outputState, -0.1, 0.1), 1e-14);
+        EXPECT_NEAR(residual.back(), -outputState / 0.2, 1e-14);
+        std::array<double, 2> roots{};
+        stabilizer.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
+        if (outputState > 0.1) {
+            EXPECT_LT(roots[0], 0.0);
+        } else if (outputState < -0.1) {
+            EXPECT_LT(roots[1], 0.0);
+        }
+        stabilizer.rootTrigger(0.0, inputs, {1, 1}, cLocalSolverMode);
+        EXPECT_EQ(stabilizer.checkFlag(stabilizers::StabilizerStab2a::OUTPUT_LIMITED),
+                  std::abs(outputState) >= 0.1);
+        EXPECT_EQ(stabilizer.checkFlag(stabilizers::StabilizerStab2a::OUTPUT_LIMIT_HIGH),
+                  outputState >= 0.1);
+        checkStab2aJacobian(stabilizer, inputs, state);
+    }
+}
+
+TEST(Stab2aTests, FactoryCloneAndInvalidParameterHandling)
+{
+    std::unique_ptr<CoreObject> object(
+        CoreObjectFactory::instance()->createObject("pss", "stab2a"));
+    auto* stabilizer = dynamic_cast<stabilizers::StabilizerStab2a*>(object.get());
+    ASSERT_NE(stabilizer, nullptr);
+    configureStab2a(*stabilizer);
+    std::unique_ptr<CoreObject> cloned(stabilizer->clone());
+    auto* copy = dynamic_cast<stabilizers::StabilizerStab2a*>(cloned.get());
+    ASSERT_NE(copy, nullptr);
+    for (const auto name : {"k2", "t2", "k3", "t3", "k4", "k5", "t5", "hlim"}) {
+        EXPECT_DOUBLE_EQ(copy->get(name), stabilizer->get(name)) << name;
+        EXPECT_THROW(stabilizer->set(name, std::numeric_limits<double>::quiet_NaN()),
+                     InvalidParameterValue);
+    }
+    for (const auto name : {"t2", "t3", "t5", "hlim"}) {
+        EXPECT_THROW(stabilizer->set(name, -0.1), InvalidParameterValue);
+    }
+    stabilizer->set("h_lim", 0.0);
+    EXPECT_DOUBLE_EQ(stabilizer->get("hlim"), 0.0);
+    stabilizer->dynInitializeA(0.0, 0);
+    IOdata fields;
+    EXPECT_THROW(stabilizer->dynInitializeB({1.0, 1.0}, {0.0}, fields), InvalidParameterValue);
+    EXPECT_THROW(stabilizer->dynInitializeB(
+                     {1.0, 1.0, 0.0, std::numeric_limits<double>::infinity()}, {0.0}, fields),
+                 InvalidParameterValue);
+}
+
+TEST_F(StabilizerTests, Stab2aAttachedGeneratorSettlesAfterLoadPulse)
+{
+    runAttachedStabilizerLoadPulseTest(gds, "STAB2A", [](DynamicGenerator* generator) {
+        auto* stabilizer = new stabilizers::StabilizerStab2a();
+        configureStab2a(*stabilizer);
+        // A moderate gain keeps this generic fourth-order-machine case stable.
+        stabilizer->set("k2", 0.5);
+        generator->add(stabilizer);
+    });
 }
 
 TEST(StabilizerModelTests, NewStabilizersAreRegisteredAndCloneParameters)

@@ -27,23 +27,23 @@ parentheses and brackets; commas inside function calls separate arguments.
 ` as name` assigns a column label. A label on a vector becomes `name[0]`,
 `name[1]`, and so on.
 
-| Setting                   | Meaning                                                                                                                                                |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `period`                  | Sampling interval in seconds; finite, positive, and representable by the simulation clock. Default: 1.                                                 |
-| `frequency`               | Sampling rate in samples per second; its reciprocal becomes the period.                                                                                |
-| `period_resolution`       | Round the requested period to a positive resolution, with a minimum of one resolution interval.                                                        |
-| `start`, `starttime`      | First scheduled sample time.                                                                                                                           |
-| `stop`, `stoptime`        | Last allowed sample time, inclusive.                                                                                                                   |
-| `gain`, `bias`            | Apply `value * gain + bias` to every selected signal, including expanded fields and vectors.                                                           |
-| `units`, `unit`           | Requested units for a field; conversion precedes gain and bias. A field can also specify units as `angle(deg)`.                                        |
-| `column`                  | Zero based column for the first selected signal. Following signals append after it, including its full vector width.                                   |
-| `offset`                  | Zero based local state index, including index 0. A nonempty `field` takes precedence.                                                                  |
+| Setting                   | Meaning                                                                                                                                                                                      |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `period`                  | Sampling interval in seconds; finite, positive, and representable by the simulation clock. Default: 1.                                                                                       |
+| `frequency`               | Sampling rate in samples per second; its reciprocal becomes the period.                                                                                                                      |
+| `period_resolution`       | Round the requested period to a positive resolution, with a minimum of one resolution interval.                                                                                              |
+| `start`, `starttime`      | First scheduled sample time.                                                                                                                                                                 |
+| `stop`, `stoptime`        | Last allowed sample time, inclusive.                                                                                                                                                         |
+| `gain`, `bias`            | Apply `value * gain + bias` to every selected signal, including expanded fields and vectors.                                                                                                 |
+| `units`, `unit`           | Requested units for a field; conversion precedes gain and bias. A field can also specify units as `angle(deg)`.                                                                              |
+| `column`                  | Zero based column for the first selected signal. Following signals append after it, including its full vector width.                                                                         |
+| `offset`                  | Zero based local state index, including index 0. A nonempty `field` takes precedence.                                                                                                        |
 | `file`, `filename`        | Output path; XML also accepts `sink`. `.h5` and `.hdf5` select HDF5; `.csv` and `.txt` select comma-separated text; other extensions select GridDyn binary. Extension matching ignores case. |
-| `directory`               | Base directory for relative output paths. Parent directories are created when saving.                                                                  |
-| `precision`               | Text data precision, from 1 to 17 significant digits. Values 0 and -1 select the writer default of 8.                                                  |
-| `reserve`, `reservecount` | Preallocate storage for a nonnegative integer number of samples.                                                                                       |
-| `autosave`                | Save and release the in-memory buffer after this many samples. Zero disables automatic saving. Requires a file.                                        |
-| `vector_name` flag        | Use the vector selection name with numeric indexes instead of individual object names.                                                                 |
+| `directory`               | Base directory for relative output paths. Parent directories are created when saving.                                                                                                        |
+| `precision`               | Text data precision, from 1 to 17 significant digits. Values 0 and -1 select the writer default of 8.                                                                                        |
+| `reserve`, `reservecount` | Preallocate storage for a nonnegative integer number of samples.                                                                                                                             |
+| `autosave`                | Save and release the in-memory buffer after this many samples. Zero disables automatic saving. Requires a file.                                                                              |
+| `vector_name` flag        | Use the vector selection name with numeric indexes instead of individual object names.                                                                                                       |
 
 Recorders use delayed event execution so samples normally include model changes
 made by other events at the same time. Direct C++ calls to `trigger(time)`

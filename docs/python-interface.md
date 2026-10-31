@@ -156,8 +156,8 @@ and other extensions retain the existing recorder binary format. For example:
 ```python
 recorder = sim.recorders["signals"]
 recorder.set("file", "results.h5")
-recorder.set("compression", 3)    # Optional lossless compression, 0 off or 1-9.
-recorder.set("autosave", 1000)    # Bound the in-memory sample buffer.
+recorder.set("compression", 3)  # Optional lossless compression, 0 off or 1-9.
+recorder.set("autosave", 1000)  # Bound the in-memory sample buffer.
 ```
 
 `recorder.flush()` or `recorder.save_file()` writes pending rows to the configured
@@ -273,11 +273,11 @@ saved sampling schedule:
 
 ```python
 recorder = sim.recorders["bus_signals"]
-recorder.flush()                 # Finish writing the original branch.
-recorder.reset()                 # Clear its buffer and restart its file session.
+recorder.flush()  # Finish writing the original branch.
+recorder.reset()  # Clear its buffer and restart its file session.
 recorder.set("file", "branch.h5")
 sim.load_power_flow_checkpoint("operating-point.json")
-sim.execute("iterate 1 20")      # Continue on the restored timeline.
+sim.execute("iterate 1 20")  # Continue on the restored timeline.
 recorder.flush()
 ```
 

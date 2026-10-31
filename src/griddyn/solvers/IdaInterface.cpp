@@ -1039,20 +1039,19 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
                 }
                 flags.reset(USE_MASK_FLAG);
                 return SOLVER_INVALID_STATE_ERROR;
-            } else {
-                flags.reset(USE_MASK_FLAG);
-                switch (retval) {
-                    case IDA_SUCCESS:  // no error
-                        break;
-                    case IDA_REP_RES_ERR:
-                    case IDA_NO_RECOVERY:
-                        retval = SOLVER_INVALID_STATE_ERROR;
-                        break;
-                    default:
-                        break;
-                }
-                return retval;
             }
+            flags.reset(USE_MASK_FLAG);
+            switch (retval) {
+                case IDA_SUCCESS:  // no error
+                    break;
+                case IDA_REP_RES_ERR:
+                case IDA_NO_RECOVERY:
+                    retval = SOLVER_INVALID_STATE_ERROR;
+                    break;
+                default:
+                    break;
+            }
+            return retval;
         }
         flags.reset(USE_MASK_FLAG);
         if (!flags[DENSE_FLAG]) {
@@ -1264,28 +1263,10 @@ int idaFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, N_Vector resid,
     }
     if (sd->flags[FILE_CAPTURE_FLAG]) {
         if (!sd->stateFile.empty()) {
-            writeVector(sd->solveTime,
-                        STATE_INFORMATION,
-                        sd->funcCallCount,
-                        sd->mode.offsetIndex,
-                        sd->svsize,
-                        NVECTOR_DATA(sd->use_omp, state),
-                        sd->stateFile,
-                        (sd->funcCallCount != 1));
-            writeVector(sd->solveTime,
-                        DERIVATIVE_INFORMATION,
-                        sd->funcCallCount,
-                        sd->mode.offsetIndex,
-                        sd->svsize,
-                        NVECTOR_DATA(sd->use_omp, dstateDt),
-                        sd->stateFile);
-            writeVector(sd->solveTime,
-                        RESIDUAL_INFORMATION,
-                        sd->funcCallCount,
-                        sd->mode.offsetIndex,
-                        sd->svsize,
-                        NVECTOR_DATA(sd->use_omp, resid),
-                        sd->stateFile);
+            sd->captureDiagnosticState(time,
+                                       NVECTOR_DATA(sd->use_omp, state),
+                                       NVECTOR_DATA(sd->use_omp, dstateDt),
+                                       NVECTOR_DATA(sd->use_omp, resid));
         }
     }
 

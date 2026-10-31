@@ -8,6 +8,7 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 set(utilities_sources
+    Hdf5DataFile.cpp
     GridRandom.cpp
     Saturation.cpp
     ThreePhaseFunctions.cpp
@@ -22,6 +23,7 @@ set(utilities_sources
 )
 
 set(utilities_headers
+    Hdf5DataFile.h
     dataDictionary.hpp
     ThreePhaseFunctions.h
     GridRandom.h
@@ -99,6 +101,10 @@ else()
         set(GRIDDYN_MINIZIP_TARGET minizip::minizip)
     endif()
 endif()
+
+# HDF5 reuses the bundled zlib target configured above.
+include(addHDF5)
+target_link_libraries(utilities PRIVATE GridDyn::hdf5)
 
 target_link_libraries(
     utilities PUBLIC ${GRIDDYN_MINIZIP_TARGET} ${GRIDDYN_ZLIB_TARGET} gmlc_utilities griddyn_base

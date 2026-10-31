@@ -1,77 +1,148 @@
-%% -*- Mode:matlab; c-file-style:"gnu"; indent-tabs-mode:nil;  eval: (c-set-offset 'innamespace 0); -*- */
-%
-% LLNS Copyright Start
-% Copyright (c) 2016, Lawrence Livermore National Security
-% This work was performed under the auspices of the U.S. Department
-% of Energy by Lawrence Livermore National Laboratory in part under
-% Contract W-7405-Eng-48 and in part under Contract DE-AC52-07NA27344.
-% Produced at the Lawrence Livermore National Laboratory.
-% All rights reserved.
-% For details, see the LICENSE file.
-% LLNS Copyright End
+% Copyright (c) 2014-2026, Lawrence Livermore National Security
+% See the top-level NOTICE for additional details. All rights reserved.
+% SPDX-License-Identifier: BSD-3-Clause
 
-
-function res=readStateFile(filename)
-% res=readStateFile(filename)
-% function reads a statefile generated from GridDyn for debugging purposes.
-% the statefile has a number of different block types that can be read
-% including states, derivatives, residuals, and jacobians.  Also To be
-% included is state name information.(not working yet).
-% res is  a structure array with the fields
-% time, index, code, typecode, key, and data
-% time contains the time of the data block
-% index is an index number
-% code is a code describing the data (0 for state, 1 for deriv, 2 for
-% resid)  others are not defined yet
-% typecode defines the type of the data (0 vector, 1 jacobian, 2, state
-% names
-% key enumerates the source (the solver index in griddyn)
-% data is a cell array of the data
-
-fid=fopen(filename);
-if (fid<=0)
-    return
+function res = readStateFile(filename, varargin)
+%READSTATEFILE Read GridDyn HDF5 state and diagnostic captures.
+%   RES.data contains vectors, sparse triplets (row,col,val,rows,columns),
+%   or UTF-8 names. RES.typecode is 0 vector, 1 matrix, 2 names.
+%   RES.source is 0 snapshot or 1 diagnostic. Codes: 0 state, 1 derivative/RHS,
+%   2 residual. Times are seconds plus exact int64 time_ns; frame, index and
+%   key retain uint64 identity. Snapshot index is its frame; block_index
+%   distinguishes a paired block. Matrices use zero-based uint64 coordinates.
+%   Name/value selectors: Frame, Source, Key, Code. MetadataOnly=true skips
+%   all payload reads. Unpublished trailing records are ignored. Old custom
+%   binary files are not supported.
+options = struct('Frame', [], 'Source', [], 'Key', [], 'Code', [], 'MetadataOnly', false);
+if mod(numel(varargin), 2) ~= 0
+    error('GridDyn:StateFileOptions', 'Expected name/value options');
+end
+fields = fieldnames(options);
+for kk = 1:2:numel(varargin)
+    match = find(strcmpi(varargin{kk}, fields), 1);
+    if isempty(match)
+        error('GridDyn:StateFileOptions', 'Unknown option: %s', varargin{kk});
+    end
+    options.(fields{match}) = varargin{kk + 1};
+end
+if exist(filename, 'file') ~= 2
+    error('GridDyn:StateFileOpen', 'Unable to open state file: %s', filename);
+end
+res = struct('time', [], 'time_ns', int64([]), 'index', uint64([]), ...
+    'block_index', uint64([]), 'frame', uint64([]), 'code', [], 'typecode', [], ...
+    'key', uint64([]), 'paired_key', uint64([]), 'parent_index', uint64([]), ...
+    'source', [], 'flags', uint32([]), 'approx', uint32([]), 'cj', [], 'data', {{}});
+try
+    format = h5readatt(filename, '/', 'format');
+    format = format(format ~= 0);
+    if ~strcmp(char(format(:).'), 'griddyn-data') || ...
+            h5readatt(filename, '/', 'schema_version') ~= 1
+        error('GridDyn:StateFileFormat', 'Unsupported GridDyn HDF5 schema');
+    end
+    committed = h5read(filename, '/committed_records');
+    indexInfo = h5info(filename, '/records');
+    if ~isscalar(committed) || ~isa(committed, 'uint64') || ...
+            committed > uint64(indexInfo.Dataspace.Size)
+        error('GridDyn:StateFileFormat', 'Invalid completed-record count');
+    end
+    count = exactIndex(committed);
+    valueInfo = h5info(filename, '/values');
+    indexDataInfo = h5info(filename, '/indices');
+    byteInfo = h5info(filename, '/bytes');
+    for first = 1:512:count
+        n = min(512, count - first + 1);
+        records = h5read(filename, '/records', first, n);
+        for ii = 1:n
+            if ~isempty(options.Frame) && ~any(records.frame(ii) == uint64(options.Frame)), continue; end
+            if ~isempty(options.Source) && ~any(records.source(ii) == options.Source), continue; end
+            if ~isempty(options.Key) && ~any(records.key(ii) == uint64(options.Key)), continue; end
+            if ~isempty(options.Code) && ~any(records.code(ii) == options.Code), continue; end
+            kind = double(records.type(ii));
+            if ~any(kind == [0 1 2])
+                error('GridDyn:StateFileFormat', 'Unsupported record kind');
+            end
+            payload = [];
+            if ~options.MetadataOnly
+                if kind == 0 || kind == 1
+                    payload = readRange(filename, '/values', records.value_offset(ii), ...
+                                        records.count(ii), valueInfo.Dataspace.Size);
+                    if kind == 1
+                        entries = records.count(ii);
+                        checkRange(records.index_offset(ii), entries, indexDataInfo.Dataspace.Size);
+                        columnsOffset = records.index_offset(ii) + entries;
+                        row = readRange(filename, '/indices', records.index_offset(ii), entries, indexDataInfo.Dataspace.Size);
+                        col = readRange(filename, '/indices', columnsOffset, entries, indexDataInfo.Dataspace.Size);
+                        if any(row >= records.rows(ii)) || any(col >= records.columns(ii))
+                            error('GridDyn:StateFileFormat', 'Matrix coordinate exceeds shape');
+                        end
+                        payload = struct('row', row, 'col', col, 'val', payload, ...
+                                         'rows', records.rows(ii), 'columns', records.columns(ii));
+                    end
+                else
+                    offsets = readRange(filename, '/indices', records.index_offset(ii), ...
+                                        records.count(ii) + uint64(1), indexDataInfo.Dataspace.Size);
+                    bytes = readRange(filename, '/bytes', records.byte_offset(ii), ...
+                                      records.byte_count(ii), byteInfo.Dataspace.Size);
+                    if isempty(offsets) || offsets(1) ~= 0 || offsets(end) ~= records.byte_count(ii) || ...
+                            any(offsets(2:end) < offsets(1:end-1))
+                        error('GridDyn:StateFileFormat', 'Invalid name offsets');
+                    end
+                    payload = cell(exactIndex(records.count(ii)), 1);
+                    for jj = 1:numel(payload)
+                        if offsets(jj) == offsets(jj+1)
+                            payload{jj} = '';
+                        else
+                            payload{jj} = native2unicode(bytes(exactIndex(offsets(jj)) + 1:exactIndex(offsets(jj+1))).', 'UTF-8');
+                        end
+                    end
+                end
+            end
+            at = numel(res.time) + 1;
+            res.time_ns(at) = records.time_ns(ii);
+            res.time(at) = double(records.time_ns(ii)) * 1e-9;
+            res.frame(at) = records.frame(ii);
+            res.block_index(at) = records.index(ii);
+            if records.source(ii) == 0, res.index(at) = records.frame(ii);
+            else, res.index(at) = records.index(ii); end
+            res.key(at) = records.key(ii);
+            res.paired_key(at) = records.paired_key(ii);
+            res.parent_index(at) = records.parent_index(ii);
+            res.typecode(at) = kind;
+            res.code(at) = double(records.code(ii));
+            res.source(at) = double(records.source(ii));
+            res.flags(at) = records.flags(ii);
+            res.approx(at) = records.approx(ii);
+            res.cj(at) = records.cj(ii);
+            res.data{at} = payload;
+        end
+    end
+catch exc
+    if strncmp(exc.identifier, 'GridDyn:', 8), rethrow(exc); end
+    error('GridDyn:StateFileFormat', 'Unable to read GridDyn HDF5 capture: %s', exc.message);
+end
 end
 
-res=struct('time',0,'index',0,'code',0,'typecode',0,'key',0,'data',{});
-res(1).time=0;
-moredata=true;
-ind=1;
-
-codemask=hex2dec('0000FFFF');
-while (moredata)
-    time=fread(fid,1,'double');
-    if (isempty(time))
-        moredata=false;
-        continue;
-    end
-    datav=fread(fid,4,'uint32=>uint32');
-    res.time(ind)=time;
-    res.index(ind)=double(datav(2));
-    res.code(ind)=double(bitand(datav(1),codemask));
-    typecode=bitshift(datav(1),-16);
-    res.typecode(ind)=typecode;
-    res.key(ind)=double(datav(3));
-
-    count=datav(4);
-
-    switch(typecode)
-        case {0} %get vector information
-            res.data{ind}=fread(fid,count,'double');
-        case {1,65535} %get jacobian information
-            loc=ftell(fid);
-            row=fread(fid,count,'uint32',12);
-            fseek(fid,loc+4,-1);
-            col=fread(fid,count,'uint32',12);
-            fseek(fid,loc+8,-1);
-            val=fread(fid,count,'double',8);
-            fseek(fid,loc+count*16,-1);
-            res.data{ind}.row=row;
-            res.data{ind}.col=col;
-            res.data{ind}.val=val;
-        case 2 % get state name information (not described yet)
-    end
-    ind=ind+1;
-
+function checkRange(offset, count, size)
+if offset > uint64(size) || count > uint64(size) - offset
+    error('GridDyn:StateFileFormat', 'Invalid or incomplete dataset range');
 end
-fclose(fid);
+end
+
+function values = readRange(filename, path, offset, count, size)
+checkRange(offset, count, size);
+if count == 0
+    if strcmp(path, '/indices'), values = uint64([]);
+    elseif strcmp(path, '/bytes'), values = uint8([]);
+    else, values = []; end
+else
+    values = h5read(filename, path, exactIndex(offset) + 1, exactIndex(count));
+    values = values(:);
+end
+end
+
+function value = exactIndex(value)
+if value > uint64(flintmax)
+    error('GridDyn:StateFileFormat', 'Dataset selection exceeds MATLAB exact indexing range');
+end
+value = double(value);
+end

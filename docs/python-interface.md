@@ -157,7 +157,7 @@ frame = sim.recorders["signals"].as_dataframe()
 
 ## Write output files
 
-Use `Simulation.write_file()` for every supported output. GridDyn selects the
+Use `Simulation.write_file()` for case and result output. GridDyn selects the
 writer from the output extension: `.py` writes a PYPOWER case, `.m` writes a
 MATPOWER case, and `.csv` or `.xml` writes the current power-flow result
 summary. You can pass `type` to choose the writer explicitly, including when
@@ -210,6 +210,34 @@ After a successful `sim.power_flow.run()` call, `sim.write_file("powerflow.csv")
 These exporters represent a static AC network. They do not include dynamic
 generator/control models, relays, or events. PYPOWER is a separate package and
 is not installed as a dependency of GridDyn.
+
+## Power-flow solution checkpoints
+
+After initializing and solving a power flow, save its solution and restore it
+later into the same initialized simulation or another initialized instance of
+the same model:
+
+```python
+sim.power_flow.run()
+sim.save_power_flow_checkpoint("operating-point.json")
+
+sim.loads[0].set("p", 1.2)
+sim.power_flow.run()
+sim.load_power_flow_checkpoint("operating-point.json")
+```
+
+The JSON file contains the power-flow solver state and bus voltages and angles.
+Bus voltages are in per unit and angles are in radians. Values can be edited;
+where a bus value also occurs in the solver state, the bus entry takes
+precedence. GridDyn checks the file structure and state layout, but does not
+check whether edited values form a valid solution.
+
+This is a **solution-only** checkpoint: model parameters and inputs, simulation
+time, events, control modes, and time-dependent component history are not
+restored. In particular, restoring it after advancing an iterated power flow
+does not rewind the iteration or its load profiles. A subsequent solve uses
+the current model inputs and the restored solution as its starting point. It is
+not a dynamic or full-simulation checkpoint.
 
 ## DC optimal power flow
 

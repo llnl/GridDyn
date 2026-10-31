@@ -41,3 +41,6 @@
 [submodule "ThirdParty/highs"]
 	path = ThirdParty/highs
 	url = https://github.com/ERGO-Code/HiGHS.git
+[submodule "ThirdParty/hdf5"]
+	path = ThirdParty/hdf5
+	url = https://github.com/HDFGroup/hdf5.git

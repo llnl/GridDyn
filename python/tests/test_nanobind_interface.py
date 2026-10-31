@@ -1,6 +1,7 @@
 import ast
 import copy
 import importlib.util
+import json
 import math
 from pathlib import Path
 
@@ -46,6 +47,28 @@ def test_public_exports_are_available():
     assert issubclass(gd.SolveError, gd.GridDynError)
     assert issubclass(gd.ExecutionError, gd.GridDynError)
     assert callable(gd.load)
+
+
+def test_power_flow_solution_checkpoint(tmp_path):
+    sim = gd.load(PFLOW_FILE)
+    sim.power_flow.run()
+    bus = sim.buses[1]
+    original_voltage = bus.get("voltage")
+    original_angle = bus.get("angle")
+    checkpoint = tmp_path / "powerflow.json"
+    sim.save_power_flow_checkpoint(checkpoint)
+    saved = json.loads(checkpoint.read_text())
+    assert saved["format"] == "griddyn-powerflow-checkpoint"
+    assert saved["scope"] == "solution"
+
+    load = sim.loads[1]
+    load.set("p", 0.8)
+    sim.power_flow.run()
+    assert bus.get("voltage") != pytest.approx(original_voltage)
+    sim.load_power_flow_checkpoint(checkpoint)
+    assert bus.get("voltage") == pytest.approx(original_voltage)
+    assert bus.get("angle") == pytest.approx(original_angle)
+    assert load.get("p") == pytest.approx(0.8)
 
 
 def test_python_api_uses_one_pythonic_name_per_interface():

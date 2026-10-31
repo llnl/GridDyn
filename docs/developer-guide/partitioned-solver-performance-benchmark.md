@@ -1,5 +1,9 @@
 # Partitioned solver performance benchmark
 
+The [binary-state architecture review](binary-state-architecture-review.md)
+maps the initialization, endpoint-derivative, sparse-pattern and performance
+investigations here to a common capture architecture for DAE and partitioned runs.
+
 This note records the current ACTIVSg500 partitioned-solver benchmark and the
 next performance investigations.
 

@@ -1723,6 +1723,22 @@ class PySimulation {
         return sim->execute(action);
     }
 
+    void savePowerFlowCheckpoint(const nb::object& path) const
+    {
+        const auto filePath = pathToString(path);
+        auto sim = simulation();
+        nb::gil_scoped_release release;
+        griddyn::savePowerFlowCheckpoint(sim.get(), filePath);
+    }
+
+    void loadPowerFlowCheckpoint(const nb::object& path)
+    {
+        const auto filePath = pathToString(path);
+        auto sim = simulation();
+        nb::gil_scoped_release release;
+        griddyn::loadPowerFlowCheckpoint(sim.get(), filePath);
+    }
+
     std::vector<std::string> writeFile(const nb::object& path,
                                        const std::optional<std::string>& type = std::nullopt) const
     {
@@ -2310,6 +2326,16 @@ NB_MODULE(_core, mod)
         .def("load_from_string", &PySimulation::loadFromString, "arguments"_a)
         .def("load_from_args", &PySimulation::loadFromArgs, "arguments"_a)
         .def("reset", &PySimulation::reset)
+        .def("save_power_flow_checkpoint",
+             &PySimulation::savePowerFlowCheckpoint,
+             "path"_a,
+             "Save the power-flow solution to a readable checkpoint. Parameters, time, "
+             "events, and time-dependent component history are not included.")
+        .def("load_power_flow_checkpoint",
+             &PySimulation::loadPowerFlowCheckpoint,
+             "path"_a,
+             "Restore a power-flow solution into an initialized compatible simulation. "
+             "Parameters, time, events, and time-dependent component history are unchanged.")
         .def("execute",
              &PySimulation::execute,
              "action"_a,

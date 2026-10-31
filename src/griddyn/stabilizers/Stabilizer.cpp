@@ -13,6 +13,7 @@
 #include "StabilizerPss2a.h"
 #include "StabilizerPss2b.h"
 #include "StabilizerST2CUT.h"
+#include "StabilizerStab2a.h"
 #include "StabilizerStab3.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
@@ -35,6 +36,8 @@ static ChildTypeFactory<stabilizers::StabilizerPss2b, Stabilizer>
     gPss2bFactory("pss", std::to_array<std::string_view>({"pss2b"}));
 static ChildTypeFactory<stabilizers::StabilizerStab3, Stabilizer>
     gStab3Factory("pss", std::to_array<std::string_view>({"stab3"}));
+static ChildTypeFactory<stabilizers::StabilizerStab2a, Stabilizer>
+    gStab2aFactory("pss", std::to_array<std::string_view>({"stab2a"}));
 
 Stabilizer::Stabilizer(const std::string& objName):
     GridSubModel(objName), mp_Tw(0.0), mp_Teps(0.0), mp_Kw(0.0), mp_Kp(0.0), mp_Kv(0.0),

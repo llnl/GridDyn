@@ -38,6 +38,7 @@ governor-variants
 gpwscc-reference
 pss2b-esac2a-models
 scrx-esac6a-model-spec
+stab2a-model
 tiocr1-dyr-compatibility
 ```
 

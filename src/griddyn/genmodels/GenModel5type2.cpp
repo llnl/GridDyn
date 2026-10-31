@@ -19,11 +19,11 @@ namespace griddyn::genmodels {
 GenModel5type2::GenModel5type2(const std::string& objName): GenModel5(objName) {}
 CoreObject* GenModel5type2::clone(CoreObject* obj) const
 {
-    auto* gd = cloneBase<GenModel5type2, GenModel5>(this, obj);
-    if (gd == nullptr) {
+    auto* copy = cloneBase<GenModel5type2, GenModel5>(this, obj);
+    if (copy == nullptr) {
         return obj;
     }
-    return gd;
+    return copy;
 }
 
 void GenModel5type2::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
@@ -38,148 +38,153 @@ void GenModel5type2::dynObjectInitializeB(const IOdata& inputs,
                                           const IOdata& desiredOutput,
                                           IOdata& fieldSet)
 {
-    double* gm = m_state.data();
+    double* state = m_state.data();
     computeInitialAngleAndCurrent(inputs, desiredOutput, Rs, Xq);
 
     // Edp and Eqp  and Edpp
 
-    gm[6] = Vq + Rs * gm[1] - (Xdpp)*gm[0];
-    gm[4] = Vd + Rs * gm[0] + (Xqpp)*gm[1];
+    state[6] = Vq + (Rs * state[1]) - (Xdpp * state[0]);
+    state[4] = Vd + (Rs * state[0]) + (Xqpp * state[1]);
 
     // exciter - assign Ef
-    double Eft = gm[6] - (Xd - Xdpp) * gm[0];
+    const double eft = state[6] - ((Xd - Xdpp) * state[0]);
 
-    double drat = Tdopp * (Xdpp + Xl) / (Tdop * (Xqp + Xl));
-    gm[5] = gm[6] - (Xdp - Xdpp + drat * (Xd - Xdp)) * gm[0] + Taa / Tdop * Eft;
+    const double drat = Tdopp * (Xdpp + Xl) / (Tdop * (Xdp + Xl));
+    state[5] = state[6] - ((Xdp - Xdpp + (drat * (Xd - Xdp))) * state[0]) - (Taa / Tdop * eft);
     // record Pm = Pset
     // this should be close to P from above
-    double Pmt = gm[4] * gm[0] + gm[6] * gm[1] + (Xdpp - Xqpp) * gm[0] * gm[1];
-    // Pmt = P;
+    const double pmt =
+        (state[4] * state[0]) + (state[6] * state[1]) + ((Xdpp - Xqpp) * state[0] * state[1]);
+    // pmt = P;
     // preset the inputs that should be initialized
-    fieldSet[2] = Eft;
-    fieldSet[3] = Pmt;
+    fieldSet[2] = eft;
+    fieldSet[3] = pmt;
 }
 
 void GenModel5type2::derivative(const IOdata& inputs,
-                                const StateData& sD,
+                                const StateData& stateData,
                                 double deriv[],
                                 const SolverMode& sMode)
 {
-    auto Loc = offsets.getLocations(sD, deriv, sMode, this);
-    const double* gm = Loc.algStateLoc;
-    const double* gmd = Loc.diffStateLoc;
-    double* dv = Loc.destDiffLoc;
+    auto locations = offsets.getLocations(stateData, deriv, sMode, this);
+    const double* state = locations.algStateLoc;
+    const double* diffState = locations.diffStateLoc;
+    double* rates = locations.destDiffLoc;
     // Get the exciter field
-    double Eft = inputs[genModelEftInLocation];
-    double Pmt = inputs[genModelPmechInLocation];
+    const double eft = inputs[genModelEftInLocation];
+    const double pmt = inputs[genModelPmechInLocation];
 
-    double drat = Tdopp * (Xdpp + Xl) / (Tdop * (Xqp + Xl));
+    const double drat = Tdopp * (Xdpp + Xl) / (Tdop * (Xdp + Xl));
     // Id and Iq
 
     // delta
-    dv[0] = systemBaseFrequency * (gmd[1] - 1.0);
+    rates[0] = systemBaseFrequency * (diffState[1] - 1.0);
     // Edpp and Eqp
-    dv[2] = (-gmd[2] - (Xq - Xqpp) * gm[1]) / Tqopp;
-    dv[3] = (-gmd[3] + (Xd - Xdp - drat * (Xd - Xdp)) * gm[0] + (1.0 - Taa / Tdop) * Eft) / Tdop;
+    rates[2] = (-diffState[2] - ((Xq - Xqpp) * state[1])) / Tqopp;
+    rates[3] = (-diffState[3] + ((Xd - Xdp - (drat * (Xd - Xdp))) * state[0]) +
+                ((1.0 - (Taa / Tdop)) * eft)) /
+        Tdop;
     // Eqpp
-    dv[4] =
-        (-gmd[4] + gmd[3] + (Xdp - Xdpp + drat * (Xd - Xdp)) * gm[0] + Taa / Tdop * Eft) / Tdopp;
+    rates[4] = (-diffState[4] + diffState[3] + ((Xdp - Xdpp + (drat * (Xd - Xdp))) * state[0]) +
+                (Taa / Tdop * eft)) /
+        Tdopp;
     // omega
-    double Pe = gmd[2] * gm[0] + gmd[4] * gm[1] + (Xdpp - Xqpp) * gm[0] * gm[1];
+    const double electricalPower = (diffState[2] * state[0]) + (diffState[4] * state[1]) +
+        ((Xdpp - Xqpp) * state[0] * state[1]);
 
-    dv[1] = 0.5 * (Pmt - Pe - D * (gmd[1] - 1.0)) / H;
+    rates[1] = 0.5 * (pmt - electricalPower - (D * (diffState[1] - 1.0))) / H;
 }
 
 void GenModel5type2::algebraicUpdate(const IOdata& inputs,
-                                     const StateData& sD,
+                                     const StateData& stateData,
                                      double update[],
                                      const SolverMode& sMode,
                                      double /*alpha*/)
 {
-    auto Loc = offsets.getLocations(sD, update, sMode, this);
-    updateLocalCache(inputs, sD, sMode);
+    auto locations = offsets.getLocations(stateData, update, sMode, this);
+    updateLocalCache(inputs, stateData, sMode);
     gmlc::utilities::solve2x2(Rs,
                               (Xqpp),
                               -(Xdpp),
                               Rs,
-                              Loc.diffStateLoc[2] - Vd,
-                              Loc.diffStateLoc[4] - Vq,
-                              Loc.destLoc[0],
-                              Loc.destLoc[1]);
-    m_output = -(Loc.destLoc[1] * Vq + Loc.destLoc[0] * Vd);
+                              locations.diffStateLoc[2] - Vd,
+                              locations.diffStateLoc[4] - Vq,
+                              locations.destLoc[0],
+                              locations.destLoc[1]);
+    m_output = -((locations.destLoc[1] * Vq) + (locations.destLoc[0] * Vd));
 }
 
 void GenModel5type2::residual(const IOdata& inputs,
-                              const StateData& sD,
+                              const StateData& stateData,
                               double resid[],
                               const SolverMode& sMode)
 {
-    auto Loc = offsets.getLocations(sD, resid, sMode, this);
+    auto locations = offsets.getLocations(stateData, resid, sMode, this);
 
-    const double* gm = Loc.algStateLoc;
-    const double* gmd = Loc.diffStateLoc;
-    const double* gmp = Loc.dstateLoc;
+    const double* state = locations.algStateLoc;
+    const double* diffState = locations.diffStateLoc;
+    const double* stateDerivative = locations.dstateLoc;
 
-    double* rva = Loc.destLoc;
-    double* rvd = Loc.destDiffLoc;
-    updateLocalCache(inputs, sD, sMode);
+    double* algebraicResidual = locations.destLoc;
+    double* differentialResidual = locations.destDiffLoc;
+    updateLocalCache(inputs, stateData, sMode);
 
     // Id and Iq
     if (hasAlgebraic(sMode)) {
-        rva[0] = Vd + Rs * gm[0] + (Xqpp)*gm[1] - gmd[2];
-        rva[1] = Vq + Rs * gm[1] - (Xdpp)*gm[0] - gmd[4];
+        algebraicResidual[0] = Vd + (Rs * state[0]) + (Xqpp * state[1]) - diffState[2];
+        algebraicResidual[1] = Vq + (Rs * state[1]) - (Xdpp * state[0]) - diffState[4];
     }
 
     if (hasDifferential(sMode)) {
-        derivative(inputs, sD, resid, sMode);
+        derivative(inputs, stateData, resid, sMode);
         // Get the exciter field
 
         // delta
-        rvd[0] -= gmp[0];
-        rvd[1] -= gmp[1];
-        rvd[2] -= gmp[2];
-        rvd[3] -= gmp[3];
-        rvd[4] -= gmp[4];
+        differentialResidual[0] -= stateDerivative[0];
+        differentialResidual[1] -= stateDerivative[1];
+        differentialResidual[2] -= stateDerivative[2];
+        differentialResidual[3] -= stateDerivative[3];
+        differentialResidual[4] -= stateDerivative[4];
     }
 }
 
 void GenModel5type2::jacobianElements(const IOdata& inputs,
-                                      const StateData& sD,
-                                      MatrixData<double>& md,
+                                      const StateData& stateData,
+                                      MatrixData<double>& matrixData,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode)
 {
-    // md.assign (arrayIndex, RowIndex, ColIndex, value) const
-    auto Loc = offsets.getLocations(sD, sMode, this);
+    // matrixData.assign (arrayIndex, RowIndex, ColIndex, value) const
+    auto locations = offsets.getLocations(stateData, sMode, this);
 
-    auto refAlg = Loc.algOffset;
-    auto refDiff = Loc.diffOffset;
-    const double* gm = Loc.algStateLoc;
-    const double* gmd = Loc.diffStateLoc;
-    double V = inputs[VOLTAGE_IN_LOCATION];
-    auto VLoc = inputLocs[VOLTAGE_IN_LOCATION];
-    auto TLoc = inputLocs[ANGLE_IN_LOCATION];
+    auto refAlg = locations.algOffset;
+    auto refDiff = locations.diffOffset;
+    const double* state = locations.algStateLoc;
+    const double* diffState = locations.diffStateLoc;
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
+    auto voltageLoc = inputLocs[VOLTAGE_IN_LOCATION];
+    auto angleLoc = inputLocs[ANGLE_IN_LOCATION];
 
-    updateLocalCache(inputs, sD, sMode);
+    updateLocalCache(inputs, stateData, sMode);
 
     // P
     if (hasAlgebraic(sMode)) {
-        if (TLoc != kNullLocation) {
-            md.assign(refAlg, TLoc, Vq);
-            md.assign(refAlg + 1, TLoc, -Vd);
+        if (angleLoc != kNullLocation) {
+            matrixData.assign(refAlg, angleLoc, Vq);
+            matrixData.assign(refAlg + 1, angleLoc, -Vd);
         }
 
         // Q
-        if (VLoc != kNullLocation) {
-            md.assign(refAlg, VLoc, Vd / V);
-            md.assign(refAlg + 1, VLoc, Vq / V);
+        if (voltageLoc != kNullLocation) {
+            matrixData.assign(refAlg, voltageLoc, Vd / voltage);
+            matrixData.assign(refAlg + 1, voltageLoc, Vq / voltage);
         }
 
-        md.assign(refAlg, refAlg, Rs);
-        md.assign(refAlg, refAlg + 1, (Xqpp));
+        matrixData.assign(refAlg, refAlg, Rs);
+        matrixData.assign(refAlg, refAlg + 1, (Xqpp));
 
-        md.assign(refAlg + 1, refAlg, -(Xdpp));
-        md.assign(refAlg + 1, refAlg + 1, Rs);
+        matrixData.assign(refAlg + 1, refAlg, -(Xdpp));
+        matrixData.assign(refAlg + 1, refAlg + 1, Rs);
 
         if (isAlgebraicOnly(sMode)) {
             return;
@@ -187,64 +192,70 @@ void GenModel5type2::jacobianElements(const IOdata& inputs,
 
         // Id Differential
 
-        md.assign(refAlg, refDiff, -Vq);
-        md.assign(refAlg, refDiff + 2, -1.0);
+        matrixData.assign(refAlg, refDiff, -Vq);
+        matrixData.assign(refAlg, refDiff + 2, -1.0);
 
         // Iq differential
 
-        md.assign(refAlg + 1, refDiff, Vd);
-        md.assign(refAlg + 1, refDiff + 4, -1.0);
+        matrixData.assign(refAlg + 1, refDiff, Vd);
+        matrixData.assign(refAlg + 1, refDiff + 4, -1.0);
     }
     // delta
-    md.assign(refDiff, refDiff, -sD.cj);
-    md.assign(refDiff, refDiff + 1, systemBaseFrequency);
+    matrixData.assign(refDiff, refDiff, -stateData.cj);
+    matrixData.assign(refDiff, refDiff + 1, systemBaseFrequency);
 
     // omega
-    double kVal = -0.5 / H;
+    const double kVal = -0.5 / H;
     if (hasAlgebraic(sMode)) {
-        md.assign(refDiff + 1, refAlg, -0.5 * (gmd[2] + (Xdpp - Xqpp) * gm[1]) / H);
-        md.assign(refDiff + 1, refAlg + 1, -0.5 * (gmd[4] + (Xdpp - Xqpp) * gm[0]) / H);
+        matrixData.assign(refDiff + 1,
+                          refAlg,
+                          -0.5 * (diffState[2] + ((Xdpp - Xqpp) * state[1])) / H);
+        matrixData.assign(refDiff + 1,
+                          refAlg + 1,
+                          -0.5 * (diffState[4] + ((Xdpp - Xqpp) * state[0])) / H);
     }
-    md.assign(refDiff + 1, refDiff + 1, -0.5 * D / H - sD.cj);
-    md.assign(refDiff + 1, refDiff + 2, -0.5 * gm[0] / H);
-    md.assign(refDiff + 1, refDiff + 4, -0.5 * gm[1] / H);
+    matrixData.assign(refDiff + 1, refDiff + 1, (-0.5 * D / H) - stateData.cj);
+    matrixData.assign(refDiff + 1, refDiff + 2, -0.5 * state[0] / H);
+    matrixData.assign(refDiff + 1, refDiff + 4, -0.5 * state[1] / H);
 
-    md.assignCheckCol(refDiff + 1, inputLocs[genModelPmechInLocation], -kVal);  // governor: Pm
+    matrixData.assignCheckCol(refDiff + 1,
+                              inputLocs[genModelPmechInLocation],
+                              -kVal);  // governor: Pm
 
-    double drat = Tdopp * (Xdpp + Xl) / (Tdop * (Xqp + Xl));
+    const double drat = Tdopp * (Xdpp + Xl) / (Tdop * (Xdp + Xl));
 
     // Edpp
     if (hasAlgebraic(sMode)) {
-        md.assign(refDiff + 2, refAlg + 1, -(Xq - Xqpp) / Tqopp);
+        matrixData.assign(refDiff + 2, refAlg + 1, -(Xq - Xqpp) / Tqopp);
     }
-    md.assign(refDiff + 2, refDiff + 2, -1 / Tqopp - sD.cj);
+    matrixData.assign(refDiff + 2, refDiff + 2, (-1 / Tqopp) - stateData.cj);
 
     // Eqp
     if (hasAlgebraic(sMode)) {
-        md.assign(refDiff + 3, refAlg, (Xd - Xdp - drat * (Xd - Xdp)) / Tdop);
+        matrixData.assign(refDiff + 3, refAlg, (Xd - Xdp - (drat * (Xd - Xdp))) / Tdop);
     }
-    md.assign(refDiff + 3, refDiff + 3, -1.0 / Tdop - sD.cj);
+    matrixData.assign(refDiff + 3, refDiff + 3, (-1.0 / Tdop) - stateData.cj);
 
     if (inputLocs[genModelEftInLocation] != kNullLocation)  // check if exciter exists
     {
-        md.assign(refDiff + 3,
-                  inputLocs[genModelEftInLocation],
-                  (1.0 - Taa / Tdop) / Tdop);  // exciter: Ef
-        md.assign(refDiff + 4, inputLocs[genModelEftInLocation], Taa / Tdop / Tdopp);
+        matrixData.assign(refDiff + 3,
+                          inputLocs[genModelEftInLocation],
+                          (1.0 - (Taa / Tdop)) / Tdop);  // exciter: Ef
+        matrixData.assign(refDiff + 4, inputLocs[genModelEftInLocation], Taa / Tdop / Tdopp);
     }
 
     // Eqpp
     if (hasAlgebraic(sMode)) {
-        md.assign(refDiff + 4, refAlg, (Xdp - Xdpp + drat * (Xd - Xdp)) / Tdopp);
+        matrixData.assign(refDiff + 4, refAlg, (Xdp - Xdpp + (drat * (Xd - Xdp))) / Tdopp);
     }
-    md.assign(refDiff + 4, refDiff + 3, 1.0 / Tdopp);
-    md.assign(refDiff + 4, refDiff + 4, -1.0 / Tdopp - sD.cj);
+    matrixData.assign(refDiff + 4, refDiff + 3, 1.0 / Tdopp);
+    matrixData.assign(refDiff + 4, refDiff + 4, (-1.0 / Tdopp) - stateData.cj);
 }
 
-static const stringVec genModel5type2Names{"id", "iq", "delta", "freq", "edpp", "eqp", "eqpp"};
+static const stringVec GEN_MODEL5_TYPE2_NAMES{"id", "iq", "delta", "freq", "edpp", "eqp", "eqpp"};
 
 stringVec GenModel5type2::localStateNames() const
 {
-    return genModel5type2Names;
+    return GEN_MODEL5_TYPE2_NAMES;
 }
 }  // namespace griddyn::genmodels

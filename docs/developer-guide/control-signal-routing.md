@@ -139,13 +139,22 @@ order. In particular, the machine-signal value snapshot precedes the exciter
 field refresh, matching the existing generator equations.
 
 `Stabilizer::electricalPowerSignal()` selects the machine quantity for the
-local power-input slot. PSS2B requests terminal electrical power on machine
-base, matching OpenIPSL's `PELEC` connection; existing stabilizers, including
-PSS2A, retain electrical torque. Values and sparse derivatives come from the
-same selected provider, including in partitioned solver modes. PSS2A/PSS2B
+local power-input slot. PSS2B and STAB2A request terminal electrical power on
+machine base, matching OpenIPSL's `PELEC` connection; stabilizers that use the
+default selection, including PSS2A, retain electrical torque. Values and sparse
+derivatives come from the same selected provider, including in partitioned
+solver modes. PSS2A/PSS2B
 modes 1 and 2 both use local speed deviation. Mode 4 uses mechanical-power
 deviation from initialization, without electrical-power subtraction. Remote
 `BUSR` and mode 6 are rejected. See [PSS2B model notes](pss2b-esac2a-models.md).
+
+When a stabilizer has an algebraic output, partitioned differential callbacks
+read that output from the paired algebraic solver state. Its algebraic
+location is excluded from the differential Jacobian map. This prevents an
+internal filter state from being passed to the exciter as `Vss`. STAB2A's
+first washout state starts at `PELEC0`, while its stabilizing output starts
+at zero; the paired-state route preserves that distinction. See
+[STAB2A model notes](stab2a-model.md).
 
 ### Optional OEL and UEL routes
 
@@ -328,6 +337,11 @@ initialization; replace that submodel after resetting routes.
   algebraic updates in full and partitioned modes, and IDA/CVODE limit
   entry/release. Independent OpenIPSL trajectories remain pending; see
   [PSS2B/ESAC2A](pss2b-esac2a-models.md) and [ESST2A](esst2a-model.md).
+- `Stab2aReaderTests` check all eight parameters in DYR and compact DYD,
+  malformed-record rejection, the diagnostic gain override, machine-base
+  terminal-power routing with stator losses, and all eight time-constant
+  combinations with DAE and partitioned solvers. The partitioned checks cover
+  the stabilizer's paired algebraic output value and Jacobian routing.
 
 See [RenewableGenerator architecture refinement](renewable-generator-architecture-refinement.md)
 for the host's role and port policy and [WECC model coverage audit](wecc-model-coverage-audit.md)

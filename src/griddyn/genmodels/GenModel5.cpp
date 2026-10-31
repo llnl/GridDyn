@@ -49,7 +49,9 @@ void GenModel5::dynObjectInitializeB(const IOdata& inputs,
     // Edp and Eqp  and Edpp
 
     generatorState[5] = Vq + (Rs * generatorState[1]) - (Xdp * generatorState[0]);
-    generatorState[6] = Vd + (Rs * generatorState[0]) + (Xqp * generatorState[1]);
+    // PSAT Order5_Type1 uses the d-axis transient reactance on both stator
+    // axes. Xqp belongs in the internal q-axis dynamics, not this equation.
+    generatorState[6] = Vd + (Rs * generatorState[0]) + (Xdp * generatorState[1]);
 
     const double transientReactanceRatio = Tqopp * (Xdp + Xl) / (Tqop * (Xqp + Xl));
     generatorState[4] = generatorState[6] +
@@ -57,9 +59,8 @@ void GenModel5::dynObjectInitializeB(const IOdata& inputs,
 
     // record Pm = Pset
     // this should be close to P from above
-    const double mechanicalPower = (generatorState[6] * generatorState[0]) +
-        (generatorState[5] * generatorState[1]) +
-        ((Xdp - Xqp) * generatorState[0] * generatorState[1]);
+    const double mechanicalPower =
+        (generatorState[6] * generatorState[0]) + (generatorState[5] * generatorState[1]);
     // exciter - assign Ef
     const double exciterField = generatorState[5] - ((Xd - Xdp) * generatorState[0]);
     // preset the inputs that should be initialized
@@ -76,7 +77,7 @@ void GenModel5::algebraicUpdate(const IOdata& inputs,
     const auto locations = offsets.getLocations(stateData, update, sMode, this);
     updateLocalCache(inputs, stateData, sMode);
     gmlc::utilities::solve2x2(Rs,
-                              (Xqp),
+                              (Xdp),
                               -(Xdp),
                               Rs,
                               locations.diffStateLoc[4] - Vd,
@@ -103,7 +104,7 @@ void GenModel5::residual(const IOdata& inputs,
     // Id and Iq
     if (hasAlgebraic(sMode)) {
         algebraicResidual[0] =
-            Vd + (Rs * generatorState[0]) + (Xqp * generatorState[1]) - differentialState[4];
+            Vd + (Rs * generatorState[0]) + (Xdp * generatorState[1]) - differentialState[4];
         algebraicResidual[1] =
             Vq + (Rs * generatorState[1]) - (Xdp * generatorState[0]) - differentialState[3];
     }
@@ -155,9 +156,8 @@ void GenModel5::derivative(const IOdata& inputs,
         Tqopp;
     // omega
 
-    const double electricalPower = (differentialState[4] * algebraicState[0]) +
-        (differentialState[3] * algebraicState[1]) +
-        ((Xdp - Xqp) * algebraicState[0] * algebraicState[1]);
+    const double electricalPower =
+        (differentialState[4] * algebraicState[0]) + (differentialState[3] * algebraicState[1]);
     derivativeValues[1] =
         0.5 * (mechanicalPower - electricalPower - (D * (differentialState[1] - 1.0))) / H;
 }
@@ -196,7 +196,7 @@ void GenModel5::jacobianElements(const IOdata& inputs,
         }
 
         matrixData.assign(refAlg, refAlg, Rs);
-        matrixData.assign(refAlg, refAlg + 1, Xqp);
+        matrixData.assign(refAlg, refAlg + 1, Xdp);
 
         matrixData.assign(refAlg + 1, refAlg, -Xdp);
         matrixData.assign(refAlg + 1, refAlg + 1, Rs);
@@ -223,12 +223,8 @@ void GenModel5::jacobianElements(const IOdata& inputs,
         // omega
         const double inertiaFactor = -0.5 / H;
         if (hasAlgebraicEquations) {
-            matrixData.assign(refDiff + 1,
-                              refAlg,
-                              -0.5 * (generatorState[6] + ((Xdp - Xqp) * generatorState[1])) / H);
-            matrixData.assign(refDiff + 1,
-                              refAlg + 1,
-                              -0.5 * (generatorState[5] + ((Xdp - Xqp) * generatorState[0])) / H);
+            matrixData.assign(refDiff + 1, refAlg, -0.5 * locations.diffStateLoc[4] / H);
+            matrixData.assign(refDiff + 1, refAlg + 1, -0.5 * locations.diffStateLoc[3] / H);
         }
 
         matrixData.assign(refDiff + 1, refDiff + 1, (-0.5 * D / H) - stateData.cj);
@@ -347,7 +343,7 @@ void GenModel5::set(std::string_view param, double val, units::unit unitType)
         Xqpp = val;
     } else if (param == "xpp") {
         Xdpp = val;
-        Xdpp = val;
+        Xqpp = val;
     } else {
         GenModel4::set(param, val, unitType);
     }

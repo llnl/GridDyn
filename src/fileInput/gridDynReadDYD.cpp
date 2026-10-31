@@ -92,7 +92,7 @@ namespace {
             "ieeest", "iee2st", "pss2a",  "pss2b",   "stab3",   "sexs",   "ieeeg2", "ieeevc",
             "regca1", "regcp1", "reeca1", "reeca1e", "reeca1g", "reecb1", "repca1", "regcv1",
             "regcv2", "regf1",  "regf2",  "regf3",   "wtdta1",  "wtara1", "wtpta1", "wttqa1",
-            "wtds",   "wt3g1",  "wt3e1",  "wt4g1",   "wt4e1",   "epcgen", "gpwscc"};
+            "wtds",   "wt3g1",  "wt3e1",  "wt4g1",   "wt4e1",   "epcgen", "gpwscc", "stab2a"};
         const auto normalized = gmlc::utilities::convertToLowerCase(modelName);
         return std::ranges::any_of(directModels, [normalized](const char* directModel) {
             return normalized == directModel;

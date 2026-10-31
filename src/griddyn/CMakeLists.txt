@@ -161,6 +161,7 @@ set(exciter_headers
     stabilizers/StabilizerIee2st.h
     stabilizers/StabilizerPss2a.h
     stabilizers/StabilizerPss2b.h
+    stabilizers/StabilizerStab2a.h
     stabilizers/StabilizerStab3.h
     stabilizers/StabilizerST2CUT.h
     exciters/ExciterDC1A.h
@@ -222,6 +223,7 @@ set(exciter_sources
     stabilizers/StabilizerIee2st.cpp
     stabilizers/StabilizerPss2a.cpp
     stabilizers/StabilizerPss2b.cpp
+    stabilizers/StabilizerStab2a.cpp
     stabilizers/StabilizerStab3.cpp
     stabilizers/StabilizerST2CUT.cpp
 )

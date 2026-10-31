@@ -9,13 +9,20 @@
 #include "core/ObjectFactory.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Generator.h"
+#include "griddyn/genmodels/GenModel5.h"
+#include "griddyn/genmodels/GenModel5type2.h"
 #include "griddyn/genmodels/GenModel8.h"
+#include "griddyn/genmodels/GenModelCSVGN1.h"
 #include "griddyn/genmodels/GenModelClassical.h"
 #include "griddyn/genmodels/GenModelGENROE.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
 #include "griddyn/genmodels/GenModelGENSAE.h"
 #include "griddyn/genmodels/GenModelGENSAL.h"
+#include "griddyn/genmodels/GenModelGENTPJ.h"
+#include "utilities/MatrixDataSparse.hpp"
+#include <array>
 #include <cmath>
+#include <complex>
 #include <gtest/gtest.h>
 #include <memory>
 #include <string>
@@ -28,6 +35,61 @@
 using namespace griddyn;
 
 namespace {
+void checkModelJacobians(GenModel& model, const IOdata& inputs, const std::vector<double>& state)
+{
+    model.setOffset(0, cDaeSolverMode);
+    std::vector<double> rates(state.size(), 0.0);
+    index_t sequence = 100;
+    auto residual = [&](const IOdata& testInputs, const std::vector<double>& testState) {
+        std::vector<double> result(state.size(), 0.0);
+        StateData data(0.0, testState.data(), rates.data(), ++sequence);
+        data.stateSize = static_cast<count_t>(state.size());
+        model.residual(testInputs, data, result.data(), cDaeSolverMode);
+        return result;
+    };
+    IOlocs inputLocations(inputs.size());
+    for (std::size_t index = 0; index < inputs.size(); ++index) {
+        inputLocations[index] = static_cast<index_t>(state.size() + index);
+    }
+    StateData data(0.0, state.data(), rates.data(), ++sequence);
+    data.stateSize = static_cast<count_t>(state.size());
+    data.cj = 0.0;
+    MatrixDataSparse<double> jacobian;
+    model.jacobianElements(inputs, data, jacobian, inputLocations, cDaeSolverMode);
+    MatrixDataSparse<double> outputJacobian;
+    model.outputPartialDerivatives(inputs, data, outputJacobian, cDaeSolverMode);
+    model.ioPartialDerivatives(inputs, data, outputJacobian, inputLocations, cDaeSolverMode);
+    const auto baseline = residual(inputs, state);
+    StateData outputData(0.0, state.data(), rates.data(), ++sequence);
+    const auto baselineOutput = model.getOutputs(inputs, outputData, cDaeSolverMode);
+    constexpr double step = 1e-7;
+    for (std::size_t col = 0; col < state.size() + inputs.size(); ++col) {
+        auto perturbedState = state;
+        auto perturbedInputs = inputs;
+        if (col < state.size()) {
+            perturbedState[col] += step;
+        } else {
+            perturbedInputs[col - state.size()] += step;
+        }
+        const auto perturbed = residual(perturbedInputs, perturbedState);
+        for (std::size_t row = 0; row < state.size(); ++row) {
+            EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), static_cast<index_t>(col)),
+                        (perturbed[row] - baseline[row]) / step,
+                        2e-5)
+                << "residual row " << row << " column " << col;
+        }
+        StateData perturbedData(0.0, perturbedState.data(), rates.data(), ++sequence);
+        const auto perturbedOutput =
+            model.getOutputs(perturbedInputs, perturbedData, cDaeSolverMode);
+        for (std::size_t row = 0; row < baselineOutput.size(); ++row) {
+            EXPECT_NEAR(outputJacobian.at(static_cast<index_t>(row), static_cast<index_t>(col)),
+                        (perturbedOutput[row] - baselineOutput[row]) / step,
+                        2e-5)
+                << "output row " << row << " column " << col;
+        }
+    }
+}
+
 void configureKundurGenrou(genmodels::GenModelGENROU& model, double s10, double s12)
 {
     // Machine-base parameters for the first generator in the ANDES
@@ -90,6 +152,269 @@ bool matchesTestModel1ActivePowerSetpoint(const std::string& modelName)
 }  // namespace
 
 class GenModelTests: public GridDynSimulationTestFixture, public ::testing::Test {};
+
+TEST_F(GenModelTests, PsatFifthOrderMachinesStartAtPowerFlowWithUnequalReactances)
+{
+    for (bool type2 : {false, true}) {
+        for (double resistance : {0.0, 0.01}) {
+            SCOPED_TRACE(::testing::Message() << "type2=" << type2 << " r=" << resistance);
+            std::unique_ptr<genmodels::GenModel5> model = type2 ?
+                std::make_unique<genmodels::GenModel5type2>() :
+                std::make_unique<genmodels::GenModel5>();
+            model->set("h", 4.0);
+            model->set("r", resistance);
+            model->set("xl", 0.06);
+            model->set("xd", 1.9);
+            model->set("xq", 1.7);
+            model->set("xdp", 0.3);
+            model->set("xqp", 0.55);
+            model->set("xdpp", 0.2);
+            model->set("xqpp", 0.25);
+            model->set("tdop", 8.0);
+            model->set("tqop", 0.8);
+            model->set("tdopp", 0.03);
+            model->set("tqopp", 0.02);
+            model->set("taa", 0.04);
+            model->dynInitializeA(0.0, 0);
+            IOdata inputs{1.02, 0.1, 0.0, 0.0};
+            IOdata fieldSet(4, 0.0);
+            model->dynInitializeB(inputs, {0.8, 0.2}, fieldSet);
+            inputs[genModelEftInLocation] = fieldSet[genModelEftInLocation];
+            inputs[genModelPmechInLocation] = fieldSet[genModelPmechInLocation];
+            auto state = model->getStates();
+            ASSERT_EQ(state.size(), 7U);
+            EXPECT_NEAR(fieldSet[genModelPmechInLocation],
+                        0.8 + (resistance * ((0.8 * 0.8) + (0.2 * 0.2)) / (1.02 * 1.02)),
+                        1e-12);
+            std::vector<double> derivatives(state.size(), 0.0);
+            model->derivative(inputs, emptyStateData, derivatives.data(), cLocalSolverMode);
+            for (std::size_t index = 2; index < derivatives.size(); ++index) {
+                EXPECT_NEAR(derivatives[index], 0.0, 1e-11) << "initial derivative " << index;
+            }
+            // Perturb both currents, voltages, and speed to exercise the power
+            // and stator Jacobians away from the power-flow operating point.
+            state[0] -= 0.03;
+            state[1] += 0.04;
+            state[2] += 0.02;
+            state[3] += 0.01;
+            state[4] += 0.02;
+            state[5] -= 0.02;
+            checkModelJacobians(*model, inputs, state);
+        }
+    }
+}
+
+TEST_F(GenModelTests, GentpjDirectInitializationSatisfiesSaturatedEquilibrium)
+{
+    for (bool saturated : {false, true}) {
+        for (const auto& power : std::array<std::array<double, 2>, 4>{
+                 {{0.0, 0.0}, {0.8, 0.2}, {0.8, -0.8}, {0.1, -1.0}}}) {
+            SCOPED_TRACE(::testing::Message()
+                         << "saturated=" << saturated << " P=" << power[0] << " Q=" << power[1]);
+            genmodels::GenModelGENTPJ model;
+            model.set("r", 0.01);
+            model.set("xl", 0.06);
+            model.set("xd", 1.9);
+            model.set("xq", 1.7);
+            model.set("xdp", 0.3);
+            model.set("xqp", 0.55);
+            model.set("xdpp", 0.2);
+            model.set("xqpp", 0.25);
+            model.set("s10", saturated ? 0.1 : 0.0);
+            model.set("s12", 0.3);
+            model.set("kis", saturated ? 0.2 : 0.0);
+            model.dynInitializeA(0.0, 0);
+            IOdata inputs{1.02, 0.1, 0.0, 0.0};
+            IOdata fieldSet(4, 0.0);
+            model.dynInitializeB(inputs, {power[0], power[1]}, fieldSet);
+            inputs[genModelEftInLocation] = fieldSet[genModelEftInLocation];
+            inputs[genModelPmechInLocation] = fieldSet[genModelPmechInLocation];
+            const auto state = model.getStates();
+            ASSERT_EQ(state.size(), 8U);
+            if (!saturated) {
+                const auto voltage = std::polar(inputs[0], inputs[1]);
+                const auto current = std::complex<double>(power[0], -power[1]) / std::conj(voltage);
+                EXPECT_NEAR(state[2],
+                            std::arg(voltage + std::complex<double>(0.01, 1.7) * current),
+                            1e-12);
+            }
+            std::vector<double> rates(state.size(), 0.0);
+            model.derivative(inputs, emptyStateData, rates.data(), cLocalSolverMode);
+            for (std::size_t index = 2; index < state.size(); ++index) {
+                EXPECT_NEAR(rates[index], 0.0, 1e-10) << "initial derivative " << index;
+            }
+            EXPECT_NEAR(fieldSet[genModelPmechInLocation],
+                        power[0] +
+                            (0.01 * ((power[0] * power[0]) + (power[1] * power[1])) /
+                             (inputs[0] * inputs[0])),
+                        1e-12);
+        }
+    }
+}
+
+TEST(Csvgn1Tests, ZeroTimeConstantsInitializeAndHaveConsistentEquations)
+{
+    for (double time4 : {0.0, 0.1}) {
+        for (double time5 : {0.0, 0.05}) {
+            for (double time2 : {0.0, 0.04}) {
+                if (time4 == 0.0 && time2 > 0.0) {
+                    continue;
+                }
+                SCOPED_TRACE(::testing::Message()
+                             << "T2=" << time2 << " T4=" << time4 << " T5=" << time5);
+                genmodels::GenModelCSVGN1 model;
+                model.set("k", 2.0);
+                model.set("t1", 0.05);
+                model.set("t2", time2);
+                model.set("t3", 0.1);
+                model.set("t4", time4);
+                model.set("t5", time5);
+                model.set("cbase", 80.0);
+                model.set("rmin", 10.0);
+                model.set("vmin", 0.1);
+                model.set("vmax", 0.9);
+                model.dynInitializeA(0.0, 0);
+                IOdata inputs{1.0, 0.0, 0.0, 0.0};
+                IOdata fieldSet(4, 0.0);
+                model.dynInitializeB(inputs, {0.0, 0.2}, fieldSet);
+                EXPECT_DOUBLE_EQ(fieldSet[genModelPmechInLocation], 0.0);
+                auto state = model.getStates();
+                ASSERT_EQ(state.size(), 3U);
+                const index_t algebraicCount = (time4 == 0.0 ? 1 : 0) + (time5 == 0.0 ? 1 : 0);
+                const index_t bypassedReactorIndex = time4 == 0.0 ? 1 : 0;
+                const index_t reactorIndex = time5 == 0.0 ? bypassedReactorIndex : 2;
+                EXPECT_NEAR(state[reactorIndex], 0.6, 1e-12);
+                EXPECT_NEAR(
+                    model.getOutput(inputs, emptyStateData, cLocalSolverMode, QOUT_LOCATION),
+                    -0.2,
+                    1e-12);
+                std::vector<double> residual(3, 0.0);
+                model.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+                for (double value : residual) {
+                    EXPECT_NEAR(value, 0.0, 1e-12);
+                }
+                EXPECT_EQ(model.getOffsets(cLocalSolverMode).local.algSize, algebraicCount);
+                for (double voltage : {0.6, 1.0, 1.5}) {
+                    inputs[0] = voltage;
+                    checkModelJacobians(model, inputs, state);
+                    std::vector<double> update(state);
+                    std::vector<double> zeroRates(3, 0.0);
+                    StateData data(0.0, state.data(), zeroRates.data());
+                    model.algebraicUpdate(inputs, data, update.data(), cDaeSolverMode, 1.0);
+                    StateData updated(0.0, update.data(), zeroRates.data());
+                    model.residual(inputs, updated, residual.data(), cDaeSolverMode);
+                    for (index_t index = 0; index < algebraicCount; ++index) {
+                        EXPECT_NEAR(residual[index], 0.0, 1e-12);
+                    }
+                }
+            }
+        }
+    }
+}
+
+TEST(Csvgn1Tests, LimitedLagHoldsItsStateAndReleasesImmediately)
+{
+    genmodels::GenModelCSVGN1 model;
+    model.set("k", 2.0);
+    model.set("t1", 0.1);
+    model.set("t3", 0.1);
+    model.set("t2", 0.0);
+    model.set("t4", 0.2);
+    model.set("vmax", 0.9);
+    model.set("cbase", 80.0);
+    model.dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 0.0, 0.0, 0.0};
+    IOdata fieldSet(4, 0.0);
+    model.dynInitializeB(inputs, {0.0, 0.2}, fieldSet);
+    std::vector<double> state{0.3, 0.9, 0.6};
+    std::vector<double> rates(3, 0.0);
+    model.setState(0.0, state.data(), rates.data(), cLocalSolverMode);
+    inputs[0] = 1.3;
+    model.derivative(inputs, emptyStateData, rates.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(rates[1], 0.0);
+    inputs[0] = 0.9;
+    model.derivative(inputs, emptyStateData, rates.data(), cLocalSolverMode);
+    EXPECT_NEAR(rates[1], -2.5, 1e-12);
+}
+
+TEST(Csvgn1Tests, LimitedLeadLagFeedsBackTheLimitedOutput)
+{
+    genmodels::GenModelCSVGN1 model;
+    model.set("k", 2.0);
+    model.set("t1", 0.1);
+    model.set("t3", 0.1);
+    model.set("t2", 0.1);
+    model.set("t4", 0.2);
+    model.set("vmax", 0.9);
+    model.set("cbase", 80.0);
+    model.dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 0.0, 0.0, 0.0};
+    IOdata fieldSet(4, 0.0);
+    model.dynInitializeB(inputs, {0.0, 0.2}, fieldSet);
+    std::vector<double> state{0.3, 0.6, 0.6};
+    std::vector<double> rates(3, 0.0);
+    model.setState(0.0, state.data(), rates.data(), cLocalSolverMode);
+    inputs[0] = 1.5;
+    model.derivative(inputs, emptyStateData, rates.data(), cLocalSolverMode);
+    // OpenIPSL LeadLagLim: u = clip(0.5 * 2 * 0.8 + 0.5 * 0.6) = 0.9;
+    // its internal integrator follows (u - state)/T2, not the unlimited input.
+    EXPECT_NEAR(rates[1], 3.0, 1e-12);
+    checkModelJacobians(model, inputs, state);
+}
+
+TEST(Csvgn1Tests, RegulatorClampUsesRightSidedJacobianAtExactLimits)
+{
+    genmodels::GenModelCSVGN1 model;
+    // Binary fractions make the initialized reference and raw output exact:
+    // error = 0.25, firstOutput = 0.25, regulatorOutput = 0.5.
+    model.set("k", 2.0);
+    model.set("t1", 0.125);
+    model.set("t2", 0.125);
+    model.set("t3", 0.25);
+    model.set("t4", 0.25);
+    model.set("t5", 0.125);
+    model.set("cbase", 75.0);
+    model.set("vmin", 0.125);
+    model.set("vmax", 0.875);
+    model.dynInitializeA(0.0, 0);
+    const IOdata inputs{1.0, 0.0, 0.0, 0.0};
+    IOdata fieldSet(4, 0.0);
+    model.dynInitializeB(inputs, {0.0, 0.25}, fieldSet);
+    const auto state = model.getStates();
+    ASSERT_EQ(state, (std::vector<double>{0.25, 0.5, 0.5}));
+    model.setOffset(0, cDaeSolverMode);
+    const std::vector<double> rates(state.size(), 0.0);
+    StateData data(0.0, state.data(), rates.data());
+    data.cj = 0.0;
+    const IOlocs inputLocations{3, kNullLocation, kNullLocation, kNullLocation};
+    for (bool upperLimit : {false, true}) {
+        SCOPED_TRACE(upperLimit ? "upper limit" : "lower limit");
+        model.set("vmin", upperLimit ? 0.125 : 0.5);
+        model.set("vmax", upperLimit ? 0.5 : 0.875);
+        MatrixDataSparse<double> jacobian;
+        model.jacobianElements(inputs, data, jacobian, inputLocations, cDaeSolverMode);
+        const double inputPartial = upperLimit ? 0.0 : 4.0;
+        EXPECT_DOUBLE_EQ(jacobian.at(1, 0), inputPartial);
+        EXPECT_DOUBLE_EQ(jacobian.at(1, 1), upperLimit ? -8.0 : -4.0);
+        EXPECT_DOUBLE_EQ(jacobian.at(1, 3), inputPartial);
+        EXPECT_DOUBLE_EQ(jacobian.at(2, 0), inputPartial);
+        EXPECT_DOUBLE_EQ(jacobian.at(2, 1), inputPartial);
+        EXPECT_DOUBLE_EQ(jacobian.at(2, 3), inputPartial);
+        checkModelJacobians(model, inputs, state);
+    }
+}
+
+TEST(Csvgn1Tests, RejectsUnrealizableLeadAndNegativeTimeConstants)
+{
+    for (const auto& parameters : std::array<std::array<double, 3>, 4>{
+             {{0.1, 0.0, 0.05}, {0.0, -0.1, 0.05}, {0.0, 0.1, -0.05}, {-0.1, 0.1, 0.05}}}) {
+        genmodels::GenModelCSVGN1 model;
+        model.set("t2", parameters[0]);
+        model.set("t4", parameters[1]);
+        model.set("t5", parameters[2]);
+        EXPECT_THROW(model.dynInitializeA(0.0, 0), InvalidParameterValue);
+    }
+}
 
 TEST_F(GenModelTests, GenclsFactoryRegistration)
 {

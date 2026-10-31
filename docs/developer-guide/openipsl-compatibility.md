@@ -6,6 +6,26 @@ This document inventories the local OpenIPSL Modelica library as potential GridD
 
 The assessment was refreshed from `C:\data\Documents\codeProjects\OpenIPSL` at commit `8155c73f51ceeec935eb158247c7c043eb697ff5` (2026-04-13). Its package metadata identifies it as OpenIPSL `3.2.0-dev`. The inventory below covers the primary models under `OpenIPSL.Electrical`; it deliberately groups base classes, helper blocks, connector variants, and examples under their composed model rather than treating each as an independent GridDyn feature.
 
+An incremental model-correction audit on 2026-10-30 covered the October 28
+pull to `9a595ebf` (63 commits beyond that inventory snapshot). It identified
+and corrected the PSAT `Order5_Type1` stator-reactance, initialization, power,
+and Jacobian equations in `GenModel5`; the related Type-2 d-axis coefficient
+and nonzero-`Taa` initialization; and CSVGN1's limited-regulator feedback and
+zero-`T4`/zero-`T5` branches. See [CSVGN1 model notes](csvgn1-model.md).
+GridDyn's MNLEX2 already holds its state at the limits, matching OpenIPSL's
+new default. GENTPJ now also uses the direct saturated q-axis phasor formula
+for initialization, replacing its iterative angle solve. The new REGFM_A1
+models and the PowerFactory PVD1/GE wind changes remain separate reference
+families, rather than changes to GridDyn's ANDES-based converter models.
+Future OpenIPSL references must also include the corrected SMIB radian
+angles and URST5T terminal-voltage input. This audit used source equations;
+direct Modelica trajectory comparisons remain pending.
+
+STAB2A was added and its reader integration audited on 2026-10-30. The native
+model has DYR and compact DYD mappings, terminal-power input, exact zero-time
+branches, and DAE/partitioned regression coverage. See
+[STAB2A model notes](stab2a-model.md) for parameter order and supported scope.
+
 GridDyn model/import status was reviewed against the working tree on
 2026-10-04, with PSS2B/ESAC2A/ESST2A updated on 2026-10-22; no single commit
 identifies the state because the tree contains
@@ -198,7 +218,8 @@ Status update (2026-09): the historical `CIM5`/`CIM6` and `GENTPJ` table entries
 | `Controls.PSSE.TG.ConstantPower`; PSAT `TGTypeI–VI`; CGMES `GovHydroIEEE0`; Simulink TG blocks | Basic/reheat/hydro classes are candidates                   | **P2 — Existing candidates / new models**    | Establish whether a GridDyn governor can expose the reference and mechanical-power ports required by each family.                                                                                                                                                                                                                                         |
 | `Controls.PSSE.PSS.PSS2A`, `IEE2ST`, `STAB3`                                                   | `StabilizerPss2a`, `StabilizerIee2st`, `StabilizerStab3`    | **Implemented; external trajectory pending** | Native OpenIPSL-aligned equations, DYR/DYD mapping, initialization, zero-time bypasses where applicable, output limiting, and analytic-Jacobian checks are present. Remote BUSR/mode-6 signal routing and independent trajectories remain open.                                                                                                           |
 | `Controls.PSSE.PSS.PSS2B`                                                                      | `StabilizerPss2b`                                           | **Implemented; external trajectory pending** | Input limits, configurable M/N ramp tracking, three lead-lags, terminal electrical power, DYR/explicit DYD, and DAE/partitioned Jacobian tests. Local subset: modes 1/2 both use speed; mode 4 is mechanical-power deviation only. Remote BUSR and mode 6 are rejected; general PSLF variants are unsupported. See [model notes](pss2b-esac2a-models.md). |
-| `Controls.PSSE.PSS.STAB2A`, `STABNI`, `STBSVC`                                                 | No exact model                                              | **P2 - New models**                          | Add source-specific dynamics and signal routes.                                                                                                                                                                                                                                                                                                           |
+| `Controls.PSSE.PSS.STAB2A`                                                                     | `StabilizerStab2a`                                          | **Implemented; external trajectory pending** | Native six-filter equations, terminal-power routing, DYR/compact DYD mapping, exact zero-time branches, initialization, limiter events, and analytic Jacobians are covered. See [STAB2A model notes](stab2a-model.md).                                                                                                                                    |
+| `Controls.PSSE.PSS.STABNI`, `STBSVC`                                                           | No exact model                                              | **P2 - New models**                          | Add source-specific dynamics and signal routes.                                                                                                                                                                                                                                                                                                           |
 | PSAT `PSSTypeI/II/III`; Simulink PSS; `DisabledPSS`                                            | `StabilizerIEEEST` / `StabilizerST2CUT` are only candidates | **P2 — Existing candidates / new blocks**    | Keep the source-family semantics explicit. `DisabledPSS` is mainly a plant-assembly behavior.                                                                                                                                                                                                                                                             |
 
 ## 4. Renewable, inverter, wind, solar, and storage models

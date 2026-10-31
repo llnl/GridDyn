@@ -162,59 +162,41 @@ void GenModelGENTPJ::dynObjectInitializeB(const IOdata& inputs,
                                           const IOdata& desiredOutput,
                                           IOdata& fieldSet)
 {
+    if (!std::isfinite(inputs[0]) || inputs[0] <= 0.0) {
+        throw InvalidParameterValue("GENTPJ initial terminal voltage");
+    }
     const std::complex<double> voltage = std::polar(inputs[0], inputs[1]);
     const std::complex<double> current =
         std::complex<double>(desiredOutput[0], -desiredOutput[1]) / std::conj(voltage);
-    auto values = [&](double delta,
-                      double& directCurrent,
-                      double& quadratureCurrent,
-                      double& directVoltage,
-                      double& quadratureVoltage,
-                      Terms& q) {
-        const auto dq = std::conj(current * std::polar(1.0, -delta));
-        quadratureCurrent = std::real(dq);
-        directCurrent = -std::imag(dq);
-        directVoltage = -inputs[0] * std::sin(delta - inputs[1]);
-        quadratureVoltage = inputs[0] * std::cos(delta - inputs[1]);
-        double s[6]{};
-        q = terms(directVoltage,
-                  quadratureVoltage,
-                  directCurrent,
-                  quadratureCurrent,
-                  s,
-                  Rs,
-                  Xl,
-                  Xd,
-                  Xq,
-                  Xdp,
-                  Xqp,
-                  Xdpp,
-                  Xqpp,
-                  Kis,
-                  sat);
-    };
-    double delta = std::arg(voltage + current * std::complex<double>(Rs, Xdpp));
-    for (int k = 0; k < 12; ++k) {
-        double directCurrent, quadratureCurrent, directVoltage, quadratureVoltage;
-        double perturbedDirectCurrent, perturbedQuadratureCurrent;
-        double perturbedDirectVoltage, perturbedQuadratureVoltage;
-        Terms q, qp;
-        values(delta, directCurrent, quadratureCurrent, directVoltage, quadratureVoltage, q);
-        const double f = directVoltage + Rs * directCurrent + q.xqpp * quadratureCurrent +
-            quadratureCurrent * (Xq - Xqpp) / q.qs;
-        values(delta + 1e-6,
-               perturbedDirectCurrent,
-               perturbedQuadratureCurrent,
-               perturbedDirectVoltage,
-               perturbedQuadratureVoltage,
-               qp);
-        const double fp = perturbedDirectVoltage + Rs * perturbedDirectCurrent +
-            qp.xqpp * perturbedQuadratureCurrent + perturbedQuadratureCurrent * (Xq - Xqpp) / qp.qs;
-        delta -= (f / (fp - f)) * 1e-6;
-    }
-    double directCurrent, quadratureCurrent, directVoltage, quadratureVoltage;
-    Terms q;
-    values(delta, directCurrent, quadratureCurrent, directVoltage, quadratureVoltage, q);
+    // Saturation depends on phasor magnitudes, so it is available before the
+    // rotor angle. OpenIPSL's corrected initialization uses this saturated
+    // q-axis reactance directly, avoiding an iterative angle solve.
+    const double se = sat.compute(std::abs(voltage + std::complex<double>(Rs, Xl) * current) +
+                                  Kis * std::abs(current));
+    const double qs = 1.0 + (Xq / Xd) * se;
+    const double saturatedXq = (Xq - Xl) / qs + Xl;
+    const double delta = std::arg(voltage + std::complex<double>(Rs, saturatedXq) * current);
+    const auto dq = std::conj(current * std::polar(1.0, -delta));
+    const double quadratureCurrent = std::real(dq);
+    const double directCurrent = -std::imag(dq);
+    const double directVoltage = -inputs[0] * std::sin(delta - inputs[1]);
+    const double quadratureVoltage = inputs[0] * std::cos(delta - inputs[1]);
+    const double initialState[6]{};
+    auto q = terms(directVoltage,
+                   quadratureVoltage,
+                   directCurrent,
+                   quadratureCurrent,
+                   initialState,
+                   Rs,
+                   Xl,
+                   Xd,
+                   Xq,
+                   Xdp,
+                   Xqp,
+                   Xdpp,
+                   Xqpp,
+                   Kis,
+                   sat);
     const double psid = quadratureVoltage + Rs * quadratureCurrent - q.xdpp * directCurrent;
     const double psiq = directVoltage + Rs * directCurrent + q.xqpp * quadratureCurrent;
     auto* z = m_state.data();

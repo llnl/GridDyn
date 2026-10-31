@@ -64,6 +64,7 @@
 #include "griddyn/stabilizers/StabilizerPss2a.h"
 #include "griddyn/stabilizers/StabilizerPss2b.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
+#include "griddyn/stabilizers/StabilizerStab2a.h"
 #include "griddyn/stabilizers/StabilizerStab3.h"
 #include "griddyn/voltagecompensators/VoltageCompensatorIeeeVC.h"
 #include "loadModelReaderHelper.h"
@@ -146,6 +147,7 @@ namespace {
     void loadPSS2A(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
     void loadPSS2B(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
     void loadSTAB3(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
+    void loadSTAB2A(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
     void loadST2CUT(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
     void loadEXDC2(CoreObject* parentObject, stringVec& tokens);
     void loadSEXS(CoreObject* parentObject, stringVec& tokens);
@@ -288,6 +290,32 @@ namespace {
             model->set("ks1", 0.0);
         }
         generator->add(model.release());
+    }
+
+    void loadSTAB2A(CoreObject* parentObject, stringVec& tokens, bool zeroGain)
+    {
+        if (tokens.size() != 11U) {
+            throw InvalidParameterValue("STAB2A DYR record must contain 11 fields");
+        }
+        auto* generator =
+            dynamic_cast<DynamicGenerator*>(requireDyrGenerator(parentObject, tokens, "STAB2A"));
+        if (generator == nullptr) {
+            throw InvalidParameterValue("STAB2A requires a dynamic generator");
+        }
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto stabilizer = std::make_unique<stabilizers::StabilizerStab2a>();
+        constexpr std::array<std::string_view, 8> names{
+            "k2", "t2", "k3", "t3", "k4", "k5", "t5", "hlim"};
+        for (std::size_t ii = 0; ii < names.size(); ++ii) {
+            if (!std::isfinite(params[3 + ii]) || params[3 + ii] == kNullVal) {
+                throw InvalidParameterValue("STAB2A DYR parameters must be finite numbers");
+            }
+            stabilizer->set(names[ii], params[3 + ii]);
+        }
+        if (zeroGain) {
+            stabilizer->set("k2", 0.0);
+        }
+        generator->add(stabilizer.release());
     }
 
     void loadSTAB3(CoreObject* parentObject, stringVec& tokens, bool zeroGain)
@@ -439,6 +467,11 @@ namespace detail {
                 ++zeroGainStabilizers;
             }
             loadPSS2B(parentObject, lineTokens, disableStabilizers);
+        } else if (type == "'STAB2A'") {
+            if (disableStabilizers) {
+                ++zeroGainStabilizers;
+            }
+            loadSTAB2A(parentObject, lineTokens, disableStabilizers);
         } else if (type == "'STAB3'") {
             if (disableStabilizers) {
                 ++zeroGainStabilizers;

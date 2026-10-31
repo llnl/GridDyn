@@ -20,6 +20,7 @@
 #include "utilities/Hdf5DataFile.h"
 #include <algorithm>
 #include <charconv>
+#include <cstdio>
 #include <functional>
 #include <iostream>
 #include <map>
@@ -31,6 +32,22 @@
 #include <vector>
 
 namespace griddyn {
+namespace {
+    void logCaptureFailure(GridDynSimulation* simulation, const char* message) noexcept
+    {
+        try {
+            if (simulation != nullptr) {
+                logging::warning(simulation, "Disabling solver HDF5 capture: {}", message);
+            }
+        }
+        catch (...) {
+            static_cast<void>(
+                std::fputs("GridDyn: HDF5 capture disabled; unable to log capture failure.\n",
+                           stderr));
+        }
+    }
+}  // namespace
+
 void SolverInterface::captureDiagnosticState(CoreTime time,
                                              const double* state,
                                              const double* derivative,
@@ -46,13 +63,7 @@ void SolverInterface::captureDiagnosticState(CoreTime time,
     }
     catch (const std::exception& error) {
         flags.reset(FILE_CAPTURE_FLAG);
-        try {
-            if (m_gds) {
-                logging::warning(m_gds, "Disabling solver HDF5 capture: {}", error.what());
-            }
-        }
-        catch (...) {
-        }
+        logCaptureFailure(m_gds, error.what());
     }
     catch (...) {
         flags.reset(FILE_CAPTURE_FLAG);
@@ -72,13 +83,7 @@ void SolverInterface::captureDiagnosticJacobian(CoreTime time,
     }
     catch (const std::exception& error) {
         flags.reset(FILE_CAPTURE_FLAG);
-        try {
-            if (m_gds) {
-                logging::warning(m_gds, "Disabling solver HDF5 capture: {}", error.what());
-            }
-        }
-        catch (...) {
-        }
+        logCaptureFailure(m_gds, error.what());
     }
     catch (...) {
         flags.reset(FILE_CAPTURE_FLAG);
@@ -370,7 +375,7 @@ void SolverInterface::set(std::string_view param, double val)
     }
 }
 
-static const std::map<std::string_view, int, std::less<std::string_view>> SOLVER_FLAG_MAP{
+static const std::map<std::string_view, int, std::less<>> SOLVER_FLAG_MAP{
     {"filecapture", FILE_CAPTURE_FLAG},
     {"directlogging", DIRECT_LOGGING_FLAG},
     {"solver_log", DIRECT_LOGGING_FLAG},

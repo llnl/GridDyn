@@ -523,11 +523,11 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
     std::copy(state, state + ssize, baseState.begin());
     std::vector<double> vStates(ssize, 0);
     gds->getVoltageStates(vStates.data(), sMode);
-    double inc = 1.51 / static_cast<double>(pts);
-    double limitVal = 1.51;
+    const double inc = 1.51 / static_cast<double>(pts);
+    const double limitVal = 1.51;
     auto vsi = gmlc::utilities::vecFindgt(vStates, 0.5);
     auto lstate = vsi.back();
-    size_t cvs = vsi.size();
+    const size_t cvs = vsi.size();
 
     const std::array<double, 2> sweep{inc, limitVal};
     writeDiagnosticVector(
@@ -553,7 +553,7 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
                                                            SolverInterface::IcModes::FIXED_DIFF,
                                                            true);
                 if (retval < 0) {
-                    double rval2 = retval;
+                    const double rval2 = retval;
                     writeDiagnosticVector(
                         output, gds->getSimulationTime(), 4, sample, sMode, 1, &rval2);
                     std::copy(tempState.begin(), tempState.begin() + ssize, state);
@@ -595,7 +595,7 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
                                                            SolverInterface::IcModes::FIXED_DIFF,
                                                            true);
                 if (retval < 0) {
-                    double rval2 = retval;
+                    const double rval2 = retval;
                     writeDiagnosticVector(
                         output, gds->getSimulationTime(), 4, sample, sMode, 1, &rval2);
                     std::copy(tempState.begin(), tempState.begin() + ssize, state);
@@ -622,7 +622,7 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
                                                            SolverInterface::IcModes::FIXED_DIFF,
                                                            true);
                 if (retval < 0) {
-                    double rval2 = retval;
+                    const double rval2 = retval;
                     writeDiagnosticVector(
                         output, gds->getSimulationTime(), 4, sample, sMode, 1, &rval2);
                     std::copy(tempState.begin(), tempState.begin() + ssize, state);

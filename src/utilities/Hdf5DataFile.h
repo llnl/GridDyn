@@ -70,7 +70,7 @@ class Hdf5DataFile {
     Hdf5DataFile(const Hdf5DataFile&) = delete;
     Hdf5DataFile& operator=(const Hdf5DataFile&) = delete;
 
-    void append(std::span<const Hdf5RecordView> records);
+    void append(std::span<const Hdf5RecordView> views);
     std::uint64_t recordCount() const;
     std::vector<Hdf5RecordInfo> readRecords(std::uint64_t first = 0,
                                             std::uint64_t count = hdf5NoIndex) const;
@@ -82,7 +82,7 @@ class Hdf5DataFile {
 
   private:
     class Impl;
-    std::shared_ptr<Impl> impl;
-    bool readOnly = true;
+    std::shared_ptr<Impl> mImpl;
+    bool mReadOnly = true;
 };
 }  // namespace utilities

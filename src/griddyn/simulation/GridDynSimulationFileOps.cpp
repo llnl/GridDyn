@@ -29,8 +29,10 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <nlohmann/json.hpp>
 #include <pugixml.hpp>
+#include <ranges>
 #include <span>
 #include <sstream>
 #include <string>
@@ -753,7 +755,7 @@ namespace {
                                 const double* data)
     {
         if ((count > 0 && data == nullptr) ||
-            count > (std::numeric_limits<std::size_t>::max)() / sizeof(double)) {
+            count > std::numeric_limits<std::size_t>::max() / sizeof(double)) {
             throw FileOperationError("HDF5 vector data is unavailable or too large");
         }
         Hdf5RecordView view;
@@ -783,8 +785,9 @@ namespace {
         }
         if (rows == 0 || columns == 0) {
             matrix.start();
-            std::uint64_t inferredRows = 0, inferredColumns = 0;
-            for (std::uint64_t i = 0; i < view.info.count; ++i) {
+            std::uint64_t inferredRows = 0;
+            std::uint64_t inferredColumns = 0;
+            for (std::uint64_t entryIndex = 0; entryIndex < view.info.count; ++entryIndex) {
                 const auto entry = matrix.next();
                 if (std::cmp_less(entry.row, 0) || std::cmp_less(entry.col, 0)) {
                     throw FileOperationError("negative sparse matrix index");
@@ -806,14 +809,14 @@ namespace {
         view.matrix = [&matrix](std::span<double> values,
                                 std::span<std::uint64_t> row,
                                 std::span<std::uint64_t> column) {
-            for (std::size_t i = 0; i < values.size(); ++i) {
+            for (std::size_t entryIndex = 0; entryIndex < values.size(); ++entryIndex) {
                 const auto entry = matrix.next();
                 if (std::cmp_less(entry.row, 0) || std::cmp_less(entry.col, 0)) {
                     throw FileOperationError("negative sparse matrix index");
                 }
-                values[i] = entry.data;
-                row[i] = entry.row;
-                column[i] = entry.col;
+                values[entryIndex] = entry.data;
+                row[entryIndex] = entry.row;
+                column[entryIndex] = entry.col;
             }
         };
         return view;
@@ -973,7 +976,7 @@ void loadState(GridDynSimulation* gds, const std::string& fileName, const Solver
 BinaryStateData readStateBinary(const std::string& fileName)
 {
     return stateFileOperation([&]() {
-        Hdf5DataFile input(fileName, Hdf5DataFile::OpenMode::READ_ONLY);
+        const Hdf5DataFile input(fileName, Hdf5DataFile::OpenMode::READ_ONLY);
         std::vector<Hdf5RecordInfo> frame;
         std::uint64_t selected = utilities::hdf5NoIndex;
         auto end = input.recordCount();
@@ -981,16 +984,16 @@ BinaryStateData readStateBinary(const std::string& fileName)
         while (end > 0 && !finished) {
             const auto start = end > 128 ? end - 128 : 0;
             const auto records = input.readRecords(start, end - start);
-            for (auto record = records.rbegin(); record != records.rend(); ++record) {
-                if (selected == utilities::hdf5NoIndex && record->source == snapshotSource) {
-                    selected = record->frame;
+            for (const auto& record : std::views::reverse(records)) {
+                if (selected == utilities::hdf5NoIndex && record.source == snapshotSource) {
+                    selected = record.frame;
                 }
                 if (selected != utilities::hdf5NoIndex) {
-                    if (record->frame != selected) {
+                    if (record.frame != selected) {
                         finished = true;
                         break;
                     }
-                    frame.push_back(*record);
+                    frame.push_back(record);
                 }
             }
             end = start;
@@ -1052,9 +1055,9 @@ namespace {
                           const BinaryStateData& saved)
     {
         struct Target {
-            std::shared_ptr<SolverInterface> solver;
-            const std::vector<double>* state;
-            const std::vector<double>* derivative;
+            std::shared_ptr<SolverInterface> mSolver;
+            const std::vector<double>* mState;
+            const std::vector<double>* mDerivative;
         };
         std::vector<Target> targets;
         const auto validate = [&](const SolverMode& targetMode,
@@ -1066,7 +1069,8 @@ namespace {
                 throw FileOperationError("solver must be initialized before loading HDF5 state");
             }
             if (stateModeFlags(storedMode) != stateModeFlags(targetMode) ||
-                storedMode.approx != targetMode.approx || state.size() != solver->size() ||
+                storedMode.approx != targetMode.approx ||
+                std::cmp_not_equal(state.size(), solver->size()) ||
                 (hasDifferential(targetMode) && derivative.size() != state.size())) {
                 throw FileOperationError("HDF5 state does not match the solver mode or size");
             }
@@ -1074,7 +1078,7 @@ namespace {
                 (!solver->stateData() || (hasDifferential(targetMode) && !solver->derivData()))) {
                 throw FileOperationError("solver state or derivative data is unavailable");
             }
-            targets.push_back({solver, &state, &derivative});
+            targets.push_back({.mSolver = solver, .mState = &state, .mDerivative = &derivative});
         };
         validate(mode, saved.mode, saved.state, saved.derivatives);
         if (!saved.paired.empty()) {
@@ -1091,11 +1095,11 @@ namespace {
         }
         // Check every block before modifying any solver array.
         for (const auto& target : targets) {
-            std::copy(target.state->begin(), target.state->end(), target.solver->stateData());
-            if (hasDifferential(target.solver->getSolverMode())) {
-                std::copy(target.derivative->begin(),
-                          target.derivative->end(),
-                          target.solver->derivData());
+            std::copy(target.mState->begin(), target.mState->end(), target.mSolver->stateData());
+            if (hasDifferential(target.mSolver->getSolverMode())) {
+                std::copy(target.mDerivative->begin(),
+                          target.mDerivative->end(),
+                          target.mSolver->derivData());
             }
         }
     }
@@ -1260,8 +1264,8 @@ void loadPowerFlowCheckpoint(GridDynSimulation* gds, const std::string& fileName
         const auto& savedBuses = document.at("buses");
         std::vector<GridBus*> buses;
         gds->getBusVector(buses);
-        if (!savedState.is_array() || savedState.size() != count || !savedBuses.is_array() ||
-            savedBuses.size() != buses.size()) {
+        if (!savedState.is_array() || std::cmp_not_equal(savedState.size(), count) ||
+            !savedBuses.is_array() || savedBuses.size() != buses.size()) {
             throw FileOperationError("power-flow checkpoint does not match the model layout");
         }
         std::vector<double> values;

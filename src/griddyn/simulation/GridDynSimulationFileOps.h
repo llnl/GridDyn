@@ -206,7 +206,7 @@ void loadPowerFlowCSV(GridDynSimulation* gds, const std::string& fileName);
 1 -derivative information
 2 -residual information
 @param[in] mode the solver mode and offset index associated with the record
-@param[in] numElements the number of elements
+@param[in] count the number of elements
 @param[in] data the data to write to the file
 @param[in] fileName the name of the file
 @param[in] append indicator if the file should be appended or overwritten(def true)
@@ -217,7 +217,7 @@ void writeVector(CoreTime time,
                  std::uint32_t code,
                  std::uint64_t index,
                  const SolverMode& mode,
-                 std::uint64_t numElements,
+                 std::uint64_t count,
                  const double* data,
                  const std::string& fileName,
                  bool append = true);

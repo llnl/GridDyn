@@ -1039,20 +1039,19 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
                 }
                 flags.reset(USE_MASK_FLAG);
                 return SOLVER_INVALID_STATE_ERROR;
-            } else {
-                flags.reset(USE_MASK_FLAG);
-                switch (retval) {
-                    case IDA_SUCCESS:  // no error
-                        break;
-                    case IDA_REP_RES_ERR:
-                    case IDA_NO_RECOVERY:
-                        retval = SOLVER_INVALID_STATE_ERROR;
-                        break;
-                    default:
-                        break;
-                }
-                return retval;
             }
+            flags.reset(USE_MASK_FLAG);
+            switch (retval) {
+                case IDA_SUCCESS:  // no error
+                    break;
+                case IDA_REP_RES_ERR:
+                case IDA_NO_RECOVERY:
+                    retval = SOLVER_INVALID_STATE_ERROR;
+                    break;
+                default:
+                    break;
+            }
+            return retval;
         }
         flags.reset(USE_MASK_FLAG);
         if (!flags[DENSE_FLAG]) {

@@ -83,16 +83,16 @@ The `disable_stabilizers` diagnostic sets `K2 = 0` in either input format.
 
 The native defaults match the pinned OpenIPSL reference:
 
-| Record parameter | GridDyn parameter | Default | Meaning |
-| ---------------- | ----------------- | ------- | ------- |
-| `K2` | `k2` | 1 | Gain of each input washout; the first has a negative sign |
-| `T2` | `t2` | 1 s | Time constant of each input washout |
-| `K3` | `k3` | 1 | Gain of the parallel low-pass path |
-| `T3` | `t3` | 1 s | Time constant of the parallel low-pass path |
-| `K4` | `k4` | 1 | Gain of the direct parallel path |
-| `K5` | `k5` | 1 | Gain of each of the two output lags |
-| `T5` | `t5` | 1 s | Time constant of each output lag |
-| `HLIM` | `hlim` or `h_lim` | 5 pu | Symmetric stabilizing-voltage limit |
+| Record parameter | GridDyn parameter | Default | Meaning                                                   |
+| ---------------- | ----------------- | ------- | --------------------------------------------------------- |
+| `K2`             | `k2`              | 1       | Gain of each input washout; the first has a negative sign |
+| `T2`             | `t2`              | 1 s     | Time constant of each input washout                       |
+| `K3`             | `k3`              | 1       | Gain of the parallel low-pass path                        |
+| `T3`             | `t3`              | 1 s     | Time constant of the parallel low-pass path               |
+| `K4`             | `k4`              | 1       | Gain of the direct parallel path                          |
+| `K5`             | `k5`              | 1       | Gain of each of the two output lags                       |
+| `T5`             | `t5`              | 1 s     | Time constant of each output lag                          |
+| `HLIM`           | `hlim` or `h_lim` | 5 pu    | Symmetric stabilizing-voltage limit                       |
 
 The reader regression cases use these corresponding records:
 

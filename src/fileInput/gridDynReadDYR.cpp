@@ -306,11 +306,11 @@ namespace {
         auto stabilizer = std::make_unique<stabilizers::StabilizerStab2a>();
         constexpr std::array<std::string_view, 8> names{
             "k2", "t2", "k3", "t3", "k4", "k5", "t5", "hlim"};
-        for (std::size_t i = 0; i < names.size(); ++i) {
-            if (!std::isfinite(params[3 + i]) || params[3 + i] == kNullVal) {
+        for (std::size_t ii = 0; ii < names.size(); ++ii) {
+            if (!std::isfinite(params[3 + ii]) || params[3 + ii] == kNullVal) {
                 throw InvalidParameterValue("STAB2A DYR parameters must be finite numbers");
             }
-            stabilizer->set(names[i], params[3 + i]);
+            stabilizer->set(names[ii], params[3 + ii]);
         }
         if (zeroGain) {
             stabilizer->set("k2", 0.0);

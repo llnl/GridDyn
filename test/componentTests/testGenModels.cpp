@@ -184,7 +184,7 @@ TEST_F(GenModelTests, PsatFifthOrderMachinesStartAtPowerFlowWithUnequalReactance
             auto state = model->getStates();
             ASSERT_EQ(state.size(), 7U);
             EXPECT_NEAR(fieldSet[genModelPmechInLocation],
-                        0.8 + resistance * (0.8 * 0.8 + 0.2 * 0.2) / (1.02 * 1.02),
+                        0.8 + (resistance * ((0.8 * 0.8) + (0.2 * 0.2)) / (1.02 * 1.02)),
                         1e-12);
             std::vector<double> derivatives(state.size(), 0.0);
             model->derivative(inputs, emptyStateData, derivatives.data(), cLocalSolverMode);
@@ -245,8 +245,8 @@ TEST_F(GenModelTests, GentpjDirectInitializationSatisfiesSaturatedEquilibrium)
             }
             EXPECT_NEAR(fieldSet[genModelPmechInLocation],
                         power[0] +
-                            0.01 * (power[0] * power[0] + power[1] * power[1]) /
-                                (inputs[0] * inputs[0]),
+                            (0.01 * ((power[0] * power[0]) + (power[1] * power[1])) /
+                             (inputs[0] * inputs[0])),
                         1e-12);
         }
     }
@@ -254,20 +254,21 @@ TEST_F(GenModelTests, GentpjDirectInitializationSatisfiesSaturatedEquilibrium)
 
 TEST(Csvgn1Tests, ZeroTimeConstantsInitializeAndHaveConsistentEquations)
 {
-    for (double t4 : {0.0, 0.1}) {
-        for (double t5 : {0.0, 0.05}) {
-            for (double t2 : {0.0, 0.04}) {
-                if (t4 == 0.0 && t2 > 0.0) {
+    for (double time4 : {0.0, 0.1}) {
+        for (double time5 : {0.0, 0.05}) {
+            for (double time2 : {0.0, 0.04}) {
+                if (time4 == 0.0 && time2 > 0.0) {
                     continue;
                 }
-                SCOPED_TRACE(::testing::Message() << "T2=" << t2 << " T4=" << t4 << " T5=" << t5);
+                SCOPED_TRACE(::testing::Message()
+                             << "T2=" << time2 << " T4=" << time4 << " T5=" << time5);
                 genmodels::GenModelCSVGN1 model;
                 model.set("k", 2.0);
                 model.set("t1", 0.05);
-                model.set("t2", t2);
+                model.set("t2", time2);
                 model.set("t3", 0.1);
-                model.set("t4", t4);
-                model.set("t5", t5);
+                model.set("t4", time4);
+                model.set("t5", time5);
                 model.set("cbase", 80.0);
                 model.set("rmin", 10.0);
                 model.set("vmin", 0.1);
@@ -279,8 +280,9 @@ TEST(Csvgn1Tests, ZeroTimeConstantsInitializeAndHaveConsistentEquations)
                 EXPECT_DOUBLE_EQ(fieldSet[genModelPmechInLocation], 0.0);
                 auto state = model.getStates();
                 ASSERT_EQ(state.size(), 3U);
-                const index_t algebraicCount = (t4 == 0.0 ? 1 : 0) + (t5 == 0.0 ? 1 : 0);
-                const index_t reactorIndex = t5 == 0.0 ? (t4 == 0.0 ? 1 : 0) : 2;
+                const index_t algebraicCount = (time4 == 0.0 ? 1 : 0) + (time5 == 0.0 ? 1 : 0);
+                const index_t bypassedReactorIndex = time4 == 0.0 ? 1 : 0;
+                const index_t reactorIndex = time5 == 0.0 ? bypassedReactorIndex : 2;
                 EXPECT_NEAR(state[reactorIndex], 0.6, 1e-12);
                 EXPECT_NEAR(
                     model.getOutput(inputs, emptyStateData, cLocalSolverMode, QOUT_LOCATION),

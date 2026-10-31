@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <string>
+#include <vector>
 
 namespace griddyn::stabilizers {
 StabilizerStab2a::StabilizerStab2a(const std::string& objName): Stabilizer(objName) {}
@@ -49,8 +51,8 @@ void StabilizerStab2a::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*
     }
     const auto times = timeConstants();
     index_t count = 0;
-    for (std::size_t i = 0; i < filterStates.size(); ++i) {
-        filterStates[i] = times[i] > 0.0 ? count++ : kNullLocation;
+    for (std::size_t ii = 0; ii < filterStates.size(); ++ii) {
+        filterStates[ii] = times[ii] > 0.0 ? count++ : kNullLocation;
     }
     offsets.local().local.algSize = 1;
     offsets.local().local.diffSize = count;
@@ -89,8 +91,8 @@ StabilizerStab2a::Signals StabilizerStab2a::signals(const IOdata& inputs,
     auto add = [](LinearValue value, const LinearValue& other) {
         value.value += other.value;
         value.inputGain += other.inputGain;
-        for (std::size_t i = 0; i < value.stateGain.size(); ++i) {
-            value.stateGain[i] += other.stateGain[i];
+        for (std::size_t ii = 0; ii < value.stateGain.size(); ++ii) {
+            value.stateGain[ii] += other.stateGain[ii];
         }
         return value;
     };
@@ -107,11 +109,12 @@ StabilizerStab2a::Signals StabilizerStab2a::signals(const IOdata& inputs,
     LinearValue value;
     value.value = inputs[pssElectricalPowerInLocation];
     value.inputGain = 1.0;
-    for (std::size_t i = 0; i < 3; ++i) {
-        result.targets[i] = value;
+    for (std::size_t ii = 0; ii < 3; ++ii) {
+        result.targets[ii] = value;
         // s*T2/(1+s*T2) is identically zero when T2 is zero.
-        value = T2 == 0.0 ? LinearValue{} :
-                            scale(add(value, scale(lagOutput(i, value), -1.0)), i == 0 ? -K2 : K2);
+        value = T2 == 0.0 ?
+            LinearValue{} :
+            scale(add(value, scale(lagOutput(ii, value), -1.0)), ii == 0 ? -K2 : K2);
     }
     const auto washout = value;
     result.targets[3] = scale(washout, K3);
@@ -124,7 +127,10 @@ StabilizerStab2a::Signals StabilizerStab2a::signals(const IOdata& inputs,
 
 int StabilizerStab2a::outputLimitStatus(double value) const
 {
-    return value >= Hlim ? 1 : (value <= -Hlim ? -1 : 0);
+    if (value >= Hlim) {
+        return 1;
+    }
+    return value <= -Hlim ? -1 : 0;
 }
 
 bool StabilizerStab2a::updateLimitFlags(double value)
@@ -150,8 +156,8 @@ void StabilizerStab2a::residual(const IOdata& inputs,
     }
     if (hasDifferential(sMode)) {
         derivative(inputs, stateData, resid, sMode);
-        for (index_t i = 0; i < locations.diffSize; ++i) {
-            locations.destDiffLoc[i] -= locations.dstateLoc[i];
+        for (index_t ii = 0; ii < locations.diffSize; ++ii) {
+            locations.destDiffLoc[ii] -= locations.dstateLoc[ii];
         }
     }
 }
@@ -167,11 +173,11 @@ void StabilizerStab2a::derivative(const IOdata& inputs,
     const auto locations = offsets.getLocations(stateData, deriv, sMode, this);
     const auto values = signals(inputs, locations.diffStateLoc);
     const auto times = timeConstants();
-    for (std::size_t i = 0; i < filterStates.size(); ++i) {
-        const auto index = filterStates[i];
+    for (std::size_t ii = 0; ii < filterStates.size(); ++ii) {
+        const auto index = filterStates[ii];
         if (index != kNullLocation) {
             locations.destDiffLoc[index] =
-                (values.targets[i].value - locations.diffStateLoc[index]) / times[i];
+                (values.targets[ii].value - locations.diffStateLoc[index]) / times[ii];
         }
     }
 }
@@ -199,9 +205,9 @@ void StabilizerStab2a::jacobianElements(const IOdata& inputs,
     const auto values = signals(inputs, locations.diffStateLoc);
     const auto addPartials = [&](index_t row, const LinearValue& value, double scale) {
         if (hasDifferential(sMode)) {
-            for (index_t i = 0; i < locations.diffSize; ++i) {
-                if (value.stateGain[i] != 0.0) {
-                    matrixData.assign(row, locations.diffOffset + i, scale * value.stateGain[i]);
+            for (index_t ii = 0; ii < locations.diffSize; ++ii) {
+                if (value.stateGain[ii] != 0.0) {
+                    matrixData.assign(row, locations.diffOffset + ii, scale * value.stateGain[ii]);
                 }
             }
         }
@@ -219,11 +225,11 @@ void StabilizerStab2a::jacobianElements(const IOdata& inputs,
     }
     if (hasDifferential(sMode)) {
         const auto times = timeConstants();
-        for (std::size_t i = 0; i < filterStates.size(); ++i) {
-            if (filterStates[i] != kNullLocation) {
-                const auto row = locations.diffOffset + filterStates[i];
-                addPartials(row, values.targets[i], 1.0 / times[i]);
-                matrixData.assign(row, row, -1.0 / times[i] - stateData.cj);
+        for (std::size_t ii = 0; ii < filterStates.size(); ++ii) {
+            if (filterStates[ii] != kNullLocation) {
+                const auto row = locations.diffOffset + filterStates[ii];
+                addPartials(row, values.targets[ii], 1.0 / times[ii]);
+                matrixData.assign(row, row, (-1.0 / times[ii]) - stateData.cj);
             }
         }
     }
@@ -233,8 +239,8 @@ void StabilizerStab2a::timestep(CoreTime time, const IOdata& inputs, const Solve
 {
     derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
     const double step = time - prevTime;
-    for (index_t i = 0; i < offsets.local().local.diffSize; ++i) {
-        m_state[1 + i] += step * m_dstate_dt[1 + i];
+    for (index_t ii = 0; ii < offsets.local().local.diffSize; ++ii) {
+        m_state[1 + ii] += step * m_dstate_dt[1 + ii];
     }
     const double raw = signals(inputs, m_state.data() + 1).output.value;
     m_state[0] = std::clamp(raw, -Hlim, Hlim);
@@ -286,9 +292,9 @@ stringVec StabilizerStab2a::localStateNames() const
     constexpr std::array<std::string_view, 6> names{
         "washout1", "washout2", "washout3", "lowpass", "outputlag1", "outputlag2"};
     stringVec result{"vs"};
-    for (std::size_t i = 0; i < filterStates.size(); ++i) {
-        if (filterStates[i] != kNullLocation) {
-            result.emplace_back(names[i]);
+    for (std::size_t ii = 0; ii < filterStates.size(); ++ii) {
+        if (filterStates[ii] != kNullLocation) {
+            result.emplace_back(names[ii]);
         }
     }
     return result;

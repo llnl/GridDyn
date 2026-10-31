@@ -307,8 +307,8 @@ TEST(DyrReaderComparisonTests, MapsCsvgn1ParametersAndRunsAsMachineModel)
     const double firstOutput = ((model->get("t1") / model->get("t3")) * error) +
         ((1.0 - (model->get("t1") / model->get("t3"))) * states[0]);
     const double regulatorOutput =
-        model->get("k") * (model->get("t2") / model->get("t4")) * firstOutput +
-        (1.0 - (model->get("t2") / model->get("t4"))) * states[1];
+        (model->get("k") * (model->get("t2") / model->get("t4")) * firstOutput) +
+        ((1.0 - (model->get("t2") / model->get("t4"))) * states[1]);
     ASSERT_GT(regulatorOutput, model->get("vmin"));
     ASSERT_LT(regulatorOutput, model->get("vmax"));
 
@@ -327,11 +327,11 @@ TEST(DyrReaderComparisonTests, MapsCsvgn1ParametersAndRunsAsMachineModel)
 
 TEST(DyrReaderComparisonTests, Csvgn1BypassedLagsRunWithDaeAndPartitionedSolvers)
 {
-    for (double t4 : {0.0, 0.09}) {
-        for (double t5 : {0.0, 0.03}) {
+    for (double time4 : {0.0, 0.09}) {
+        for (double time5 : {0.0, 0.03}) {
             for (bool partitioned : {false, true}) {
-                SCOPED_TRACE(::testing::Message()
-                             << "T4=" << t4 << " T5=" << t5 << " partitioned=" << partitioned);
+                SCOPED_TRACE(::testing::Message() << "T4=" << time4 << " T5=" << time5
+                                                  << " partitioned=" << partitioned);
                 auto simulation = std::make_unique<griddyn::GridDynSimulation>();
                 griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
                 griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_gentpj.dyr"));
@@ -345,8 +345,8 @@ TEST(DyrReaderComparisonTests, Csvgn1BypassedLagsRunWithDaeAndPartitionedSolvers
                 model->set("t1", 0.02);
                 model->set("t2", 0.0);
                 model->set("t3", 0.07);
-                model->set("t4", t4);
-                model->set("t5", t5);
+                model->set("t4", time4);
+                model->set("t5", time5);
                 model->set("cbase", 80.0);
                 svc->add(model);
                 if (partitioned) {

@@ -24,6 +24,8 @@ including a potential delay between parts A and B the class also includes a null
 nothing but can be called periodically.
 */
 class EventQueue {
+    friend class CheckpointCoordinator;
+
   private:
     CoreTime timeTols = kSmallTime;  //!< the temporal tolerance on events
     std::vector<std::shared_ptr<EventAdapter>> events;  //!< storage location for events

@@ -123,6 +123,7 @@ class DynamicGenerator: public Generator {
     DynamicGenerator(DynModel dynModel, const std::string& objName = "gen_$");
     explicit DynamicGenerator(const std::string& objName = "gen_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    void checkpointFields(CheckpointArchive& archive) override;
 
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 

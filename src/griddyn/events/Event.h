@@ -43,6 +43,8 @@ class EventInfo {
 EventInterface, ObjectOperatorInterface are pure virtual interfaces
 */
 class Event: public HelperObject, public EventInterface, public ObjectOperatorInterface {
+    friend class CheckpointCoordinator;
+
   protected:
     std::string field;  //!< event trigger field
     double value = 0.0;  //!< new value

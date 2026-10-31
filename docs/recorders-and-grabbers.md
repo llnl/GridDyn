@@ -38,7 +38,7 @@ parentheses and brackets; commas inside function calls separate arguments.
 | `units`, `unit`           | Requested units for a field; conversion precedes gain and bias. A field can also specify units as `angle(deg)`.                                        |
 | `column`                  | Zero based column for the first selected signal. Following signals append after it, including its full vector width.                                   |
 | `offset`                  | Zero based local state index, including index 0. A nonempty `field` takes precedence.                                                                  |
-| `file`, `filename`        | Output path; XML also accepts `sink`. `.csv` and `.txt`, ignoring extension case, select comma-separated text; other extensions select GridDyn binary. |
+| `file`, `filename`        | Output path; XML also accepts `sink`. `.h5` and `.hdf5` select HDF5; `.csv` and `.txt` select comma-separated text; other extensions select GridDyn binary. Extension matching ignores case. |
 | `directory`               | Base directory for relative output paths. Parent directories are created when saving.                                                                  |
 | `precision`               | Text data precision, from 1 to 17 significant digits. Values 0 and -1 select the writer default of 8.                                                  |
 | `reserve`, `reservecount` | Preallocate storage for a nonnegative integer number of samples.                                                                                       |
@@ -144,6 +144,40 @@ externally during a recording. `getData(column)` rejects an invalid column with
 current buffer; autosave can release earlier samples from that buffer.
 
 ## Saving and resetting
+
+Use a `.h5` or `.hdf5` filename to request HDF5 output:
+
+```xml
+<recorder name="bus_signals" target="bus3" period="0.05">
+  <field>voltage as terminal_voltage; angle(deg) as phase</field>
+  <file>results/bus_signals.h5</file>
+  <autosave>1000</autosave>
+  <compression>3</compression>
+</recorder>
+```
+
+The equivalent C++ settings are `recorder.set("file", "results/bus_signals.h5")`
+and `recorder.set("compression", 3.0)`. Compression is optional: 0 (the default)
+disables it, and integer levels 1-9 select lossless shuffle/deflate. Reset the
+recorder before changing compression after its HDF5 session has started. Other
+output formats do not use this setting.
+
+HDF5 output uses the same [storage schema](developer-guide/binary-state-output.md)
+as snapshots and diagnostics. Source 3 identifies recorder records: code 0 is a
+sample vector, code 1 contains channel names, and code 2 contains the recorder
+name and description. Sample `time_ns` preserves exact signed integer
+nanoseconds; `index` counts samples across flushes and autosave chunks. Channel
+names are stored once, including empty column gaps and full UTF-8 labels.
+The complete pending buffer is published as one frame and the file is closed
+before the save returns. Autosave bounds memory as with the other file formats.
+
+The MATLAB reader can inspect these files without another binary reader:
+
+```matlab
+samples = readStateFile('results/bus_signals.h5', 'Source', 3, 'Code', 0);
+channels = readStateFile('results/bus_signals.h5', 'Source', 3, 'Code', 1);
+values = cell2mat(cellfun(@(v) v(:).', samples.data(:), 'UniformOutput', false));
+```
 
 `flush()` and `saveFile()` write new buffered rows to the configured file.
 Repeated flushes without new samples do no work. New recordings replace an

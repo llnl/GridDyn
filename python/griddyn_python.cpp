@@ -17,6 +17,7 @@
 #include "griddyn/griddyn-config.h"
 #include "griddyn/measurement/Recorder.h"
 #include "griddyn/relays/Sensor.h"
+#include "griddyn/simulation/Checkpoint.h"
 #include "griddyn/simulation/GridDynSimulationFileOps.h"
 #include "griddyn/simulation/GridSimulation.h"
 #include "runner/gridDynRunner.h"
@@ -56,10 +57,11 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 namespace nb = nanobind;
-using namespace nb::literals;
+using nb::literals::operator""_a;
 
 namespace {
 
@@ -295,6 +297,12 @@ nb::object dataframeFromDicts(const nb::list& rows)
 {
     auto pandas = nb::module_::import_("pandas");
     return pandas.attr("DataFrame")(rows);
+}
+
+std::string pathToString(const nb::object& path)
+{
+    auto fspath = nb::module_::import_("os").attr("fspath");
+    return nb::cast<std::string>(fspath(path));
 }
 
 void setObjectParameter(griddyn::CoreObject* object,
@@ -1179,6 +1187,35 @@ class PyRecorder {
         return recorder_->getTimeSeries().size();
     }
 
+    PyRecorder& set(const std::string& field, const nb::object& value)
+    {
+        validate();
+        if (field == "file" || field == "filename" || field == "fileName" || field == "directory") {
+            recorder_->set(field, pathToString(value));
+        } else if (PyUnicode_Check(value.ptr())) {
+            recorder_->set(field, nb::cast<std::string>(value));
+        } else if (PyFloat_Check(value.ptr()) || PyLong_Check(value.ptr())) {
+            recorder_->set(field, nb::cast<double>(value));
+        } else {
+            throw nb::type_error("recorder settings require a string or numeric value");
+        }
+        return *this;
+    }
+
+    void saveFile(const nb::object& path) const
+    {
+        saveFilePath(path.is_none() ? std::string{} : pathToString(path));
+    }
+
+    void flush() const { saveFilePath({}); }
+
+    void reset()
+    {
+        validate();
+        nb::gil_scoped_release release;
+        recorder_->reset();
+    }
+
     nb::list asDicts() const
     {
         validate();
@@ -1213,6 +1250,18 @@ class PyRecorder {
     nb::object asDataFrame() const { return dataframeFromDicts(asDicts()); }
 
   private:
+    void saveFilePath(const std::string& path) const
+    {
+        validate();
+        nb::gil_scoped_release release;
+        try {
+            recorder_->saveFile(path);
+        }
+        catch (const std::runtime_error& error) {
+            throw FileLoadError(error.what());
+        }
+    }
+
     void validate() const
     {
         if (!runner_ || !recorder_) {
@@ -1723,12 +1772,20 @@ class PySimulation {
         return sim->execute(action);
     }
 
-    void savePowerFlowCheckpoint(const nb::object& path) const
+    void savePowerFlowCheckpoint(const nb::object& path, const std::string& level) const
     {
+        griddyn::CheckpointLevel checkpointLevel;
+        if (level == "parameters") {
+            checkpointLevel = griddyn::CheckpointLevel::PARAMETERS;
+        } else if (level == "state") {
+            checkpointLevel = griddyn::CheckpointLevel::STATE;
+        } else {
+            throw InvalidParameterError("checkpoint level must be 'state' or 'parameters'");
+        }
         const auto filePath = pathToString(path);
         auto sim = simulation();
         nb::gil_scoped_release release;
-        griddyn::savePowerFlowCheckpoint(sim.get(), filePath);
+        griddyn::saveCheckpoint(sim.get(), filePath, checkpointLevel);
     }
 
     void loadPowerFlowCheckpoint(const nb::object& path)
@@ -1827,12 +1884,6 @@ class PySimulation {
                                          const std::string&,
                                          griddyn::stringVec*);
     using PowerFlowResultWriter = void (*)(griddyn::GridDynSimulation*, const std::string&);
-
-    static std::string pathToString(const nb::object& path)
-    {
-        auto fspath = nb::module_::import_("os").attr("fspath");
-        return nb::cast<std::string>(fspath(path));
-    }
 
     static std::optional<std::string> tryNormalizeOutputType(std::string type)
     {
@@ -2278,6 +2329,17 @@ NB_MODULE(_core, mod)
     nb::class_<PyRecorder>(mod, "Recorder")
         .def_prop_ro("name", &PyRecorder::name)
         .def("__len__", &PyRecorder::size)
+        .def("set", &PyRecorder::set, "field"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("save_file",
+             &PyRecorder::saveFile,
+             "path"_a = nb::none(),
+             "Save new rows to the configured file, or export the current buffer to path. "
+             "The .h5 and .hdf5 extensions select HDF5 output.")
+        .def("flush", &PyRecorder::flush, "Write pending rows to the configured file.")
+        .def("reset",
+             &PyRecorder::reset,
+             "Clear buffered samples and restart the output session and sampling schedule, "
+             "retaining selected signals.")
         .def("as_dicts", &PyRecorder::asDicts)
         .def("as_dataframe", &PyRecorder::asDataFrame)
         .def("__repr__", [](const PyRecorder& recorder) {
@@ -2329,13 +2391,17 @@ NB_MODULE(_core, mod)
         .def("save_power_flow_checkpoint",
              &PySimulation::savePowerFlowCheckpoint,
              "path"_a,
-             "Save the power-flow solution to a readable checkpoint. Parameters, time, "
-             "events, and time-dependent component history are not included.")
+             "level"_a = "parameters",
+             "Save an iterated power-flow checkpoint as a JSON manifest with an HDF5 payload. "
+             "Both levels include clocks, supported runtime state and pending events. "
+             "The default 'parameters' level also includes supported model settings; "
+             "'state' leaves those settings unchanged when restored.")
         .def("load_power_flow_checkpoint",
              &PySimulation::loadPowerFlowCheckpoint,
              "path"_a,
-             "Restore a power-flow solution into an initialized compatible simulation. "
-             "Parameters, time, events, and time-dependent component history are unchanged.")
+             "Restore clocks, supported runtime state and pending events into an initialized "
+             "compatible power-flow model, including settings for a 'parameters' checkpoint. "
+             "Loading does not solve or reconcile edited parameters, or rewind recorder files.")
         .def("execute",
              &PySimulation::execute,
              "action"_a,

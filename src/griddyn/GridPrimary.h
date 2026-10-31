@@ -60,6 +60,8 @@ class GridPrimary: public GridComponent {
     explicit GridPrimary(const std::string& objName = "");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    /** Persist this model's checkpoint fields; derived models must extend the hook. */
+    void checkpointFields(CheckpointArchive& archive) override;
 
     virtual void pFlowInitializeA(CoreTime time0, std::uint32_t flags) override final;
 

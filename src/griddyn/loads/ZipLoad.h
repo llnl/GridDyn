@@ -46,6 +46,8 @@ class ZipLoad: public GridLoad {
     ZipLoad(double realPower, double reactivePower, const std::string& objName = "zip_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    /** Persist this model's checkpoint fields; derived models must extend the hook. */
+    void checkpointFields(CheckpointArchive& archive) override;
     virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;

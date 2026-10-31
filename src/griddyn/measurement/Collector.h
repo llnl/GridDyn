@@ -38,6 +38,8 @@ class StateGrabber;
 
 /** base class for capturing and storing data from a grid simulation */
 class Collector: public HelperObject, public EventInterface, public ObjectOperatorInterface {
+    friend class CheckpointCoordinator;
+
   protected:
     count_t mWarningCount = 0;  //!< counter for the number of warnings
     // there is currently a 4 byte gap here

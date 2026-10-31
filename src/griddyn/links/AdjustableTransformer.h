@@ -98,6 +98,7 @@ class AdjustableTransformer: public AcLine {
                           const std::string& objName = "adjTX_$");
     //!< @brief destructor
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    void checkpointFields(CheckpointArchive& archive) override;
 
     virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     void set(std::string_view param, std::string_view val) override;

@@ -25,6 +25,7 @@ class GridSubModel: public GridComponent {
   public:
     /** @brief default constructor*/
     explicit GridSubModel(const std::string& objName = "submodel_#");
+    void checkpointFields(CheckpointArchive& archive) override;
 
     virtual void pFlowInitializeA(CoreTime time, std::uint32_t flags) override final;
 

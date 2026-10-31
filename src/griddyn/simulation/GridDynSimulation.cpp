@@ -822,6 +822,8 @@ int GridDynSimulation::execute(const GridDynAction& cmd)
         case GridDynAction::GdAction::SAVE:
             if (cmd.string1 == "recorder") {
                 saveRecorders();
+            } else if (cmd.string1 == "checkpoint") {
+                saveCheckpoint(this, cmd.string2.empty() ? "checkpoint.json" : cmd.string2);
             } else if (cmd.string1 == "state") {
                 saveState(this, (cmd.string2.empty()) ? stateFile : cmd.string2);
             } else if (cmd.string1 == "Jacobian") {
@@ -834,12 +836,25 @@ int GridDynSimulation::execute(const GridDynAction& cmd)
             }
             break;
         case GridDynAction::GdAction::LOAD:
-            if ((cmd.string1 == "state") || (cmd.string1 == "powerflow")) {
+            if (cmd.string1 == "checkpoint") {
+                loadCheckpoint(this, cmd.string2);
+            } else if ((cmd.string1 == "state") || (cmd.string1 == "powerflow")) {
             }
             break;
         case GridDynAction::GdAction::ADD:
-        case GridDynAction::GdAction::ROLLBACK:
+            break;
+        case GridDynAction::GdAction::ROLLBACK: {
+            const auto& path =
+                (cmd.string1.empty() || cmd.string1 == "last") ? lastCheckpointFile : cmd.string1;
+            if (path.empty()) {
+                throw FileOperationError("no previous checkpoint is available");
+            }
+            loadCheckpoint(this, path);
+        } break;
         case GridDynAction::GdAction::CHECKPOINT:
+            saveCheckpoint(this,
+                           cmd.string1.empty() ? "checkpoint.json" : cmd.string1,
+                           cmd.flag == 1 ? CheckpointLevel::STATE : CheckpointLevel::PARAMETERS);
             break;
     }
     return out;

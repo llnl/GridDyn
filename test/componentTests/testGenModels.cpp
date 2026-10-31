@@ -362,6 +362,48 @@ TEST(Csvgn1Tests, LimitedLeadLagFeedsBackTheLimitedOutput)
     checkModelJacobians(model, inputs, state);
 }
 
+TEST(Csvgn1Tests, RegulatorClampUsesRightSidedJacobianAtExactLimits)
+{
+    genmodels::GenModelCSVGN1 model;
+    // Binary fractions make the initialized reference and raw output exact:
+    // error = 0.25, firstOutput = 0.25, regulatorOutput = 0.5.
+    model.set("k", 2.0);
+    model.set("t1", 0.125);
+    model.set("t2", 0.125);
+    model.set("t3", 0.25);
+    model.set("t4", 0.25);
+    model.set("t5", 0.125);
+    model.set("cbase", 75.0);
+    model.set("vmin", 0.125);
+    model.set("vmax", 0.875);
+    model.dynInitializeA(0.0, 0);
+    const IOdata inputs{1.0, 0.0, 0.0, 0.0};
+    IOdata fieldSet(4, 0.0);
+    model.dynInitializeB(inputs, {0.0, 0.25}, fieldSet);
+    const auto state = model.getStates();
+    ASSERT_EQ(state, (std::vector<double>{0.25, 0.5, 0.5}));
+    model.setOffset(0, cDaeSolverMode);
+    const std::vector<double> rates(state.size(), 0.0);
+    StateData data(0.0, state.data(), rates.data());
+    data.cj = 0.0;
+    const IOlocs inputLocations{3, kNullLocation, kNullLocation, kNullLocation};
+    for (bool upperLimit : {false, true}) {
+        SCOPED_TRACE(upperLimit ? "upper limit" : "lower limit");
+        model.set("vmin", upperLimit ? 0.125 : 0.5);
+        model.set("vmax", upperLimit ? 0.5 : 0.875);
+        MatrixDataSparse<double> jacobian;
+        model.jacobianElements(inputs, data, jacobian, inputLocations, cDaeSolverMode);
+        const double inputPartial = upperLimit ? 0.0 : 4.0;
+        EXPECT_DOUBLE_EQ(jacobian.at(1, 0), inputPartial);
+        EXPECT_DOUBLE_EQ(jacobian.at(1, 1), upperLimit ? -8.0 : -4.0);
+        EXPECT_DOUBLE_EQ(jacobian.at(1, 3), inputPartial);
+        EXPECT_DOUBLE_EQ(jacobian.at(2, 0), inputPartial);
+        EXPECT_DOUBLE_EQ(jacobian.at(2, 1), inputPartial);
+        EXPECT_DOUBLE_EQ(jacobian.at(2, 3), inputPartial);
+        checkModelJacobians(model, inputs, state);
+    }
+}
+
 TEST(Csvgn1Tests, RejectsUnrealizableLeadAndNegativeTimeConstants)
 {
     for (const auto& parameters : std::array<std::array<double, 3>, 4>{

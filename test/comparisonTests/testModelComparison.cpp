@@ -299,8 +299,8 @@ TEST(DyrReaderComparisonTests, MapsCsvgn1ParametersAndRunsAsMachineModel)
     EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 
-    // Check both one-sided branches of the regulator output clamp. The lower-limit
-    // Jacobian uses the interior slope; the upper-limit Jacobian uses the saturated slope.
+    // Keep the network finite differences on one side of each clamp boundary.
+    // Reconstructing the initialized output can differ from the model by roundoff.
     const auto states = model->getStates();
     const double voltage = svcBus->getVoltage();
     const double error = voltage - (voltage - states[0]);
@@ -312,15 +312,25 @@ TEST(DyrReaderComparisonTests, MapsCsvgn1ParametersAndRunsAsMachineModel)
     ASSERT_GT(regulatorOutput, model->get("vmin"));
     ASSERT_LT(regulatorOutput, model->get("vmax"));
 
-    model->set("vmin", regulatorOutput);
+    constexpr double limitMargin = 1e-4;
+    model->set("vmin", regulatorOutput - limitMargin);
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0)
-        << "CSVGN1 Jacobian at the lower regulator limit";
+        << "CSVGN1 Jacobian above the lower regulator limit";
+
+    model->set("vmin", regulatorOutput + limitMargin);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0)
+        << "CSVGN1 Jacobian below the lower regulator limit";
 
     model->set("vmin", 0.02);
-    model->set("vmax", regulatorOutput);
+    model->set("vmax", regulatorOutput - limitMargin);
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0)
-        << "CSVGN1 Jacobian at the upper regulator limit";
+        << "CSVGN1 Jacobian above the upper regulator limit";
 
+    model->set("vmax", regulatorOutput + limitMargin);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0)
+        << "CSVGN1 Jacobian below the upper regulator limit";
+
+    model->set("vmax", 0.98);
     simulation->run(0.1);
     EXPECT_EQ(simulation->getSimulationTime(), 0.1);
 }

@@ -38,8 +38,8 @@ class GridDynAction {
         CHECK,  //!< CHECK the current results in various ways
         LOAD,  //!< LOAD a state into the simulation
         ADD,  //!< ADD a model to the simulation
-        ROLLBACK,  //!< ROLLBACK the simulation to a particular time point
-        CHECKPOINT,  //!< CHECKPOINT the complete system state
+        ROLLBACK,  //!< Restore a checkpoint manifest, or the last successful checkpoint
+        CHECKPOINT,  //!< Save an iterated power-flow checkpoint, optionally including parameters
         CONTINGENCY,  //!< perform a CONTINGENCY analysis
         CONTINUATION,  //!< perform a CONTINUATION analysis
         INVALID  //!< INVALID command

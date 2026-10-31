@@ -37,6 +37,8 @@ class GridLoad: public GridSecondary {
     GridLoad(double realPower, double reactivePower, const std::string& objName = "load_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    /** Persist this model's checkpoint fields; derived models must extend the hook. */
+    void checkpointFields(CheckpointArchive& archive) override;
 
     virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
 

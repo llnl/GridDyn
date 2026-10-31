@@ -101,6 +101,7 @@ class EventTypeAdapter: public EventAdapter {
 
   public:
     EventTypeAdapter() = default;
+    Y* getTarget() const { return m_eventObj; }
     explicit EventTypeAdapter(Y* ge): m_eventObj(ge)
     {
         m_nextTime = ge->nextTriggerTime();
@@ -183,6 +184,7 @@ class EventTypeAdapter<std::shared_ptr<Y>>: public EventAdapter {
 
   public:
     EventTypeAdapter() = default;
+    Y* getTarget() const { return m_eventObj.get(); }
     explicit EventTypeAdapter(std::shared_ptr<Y> ge): m_eventObj(std::move(ge))
     {
         m_nextTime = m_eventObj->nextTriggerTime();

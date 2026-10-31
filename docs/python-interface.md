@@ -148,6 +148,27 @@ also write those samples to a file when its XML configuration specifies one.
 Recorders configured with `autosave` clear their in-memory buffer after each
 automatic save.
 
+Use `recorder.set(field, value)` to configure output and sampling settings.
+`file`, `filename` and `directory` accept strings or path-like objects. A `.h5`
+or `.hdf5` filename selects the shared HDF5 format; `.csv` and `.txt` select text,
+and other extensions retain the existing recorder binary format. For example:
+
+```python
+recorder = sim.recorders["signals"]
+recorder.set("file", "results.h5")
+recorder.set("compression", 3)  # Optional lossless compression, 0 off or 1-9.
+recorder.set("autosave", 1000)  # Bound the in-memory sample buffer.
+```
+
+`recorder.flush()` or `recorder.save_file()` writes pending rows to the configured
+file. `recorder.save_file(path)` exports the current buffer to another file;
+it does not export earlier autosave chunks or change the configured sink.
+`recorder.reset()` discards buffered samples and restarts the output session and
+sampling schedule, retaining selected signals. A reset recording replaces its
+configured file on its first write. File I/O failures raise `FileLoadError` and
+retain buffered samples for retry. Reacquire recorder handles after a simulation
+reset; handles belonging to the previous simulation raise `InvalidObjectError`.
+
 ```python
 sim.time_domain.initialize()
 sim.time_domain.run_until(10.0)
@@ -211,9 +232,9 @@ These exporters represent a static AC network. They do not include dynamic
 generator/control models, relays, or events. PYPOWER is a separate package and
 is not installed as a dependency of GridDyn.
 
-## Power-flow solution checkpoints
+## Power-flow checkpoints
 
-After initializing and solving a power flow, save its solution and restore it
+After solving a power flow, save a checkpoint and restore it
 later into the same initialized simulation or another initialized instance of
 the same model:
 
@@ -224,20 +245,43 @@ sim.save_power_flow_checkpoint("operating-point.json")
 sim.loads[0].set("p", 1.2)
 sim.power_flow.run()
 sim.load_power_flow_checkpoint("operating-point.json")
+
+# Capture runtime state while retaining the current model settings on restore.
+sim.save_power_flow_checkpoint("state.json", level="state")
 ```
 
-The JSON file contains the power-flow solver state and bus voltages and angles.
-Bus voltages are in per unit and angles are in radians. Values can be edited;
-where a bus value also occurs in the solver state, the bus entry takes
-precedence. GridDyn checks the file structure and state layout, but does not
-check whether edited values form a valid solution.
+The JSON manifest references a sibling HDF5 numerical payload through a relative
+path. Copy or move both files together. The default `level="parameters"` saves
+the supported model settings together with their full associated runtime state.
+`level="state"` saves runtime state while leaving separately declared settings
+at their current values when restored. Both levels restore simulation and model
+clocks, operating values, control/limit state, ramp history and supported pending
+events. Other level names raise `InvalidParameterError`.
 
-This is a **solution-only** checkpoint: model parameters and inputs, simulation
-time, events, control modes, and time-dependent component history are not
-restored. In particular, restoring it after advancing an iterated power flow
-does not rewind the iteration or its load profiles. A subsequent solve uses
-the current model inputs and the restored solution as its starting point. It is
-not a dynamic or full-simulation checkpoint.
+Saving requires a completed power flow. Loading requires a compatible initialized
+power-flow model; it can restore after a failed solve. Loading does not perform
+a solve or reconcile edited parameters with the saved operating point. File
+structure and layout errors raise `FileLoadError` before model assignments begin.
+Dynamic restart is not supported by this profile. The
+[checkpoint reference](developer-guide/checkpoint-restore.md) lists supported
+models and event types.
+
+Recorder schedules are restored, but previously recorded samples and files are
+retained. To start an independent HDF5 output branch, clear the recorder and
+choose a new file **before loading** the checkpoint, so loading reinstates its
+saved sampling schedule:
+
+```python
+recorder = sim.recorders["bus_signals"]
+recorder.flush()  # Finish writing the original branch.
+recorder.reset()  # Clear its buffer and restart its file session.
+recorder.set("file", "branch.h5")
+sim.load_power_flow_checkpoint("operating-point.json")
+sim.execute("iterate 1 20")  # Continue on the restored timeline.
+recorder.flush()
+```
+
+The new file starts with the next scheduled sample after the checkpoint.
 
 ## DC optimal power flow
 

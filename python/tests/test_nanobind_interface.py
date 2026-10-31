@@ -3,6 +3,7 @@ import copy
 import importlib.util
 import json
 import math
+import shutil
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,8 @@ DYNAMIC_FILE = REPO_ROOT / "test" / "test_files" / "pFlow_tests" / "two_bus_dyna
 AREA_FILE = REPO_ROOT / "test" / "test_files" / "area_tests" / "area_test1.xml"
 RELAY_FILE = REPO_ROOT / "test" / "test_files" / "relay_tests" / "test_relay_comms.xml"
 RECORDER_FILE = REPO_ROOT / "python" / "griddyn" / "examples" / "data" / "two_bus_dynamic.xml"
+HDF5_RECORDER_FILE = REPO_ROOT / "test" / "test_files" / "recorder_tests" / "recorder_hdf5.xml"
+HDF5_SIGNATURE = b"\x89HDF\r\n\x1a\n"
 
 
 def _exported_matrix(text, output_format, matrix_name):
@@ -49,26 +52,139 @@ def test_public_exports_are_available():
     assert callable(gd.load)
 
 
-def test_power_flow_solution_checkpoint(tmp_path):
+def test_power_flow_checkpoint_restores_state_parameters_and_time(tmp_path):
     sim = gd.load(PFLOW_FILE)
     sim.power_flow.run()
+    assert sim.execute("iterate 1 2") == 0
     bus = sim.buses[1]
     original_voltage = bus.get("voltage")
     original_angle = bus.get("angle")
-    checkpoint = tmp_path / "powerflow.json"
+    original_power = sim.loads[1].get("p")
+    checkpoint = tmp_path / "power flow.json"
     sim.save_power_flow_checkpoint(checkpoint)
     saved = json.loads(checkpoint.read_text())
-    assert saved["format"] == "griddyn-powerflow-checkpoint"
-    assert saved["scope"] == "solution"
+    assert saved["format"] == "griddyn-checkpoint"
+    assert saved["profile"] == "iterated-powerflow"
+    assert saved["level"] == "parameters"
+    payload = Path(saved["state"]["file"])
+    assert not payload.is_absolute()
+    assert (tmp_path / payload).read_bytes().startswith(HDF5_SIGNATURE)
 
     load = sim.loads[1]
     load.set("p", 0.8)
-    sim.power_flow.run()
+    assert sim.execute("iterate 1 4") == 0
     assert bus.get("voltage") != pytest.approx(original_voltage)
     sim.load_power_flow_checkpoint(checkpoint)
     assert bus.get("voltage") == pytest.approx(original_voltage)
     assert bus.get("angle") == pytest.approx(original_angle)
-    assert load.get("p") == pytest.approx(0.8)
+    assert load.get("p") == pytest.approx(original_power)
+    assert sim.time == 2.0
+
+
+@pytest.mark.parametrize("level", ["state", "parameters"])
+def test_power_flow_checkpoint_level_controls_parameter_restore(tmp_path, level):
+    sim = gd.load(PFLOW_FILE)
+    sim.power_flow.run()
+    bus = sim.buses[0]
+    original_target = bus.get("vtarget")
+    checkpoint = tmp_path / "checkpoint.json"
+    sim.save_power_flow_checkpoint(checkpoint, level=level)
+    assert json.loads(checkpoint.read_text())["level"] == level
+    bus.set("vtarget", original_target + 0.01)
+    sim.load_power_flow_checkpoint(checkpoint)
+    expected = original_target if level == "parameters" else original_target + 0.01
+    assert bus.get("vtarget") == pytest.approx(expected)
+
+
+def test_checkpoint_invalid_level_is_rejected_without_writing_files(tmp_path):
+    sim = gd.load(PFLOW_FILE)
+    sim.power_flow.run()
+    with pytest.raises(gd.InvalidParameterError, match="checkpoint level"):
+        sim.save_power_flow_checkpoint(tmp_path / "invalid.json", level="unknown")
+    assert not list(tmp_path.iterdir())
+
+
+def test_checkpoint_accepts_edited_parameters_without_solving(tmp_path):
+    sim = gd.load(PFLOW_FILE)
+    sim.power_flow.run()
+    bus = sim.buses[0]
+    voltage = bus.get("voltage")
+    target = bus.get("vtarget") + 0.03
+    checkpoint = tmp_path / "edited.json"
+    sim.save_power_flow_checkpoint(checkpoint)
+    saved = json.loads(checkpoint.read_text())
+    stored_bus = next(obj for obj in saved["objects"] if obj["name"] == bus.name)
+    stored_bus["parameters"]["AcBus"]["vTarget"] = target
+    checkpoint.write_text(json.dumps(saved))
+    sim.load_power_flow_checkpoint(checkpoint)
+    assert bus.get("vtarget") == pytest.approx(target)
+    assert bus.get("voltage") == pytest.approx(voltage)
+
+
+def test_checkpoint_requires_an_initialized_destination_and_completed_capture(tmp_path):
+    sim = gd.load(PFLOW_FILE)
+    checkpoint = tmp_path / "checkpoint.json"
+    with pytest.raises(gd.FileLoadError, match="completed power-flow"):
+        sim.save_power_flow_checkpoint(checkpoint)
+    sim.power_flow.run()
+    sim.save_power_flow_checkpoint(checkpoint)
+    fresh = gd.load(PFLOW_FILE)
+    with pytest.raises(gd.FileLoadError, match="initialize"):
+        fresh.load_power_flow_checkpoint(checkpoint)
+
+
+def test_checkpoint_bundle_can_move_and_load_into_a_fresh_model(tmp_path):
+    original = tmp_path / "original bundle"
+    original.mkdir()
+    sim = gd.load(PFLOW_FILE)
+    assert sim.execute("iterate 1 2") == 0
+    sim.save_power_flow_checkpoint(original / "point.json")
+    moved = tmp_path / "moved bundle"
+    shutil.copytree(original, moved)
+    shutil.rmtree(original)
+    fresh = gd.load(PFLOW_FILE)
+    fresh.power_flow.run()
+    fresh.loads[1].set("p", 0.8)
+    fresh.power_flow.run()
+    fresh.load_power_flow_checkpoint(moved / "point.json")
+    assert fresh.time == 2.0
+    assert fresh.loads[1].get("p") == pytest.approx(sim.loads[1].get("p"))
+    assert fresh.buses[1].get("voltage") == pytest.approx(sim.buses[1].get("voltage"))
+
+
+@pytest.mark.parametrize("damage", ["missing_field", "missing_payload"])
+def test_checkpoint_load_errors_do_not_partially_restore_the_model(tmp_path, damage):
+    sim = gd.load(PFLOW_FILE)
+    sim.power_flow.run()
+    checkpoint = tmp_path / "checkpoint.json"
+    sim.save_power_flow_checkpoint(checkpoint)
+    saved = json.loads(checkpoint.read_text())
+    if damage == "missing_field":
+        del saved["objects"][-1]["runtime"]
+        checkpoint.write_text(json.dumps(saved))
+    else:
+        (tmp_path / saved["state"]["file"]).unlink()
+    sim.loads[1].set("p", 0.8)
+    assert sim.execute("iterate 1 4") == 0
+    voltage = sim.buses[1].get("voltage")
+    with pytest.raises(gd.FileLoadError):
+        sim.load_power_flow_checkpoint(checkpoint)
+    assert sim.time == 4.0
+    assert sim.loads[1].get("p") == pytest.approx(0.8)
+    assert sim.buses[1].get("voltage") == pytest.approx(voltage)
+
+
+def test_checkpoint_commands_restore_the_last_checkpoint(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    sim = gd.load(PFLOW_FILE)
+    assert sim.execute("iterate 1 2") == 0
+    assert sim.execute("checkpoint") == 0
+    assert json.loads((tmp_path / "checkpoint.json").read_text())["level"] == "parameters"
+    assert sim.execute("iterate 1 4") == 0
+    assert sim.execute("rollback") == 0
+    assert sim.time == 2.0
+    assert sim.execute("checkpoint state.json state") == 0
+    assert json.loads((tmp_path / "state.json").read_text())["level"] == "state"
 
 
 def test_python_api_uses_one_pythonic_name_per_interface():
@@ -243,6 +359,97 @@ def test_recorder_samples_keep_duplicate_signal_columns(monkeypatch, tmp_path):
 
     row = sim.recorders["signals"].as_dicts()[0]
     assert row["bus1:voltage"] == pytest.approx(row["bus1:voltage_2"])
+
+
+@pytest.mark.parametrize("extension", [".csv", ".dat", ".h5", ".hdf5"])
+def test_python_can_configure_flush_and_export_recorders(tmp_path, extension):
+    sim = gd.load(HDF5_RECORDER_FILE)
+    recorder = sim.recorders["bus_signals"]
+    output = tmp_path / ("signals" + extension)
+    assert recorder.set("directory", tmp_path) is recorder
+    assert recorder.set("file", output) is recorder
+    recorder.set("autosave", 0)
+    recorder.set("compression", 2)
+    recorder.set("period", 2.0)
+    assert sim.execute("iterate 1 2") == 0
+    recorder.flush()
+    captured = output.read_bytes()
+    assert captured
+    if extension in (".h5", ".hdf5"):
+        assert captured.startswith(HDF5_SIGNATURE)
+    elif extension == ".csv":
+        assert b"magnitude" in captured and b"phase" in captured
+    else:
+        assert not captured.startswith(HDF5_SIGNATURE)
+    recorder.save_file()
+    assert output.read_bytes() == captured
+    snapshot = tmp_path / "snapshot.h5"
+    recorder.save_file(snapshot)
+    assert snapshot.read_bytes().startswith(HDF5_SIGNATURE)
+    assert output.read_bytes() == captured
+
+
+def test_recorder_write_errors_are_typed_and_keep_buffered_samples(tmp_path):
+    sim = gd.load(HDF5_RECORDER_FILE)
+    recorder = sim.recorders[0]
+    recorder.set("autosave", 0)
+    assert sim.execute("iterate 1 2") == 0
+    samples = recorder.as_dicts()
+    blocked = tmp_path / "blocked.h5"
+    blocked.mkdir()
+    recorder.set("file", blocked)
+    with pytest.raises(gd.FileLoadError):
+        recorder.flush()
+    assert recorder.as_dicts() == samples
+    blocked.rmdir()
+    recorder.flush()
+    assert blocked.read_bytes().startswith(HDF5_SIGNATURE)
+    with pytest.raises(gd.InvalidParameterError):
+        recorder.set("compression", 10)
+    with pytest.raises(gd.InvalidParameterError):
+        recorder.set("unknown_setting", "value")
+    with pytest.raises(TypeError):
+        recorder.set("period", [])
+
+
+def test_checkpoint_restore_can_start_an_independent_hdf5_recording(tmp_path):
+    sim = gd.load(HDF5_RECORDER_FILE)
+    sim.set("recorddirectory", str(tmp_path))
+    recorder = sim.recorders["bus_signals"]
+    assert sim.execute("iterate 1 2") == 0
+    checkpoint = tmp_path / "checkpoint.json"
+    sim.save_power_flow_checkpoint(checkpoint)
+    assert sim.execute("iterate 1 4") == 0
+    recorder.flush()
+    original = (tmp_path / "samples.h5").read_bytes()
+    recorder.reset()
+    recorder.set("file", tmp_path / "branch.h5")
+    sim.load_power_flow_checkpoint(checkpoint)
+    assert sim.time == 2.0
+    assert len(recorder) == 0
+    assert sim.execute("iterate 1 4") == 0
+    recorder.flush()
+    assert [row["time"] for row in recorder.as_dicts()] == [4.0]
+    assert (tmp_path / "branch.h5").read_bytes().startswith(HDF5_SIGNATURE)
+    assert (tmp_path / "samples.h5").read_bytes() == original
+
+
+def test_recorder_operations_reject_handles_from_before_simulation_reset(tmp_path):
+    sim = gd.Simulation()
+    sim.load_from_args(["--input", str(HDF5_RECORDER_FILE)])
+    sim.set("recorddirectory", str(tmp_path))
+    recorder = sim.recorders[0]
+    sim.reset()
+    for operation in (
+        lambda: recorder.set("compression", 1),
+        lambda: recorder.set("file", tmp_path / "stale.h5"),
+        recorder.flush,
+        lambda: recorder.save_file(tmp_path / "stale.h5"),
+        recorder.reset,
+    ):
+        with pytest.raises(gd.InvalidObjectError, match="previous simulation"):
+            operation()
+    assert not (tmp_path / "stale.h5").exists()
 
 
 def test_load_returns_self_for_chaining():

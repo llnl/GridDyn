@@ -101,6 +101,8 @@ a particular SolverInterface class will contain the interface and calls necessar
 particular solver methodology
 */
 class SolverInterface: public HelperObject {
+    friend class CheckpointCoordinator;
+
   public:
     /** @brief enumeration of solver call modes*/
     enum class StepMode {

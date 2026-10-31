@@ -258,26 +258,24 @@ void GridDynAction::process(std::string_view operation)
         }
         command = GdAction::ADD;
     } else if (commandToken == "rollback") {
-        // rollback point(s|d)
         command = GdAction::ROLLBACK;
-        if (tokenCount > 1) {
-            val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
-            if (val_double == kNullVal) {
-                string1 = ssep[1];
-            }
-        } else {
-            string1 = "last";
+        string1 = tokenCount > 1 ? ssep[1] : "last";
+        if (tokenCount > 2) {
+            throw InvalidParameterValue("rollback accepts a checkpoint manifest path");
         }
     } else if (commandToken == "checkpoint") {
-        // checkpoint name(s)
         command = GdAction::CHECKPOINT;
-        if (tokenCount > 1) {
-            val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
-            if (val_double == kNullVal) {
-                string1 = ssep[1];
+        flag = 0;
+        string1 = tokenCount > 1 ? ssep[1] : "checkpoint.json";
+        if (tokenCount > 2) {
+            if (ssep[2] == "state") {
+                flag = 1;
+            } else if (ssep[2] != "parameters") {
+                throw InvalidParameterValue("checkpoint level must be state or parameters");
             }
-        } else {
-            string1 = "";
+        }
+        if (tokenCount > 3) {
+            throw InvalidParameterValue("checkpoint accepts a path and optional level");
         }
     } else if (commandToken == "contingency") {
         // contingency mode|fileName output_file|method start count

@@ -47,6 +47,7 @@ class GenModel: public GridSubModel {
     //!< @brief default constructor
     explicit GenModel(const std::string& objName = "genModel_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    void checkpointFields(CheckpointArchive& archive) override;
 
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,

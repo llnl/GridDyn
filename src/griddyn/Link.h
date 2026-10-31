@@ -80,6 +80,8 @@ class Link: public GridPrimary {
     /** @brief virtual destructor*/
     virtual ~Link();
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    /** Persist this model's checkpoint fields; derived models must extend the hook. */
+    void checkpointFields(CheckpointArchive& archive) override;
 
     virtual void disable() override;
     /** @brief reconnect the link*/

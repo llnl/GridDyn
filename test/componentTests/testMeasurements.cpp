@@ -17,14 +17,18 @@
 #include "griddyn/measurement/StateGrabber.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/stabilizers/StabilizerStab3.h"
+#include "utilities/Hdf5DataFile.h"
 #include "utilities/MatrixDataSparse.hpp"
 #include <array>
 #include <chrono>
 #include <cmath>
+#include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <gtest/gtest.h>
 #include <limits>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -63,7 +67,13 @@ class MeasurementFiles: public ::testing::Test {
     void TearDown() override
     {
         // Remove only files created by these tests, leaving unrelated files alone.
-        for (const auto& name : {"samples.dat", "samples.csv", "snapshot.dat"}) {
+        for (const auto& name : {"samples.dat",
+                                 "samples.csv",
+                                 "snapshot.dat",
+                                 "samples.h5",
+                                 "samples.hdf5",
+                                 "snapshot.h5",
+                                 "blocked.h5"}) {
             std::filesystem::remove(directory / name);
         }
         if (std::filesystem::is_empty(directory)) {
@@ -1103,6 +1113,203 @@ TEST_F(MeasurementFiles, BothFormatsRoundTripMixedFlushAutosaveAndDestructorOutp
             EXPECT_DOUBLE_EQ(saved.data(0, index), index + 0.125);
             EXPECT_DOUBLE_EQ(saved.data(1, index), -2.0);
         }
+    }
+}
+
+TEST_F(MeasurementFiles, Hdf5ExtensionsPreserveColumnsAndExactTimes)
+{
+    for (const auto* filename : {"samples.h5", "samples.hdf5"}) {
+        SCOPED_TRACE(filename);
+        Recorder recorder("signals");
+        recorder.set("directory", directory.string());
+        recorder.set("file", filename);
+        recorder.set("compression", 3.0);
+        auto scalar = scalarGrabber(4.25);
+        const std::string label = "voltage_\xCE\xB1_" + std::string(300, 'x');
+        scalar->setDescription(label);
+        recorder.add(scalar);
+        recorder.add(vectorGrabber({-2.0, 3.0}), 2);
+        constexpr std::int64_t firstTime = 9007199254740993LL;
+        recorder.trigger(CoreTime(std::chrono::nanoseconds(firstTime)));
+        recorder.trigger(CoreTime(std::chrono::nanoseconds(firstTime + 1)));
+        recorder.flush();
+        recorder.flush();
+        const utilities::Hdf5DataFile saved((directory / filename).string(),
+                                            utilities::Hdf5DataFile::OpenMode::READ_ONLY);
+        const auto records = saved.readRecords();
+        ASSERT_EQ(records.size(), 4U);
+        EXPECT_EQ(records[0].source, 3U);
+        EXPECT_EQ(records[0].type, utilities::Hdf5RecordType::NAMES);
+        EXPECT_EQ(saved.readNames(records[0]), recorder.getColumnDescriptions());
+        EXPECT_EQ(saved.readNames(records[0]).front(), label);
+        EXPECT_EQ(saved.readNames(records[1]).front(), "signals");
+        for (std::size_t row = 0; row < 2; ++row) {
+            EXPECT_EQ(records[2 + row].time_ns, firstTime + static_cast<std::int64_t>(row));
+            EXPECT_EQ(records[2 + row].index, row);
+            EXPECT_EQ(saved.readValues(records[2 + row]),
+                      (std::vector<double>{4.25, 0.0, -2.0, 3.0}));
+        }
+    }
+}
+
+TEST_F(MeasurementFiles, Hdf5FlushAutosaveSnapshotAndDestructorAppendOnce)
+{
+    double value = 0.0;
+    {
+        Recorder recorder("roundtrip");
+        recorder.set("directory", directory.string());
+        recorder.set("file", "samples.h5");
+        recorder.set("autosave", 2.0);
+        auto grabber = std::make_shared<CustomGrabber>();
+        grabber->setGrabberFunction("sample", [&value](CoreObject*) { return value; });
+        recorder.add(grabber);
+        for (int index = 0; index < 5; ++index) {
+            value = index + 0.125;
+            recorder.trigger(index * 0.25);
+            if (index == 0 || index == 2) {
+                recorder.flush();
+            }
+            if (index == 2) {
+                recorder.saveFile((directory / "snapshot.h5").string());
+                recorder.saveFile((directory / "." / "samples.h5").string());
+            }
+        }
+    }
+    const utilities::Hdf5DataFile saved((directory / "samples.h5").string(),
+                                        utilities::Hdf5DataFile::OpenMode::READ_ONLY);
+    const auto records = saved.readRecords();
+    ASSERT_EQ(records.size(), 7U);
+    for (std::size_t row = 0; row < 5; ++row) {
+        EXPECT_EQ(records[2 + row].index, row);
+        EXPECT_EQ(records[2 + row].time_ns, static_cast<std::int64_t>(row) * 250000000);
+        EXPECT_EQ(saved.readValues(records[2 + row]),
+                  (std::vector<double>{static_cast<double>(row) + 0.125}));
+    }
+    const utilities::Hdf5DataFile snapshot((directory / "snapshot.h5").string(),
+                                           utilities::Hdf5DataFile::OpenMode::READ_ONLY);
+    const auto exported = snapshot.readRecords();
+    ASSERT_EQ(exported.size(), 3U);
+    EXPECT_EQ(exported.back().time_ns, 500000000);
+    EXPECT_EQ(exported.back().index, 0U);
+}
+
+TEST_F(MeasurementFiles, Hdf5ResetAndCloneStartIndependentSessions)
+{
+    Recorder recorder;
+    recorder.set("directory", directory.string());
+    recorder.set("file", "samples.h5");
+    recorder.add(scalarGrabber(4.0));
+    recorder.trigger(0.0);
+    recorder.flush();
+    EXPECT_THROW(recorder.set("compression", 2.0), InvalidParameterValue);
+    recorder.reset();
+    recorder.set("compression", 9.0);
+    recorder.trigger(4.0);
+    recorder.flush();
+    auto cloned = recorder.clone();
+    auto* copy = dynamic_cast<Recorder*>(cloned.get());
+    ASSERT_NE(copy, nullptr);
+    copy->set("file", "snapshot.h5");
+    copy->trigger(5.0);
+    copy->flush();
+    for (const auto* filename : {"samples.h5", "snapshot.h5"}) {
+        const utilities::Hdf5DataFile saved((directory / filename).string(),
+                                            utilities::Hdf5DataFile::OpenMode::READ_ONLY);
+        const auto records = saved.readRecords();
+        ASSERT_EQ(records.size(), 3U);
+        EXPECT_EQ(records.back().index, 0U);
+        EXPECT_EQ(records.back().time_ns,
+                  std::string_view(filename) == "samples.h5" ? 4000000000LL : 5000000000LL);
+    }
+    EXPECT_THROW(recorder.set("compression", -1.0), InvalidParameterValue);
+    EXPECT_THROW(recorder.set("compression", 10.0), InvalidParameterValue);
+    EXPECT_THROW(recorder.set("compression", 1.5), InvalidParameterValue);
+}
+
+TEST_F(MeasurementFiles, Hdf5FailedAutosaveRetainsSamplesForRetry)
+{
+    const auto path = directory / "blocked.h5";
+    std::filesystem::create_directory(path);
+    Recorder recorder;
+    recorder.set("file", path.string());
+    recorder.set("autosave", 2.0);
+    recorder.add(scalarGrabber(4.0));
+    recorder.trigger(0.0);
+    EXPECT_THROW(recorder.trigger(1.0), std::runtime_error);
+    EXPECT_EQ(recorder.getTime().size(), 2U);
+    ASSERT_TRUE(std::filesystem::remove(path));
+    recorder.flush();
+    recorder.trigger(2.0);
+    recorder.flush();
+    const utilities::Hdf5DataFile saved(path.string(),
+                                        utilities::Hdf5DataFile::OpenMode::READ_ONLY);
+    const auto records = saved.readRecords();
+    ASSERT_EQ(records.size(), 5U);
+    EXPECT_EQ(records.back().index, 2U);
+    EXPECT_EQ(records.back().time_ns, 2000000000LL);
+}
+
+TEST_F(MeasurementFiles, Hdf5ExplicitExportDoesNotChangeTheConfiguredTextSink)
+{
+    Recorder recorder;
+    recorder.set("file", (directory / "samples.csv").string());
+    recorder.add(scalarGrabber(4.0));
+    recorder.trigger(0.0);
+    recorder.flush();
+    recorder.saveFile((directory / "snapshot.h5").string());
+    recorder.trigger(1.0);
+    recorder.flush();
+    gmlc::utilities::TimeSeriesMulti<> text;
+    text.loadTextFile((directory / "samples.csv").string());
+    EXPECT_EQ(text.time(), (std::vector<double>{0.0, 1.0}));
+    const utilities::Hdf5DataFile snapshot((directory / "snapshot.h5").string(),
+                                           utilities::Hdf5DataFile::OpenMode::READ_ONLY);
+    EXPECT_EQ(snapshot.recordCount(), 3U);
+}
+
+TEST_F(MeasurementFiles, Hdf5EmptyFlushPreservesTheConfiguredLayout)
+{
+    Recorder recorder;
+    recorder.set("file", (directory / "samples.h5").string());
+    recorder.add(scalarGrabber(4.0));
+    recorder.flush();
+    recorder.flush();
+    recorder.trigger(0.0);
+    recorder.flush();
+    const utilities::Hdf5DataFile saved((directory / "samples.h5").string(),
+                                        utilities::Hdf5DataFile::OpenMode::READ_ONLY);
+    const auto records = saved.readRecords();
+    ASSERT_EQ(records.size(), 3U);
+    EXPECT_EQ(saved.readNames(records[0]), recorder.getColumnDescriptions());
+    EXPECT_EQ(saved.readValues(records.back()), (std::vector<double>{4.0}));
+}
+
+TEST_F(MeasurementFiles, Hdf5XmlRecorderCapturesIteratedPowerFlow)
+{
+    auto simulation =
+        readSimXMLFile(std::string{GRIDDYN_TEST_DIRECTORY} + "/recorder_tests/recorder_hdf5.xml");
+    ASSERT_NE(simulation, nullptr);
+    ASSERT_EQ(simulation->getCollectors().size(), 1U);
+    simulation->set("recorddirectory", directory.string());
+    ASSERT_EQ(simulation->eventDrivenPowerflow(4.0, 1.0), FUNCTION_EXECUTION_SUCCESS);
+    simulation->saveRecorders();
+    simulation.reset();
+    const utilities::Hdf5DataFile saved((directory / "samples.h5").string(),
+                                        utilities::Hdf5DataFile::OpenMode::READ_ONLY);
+    const auto records = saved.readRecords();
+    ASSERT_EQ(records.size(), 5U);
+    EXPECT_EQ(saved.readNames(records[0]), (std::vector<std::string>{"magnitude", "phase"}));
+    for (std::size_t row = 0; row < 3; ++row) {
+        EXPECT_EQ(records[2 + row].time_ns, static_cast<std::int64_t>(row) * 2000000000);
+        const auto values = saved.readValues(records[2 + row]);
+        ASSERT_EQ(values.size(), 2U);
+        EXPECT_TRUE(std::isfinite(values[0]));
+        EXPECT_TRUE(std::isfinite(values[1]));
+    }
+    if (const auto* fixtures = std::getenv("GRIDDYN_MATLAB_STATE_FIXTURES")) {
+        std::filesystem::copy_file(directory / "samples.h5",
+                                   std::filesystem::path(fixtures) / "recorder.h5",
+                                   std::filesystem::copy_options::overwrite_existing);
     }
 }
 

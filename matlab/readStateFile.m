@@ -3,10 +3,12 @@
 % SPDX-License-Identifier: BSD-3-Clause
 
 function res = readStateFile(filename, varargin)
-%READSTATEFILE Read GridDyn HDF5 state and diagnostic captures.
+%READSTATEFILE Read GridDyn HDF5 state, diagnostic, and recorder captures.
 %   RES.data contains vectors, sparse triplets (row,col,val,rows,columns),
 %   or UTF-8 names. RES.typecode is 0 vector, 1 matrix, 2 names.
-%   RES.source is 0 snapshot or 1 diagnostic. Codes: 0 state, 1 derivative/RHS,
+%   RES.source is 0 snapshot, 1 diagnostic, 2 checkpoint runtime, or 3 recorder.
+%   Recorder codes: 0 samples, 1 channel names, 2 recorder name/description.
+%   Diagnostic codes: 0 state, 1 derivative/RHS,
 %   2 residual. Times are seconds plus exact int64 time_ns; frame, index and
 %   key retain uint64 identity. Snapshot index is its frame; block_index
 %   distinguishes a paired block. Matrices use zero-based uint64 coordinates.

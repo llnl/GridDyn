@@ -8,6 +8,7 @@
 
 #include "Collector.h"
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
+#include <cstdint>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -29,6 +30,7 @@ class Recorder: public Collector {
     std::int16_t mPrecision = -1;  //!< precision for writing text files.
     count_t mAutosave =
         0;  //!< flag indicating the recorder should autosave after the given number of points
+    unsigned mHdf5Compression = 0;  //!< lossless HDF5 compression, 0 off or 1-9 deflate
   public:
     Recorder(CoreTime time0 = timeZero, CoreTime period = 1.0);
     explicit Recorder(const std::string& name);
@@ -45,7 +47,7 @@ class Recorder: public Collector {
     void updateObject(CoreObject* object,
                       ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
 
-    /** save the data to a file
+    /** save the data to a file (.h5/.hdf5 selects the shared HDF5 format)
     @param[in] fileName the name of the file to save the data to
     */
     void saveFile(const std::string& fileName = "");
@@ -94,6 +96,11 @@ class Recorder: public Collector {
     void dataPointAdded(const CollectorPoint& point) override;
 
   private:
+    std::uint64_t mHdf5Samples = 0;
+    bool mHdf5Started = false;
+
+    void resetOutput();
+    void saveHdf5(const std::string& fileName, bool configuredSink);
     /** generate the field names for the data set*/
     void fillDatasetFields();
 };

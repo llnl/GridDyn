@@ -118,6 +118,8 @@ class GridBus: public GridPrimary {
     GridBus(double voltageStart, double angleStart, const std::string& objName = "bus_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    /** Persist this model's checkpoint fields; derived models must extend the hook. */
+    void checkpointFields(CheckpointArchive& archive) override;
     // add components
     virtual void add(CoreObject* obj) override;
     /** @brief Attach a load and acquire an owning reference.

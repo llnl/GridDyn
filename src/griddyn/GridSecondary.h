@@ -25,6 +25,8 @@ class GridSecondary: public GridComponent {
     explicit GridSecondary(const std::string& objName = "");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    /** Persist this model's checkpoint fields; derived models must extend the hook. */
+    void checkpointFields(CheckpointArchive& archive) override;
 
     virtual void updateObjectLinkages(CoreObject* newRoot) override;
 

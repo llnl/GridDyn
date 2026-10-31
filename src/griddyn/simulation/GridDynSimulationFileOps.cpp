@@ -30,7 +30,6 @@
 #include <iostream>
 #include <limits>
 #include <memory>
-#include <nlohmann/json.hpp>
 #include <pugixml.hpp>
 #include <ranges>
 #include <span>
@@ -1052,7 +1051,8 @@ BinaryStateData readStateBinary(const std::string& fileName)
 namespace {
     void applyBinaryState(GridDynSimulation* gds,
                           const SolverMode& mode,
-                          const BinaryStateData& saved)
+                          const BinaryStateData& saved,
+                          bool apply = true)
     {
         struct Target {
             std::shared_ptr<SolverInterface> mSolver;
@@ -1064,7 +1064,8 @@ namespace {
                                   const SolverMode& storedMode,
                                   const std::vector<double>& state,
                                   const std::vector<double>& derivative) {
-            auto solver = gds->getSolverInterface(targetMode);
+            auto solver =
+                static_cast<const GridDynSimulation*>(gds)->getSolverInterface(targetMode);
             if (!solver || !solver->isInitialized()) {
                 throw FileOperationError("solver must be initialized before loading HDF5 state");
             }
@@ -1078,7 +1079,11 @@ namespace {
                 (!solver->stateData() || (hasDifferential(targetMode) && !solver->derivData()))) {
                 throw FileOperationError("solver state or derivative data is unavailable");
             }
-            targets.push_back({.mSolver = solver, .mState = &state, .mDerivative = &derivative});
+            if (apply) {
+                targets.push_back({.mSolver = gds->getSolverInterface(targetMode),
+                                   .mState = &state,
+                                   .mDerivative = &derivative});
+            }
         };
         validate(mode, saved.mode, saved.state, saved.derivatives);
         if (!saved.paired.empty()) {
@@ -1086,7 +1091,8 @@ namespace {
                 throw FileOperationError(
                     "HDF5 paired state does not match the solver configuration");
             }
-            auto solver = gds->getSolverInterface(SolverMode(mode.pairedOffsetIndex));
+            auto solver = static_cast<const GridDynSimulation*>(gds)->getSolverInterface(
+                SolverMode(mode.pairedOffsetIndex));
             if (!solver) {
                 throw FileOperationError("paired solver is unavailable");
             }
@@ -1094,6 +1100,9 @@ namespace {
             validate(solver->getSolverMode(), pair.mode, pair.state, pair.derivatives);
         }
         // Check every block before modifying any solver array.
+        if (!apply) {
+            return;
+        }
         for (const auto& target : targets) {
             std::copy(target.mState->begin(), target.mState->end(), target.mSolver->stateData());
             if (hasDifferential(target.mSolver->getSolverMode())) {
@@ -1112,8 +1121,25 @@ void loadStateBinary(GridDynSimulation* gds, const std::string& fileName, const 
     if (path.empty()) {
         throw FileOperationError("no binary state file specified");
     }
-    const auto saved = readStateBinary(path);
-    const auto solver = gds->getSolverInterface(gds->getCurrentMode(sMode));
+    loadStateBinary(gds, readStateBinary(path), sMode);
+}
+
+void validateStateBinary(GridDynSimulation* gds,
+                         const BinaryStateData& saved,
+                         const SolverMode& sMode)
+{
+    const auto solver =
+        static_cast<const GridDynSimulation*>(gds)->getSolverInterface(gds->getCurrentMode(sMode));
+    if (!solver) {
+        throw FileOperationError("solver is unavailable");
+    }
+    applyBinaryState(gds, solver->getSolverMode(), saved, false);
+}
+
+void loadStateBinary(GridDynSimulation* gds, const BinaryStateData& saved, const SolverMode& sMode)
+{
+    const auto solver =
+        static_cast<const GridDynSimulation*>(gds)->getSolverInterface(gds->getCurrentMode(sMode));
     if (!solver) {
         throw FileOperationError("solver is unavailable");
     }
@@ -1179,143 +1205,15 @@ void loadPowerFlowXML(GridDynSimulation* gds, const std::string& fileName)
     }
 }
 
-namespace {
-    using CheckpointJson = nlohmann::json;
-
-    std::shared_ptr<SolverInterface> checkpointPowerFlowSolver(GridDynSimulation* gds,
-                                                               const SolverMode& mode)
-    {
-        auto solver = static_cast<const GridDynSimulation*>(gds)->getSolverInterface(mode);
-        if (!solver || !gds->getOffsets(mode).offsetsLoaded) {
-            throw FileOperationError("power flow must be initialized before using a checkpoint");
-        }
-        return gds->getSolverInterface(mode);
-    }
-
-    stringVec checkpointStateNames(GridDynSimulation* gds, const SolverMode& mode, count_t size)
-    {
-        stringVec names;
-        if (size > 0) {
-            gds->getStateName(names, mode);
-        }
-        names.resize(size);
-        return names;
-    }
-}  // namespace
-
 void savePowerFlowCheckpoint(GridDynSimulation* gds, const std::string& fileName)
 {
-    const auto mode = gds->getSolverMode("powerflow");
-    const auto solver = checkpointPowerFlowSolver(gds, mode);
-    const auto count = solver->size();
-    std::vector<double> state(count);
-    if (count > 0) {
-        gds->guessState(gds->getSimulationTime(), state.data(), nullptr, mode);
-    }
-    const auto names = checkpointStateNames(gds, mode, count);
-    CheckpointJson document{{"format", "griddyn-powerflow-checkpoint"},
-                            {"version", 1},
-                            {"scope", "solution"},
-                            {"state", CheckpointJson::array()},
-                            {"buses", CheckpointJson::array()}};
-    for (count_t index = 0; index < count; ++index) {
-        if (!std::isfinite(state[index])) {
-            throw FileOperationError("cannot save a non-finite power-flow state");
-        }
-        document["state"].push_back({{"name", names[index]}, {"value", state[index]}});
-    }
-    std::vector<GridBus*> buses;
-    gds->getBusVector(buses);
-    for (const auto* bus : buses) {
-        if (!std::isfinite(bus->getVoltage()) || !std::isfinite(bus->getAngle())) {
-            throw FileOperationError("cannot save a non-finite bus voltage or angle");
-        }
-        document["buses"].push_back({{"name", bus->getName()},
-                                     {"user_id", bus->getUserID()},
-                                     {"voltage_pu", bus->getVoltage()},
-                                     {"angle_rad", bus->getAngle()}});
-    }
-    auto output = makeOutputFile(fileName);
-    output << document.dump(2) << '\n';
-    output.close();
-    if (!output) {
-        throw FileOperationError("unable to write file " + fileName);
-    }
+    saveCheckpoint(gds, fileName);
 }
 
 void loadPowerFlowCheckpoint(GridDynSimulation* gds, const std::string& fileName)
 {
-    std::ifstream input(fileName);
-    if (!input.is_open()) {
-        throw FileOperationError("unable to open file " + fileName);
-    }
-    CheckpointJson document;
-    try {
-        input >> document;
-        if (document.at("format") != "griddyn-powerflow-checkpoint" ||
-            document.at("version") != 1 || document.at("scope") != "solution") {
-            throw FileOperationError("unsupported power-flow checkpoint format or version");
-        }
-        const auto mode = gds->getSolverMode("powerflow");
-        const auto solver = checkpointPowerFlowSolver(gds, mode);
-        const auto count = solver->size();
-        const auto names = checkpointStateNames(gds, mode, count);
-        const auto& savedState = document.at("state");
-        const auto& savedBuses = document.at("buses");
-        std::vector<GridBus*> buses;
-        gds->getBusVector(buses);
-        if (!savedState.is_array() || std::cmp_not_equal(savedState.size(), count) ||
-            !savedBuses.is_array() || savedBuses.size() != buses.size()) {
-            throw FileOperationError("power-flow checkpoint does not match the model layout");
-        }
-        std::vector<double> values;
-        values.reserve(count);
-        for (count_t index = 0; index < count; ++index) {
-            const auto& entry = savedState.at(index);
-            if (entry.at("name").get<std::string>() != names[index]) {
-                throw FileOperationError("power-flow checkpoint state layout does not match");
-            }
-            const auto value = entry.at("value").get<double>();
-            if (!std::isfinite(value)) {
-                throw FileOperationError("invalid power-flow checkpoint state value");
-            }
-            values.push_back(value);
-        }
-        std::vector<std::pair<double, double>> busValues;
-        busValues.reserve(buses.size());
-        for (std::size_t index = 0; index < buses.size(); ++index) {
-            const auto& entry = savedBuses.at(index);
-            // Automatically assigned user IDs can differ between two loads of the same case.
-            if (entry.at("name").get<std::string>() != buses[index]->getName()) {
-                throw FileOperationError("power-flow checkpoint buses do not match");
-            }
-            const auto voltage = entry.at("voltage_pu").get<double>();
-            const auto angle = entry.at("angle_rad").get<double>();
-            if (!std::isfinite(voltage) || !std::isfinite(angle)) {
-                throw FileOperationError("invalid power-flow checkpoint bus value");
-            }
-            busValues.emplace_back(voltage, angle);
-        }
-        if (count > 0) {
-            std::copy(values.begin(), values.end(), solver->stateData());
-            gds->setState(gds->getSimulationTime(), values.data(), nullptr, mode);
-        }
-        for (std::size_t index = 0; index < buses.size(); ++index) {
-            buses[index]->setVoltageAngle(busValues[index].first, busValues[index].second);
-        }
-        // Explicit bus values also cover fixed-voltage and fixed-angle buses.
-        // Keep the solver vector in sync if those values were edited.
-        if (count > 0) {
-            gds->guessState(gds->getSimulationTime(), solver->stateData(), nullptr, mode);
-            gds->setState(gds->getSimulationTime(), solver->stateData(), nullptr, mode);
-        }
-        gds->updateLocalCache();
-    }
-    catch (const CheckpointJson::exception& exc) {
-        throw FileOperationError("invalid power-flow checkpoint " + fileName + ": " + exc.what());
-    }
+    loadCheckpoint(gds, fileName);
 }
-
 void captureJacState(GridDynSimulation* gds, const std::string& fileName, const SolverMode& sMode)
 {
     const auto& currentMode = gds->getCurrentMode(sMode);

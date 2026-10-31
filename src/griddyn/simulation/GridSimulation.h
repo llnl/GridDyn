@@ -49,6 +49,8 @@ simulating goes the class isn't abstract but it is intended to be built upon for
 simulation objects
 */
 class GridSimulation: public GridArea {
+    friend class CheckpointCoordinator;
+
   public:
     std::string sourceFile;  //!< main source file name
     /** @brief enumeration describing the state of the GridDyn simulation*/
@@ -129,6 +131,8 @@ class GridSimulation: public GridArea {
      */
     ~GridSimulation();
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    /** Persist this model's checkpoint fields; derived models must extend the hook. */
+    void checkpointFields(CheckpointArchive& archive) override;
 
     /** @brief get the current state of the simulation
     @return the current state

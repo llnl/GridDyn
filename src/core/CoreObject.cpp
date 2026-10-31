@@ -6,6 +6,7 @@
 
 #include "CoreObject.h"
 
+#include "CheckpointArchive.h"
 #include "CoreExceptions.h"
 #include "NullObject.h"
 #include "gmlc/utilities/stringOps.h"
@@ -41,6 +42,20 @@ CoreObject::CoreObject(id_type_t coid): m_refCount(0), m_oid(coid)
 CoreObject::~CoreObject() = default;
 
 static dataDictionary<id_type_t, std::string> gDescriptionDictionary;
+
+void CoreObject::checkpointFields(CheckpointArchive& archive)
+{
+    archive.model<CoreObject>("CoreObject");
+    archive.state("enabled", enabled);
+    archive.state("updates_enabled", updates_enabled);
+    archive.state("extra_bool", extra_bool);
+    archive.state("extra_bool2", extra_bool2);
+    archive.state("prevTime", prevTime);
+    archive.state("nextUpdateTime", nextUpdateTime);
+    archive.state("lastUpdateTime", lastUpdateTime);
+    archive.state("updatePeriod", updatePeriod);
+    archive.state("updateDelay", updateDelay);
+}
 
 // inherited copy construction method
 CoreObject* CoreObject::clone(CoreObject* obj) const

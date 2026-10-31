@@ -7,8 +7,12 @@
 #include "../gtestHelper.h"
 #include "core/CoreExceptions.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/Load.h"
+#include "griddyn/events/Event.h"
+#include "griddyn/events/EventAdapters.h"
+#include "griddyn/loads/RampLoad.h"
 #include "griddyn/measurement/Recorder.h"
 #include "griddyn/simulation/GridDynSimulationFileOps.h"
 #include "griddyn/solvers/SolverInterface.h"
@@ -29,6 +33,7 @@
 #include <limits>
 #include <memory>
 #include <nlohmann/json.hpp>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -59,6 +64,41 @@ class TemporaryStateFile {
     }
     std::filesystem::path path;
 };
+
+class TemporaryCheckpoint {
+  public:
+    TemporaryCheckpoint()
+    {
+        TemporaryStateFile unique;
+        mDirectory = unique.path;
+        mDirectory += ".checkpoint";
+        if (!std::filesystem::create_directory(mDirectory)) {
+            throw std::runtime_error("unable to create checkpoint test directory");
+        }
+        mPath = mDirectory / "checkpoint.json";
+    }
+    ~TemporaryCheckpoint()
+    {
+        std::error_code error;
+        std::filesystem::remove_all(mDirectory, error);
+    }
+    std::filesystem::path mDirectory;
+    std::filesystem::path mPath;
+};
+
+nlohmann::json readCheckpointManifest(const std::filesystem::path& path)
+{
+    std::ifstream input(path);
+    nlohmann::json result;
+    input >> result;
+    return result;
+}
+
+void writeCheckpointManifest(const std::filesystem::path& path, const nlohmann::json& document)
+{
+    std::ofstream output(path);
+    output << document.dump(2);
+}
 
 void exportMatlabStateFixture(const std::filesystem::path& source, const char* name)
 {
@@ -437,8 +477,7 @@ TEST_F(PowerflowSystemTests, TestIteratedPflow)
 
 TEST_F(PowerflowSystemTests, PowerFlowCheckpointRestoresSolutionAcrossIterations)
 {
-    const auto checkpoint =
-        std::filesystem::temp_directory_path() / "griddyn-pflow-checkpoint.json";
+    TemporaryCheckpoint checkpoint;
     gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
     ASSERT_NE(gds, nullptr);
     ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
@@ -448,50 +487,47 @@ TEST_F(PowerflowSystemTests, PowerFlowCheckpointRestoresSolutionAcrossIterations
     ASSERT_NE(load, nullptr);
     const double voltage = bus->getVoltage();
     const double angle = bus->getAngle();
-    savePowerFlowCheckpoint(gds.get(), checkpoint.string());
+    const double power = load->get("p");
+    savePowerFlowCheckpoint(gds.get(), checkpoint.mPath.string());
 
     load->set("p", 0.8);
     ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
     ASSERT_GT(std::abs(bus->getVoltage() - voltage), 1e-4);
-    loadPowerFlowCheckpoint(gds.get(), checkpoint.string());
+    loadPowerFlowCheckpoint(gds.get(), checkpoint.mPath.string());
     EXPECT_DOUBLE_EQ(bus->getVoltage(), voltage);
     EXPECT_DOUBLE_EQ(bus->getAngle(), angle);
-    EXPECT_DOUBLE_EQ(load->get("p"), 0.8);
+    EXPECT_DOUBLE_EQ(load->get("p"), power);
 
     auto second = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
     ASSERT_NE(second, nullptr);
     ASSERT_EQ(second->powerflow(), FUNCTION_EXECUTION_SUCCESS);
-    loadPowerFlowCheckpoint(second.get(), checkpoint.string());
+    loadPowerFlowCheckpoint(second.get(), checkpoint.mPath.string());
     EXPECT_DOUBLE_EQ(second->getBus(1)->getVoltage(), voltage);
     EXPECT_DOUBLE_EQ(second->getBus(1)->getAngle(), angle);
-    std::filesystem::remove(checkpoint);
 }
 
 TEST_F(PowerflowSystemTests, PowerFlowCheckpointRejectsInvalidFileBeforeChangingState)
 {
-    const auto checkpoint =
-        std::filesystem::temp_directory_path() / "griddyn-invalid-pflow-checkpoint.json";
+    TemporaryCheckpoint checkpoint;
     gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
     ASSERT_NE(gds, nullptr);
     ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
     auto* bus = gds->getBus(1);
     const double voltage = bus->getVoltage();
     {
-        std::ofstream output(checkpoint);
-        output
-            << R"({"format":"griddyn-powerflow-checkpoint","version":1,"scope":"solution","state":[],"buses":[]})";
+        std::ofstream output(checkpoint.mPath);
+        output << R"({"format":"griddyn-checkpoint","version":99})";
     }
-    EXPECT_THROW(loadPowerFlowCheckpoint(gds.get(), checkpoint.string()), FileOperationError);
+    EXPECT_THROW(loadPowerFlowCheckpoint(gds.get(), checkpoint.mPath.string()), FileOperationError);
     EXPECT_DOUBLE_EQ(bus->getVoltage(), voltage);
-    std::filesystem::remove(checkpoint);
 }
 
 TEST_F(PowerflowSystemTests, PowerFlowCheckpointInIteratedPowerFlow)
 {
-    const auto checkpoint =
-        std::filesystem::temp_directory_path() / "griddyn-iterated-pflow-checkpoint.json";
+    TemporaryCheckpoint checkpoint;
     gds = readSimXMLFile(std::string(pFlow_test_directory) + "iterated_test_case.xml");
     ASSERT_NE(gds, nullptr);
+    disableFixtureRecorderFiles(*gds);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
     ASSERT_EQ(gds->eventDrivenPowerflow(10.0, 2.0), FUNCTION_EXECUTION_SUCCESS);
@@ -501,38 +537,279 @@ TEST_F(PowerflowSystemTests, PowerFlowCheckpointInIteratedPowerFlow)
     ASSERT_NE(gridBus, nullptr);
     const double voltage = gridBus->getVoltage();
     const double angle = gridBus->getAngle();
-    savePowerFlowCheckpoint(gds.get(), checkpoint.string());
+    savePowerFlowCheckpoint(gds.get(), checkpoint.mPath.string());
     ASSERT_EQ(gds->eventDrivenPowerflow(20.0, 2.0), FUNCTION_EXECUTION_SUCCESS);
-    loadPowerFlowCheckpoint(gds.get(), checkpoint.string());
+    loadPowerFlowCheckpoint(gds.get(), checkpoint.mPath.string());
     EXPECT_DOUBLE_EQ(gridBus->getVoltage(), voltage);
     EXPECT_DOUBLE_EQ(gridBus->getAngle(), angle);
-    EXPECT_EQ(gds->getSimulationTime(), CoreTime(20.0));
-    std::filesystem::remove(checkpoint);
+    EXPECT_EQ(gds->getSimulationTime(), CoreTime(10.0));
 }
 
-TEST_F(PowerflowSystemTests, PowerFlowCheckpointAllowsEditedBusValues)
+TEST_F(PowerflowSystemTests, PowerFlowCheckpointAllowsEditedParametersWithoutSolving)
 {
-    const auto checkpoint =
-        std::filesystem::temp_directory_path() / "griddyn-edited-pflow-checkpoint.json";
+    TemporaryCheckpoint checkpoint;
     gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
     ASSERT_NE(gds, nullptr);
     ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
-    savePowerFlowCheckpoint(gds.get(), checkpoint.string());
-    nlohmann::json document;
-    {
-        std::ifstream input(checkpoint);
-        input >> document;
+    const double voltage = gds->getBus(1)->getVoltage();
+    savePowerFlowCheckpoint(gds.get(), checkpoint.mPath.string());
+    auto document = readCheckpointManifest(checkpoint.mPath);
+    auto* load = gds->getBus(1)->getLoad();
+    for (auto& object : document.at("objects")) {
+        if (object.at("name") == load->getName()) {
+            object["parameters"]["GridLoad"]["P"] = 0.55;
+        }
     }
-    document["buses"][1]["voltage_pu"] = 0.91;
-    document["buses"][1]["angle_rad"] = 0.04;
-    {
-        std::ofstream output(checkpoint);
-        output << document.dump(2);
+    writeCheckpointManifest(checkpoint.mPath, document);
+    loadPowerFlowCheckpoint(gds.get(), checkpoint.mPath.string());
+    EXPECT_DOUBLE_EQ(load->get("p"), 0.55);
+    EXPECT_DOUBLE_EQ(gds->getBus(1)->getVoltage(), voltage);
+}
+
+TEST_F(PowerflowSystemTests, CheckpointRestoresClockConsumedEventsAndReplay)
+{
+    TemporaryCheckpoint checkpoint;
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
+    ASSERT_NE(gds, nullptr);
+    auto* bus = gds->getBus(1);
+    auto* load = bus->getLoad();
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    auto event = std::make_shared<Event>(CoreTime(15.0));
+    ASSERT_TRUE(event->setTarget(load, "p"));
+    event->setValue(0.8);
+    gds->add(event);
+    ASSERT_EQ(gds->eventDrivenPowerflow(10.0, 2.0), FUNCTION_EXECUTION_SUCCESS);
+    const double savedPower = load->get("p");
+    const double savedVoltage = bus->getVoltage();
+    saveCheckpoint(gds.get(), checkpoint.mPath.string());
+    const auto manifest = readCheckpointManifest(checkpoint.mPath);
+    EXPECT_EQ(manifest.at("format"), "griddyn-checkpoint");
+    EXPECT_EQ(manifest.at("level"), "parameters");
+    EXPECT_TRUE(std::filesystem::is_regular_file(
+        checkpoint.mDirectory / manifest.at("state").at("file").get<std::string>()));
+    ASSERT_EQ(gds->eventDrivenPowerflow(20.0, 2.0), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_DOUBLE_EQ(load->get("p"), 0.8);
+    const double expectedVoltage = bus->getVoltage();
+    loadCheckpoint(gds.get(), checkpoint.mPath.string());
+    EXPECT_EQ(gds->getSimulationTime(), CoreTime(10.0));
+    EXPECT_DOUBLE_EQ(load->get("p"), savedPower);
+    EXPECT_DOUBLE_EQ(bus->getVoltage(), savedVoltage);
+    EXPECT_EQ(gds->getEventTime(), CoreTime(12.0));
+    ASSERT_EQ(gds->eventDrivenPowerflow(20.0, 2.0), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_DOUBLE_EQ(load->get("p"), 0.8);
+    EXPECT_NEAR(bus->getVoltage(), expectedVoltage, 1e-10);
+}
+
+TEST_F(PowerflowSystemTests, CheckpointRestoresRampingLoadHistory)
+{
+    TemporaryCheckpoint checkpoint;
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "iterated_test_case.xml");
+    ASSERT_NE(gds, nullptr);
+    disableFixtureRecorderFiles(*gds);
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(gds->eventDrivenPowerflow(10.0, 2.0), FUNCTION_EXECUTION_SUCCESS);
+    saveCheckpoint(gds.get(), checkpoint.mPath.string());
+    auto* bus = dynamic_cast<GridBus*>(gds->findByUserID("bus", 25));
+    ASSERT_NE(bus, nullptr);
+    const double savedPower = bus->getLoad()->get("p");
+    ASSERT_EQ(gds->eventDrivenPowerflow(20.0, 2.0), FUNCTION_EXECUTION_SUCCESS);
+    const double expectedPower = bus->getLoad()->get("p");
+    const double expectedVoltage = bus->getVoltage();
+    loadCheckpoint(gds.get(), checkpoint.mPath.string());
+    EXPECT_EQ(gds->getSimulationTime(), CoreTime(10.0));
+    EXPECT_DOUBLE_EQ(bus->getLoad()->get("p"), savedPower);
+    ASSERT_EQ(gds->eventDrivenPowerflow(20.0, 2.0), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_NEAR(bus->getLoad()->get("p"), expectedPower, 1e-12);
+    EXPECT_NEAR(bus->getVoltage(), expectedVoltage, 1e-9);
+}
+
+TEST_F(PowerflowSystemTests, CheckpointLoadsIntoFreshModelAndMovedBundle)
+{
+    TemporaryCheckpoint checkpoint;
+    TemporaryCheckpoint moved;
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(gds->eventDrivenPowerflow(10.0, 2.0), FUNCTION_EXECUTION_SUCCESS);
+    saveCheckpoint(gds.get(), checkpoint.mPath.string());
+    for (const auto& entry : std::filesystem::directory_iterator(checkpoint.mDirectory)) {
+        std::filesystem::copy_file(entry.path(), moved.mDirectory / entry.path().filename());
     }
-    loadPowerFlowCheckpoint(gds.get(), checkpoint.string());
-    EXPECT_DOUBLE_EQ(gds->getBus(1)->getVoltage(), 0.91);
-    EXPECT_DOUBLE_EQ(gds->getBus(1)->getAngle(), 0.04);
-    std::filesystem::remove(checkpoint);
+    auto second = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
+    ASSERT_EQ(second->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    second->getBus(1)->getLoad()->set("p", 0.7);
+    ASSERT_EQ(second->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    loadCheckpoint(second.get(), moved.mPath.string());
+    EXPECT_EQ(second->getSimulationTime(), CoreTime(10.0));
+    EXPECT_DOUBLE_EQ(second->getBus(1)->getLoad()->get("p"), gds->getBus(1)->getLoad()->get("p"));
+    EXPECT_DOUBLE_EQ(second->getBus(1)->getVoltage(), gds->getBus(1)->getVoltage());
+}
+
+TEST_F(PowerflowSystemTests, CheckpointStateAndParameterLevels)
+{
+    TemporaryCheckpoint state;
+    TemporaryCheckpoint parameters;
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    auto* bus = gds->getBus(0);
+    const double target = bus->get("vtarget");
+    saveCheckpoint(gds.get(), state.mPath.string(), CheckpointLevel::STATE);
+    saveCheckpoint(gds.get(), parameters.mPath.string(), CheckpointLevel::PARAMETERS);
+    bus->set("vtarget", target + 0.01);
+    loadCheckpoint(gds.get(), state.mPath.string());
+    EXPECT_DOUBLE_EQ(bus->get("vtarget"), target + 0.01);
+    loadCheckpoint(gds.get(), parameters.mPath.string());
+    EXPECT_DOUBLE_EQ(bus->get("vtarget"), target);
+    auto document = readCheckpointManifest(parameters.mPath);
+    for (auto& object : document.at("objects")) {
+        if (object.at("name") == bus->getName()) {
+            object["parameters"]["AcBus"]["vTarget"] = target + 0.02;
+        }
+    }
+    writeCheckpointManifest(parameters.mPath, document);
+    loadCheckpoint(gds.get(), parameters.mPath.string());
+    EXPECT_DOUBLE_EQ(bus->get("vtarget"), target + 0.02);
+}
+
+TEST_F(PowerflowSystemTests, CheckpointRestoreCanBranchHdf5RecorderOutput)
+{
+    TemporaryCheckpoint checkpoint;
+    gds = readSimXMLFile(std::string{GRIDDYN_TEST_DIRECTORY} + "/recorder_tests/recorder_hdf5.xml");
+    ASSERT_NE(gds, nullptr);
+    ASSERT_EQ(gds->getCollectors().size(), 1U);
+    auto recorder = std::dynamic_pointer_cast<Recorder>(gds->getCollectors().front());
+    ASSERT_NE(recorder, nullptr);
+    gds->set("recorddirectory", checkpoint.mDirectory.string());
+    ASSERT_EQ(gds->eventDrivenPowerflow(2.0, 1.0), FUNCTION_EXECUTION_SUCCESS);
+    const double voltage = gds->getBus(1)->getVoltage();
+    saveCheckpoint(gds.get(), checkpoint.mPath.string());
+    gds->getBus(1)->getLoad()->set("p", 0.8);
+    ASSERT_EQ(gds->eventDrivenPowerflow(4.0, 1.0), FUNCTION_EXECUTION_SUCCESS);
+    recorder->flush();
+    const double changedVoltage = gds->getBus(1)->getVoltage();
+    ASSERT_GT(std::abs(changedVoltage - voltage), 1e-4);
+    recorder->reset();
+    recorder->set("file", "branch.h5");
+    loadCheckpoint(gds.get(), checkpoint.mPath.string());
+    EXPECT_EQ(gds->getSimulationTime(), CoreTime(2.0));
+    EXPECT_TRUE(recorder->getTime().empty());
+    ASSERT_EQ(gds->eventDrivenPowerflow(4.0, 1.0), FUNCTION_EXECUTION_SUCCESS);
+    recorder->flush();
+    const utilities::Hdf5DataFile original((checkpoint.mDirectory / "samples.h5").string(),
+                                           utilities::Hdf5DataFile::OpenMode::READ_ONLY);
+    const utilities::Hdf5DataFile branch((checkpoint.mDirectory / "branch.h5").string(),
+                                         utilities::Hdf5DataFile::OpenMode::READ_ONLY);
+    const auto originalRecords = original.readRecords();
+    const auto branchRecords = branch.readRecords();
+    ASSERT_EQ(originalRecords.size(), 5U);
+    ASSERT_EQ(branchRecords.size(), 3U);
+    EXPECT_EQ(branch.readNames(branchRecords[0]), original.readNames(originalRecords[0]));
+    EXPECT_EQ(branchRecords.back().index, 0U);
+    EXPECT_EQ(branchRecords.back().time_ns, 4000000000LL);
+    const auto values = branch.readValues(branchRecords.back());
+    ASSERT_EQ(values.size(), 2U);
+    EXPECT_NEAR(values[0], voltage, 1e-10);
+    EXPECT_NEAR(original.readValues(originalRecords.back())[0], changedVoltage, 1e-10);
+}
+
+TEST_F(PowerflowSystemTests, CheckpointRestoresReactiveLimitModeAndRange)
+{
+    TemporaryCheckpoint checkpoint;
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
+    auto* bus = gds->getBus(1);
+    bus->set("type", "pv");
+    bus->set("vtarget", 1.10);
+    auto* generator = new Generator("pv_generator");
+    generator->set("p", 0.4);
+    generator->set("qmin", -2.0);
+    generator->set("qmax", 2.0);
+    bus->add(generator);
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(bus->getType(), GridBus::BusType::PV);
+    const double voltage = bus->getVoltage();
+    const double reactivePower = generator->get("q");
+    ASSERT_GT(std::abs(reactivePower), 0.01);
+    saveCheckpoint(gds.get(), checkpoint.mPath.string());
+    bus->set("qmin", 0.0);
+    bus->set("qmax", 0.0);
+    bus->updateFlags();
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(bus->getType(), GridBus::BusType::PQ);
+    loadCheckpoint(gds.get(), checkpoint.mPath.string());
+    EXPECT_EQ(bus->getType(), GridBus::BusType::PV);
+    EXPECT_DOUBLE_EQ(generator->get("qmax"), 2.0);
+    EXPECT_DOUBLE_EQ(generator->get("qmin"), -2.0);
+    EXPECT_DOUBLE_EQ(generator->get("q"), reactivePower);
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(bus->getType(), GridBus::BusType::PV);
+    EXPECT_NEAR(bus->getVoltage(), voltage, 1e-9);
+}
+
+TEST_F(PowerflowSystemTests, CheckpointRecoversAfterFailedPowerFlow)
+{
+    TemporaryCheckpoint checkpoint;
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    const double voltage = gds->getBus(1)->getVoltage();
+    saveCheckpoint(gds.get(), checkpoint.mPath.string());
+    gds->setFlag("no_powerflow_error_recovery");
+    gds->getBus(1)->getLoad()->setFlag("no_pqvoltage_limit");
+    gds->getBus(1)->getLoad()->set("p", 5.0);
+    ASSERT_NE(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    auto solver = gds->getSolverInterface(gds->getSolverMode("powerflow"));
+    solver->setMaskElements({0});
+    solver->setFlag("mask");
+    loadCheckpoint(gds.get(), checkpoint.mPath.string());
+    EXPECT_FALSE(solver->getFlag("mask"));
+    EXPECT_EQ(gds->currentProcessState(), GridSimulation::GridState::POWERFLOW_COMPLETE);
+    EXPECT_DOUBLE_EQ(gds->getBus(1)->getLoad()->get("p"), 0.45);
+    EXPECT_DOUBLE_EQ(gds->getBus(1)->getVoltage(), voltage);
+    EXPECT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+}
+
+TEST_F(PowerflowSystemTests, CheckpointInvalidLastFieldDoesNotChangeModel)
+{
+    TemporaryCheckpoint checkpoint;
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    saveCheckpoint(gds.get(), checkpoint.mPath.string());
+    auto document = readCheckpointManifest(checkpoint.mPath);
+    document.at("objects").back().erase("runtime");
+    writeCheckpointManifest(checkpoint.mPath, document);
+    gds->getBus(1)->getLoad()->set("p", 0.7);
+    ASSERT_EQ(gds->eventDrivenPowerflow(20.0, 2.0), FUNCTION_EXECUTION_SUCCESS);
+    const auto before = gds->getState(gds->getSolverMode("powerflow"));
+    const double voltage = gds->getBus(1)->getVoltage();
+    EXPECT_THROW(loadCheckpoint(gds.get(), checkpoint.mPath.string()), FileOperationError);
+    EXPECT_EQ(gds->getSimulationTime(), CoreTime(20.0));
+    EXPECT_DOUBLE_EQ(gds->getBus(1)->getLoad()->get("p"), 0.7);
+    EXPECT_DOUBLE_EQ(gds->getBus(1)->getVoltage(), voltage);
+    EXPECT_EQ(gds->getState(gds->getSolverMode("powerflow")), before);
+}
+
+TEST_F(PowerflowSystemTests, CheckpointCommandsAndFailedSaveKeepPreviousGeneration)
+{
+    TemporaryCheckpoint checkpoint;
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    GridDynAction action(GridDynAction::GdAction::CHECKPOINT);
+    action.string1 = checkpoint.mPath.string();
+    ASSERT_EQ(gds->execute(action), FUNCTION_EXECUTION_SUCCESS);
+    const auto first = readCheckpointManifest(checkpoint.mPath);
+    gds->getBus(1)->getLoad()->set("p", 0.7);
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(gds->execute("rollback last"), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_DOUBLE_EQ(gds->getBus(1)->getLoad()->get("p"), 0.45);
+    ASSERT_EQ(gds->execute(action), FUNCTION_EXECUTION_SUCCESS);
+    const auto original = readCheckpointManifest(checkpoint.mPath);
+    EXPECT_NE(original.at("state").at("file"), first.at("state").at("file"));
+    EXPECT_TRUE(std::filesystem::is_regular_file(checkpoint.mDirectory /
+                                                 first.at("state").at("file").get<std::string>()));
+    gds->add(std::make_shared<FunctionEventAdapter>([]() { return ChangeCode::NO_CHANGE; },
+                                                    CoreTime(50.0)));
+    EXPECT_THROW(saveCheckpoint(gds.get(), checkpoint.mPath.string()), FileOperationError);
+    EXPECT_EQ(readCheckpointManifest(checkpoint.mPath), original);
 }
 
 TEST_F(PowerflowSystemTests, BinaryStatePowerFlowRoundTrip)

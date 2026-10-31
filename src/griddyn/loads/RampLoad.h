@@ -27,6 +27,8 @@ namespace loads {
         RampLoad(double rP, double qP, const std::string& objName = "rampLoad_$");
 
         virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+        /** Persist this model's checkpoint fields; derived models must extend the hook. */
+        void checkpointFields(CheckpointArchive& archive) override;
 
         virtual void set(std::string_view param, std::string_view val) override;
         virtual void

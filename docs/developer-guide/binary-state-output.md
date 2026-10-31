@@ -79,7 +79,7 @@ All payloads are ordinary typed, extendible one-dimensional datasets:
 | `frame`, `index`                    | uint64 frame identity and producer evaluation/block index.                                                                                                 |
 | `key`, `paired_key`, `parent_index` | uint64 producer keys; absent values are `UINT64_MAX`. Solver keys are offset indices. `parent_index` is reserved when no enclosing evaluation is supplied. |
 | `source`                            | uint32: 0 snapshot, 1 diagnostic.                                                                                                                          |
-| `type`                              | uint32: 0 vector, 1 sparse COUP matrix, 2 names.                                                                                                            |
+| `type`                              | uint32: 0 vector, 1 sparse COUP matrix, 2 names.                                                                                                           |
 | `code`                              | uint32 vector role: 0 state, 1 derivative/RHS, 2 residual; matrix role 1 Jacobian.                                                                         |
 | `flags`, `approx`                   | uint32 solver mode bits and approximation mask. Mode bits 0-5 mean dynamic, differential, algebraic, local, extended state and parameters.                 |
 | `value_offset`, `count`             | uint64 zero-based offset into `/values` and element count; for names, count is number of names.                                                            |

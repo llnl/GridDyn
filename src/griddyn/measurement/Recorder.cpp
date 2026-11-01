@@ -9,10 +9,15 @@
 #include "core/CoreExceptions.h"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
+#include "utilities/Hdf5DataFile.h"
+#include <array>
+#include <cmath>
+#include <cstdint>
 #include <cstdio>
 #include <filesystem>
 #include <limits>
 #include <memory>
+#include <span>
 #include <string>
 #include <utility>
 #include <vector>
@@ -62,6 +67,7 @@ void Recorder::cloneTo(Collector* col) const
     nrec->mDirectory = mDirectory;
     nrec->mPrecision = mPrecision;
     nrec->mAutosave = mAutosave;
+    nrec->mHdf5Compression = mHdf5Compression;
     nrec->reset();
 }
 
@@ -78,6 +84,14 @@ void Recorder::set(std::string_view param, double val)
             throw InvalidParameterValue("invalid recorder reserve count");
         }
         mDataset.reserve(static_cast<fsize_t>(val));
+    } else if (param == "compression") {
+        if (!std::isfinite(val) || val < 0.0 || val > 9.0 || std::floor(val) != val) {
+            throw InvalidParameterValue("HDF5 compression must be an integer from 0 to 9");
+        }
+        if (mHdf5Started && val != mHdf5Compression) {
+            throw InvalidParameterValue("reset recorder before changing HDF5 compression");
+        }
+        mHdf5Compression = static_cast<unsigned>(val);
     } else if (param == "autosave") {
         if (!std::isfinite(val) || val < 0.0 || val > std::numeric_limits<count_t>::max() ||
             std::floor(val) != val) {
@@ -93,14 +107,12 @@ void Recorder::set(std::string_view param, std::string_view val)
 {
     if ((param == "file") || (param == "fileName") || (param == "filename")) {
         if (mFileName != val) {
-            mLastSaveTime = negTime;
-            mSavedSamples = 0;
+            resetOutput();
         }
         mFileName = val;
     } else if (param == "directory") {
         if (mDirectory != val) {
-            mLastSaveTime = negTime;
-            mSavedSamples = 0;
+            resetOutput();
         }
         mDirectory = val;
     } else {
@@ -128,13 +140,15 @@ void Recorder::saveFile(const std::string& fileName)
                 std::filesystem::absolute(savefileName).lexically_normal() ==
                     std::filesystem::absolute(sink).lexically_normal();
         }
-        if (configuredSink && mDataset.size() == mSavedSamples && mLastSaveTime > negTime) {
+        if (configuredSink && mDataset.size() == mSavedSamples &&
+            (mLastSaveTime > negTime || mHdf5Started)) {
             return;
         }
         const std::string extension = gmlc::utilities::convertToLowerCase(
             configuredSink ? std::filesystem::path(mFileName).extension().string() :
                              savefileName.extension().string());
         const bool binaryFile = extension != ".csv" && extension != ".txt";
+        const bool hdf5File = extension == ".h5" || extension == ".hdf5";
         // check to make sure the directories exist if not create them
         auto tmp = savefileName.parent_path();
         if (!tmp.empty()) {
@@ -147,6 +161,18 @@ void Recorder::saveFile(const std::string& fileName)
             recheckColumns();
         }
         mDataset.description = getName() + ": " + getDescription();
+        if (hdf5File) {
+            if (mFirstTrigger) {
+                mDataset.setCols(static_cast<fsize_t>(mData.size()));
+                fillDatasetFields();
+            }
+            saveHdf5(savefileName.string(), configuredSink);
+            if (configuredSink) {
+                mLastSaveTime = mLastTriggerTime;
+                mSavedSamples = mDataset.size();
+            }
+            return;
+        }
         const bool append = configuredSink && (mLastSaveTime > negTime);
 
         // Explicit filenames export the current buffer as an independent snapshot.
@@ -182,11 +208,76 @@ void Recorder::saveFile(const std::string& fileName)
     }
 }
 
+void Recorder::resetOutput()
+{
+    mHdf5Samples = 0;
+    mHdf5Started = false;
+    mLastSaveTime = negTime;
+    mSavedSamples = 0;
+}
+
+void Recorder::saveHdf5(const std::string& fileName, bool configuredSink)
+{
+    using utilities::Hdf5DataFile;
+    using utilities::Hdf5RecordType;
+    using utilities::Hdf5RecordView;
+    constexpr std::uint32_t recorderSource = 3;
+    const auto first = configuredSink ? mSavedSamples : 0;
+    const auto rows = mDataset.size() - first;
+    const auto columns = mDataset.columns();
+    const auto sampleOffset = configuredSink ? mHdf5Samples : 0;
+    const bool header = !configuredSink || !mHdf5Started;
+    std::vector<double> values;
+    if ((columns > 0 && rows > values.max_size() / columns) ||
+        rows > utilities::hdf5NoIndex - sampleOffset) {
+        throw FileOperationError("recorder HDF5 sample size overflow");
+    }
+    values.resize(rows * columns);
+    std::vector<Hdf5RecordView> records;
+    records.reserve(rows + (header ? 2 : 0));
+    const std::array<std::string, 2> description{getName(), getDescription()};
+    if (header) {
+        Hdf5RecordView names;
+        names.info.source = recorderSource;
+        names.info.type = Hdf5RecordType::NAMES;
+        names.info.key = 0;
+        names.info.code = 1;
+        names.names = mDataset.getFields();
+        records.push_back(names);
+        names.info.code = 2;
+        names.names = description;
+        records.push_back(names);
+    }
+    for (std::size_t row = 0; row < rows; ++row) {
+        for (fsize_t column = 0; column < columns; ++column) {
+            values[(row * columns) + column] =
+                mDataset.data(column, static_cast<fsize_t>(first + row));
+        }
+        Hdf5RecordView sample;
+        sample.info.source = recorderSource;
+        sample.info.key = 0;
+        sample.info.index = sampleOffset + row;
+        sample.info.time_ns = mDataset.time()[first + row].to_ns().count();
+        sample.values = std::span(values).subspan(row * columns, columns);
+        records.push_back(sample);
+    }
+    if (records.empty()) {
+        return;
+    }
+    Hdf5DataFile output(fileName,
+                        header ? Hdf5DataFile::OpenMode::TRUNCATE : Hdf5DataFile::OpenMode::APPEND,
+                        mHdf5Compression);
+    output.append(records);
+    if (configuredSink) {
+        mHdf5Started = true;
+        mHdf5Samples += rows;
+    }
+}
+
 void Recorder::reset()
 {
     mDataset.clear();
-    mLastSaveTime = negTime;
-    mSavedSamples = 0;
+    resetOutput();
     mFirstTrigger = true;
     mLayoutChanged = false;
     resetSchedule();
@@ -218,12 +309,12 @@ void Recorder::fillDatasetFields()
 
 void Recorder::dataPointAdded(const CollectorPoint& /*point*/)
 {
-    mLayoutChanged = !mFirstTrigger;
+    mLayoutChanged = !mFirstTrigger || mHdf5Started;
 }
 
 void Recorder::updateObject(CoreObject* object, ObjectUpdateMode mode)
 {
-    mLayoutChanged = !mFirstTrigger;
+    mLayoutChanged = !mFirstTrigger || mHdf5Started;
     Collector::updateObject(object, mode);
 }
 

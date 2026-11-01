@@ -16,6 +16,8 @@ DYNAMIC_FILE = REPO_ROOT / "test" / "test_files" / "pFlow_tests" / "two_bus_dyna
 AREA_FILE = REPO_ROOT / "test" / "test_files" / "area_tests" / "area_test1.xml"
 RELAY_FILE = REPO_ROOT / "test" / "test_files" / "relay_tests" / "test_relay_comms.xml"
 RECORDER_FILE = REPO_ROOT / "python" / "griddyn" / "examples" / "data" / "two_bus_dynamic.xml"
+HDF5_RECORDER_FILE = REPO_ROOT / "test" / "test_files" / "recorder_tests" / "recorder_hdf5.xml"
+HDF5_SIGNATURE = b"\x89HDF\r\n\x1a\n"
 
 
 def _exported_matrix(text, output_format, matrix_name):
@@ -243,6 +245,94 @@ def test_recorder_samples_keep_duplicate_signal_columns(monkeypatch, tmp_path):
 
     row = sim.recorders["signals"].as_dicts()[0]
     assert row["bus1:voltage"] == pytest.approx(row["bus1:voltage_2"])
+
+
+@pytest.mark.parametrize("extension", [".csv", ".dat", ".h5", ".hdf5"])
+def test_python_can_configure_flush_and_export_recorders(tmp_path, extension):
+    sim = gd.load(HDF5_RECORDER_FILE)
+    recorder = sim.recorders["bus_signals"]
+    output = tmp_path / ("signals" + extension)
+    assert recorder.set("directory", tmp_path) is recorder
+    assert recorder.set("file", output) is recorder
+    recorder.set("autosave", 0)
+    recorder.set("compression", 2)
+    recorder.set("period", 2.0)
+    assert sim.execute("iterate 1 2") == 0
+    recorder.flush()
+    captured = output.read_bytes()
+    assert captured
+    if extension in (".h5", ".hdf5"):
+        assert captured.startswith(HDF5_SIGNATURE)
+    elif extension == ".csv":
+        assert b"magnitude" in captured and b"phase" in captured
+    else:
+        assert not captured.startswith(HDF5_SIGNATURE)
+    recorder.save_file()
+    assert output.read_bytes() == captured
+    snapshot = tmp_path / "snapshot.h5"
+    recorder.save_file(snapshot)
+    assert snapshot.read_bytes().startswith(HDF5_SIGNATURE)
+    assert output.read_bytes() == captured
+
+
+def test_recorder_write_errors_are_typed_and_keep_buffered_samples(tmp_path):
+    sim = gd.load(HDF5_RECORDER_FILE)
+    recorder = sim.recorders[0]
+    recorder.set("autosave", 0)
+    assert sim.execute("iterate 1 2") == 0
+    samples = recorder.as_dicts()
+    blocked = tmp_path / "blocked.h5"
+    blocked.mkdir()
+    recorder.set("file", blocked)
+    with pytest.raises(gd.FileLoadError):
+        recorder.flush()
+    assert recorder.as_dicts() == samples
+    blocked.rmdir()
+    recorder.flush()
+    assert blocked.read_bytes().startswith(HDF5_SIGNATURE)
+    with pytest.raises(gd.InvalidParameterError):
+        recorder.set("compression", 10)
+    with pytest.raises(gd.InvalidParameterError):
+        recorder.set("unknown_setting", "value")
+    with pytest.raises(TypeError):
+        recorder.set("period", [])
+
+
+def test_recorder_reset_can_start_an_independent_hdf5_recording(tmp_path):
+    sim = gd.load(HDF5_RECORDER_FILE)
+    sim.set("recorddirectory", str(tmp_path))
+    recorder = sim.recorders["bus_signals"]
+    assert sim.execute("iterate 1 2") == 0
+    recorder.flush()
+    original = (tmp_path / "samples.h5").read_bytes()
+
+    recorder.reset()
+    recorder.set("file", tmp_path / "branch.h5")
+    assert len(recorder) == 0
+    assert sim.execute("iterate 1 4") == 0
+    recorder.flush()
+
+    assert [row["time"] for row in recorder.as_dicts()] == [4.0]
+    assert (tmp_path / "branch.h5").read_bytes().startswith(HDF5_SIGNATURE)
+    assert (tmp_path / "samples.h5").read_bytes() == original
+
+
+def test_recorder_operations_reject_handles_from_before_simulation_reset(tmp_path):
+    sim = gd.Simulation()
+    sim.load_from_args(["--input", str(HDF5_RECORDER_FILE)])
+    sim.set("recorddirectory", str(tmp_path))
+    recorder = sim.recorders[0]
+    sim.reset()
+    for operation in (
+        lambda: recorder.set("compression", 1),
+        lambda: recorder.set("file", tmp_path / "stale.h5"),
+        recorder.flush,
+        lambda: recorder.save_file(tmp_path / "stale.h5"),
+        recorder.reset,
+    ):
+        with pytest.raises(gd.InvalidObjectError, match="previous simulation"):
+            operation()
+    assert not (tmp_path / "stale.h5").exists()
 
 
 def test_load_returns_self_for_chaining():

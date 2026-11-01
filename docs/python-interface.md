@@ -148,6 +148,27 @@ also write those samples to a file when its XML configuration specifies one.
 Recorders configured with `autosave` clear their in-memory buffer after each
 automatic save.
 
+Use `recorder.set(field, value)` to configure output and sampling settings.
+`file`, `filename` and `directory` accept strings or path-like objects. A `.h5`
+or `.hdf5` filename selects the shared HDF5 format; `.csv` and `.txt` select text,
+and other extensions retain the existing recorder binary format. For example:
+
+```python
+recorder = sim.recorders["signals"]
+recorder.set("file", "results.h5")
+recorder.set("compression", 3)  # Optional lossless compression, 0 off or 1-9.
+recorder.set("autosave", 1000)  # Bound the in-memory sample buffer.
+```
+
+`recorder.flush()` or `recorder.save_file()` writes pending rows to the configured
+file. `recorder.save_file(path)` exports the current buffer to another file;
+it does not export earlier autosave chunks or change the configured sink.
+`recorder.reset()` discards buffered samples and restarts the output session and
+sampling schedule, retaining selected signals. A reset recording replaces its
+configured file on its first write. File I/O failures raise `FileLoadError` and
+retain buffered samples for retry. Reacquire recorder handles after a simulation
+reset; handles belonging to the previous simulation raise `InvalidObjectError`.
+
 ```python
 sim.time_domain.initialize()
 sim.time_domain.run_until(10.0)

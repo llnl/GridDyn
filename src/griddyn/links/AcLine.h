@@ -97,8 +97,6 @@ class AcLine: public Link {
     /** @brief virtual destructor*/
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    /** Persist this model's checkpoint fields; derived models must extend the hook. */
-    void checkpointFields(CheckpointArchive& archive) override;
 
     /** @brief get the current tap value
      * @return the tap value

@@ -232,9 +232,9 @@ These exporters represent a static AC network. They do not include dynamic
 generator/control models, relays, or events. PYPOWER is a separate package and
 is not installed as a dependency of GridDyn.
 
-## Power-flow checkpoints
+## Power-flow solution checkpoints
 
-After solving a power flow, save a checkpoint and restore it
+After initializing and solving a power flow, save its solution and restore it
 later into the same initialized simulation or another initialized instance of
 the same model:
 
@@ -245,43 +245,20 @@ sim.save_power_flow_checkpoint("operating-point.json")
 sim.loads[0].set("p", 1.2)
 sim.power_flow.run()
 sim.load_power_flow_checkpoint("operating-point.json")
-
-# Capture runtime state while retaining the current model settings on restore.
-sim.save_power_flow_checkpoint("state.json", level="state")
 ```
 
-The JSON manifest references a sibling HDF5 numerical payload through a relative
-path. Copy or move both files together. The default `level="parameters"` saves
-the supported model settings together with their full associated runtime state.
-`level="state"` saves runtime state while leaving separately declared settings
-at their current values when restored. Both levels restore simulation and model
-clocks, operating values, control/limit state, ramp history and supported pending
-events. Other level names raise `InvalidParameterError`.
+The JSON file contains the power-flow solver state and bus voltages and angles.
+Bus voltages are in per unit and angles are in radians. Values can be edited;
+where a bus value also occurs in the solver state, the bus entry takes
+precedence. GridDyn checks the file structure and state layout, but does not
+check whether edited values form a valid solution.
 
-Saving requires a completed power flow. Loading requires a compatible initialized
-power-flow model; it can restore after a failed solve. Loading does not perform
-a solve or reconcile edited parameters with the saved operating point. File
-structure and layout errors raise `FileLoadError` before model assignments begin.
-Dynamic restart is not supported by this profile. The
-[checkpoint reference](developer-guide/checkpoint-restore.md) lists supported
-models and event types.
-
-Recorder schedules are restored, but previously recorded samples and files are
-retained. To start an independent HDF5 output branch, clear the recorder and
-choose a new file **before loading** the checkpoint, so loading reinstates its
-saved sampling schedule:
-
-```python
-recorder = sim.recorders["bus_signals"]
-recorder.flush()  # Finish writing the original branch.
-recorder.reset()  # Clear its buffer and restart its file session.
-recorder.set("file", "branch.h5")
-sim.load_power_flow_checkpoint("operating-point.json")
-sim.execute("iterate 1 20")  # Continue on the restored timeline.
-recorder.flush()
-```
-
-The new file starts with the next scheduled sample after the checkpoint.
+This is a **solution-only** checkpoint: model parameters and inputs, simulation
+time, events, control modes, and time-dependent component history are not
+restored. In particular, restoring it after advancing an iterated power flow
+does not rewind the iteration or its load profiles. A subsequent solve uses
+the current model inputs and the restored solution as its starting point. It is
+not a dynamic or full-simulation checkpoint.
 
 ## DC optimal power flow
 

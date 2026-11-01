@@ -6,7 +6,7 @@ function res = readStateFile(filename, varargin)
 %READSTATEFILE Read GridDyn HDF5 state, diagnostic, and recorder captures.
 %   RES.data contains vectors, sparse triplets (row,col,val,rows,columns),
 %   or UTF-8 names. RES.typecode is 0 vector, 1 matrix, 2 names.
-%   RES.source is 0 snapshot, 1 diagnostic, 2 checkpoint runtime, or 3 recorder.
+%   RES.source is 0 snapshot, 1 diagnostic, or 3 recorder.
 %   Recorder codes: 0 samples, 1 channel names, 2 recorder name/description.
 %   Diagnostic codes: 0 state, 1 derivative/RHS,
 %   2 residual. Times are seconds plus exact int64 time_ns; frame, index and

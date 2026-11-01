@@ -9,7 +9,6 @@
 set(coreObject_headers
     coreDefinitions.hpp
     CoreExceptions.h
-    CheckpointArchive.h
     CoreObject.h
     CoreObjectList.h
     CoreObjectTemplates.hpp

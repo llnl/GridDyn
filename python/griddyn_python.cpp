@@ -17,7 +17,6 @@
 #include "griddyn/griddyn-config.h"
 #include "griddyn/measurement/Recorder.h"
 #include "griddyn/relays/Sensor.h"
-#include "griddyn/simulation/Checkpoint.h"
 #include "griddyn/simulation/GridDynSimulationFileOps.h"
 #include "griddyn/simulation/GridSimulation.h"
 #include "runner/gridDynRunner.h"
@@ -1772,20 +1771,12 @@ class PySimulation {
         return sim->execute(action);
     }
 
-    void savePowerFlowCheckpoint(const nb::object& path, const std::string& level) const
+    void savePowerFlowCheckpoint(const nb::object& path) const
     {
-        griddyn::CheckpointLevel checkpointLevel;
-        if (level == "parameters") {
-            checkpointLevel = griddyn::CheckpointLevel::PARAMETERS;
-        } else if (level == "state") {
-            checkpointLevel = griddyn::CheckpointLevel::STATE;
-        } else {
-            throw InvalidParameterError("checkpoint level must be 'state' or 'parameters'");
-        }
         const auto filePath = pathToString(path);
         auto sim = simulation();
         nb::gil_scoped_release release;
-        griddyn::saveCheckpoint(sim.get(), filePath, checkpointLevel);
+        griddyn::savePowerFlowCheckpoint(sim.get(), filePath);
     }
 
     void loadPowerFlowCheckpoint(const nb::object& path)
@@ -2391,17 +2382,13 @@ NB_MODULE(_core, mod)
         .def("save_power_flow_checkpoint",
              &PySimulation::savePowerFlowCheckpoint,
              "path"_a,
-             "level"_a = "parameters",
-             "Save an iterated power-flow checkpoint as a JSON manifest with an HDF5 payload. "
-             "Both levels include clocks, supported runtime state and pending events. "
-             "The default 'parameters' level also includes supported model settings; "
-             "'state' leaves those settings unchanged when restored.")
+             "Save the power-flow solution to a readable checkpoint. Parameters, time, "
+             "events, and time-dependent component history are not included.")
         .def("load_power_flow_checkpoint",
              &PySimulation::loadPowerFlowCheckpoint,
              "path"_a,
-             "Restore clocks, supported runtime state and pending events into an initialized "
-             "compatible power-flow model, including settings for a 'parameters' checkpoint. "
-             "Loading does not solve or reconcile edited parameters, or rewind recorder files.")
+             "Restore a power-flow solution into an initialized compatible simulation. "
+             "Parameters, time, events, and time-dependent component history are unchanged.")
         .def("execute",
              &PySimulation::execute,
              "action"_a,

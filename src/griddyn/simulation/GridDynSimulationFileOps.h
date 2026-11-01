@@ -7,7 +7,6 @@
 #pragma once
 
 #include "../solvers/SolverMode.hpp"
-#include "Checkpoint.h"
 #include <limits>
 #include <memory>
 #include <string>
@@ -97,16 +96,6 @@ void loadStateBinary(GridDynSimulation* gds,
                      const std::string& fileName,
                      const SolverMode& sMode = cEmptySolverMode);
 
-/** Apply a previously read snapshot, using the same checks as the file loader. */
-void loadStateBinary(GridDynSimulation* gds,
-                     const BinaryStateData& saved,
-                     const SolverMode& sMode = cEmptySolverMode);
-
-/** Check every destination block without modifying solver arrays or creating solvers. */
-void validateStateBinary(GridDynSimulation* gds,
-                         const BinaryStateData& saved,
-                         const SolverMode& sMode = cEmptySolverMode);
-
 /** @brief capture a Jacobian and a state to a file
 @param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file for storage
@@ -174,15 +163,16 @@ void loadPowerFlow(GridDynSimulation* gds, const std::string& fileName);
 */
 void loadPowerFlowXML(GridDynSimulation* gds, const std::string& fileName);
 
-/** @brief Save an iterated power-flow checkpoint, including parameters.
- * @details Convenience wrapper for saveCheckpoint with CheckpointLevel::PARAMETERS.
- * The JSON manifest references the shared HDF5 numerical payload.
+/** @brief Save the current power-flow solution in a readable checkpoint file.
+ * @details This state-only checkpoint contains the power-flow solver state and bus
+ * voltage/angle values. It does not save model parameters, simulation time, events,
+ * or time-dependent component history. The power flow must already be initialized.
  */
 void savePowerFlowCheckpoint(GridDynSimulation* gds, const std::string& fileName);
 
-/** @brief Restore an iterated power-flow checkpoint into an initialized compatible model.
- * @details Convenience wrapper for loadCheckpoint, restoring clocks, event schedules,
- * runtime history and any parameters included in the checkpoint.
+/** @brief Restore a power-flow solution into an already initialized compatible model.
+ * @details Parameters, simulation time, events, and time-dependent component history
+ * are left unchanged. This is not a dynamic or full-simulation checkpoint.
  */
 void loadPowerFlowCheckpoint(GridDynSimulation* gds, const std::string& fileName);
 

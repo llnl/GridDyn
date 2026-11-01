@@ -95,8 +95,6 @@ class AcBus: public GridBus {
     virtual ~AcBus();
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    /** Persist this model's checkpoint fields; derived models must extend the hook. */
-    void checkpointFields(CheckpointArchive& archive) override;
     // add components
     using GridBus::add;
     virtual void add(CoreObject* obj) override;

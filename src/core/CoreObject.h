@@ -29,7 +29,6 @@
 
 namespace griddyn {
 class NullObject;
-class CheckpointArchive;
 enum class ParamStringType {
     ALL,
     all = ALL,  // NOLINT(readability-identifier-naming)
@@ -106,8 +105,6 @@ class CoreObject {
      * @param[in] obj the object to clone to or leave nullptr for a new object.
      */
     virtual CoreObject* clone(CoreObject* obj = nullptr) const;
-    /** Persist this model's checkpoint fields; derived models must extend the hook. */
-    virtual void checkpointFields(CheckpointArchive& archive);
 
     /** @brief update a name potentially containing specific codes
      names ending in # have the '#' replaced with the oid

@@ -414,7 +414,6 @@ set(simulation_headers
     simulation/FaultResetRecovery.h
     simulation/GridDynActions.h
     simulation/GridDynSimulationFileOps.h
-    simulation/Checkpoint.h
 )
 
 set(simulation_sources
@@ -427,8 +426,6 @@ set(simulation_sources
     simulation/GridSimulation.cpp
     simulation/GridDynActions.cpp
     simulation/GridDynSimulationFileOps.cpp
-    simulation/Checkpoint.cpp
-    simulation/CheckpointModels.cpp
     simulation/Diagnostics.cpp
     simulation/PowerFlowErrorRecovery.cpp
     simulation/DynamicInitialConditionRecovery.cpp

@@ -109,8 +109,6 @@ enum class ContingencyMode;  // forward declare the enumeration
  * such as load/generation balancing and event-driven actions.
  */
 class GridDynSimulation: public GridSimulation {
-    friend class CheckpointCoordinator;
-
   public:
     friend class powerFlowErrorRecovery;
     friend class dynamicInitialConditionRecovery;
@@ -198,7 +196,6 @@ class GridDynSimulation: public GridSimulation {
     std::vector<GridComponent*>
         singleStepObjects;  //!< objects which require a state update after time step
     std::vector<GridBus*> slkBusses;  //!< vector of slack buses to aid in powerFlow adjust
-    std::string lastCheckpointFile;  //!< last successfully saved/loaded checkpoint manifest
     std::queue<GridDynAction> actionQueue;  //!< queue for actions for GridDyn to execute
     std::vector<std::shared_ptr<ContinuationSequence>>
         continList;  //!< set of continuation sequences to run
@@ -223,8 +220,6 @@ class GridDynSimulation: public GridSimulation {
     explicit GridDynSimulation(const std::string& objName = "gridDynSim_#");
     ~GridDynSimulation();
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    /** Persist this model's checkpoint fields; derived models must extend the hook. */
-    void checkpointFields(CheckpointArchive& archive) override;
 
     /** @brief set a particular instantiation of the simulation object to be the master for various
     purposes this function along with getInstance is used by external libraries to get particular

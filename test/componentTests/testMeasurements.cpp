@@ -1293,7 +1293,7 @@ TEST_F(MeasurementFiles, Hdf5XmlRecorderCapturesIteratedPowerFlow)
     simulation->set("recorddirectory", directory.string());
     ASSERT_EQ(simulation->eventDrivenPowerflow(4.0, 1.0), FUNCTION_EXECUTION_SUCCESS);
     simulation->saveRecorders();
-    simulation.reset();
+    simulation = nullptr;
     const utilities::Hdf5DataFile saved((directory / "samples.h5").string(),
                                         utilities::Hdf5DataFile::OpenMode::READ_ONLY);
     const auto records = saved.readRecords();

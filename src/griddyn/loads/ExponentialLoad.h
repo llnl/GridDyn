@@ -20,21 +20,26 @@ class ExponentialLoad: public GridLoad {
   public:
     explicit ExponentialLoad(const std::string& objName = "expLoad_$");
     /** constructor taking power arguments
-@param[in] rP the real power of the load
-@param[in] qP the reactive power of the load
+@param[in] realPower the real power of the load
+@param[in] reactivePower the reactive power of the load
 @param[in] objName the name of the object
 */
-    ExponentialLoad(double rP, double qP, const std::string& objName = "expLoad_$");
+    ExponentialLoad(double realPower,
+                    double reactivePower,
+                    const std::string& objName = "expLoad_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const StateData& sD,
-                                      MatrixData<double>& md,
+                                      MatrixData<double>& matrixData,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     virtual double getRealPower(const IOdata& inputs,
@@ -43,8 +48,8 @@ class ExponentialLoad: public GridLoad {
     virtual double getReactivePower(const IOdata& inputs,
                                     const StateData& sD,
                                     const SolverMode& sMode) const override;
-    virtual double getRealPower(double V) const override;
-    virtual double getReactivePower(double V) const override;
+    virtual double getRealPower(double voltage) const override;
+    virtual double getReactivePower(double voltage) const override;
     virtual double getRealPower() const override;
     virtual double getReactivePower() const override;
 };

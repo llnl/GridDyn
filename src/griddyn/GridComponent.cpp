@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
@@ -30,6 +31,26 @@ using gmlc::utilities::ensureSizeAtLeast;
 GridComponent::GridComponent(const std::string& objName): CoreObject(objName)
 {
     offsets.setAlgOffset(0, cLocalSolverMode);
+}
+
+const ModelDescription& GridComponent::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridComponent>(
+        "GridComponent",
+        &CoreObject::getModelDescription(),
+        {parameter({"basepower", "basemw", "basemva"},
+                   &GridComponent::systemBasePower,
+                   units::MW,
+                   "System power base"),
+         parameter({"basevoltage", "vbase", "voltagebase", "basev", "bv", "base voltage"},
+                   &GridComponent::localBaseVoltage,
+                   units::V,
+                   "Local voltage base"),
+         parameter({"basefrequency", "basefreq", "systembasefrequency"},
+                   &GridComponent::systemBaseFrequency,
+                   units::rad / units::s,
+                   "System frequency base")});
+    return description;
 }
 
 GridComponent::~GridComponent()
@@ -1513,15 +1534,31 @@ index_t GridComponent::findIndex(std::string_view field, const SolverMode& sMode
     for (index_t nn = 0; std::cmp_less(nn, stateNames.size()); ++nn) {
         if (field == stateNames[nn]) {
             const auto& localOffsetsValue = offsets.local();
-            if (nn < localOffsetsValue.local.algSize) {
+            auto localIndex = nn;
+            if (localIndex < localOffsetsValue.local.vSize) {
+                return (hasAlgebraic(sMode) && localIndex < solverOffsetsValue.local.vSize &&
+                        solverOffsetsValue.vOffset != kNullLocation) ?
+                    solverOffsetsValue.vOffset + localIndex :
+                    kNullLocation;
+            }
+            localIndex -= localOffsetsValue.local.vSize;
+            if (localIndex < localOffsetsValue.local.aSize) {
+                return (hasAlgebraic(sMode) && localIndex < solverOffsetsValue.local.aSize &&
+                        solverOffsetsValue.aOffset != kNullLocation) ?
+                    solverOffsetsValue.aOffset + localIndex :
+                    kNullLocation;
+            }
+            localIndex -= localOffsetsValue.local.aSize;
+            if (localIndex < localOffsetsValue.local.algSize) {
                 if (solverOffsetsValue.algOffset != kNullLocation) {
-                    return solverOffsetsValue.algOffset + nn;
+                    return solverOffsetsValue.algOffset + localIndex;
                 }
                 return kNullLocation;
             }
-            if (nn - localOffsetsValue.local.algSize < localOffsetsValue.local.diffSize) {
+            if (localIndex - localOffsetsValue.local.algSize < localOffsetsValue.local.diffSize) {
                 if (solverOffsetsValue.diffOffset != kNullLocation) {
-                    return solverOffsetsValue.diffOffset + nn - localOffsetsValue.local.algSize;
+                    return solverOffsetsValue.diffOffset + localIndex -
+                        localOffsetsValue.local.algSize;
                 }
                 return kNullLocation;
             }

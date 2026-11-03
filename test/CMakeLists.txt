@@ -27,6 +27,7 @@ set(library_gtest_sources
     gtestHelperFunctions.cpp
     libraryTests/gtestLibrarySmokeTests.cpp
     libraryTests/testCore.cpp
+    libraryTests/testModelParameters.cpp
     libraryTests/testGridParameter.cpp
     libraryTests/testMatrixData.cpp
     libraryTests/testZipUtilities.cpp
@@ -51,8 +52,12 @@ set(file_reader_gtest_sources
 set(model_comparison_gtest_sources gtestHelperFunctions.cpp comparisonTests/testModelComparison.cpp)
 
 set(network_component_gtest_sources
-    gtestHelperFunctions.cpp componentTests/testLoads.cpp componentTests/testdcLinks.cpp
-    componentTests/testLinks.cpp componentTests/testAdjustableTX.cpp
+    gtestHelperFunctions.cpp
+    componentTests/testLoads.cpp
+    componentTests/testdcLinks.cpp
+    componentTests/testLinks.cpp
+    componentTests/testAdjustableTX.cpp
+    componentTests/testExponentialLoadParameters.cpp
 )
 
 set(generator_component_gtest_sources
@@ -67,6 +72,7 @@ set(generator_component_gtest_sources
     componentTests/testRenewableModels.cpp
     componentTests/testDistributedModels.cpp
     componentTests/testExciters.cpp
+    componentTests/testExciterDescription.cpp
     componentTests/testVoltageCompensators.cpp
 )
 

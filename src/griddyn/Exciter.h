@@ -60,14 +60,16 @@ class Exciter: public GridSubModel {
     model_parameter Vref = 1.0;  //!< [pu] reference voltage for voltage regulator
     model_parameter Ka = 10;  //!< [pu] amplifier gain
     model_parameter Ta = 0.004;  //!< [s]    amplifier time constant
-    model_parameter vBias = 0.0;  //!< bias field level for adjusting the field output so the ref
-                                  //!< can remain at some nominal level
+    model_parameter initialBias = 0.0;  //!< [pu] initial bias when no field output is supplied
+    double vBias = 0.0;  //!< [pu] retained operating bias established during initialization
     int limitState = 0;  //!< indicator of which state has the limits applied
     bool strictInitialLimitChecking = false;  //!< reject initial outputs above upper limits
   public:
     /** @brief constructor*/
     explicit Exciter(const std::string& objName = "exciter_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
 
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
@@ -76,6 +78,7 @@ class Exciter: public GridSubModel {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
     virtual stringVec localStateNames() const override;
 

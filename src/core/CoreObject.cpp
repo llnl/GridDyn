@@ -7,6 +7,7 @@
 #include "CoreObject.h"
 
 #include "CoreExceptions.h"
+#include "ModelParameter.hpp"
 #include "NullObject.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewOps.h"
@@ -39,6 +40,31 @@ CoreObject::CoreObject(id_type_t coid): m_refCount(0), m_oid(coid)
     parent = nullptr;
 }
 CoreObject::~CoreObject() = default;
+
+const ModelDescription& CoreObject::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<CoreObject>(
+        "CoreObject",
+        nullptr,
+        {flag({"enabled", "enable", "status"}, &CoreObject::enabled, "Object enabled status"),
+         flag({"updates"}, &CoreObject::updates_enabled, "Scheduled updates enabled"),
+         parameter({"period", "updateperiod"},
+                   &CoreObject::updatePeriod,
+                   units::second,
+                   "Current update period"),
+         parameter({"updatedelay"},
+                   &CoreObject::updateDelay,
+                   units::second,
+                   "Requested delay between update phases"),
+         localState("prevTime", &CoreObject::prevTime, "Previous model time", units::second),
+         localState(
+             "nextUpdateTime", &CoreObject::nextUpdateTime, "Next scheduled update", units::second),
+         localState("lastUpdateTime",
+                    &CoreObject::lastUpdateTime,
+                    "Previous update time",
+                    units::second)});
+    return description;
+}
 
 static dataDictionary<id_type_t, std::string> gDescriptionDictionary;
 
@@ -111,12 +137,13 @@ void CoreObject::addOwningReference()
     m_refCount.fetch_add(1, std::memory_order_relaxed);
 }
 
-static constexpr std::array<std::string_view, 6> locNumStrings{"updateperiod",
+static constexpr std::array<std::string_view, 7> locNumStrings{"updateperiod",
                                                                "updaterate",
                                                                "nextupdatetime",
                                                                "basepower",
                                                                "enabled",
-                                                               "id"};
+                                                               "id",
+                                                               "updatedelay"};
 static constexpr std::array<std::string_view, 2> locStrStrings{"name", "description"};
 
 void CoreObject::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
@@ -151,7 +178,13 @@ void CoreObject::getParameterStrings(stringVec& pstr, ParamStringType pstype) co
             }
             break;
         case ParamStringType::LOCAL_FLAGS:
+            pstr.assign(CoreObject::getModelDescription().flagNames().begin(),
+                        CoreObject::getModelDescription().flagNames().end());
+            break;
         case ParamStringType::FLAGS:
+            pstr.insert(pstr.end(),
+                        CoreObject::getModelDescription().flagNames().begin(),
+                        CoreObject::getModelDescription().flagNames().end());
             break;
     }
 }
@@ -269,6 +302,9 @@ void CoreObject::setFlag(std::string_view flag, bool val)  // NOLINT(misc-no-rec
 
 bool CoreObject::getFlag(std::string_view flag) const
 {
+    if (const auto* declared = CoreObject::getModelDescription().findLocal(flag)) {
+        flag = declared->name();
+    }
     bool ret = false;
     if (flag == "enabled") {
         ret = isEnabled();
@@ -283,7 +319,7 @@ double CoreObject::get(std::string_view param, units::unit unitType) const
     double val = kNullVal;
     if (param == "eventcode") {
         val = 0.0;
-    } else if (param == "period") {
+    } else if ((param == "period") || (param == "updateperiod")) {
         val = units::convert(static_cast<double>(updatePeriod), units::second, unitType);
     } else if ((param == "time") || (param == "currenttime")) {
         val = static_cast<double>(prevTime);
@@ -291,6 +327,9 @@ double CoreObject::get(std::string_view param, units::unit unitType) const
         val = static_cast<double>(nextUpdateTime);
     } else if (param == "lastupdate") {
         val = static_cast<double>(lastUpdateTime);
+    } else if (const auto value =
+                   CoreObject::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        val = *value;
     }
     return val;
 }
@@ -310,6 +349,8 @@ void CoreObject::set(std::string_view param, double val, units::unit unitType)
         }
     } else if (param == "nextupdatetime") {
         nextUpdateTime = units::convert(val, unitType, units::second);
+    } else if (CoreObject::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     } else if ((param == "number") || (param == "renumber") || (param == "id")) {
         setUserID(static_cast<index_t>(val));
     } else if ((param.empty()) || (param.front() == '#')) {

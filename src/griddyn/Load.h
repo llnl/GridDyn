@@ -37,6 +37,7 @@ class GridLoad: public GridSecondary {
     GridLoad(double realPower, double reactivePower, const std::string& objName = "load_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
 
     virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
 
@@ -44,6 +45,7 @@ class GridLoad: public GridSecondary {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
+    bool getFlag(std::string_view flag) const override;
 
     /** Mark this load as a fixed shunt, which is not part of an IEELAL load template. */
     void setFixedShunt(bool val = true) { fixedShunt = val; }
@@ -85,6 +87,8 @@ class GridLoad: public GridSecondary {
 
   protected:
     // little helper functions to do some calculations
+    /** Convert power using this load's system bases. */
+    double convertPower(double value, units::unit sourceUnit, units::unit targetUnit) const;
     /** update the power factor ratio*/
     void updatepfq();
     /** check if the pfq is valid*/

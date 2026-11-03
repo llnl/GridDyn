@@ -21,7 +21,7 @@ namespace griddyn {
 namespace {
     class DescribedAcBus: public AcBus {
       public:
-        const ModelDescription& getModelDescription() const override
+        [[nodiscard]] const ModelDescription& getModelDescription() const override
         {
             static const auto description = ModelDescription::define<DescribedAcBus>(
                 "DescribedAcBus",

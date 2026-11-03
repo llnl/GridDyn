@@ -6,6 +6,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/ModelDescription.h"
+#include "core/coreDefinitions.hpp"
 #include "griddyn/exciters/ExciterSEXS.h"
 #include "griddyn/solvers/SolverMode.hpp"
 #include "utilities/MatrixDataSparse.hpp"
@@ -13,6 +14,7 @@
 #include <array>
 #include <cstddef>
 #include <gtest/gtest.h>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <variant>
@@ -57,6 +59,18 @@ namespace {
         }
         return *field;
     }
+
+    double operatingBias(const Exciter& model)
+    {
+        return std::get<double>(model.getModelDescription().find("operating_bias")->value(model));
+    }
+
+    void restoreOperatingBias(ExciterSEXS& model, double value)
+    {
+        auto saved = ModelFieldSnapshot::capture(model, FieldSnapshotLevel::STATE);
+        entry(saved, "operating_bias").mValue = value;
+        saved.restore(model);
+    }
 }  // namespace
 
 TEST(ExciterDescriptionTests, DiscoversInheritedParametersSolverStatesAndLimiterHistory)
@@ -67,7 +81,8 @@ TEST(ExciterDescriptionTests, DiscoversInheritedParametersSolverStatesAndLimiter
     ASSERT_NE(description.parent(), nullptr);
     EXPECT_EQ(description.parent()->name(), "Exciter");
     EXPECT_EQ(description.parent()->parent()->name(), "GridComponent");
-    for (const auto* name : {"tb", "te", "ta", "ka", "vref", "vrmax", "vrmin", "basepower"}) {
+    for (const auto* name :
+         {"tb", "te", "ta", "ka", "vref", "vrmax", "vrmin", "vbias", "basepower"}) {
         ASSERT_NE(description.find(name), nullptr);
         EXPECT_EQ(description.find(name)->kind(), ModelFieldKind::PARAMETER);
     }
@@ -78,7 +93,7 @@ TEST(ExciterDescriptionTests, DiscoversInheritedParametersSolverStatesAndLimiter
         EXPECT_EQ(description.find(name)->kind(), ModelFieldKind::STATE);
         EXPECT_FALSE(description.find(name)->readable());
     }
-    for (const auto* name : {"vbias", "limiter_active", "limiter_high"}) {
+    for (const auto* name : {"operating_bias", "limiter_active", "limiter_high"}) {
         ASSERT_NE(description.find(name), nullptr);
         EXPECT_EQ(description.find(name)->kind(), ModelFieldKind::LOCAL_STATE);
         EXPECT_FALSE(description.find(name)->editable());
@@ -91,10 +106,11 @@ TEST(ExciterDescriptionTests, DiscoversInheritedParametersSolverStatesAndLimiter
     EXPECT_EQ(description.find("regulator_output"), nullptr);
     stringVec names;
     model.getParameterStrings(names, ParamStringType::NUMERIC);
-    for (const auto* name : {"te", "tb", "ta", "urmax", "ka", "basepower"}) {
+    for (const auto* name : {"te", "tb", "ta", "urmax", "ka", "vbias", "basepower"}) {
         EXPECT_NE(std::find(names.begin(), names.end(), name), names.end());
     }
     EXPECT_EQ(std::find(names.begin(), names.end(), "limiter_active"), names.end());
+    EXPECT_EQ(std::find(names.begin(), names.end(), "operating_bias"), names.end());
 }
 
 TEST(ExciterDescriptionTests, UsesExistingSetGetUnitsAliasesAndParentDispatch)
@@ -121,13 +137,66 @@ TEST(ExciterDescriptionTests, UsesExistingSetGetUnitsAliasesAndParentDispatch)
     EXPECT_THROW(object.set("te", 2.0, units::MW), InvalidParameterValue);
     EXPECT_THROW(object.set("ta", 2.0, units::MW), InvalidParameterValue);
     EXPECT_THROW(object.set("vbias", 2.0, units::second), InvalidParameterValue);
+    EXPECT_THROW(object.set("vbias", "invalid"), InvalidParameterValue);
+    EXPECT_THROW(object.set("operating_bias", 0.2), UnrecognizedParameter);
     EXPECT_THROW(object.set("tb", "invalid"), InvalidParameterValue);
     EXPECT_THROW(object.set("missing", 1.0), UnrecognizedParameter);
     EXPECT_NEAR(object.get("te"), 0.25, 1e-6);
+    EXPECT_NEAR(object.get("vbias"), 0.05, 1e-6);
+    EXPECT_DOUBLE_EQ(operatingBias(model), 0.0);
     model.set("te", 0.0);
     model.set("tb", 0.0);
     EXPECT_DOUBLE_EQ(model.get("te"), 0.0);
     EXPECT_DOUBLE_EQ(model.get("tb"), 0.0);
+}
+
+TEST(ExciterDescriptionTests, CalculatesOperatingBiasWithoutOverwritingConfiguredBias)
+{
+    ExciterSEXS model;
+    model.set("vbias", 0.4);
+    initialize(model);
+    EXPECT_DOUBLE_EQ(model.get("vbias"), 0.4);
+    EXPECT_NEAR(operatingBias(model), 0.6 / 8.0, 1e-12);
+    model.set("vbias", 0.8);
+    EXPECT_NEAR(operatingBias(model), 0.6 / 8.0, 1e-12);
+    initialize(model, 0.4);
+    EXPECT_DOUBLE_EQ(model.get("vbias"), 0.8);
+    EXPECT_NEAR(operatingBias(model), 0.4 / 8.0, 1e-12);
+}
+
+TEST(ExciterDescriptionTests, SeedsOperatingBiasFromConfigurationWhenFieldOutputIsUnspecified)
+{
+    for (const auto& desiredOutput : {IOdata{}, IOdata{kNullVal}}) {
+        ExciterSEXS model;
+        model.set("vbias", 0.4);
+        initialize(model);
+        ASSERT_NE(operatingBias(model), model.get("vbias"));
+        model.dynInitializeA(timeZero, 0);
+        IOdata fieldSet(4, 0.0);
+        model.dynInitializeB(voltageInputs(1.0), desiredOutput, fieldSet);
+        EXPECT_DOUBLE_EQ(model.get("vbias"), 0.4);
+        EXPECT_DOUBLE_EQ(operatingBias(model), 0.4);
+        EXPECT_NEAR(model.getOutput(), 0.4 / 8.0, 1e-12);
+        model.set("vbias", 0.8);
+        EXPECT_DOUBLE_EQ(operatingBias(model), 0.4);
+        model.dynInitializeA(timeZero, 0);
+        model.dynInitializeB(voltageInputs(1.0), desiredOutput, fieldSet);
+        EXPECT_DOUBLE_EQ(operatingBias(model), 0.8);
+        EXPECT_NEAR(model.getOutput(), 0.8 / 8.0, 1e-12);
+    }
+}
+
+TEST(ExciterDescriptionTests, ClonesConfiguredAndOperatingBiasSeparately)
+{
+    ExciterSEXS model;
+    model.set("vbias", 0.4);
+    initialize(model);
+    const std::unique_ptr<CoreObject> object(model.clone());
+    const auto* cloned = dynamic_cast<const ExciterSEXS*>(object.get());
+    ASSERT_NE(cloned, nullptr);
+    EXPECT_DOUBLE_EQ(cloned->get("vbias"), 0.4);
+    EXPECT_DOUBLE_EQ(operatingBias(*cloned), operatingBias(model));
+    EXPECT_NE(operatingBias(*cloned), cloned->get("vbias"));
 }
 
 TEST(ExciterDescriptionTests, ResolvesBothStatesInDaeAndDifferentialLayouts)
@@ -165,6 +234,7 @@ TEST(ExciterDescriptionTests, RestoresLimitedPhysicsWithoutReinitializingForBoth
             SCOPED_TRACE(driveVoltage);
             SCOPED_TRACE(mode.offsetIndex);
             ExciterSEXS model;
+            model.set("vbias", 0.4);
             initialize(model);
             const auto inputs = voltageInputs(driveVoltage);
             EXPECT_EQ(
@@ -192,7 +262,7 @@ TEST(ExciterDescriptionTests, RestoresLimitedPhysicsWithoutReinitializingForBoth
             model.jacobianElements(inputs, data, expectedJacobian, inputLocations, mode);
             expectedJacobian.compact();
             const auto saved = ModelFieldSnapshot::capture(model);
-            const auto savedBias = model.get("vbias");
+            const auto savedBias = operatingBias(model);
 
             model.set("ka", 2.0);
             model.set("ta", 0.3);
@@ -202,6 +272,7 @@ TEST(ExciterDescriptionTests, RestoresLimitedPhysicsWithoutReinitializingForBoth
             model.set("vrmin", -0.25);
             model.set("vref", 1.1);
             model.set("vbias", -0.2);
+            restoreOperatingBias(model, -0.2);
             auto alteredStates = states;
             alteredStates[3] = -0.1;
             alteredStates[4] = 0.0;
@@ -223,7 +294,8 @@ TEST(ExciterDescriptionTests, RestoresLimitedPhysicsWithoutReinitializingForBoth
             // The solver payload and model-owned copies use the existing state path.
             model.setState(savedTime, states.data(), savedRates.data(), mode);
             EXPECT_EQ(model.currentTime(), savedTime);
-            EXPECT_DOUBLE_EQ(model.get("vbias"), savedBias);
+            EXPECT_DOUBLE_EQ(model.get("vbias"), 0.4);
+            EXPECT_DOUBLE_EQ(operatingBias(model), savedBias);
             EXPECT_DOUBLE_EQ(model.get("vrmax"), 1.2);
             EXPECT_DOUBLE_EQ(model.get("vrmin"), -0.5);
             EXPECT_TRUE(historyBit(model, "limiter_active"));
@@ -265,16 +337,18 @@ TEST(ExciterDescriptionTests, StateOnlyRestoresLimiterMemoryWhileKeepingChangedP
     ExciterSEXS model;
     initialize(model);
     model.rootCheck(voltageInputs(0.2), emptyStateData, cLocalSolverMode, CheckLevel::FULL_CHECK);
-    const auto savedBias = model.get("vbias");
+    const auto savedBias = operatingBias(model);
     const auto saved = ModelFieldSnapshot::capture(model, FieldSnapshotLevel::STATE);
     model.set("te", 0.8);
     model.set("vrmax", 3.0);
     model.set("vbias", -0.5);
+    restoreOperatingBias(model, -0.5);
     model.rootCheck(voltageInputs(3.0), emptyStateData, cLocalSolverMode, CheckLevel::FULL_CHECK);
     saved.restore(model);
     EXPECT_DOUBLE_EQ(model.get("te"), 0.8);
     EXPECT_DOUBLE_EQ(model.get("vrmax"), 3.0);
-    EXPECT_DOUBLE_EQ(model.get("vbias"), savedBias);
+    EXPECT_DOUBLE_EQ(model.get("vbias"), -0.5);
+    EXPECT_DOUBLE_EQ(operatingBias(model), savedBias);
     EXPECT_TRUE(historyBit(model, "limiter_active"));
     EXPECT_TRUE(historyBit(model, "limiter_high"));
 }
@@ -285,7 +359,7 @@ TEST(ExciterDescriptionTests, KeepsDistinctLimiterHistoryAtTheSameBoundaryState)
     initialize(model);
     model.set("ka", 4.0);
     model.set("ta", 0.25);
-    model.set("vbias", 0.0);
+    restoreOperatingBias(model, 0.0);
     model.set("vrmax", 1.0);
     model.setRootOffset(0, cLocalSolverMode);
     const auto inputs = voltageInputs(1.0);
@@ -332,12 +406,14 @@ TEST(ExciterDescriptionTests, CapturesTheAdjustedInitialLimitAndRestoresItWithou
     EXPECT_DOUBLE_EQ(model.get("vrmax"), 2.0);
     EXPECT_TRUE(historyBit(model, "limiter_active"));
     const auto saved = ModelFieldSnapshot::capture(model);
-    const auto savedBias = model.get("vbias");
+    const auto savedBias = operatingBias(model);
     model.set("vrmax", 5.0);
     model.set("vbias", -1.0);
+    restoreOperatingBias(model, -1.0);
     saved.restore(model);
     EXPECT_DOUBLE_EQ(model.get("vrmax"), 2.0);
-    EXPECT_DOUBLE_EQ(model.get("vbias"), savedBias);
+    EXPECT_DOUBLE_EQ(model.get("vbias"), 0.0);
+    EXPECT_DOUBLE_EQ(operatingBias(model), savedBias);
     EXPECT_TRUE(historyBit(model, "limiter_active"));
 }
 
@@ -349,9 +425,11 @@ TEST(ExciterDescriptionTests, RejectsMalformedLimiterStorageBeforeChangingAnyFie
     entry(saved, "limiter_high").mValue = std::string("invalid Boolean storage");
     model.set("te", 0.9);
     model.set("vbias", 0.25);
+    restoreOperatingBias(model, 0.5);
     EXPECT_THROW(saved.restore(model), FileOperationError);
     EXPECT_DOUBLE_EQ(model.get("te"), 0.9);
     EXPECT_DOUBLE_EQ(model.get("vbias"), 0.25);
+    EXPECT_DOUBLE_EQ(operatingBias(model), 0.5);
 }
 
 }  // namespace griddyn

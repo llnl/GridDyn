@@ -93,17 +93,17 @@ void ExciterSEXS::dynObjectInitializeB(const IOdata& inputs,
             throw InvalidParameterValue("SEXS initial regulator output outside limits");
         }
         const double correction = std::max(0.0, Vrmax - originalUpperLimit);
-        const double guard = 1e-4 + std::abs(Ka) * 1e-5;
+        const double guard = 1e-4 + (std::abs(Ka) * 1e-5);
         if ((Vrmax != 0.0) && (stateValues[0] >= Vrmax)) {
             const double inputOverdrive = std::max(0.2 * correction, guard) / Ka;
             vBias += inputOverdrive;
-            stateValues[1] += (1.0 - Ta / Tb) * inputOverdrive;
+            stateValues[1] += (1.0 - (Ta / Tb)) * inputOverdrive;
             opFlags.set(TRIGGER_HIGH);
             opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
         } else if (stateValues[0] <= Vrmin) {
             const double inputOverdrive = guard / Ka;
             vBias -= inputOverdrive;
-            stateValues[1] -= (1.0 - Ta / Tb) * inputOverdrive;
+            stateValues[1] -= (1.0 - (Ta / Tb)) * inputOverdrive;
             opFlags.reset(TRIGGER_HIGH);
             opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
         }
@@ -158,15 +158,15 @@ double ExciterSEXS::regulatorOutput(const IOdata& inputs, const double stateX) c
 void ExciterSEXS::residual(const IOdata& inputs,
                            const StateData& stateData,
                            double resid[],
-                           const SolverMode& SolverMode)
+                           const SolverMode& solverMode)
 {
-    if (!hasDifferential(SolverMode)) {
+    if (!hasDifferential(solverMode)) {
         return;
     }
 
-    derivative(inputs, stateData, resid, SolverMode);
+    derivative(inputs, stateData, resid, solverMode);
 
-    auto offset = offsets.getDiffOffset(SolverMode);
+    auto offset = offsets.getDiffOffset(solverMode);
     const auto* stateDerivatives = stateData.dstate_dt + offset;
     resid[offset] -= stateDerivatives[0];
     resid[offset + 1] -= stateDerivatives[1];
@@ -175,9 +175,9 @@ void ExciterSEXS::residual(const IOdata& inputs,
 void ExciterSEXS::derivative(const IOdata& inputs,
                              const StateData& stateData,
                              double deriv[],
-                             const SolverMode& SolverMode)
+                             const SolverMode& solverMode)
 {
-    auto locations = offsets.getLocations(stateData, deriv, SolverMode, this);
+    auto locations = offsets.getLocations(stateData, deriv, solverMode, this);
     const auto* exciterState = locations.diffStateLoc;
     auto* derivatives = locations.destDiffLoc;
 
@@ -199,13 +199,13 @@ void ExciterSEXS::jacobianElements(const IOdata& /*inputs*/,
                                    const StateData& stateData,
                                    MatrixData<double>& matrix,
                                    const IOlocs& inputLocs,
-                                   const SolverMode& SolverMode)
+                                   const SolverMode& solverMode)
 {
-    if (!hasDifferential(SolverMode)) {
+    if (!hasDifferential(solverMode)) {
         return;
     }
 
-    auto offset = offsets.getDiffOffset(SolverMode);
+    auto offset = offsets.getDiffOffset(solverMode);
     const auto invTe = (Te != 0.0) ? (1.0 / Te) : 0.0;
     const auto invTb = (Tb != 0.0) ? (1.0 / Tb) : 0.0;
     matrix.assign(offset, offset, -invTe - stateData.cj);
@@ -224,10 +224,10 @@ void ExciterSEXS::jacobianElements(const IOdata& /*inputs*/,
 void ExciterSEXS::rootTest(const IOdata& inputs,
                            const StateData& stateData,
                            double root[],
-                           const SolverMode& SolverMode)
+                           const SolverMode& solverMode)
 {
-    auto offset = offsets.getDiffOffset(SolverMode);
-    auto rootOffset = offsets.getRootOffset(SolverMode);
+    auto offset = offsets.getDiffOffset(solverMode);
+    auto rootOffset = offsets.getRootOffset(solverMode);
     const auto regulatorVoltage = regulatorOutput(inputs, stateData.state[offset + 1]);
 
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
@@ -244,9 +244,9 @@ void ExciterSEXS::rootTest(const IOdata& inputs,
 void ExciterSEXS::rootTrigger(CoreTime time,
                               const IOdata& inputs,
                               const std::vector<int>& rootMask,
-                              const SolverMode& SolverMode)
+                              const SolverMode& solverMode)
 {
-    auto rootOffset = offsets.getRootOffset(SolverMode);
+    auto rootOffset = offsets.getRootOffset(solverMode);
     if (rootMask[rootOffset] == 0) {
         return;
     }
@@ -267,7 +267,7 @@ void ExciterSEXS::rootTrigger(CoreTime time,
     }
 
     const StateData state(time, m_state.data());
-    derivative(inputs, state, m_dstate_dt.data(), SolverMode);
+    derivative(inputs, state, m_dstate_dt.data(), solverMode);
 }
 
 ChangeCode ExciterSEXS::rootCheck(const IOdata& inputs,

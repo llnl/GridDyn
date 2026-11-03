@@ -33,7 +33,6 @@
 #include "ExciterIEEEtype2.h"
 #include "ExciterSCRX.h"
 #include "ExciterSEXS.h"
-#include "core/CoreExceptions.h"
 #include "core/CoreObject.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ModelParameter.hpp"
@@ -43,7 +42,6 @@
 #include "units/units.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
-#include <cmath>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -106,7 +104,11 @@ const ModelDescription& Exciter::getModelDescription() const
              {"vrmax", "urmax"}, &Exciter::Vrmax, units::one, "Per-unit regulator upper limit"),
          parameter(
              {"vrmin", "urmin"}, &Exciter::Vrmin, units::one, "Per-unit regulator lower limit"),
-         localState("vbias", &Exciter::vBias, "Retained initialization bias", units::one),
+         parameter({"vbias"},
+                   &Exciter::initialBias,
+                   units::one,
+                   "Initial bias when no desired field output is supplied"),
+         localState("operating_bias", &Exciter::vBias, "Retained operating bias", units::one),
          localState("limiter_active",
                     &Exciter::opFlags,
                     OUTSIDE_VOLTAGE_LIMITS,
@@ -141,6 +143,7 @@ CoreObject* Exciter::clone(CoreObject* obj) const
     gdE->Vrmin = Vrmin;
     gdE->Vrmax = Vrmax;
     gdE->Vref = Vref;
+    gdE->initialBias = initialBias;
     gdE->vBias = vBias;
     gdE->limitState = limitState;
     gdE->strictInitialLimitChecking = strictInitialLimitChecking;
@@ -209,6 +212,7 @@ void Exciter::dynObjectInitializeB(const IOdata& inputs,
     auto* stateValues = m_state.data();
     const double voltage = inputs[VOLTAGE_IN_LOCATION];
     if (desiredOutput.empty() || (desiredOutput[0] == kNullVal)) {
+        vBias = initialBias;
         stateValues[0] = (Vref + vBias - voltage) / Ka;
         fieldSet[0] = stateValues[0];
     } else {
@@ -377,21 +381,13 @@ void Exciter::set(std::string_view param, std::string_view val)
 
 void Exciter::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "vbias") {
-        if (units::is_error(unitType) || std::isnan(units::convert(1.0, unitType, units::one))) {
-            throw InvalidParameterValue(param);
-        }
-        vBias = units::convert(val, unitType, units::one);
-    } else if (!Exciter::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!Exciter::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         GridSubModel::set(param, val, unitType);
     }
 }
 
 double Exciter::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "vbias") {
-        return units::convert(vBias, units::one, unitType);
-    }
     if (const auto value = Exciter::getModelDescription().tryGetLocal(*this, param, unitType)) {
         return *value;
     }

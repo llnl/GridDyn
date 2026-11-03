@@ -222,7 +222,7 @@ namespace detail {
             throw std::invalid_argument("flag bit is outside its storage");
         }
         ModelField::Reader read = [member, bit](const CoreObject& object) -> ModelFieldValue {
-            return (fieldOwner<Model>(object).*member)[bit];
+            return static_cast<bool>((fieldOwner<Model>(object).*member)[bit]);
         };
         ModelField::Restorer restore =
             [member, bit](CoreObject& object,

@@ -45,28 +45,28 @@ class ExciterSEXS: public Exciter {
     void residual(const IOdata& inputs,
                   const StateData& stateData,
                   double resid[],
-                  const SolverMode& SolverMode) override;
+                  const SolverMode& solverMode) override;
     void derivative(const IOdata& inputs,
                     const StateData& stateData,
                     double deriv[],
-                    const SolverMode& SolverMode) override;
+                    const SolverMode& solverMode) override;
     void jacobianElements(const IOdata& inputs,
                           const StateData& stateData,
                           MatrixData<double>& matrix,
                           const IOlocs& inputLocs,
-                          const SolverMode& SolverMode) override;
+                          const SolverMode& solverMode) override;
 
     void rootTest(const IOdata& inputs,
                   const StateData& stateData,
                   double root[],
-                  const SolverMode& SolverMode) override;
+                  const SolverMode& solverMode) override;
     void rootTrigger(CoreTime time,
                      const IOdata& inputs,
                      const std::vector<int>& rootMask,
-                     const SolverMode& SolverMode) override;
+                     const SolverMode& solverMode) override;
     ChangeCode rootCheck(const IOdata& inputs,
                          const StateData& stateData,
-                         const SolverMode& SolverMode,
+                         const SolverMode& solverMode,
                          CheckLevel level) override;
 
   private:

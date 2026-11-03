@@ -60,8 +60,8 @@ class Exciter: public GridSubModel {
     model_parameter Vref = 1.0;  //!< [pu] reference voltage for voltage regulator
     model_parameter Ka = 10;  //!< [pu] amplifier gain
     model_parameter Ta = 0.004;  //!< [s]    amplifier time constant
-    model_parameter vBias = 0.0;  //!< bias field level for adjusting the field output so the ref
-                                  //!< can remain at some nominal level
+    model_parameter initialBias = 0.0;  //!< [pu] initial bias when no field output is supplied
+    double vBias = 0.0;  //!< [pu] retained operating bias established during initialization
     int limitState = 0;  //!< indicator of which state has the limits applied
     bool strictInitialLimitChecking = false;  //!< reject initial outputs above upper limits
   public:

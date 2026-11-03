@@ -43,7 +43,7 @@ namespace {
         std::bitset<64> mFlags;
         std::bitset<64> mOptions;
 
-        bool objectDependentValidator(double value) const { return value > mGain; }
+        [[nodiscard]] bool objectDependentValidator(double value) const { return value > mGain; }
 
         void setHooked(double value)
         {
@@ -54,7 +54,7 @@ namespace {
             mHooked = value;
         }
 
-        const ModelDescription& getModelDescription() const override
+        [[nodiscard]] const ModelDescription& getModelDescription() const override
         {
             static const auto finiteValue = [](double value) { return std::isfinite(value); };
             static const auto description = ModelDescription::define<ParameterModel>(
@@ -120,7 +120,8 @@ namespace {
                 CoreObject::set(name, value);
             }
         }
-        double get(std::string_view name, units::unit unitType = units::defunit) const override
+        [[nodiscard]] double get(std::string_view name,
+                                 units::unit unitType = units::defunit) const override
         {
             if (name == "hooked") {
                 return units::convert(mHooked, units::one, unitType);
@@ -135,13 +136,13 @@ namespace {
                 CoreObject::setFlag(name, value);
             }
         }
-        bool getFlag(std::string_view name) const override
+        [[nodiscard]] bool getFlag(std::string_view name) const override
         {
             const auto value = ParameterModel::getModelDescription().tryGetFlagLocal(*this, name);
             return value ? *value : CoreObject::getFlag(name);
         }
-        double calculated() const { return (mGain * mCount) + mSamples.back(); }
-        std::string getString(std::string_view name) const override
+        [[nodiscard]] double calculated() const { return (mGain * mCount) + mSamples.back(); }
+        [[nodiscard]] std::string getString(std::string_view name) const override
         {
             const auto value = ParameterModel::getModelDescription().tryGetStringLocal(*this, name);
             return value ? *value : CoreObject::getString(name);
@@ -152,7 +153,7 @@ namespace {
       public:
         using ParameterModel::set;
         double mOwnGain = 5.0;
-        const ModelDescription& getModelDescription() const override
+        [[nodiscard]] const ModelDescription& getModelDescription() const override
         {
             static const auto description = ModelDescription::define<DerivedParameterModel>(
                 "DerivedParameterModel",
@@ -168,7 +169,8 @@ namespace {
                 ParameterModel::set(name, value, unitType);
             }
         }
-        double get(std::string_view name, units::unit unitType = units::defunit) const override
+        [[nodiscard]] double get(std::string_view name,
+                                 units::unit unitType = units::defunit) const override
         {
             const auto value =
                 DerivedParameterModel::getModelDescription().tryGetLocal(*this, name, unitType);
@@ -247,7 +249,7 @@ TEST(ModelParameterTests, DistinguishesControlsSolverStateAndRetainedLocalMemory
     EXPECT_EQ(solverState->kind(), ModelFieldKind::STATE);
     EXPECT_FALSE(solverState->editable());
     EXPECT_FALSE(solverState->readable());
-    EXPECT_THROW(solverState->value(model), UnrecognizedParameter);
+    EXPECT_THROW((void)solverState->value(model), UnrecognizedParameter);
     EXPECT_FALSE(description.find("switch")->hasUnits());
     EXPECT_TRUE(description.find("gain")->hasUnits());
     EXPECT_EQ(std::find(description.numericNames().begin(),
@@ -328,7 +330,7 @@ TEST(ModelParameterTests, RejectsBadValuesAndUnitsBeforeAssignmentOrCustomSetter
     EXPECT_EQ(model.mHookCalls, 0);
     EXPECT_DOUBLE_EQ(model.get("gain"), 1.0);
     EXPECT_THROW(model.set("gain", 2.0, units::second), InvalidParameterValue);
-    EXPECT_THROW(model.get("gain", units::MW), InvalidParameterValue);
+    EXPECT_THROW((void)model.get("gain", units::MW), InvalidParameterValue);
     EXPECT_DOUBLE_EQ(model.get("gain"), 1.0);
     model.set("hooked", 200.0, units::percent);
     EXPECT_EQ(model.mHookCalls, 1);
@@ -536,7 +538,7 @@ TEST(ModelParameterTests, RejectsChangedArrayLayoutsAndUnsupportedModelTypes)
     UndescribedParameterModel undescribed;
     EXPECT_THROW(ModelFieldSnapshot::capture(undescribed), FileOperationError);
     CoreObject wrongOwner;
-    EXPECT_THROW(model.getModelDescription().find("gain")->value(wrongOwner),
+    EXPECT_THROW((void)model.getModelDescription().find("gain")->value(wrongOwner),
                  InvalidParameterValue);
 }
 

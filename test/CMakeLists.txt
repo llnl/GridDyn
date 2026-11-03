@@ -52,8 +52,11 @@ set(file_reader_gtest_sources
 set(model_comparison_gtest_sources gtestHelperFunctions.cpp comparisonTests/testModelComparison.cpp)
 
 set(network_component_gtest_sources
-    gtestHelperFunctions.cpp componentTests/testLoads.cpp componentTests/testdcLinks.cpp
-    componentTests/testLinks.cpp componentTests/testAdjustableTX.cpp
+    gtestHelperFunctions.cpp
+    componentTests/testLoads.cpp
+    componentTests/testdcLinks.cpp
+    componentTests/testLinks.cpp
+    componentTests/testAdjustableTX.cpp
     componentTests/testExponentialLoadParameters.cpp
 )
 

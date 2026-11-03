@@ -54,6 +54,7 @@ class GridComponent: public CoreObject {
     /** @brief virtual destructor*/
     virtual ~GridComponent() override;
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
     /** @brief update internal object linkages to use objects from a new tree
     @details after a clone call on a full simulation
     it is possible that there could be internal linkages inside of objects still pointing to the

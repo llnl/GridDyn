@@ -13,6 +13,7 @@
 #include "core/CoreExceptions.h"
 #include "core/CoreObject.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/coreDefinitions.hpp"
 #include "solvers/SolverMode.hpp"
 #include "utilities/MatrixData.hpp"
@@ -32,6 +33,29 @@ ExciterSEXS::ExciterSEXS(const std::string& objName): Exciter(objName)
     Te = 0.5;
     Vrmin = -0.9;
     Vrmax = 1.0;
+}
+
+const ModelDescription& ExciterSEXS::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterSEXS>(
+        "ExciterSEXS",
+        &Exciter::getModelDescription(),
+        {parameter({"tb"}, &ExciterSEXS::Tb, units::second, "Lead-lag denominator time constant"),
+         parameter({"te"}, &ExciterSEXS::Te, units::second, "Field time constant"),
+         state("ef", units::one, "Per-unit field voltage"),
+         state("x", units::one, "Lead-lag memory in the solver vector")});
+    return description;
+}
+
+void ExciterSEXS::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterSEXS::getModelDescription();
+    getParamString<ExciterSEXS, Exciter>(this,
+                                         pstr,
+                                         description.numericNames(),
+                                         description.stringNames(),
+                                         description.flagNames(),
+                                         pstype);
 }
 
 CoreObject* ExciterSEXS::clone(CoreObject* obj) const
@@ -93,23 +117,35 @@ void ExciterSEXS::dynObjectInitializeB(const IOdata& inputs,
 
 void ExciterSEXS::set(std::string_view param, std::string_view val)
 {
-    Exciter::set(param, val);
+    if (!ExciterSEXS::getModelDescription().trySetLocal(*this, param, val)) {
+        Exciter::set(param, val);
+    }
 }
 
 void ExciterSEXS::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "tb") {
-        Tb = val;
-    } else if (param == "te") {
-        Te = val;
-    } else {
+    if (!ExciterSEXS::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         Exciter::set(param, val, unitType);
     }
 }
 
+double ExciterSEXS::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value = ExciterSEXS::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return Exciter::get(param, unitType);
+}
+
 stringVec ExciterSEXS::localStateNames() const
 {
-    return {"ef", "x"};
+    stringVec names;
+    for (const auto& field : ExciterSEXS::getModelDescription().fields()) {
+        if (field.kind() == ModelFieldKind::STATE) {
+            names.emplace_back(field.name());
+        }
+    }
+    return names;
 }
 
 double ExciterSEXS::regulatorOutput(const IOdata& inputs, const double stateX) const

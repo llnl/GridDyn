@@ -29,6 +29,7 @@
 
 namespace griddyn {
 class NullObject;
+class ModelDescription;
 enum class ParamStringType {
     ALL,
     all = ALL,  // NOLINT(readability-identifier-naming)
@@ -105,6 +106,9 @@ class CoreObject {
      * @param[in] obj the object to clone to or leave nullptr for a new object.
      */
     virtual CoreObject* clone(CoreObject* obj = nullptr) const;
+
+    /** Shared descriptions of declared members, composed with described base classes. */
+    virtual const ModelDescription& getModelDescription() const;
 
     /** @brief update a name potentially containing specific codes
      names ending in # have the '#' replaced with the oid

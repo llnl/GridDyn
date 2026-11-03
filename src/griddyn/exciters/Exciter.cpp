@@ -33,14 +33,17 @@
 #include "ExciterIEEEtype2.h"
 #include "ExciterSCRX.h"
 #include "ExciterSEXS.h"
+#include "core/CoreExceptions.h"
 #include "core/CoreObject.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/coreDefinitions.hpp"
 #include "solvers/SolverMode.hpp"
 #include "units/units.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -89,6 +92,41 @@ Exciter::Exciter(const std::string& objName): GridSubModel(objName)
 {
     m_inputSize = 4;
     m_outputSize = 1;
+}
+
+const ModelDescription& Exciter::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<Exciter>(
+        "Exciter",
+        &GridSubModel::getModelDescription(),
+        {parameter({"vref"}, &Exciter::Vref, units::one, "Per-unit voltage reference"),
+         parameter({"ka"}, &Exciter::Ka, units::one, "Amplifier gain"),
+         parameter({"ta"}, &Exciter::Ta, units::second, "Regulator time constant Ta"),
+         parameter(
+             {"vrmax", "urmax"}, &Exciter::Vrmax, units::one, "Per-unit regulator upper limit"),
+         parameter(
+             {"vrmin", "urmin"}, &Exciter::Vrmin, units::one, "Per-unit regulator lower limit"),
+         localState("vbias", &Exciter::vBias, "Retained initialization bias", units::one),
+         localState("limiter_active",
+                    &Exciter::opFlags,
+                    OUTSIDE_VOLTAGE_LIMITS,
+                    "Regulator is in its limited branch"),
+         localState("limiter_high",
+                    &Exciter::opFlags,
+                    TRIGGER_HIGH,
+                    "Retained upper/lower limiter branch")});
+    return description;
+}
+
+void Exciter::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = Exciter::getModelDescription();
+    getParamString<Exciter, GridSubModel>(this,
+                                          pstr,
+                                          description.numericNames(),
+                                          description.stringNames(),
+                                          description.flagNames(),
+                                          pstype);
 }
 
 CoreObject* Exciter::clone(CoreObject* obj) const
@@ -332,26 +370,32 @@ stringVec Exciter::localStateNames() const
 
 void Exciter::set(std::string_view param, std::string_view val)
 {
-    GridSubModel::set(param, val);
+    if (!Exciter::getModelDescription().trySetLocal(*this, param, val)) {
+        GridSubModel::set(param, val);
+    }
 }
 
 void Exciter::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "vref") {
-        Vref = val;
-    } else if (param == "ka") {
-        Ka = val;
-    } else if (param == "ta") {
-        Ta = val;
-    } else if ((param == "vrmax") || (param == "urmax")) {
-        Vrmax = val;
-    } else if ((param == "vrmin") || (param == "urmin")) {
-        Vrmin = val;
-    } else if (param == "vbias") {
-        vBias = val;
-    } else {
+    if (param == "vbias") {
+        if (units::is_error(unitType) || std::isnan(units::convert(1.0, unitType, units::one))) {
+            throw InvalidParameterValue(param);
+        }
+        vBias = units::convert(val, unitType, units::one);
+    } else if (!Exciter::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         GridSubModel::set(param, val, unitType);
     }
+}
+
+double Exciter::get(std::string_view param, units::unit unitType) const
+{
+    if (param == "vbias") {
+        return units::convert(vBias, units::one, unitType);
+    }
+    if (const auto value = Exciter::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return GridSubModel::get(param, unitType);
 }
 
 const std::vector<stringVec>& Exciter::inputNames() const

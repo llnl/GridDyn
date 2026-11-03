@@ -2,12 +2,12 @@
 
 The prototype has four data declarations:
 
-| Declaration | Meaning | Storage |
-| --- | --- | --- |
-| `parameter(...)` | Numeric, enum, time or string setting | Existing member |
-| `flag(...)` | Boolean control or option, without numerical units | Boolean member or named bit |
-| `state(...)` | Solver-managed variable, including algebraic unknowns | Active solver vector |
-| `localState(...)` | Retained model memory that cannot be reconstructed | Existing member |
+| Declaration       | Meaning                                               | Storage                     |
+| ----------------- | ----------------------------------------------------- | --------------------------- |
+| `parameter(...)`  | Numeric, enum, time or string setting                 | Existing member             |
+| `flag(...)`       | Boolean control or option, without numerical units    | Boolean member or named bit |
+| `state(...)`      | Solver-managed variable, including algebraic unknowns | Active solver vector        |
+| `localState(...)` | Retained model memory that cannot be reconstructed    | Existing member             |
 
 The declaration determines its role, default member access and capture behavior.
 There are no per-field access or capture options. Physical parameters and local
@@ -157,12 +157,12 @@ and the retained history they actually own.
 
 Snapshot membership follows the declaration, with no model-specific overrides:
 
-| Data | State-only checkpoint | Full parameter checkpoint |
-| --- | --- | --- |
-| Parameters | Keep current values | Restore |
-| Flags | Restore | Restore |
+| Data         | State-only checkpoint       | Full parameter checkpoint   |
+| ------------ | --------------------------- | --------------------------- |
+| Parameters   | Keep current values         | Restore                     |
+| Flags        | Restore                     | Restore                     |
 | Solver state | Restore from solver payload | Restore from solver payload |
-| Local state | Restore | Restore |
+| Local state  | Restore                     | Restore                     |
 
 Commands and reconstructible derived values are omitted. Thus a state-only
 restore keeps changed P/Q, exponents and scheduling parameters; a full parameter

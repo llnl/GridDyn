@@ -6,13 +6,13 @@ Its numerical equations and limiter transitions remain in the existing class.
 
 ## What the declarations mean here
 
-| Owner | Declaration | Values |
-| --- | --- | --- |
-| Exciter | `parameter` | `ka`, `ta`, `vref`, `vbias`, `vrmin`/`urmin`, `vrmax`/`urmax` |
-| ExciterSEXS | `parameter` | `tb`, `te` |
-| ExciterSEXS | `state` | `ef`, `x` |
-| Exciter | `localState` | `operating_bias`, `limiter_active`, `limiter_high` |
-| CoreObject | `flag` | Inherited enable and update controls |
+| Owner       | Declaration  | Values                                                        |
+| ----------- | ------------ | ------------------------------------------------------------- |
+| Exciter     | `parameter`  | `ka`, `ta`, `vref`, `vbias`, `vrmin`/`urmin`, `vrmax`/`urmax` |
+| ExciterSEXS | `parameter`  | `tb`, `te`                                                    |
+| ExciterSEXS | `state`      | `ef`, `x`                                                     |
+| Exciter     | `localState` | `operating_bias`, `limiter_active`, `limiter_high`            |
+| CoreObject  | `flag`       | Inherited enable and update controls                          |
 
 For SEXS, `ta` is the lead-lag numerator time constant, `tb` its denominator,
 and `te` the field time constant. The shared Exciter table uses the neutral

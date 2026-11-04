@@ -8,6 +8,7 @@
 
 #include "CoreExceptions.h"
 #include "ModelDescription.h"
+#include <array>
 #include <bitset>
 #include <cmath>
 #include <concepts>
@@ -253,6 +254,7 @@ namespace detail {
 namespace parameterValidators {
     inline constexpr auto positive = [](const auto& value) { return value > 0; };
     inline constexpr auto nonnegative = [](const auto& value) { return value >= 0; };
+    inline constexpr auto nonpositive = [](const auto& value) { return value <= 0; };
 }  // namespace parameterValidators
 
 /** Numeric/string setting with ordinary conversion and optional value-only validation. */
@@ -266,6 +268,57 @@ ModelField parameter(std::initializer_list<std::string_view> names,
 {
     return detail::bindParameter(
         names, member, unitType, description, ModelFieldKind::PARAMETER, validator);
+}
+
+/** One named scalar in fixed-size model parameter storage. */
+template<class Model, class Value, std::size_t Size, class Validator = detail::AcceptModelValue>
+    requires std::is_arithmetic_v<Value> && std::predicate<Validator, const Value&>
+ModelField parameter(std::initializer_list<std::string_view> names,
+                     std::array<Value, Size> Model::* member,
+                     std::size_t index,
+                     units::unit unitType,
+                     std::string_view description,
+                     Validator validator = {})
+{
+    if (index >= Size) {
+        throw std::invalid_argument("parameter index is outside its storage");
+    }
+    ModelField::Reader read = [member, index](const CoreObject& object) -> ModelFieldValue {
+        return detail::storedValue((detail::fieldOwner<Model>(object).*member)[index]);
+    };
+    ModelField::Writer write = [member, index, validator](CoreObject& object,
+                                                          const ModelFieldValue& input,
+                                                          std::string_view name) {
+        Value value;
+        try {
+            value = detail::numericValue<Value>(std::get<double>(input));
+        }
+        catch (const InvalidParameterValue&) {
+            throw InvalidParameterValue(name);
+        }
+        if (!std::invoke(validator, std::as_const(value))) {
+            throw InvalidParameterValue(name);
+        }
+        (detail::fieldOwner<Model>(object).*member)[index] = value;
+    };
+    ModelField::Restorer restore = [member,
+                                    index](CoreObject& object,
+                                           const ModelFieldValue& input) -> ModelField::Assignment {
+        auto& value = (detail::fieldOwner<Model>(object).*member)[index];
+        auto copy = detail::restoreValue<Value>(input);
+        return [&value, copy]() mutable noexcept {
+            using std::swap;
+            swap(value, copy);
+        };
+    };
+    return {names,
+            unitType,
+            description,
+            ModelFieldKind::PARAMETER,
+            static_cast<ModelFieldType>(ModelFieldValue(detail::storedValue(Value{})).index()),
+            std::move(read),
+            std::move(write),
+            std::move(restore)};
 }
 
 /** Boolean control, without numerical units. */

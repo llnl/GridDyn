@@ -29,6 +29,7 @@ class GovernorHydro: public Governor {
   public:
     explicit GovernorHydro(const std::string& objName = "govHydro_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
     virtual ~GovernorHydro();
 
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;

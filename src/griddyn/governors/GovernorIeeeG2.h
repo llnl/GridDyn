@@ -30,6 +30,7 @@ class GovernorIeeeG2: public Governor {
   public:
     explicit GovernorIeeeG2(const std::string& objName = "govIeeeG2_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
 
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,

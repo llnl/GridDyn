@@ -16,6 +16,7 @@ class GovernorTgov1Variant: public Governor {
     GovernorTgov1Variant(bool deadband, bool normalizedReference, const std::string& name);
     explicit GovernorTgov1Variant(const std::string& name);
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
     using Governor::set;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
@@ -63,15 +64,18 @@ class GovernorTgov1DB final: public GovernorTgov1Variant {
   public:
     explicit GovernorTgov1DB(const std::string& name = "govTgov1DB_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
 };
 class GovernorTgov1N final: public GovernorTgov1Variant {
   public:
     explicit GovernorTgov1N(const std::string& name = "govTgov1N_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
 };
 class GovernorTgov1NDB final: public GovernorTgov1Variant {
   public:
     explicit GovernorTgov1NDB(const std::string& name = "govTgov1NDB_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
 };
 }  // namespace griddyn::governors

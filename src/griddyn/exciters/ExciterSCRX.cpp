@@ -602,9 +602,6 @@ double ExciterSCRX::get(std::string_view param, units::unit unitType) const
     if ((param == "emax") || (param == "efdmax")) {
         return Exciter::get("vrmax", unitType);
     }
-    if (param == "cswitch") {
-        return solidFed ? 1.0 : 0.0;
-    }
     if (const auto value = ExciterSCRX::getModelDescription().tryGetLocal(*this, param, unitType)) {
         return *value;
     }

@@ -14,6 +14,9 @@ class GovernorTG2 final: public Governor {
   public:
     explicit GovernorTG2(const std::string& name = "govTG2_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
+    void setFlag(std::string_view flagName, bool value) override;
+    bool getFlag(std::string_view flagName) const override;
     using Governor::set;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,

@@ -6,6 +6,7 @@
 
 #include "../gtestHelper.h"
 #include "core/CoreExceptions.h"
+#include "core/ModelDescription.h"
 #include "core/ObjectFactory.hpp"
 #include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
@@ -21,6 +22,7 @@
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorIeeeG2.h"
 #include "griddyn/governors/GovernorIeeeSimple.h"
+#include "griddyn/governors/GovernorReheat.h"
 #include "griddyn/governors/GovernorSteamNR.h"
 #include "griddyn/governors/GovernorSteamTCSR.h"
 #include "griddyn/governors/GovernorTG2.h"
@@ -58,6 +60,121 @@ void configureTgov1(governors::GovernorTgov1& governor)
     governor.set("t2", 1.0);
     governor.set("t3", 2.1);
     governor.set("dt", 0.1);
+}
+
+TEST(GovernorDescriptionTests, EveryGovernorHasAnExactParameterSnapshot)
+{
+    std::vector<std::unique_ptr<Governor>> models;
+    models.emplace_back(std::make_unique<Governor>());
+    models.emplace_back(std::make_unique<governors::GovernorGast>());
+    models.emplace_back(std::make_unique<governors::GovernorGPWSCC>());
+    models.emplace_back(std::make_unique<governors::GovernorGgov1>());
+    models.emplace_back(std::make_unique<governors::GovernorHydro>());
+    models.emplace_back(std::make_unique<governors::GovernorHygov>());
+    models.emplace_back(std::make_unique<governors::GovernorHygov4>());
+    models.emplace_back(std::make_unique<governors::GovernorHygovDB>());
+    models.emplace_back(std::make_unique<governors::GovernorIeeeG1>());
+    models.emplace_back(std::make_unique<governors::GovernorIeeeG2>());
+    models.emplace_back(std::make_unique<governors::GovernorIeeeSimple>());
+    models.emplace_back(std::make_unique<governors::GovernorReheat>());
+    models.emplace_back(std::make_unique<governors::GovernorSteamNR>());
+    models.emplace_back(std::make_unique<governors::GovernorSteamTCSR>());
+    models.emplace_back(std::make_unique<governors::GovernorTG2>());
+    models.emplace_back(std::make_unique<governors::GovernorTgov1>());
+    models.emplace_back(std::make_unique<governors::GovernorTgov1Variant>("variant"));
+    models.emplace_back(std::make_unique<governors::GovernorTgov1DB>());
+    models.emplace_back(std::make_unique<governors::GovernorTgov1N>());
+    models.emplace_back(std::make_unique<governors::GovernorTgov1NDB>());
+    for (auto& model : models) {
+        SCOPED_TRACE(model->getModelDescription().name());
+        const auto saved = ModelFieldSnapshot::capture(*model, FieldSnapshotLevel::PARAMETERS);
+        EXPECT_NO_THROW(saved.restore(*model));
+    }
+}
+
+TEST(GovernorDescriptionTests, FlagsAndIndexedParametersUseSharedGetAndSet)
+{
+    governors::GovernorTG2 tg2;
+    EXPECT_DOUBLE_EQ(tg2.get("deadbandenabled"), 0.0);
+    EXPECT_DOUBLE_EQ(tg2.get("hardlimit"), 1.0);
+    tg2.set("deadband", 2.0);
+    tg2.set("hardlimit", 0.0);
+    EXPECT_DOUBLE_EQ(tg2.get("deadband"), 1.0);
+    EXPECT_DOUBLE_EQ(tg2.get("hardlimit"), 0.0);
+    EXPECT_THROW(tg2.set("deadband", std::numeric_limits<double>::quiet_NaN()),
+                 InvalidParameterValue);
+
+    governors::GovernorIeeeG1 g1;
+    g1.set("t4", 500.0, units::ms);
+    g1.set("k8", 0.2);
+    EXPECT_NEAR(g1.get("t4"), 0.5, 1e-6);
+    EXPECT_DOUBLE_EQ(g1.get("k8"), 0.2);
+    EXPECT_THROW(g1.set("k8", -0.1), InvalidParameterValue);
+    auto saved = ModelFieldSnapshot::capture(g1, FieldSnapshotLevel::PARAMETERS);
+    g1.set("k8", 0.3);
+    saved.restore(g1);
+    EXPECT_DOUBLE_EQ(g1.get("k8"), 0.2);
+
+    governors::GovernorGPWSCC gpwscc;
+    gpwscc.set("gv2", 0.4);
+    gpwscc.set("pgv2", 0.6);
+    gpwscc.set("db1", 0.01);
+    gpwscc.set("eps", 0.001);
+    gpwscc.set("db2", 0.02);
+    EXPECT_DOUBLE_EQ(gpwscc.get("gv2"), 0.4);
+    EXPECT_DOUBLE_EQ(gpwscc.get("pgv2"), 0.6);
+    EXPECT_NEAR(gpwscc.get("db1"), 0.01, 1e-6);
+    EXPECT_NEAR(gpwscc.get("eps"), 0.001, 1e-6);
+    EXPECT_NEAR(gpwscc.get("db2"), 0.02, 1e-6);
+
+    governors::GovernorGgov1 ggov1;
+    ggov1.set("rselect", -1.0);
+    EXPECT_DOUBLE_EQ(ggov1.get("rselect"), -1.0);
+    EXPECT_THROW(ggov1.set("rselect", 1.5), InvalidParameterValue);
+}
+
+TEST(GovernorDescriptionTests, RejectsInvalidScalarValuesAtSet)
+{
+    governors::GovernorGPWSCC gpwscc;
+    gpwscc.set("velclose", 0.0);
+    EXPECT_THROW(gpwscc.set("velclose", 0.1), InvalidParameterValue);
+    EXPECT_DOUBLE_EQ(gpwscc.get("velclose"), 0.0);
+
+    governors::GovernorSteamTCSR steam;
+    EXPECT_THROW(steam.set("t5", 0.0), InvalidParameterValue);
+    EXPECT_THROW(steam.set("fhp", -0.1), InvalidParameterValue);
+    steam.set("fhp", 1.2);
+    EXPECT_NEAR(steam.get("fch"), 1.2, 1e-6);
+
+    governors::GovernorReheat reheat;
+    reheat.set("k2", 100.0, units::percent);
+    EXPECT_THROW(reheat.set("k2", 101.0, units::percent), InvalidParameterValue);
+    EXPECT_NEAR(reheat.get("k2"), 1.0, 1e-6);
+}
+
+TEST(GovernorDescriptionTests, UsesDeclaredUnitsAndPreservesSpecialSetterPaths)
+{
+    Governor base;
+    base.set("droop", 20.0);
+    EXPECT_DOUBLE_EQ(base.get("k"), 20.0);
+    EXPECT_DOUBLE_EQ(base.get("r"), 0.05);
+    base.set("t1", 500.0, units::ms);
+    EXPECT_NEAR(base.get("t1"), 0.5, 1e-6);
+    EXPECT_THROW(base.set("t1", 2.0, units::MW), InvalidParameterValue);
+    EXPECT_NEAR(base.get("t1"), 0.5, 1e-6);
+
+    governors::GovernorIeeeSimple simple;
+    simple.set("t3", 250.0, units::ms);
+    EXPECT_NEAR(simple.get("t3"), 0.25, 1e-6);
+    simple.set("ramplimit", 10.0, units::MW);
+    EXPECT_NEAR(simple.get("pup", units::MW), 10.0, 1e-6);
+    EXPECT_NEAR(simple.get("pdown", units::MW), 10.0, 1e-6);
+
+    governors::GovernorTG2 tg2;
+    tg2.setFlag("deadbandenabled", true);
+    EXPECT_DOUBLE_EQ(tg2.get("deadband"), 1.0);
+    tg2.set("deadband", 0.0);
+    EXPECT_FALSE(tg2.getFlag("deadbandenabled"));
 }
 
 void configureIeeeG1(governors::GovernorIeeeG1& governor)

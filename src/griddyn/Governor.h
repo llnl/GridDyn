@@ -56,6 +56,7 @@ class Governor: public GridSubModel {
     /** @brief constructor*/
     explicit Governor(const std::string& objName = "gov_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
     /** @brief destructor*/
     virtual ~Governor();
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;

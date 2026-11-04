@@ -9,6 +9,7 @@
 #include "GovernorTypes.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "utilities/MatrixDataSparse.hpp"
 #include <cmath>
@@ -60,8 +61,6 @@ namespace governors {
 using units::convert;
 using units::puHz;
 using units::puMW;
-using units::rad;
-using units::second;
 using units::unit;
 
 Governor::Governor(const std::string& objName):
@@ -77,6 +76,37 @@ Governor::Governor(const std::string& objName):
     delay.addOwningReference();
     m_inputSize = 2;
     m_outputSize = 1;
+}
+
+const ModelDescription& Governor::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<Governor>(
+        "Governor",
+        &GridSubModel::getModelDescription(),
+        {parameter({"k", "droop"}, &Governor::K, units::one, "Droop gain"),
+         parameter({"t1"}, &Governor::T1, units::second, "Control time constant T1"),
+         parameter({"t2"}, &Governor::T2, units::second, "Control time constant T2"),
+         parameter({"t3"}, &Governor::T3, units::second, "Throttle time constant T3"),
+         parameter({"pmax"}, &Governor::Pmax, units::puMW, "Maximum turbine output"),
+         parameter({"pmin"}, &Governor::Pmin, units::puMW, "Minimum turbine output"),
+         parameter({"omegaref", "wref"},
+                   &Governor::Wref,
+                   units::rad / units::s,
+                   "Reference angular frequency"),
+         parameter({"deadband", "deadbandhigh"},
+                   &Governor::deadbandHigh,
+                   units::puHz,
+                   "Upper frequency deadband"),
+         parameter(
+             {"deadbandlow"}, &Governor::deadbandLow, units::puHz, "Lower frequency deadband"),
+         localState("initial_setpoint", &Governor::Pset, "Initialized power setpoint"),
+         localState("initial_setpoint_overdrive",
+                    &Governor::initialSetpointOverdrive,
+                    "Retained initial limit adjustment"),
+         state("pm", units::puMW, "Mechanical power output"),
+         state("dbo", units::one, "Deadband block output"),
+         state("w", units::one, "Filter block output")});
+    return description;
 }
 
 CoreObject* Governor::clone(CoreObject* obj) const
@@ -356,24 +386,18 @@ void Governor::set(std::string_view param, std::string_view val)
 
 void Governor::set(std::string_view param, double val, unit unitType)
 {
-    if ((param == "k") || (param == "droop")) {
-        K = val;
-        dbb.set(param, -K);
-    } else if (param == "r") {
-        K = 1.0 / val;
+    if (param.empty() || param.front() == '#') {
+        return;
+    }
+    if (!std::isfinite(val)) {
+        throw InvalidParameterValue(param);
+    }
+    if (param == "r") {
+        if (val == 0.0) {
+            throw InvalidParameterValue(param);
+        }
+        Governor::getModelDescription().trySetLocal(*this, "k", 1.0 / val);
         dbb.set("k", -K);
-    } else if (param == "t1") {
-        T1 = val;
-        cb.set("t1", val);
-    } else if (param == "t2") {
-        T2 = val;
-        cb.set("t2", val);
-    } else if (param == "t3") {
-        T3 = val;
-        delay.set("t1", val);
-    } else if ((param == "omegaref") || (param == "wref")) {
-        Wref = convert(val, unitType, rad / second);
-        // TODO(phlpt): Decide how to handle changes to the reference frequency after init.
     } else if (param == "pmax") {
         Pmax = convert(val, unitType, puMW, systemBasePower);
         delay.set("max", Pmax);
@@ -401,7 +425,18 @@ void Governor::set(std::string_view param, double val, unit unitType)
         if (deadbandLow > 0) {
             deadbandLow = -deadbandLow;
         }
-        dbb.set("deadbandhigh", deadbandLow);
+        dbb.set("deadbandlow", deadbandLow);
+    } else if (Governor::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        // Synchronize the blocks only after the converted parameter has been accepted.
+        if (param == "k" || param == "droop") {
+            dbb.set("k", -K);
+        } else if (param == "t1") {
+            cb.set("t1", T1);
+        } else if (param == "t2") {
+            cb.set("t2", T2);
+        } else if (param == "t3") {
+            delay.set("t1", T3);
+        }
     } else {
         GridSubModel::set(param, val, unitType);
     }
@@ -410,18 +445,8 @@ void Governor::set(std::string_view param, double val, unit unitType)
 double Governor::get(std::string_view param, units::unit unitType) const
 {
     double out = kNullVal;
-    if (param == "k") {
-        out = K;
-    } else if (param == "r") {
+    if (param == "r") {
         out = 1.0 / K;
-    } else if (param == "t1") {
-        out = T1;
-    } else if (param == "t2") {
-        out = T2;
-    } else if (param == "t3") {
-        out = T3;
-    } else if ((param == "omegaref") || (param == "wref")) {
-        out = convert(Wref, rad / second, unitType);
     } else if (param == "pmax") {
         out = convert(Pmax, puMW, unitType, systemBasePower);
     } else if (param == "pmin") {
@@ -430,6 +455,9 @@ double Governor::get(std::string_view param, units::unit unitType) const
         out = convert(deadbandHigh, puHz, unitType, systemBaseFrequency);
     } else if (param == "deadbandlow") {
         out = convert(deadbandLow, puHz, unitType, systemBaseFrequency);
+    } else if (const auto value =
+                   Governor::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        out = *value;
     } else {
         out = GridSubModel::get(param, unitType);
     }

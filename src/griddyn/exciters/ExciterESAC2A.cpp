@@ -584,12 +584,6 @@ void ExciterESAC2A::set(std::string_view param, double val, units::unit unitType
 
 double ExciterESAC2A::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "uel_enabled") {
-        return underSelectorEnabled ? 1.0 : 0.0;
-    }
-    if (param == "oel_enabled") {
-        return overSelectorEnabled ? 1.0 : 0.0;
-    }
     if (const auto value =
             ExciterESAC2A::getModelDescription().tryGetLocal(*this, param, unitType)) {
         return *value;

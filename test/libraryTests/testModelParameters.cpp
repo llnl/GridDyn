@@ -433,10 +433,13 @@ TEST(ModelParameterTests, HandlesIntegerBooleanAndStringStorageWithoutNarrowing)
     EXPECT_TRUE(model.getFlag("switch"));
     EXPECT_TRUE(model.getModelDescription().trySetLocal(model, "switch", 0.2));
     EXPECT_TRUE(model.mSwitch);
+    EXPECT_DOUBLE_EQ(model.get("switch"), 1.0);
     model.set("switch", 0.0);
     EXPECT_FALSE(model.mSwitch);
+    EXPECT_DOUBLE_EQ(model.get("switch"), 0.0);
     model.set("packed", -2.0);
     EXPECT_TRUE(model.getFlag("packed"));
+    EXPECT_DOUBLE_EQ(model.get("packed"), 1.0);
     model.set("label", "updated");
     EXPECT_EQ(model.getString("label"), "updated");
     model.set("mode", 1.0);

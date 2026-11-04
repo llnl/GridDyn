@@ -10,6 +10,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactory.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -37,6 +38,18 @@ GovernorIeeeSimple::GovernorIeeeSimple(const std::string& objName): Governor(obj
     opFlags.set(IGNORE_DEADBAND);
     opFlags.set(IGNORE_FILTER);
     opFlags.set(IGNORE_THROTTLE);
+}
+
+const ModelDescription& GovernorIeeeSimple::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorIeeeSimple>(
+        "GovernorIeeeSimple",
+        &Governor::getModelDescription(),
+        {parameter({"pup"}, &GovernorIeeeSimple::Pup, units::puMW, "Upper ramp limit"),
+         parameter({"pdown"}, &GovernorIeeeSimple::Pdown, units::puMW, "Lower ramp limit"),
+         state("pm", units::puMW, "Mechanical power"),
+         state("x", units::one, "Governor lag state")});
+    return description;
 }
 
 CoreObject* GovernorIeeeSimple::clone(CoreObject* obj) const
@@ -281,19 +294,35 @@ void GovernorIeeeSimple::set(std::string_view param, std::string_view val)
 
 void GovernorIeeeSimple::set(std::string_view param, double val, unit unitType)
 {
-    // param   = GridDynSimulation::toLower(param);
     if (param == "t3") {
-        T3 = val;
-    } else if (param == "pup") {
-        Pup = convert(val, unitType, puMW, systemBasePower);
-    } else if (param == "pdown") {
-        Pdown = convert(val, unitType, puMW, systemBasePower);
-    } else if (param == "ramplimit") {
-        Pup = convert(val, unitType, puMW, systemBasePower);
-        Pdown = convert(val, unitType, puMW, systemBasePower);
-    } else {
-        Governor::set(param, val, unitType);
+        Governor::getModelDescription().trySetLocal(*this, param, val, unitType);
+        return;
     }
+    if (param != "pup" && param != "pdown" && param != "ramplimit") {
+        Governor::set(param, val, unitType);
+        return;
+    }
+    if (!std::isfinite(val)) {
+        throw InvalidParameterValue(param);
+    }
+    const auto limit = convert(val, unitType, puMW, systemBasePower);
+    if (param != "pdown") {
+        GovernorIeeeSimple::getModelDescription().trySetLocal(*this, "pup", limit);
+    }
+    if (param != "pup") {
+        GovernorIeeeSimple::getModelDescription().trySetLocal(*this, "pdown", limit);
+    }
+}
+
+double GovernorIeeeSimple::get(std::string_view param, unit unitType) const
+{
+    if (param == "pup") {
+        return convert(Pup, puMW, unitType, systemBasePower);
+    }
+    if (param == "pdown") {
+        return convert(Pdown, puMW, unitType, systemBasePower);
+    }
+    return Governor::get(param, unitType);
 }
 
 }  // namespace griddyn::governors

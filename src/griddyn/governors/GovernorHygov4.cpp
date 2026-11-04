@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -22,6 +23,64 @@ GovernorHygov4::GovernorHygov4(const std::string& objName): Governor(objName)
     opFlags.set(IGNORE_DEADBAND);
     opFlags.set(IGNORE_FILTER);
     opFlags.set(IGNORE_THROTTLE);
+}
+const ModelDescription& GovernorHygov4::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorHygov4>(
+        "GovernorHygov4",
+        &Governor::getModelDescription(),
+        {parameter({"rperm"},
+                   &GovernorHygov4::Rperm,
+                   units::one,
+                   "Permanent droop",
+                   parameterValidators::positive),
+         parameter({"rtemp"},
+                   &GovernorHygov4::Rtemp,
+                   units::one,
+                   "Temporary droop",
+                   parameterValidators::nonnegative),
+         parameter({"uo"}, &GovernorHygov4::UO, units::one, "Maximum gate opening rate"),
+         parameter({"uc"}, &GovernorHygov4::UC, units::one, "Maximum gate closing rate"),
+         parameter({"tp"},
+                   &GovernorHygov4::Tp,
+                   units::second,
+                   "Power filter time",
+                   parameterValidators::positive),
+         parameter({"tg"},
+                   &GovernorHygov4::Tg,
+                   units::second,
+                   "Gate servo time",
+                   parameterValidators::positive),
+         parameter({"tr"},
+                   &GovernorHygov4::Tr,
+                   units::second,
+                   "Reset time",
+                   parameterValidators::positive),
+         parameter({"tw"},
+                   &GovernorHygov4::Tw,
+                   units::second,
+                   "Water starting time",
+                   parameterValidators::positive),
+         parameter({"at"},
+                   &GovernorHygov4::At,
+                   units::one,
+                   "Turbine gain",
+                   parameterValidators::positive),
+         parameter({"dturb"}, &GovernorHygov4::Dturb, units::one, "Turbine damping"),
+         parameter({"hdam"},
+                   &GovernorHygov4::Hdam,
+                   units::one,
+                   "Dam head",
+                   parameterValidators::positive),
+         parameter({"qnl"}, &GovernorHygov4::qNL, units::one, "No-load flow"),
+         parameter({"paux"}, &GovernorHygov4::paux, units::puMW, "Auxiliary power"),
+         localState("reference_offset", &GovernorHygov4::referenceOffset),
+         state("pmech", units::puMW, "Mechanical power"),
+         state("gate", units::one, "Gate state"),
+         state("washout", units::one, "Washout state"),
+         state("pilot", units::one, "Pilot state"),
+         state("flow", units::one, "Water flow")});
+    return description;
 }
 CoreObject* GovernorHygov4::clone(CoreObject* obj) const
 {
@@ -248,79 +307,16 @@ index_t GovernorHygov4::findIndex(std::string_view field, const SolverMode& mode
 }
 void GovernorHygov4::set(std::string_view param, double value, units::unit unitType)
 {
-    if (!std::isfinite(value)) {
-        throw InvalidParameterValue("HYGOV4 parameter must be finite");
+    if (GovernorHygov4::getModelDescription().trySetLocal(*this, param, value, unitType)) {
+        return;
     }
-    if (param == "rperm") {
-        Rperm = value;
-    } else if (param == "rtemp") {
-        Rtemp = value;
-    } else if (param == "uo") {
-        UO = value;
-    } else if (param == "uc") {
-        UC = value;
-    } else if (param == "tp") {
-        Tp = value;
-    } else if (param == "tg") {
-        Tg = value;
-    } else if (param == "tr") {
-        Tr = value;
-    } else if (param == "tw") {
-        Tw = value;
-    } else if (param == "at") {
-        At = value;
-    } else if (param == "dturb") {
-        Dturb = value;
-    } else if (param == "hdam") {
-        Hdam = value;
-    } else if (param == "qnl") {
-        qNL = value;
-    } else if (param == "paux") {
-        paux = value;
-    } else {
-        Governor::set(param, value, unitType);
-    }
+    Governor::set(param, value, unitType);
 }
 double GovernorHygov4::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "rperm") {
-        return Rperm;
-    }
-    if (param == "rtemp") {
-        return Rtemp;
-    }
-    if (param == "uo") {
-        return UO;
-    }
-    if (param == "uc") {
-        return UC;
-    }
-    if (param == "tp") {
-        return Tp;
-    }
-    if (param == "tg") {
-        return Tg;
-    }
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "tw") {
-        return Tw;
-    }
-    if (param == "at") {
-        return At;
-    }
-    if (param == "dturb") {
-        return Dturb;
-    }
-    if (param == "hdam") {
-        return Hdam;
-    }
-    if (param == "qnl") {
-        return qNL;
-    }
-    if (param == "paux") {
-        return paux;
+    if (const auto result =
+            GovernorHygov4::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *result;
     }
     return Governor::get(param, unitType);
 }

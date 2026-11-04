@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -34,6 +35,115 @@ GovernorGPWSCC::GovernorGPWSCC(const std::string& objName): Governor(objName)
     opFlags.set(IGNORE_FILTER);
     opFlags.set(IGNORE_THROTTLE);
     updateOutputLimits();
+}
+
+const ModelDescription& GovernorGPWSCC::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorGPWSCC>(
+        "GovernorGPWSCC",
+        &Governor::getModelDescription(),
+        {parameter({"mwcap"},
+                   &GovernorGPWSCC::MWCap,
+                   units::MW,
+                   "Turbine MW capacity",
+                   parameterValidators::positive),
+         parameter({"mvabase", "mva"},
+                   &GovernorGPWSCC::MVABase,
+                   units::MW,
+                   "Machine MVA base",
+                   parameterValidators::positive),
+         parameter({"r"},
+                   &GovernorGPWSCC::R,
+                   units::one,
+                   "Speed droop",
+                   parameterValidators::nonnegative),
+         parameter({"td"},
+                   &GovernorGPWSCC::Td,
+                   units::second,
+                   "Derivative filter time",
+                   parameterValidators::positive),
+         parameter({"tf"},
+                   &GovernorGPWSCC::Tf,
+                   units::second,
+                   "Electrical power filter time",
+                   parameterValidators::positive),
+         parameter({"tp"},
+                   &GovernorGPWSCC::Tp,
+                   units::second,
+                   "Power filter time",
+                   parameterValidators::positive),
+         parameter({"velopen"},
+                   &GovernorGPWSCC::Velopen,
+                   units::one,
+                   "Gate opening rate",
+                   parameterValidators::nonnegative),
+         parameter({"velclose"},
+                   &GovernorGPWSCC::Velclose,
+                   units::one,
+                   "Gate closing rate",
+                   parameterValidators::nonpositive),
+         parameter({"kp"}, &GovernorGPWSCC::Kp, units::one, "Proportional gain"),
+         parameter({"kd"}, &GovernorGPWSCC::Kd, units::one, "Derivative gain"),
+         parameter({"ki"}, &GovernorGPWSCC::Ki, units::one, "Integral gain"),
+         parameter({"kg"},
+                   &GovernorGPWSCC::Kg,
+                   units::one,
+                   "Gate servo gain",
+                   parameterValidators::nonnegative),
+         parameter({"tturb"},
+                   &GovernorGPWSCC::Tturb,
+                   units::second,
+                   "Turbine time constant",
+                   parameterValidators::nonnegative),
+         parameter({"aturb"}, &GovernorGPWSCC::Aturb, units::one, "Turbine lead coefficient"),
+         parameter({"bturb"}, &GovernorGPWSCC::Bturb, units::one, "Turbine lag coefficient"),
+         parameter({"tt"},
+                   &GovernorGPWSCC::Tt,
+                   units::second,
+                   "Transducer time constant",
+                   parameterValidators::nonnegative),
+         parameter({"db1"},
+                   &GovernorGPWSCC::db1,
+                   units::one,
+                   "Speed deadband width",
+                   parameterValidators::nonnegative),
+         parameter({"eps"},
+                   &GovernorGPWSCC::eps,
+                   units::one,
+                   "Deadband release margin",
+                   parameterValidators::nonnegative),
+         parameter({"db2"},
+                   &GovernorGPWSCC::db2,
+                   units::one,
+                   "Gate deadband width",
+                   parameterValidators::nonnegative),
+         parameter(
+             {"gmax", "gatemax"}, &GovernorGPWSCC::gateMaximum, units::one, "Maximum gate opening"),
+         parameter(
+             {"gmin", "gatemin"}, &GovernorGPWSCC::gateMinimum, units::one, "Minimum gate opening"),
+         parameter({"paux"}, &GovernorGPWSCC::Paux, units::puMW, "Auxiliary power"),
+         parameter({"gv1"}, &GovernorGPWSCC::curveGate, 0, units::one, "Gate curve point 1"),
+         parameter({"pgv1"}, &GovernorGPWSCC::curvePower, 0, units::one, "Power curve point 1"),
+         parameter({"gv2"}, &GovernorGPWSCC::curveGate, 1, units::one, "Gate curve point 2"),
+         parameter({"pgv2"}, &GovernorGPWSCC::curvePower, 1, units::one, "Power curve point 2"),
+         parameter({"gv3"}, &GovernorGPWSCC::curveGate, 2, units::one, "Gate curve point 3"),
+         parameter({"pgv3"}, &GovernorGPWSCC::curvePower, 2, units::one, "Power curve point 3"),
+         parameter({"gv4"}, &GovernorGPWSCC::curveGate, 3, units::one, "Gate curve point 4"),
+         parameter({"pgv4"}, &GovernorGPWSCC::curvePower, 3, units::one, "Power curve point 4"),
+         parameter({"gv5"}, &GovernorGPWSCC::curveGate, 4, units::one, "Gate curve point 5"),
+         parameter({"pgv5"}, &GovernorGPWSCC::curvePower, 4, units::one, "Power curve point 5"),
+         parameter({"gv6"}, &GovernorGPWSCC::curveGate, 5, units::one, "Gate curve point 6"),
+         parameter({"pgv6"}, &GovernorGPWSCC::curvePower, 5, units::one, "Power curve point 6"),
+         localState("initialized_input_reference", &GovernorGPWSCC::initializedInputReference),
+         state("pmech", units::puMW, "Mechanical power"),
+         state("td_filter", units::one, "Speed filter"),
+         state("pid_integral", units::one, "PID integral"),
+         state("derivative_filter", units::one, "Derivative filter"),
+         state("pelec_filter", units::one, "Electrical power filter"),
+         state("valve", units::one, "Valve state"),
+         state("gate", units::one, "Gate position"),
+         state("turbine", units::one, "Turbine state")});
+    return description;
 }
 
 CoreObject* GovernorGPWSCC::clone(CoreObject* obj) const
@@ -507,163 +617,20 @@ void GovernorGPWSCC::set(std::string_view param, std::string_view val)
 
 void GovernorGPWSCC::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!std::isfinite(val)) {
-        throw InvalidParameterValue("GPWSCC parameters must be finite");
+    if (GovernorGPWSCC::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        if (!param.empty() && param.front() != '#') {
+            updateOutputLimits();
+        }
+        return;
     }
-    if (param == "mwcap") {
-        MWCap = val;
-    } else if ((param == "mvabase") || (param == "mva")) {
-        MVABase = val;
-    } else if (param == "r") {
-        R = val;
-    } else if (param == "td") {
-        Td = val;
-    } else if (param == "tf") {
-        Tf = val;
-    } else if (param == "tp") {
-        Tp = val;
-    } else if (param == "velopen") {
-        Velopen = val;
-    } else if (param == "velclose") {
-        Velclose = val;
-    } else if (param == "kp") {
-        Kp = val;
-    } else if (param == "kd") {
-        Kd = val;
-    } else if (param == "ki") {
-        Ki = val;
-    } else if (param == "kg") {
-        Kg = val;
-    } else if (param == "tturb") {
-        Tturb = val;
-    } else if (param == "aturb") {
-        Aturb = val;
-    } else if (param == "bturb") {
-        Bturb = val;
-    } else if (param == "tt") {
-        Tt = val;
-    } else if (param == "db1") {
-        db1 = val;
-    } else if (param == "eps") {
-        eps = val;
-    } else if (param == "db2") {
-        db2 = val;
-    } else if ((param == "gmax") || (param == "gatemax")) {
-        gateMaximum = val;
-    } else if ((param == "gmin") || (param == "gatemin")) {
-        gateMinimum = val;
-    } else if (param == "paux") {
-        Paux = val;
-    } else {
-        static constexpr std::array<std::string_view, 6> gateNames{
-            "gv1", "gv2", "gv3", "gv4", "gv5", "gv6"};
-        static constexpr std::array<std::string_view, 6> powerNames{
-            "pgv1", "pgv2", "pgv3", "pgv4", "pgv5", "pgv6"};
-        std::size_t gateIndex = 0U;
-        while ((gateIndex < gateNames.size()) && (gateNames[gateIndex] != param)) {
-            ++gateIndex;
-        }
-        std::size_t powerIndex = 0U;
-        while ((powerIndex < powerNames.size()) && (powerNames[powerIndex] != param)) {
-            ++powerIndex;
-        }
-        if (gateIndex < gateNames.size()) {
-            curveGate[gateIndex] = val;
-        } else if (powerIndex < powerNames.size()) {
-            curvePower[powerIndex] = val;
-        } else {
-            Governor::set(param, val, unitType);
-            return;
-        }
-    }
-    updateOutputLimits();
+    Governor::set(param, val, unitType);
 }
 
 double GovernorGPWSCC::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "mwcap") {
-        return MWCap;
-    }
-    if ((param == "mvabase") || (param == "mva")) {
-        return MVABase;
-    }
-    if (param == "r") {
-        return R;
-    }
-    if (param == "td") {
-        return Td;
-    }
-    if (param == "tf") {
-        return Tf;
-    }
-    if (param == "tp") {
-        return Tp;
-    }
-    if (param == "velopen") {
-        return Velopen;
-    }
-    if (param == "velclose") {
-        return Velclose;
-    }
-    if (param == "kp") {
-        return Kp;
-    }
-    if (param == "kd") {
-        return Kd;
-    }
-    if (param == "ki") {
-        return Ki;
-    }
-    if (param == "kg") {
-        return Kg;
-    }
-    if (param == "tturb") {
-        return Tturb;
-    }
-    if (param == "aturb") {
-        return Aturb;
-    }
-    if (param == "bturb") {
-        return Bturb;
-    }
-    if (param == "tt") {
-        return Tt;
-    }
-    if (param == "db1") {
-        return db1;
-    }
-    if (param == "eps") {
-        return eps;
-    }
-    if (param == "db2") {
-        return db2;
-    }
-    if ((param == "gmax") || (param == "gatemax")) {
-        return gateMaximum;
-    }
-    if ((param == "gmin") || (param == "gatemin")) {
-        return gateMinimum;
-    }
-    if (param == "paux") {
-        return Paux;
-    }
-    static constexpr std::array<std::string_view, 6> gateNames{
-        "gv1", "gv2", "gv3", "gv4", "gv5", "gv6"};
-    static constexpr std::array<std::string_view, 6> powerNames{
-        "pgv1", "pgv2", "pgv3", "pgv4", "pgv5", "pgv6"};
-    std::size_t gateIndex = 0U;
-    while ((gateIndex < gateNames.size()) && (gateNames[gateIndex] != param)) {
-        ++gateIndex;
-    }
-    if (gateIndex < gateNames.size()) {
-        return curveGate[gateIndex];
-    }
-    std::size_t powerIndex = 0U;
-    while ((powerIndex < powerNames.size()) && (powerNames[powerIndex] != param)) {
-        ++powerIndex;
-    }
-    if (powerIndex < powerNames.size()) {
-        return curvePower[powerIndex];
+    if (const auto result =
+            GovernorGPWSCC::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *result;
     }
     return Governor::get(param, unitType);
 }

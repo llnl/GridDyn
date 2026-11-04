@@ -45,6 +45,7 @@ class GovernorGast final: public Governor {
   public:
     explicit GovernorGast(const std::string& objName = "govGast_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,

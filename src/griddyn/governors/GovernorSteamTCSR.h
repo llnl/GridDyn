@@ -36,6 +36,7 @@ class GovernorSteamTCSR: public GovernorSteamNR {
     GovernorSteamTCSR(const std::string& objName = "govSteamTCSR_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual ~GovernorSteamTCSR();
+    const ModelDescription& getModelDescription() const override;
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
     virtual void dynObjectInitializeB(const IOdata& inputs,

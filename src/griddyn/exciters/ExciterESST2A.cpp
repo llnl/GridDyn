@@ -578,9 +578,6 @@ void ExciterESST2A::set(std::string_view param, double val, units::unit unitType
 
 double ExciterESST2A::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "uel_enabled") {
-        return underSelectorEnabled ? 1.0 : 0.0;
-    }
     if (const auto value =
             ExciterESST2A::getModelDescription().tryGetLocal(*this, param, unitType)) {
         return *value;

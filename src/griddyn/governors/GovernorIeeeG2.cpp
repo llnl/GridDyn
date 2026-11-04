@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -33,6 +34,23 @@ GovernorIeeeG2::GovernorIeeeG2(const std::string& objName): Governor(objName)
     opFlags.set(IGNORE_FILTER);
     opFlags.set(IGNORE_THROTTLE);
     opFlags.set(USES_POWER_LIMITS);
+}
+
+const ModelDescription& GovernorIeeeG2::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorIeeeG2>(
+        "GovernorIeeeG2",
+        &Governor::getModelDescription(),
+        {parameter({"t4"},
+                   &GovernorIeeeG2::T4,
+                   units::second,
+                   "Water starting time",
+                   parameterValidators::nonnegative),
+         state("pmech", units::puMW, "Mechanical power"),
+         state("lead_lag", units::one, "Speed lead-lag state"),
+         state("simple_lag", units::one, "Speed lag state"),
+         state("water_lag", units::one, "Waterway state")});
+    return description;
 }
 
 CoreObject* GovernorIeeeG2::clone(CoreObject* obj) const
@@ -111,17 +129,17 @@ void GovernorIeeeG2::set(std::string_view param, std::string_view val)
 
 void GovernorIeeeG2::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "t4") {
-        T4 = val;
-    } else {
-        Governor::set(param, val, unitType);
+    if (GovernorIeeeG2::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    Governor::set(param, val, unitType);
 }
 
 double GovernorIeeeG2::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "t4") {
-        return T4;
+    if (const auto value =
+            GovernorIeeeG2::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Governor::get(param, unitType);
 }

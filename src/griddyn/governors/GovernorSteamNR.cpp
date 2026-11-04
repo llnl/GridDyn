@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -37,6 +38,23 @@ GovernorSteamNR::GovernorSteamNR(const std::string& objName): GovernorIeeeSimple
     offsets.local().local.algSize = 1;
     offsets.local().local.diffSize = 3;
     offsets.local().local.jacSize = 10;
+}
+
+const ModelDescription& GovernorSteamNR::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorSteamNR>(
+        "GovernorSteamNR",
+        &GovernorIeeeSimple::getModelDescription(),
+        {parameter({"tch", "t4"},
+                   &GovernorSteamNR::Tch,
+                   units::second,
+                   "Steam-chest time constant",
+                   parameterValidators::positive),
+         state("pmech", units::puMW, "Mechanical power"),
+         state("valve", units::one, "Valve state"),
+         state("filter", units::one, "Speed filter"),
+         state("steamchest", units::one, "Steam-chest state")});
+    return description;
 }
 
 CoreObject* GovernorSteamNR::clone(CoreObject* obj) const
@@ -206,17 +224,17 @@ void GovernorSteamNR::set(std::string_view param, std::string_view val)
 
 void GovernorSteamNR::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "tch") || (param == "t4")) {
-        Tch = val;
-    } else {
-        GovernorIeeeSimple::set(param, val, unitType);
+    if (GovernorSteamNR::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    GovernorIeeeSimple::set(param, val, unitType);
 }
 
 double GovernorSteamNR::get(std::string_view param, units::unit unitType) const
 {
-    if ((param == "tch") || (param == "t4")) {
-        return Tch;
+    if (const auto value =
+            GovernorSteamNR::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return GovernorIeeeSimple::get(param, unitType);
 }

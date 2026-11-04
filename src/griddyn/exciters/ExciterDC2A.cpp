@@ -9,6 +9,7 @@
 #include "../Generator.h"
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -22,6 +23,26 @@ namespace {
     // Keep this distinct from Exciter::limiterRootTolerance, the generic 2e-6 threshold.
     constexpr double dc2aLimiterRootTolerance = 0.0001;
 }  // namespace
+
+const ModelDescription& ExciterDC2A::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<ExciterDC2A>("ExciterDC2A",
+                                              &ExciterDC1A::getModelDescription(),
+                                              {});
+    return description;
+}
+
+void ExciterDC2A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterDC2A::getModelDescription();
+    getParamString<ExciterDC2A, ExciterDC1A>(this,
+                                             pstr,
+                                             description.numericNames(),
+                                             description.stringNames(),
+                                             description.flagNames(),
+                                             pstype);
+}
 
 ExciterDC2A::ExciterDC2A(const std::string& objName): ExciterDC1A(objName)
 {

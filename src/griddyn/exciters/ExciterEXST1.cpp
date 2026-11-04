@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -25,6 +26,66 @@ namespace {
     constexpr index_t washoutState = 3;
     constexpr double limitTolerance = 1e-7;
 }  // namespace
+
+const ModelDescription& ExciterEXST1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterEXST1>(
+        "ExciterEXST1",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"},
+                   &ExciterEXST1::Tr,
+                   units::second,
+                   "Voltage measurement time constant",
+                   parameterValidators::positive),
+         parameter({"vimax"}, &ExciterEXST1::Vimax, units::one, "Vimax upper limit"),
+         parameter({"vimin"}, &ExciterEXST1::Vimin, units::one, "Vimin lower limit"),
+         parameter({"tc"}, &ExciterEXST1::Tc, units::second, "Lead-lag numerator time constant"),
+         parameter({"tb"},
+                   &ExciterEXST1::Tb,
+                   units::second,
+                   "Lead-lag denominator time constant",
+                   parameterValidators::positive),
+         parameter({"kc"}, &ExciterEXST1::Kc, units::one, "Kc gain or coefficient"),
+         parameter({"kf"}, &ExciterEXST1::Kf, units::one, "Kf gain or coefficient"),
+         parameter({"tf"},
+                   &ExciterEXST1::Tf,
+                   units::second,
+                   "Feedback time constant",
+                   parameterValidators::positive),
+         localState("input_limited",
+                    &ExciterEXST1::opFlags,
+                    ExciterEXST1::INPUT_LIMITED,
+                    "Retained input_limited mode"),
+         localState("input_limit_high",
+                    &ExciterEXST1::opFlags,
+                    ExciterEXST1::INPUT_LIMIT_HIGH,
+                    "Retained input_limit_high mode"),
+         localState("output_limited",
+                    &ExciterEXST1::opFlags,
+                    ExciterEXST1::OUTPUT_LIMITED,
+                    "Retained output_limited mode"),
+         localState("output_limit_high",
+                    &ExciterEXST1::opFlags,
+                    ExciterEXST1::OUTPUT_LIMIT_HIGH,
+                    "Retained output_limit_high mode"),
+         state("efd", units::one, "Field voltage"),
+         state("vmeas", units::one, "Measured terminal voltage"),
+         state("ll", units::one, "Lead-lag state"),
+         state("vr", units::one, "Regulator state"),
+         state("wf", units::one, "Washout state")});
+    return description;
+}
+
+void ExciterEXST1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterEXST1::getModelDescription();
+    getParamString<ExciterEXST1, Exciter>(this,
+                                          pstr,
+                                          description.numericNames(),
+                                          description.stringNames(),
+                                          description.flagNames(),
+                                          pstype);
+}
 
 ExciterEXST1::ExciterEXST1(const std::string& objName): Exciter(objName)
 {
@@ -372,113 +433,28 @@ ChangeCode ExciterEXST1::rootCheck(const IOdata& inputs,
 
 void ExciterEXST1::set(std::string_view param, std::string_view val)
 {
-    Exciter::set(param, val);
+    if (!ExciterEXST1::getModelDescription().trySetLocal(*this, param, val)) {
+        Exciter::set(param, val);
+    }
 }
 
 void ExciterEXST1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "tr") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("EXST1 TR must be positive and finite");
-        }
-        Tr = val;
-    } else if (param == "vimax") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("EXST1 VIMAX must be finite");
-        }
-        Vimax = val;
-    } else if (param == "vimin") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("EXST1 VIMIN must be finite");
-        }
-        Vimin = val;
-    } else if (param == "tc") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("EXST1 TC must be finite");
-        }
-        Tc = val;
-    } else if (param == "tb") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("EXST1 TB must be positive and finite");
-        }
-        Tb = val;
-    } else if (param == "ka") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("EXST1 KA must be positive and finite");
-        }
-        Ka = val;
-    } else if (param == "ta") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("EXST1 TA must be positive and finite");
-        }
-        Ta = val;
-    } else if ((param == "vrmax") || (param == "urmax")) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("EXST1 VRMAX must be finite");
-        }
-        Vrmax = val;
-    } else if ((param == "vrmin") || (param == "urmin")) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("EXST1 VRMIN must be finite");
-        }
-        Vrmin = val;
-    } else if (param == "kc") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("EXST1 KC must be finite");
-        }
-        Kc = val;
-    } else if (param == "kf") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("EXST1 KF must be finite");
-        }
-        Kf = val;
-    } else if (param == "tf") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("EXST1 TF must be positive and finite");
-        }
-        Tf = val;
-    } else {
-        Exciter::set(param, val, unitType);
+    if (ExciterEXST1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    if ((param == "ka" || param == "ta") && val <= 0.0) {
+        throw InvalidParameterValue(std::string("EXST1 ") + std::string(param) +
+                                    " must be positive");
+    }
+    Exciter::set(param, val, unitType);
 }
 
 double ExciterEXST1::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if ((param == "vrmax") || (param == "urmax")) {
-        return Vrmax;
-    }
-    if ((param == "vrmin") || (param == "urmin")) {
-        return Vrmin;
-    }
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "vimax") {
-        return Vimax;
-    }
-    if (param == "vimin") {
-        return Vimin;
-    }
-    if (param == "tc") {
-        return Tc;
-    }
-    if (param == "tb") {
-        return Tb;
-    }
-    if (param == "kc") {
-        return Kc;
-    }
-    if (param == "kf") {
-        return Kf;
-    }
-    if (param == "tf") {
-        return Tf;
+    if (const auto value =
+            ExciterEXST1::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Exciter::get(param, unitType);
 }

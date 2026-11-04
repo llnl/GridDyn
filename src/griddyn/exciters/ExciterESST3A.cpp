@@ -9,6 +9,7 @@
 #include "StaticExciterRectifier.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -29,6 +30,88 @@ namespace {
     constexpr index_t staticFieldRegulatorState = 2;
     constexpr double limitTolerance = 1e-7;
 }  // namespace
+
+const ModelDescription& ExciterESST3A::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterESST3A>(
+        "ExciterESST3A",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"},
+                   &ExciterESST3A::Tr,
+                   units::second,
+                   "Voltage measurement time constant",
+                   parameterValidators::positive),
+         parameter({"vimax"}, &ExciterESST3A::Vimax, units::one, "Vimax upper limit"),
+         parameter({"vimin"}, &ExciterESST3A::Vimin, units::one, "Vimin lower limit"),
+         parameter({"km"},
+                   &ExciterESST3A::Km,
+                   units::one,
+                   "Km gain or coefficient",
+                   parameterValidators::positive),
+         parameter({"tc"}, &ExciterESST3A::Tc, units::second, "Lead-lag numerator time constant"),
+         parameter({"tb"},
+                   &ExciterESST3A::Tb,
+                   units::second,
+                   "Lead-lag denominator time constant",
+                   parameterValidators::positive),
+         parameter({"kg"}, &ExciterESST3A::Kg, units::one, "Kg gain or coefficient"),
+         parameter({"kp"},
+                   &ExciterESST3A::Kp,
+                   units::one,
+                   "Kp gain or coefficient",
+                   parameterValidators::positive),
+         parameter({"ki"}, &ExciterESST3A::Ki, units::one, "Ki gain or coefficient"),
+         parameter({"vbmax"},
+                   &ExciterESST3A::Vbmax,
+                   units::one,
+                   "Vbmax upper limit",
+                   parameterValidators::positive),
+         parameter({"kc"}, &ExciterESST3A::Kc, units::one, "Kc gain or coefficient"),
+         parameter({"xl"}, &ExciterESST3A::Xl, units::one, "Xl model setting"),
+         parameter({"vgmax"}, &ExciterESST3A::Vgmax, units::one, "Vgmax upper limit"),
+         parameter(
+             {"thetap", "theta_p"}, &ExciterESST3A::ThetaP, units::rad, "ThetaP model setting"),
+         parameter({"tm"},
+                   &ExciterESST3A::Tm,
+                   units::second,
+                   "Tm time constant",
+                   parameterValidators::positive),
+         parameter({"vmmax"}, &ExciterESST3A::Vmmax, units::one, "Vmmax upper limit"),
+         parameter({"vmmin"}, &ExciterESST3A::Vmmin, units::one, "Vmmin lower limit"),
+         localState("vr_limited",
+                    &ExciterESST3A::opFlags,
+                    ExciterESST3A::VR_LIMITED,
+                    "Retained vr_limited mode"),
+         localState("vr_limit_high",
+                    &ExciterESST3A::opFlags,
+                    ExciterESST3A::VR_LIMIT_HIGH,
+                    "Retained vr_limit_high mode"),
+         localState("vm_limited",
+                    &ExciterESST3A::opFlags,
+                    ExciterESST3A::VM_LIMITED,
+                    "Retained vm_limited mode"),
+         localState("vm_limit_high",
+                    &ExciterESST3A::opFlags,
+                    ExciterESST3A::VM_LIMIT_HIGH,
+                    "Retained vm_limit_high mode"),
+         state("efd", units::one, "Field voltage"),
+         state("vmeas", units::one, "Measured terminal voltage"),
+         state("ll", units::one, "Lead-lag state"),
+         state("vr", units::one, "Regulator state"),
+         state("vm", units::one, "vm solver state")});
+    return description;
+}
+
+void ExciterESST3A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterESST3A::getModelDescription();
+    getParamString<ExciterESST3A, Exciter>(this,
+                                           pstr,
+                                           description.numericNames(),
+                                           description.stringNames(),
+                                           description.flagNames(),
+                                           pstype);
+}
 
 ExciterESST3A::ExciterESST3A(const std::string& objName): Exciter(objName)
 {
@@ -533,185 +616,30 @@ ChangeCode ExciterESST3A::rootCheck(const IOdata& /*inputs*/,
 
 void ExciterESST3A::set(std::string_view param, std::string_view val)
 {
-    Exciter::set(param, val);
+    if (!ExciterESST3A::getModelDescription().trySetLocal(*this, param, val)) {
+        Exciter::set(param, val);
+    }
 }
 
 void ExciterESST3A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "tr") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("ESST3A TR must be positive and finite");
-        }
-        Tr = val;
-    } else if (param == "vimax") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("ESST3A VIMAX must be finite");
-        }
-        Vimax = val;
-    } else if (param == "vimin") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("ESST3A VIMIN must be finite");
-        }
-        Vimin = val;
-    } else if (param == "km") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("ESST3A KM must be positive and finite");
-        }
-        Km = val;
-    } else if (param == "tc") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("ESST3A TC must be finite");
-        }
-        Tc = val;
-    } else if (param == "tb") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("ESST3A TB must be positive and finite");
-        }
-        Tb = val;
-    } else if (param == "ka") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("ESST3A KA must be positive and finite");
-        }
-        Ka = val;
-    } else if (param == "ta") {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("ESST3A TA must be nonnegative and finite");
-        }
-        Ta = val;
-    } else if ((param == "vrmax") || (param == "urmax")) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("ESST3A VRMAX must be finite");
-        }
-        Vrmax = val;
-    } else if ((param == "vrmin") || (param == "urmin")) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("ESST3A VRMIN must be finite");
-        }
-        Vrmin = val;
-    } else if (param == "kg") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("ESST3A KG must be finite");
-        }
-        Kg = val;
-    } else if (param == "kp") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("ESST3A KP must be positive and finite");
-        }
-        Kp = val;
-    } else if (param == "ki") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("ESST3A KI must be finite");
-        }
-        Ki = val;
-    } else if (param == "vbmax") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("ESST3A VBMAX must be positive and finite");
-        }
-        Vbmax = val;
-    } else if (param == "kc") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("ESST3A KC must be finite");
-        }
-        Kc = val;
-    } else if (param == "xl") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("ESST3A XL must be finite");
-        }
-        Xl = val;
-    } else if (param == "vgmax") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("ESST3A VGMAX must be finite");
-        }
-        Vgmax = val;
-    } else if ((param == "thetap") || (param == "theta_p")) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("ESST3A THETAP must be finite");
-        }
-        ThetaP = val;
-    } else if (param == "tm") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("ESST3A TM must be positive and finite");
-        }
-        Tm = val;
-    } else if (param == "vmmax") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("ESST3A VMMAX must be finite");
-        }
-        Vmmax = val;
-    } else if (param == "vmmin") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("ESST3A VMMIN must be finite");
-        }
-        Vmmin = val;
-    } else {
-        Exciter::set(param, val, unitType);
+    if (ExciterESST3A::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    if (param == "ka" && val <= 0.0) {
+        throw InvalidParameterValue("ESST3A ka must be positive");
+    }
+    if (param == "ta" && val < 0.0) {
+        throw InvalidParameterValue("ESST3A ta must be nonnegative");
+    }
+    Exciter::set(param, val, unitType);
 }
 
 double ExciterESST3A::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if (param == "vrmax") {
-        return Vrmax;
-    }
-    if (param == "vrmin") {
-        return Vrmin;
-    }
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "vimax") {
-        return Vimax;
-    }
-    if (param == "vimin") {
-        return Vimin;
-    }
-    if (param == "km") {
-        return Km;
-    }
-    if (param == "tc") {
-        return Tc;
-    }
-    if (param == "tb") {
-        return Tb;
-    }
-    if (param == "kg") {
-        return Kg;
-    }
-    if (param == "kp") {
-        return Kp;
-    }
-    if (param == "ki") {
-        return Ki;
-    }
-    if (param == "vbmax") {
-        return Vbmax;
-    }
-    if (param == "kc") {
-        return Kc;
-    }
-    if (param == "xl") {
-        return Xl;
-    }
-    if (param == "vgmax") {
-        return Vgmax;
-    }
-    if ((param == "thetap") || (param == "theta_p")) {
-        return ThetaP;
-    }
-    if (param == "tm") {
-        return Tm;
-    }
-    if (param == "vmmax") {
-        return Vmmax;
-    }
-    if (param == "vmmin") {
-        return Vmmin;
+    if (const auto value =
+            ExciterESST3A::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Exciter::get(param, unitType);
 }

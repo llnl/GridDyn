@@ -135,15 +135,23 @@ ModelDescription::ModelDescription(std::string_view name,
             throw std::invalid_argument("duplicate declaring class in a model description");
         }
     }
-    std::vector<std::string_view> declaredNames;
+    std::vector<std::pair<std::string_view, ModelFieldKind>> declaredNames;
     for (const auto& field : mFields) {
         for (const auto& fieldName : field.names()) {
-            if (std::find(declaredNames.begin(), declaredNames.end(), fieldName) !=
-                declaredNames.end()) {
+            const auto duplicate =
+                std::find_if(declaredNames.begin(),
+                             declaredNames.end(),
+                             [fieldName](const auto& entry) { return entry.first == fieldName; });
+            const bool parameterAndState = duplicate != declaredNames.end() &&
+                ((duplicate->second == ModelFieldKind::PARAMETER &&
+                  field.kind() == ModelFieldKind::STATE) ||
+                 (duplicate->second == ModelFieldKind::STATE &&
+                  field.kind() == ModelFieldKind::PARAMETER));
+            if (duplicate != declaredNames.end() && !parameterAndState) {
                 throw std::invalid_argument("duplicate model field name: " +
                                             std::string(fieldName));
             }
-            declaredNames.push_back(fieldName);
+            declaredNames.emplace_back(fieldName, field.kind());
             if (field.editable()) {
                 if (field.kind() == ModelFieldKind::FLAG) {
                     mFlagNames.push_back(fieldName);
@@ -159,6 +167,15 @@ ModelDescription::ModelDescription(std::string_view name,
 
 const ModelField* ModelDescription::findLocal(std::string_view name) const
 {
+    // A parameter can share a name with a solver state. Keep ordinary set/get
+    // dispatch independent of the order of those two declarations.
+    const auto parameterField =
+        std::find_if(mFields.begin(), mFields.end(), [name](const auto& candidate) {
+            return candidate.kind() == ModelFieldKind::PARAMETER && candidate.matches(name);
+        });
+    if (parameterField != mFields.end()) {
+        return &*parameterField;
+    }
     const auto field = std::find_if(mFields.begin(), mFields.end(), [name](const auto& candidate) {
         return candidate.matches(name);
     });
@@ -175,13 +192,42 @@ const ModelField* ModelDescription::find(std::string_view name) const
     return nullptr;
 }
 
+const ModelField* ModelDescription::find(std::string_view name, ModelFieldKind kind) const
+{
+    for (const auto* layer = this; layer != nullptr; layer = layer->parent()) {
+        const auto field =
+            std::find_if(layer->mFields.begin(),
+                         layer->mFields.end(),
+                         [name, kind](const auto& candidate) {
+                             return candidate.kind() == kind && candidate.matches(name);
+                         });
+        if (field != layer->mFields.end()) {
+            return &*field;
+        }
+    }
+    return nullptr;
+}
+
 bool ModelDescription::trySetLocal(CoreObject& object,
                                    std::string_view name,
                                    double value,
                                    units::unit unitType) const
 {
+    if (name.empty() || name.front() == '#') {
+        return true;
+    }
+    if (!std::isfinite(value)) {
+        throw InvalidParameterValue(name);
+    }
     const auto* field = findLocal(name);
-    if (field == nullptr || field->kind() != ModelFieldKind::PARAMETER) {
+    if (field == nullptr) {
+        return false;
+    }
+    if (field->kind() == ModelFieldKind::FLAG) {
+        object.setFlag(name, value != 0.0);
+        return true;
+    }
+    if (field->kind() != ModelFieldKind::PARAMETER) {
         return false;
     }
     if (field->valueType() == ModelFieldType::STRING) {
@@ -196,6 +242,9 @@ bool ModelDescription::trySetLocal(CoreObject& object,
                                    std::string_view name,
                                    std::string_view value) const
 {
+    if (name.empty() || name.front() == '#') {
+        return true;
+    }
     const auto* field = findLocal(name);
     if (field == nullptr || !field->editable()) {
         return false;

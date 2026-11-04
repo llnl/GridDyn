@@ -124,9 +124,8 @@ namespace detail {
             }
             return static_cast<Value>(value);
         } else if constexpr (std::is_floating_point_v<Value>) {
-            if (std::isfinite(value) &&
-                (value > std::numeric_limits<Value>::max() ||
-                 value < std::numeric_limits<Value>::lowest())) {
+            if (!std::isfinite(value) || value > std::numeric_limits<Value>::max() ||
+                value < std::numeric_limits<Value>::lowest()) {
                 throw InvalidParameterValue("real parameter is out of storage range");
             }
             return static_cast<Value>(value);
@@ -250,6 +249,11 @@ namespace detail {
     }
 
 }  // namespace detail
+
+namespace parameterValidators {
+    inline constexpr auto positive = [](const auto& value) { return value > 0; };
+    inline constexpr auto nonnegative = [](const auto& value) { return value >= 0; };
+}  // namespace parameterValidators
 
 /** Numeric/string setting with ordinary conversion and optional value-only validation. */
 template<class Model, class Value, class Validator = detail::AcceptModelValue>

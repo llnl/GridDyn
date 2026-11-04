@@ -9,6 +9,7 @@
 #include "StaticExciterRectifier.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -38,6 +39,75 @@ namespace {
         return std::isfinite(value) && (std::abs(value) < 1e20);
     }
 }  // namespace
+
+const ModelDescription& ExciterAC8B::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterAC8B>(
+        "ExciterAC8B",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"}, &ExciterAC8B::Tr, units::second, "Voltage measurement time constant"),
+         parameter(
+             {"kpr", "kp_pid", "kp"}, &ExciterAC8B::Kpr, units::one, "Kpr gain or coefficient"),
+         parameter(
+             {"kir", "ki_pid", "ki"}, &ExciterAC8B::Kir, units::one, "Kir gain or coefficient"),
+         parameter({"kdr", "kd_pid"}, &ExciterAC8B::Kdr, units::one, "Kdr gain or coefficient"),
+         parameter(
+             {"tdr", "td"}, &ExciterAC8B::Tdr, units::second, "Derivative filter time constant"),
+         parameter({"vpmax", "vpidmax"}, &ExciterAC8B::Vpmax, units::one, "Vpmax upper limit"),
+         parameter({"vpmin", "vpidmin"}, &ExciterAC8B::Vpmin, units::one, "Vpmin lower limit"),
+         parameter({"vfemax", "vemax"}, &ExciterAC8B::Vemax, units::one, "Vemax upper limit"),
+         parameter({"vemin"}, &ExciterAC8B::Vemin, units::one, "Vemin lower limit"),
+         parameter({"te"}, &ExciterAC8B::Te, units::second, "Exciter time constant"),
+         parameter({"kc"}, &ExciterAC8B::Kc, units::one, "Kc gain or coefficient"),
+         parameter({"kd"}, &ExciterAC8B::Kd, units::one, "Kd gain or coefficient"),
+         parameter({"ke"}, &ExciterAC8B::Ke, units::one, "Ke gain or coefficient"),
+         parameter({"e1"}, &ExciterAC8B::E1, units::one, "E1 model setting"),
+         parameter({"se1"}, &ExciterAC8B::Se1, units::one, "Se1 model setting"),
+         parameter({"e2"}, &ExciterAC8B::E2, units::one, "E2 model setting"),
+         parameter({"se2"}, &ExciterAC8B::Se2, units::one, "Se2 model setting"),
+         localState("pid_limited",
+                    &ExciterAC8B::opFlags,
+                    ExciterAC8B::PID_LIMITED,
+                    "Retained pid_limited mode"),
+         localState("pid_limit_high",
+                    &ExciterAC8B::opFlags,
+                    ExciterAC8B::PID_LIMIT_HIGH,
+                    "Retained pid_limit_high mode"),
+         localState("regulator_limited",
+                    &ExciterAC8B::opFlags,
+                    ExciterAC8B::REGULATOR_LIMITED,
+                    "Retained regulator_limited mode"),
+         localState("regulator_limit_high",
+                    &ExciterAC8B::opFlags,
+                    ExciterAC8B::REGULATOR_LIMIT_HIGH,
+                    "Retained regulator_limit_high mode"),
+         localState("exciter_limited",
+                    &ExciterAC8B::opFlags,
+                    ExciterAC8B::EXCITER_LIMITED,
+                    "Retained exciter_limited mode"),
+         localState("exciter_limit_high",
+                    &ExciterAC8B::opFlags,
+                    ExciterAC8B::EXCITER_LIMIT_HIGH,
+                    "Retained exciter_limit_high mode"),
+         state("efd", units::one, "Field voltage"),
+         state("vmeas", units::one, "Measured terminal voltage"),
+         state("pidint", units::one, "PID integral state"),
+         state("pidder", units::one, "PID derivative state"),
+         state("vr", units::one, "Regulator state"),
+         state("ve", units::one, "Exciter voltage")});
+    return description;
+}
+
+void ExciterAC8B::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterAC8B::getModelDescription();
+    getParamString<ExciterAC8B, Exciter>(this,
+                                         pstr,
+                                         description.numericNames(),
+                                         description.stringNames(),
+                                         description.flagNames(),
+                                         pstype);
+}
 
 ExciterAC8B::ExciterAC8B(const std::string& objName): Exciter(objName)
 {
@@ -606,114 +676,22 @@ index_t ExciterAC8B::findIndex(std::string_view field, const SolverMode& sMode) 
 
 void ExciterAC8B::set(std::string_view param, std::string_view val)
 {
-    Exciter::set(param, val);
+    if (!ExciterAC8B::getModelDescription().trySetLocal(*this, param, val)) {
+        Exciter::set(param, val);
+    }
 }
 
 void ExciterAC8B::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "tr") {
-        Tr = val;
-    } else if ((param == "kpr") || (param == "kp_pid") || (param == "kp")) {
-        Kpr = val;
-    } else if ((param == "kir") || (param == "ki_pid") || (param == "ki")) {
-        Kir = val;
-    } else if ((param == "kdr") || (param == "kd_pid")) {
-        Kdr = val;
-    } else if ((param == "tdr") || (param == "td")) {
-        Tdr = val;
-    } else if ((param == "vpmax") || (param == "vpidmax")) {
-        Vpmax = val;
-    } else if ((param == "vpmin") || (param == "vpidmin")) {
-        Vpmin = val;
-    } else if ((param == "vfemax") || (param == "vemax")) {
-        Vemax = val;
-    } else if (param == "vemin") {
-        Vemin = val;
-    } else if (param == "te") {
-        Te = val;
-    } else if (param == "kc") {
-        Kc = val;
-    } else if (param == "kd") {
-        Kd = val;
-    } else if (param == "ke") {
-        Ke = val;
-    } else if (param == "e1") {
-        E1 = val;
-    } else if (param == "se1") {
-        Se1 = val;
-    } else if (param == "e2") {
-        E2 = val;
-    } else if (param == "se2") {
-        Se2 = val;
-    } else {
+    if (!ExciterAC8B::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         Exciter::set(param, val, unitType);
     }
 }
 
 double ExciterAC8B::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if ((param == "vrmax") || (param == "urmax")) {
-        return Vrmax;
-    }
-    if ((param == "vrmin") || (param == "urmin")) {
-        return Vrmin;
-    }
-    if (param == "tr") {
-        return Tr;
-    }
-    if ((param == "kpr") || (param == "kp_pid") || (param == "kp")) {
-        return Kpr;
-    }
-    if ((param == "kir") || (param == "ki_pid") || (param == "ki")) {
-        return Kir;
-    }
-    if ((param == "kdr") || (param == "kd_pid")) {
-        return Kdr;
-    }
-    if ((param == "tdr") || (param == "td")) {
-        return Tdr;
-    }
-    if ((param == "vpmax") || (param == "vpidmax")) {
-        return Vpmax;
-    }
-    if ((param == "vpmin") || (param == "vpidmin")) {
-        return Vpmin;
-    }
-    if ((param == "vfemax") || (param == "vemax")) {
-        return Vemax;
-    }
-    if (param == "vemin") {
-        return Vemin;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if (param == "kc") {
-        return Kc;
-    }
-    if (param == "kd") {
-        return Kd;
-    }
-    if (param == "ke") {
-        return Ke;
-    }
-    if (param == "e1") {
-        return E1;
-    }
-    if (param == "se1") {
-        return Se1;
-    }
-    if (param == "e2") {
-        return E2;
-    }
-    if (param == "se2") {
-        return Se2;
+    if (const auto value = ExciterAC8B::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Exciter::get(param, unitType);
 }

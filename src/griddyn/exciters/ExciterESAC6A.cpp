@@ -9,6 +9,7 @@
 #include "StaticExciterRectifier.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -159,6 +160,55 @@ namespace {
         return std::isfinite(value) && (std::abs(value) < 1e20);
     }
 }  // namespace
+
+const ModelDescription& ExciterESAC6A::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterESAC6A>(
+        "ExciterESAC6A",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"}, &ExciterESAC6A::Tr, units::second, "Voltage measurement time constant"),
+         parameter({"tk"}, &ExciterESAC6A::Tk, units::second, "Tk time constant"),
+         parameter({"tb"}, &ExciterESAC6A::Tb, units::second, "Lead-lag denominator time constant"),
+         parameter({"tc"}, &ExciterESAC6A::Tc, units::second, "Lead-lag numerator time constant"),
+         parameter({"vamax"}, &ExciterESAC6A::Vamax, units::one, "Vamax upper limit"),
+         parameter({"vamin"}, &ExciterESAC6A::Vamin, units::one, "Vamin lower limit"),
+         parameter({"te"}, &ExciterESAC6A::Te, units::second, "Exciter time constant"),
+         parameter({"vfelim"}, &ExciterESAC6A::Vfelim, units::one, "Vfelim model setting"),
+         parameter({"kh"}, &ExciterESAC6A::Kh, units::one, "Kh gain or coefficient"),
+         parameter({"vhmax"}, &ExciterESAC6A::Vhmax, units::one, "Vhmax upper limit"),
+         parameter({"th"}, &ExciterESAC6A::Th, units::second, "Th time constant"),
+         parameter({"tj"}, &ExciterESAC6A::Tj, units::second, "Tj time constant"),
+         parameter({"kc"}, &ExciterESAC6A::Kc, units::one, "Kc gain or coefficient"),
+         parameter({"kd"}, &ExciterESAC6A::Kd, units::one, "Kd gain or coefficient"),
+         parameter({"ke"}, &ExciterESAC6A::Ke, units::one, "Ke gain or coefficient"),
+         parameter({"e1"}, &ExciterESAC6A::E1, units::one, "E1 model setting"),
+         parameter({"se1"}, &ExciterESAC6A::Se1, units::one, "Se1 model setting"),
+         parameter({"e2"}, &ExciterESAC6A::E2, units::one, "E2 model setting"),
+         parameter({"se2"}, &ExciterESAC6A::Se2, units::one, "Se2 model setting"),
+         flag({"spdmlt"}, &ExciterESAC6A::speedMultiplier, "speedMultiplier option"),
+         localState("exciter_at_lower_limit",
+                    &ExciterESAC6A::opFlags,
+                    ExciterESAC6A::EXCITER_AT_LOWER_LIMIT,
+                    "Retained exciter_at_lower_limit mode"),
+         state("efd", units::one, "Field voltage"),
+         state("vc", units::one, "Sensed terminal voltage"),
+         state("xa", units::one, "xa solver state"),
+         state("xll", units::one, "Lead-lag state"),
+         state("ve", units::one, "Exciter voltage"),
+         state("vf", units::one, "Feedback state")});
+    return description;
+}
+
+void ExciterESAC6A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterESAC6A::getModelDescription();
+    getParamString<ExciterESAC6A, Exciter>(this,
+                                           pstr,
+                                           description.numericNames(),
+                                           description.stringNames(),
+                                           description.flagNames(),
+                                           pstype);
+}
 
 ExciterESAC6A::ExciterESAC6A(const std::string& objName): Exciter(objName)
 {
@@ -675,135 +725,22 @@ void ExciterESAC6A::set(std::string_view param, std::string_view val)
 
 void ExciterESAC6A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "tr") {
-        Tr = val;
-    } else if (param == "ka") {
-        Ka = val;
-    } else if (param == "ta") {
-        Ta = val;
-    } else if (param == "tk") {
-        Tk = val;
-    } else if (param == "tb") {
-        Tb = val;
-    } else if (param == "tc") {
-        Tc = val;
-    } else if (param == "vamax") {
-        Vamax = val;
-    } else if (param == "vamin") {
-        Vamin = val;
-    } else if (param == "vrmax") {
-        Vrmax = val;
-    } else if (param == "vrmin") {
-        Vrmin = val;
-    } else if (param == "te") {
-        Te = val;
-    } else if (param == "vfelim") {
-        Vfelim = val;
-    } else if (param == "kh") {
-        Kh = val;
-    } else if (param == "vhmax") {
-        Vhmax = val;
-    } else if (param == "th") {
-        Th = val;
-    } else if (param == "tj") {
-        Tj = val;
-    } else if (param == "kc") {
-        Kc = val;
-    } else if (param == "kd") {
-        Kd = val;
-    } else if (param == "ke") {
-        Ke = val;
-    } else if (param == "e1") {
-        E1 = val;
-    } else if (param == "se1") {
-        Se1 = val;
-    } else if (param == "e2") {
-        E2 = val;
-    } else if (param == "se2") {
-        Se2 = val;
-    } else if (param == "spdmlt") {
-        if ((val != 0.0) && (val != 1.0)) {
-            throw InvalidParameterValue("ESAC6A SPDMLT must be zero or one");
-        }
-        speedMultiplier = (val != 0.0);
-    } else {
+    if (param == "spdmlt" && val != 0.0 && val != 1.0) {
+        throw InvalidParameterValue("ESAC6A SPDMLT must be zero or one");
+    }
+    if (!ExciterESAC6A::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         Exciter::set(param, val, unitType);
     }
 }
 
 double ExciterESAC6A::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if (param == "tk") {
-        return Tk;
-    }
-    if (param == "tb") {
-        return Tb;
-    }
-    if (param == "tc") {
-        return Tc;
-    }
-    if (param == "vamax") {
-        return Vamax;
-    }
-    if (param == "vamin") {
-        return Vamin;
-    }
-    if (param == "vrmax") {
-        return Vrmax;
-    }
-    if (param == "vrmin") {
-        return Vrmin;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if (param == "vfelim") {
-        return Vfelim;
-    }
-    if (param == "kh") {
-        return Kh;
-    }
-    if (param == "vhmax") {
-        return Vhmax;
-    }
-    if (param == "th") {
-        return Th;
-    }
-    if (param == "tj") {
-        return Tj;
-    }
-    if (param == "kc") {
-        return Kc;
-    }
-    if (param == "kd") {
-        return Kd;
-    }
-    if (param == "ke") {
-        return Ke;
-    }
-    if (param == "e1") {
-        return E1;
-    }
-    if (param == "se1") {
-        return Se1;
-    }
-    if (param == "e2") {
-        return E2;
-    }
-    if (param == "se2") {
-        return Se2;
-    }
     if (param == "spdmlt") {
         return speedMultiplier ? 1.0 : 0.0;
+    }
+    if (const auto value =
+            ExciterESAC6A::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Exciter::get(param, unitType);
 }
@@ -812,4 +749,20 @@ bool ExciterESAC6A::supportsLimiterSignal(ExciterLimiterSignal signal) const
 {
     return signal == ExciterLimiterSignal::UNDER;
 }
+
+void ExciterESAC6A::setFlag(std::string_view param, bool value)
+{
+    if (!ExciterESAC6A::getModelDescription().trySetFlagLocal(*this, param, value)) {
+        Exciter::setFlag(param, value);
+    }
+}
+
+bool ExciterESAC6A::getFlag(std::string_view param) const
+{
+    if (const auto value = ExciterESAC6A::getModelDescription().tryGetFlagLocal(*this, param)) {
+        return *value;
+    }
+    return Exciter::getFlag(param);
+}
+
 }  // namespace griddyn::exciters

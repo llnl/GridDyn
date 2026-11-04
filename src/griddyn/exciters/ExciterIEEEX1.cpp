@@ -10,12 +10,34 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
 #include <string>
 
 namespace griddyn::exciters {
+
+const ModelDescription& ExciterIEEEX1::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<ExciterIEEEX1>("ExciterIEEEX1",
+                                                &ExciterDC2A::getModelDescription(),
+                                                {});
+    return description;
+}
+
+void ExciterIEEEX1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterIEEEX1::getModelDescription();
+    getParamString<ExciterIEEEX1, ExciterDC2A>(this,
+                                               pstr,
+                                               description.numericNames(),
+                                               description.stringNames(),
+                                               description.flagNames(),
+                                               pstype);
+}
+
 ExciterIEEEX1::ExciterIEEEX1(const std::string& objName): ExciterDC2A(objName) {}
 
 CoreObject* ExciterIEEEX1::clone(CoreObject* obj) const
@@ -255,36 +277,6 @@ ChangeCode ExciterIEEEX1::rootCheck(const IOdata& inputs,
 
 double ExciterIEEEX1::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if (param == "tb") {
-        return Tb;
-    }
-    if (param == "tc") {
-        return Tc;
-    }
-    if ((param == "vrmax") || (param == "urmax")) {
-        return Vrmax;
-    }
-    if ((param == "vrmin") || (param == "urmin")) {
-        return Vrmin;
-    }
-    if (param == "ke") {
-        return Ke;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if (param == "kf") {
-        return Kf;
-    }
-    if (param == "tf") {
-        return Tf;
-    }
     if (param == "switch") {
         return 0.0;
     }

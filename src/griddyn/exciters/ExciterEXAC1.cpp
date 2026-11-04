@@ -9,6 +9,7 @@
 #include "StaticExciterRectifier.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -49,6 +50,80 @@ namespace {
         return index;
     }
 }  // namespace
+
+const ModelDescription& ExciterEXAC1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterEXAC1>(
+        "ExciterEXAC1",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"},
+                   &ExciterEXAC1::Tr,
+                   units::second,
+                   "Voltage measurement time constant",
+                   parameterValidators::nonnegative),
+         parameter({"tb"},
+                   &ExciterEXAC1::Tb,
+                   units::second,
+                   "Lead-lag denominator time constant",
+                   parameterValidators::nonnegative),
+         parameter({"tc"}, &ExciterEXAC1::Tc, units::second, "Lead-lag numerator time constant"),
+         parameter({"te"},
+                   &ExciterEXAC1::Te,
+                   units::second,
+                   "Exciter time constant",
+                   parameterValidators::positive),
+         parameter({"kf"}, &ExciterEXAC1::Kf, units::one, "Kf gain or coefficient"),
+         parameter({"tf"},
+                   &ExciterEXAC1::Tf,
+                   units::second,
+                   "Feedback time constant",
+                   parameterValidators::positive),
+         parameter({"kc"}, &ExciterEXAC1::Kc, units::one, "Kc gain or coefficient"),
+         parameter({"kd"}, &ExciterEXAC1::Kd, units::one, "Kd gain or coefficient"),
+         parameter({"ke"}, &ExciterEXAC1::Ke, units::one, "Ke gain or coefficient"),
+         parameter({"e1"}, &ExciterEXAC1::E1, units::one, "E1 model setting"),
+         parameter({"se1"}, &ExciterEXAC1::Se1, units::one, "Se1 model setting"),
+         parameter({"e2"}, &ExciterEXAC1::E2, units::one, "E2 model setting"),
+         parameter({"se2"}, &ExciterEXAC1::Se2, units::one, "Se2 model setting"),
+         localState("rootTransitionPending",
+                    &ExciterEXAC1::rootTransitionPending,
+                    "Retained rootTransitionPending mode"),
+         localState("rootTransitionLimited",
+                    &ExciterEXAC1::rootTransitionLimited,
+                    "Retained rootTransitionLimited mode"),
+         localState("rootTransitionHigh",
+                    &ExciterEXAC1::rootTransitionHigh,
+                    "Retained rootTransitionHigh mode"),
+         localState("rootRearmPending",
+                    &ExciterEXAC1::rootRearmPending,
+                    "Retained rootRearmPending mode"),
+         localState("regulator_limited",
+                    &ExciterEXAC1::opFlags,
+                    ExciterEXAC1::REGULATOR_LIMITED,
+                    "Retained regulator_limited mode"),
+         localState("regulator_limit_high",
+                    &ExciterEXAC1::opFlags,
+                    ExciterEXAC1::REGULATOR_LIMIT_HIGH,
+                    "Retained regulator_limit_high mode"),
+         state("efd", units::one, "Field voltage"),
+         state("va", units::one, "Amplifier state"),
+         state("vmeas", units::one, "Measured terminal voltage"),
+         state("ll", units::one, "Lead-lag state"),
+         state("ve", units::one, "Exciter voltage"),
+         state("wf", units::one, "Washout state")});
+    return description;
+}
+
+void ExciterEXAC1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterEXAC1::getModelDescription();
+    getParamString<ExciterEXAC1, Exciter>(this,
+                                          pstr,
+                                          description.numericNames(),
+                                          description.stringNames(),
+                                          description.flagNames(),
+                                          pstype);
+}
 
 ExciterEXAC1::ExciterEXAC1(const std::string& objName): Exciter(objName)
 {
@@ -910,124 +985,23 @@ ChangeCode ExciterEXAC1::rootCheck(const IOdata& inputs,
 
 void ExciterEXAC1::set(std::string_view param, std::string_view val)
 {
-    Exciter::set(param, val);
+    if (!ExciterEXAC1::getModelDescription().trySetLocal(*this, param, val)) {
+        Exciter::set(param, val);
+    }
 }
 
 void ExciterEXAC1::set(std::string_view param, double val, units::unit unitType)
 {
-    const auto positive = [val](const char* label) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue(std::string("EXAC1 ") + label +
-                                        " must be positive and finite");
-        }
-    };
-    const auto nonnegative = [val](const char* label) {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue(std::string("EXAC1 ") + label +
-                                        " must be nonnegative and finite");
-        }
-    };
-    const auto finite = [val](const char* label) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue(std::string("EXAC1 ") + label + " must be finite");
-        }
-    };
-    if (param == "tr") {
-        nonnegative("TR");
-        Tr = val;
-    } else if (param == "tb") {
-        nonnegative("TB");
-        Tb = val;
-    } else if (param == "tc") {
-        finite("TC");
-        Tc = val;
-    } else if (param == "te") {
-        positive("TE");
-        Te = val;
-    } else if (param == "tf") {
-        positive("TF");
-        Tf = val;
-    } else if (param == "kf") {
-        finite("KF");
-        Kf = val;
-    } else if (param == "kc") {
-        finite("KC");
-        Kc = val;
-    } else if (param == "kd") {
-        finite("KD");
-        Kd = val;
-    } else if (param == "ke") {
-        finite("KE");
-        Ke = val;
-    } else if (param == "e1") {
-        finite("E1");
-        E1 = val;
-    } else if (param == "se1") {
-        finite("SE1");
-        Se1 = val;
-    } else if (param == "e2") {
-        finite("E2");
-        E2 = val;
-    } else if (param == "se2") {
-        finite("SE2");
-        Se2 = val;
-    } else {
+    if (!ExciterEXAC1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         Exciter::set(param, val, unitType);
     }
 }
 
 double ExciterEXAC1::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if ((param == "vrmax") || (param == "urmax")) {
-        return Vrmax;
-    }
-    if ((param == "vrmin") || (param == "urmin")) {
-        return Vrmin;
-    }
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "tb") {
-        return Tb;
-    }
-    if (param == "tc") {
-        return Tc;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if (param == "tf") {
-        return Tf;
-    }
-    if (param == "kf") {
-        return Kf;
-    }
-    if (param == "kc") {
-        return Kc;
-    }
-    if (param == "kd") {
-        return Kd;
-    }
-    if (param == "ke") {
-        return Ke;
-    }
-    if (param == "e1") {
-        return E1;
-    }
-    if (param == "se1") {
-        return Se1;
-    }
-    if (param == "e2") {
-        return E2;
-    }
-    if (param == "se2") {
-        return Se2;
+    if (const auto value =
+            ExciterEXAC1::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Exciter::get(param, unitType);
 }

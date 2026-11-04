@@ -82,6 +82,8 @@ class ExciterEXPIC1 final: public Exciter {
     utilities::Saturation saturation{utilities::Saturation::SaturationType::CUTOFF_QUADRATIC};
 
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     explicit ExciterEXPIC1(const std::string& objName = "exciterEXPIC1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;

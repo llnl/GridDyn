@@ -9,6 +9,8 @@
 #include "../Generator.h"
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
+#include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -17,6 +19,32 @@
 namespace griddyn::exciters {
 namespace {
     constexpr double initialLimitContactTolerance = 1e-7;
+}
+
+const ModelDescription& ExciterDC1A::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterDC1A>(
+        "ExciterDC1A",
+        &ExciterIEEEtype1::getModelDescription(),
+        {parameter({"tb"}, &ExciterDC1A::Tb, units::second, "Lead-lag denominator time constant"),
+         parameter({"tc"}, &ExciterDC1A::Tc, units::second, "Lead-lag numerator time constant"),
+         state("ef", units::one, "Field voltage"),
+         state("vr", units::one, "Regulator state"),
+         state("x", units::one, "x solver state"),
+         state("rf", units::one, "rf solver state"),
+         state("vmeas", units::one, "Measured terminal voltage")});
+    return description;
+}
+
+void ExciterDC1A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterDC1A::getModelDescription();
+    getParamString<ExciterDC1A, ExciterIEEEtype1>(this,
+                                                  pstr,
+                                                  description.numericNames(),
+                                                  description.stringNames(),
+                                                  description.flagNames(),
+                                                  pstype);
 }
 
 ExciterDC1A::ExciterDC1A(const std::string& objName): ExciterIEEEtype1(objName)
@@ -370,19 +398,25 @@ stringVec ExciterDC1A::localStateNames() const
 }
 void ExciterDC1A::set(std::string_view param, std::string_view val)
 {
-    ExciterIEEEtype1::set(param, val);
+    if (!ExciterDC1A::getModelDescription().trySetLocal(*this, param, val)) {
+        ExciterIEEEtype1::set(param, val);
+    }
 }
 
 // set parameters
 void ExciterDC1A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "tb") {
-        Tb = val;
-    } else if (param == "tc") {
-        Tc = val;
-    } else {
+    if (!ExciterDC1A::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         ExciterIEEEtype1::set(param, val, unitType);
     }
+}
+
+double ExciterDC1A::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value = ExciterDC1A::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return ExciterIEEEtype1::get(param, unitType);
 }
 
 }  // namespace griddyn::exciters

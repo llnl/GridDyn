@@ -10,6 +10,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -19,6 +20,30 @@ namespace griddyn::exciters {
 namespace {
     constexpr double initialLimitContactTolerance = 1e-7;
 }  // namespace
+
+const ModelDescription& ExciterIEEEtype2::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterIEEEtype2>(
+        "ExciterIEEEtype2",
+        &ExciterIEEEtype1::getModelDescription(),
+        {parameter({"tf2"}, &ExciterIEEEtype2::Tf2, units::second, "Tf2 time constant"),
+         state("ef", units::one, "Field voltage"),
+         state("vr", units::one, "Regulator state"),
+         state("x1", units::one, "x1 solver state"),
+         state("x2", units::one, "x2 solver state")});
+    return description;
+}
+
+void ExciterIEEEtype2::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterIEEEtype2::getModelDescription();
+    getParamString<ExciterIEEEtype2, ExciterIEEEtype1>(this,
+                                                       pstr,
+                                                       description.numericNames(),
+                                                       description.stringNames(),
+                                                       description.flagNames(),
+                                                       pstype);
+}
 
 ExciterIEEEtype2::ExciterIEEEtype2(const std::string& objName): ExciterIEEEtype1(objName) {}
 
@@ -247,49 +272,32 @@ ChangeCode ExciterIEEEtype2::rootCheck(const IOdata& inputs,
 
 void ExciterIEEEtype2::set(std::string_view param, std::string_view val)
 {
-    ExciterIEEEtype1::set(param, val);
+    if (!ExciterIEEEtype2::getModelDescription().trySetLocal(*this, param, val)) {
+        ExciterIEEEtype1::set(param, val);
+    }
 }
 
 // set parameters
 void ExciterIEEEtype2::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "tf1") {
-        Tf = val;
-    } else if (param == "tf2") {
-        Tf2 = val;
-    } else {
-        ExciterIEEEtype1::set(param, val, unitType);
+    if (ExciterIEEEtype2::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    if (param == "tf1") {
+        ExciterIEEEtype1::set("tf", val, unitType);
+        return;
+    }
+    ExciterIEEEtype1::set(param, val, unitType);
 }
 
 double ExciterIEEEtype2::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if (param == "vrmax") {
-        return Vrmax;
-    }
-    if (param == "vrmin") {
-        return Vrmin;
-    }
-    if (param == "ke") {
-        return Ke;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if (param == "kf") {
-        return Kf;
-    }
     if (param == "tf1") {
-        return Tf;
+        return ExciterIEEEtype1::get("tf", unitType);
     }
-    if (param == "tf2") {
-        return Tf2;
+    if (const auto value =
+            ExciterIEEEtype2::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return ExciterIEEEtype1::get(param, unitType);
 }

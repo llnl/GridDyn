@@ -7,13 +7,37 @@
 #include "core/CoreExceptions.h"
 #include "core/ModelDescription.h"
 #include "core/coreDefinitions.hpp"
+#include "griddyn/exciters/ExciterAC7B.h"
+#include "griddyn/exciters/ExciterAC8B.h"
+#include "griddyn/exciters/ExciterDC1A.h"
+#include "griddyn/exciters/ExciterDC2A.h"
+#include "griddyn/exciters/ExciterESAC1A.h"
+#include "griddyn/exciters/ExciterESAC2A.h"
+#include "griddyn/exciters/ExciterESAC5A.h"
+#include "griddyn/exciters/ExciterESAC6A.h"
+#include "griddyn/exciters/ExciterESST1A.h"
+#include "griddyn/exciters/ExciterESST2A.h"
+#include "griddyn/exciters/ExciterESST3A.h"
+#include "griddyn/exciters/ExciterESST4B.h"
+#include "griddyn/exciters/ExciterEXAC1.h"
+#include "griddyn/exciters/ExciterEXAC2.h"
+#include "griddyn/exciters/ExciterEXAC4.h"
+#include "griddyn/exciters/ExciterEXPIC1.h"
+#include "griddyn/exciters/ExciterEXST1.h"
+#include "griddyn/exciters/ExciterIEEET3.h"
+#include "griddyn/exciters/ExciterIEEEX1.h"
+#include "griddyn/exciters/ExciterIEEEtype1.h"
+#include "griddyn/exciters/ExciterIEEEtype2.h"
+#include "griddyn/exciters/ExciterSCRX.h"
 #include "griddyn/exciters/ExciterSEXS.h"
 #include "griddyn/solvers/SolverMode.hpp"
 #include "utilities/MatrixDataSparse.hpp"
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <gtest/gtest.h>
+#include <limits>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -430,6 +454,164 @@ TEST(ExciterDescriptionTests, RejectsMalformedLimiterStorageBeforeChangingAnyFie
     EXPECT_DOUBLE_EQ(model.get("te"), 0.9);
     EXPECT_DOUBLE_EQ(model.get("vbias"), 0.25);
     EXPECT_DOUBLE_EQ(operatingBias(model), 0.5);
+}
+
+TEST(ExciterDescriptionTests, CoversEveryConcreteExciterAndItsActiveStateNames)
+{
+    std::vector<std::unique_ptr<Exciter>> models;
+    models.emplace_back(std::make_unique<exciters::ExciterAC7B>());
+    models.emplace_back(std::make_unique<exciters::ExciterAC8B>());
+    models.emplace_back(std::make_unique<exciters::ExciterDC1A>());
+    models.emplace_back(std::make_unique<exciters::ExciterDC2A>());
+    models.emplace_back(std::make_unique<exciters::ExciterESAC1A>());
+    models.emplace_back(std::make_unique<exciters::ExciterESAC2A>());
+    models.emplace_back(std::make_unique<exciters::ExciterESAC5A>());
+    models.emplace_back(std::make_unique<exciters::ExciterESAC6A>());
+    models.emplace_back(std::make_unique<exciters::ExciterESST1A>());
+    models.emplace_back(std::make_unique<exciters::ExciterESST2A>());
+    models.emplace_back(std::make_unique<exciters::ExciterESST3A>());
+    models.emplace_back(std::make_unique<exciters::ExciterESST4B>());
+    models.emplace_back(std::make_unique<exciters::ExciterEXAC1>());
+    models.emplace_back(std::make_unique<exciters::ExciterEXAC2>());
+    models.emplace_back(std::make_unique<exciters::ExciterEXAC4>());
+    models.emplace_back(std::make_unique<exciters::ExciterEXPIC1>());
+    models.emplace_back(std::make_unique<exciters::ExciterEXST1>());
+    models.emplace_back(std::make_unique<exciters::ExciterIEEET3>());
+    models.emplace_back(std::make_unique<exciters::ExciterIEEEX1>());
+    models.emplace_back(std::make_unique<exciters::ExciterIEEEtype1>());
+    models.emplace_back(std::make_unique<exciters::ExciterIEEEtype2>());
+    models.emplace_back(std::make_unique<exciters::ExciterSCRX>());
+    models.emplace_back(std::make_unique<exciters::ExciterSEXS>());
+    for (const auto& model : models) {
+        const auto& description = model->getModelDescription();
+        SCOPED_TRACE(std::string(description.name()));
+        EXPECT_NO_THROW(model->set("", std::numeric_limits<double>::quiet_NaN()));
+        EXPECT_NO_THROW(model->set("# ignored", std::numeric_limits<double>::infinity()));
+        EXPECT_NO_THROW(model->set("", "ignored"));
+        EXPECT_NO_THROW(model->set("# ignored", "ignored"));
+        EXPECT_THROW(model->set("unknown_parameter", std::numeric_limits<double>::quiet_NaN()),
+                     InvalidParameterValue);
+        EXPECT_TRUE(description.describesExactType(*model));
+        const auto saved = ModelFieldSnapshot::capture(*model);
+        EXPECT_FALSE(saved.mFields.empty());
+        EXPECT_NO_THROW(saved.restore(*model));
+        const auto stateOnly = ModelFieldSnapshot::capture(*model, FieldSnapshotLevel::STATE);
+        EXPECT_NO_THROW(stateOnly.restore(*model));
+        for (const auto& name : model->localStateNames()) {
+            EXPECT_NE(description.find(name, ModelFieldKind::STATE), nullptr) << name;
+        }
+        for (const auto& field : description.fields()) {
+            if (field.kind() != ModelFieldKind::PARAMETER ||
+                field.valueType() != ModelFieldType::REAL) {
+                continue;
+            }
+            const auto stored = std::get<double>(field.value(*model));
+            if (std::isfinite(stored)) {
+                EXPECT_DOUBLE_EQ(model->get(field.name()), stored) << field.name();
+            }
+        }
+    }
+}
+
+TEST(ExciterDescriptionTests, DistinguishesExpic1ParameterAndStateWithTheSameName)
+{
+    exciters::ExciterEXPIC1 model;
+    const auto& description = model.getModelDescription();
+    ASSERT_NE(description.find("vr1"), nullptr);
+    EXPECT_EQ(description.find("vr1")->kind(), ModelFieldKind::PARAMETER);
+    ASSERT_NE(description.find("vr1", ModelFieldKind::STATE), nullptr);
+    EXPECT_EQ(description.find("vr1", ModelFieldKind::STATE)->kind(), ModelFieldKind::STATE);
+}
+
+TEST(ExciterDescriptionTests, UsesMemberDispatchAndPreservesSpecialValidation)
+{
+    exciters::ExciterAC7B simple;
+    simple.set("tr", 250.0, units::ms);
+    EXPECT_NEAR(simple.get("tr"), 0.25, 1e-6);
+    EXPECT_NEAR(simple.get("tr", units::ms), 250.0, 1e-4);
+
+    exciters::ExciterESAC2A validated;
+    EXPECT_THROW(validated.set("tr", std::numeric_limits<double>::infinity()),
+                 InvalidParameterValue);
+    validated.set("uel_enabled", -2.0);
+    EXPECT_TRUE(validated.getFlag("uel_enabled"));
+    EXPECT_THROW(validated.set("uel_enabled", std::numeric_limits<double>::quiet_NaN()),
+                 InvalidParameterValue);
+    EXPECT_TRUE(validated.getFlag("uel_enabled"));
+    EXPECT_THROW(validated.set("oel_enabled", std::numeric_limits<double>::infinity()),
+                 InvalidParameterValue);
+    const auto basePower = validated.get("basepower");
+    EXPECT_THROW(validated.set("basepower", std::numeric_limits<double>::infinity()),
+                 InvalidParameterValue);
+    EXPECT_DOUBLE_EQ(validated.get("basepower"), basePower);
+    EXPECT_NO_THROW(validated.set("# ignored", std::numeric_limits<double>::quiet_NaN()));
+    EXPECT_NO_THROW(validated.set("", std::numeric_limits<double>::infinity()));
+
+    exciters::ExciterIEEEtype1 inherited;
+    inherited.set("ke", 2.0);
+    EXPECT_DOUBLE_EQ(inherited.get("ke"), 2.0);
+    const auto* limiter = inherited.getModelDescription().find("limiter");
+    ASSERT_NE(limiter, nullptr);
+    EXPECT_EQ(limiter->kind(), ModelFieldKind::COMMAND);
+}
+
+TEST(ExciterDescriptionTests, RestoresPackedLimiterHistoryInAnotherExciter)
+{
+    exciters::ExciterAC7B model;
+    auto original = ModelFieldSnapshot::capture(model, FieldSnapshotLevel::STATE);
+    auto changed = original;
+    entry(changed, "pid_limited").mValue = true;
+    changed.restore(model);
+    const auto* limiter = model.getModelDescription().find("pid_limited");
+    ASSERT_NE(limiter, nullptr);
+    EXPECT_TRUE(std::get<bool>(limiter->value(model)));
+    original.restore(model);
+    EXPECT_FALSE(std::get<bool>(limiter->value(model)));
+}
+
+TEST(ExciterDescriptionTests, DispatchesValidatedFieldsAndInheritedAliases)
+{
+    exciters::ExciterEXAC1 exac1;
+    EXPECT_THROW(exac1.set("te", 0.0), InvalidParameterValue);
+    exac1.set("te", 250.0, units::ms);
+    EXPECT_NEAR(exac1.get("te", units::ms), 250.0, 1e-4);
+
+    exciters::ExciterEXAC2 exac2;
+    EXPECT_THROW(exac2.set("kl", 0.0), InvalidParameterValue);
+    exciters::ExciterESST3A esst3a;
+    EXPECT_THROW(esst3a.set("kp", 0.0), InvalidParameterValue);
+    exciters::ExciterEXST1 exst1;
+    EXPECT_THROW(exst1.set("ta", 0.0), InvalidParameterValue);
+
+    exciters::ExciterSCRX scrx;
+    scrx.set("k", 3.0);
+    scrx.set("efdmax", 5.0);
+    EXPECT_DOUBLE_EQ(scrx.get("ka"), 3.0);
+    EXPECT_DOUBLE_EQ(scrx.get("emax"), 5.0);
+
+    exciters::ExciterIEEEtype2 type2;
+    type2.set("tf1", 500.0, units::ms);
+    EXPECT_NEAR(type2.get("tf1", units::ms), 500.0, 1e-4);
+}
+
+TEST(ExciterDescriptionTests, ValidatesLocalFieldsThroughTheirDescriptions)
+{
+    exciters::ExciterESST3A esst3a;
+    const auto& esst3aDescription = esst3a.getModelDescription();
+    const auto originalGain = esst3a.get("kp");
+    EXPECT_THROW(esst3aDescription.trySetLocal(esst3a, "kp", 0.0), InvalidParameterValue);
+    EXPECT_DOUBLE_EQ(esst3a.get("kp"), originalGain);
+    EXPECT_THROW(esst3aDescription.trySetLocal(esst3a,
+                                               "vimax",
+                                               std::numeric_limits<double>::infinity()),
+                 InvalidParameterValue);
+    esst3a.set("theta_p", 0.2);
+    EXPECT_NEAR(esst3a.get("thetap"), 0.2, 1e-6);
+
+    exciters::ExciterEXST1 exst1;
+    EXPECT_THROW(exst1.getModelDescription().trySetLocal(exst1, "tb", 0.0), InvalidParameterValue);
+    exciters::ExciterESST1A esst1a;
+    EXPECT_THROW(esst1a.set("uel", 1.5), InvalidParameterValue);
 }
 
 }  // namespace griddyn

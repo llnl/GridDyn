@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -108,6 +109,41 @@ namespace {
         return signal;
     }
 }  // namespace
+
+const ModelDescription& ExciterSCRX::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterSCRX>(
+        "ExciterSCRX",
+        &Exciter::getModelDescription(),
+        {parameter({"tatb"}, &ExciterSCRX::TaOverTb, units::one, "TaOverTb model setting"),
+         parameter({"tb"}, &ExciterSCRX::Tb, units::second, "Lead-lag denominator time constant"),
+         parameter({"te"}, &ExciterSCRX::Te, units::second, "Exciter time constant"),
+         parameter({"rcrfd", "rc_rfd"}, &ExciterSCRX::rCrFd, units::one, "rCrFd model setting"),
+         flag({"cswitch"}, &ExciterSCRX::solidFed, "solidFed option"),
+         localState("amplifier_limited",
+                    &ExciterSCRX::opFlags,
+                    ExciterSCRX::AMPLIFIER_LIMITED,
+                    "Retained amplifier_limited mode"),
+         localState("amplifier_limit_high",
+                    &ExciterSCRX::opFlags,
+                    ExciterSCRX::AMPLIFIER_LIMIT_HIGH,
+                    "Retained amplifier_limit_high mode"),
+         state("efd", units::one, "Field voltage"),
+         state("xll", units::one, "Lead-lag state"),
+         state("efdpre", units::one, "efdpre solver state")});
+    return description;
+}
+
+void ExciterSCRX::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterSCRX::getModelDescription();
+    getParamString<ExciterSCRX, Exciter>(this,
+                                         pstr,
+                                         description.numericNames(),
+                                         description.stringNames(),
+                                         description.flagNames(),
+                                         pstype);
+}
 
 ExciterSCRX::ExciterSCRX(const std::string& objName): Exciter(objName)
 {
@@ -534,55 +570,43 @@ void ExciterSCRX::set(std::string_view param, std::string_view val)
 
 void ExciterSCRX::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "tatb") {
-        TaOverTb = val;
-    } else if (param == "tb") {
-        Tb = val;
-    } else if ((param == "k") || (param == "ka")) {
-        Ka = val;
-    } else if (param == "te") {
-        Te = val;
-    } else if ((param == "emin") || (param == "efdmin") || (param == "vrmin")) {
-        Vrmin = val;
-    } else if ((param == "emax") || (param == "efdmax") || (param == "vrmax")) {
-        Vrmax = val;
-    } else if (param == "cswitch") {
-        if ((val != 0.0) && (val != 1.0)) {
-            throw InvalidParameterValue("SCRX CSWITCH must be zero or one");
-        }
-        solidFed = (val != 0.0);
-    } else if ((param == "rcrfd") || (param == "rc_rfd")) {
-        rCrFd = val;
-    } else {
-        Exciter::set(param, val, unitType);
+    if (param == "cswitch" && val != 0.0 && val != 1.0) {
+        throw InvalidParameterValue("SCRX CSWITCH must be zero or one");
     }
+    if (ExciterSCRX::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
+    if (param == "k") {
+        Exciter::set("ka", val, unitType);
+        return;
+    }
+    if ((param == "emin") || (param == "efdmin")) {
+        Exciter::set("vrmin", val, unitType);
+        return;
+    }
+    if ((param == "emax") || (param == "efdmax")) {
+        Exciter::set("vrmax", val, unitType);
+        return;
+    }
+    Exciter::set(param, val, unitType);
 }
 
 double ExciterSCRX::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "tatb") {
-        return TaOverTb;
+    if (param == "k") {
+        return Exciter::get("ka", unitType);
     }
-    if (param == "tb") {
-        return Tb;
+    if ((param == "emin") || (param == "efdmin")) {
+        return Exciter::get("vrmin", unitType);
     }
-    if ((param == "k") || (param == "ka")) {
-        return Ka;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if ((param == "emin") || (param == "efdmin") || (param == "vrmin")) {
-        return Vrmin;
-    }
-    if ((param == "emax") || (param == "efdmax") || (param == "vrmax")) {
-        return Vrmax;
+    if ((param == "emax") || (param == "efdmax")) {
+        return Exciter::get("vrmax", unitType);
     }
     if (param == "cswitch") {
         return solidFed ? 1.0 : 0.0;
     }
-    if ((param == "rcrfd") || (param == "rc_rfd")) {
-        return rCrFd;
+    if (const auto value = ExciterSCRX::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Exciter::get(param, unitType);
 }
@@ -590,4 +614,20 @@ bool ExciterSCRX::supportsLimiterSignal(ExciterLimiterSignal /*signal*/) const
 {
     return true;
 }
+
+void ExciterSCRX::setFlag(std::string_view param, bool value)
+{
+    if (!ExciterSCRX::getModelDescription().trySetFlagLocal(*this, param, value)) {
+        Exciter::setFlag(param, value);
+    }
+}
+
+bool ExciterSCRX::getFlag(std::string_view param) const
+{
+    if (const auto value = ExciterSCRX::getModelDescription().tryGetFlagLocal(*this, param)) {
+        return *value;
+    }
+    return Exciter::getFlag(param);
+}
+
 }  // namespace griddyn::exciters

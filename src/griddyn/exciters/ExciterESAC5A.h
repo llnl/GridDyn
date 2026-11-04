@@ -15,6 +15,9 @@ namespace griddyn::exciters {
 /** IEEE AC5A excitation system using the ANDES ESAC5A state equations. */
 class ExciterESAC5A final: public Exciter {
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
+    void set(std::string_view param, std::string_view val) override;
     explicit ExciterESAC5A(const std::string& objName = "exciterESAC5A_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;

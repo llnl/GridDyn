@@ -33,6 +33,8 @@ namespace griddyn::exciters {
  */
 class ExciterEXAC4 final: public Exciter {
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     enum EXAC4Flags {
         INPUT_LIMITED = OBJECT_FLAG5,
         INPUT_LIMIT_HIGH = OBJECT_FLAG6,

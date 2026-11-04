@@ -16,6 +16,10 @@ namespace griddyn::exciters {
 /** PSS/E ESAC6A IEEE Type AC6A excitation system. */
 class ExciterESAC6A final: public Exciter {
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
+    void setFlag(std::string_view param, bool value) override;
+    bool getFlag(std::string_view param) const override;
     explicit ExciterESAC6A(const std::string& objName = "exciterESAC6A_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;

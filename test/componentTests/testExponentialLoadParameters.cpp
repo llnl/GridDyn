@@ -88,6 +88,20 @@ TEST(ExponentialParameterTests, DelegatesInheritedPowerUnitsAndRetainsPowerFacto
     EXPECT_EQ(load.getName(), "worked_load");
 }
 
+TEST(ExponentialParameterTests, NumericDeclaredFlagsUseTheClassFlagSetter)
+{
+    loads::ExponentialLoad load;
+    load.set("p", 0.5);
+    load.set("q", 0.2);
+    load.set("usepowerfactor", 1.0);
+    EXPECT_TRUE(load.getFlag("usepowerfactor"));
+    EXPECT_DOUBLE_EQ(load.get("pf"), 0.4);
+    load.set("usepowerfactor", 0.0);
+    EXPECT_FALSE(load.getFlag("usepowerfactor"));
+    load.set("fixedshunt", -1.0);
+    EXPECT_TRUE(load.getFlag("fixedshunt"));
+}
+
 TEST(ExponentialParameterTests, KeepsUnknownNamesDistinctFromRejectedValues)
 {
     loads::ExponentialLoad load;

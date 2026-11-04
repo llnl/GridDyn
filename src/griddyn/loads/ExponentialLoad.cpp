@@ -26,20 +26,17 @@ ExponentialLoad::ExponentialLoad(double realPower,
 
 const ModelDescription& ExponentialLoad::getModelDescription() const
 {
-    constexpr bool (*finiteExponent)(double) = std::isfinite;
     static const auto description = ModelDescription::define<ExponentialLoad>(
         "ExponentialLoad",
         &GridLoad::getModelDescription(),
         {parameter({"alphap", "ap"},
                    &ExponentialLoad::alphaP,
                    units::one,
-                   "Voltage exponent for real power",
-                   finiteExponent),
+                   "Voltage exponent for real power"),
          parameter({"alphaq", "aq"},
                    &ExponentialLoad::alphaQ,
                    units::one,
-                   "Voltage exponent for reactive power",
-                   finiteExponent),
+                   "Voltage exponent for reactive power"),
          command({"alpha", "a"}, units::one, "Set both voltage exponents")});
     return description;
 }

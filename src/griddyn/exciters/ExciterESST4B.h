@@ -51,6 +51,8 @@ class ExciterESST4B final: public Exciter {
     model_parameter ThetaP = 0.0;
 
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     explicit ExciterESST4B(const std::string& objName = "exciterESST4B_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;

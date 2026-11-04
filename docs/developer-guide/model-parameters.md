@@ -40,13 +40,17 @@ For example, ExponentialLoad declares an exponent:
 
 ```cpp
 parameter({"alphap", "ap"}, &ExponentialLoad::alphaP, units::one,
-          "Voltage exponent for real power", finiteExponent)
+          "Voltage exponent for real power")
 ```
 
-The predicate is a typed pointer to the existing standard function:
+Numeric parameters reject NaN and infinity before any optional validator runs.
+Common range rules are named callables:
 
 ```cpp
-constexpr bool (*finiteExponent)(double) = std::isfinite;
+parameter({"tr"}, &ExciterESST3A::Tr, units::second,
+          "Voltage measurement time constant", parameterValidators::positive)
+parameter({"tr"}, &ExciterEXAC1::Tr, units::second,
+          "Voltage measurement time constant", parameterValidators::nonnegative)
 ```
 
 Load power uses the same declaration, without extra policy:
@@ -96,9 +100,15 @@ name/alias -> unit conversion -> typed value/validator -> member assignment
 `units::defunit` retains native-unit behavior. Validators receive only the
 converted proposed value, without a model object. Captureless lambdas and
 static/free functions fit the contract; validators must not capture an instance
-or depend on other parameters. Representable integer, real and clock storage
-bounds are checked before assignment. Validator logic cannot be introspected
-for GUI ranges.
+or depend on other parameters. Numeric values must be finite and representable
+in their integer, real or clock storage before a validator runs. Snapshot
+restoration uses the stored value directly and does not call parameter setters.
+Validator logic cannot be introspected for GUI ranges.
+
+Empty names and names beginning with `#` are accepted as no-op inputs by both
+`trySetLocal` overloads, without examining the value or delegating to a parent.
+Other numeric calls check finiteness before field-name lookup, including names
+that would otherwise be delegated to a parent.
 
 ## Flags
 
@@ -111,14 +121,17 @@ flag({"usepowerfactor"}, &GridLoad::opFlags, USE_POWER_FACTOR_FLAG,
 ```
 
 `trySetFlagLocal`/`tryGetFlagLocal` supply default Boolean member access.
+Numeric `trySetLocal` calls also recognize declared flags: zero means false,
+and any other finite value means true. They dispatch through the model's
+`setFlag` method so class-specific flag behavior still runs.
 A class with additional behavior, such as enabling power-factor control or
 notifying an update scheduler, handles that case first in its public method.
 Packed controls are read and restored one bit at a time; unrelated bits remain
 untouched.
 
 Flags have a separate `flagNames()` discovery list and `hasUnits()` is false.
-Existing legacy numeric routes to `setFlag` remain class behavior. The flag
-declaration itself has neither numerical values nor units.
+The flag declaration itself has neither numerical values nor units. Classes
+may keep special numeric flag validation, such as requiring exactly zero or one.
 
 ## Solver state and retained local memory
 

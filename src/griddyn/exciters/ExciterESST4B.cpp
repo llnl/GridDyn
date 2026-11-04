@@ -8,6 +8,7 @@
 #include "StaticExciterRectifier.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -40,6 +41,46 @@ namespace {
         return ((state >= maximum) && (drive > 0.0)) || ((state <= minimum) && (drive < 0.0));
     }
 }  // namespace
+
+const ModelDescription& ExciterESST4B::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterESST4B>(
+        "ExciterESST4B",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"}, &ExciterESST4B::Tr, units::second, "Voltage measurement time constant"),
+         parameter({"kpr"}, &ExciterESST4B::Kpr, units::one, "Kpr gain or coefficient"),
+         parameter({"kir"}, &ExciterESST4B::Kir, units::one, "Kir gain or coefficient"),
+         parameter({"ta"}, &ExciterESST4B::Ta, units::second, "Ta time constant"),
+         parameter({"kpm"}, &ExciterESST4B::Kpm, units::one, "Kpm gain or coefficient"),
+         parameter({"kim"}, &ExciterESST4B::Kim, units::one, "Kim gain or coefficient"),
+         parameter({"vmmax"}, &ExciterESST4B::Vmmax, units::one, "Vmmax upper limit"),
+         parameter({"vmmin"}, &ExciterESST4B::Vmmin, units::one, "Vmmin lower limit"),
+         parameter({"kg"}, &ExciterESST4B::Kg, units::one, "Kg gain or coefficient"),
+         parameter({"kp"}, &ExciterESST4B::Kp, units::one, "Kp gain or coefficient"),
+         parameter({"ki"}, &ExciterESST4B::Ki, units::one, "Ki gain or coefficient"),
+         parameter({"vbmax"}, &ExciterESST4B::Vbmax, units::one, "Vbmax upper limit"),
+         parameter({"kc"}, &ExciterESST4B::Kc, units::one, "Kc gain or coefficient"),
+         parameter({"xl"}, &ExciterESST4B::Xl, units::one, "Xl model setting"),
+         parameter(
+             {"thetap", "theta_p"}, &ExciterESST4B::ThetaP, units::rad, "ThetaP model setting"),
+         state("efd", units::one, "Field voltage"),
+         state("vmeas", units::one, "Measured terminal voltage"),
+         state("vrint", units::one, "Regulator integral state"),
+         state("va", units::one, "Amplifier state"),
+         state("vmint", units::one, "Voltage regulator integral state")});
+    return description;
+}
+
+void ExciterESST4B::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterESST4B::getModelDescription();
+    getParamString<ExciterESST4B, Exciter>(this,
+                                           pstr,
+                                           description.numericNames(),
+                                           description.stringNames(),
+                                           description.flagNames(),
+                                           pstype);
+}
 
 ExciterESST4B::ExciterESST4B(const std::string& objName): Exciter(objName)
 {
@@ -415,98 +456,23 @@ void ExciterESST4B::timestep(CoreTime time, const IOdata& inputs, const SolverMo
 
 void ExciterESST4B::set(std::string_view param, std::string_view val)
 {
-    Exciter::set(param, val);
+    if (!ExciterESST4B::getModelDescription().trySetLocal(*this, param, val)) {
+        Exciter::set(param, val);
+    }
 }
 
 void ExciterESST4B::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "tr") {
-        Tr = val;
-    } else if (param == "kpr") {
-        Kpr = val;
-    } else if (param == "kir") {
-        Kir = val;
-    } else if (param == "ta") {
-        Ta = val;
-    } else if (param == "kpm") {
-        Kpm = val;
-    } else if (param == "kim") {
-        Kim = val;
-    } else if (param == "vmmax") {
-        Vmmax = val;
-    } else if (param == "vmmin") {
-        Vmmin = val;
-    } else if (param == "kg") {
-        Kg = val;
-    } else if (param == "kp") {
-        Kp = val;
-    } else if (param == "ki") {
-        Ki = val;
-    } else if (param == "vbmax") {
-        Vbmax = val;
-    } else if (param == "kc") {
-        Kc = val;
-    } else if (param == "xl") {
-        Xl = val;
-    } else if ((param == "thetap") || (param == "theta_p")) {
-        ThetaP = val;
-    } else {
+    if (!ExciterESST4B::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         Exciter::set(param, val, unitType);
     }
 }
 
 double ExciterESST4B::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "kpr") {
-        return Kpr;
-    }
-    if (param == "kir") {
-        return Kir;
-    }
-    if (param == "vrmax") {
-        return Vrmax;
-    }
-    if (param == "vrmin") {
-        return Vrmin;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if (param == "kpm") {
-        return Kpm;
-    }
-    if (param == "kim") {
-        return Kim;
-    }
-    if (param == "vmmax") {
-        return Vmmax;
-    }
-    if (param == "vmmin") {
-        return Vmmin;
-    }
-    if (param == "kg") {
-        return Kg;
-    }
-    if (param == "kp") {
-        return Kp;
-    }
-    if (param == "ki") {
-        return Ki;
-    }
-    if (param == "vbmax") {
-        return Vbmax;
-    }
-    if (param == "kc") {
-        return Kc;
-    }
-    if (param == "xl") {
-        return Xl;
-    }
-    if ((param == "thetap") || (param == "theta_p")) {
-        return ThetaP;
+    if (const auto value =
+            ExciterESST4B::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Exciter::get(param, unitType);
 }

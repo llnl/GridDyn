@@ -35,6 +35,8 @@ class ExciterIEEEtype1: public Exciter {
     bool hasTwoPointSaturationParameters = false;
 
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     explicit ExciterIEEEtype1(const std::string& objName = "exciterIEEEtype1_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 

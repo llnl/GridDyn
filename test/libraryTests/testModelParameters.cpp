@@ -56,20 +56,19 @@ namespace {
 
         [[nodiscard]] const ModelDescription& getModelDescription() const override
         {
-            static const auto finiteValue = [](double value) { return std::isfinite(value); };
             static const auto description = ModelDescription::define<ParameterModel>(
                 "ParameterModel",
                 &CoreObject::getModelDescription(),
-                {parameter({"gain", "k"}, &ParameterModel::mGain, units::one, "Gain", finiteValue),
+                {parameter({"gain", "k"}, &ParameterModel::mGain, units::one, "Gain"),
                  parameter({"delay"},
                            &ParameterModel::mDelay,
                            units::second,
                            "Delay",
-                           [](double value) {
-                               return std::isfinite(value) && value >= 0.0 && value <= 2.0;
-                           }),
-                 parameter(
-                     {"unchecked"}, &ParameterModel::mUnchecked, units::one, "Unrestricted value"),
+                           [](double value) { return value >= 0.0 && value <= 2.0; }),
+                 parameter({"unchecked"},
+                           &ParameterModel::mUnchecked,
+                           units::one,
+                           "Unbounded finite value"),
                  parameter(
                      {"hooked"}, &ParameterModel::mHooked, units::one, "Class-managed setter"),
                  parameter({"count"}, &ParameterModel::mCount, units::one, "Integer setting"),
@@ -335,8 +334,50 @@ TEST(ModelParameterTests, RejectsBadValuesAndUnitsBeforeAssignmentOrCustomSetter
     model.set("hooked", 200.0, units::percent);
     EXPECT_EQ(model.mHookCalls, 1);
     EXPECT_NEAR(model.mHooked, 2.0, 1e-6);
-    model.set("unchecked", std::numeric_limits<double>::quiet_NaN());
-    EXPECT_TRUE(std::isnan(model.get("unchecked")));
+    for (const double invalid :
+         {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::infinity()}) {
+        EXPECT_THROW(model.set("unchecked", invalid), InvalidParameterValue);
+        EXPECT_THROW(model.set("coefficient", invalid), InvalidParameterValue);
+    }
+    EXPECT_DOUBLE_EQ(model.get("unchecked"), 0.0);
+}
+
+TEST(ModelParameterTests, AppliesNamedRangeValidatorsAfterUnitConversion)
+{
+    ParameterModel model;
+    const auto description =
+        ModelDescription::define<ParameterModel>("NamedValidators",
+                                                 nullptr,
+                                                 {parameter({"positive"},
+                                                            &ParameterModel::mGain,
+                                                            units::one,
+                                                            "Strictly positive gain",
+                                                            parameterValidators::positive),
+                                                  parameter({"nonnegative"},
+                                                            &ParameterModel::mDelay,
+                                                            units::second,
+                                                            "Nonnegative delay",
+                                                            parameterValidators::nonnegative)});
+
+    EXPECT_THROW(description.trySetLocal(model, "positive", 0.0), InvalidParameterValue);
+    EXPECT_THROW(description.trySetLocal(model, "positive", -1.0), InvalidParameterValue);
+    EXPECT_THROW(description.trySetLocal(model,
+                                         "positive",
+                                         std::numeric_limits<double>::infinity()),
+                 InvalidParameterValue);
+    EXPECT_DOUBLE_EQ(model.mGain, 1.0);
+    EXPECT_TRUE(description.trySetLocal(model, "positive", 50.0, units::percent));
+    EXPECT_NEAR(model.mGain, 0.5, 1e-7);
+
+    EXPECT_THROW(description.trySetLocal(model, "nonnegative", -1.0, units::ms),
+                 InvalidParameterValue);
+    EXPECT_DOUBLE_EQ(model.mDelay, 0.5);
+    EXPECT_TRUE(description.trySetLocal(model, "nonnegative", 0.0, units::ms));
+    EXPECT_DOUBLE_EQ(model.mDelay, 0.0);
+    EXPECT_THROW(description.trySetLocal(model,
+                                         "nonnegative",
+                                         std::numeric_limits<double>::infinity()),
+                 InvalidParameterValue);
 }
 
 TEST(ModelParameterTests, PreservesBaseFallbackAndDifferentUnknownValueErrors)
@@ -355,6 +396,25 @@ TEST(ModelParameterTests, PreservesBaseFallbackAndDifferentUnknownValueErrors)
     EXPECT_EQ(model.mRememberedTime, timeZero);
 }
 
+TEST(ModelParameterTests, ChecksNumericInputBeforeLookingUpAFieldExceptComments)
+{
+    ParameterModel model;
+    const auto& description = model.getModelDescription();
+    const auto nan = std::numeric_limits<double>::quiet_NaN();
+    EXPECT_THROW(description.trySetLocal(model, "missing", nan), InvalidParameterValue);
+    EXPECT_THROW(description.trySetLocal(model, "remembered_time", nan), InvalidParameterValue);
+    EXPECT_THROW(description.trySetLocal(model, "switch", nan), InvalidParameterValue);
+    EXPECT_FALSE(model.mSwitch);
+    EXPECT_TRUE(description.trySetLocal(model, "", nan));
+    EXPECT_TRUE(description.trySetLocal(model, "# ignored", nan));
+    EXPECT_TRUE(description.trySetLocal(model, "", std::string_view{"ignored"}));
+    EXPECT_TRUE(description.trySetLocal(model, "# ignored", std::string_view{"ignored"}));
+    EXPECT_NO_THROW(model.set("", nan));
+    EXPECT_NO_THROW(model.set("# ignored", nan));
+    EXPECT_NO_THROW(model.set("", "ignored"));
+    EXPECT_NO_THROW(model.set("# ignored", "ignored"));
+}
+
 TEST(ModelParameterTests, HandlesIntegerBooleanAndStringStorageWithoutNarrowing)
 {
     ParameterModel model;
@@ -371,7 +431,12 @@ TEST(ModelParameterTests, HandlesIntegerBooleanAndStringStorageWithoutNarrowing)
     model.setFlag("switch", true);
     EXPECT_TRUE(model.mSwitch);
     EXPECT_TRUE(model.getFlag("switch"));
-    EXPECT_FALSE(model.getModelDescription().trySetLocal(model, "switch", 0.2));
+    EXPECT_TRUE(model.getModelDescription().trySetLocal(model, "switch", 0.2));
+    EXPECT_TRUE(model.mSwitch);
+    model.set("switch", 0.0);
+    EXPECT_FALSE(model.mSwitch);
+    model.set("packed", -2.0);
+    EXPECT_TRUE(model.getFlag("packed"));
     model.set("label", "updated");
     EXPECT_EQ(model.getString("label"), "updated");
     model.set("mode", 1.0);
@@ -560,6 +625,22 @@ TEST(ModelParameterTests, RejectsDuplicateAliasesButOwnsDescriptionStrings)
                      {parameter({"gain", "k"}, &ParameterModel::mGain, units::one, "First"),
                       parameter({"k"}, &ParameterModel::mDelay, units::second, "Duplicate")})),
                  std::invalid_argument);
+}
+
+TEST(ModelParameterTests, ResolvesParameterBeforeSameNamedStateRegardlessOfDeclarationOrder)
+{
+    auto description = ModelDescription::define<ParameterModel>(
+        "SharedNameModel",
+        nullptr,
+        {state("gain", units::one),
+         parameter({"gain"}, &ParameterModel::mGain, units::one, "Gain")});
+    ParameterModel model;
+    ASSERT_NE(description.find("gain", ModelFieldKind::STATE), nullptr);
+    ASSERT_NE(description.findLocal("gain"), nullptr);
+    EXPECT_EQ(description.findLocal("gain")->kind(), ModelFieldKind::PARAMETER);
+    EXPECT_TRUE(description.trySetLocal(model, "gain", 2.5));
+    ASSERT_TRUE(description.tryGetLocal(model, "gain").has_value());
+    EXPECT_DOUBLE_EQ(*description.tryGetLocal(model, "gain"), 2.5);
 }
 
 }  // namespace griddyn

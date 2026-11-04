@@ -56,6 +56,8 @@ namespace griddyn::exciters {
  */
 class ExciterESST1A final: public Exciter {
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     enum ESST1AFlags {
         AMPLIFIER_LIMITED = OBJECT_FLAG5,
         AMPLIFIER_LIMIT_HIGH = OBJECT_FLAG6,

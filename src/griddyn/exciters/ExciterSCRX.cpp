@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -108,6 +109,41 @@ namespace {
         return signal;
     }
 }  // namespace
+
+const ModelDescription& ExciterSCRX::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterSCRX>(
+        "ExciterSCRX",
+        &Exciter::getModelDescription(),
+        {parameter({"tatb"}, &ExciterSCRX::TaOverTb, units::one, "TaOverTb model setting"),
+         parameter({"tb"}, &ExciterSCRX::Tb, units::second, "Lead-lag denominator time constant"),
+         parameter({"te"}, &ExciterSCRX::Te, units::second, "Exciter time constant"),
+         parameter({"rcrfd", "rc_rfd"}, &ExciterSCRX::rCrFd, units::one, "rCrFd model setting"),
+         flag({"cswitch"}, &ExciterSCRX::solidFed, "solidFed option"),
+         localState("amplifier_limited",
+                    &ExciterSCRX::opFlags,
+                    ExciterSCRX::AMPLIFIER_LIMITED,
+                    "Retained amplifier_limited mode"),
+         localState("amplifier_limit_high",
+                    &ExciterSCRX::opFlags,
+                    ExciterSCRX::AMPLIFIER_LIMIT_HIGH,
+                    "Retained amplifier_limit_high mode"),
+         state("efd", units::one, "Field voltage"),
+         state("xll", units::one, "Lead-lag state"),
+         state("efdpre", units::one, "efdpre solver state")});
+    return description;
+}
+
+void ExciterSCRX::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterSCRX::getModelDescription();
+    getParamString<ExciterSCRX, Exciter>(this,
+                                         pstr,
+                                         description.numericNames(),
+                                         description.stringNames(),
+                                         description.flagNames(),
+                                         pstype);
+}
 
 ExciterSCRX::ExciterSCRX(const std::string& objName): Exciter(objName)
 {
@@ -590,4 +626,20 @@ bool ExciterSCRX::supportsLimiterSignal(ExciterLimiterSignal /*signal*/) const
 {
     return true;
 }
+
+void ExciterSCRX::setFlag(std::string_view param, bool value)
+{
+    if (!ExciterSCRX::getModelDescription().trySetFlagLocal(*this, param, value)) {
+        Exciter::setFlag(param, value);
+    }
+}
+
+bool ExciterSCRX::getFlag(std::string_view param) const
+{
+    if (const auto value = ExciterSCRX::getModelDescription().tryGetFlagLocal(*this, param)) {
+        return *value;
+    }
+    return Exciter::getFlag(param);
+}
+
 }  // namespace griddyn::exciters

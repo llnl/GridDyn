@@ -57,6 +57,10 @@ namespace griddyn::exciters {
  */
 class ExciterESST2A final: public Exciter {
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
+    void setFlag(std::string_view param, bool value) override;
+    bool getFlag(std::string_view param) const override;
     enum ESST2AFlags {
         REGULATOR_LIMITED = OBJECT_FLAG5,
         REGULATOR_LIMIT_HIGH = OBJECT_FLAG6,

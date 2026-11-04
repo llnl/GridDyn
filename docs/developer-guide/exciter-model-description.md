@@ -162,6 +162,43 @@ This demonstrates the model-description and model-level restore boundary. It
 does not serialize an integrator's history or resume a whole dynamic simulation.
 A future checkpoint coordinator still needs to restore case inputs and solver
 resources and refresh solver root/Jacobian caches at its normal restart boundary.
-Other concrete exciters still need their own description migration; the exact
-class guard prevents their inherited common table from silently serving as a
-complete object-field snapshot.
+## Migration across the exciter family
+
+Every concrete exciter now has an exact-type description. Each table declares
+its own stored parameters, user flags, retained local state where needed, and
+the names of its possible solver states. Inherited fields remain in the parent
+table. The existing `getParameterStrings` implementations use these tables for
+parameter discovery. Simple setters and getters use `trySetLocal` and
+`tryGetLocal`; models with coupled setters, model-specific validation, or
+special aliases retain their explicit dispatch. The description is metadata
+and a snapshot binding in those cases, not a replacement for the public setter.
+
+Several details need attention when building a full dynamic checkpoint:
+
+- A model's active solver layout can depend on time constants or other
+  parameters. Its description lists all possible solver-state names; the active
+  order and offsets still come from `localStateNames()` and the initialized
+  model. Restore parameters and establish a compatible layout before loading
+  solver vectors.
+- The saturation objects built during initialization from `E1`, `Se1`, `E2`,
+  and `Se2` are derived data. Restoring those raw parameters into an already
+  initialized exciter does not rebuild the saturation object. A later dynamic
+  restart coordinator needs a derived-data refresh step.
+- Some public names address parent storage: `SCRX` uses `k` for `ka` and
+  `emin`/`emax` for the regulator bounds; `IEEEtype2` uses `tf1` for the
+  inherited `tf`. These spellings remain supported by their existing setters,
+  but are not duplicate snapshot fields. A future metadata alias mechanism
+  could expose them without recording the same storage twice.
+- `ESST4B` has its own `Ta`, distinct from the inherited `Exciter::Ta`.
+  Snapshot entries carry their declaring class so both values are unambiguous.
+  Ordinary `get("ta")` resolves the child value in this class.
+- `EXPIC1` uses `vr1` for both a parameter and a solver state. The description
+  permits that cross-role name and `find(name, kind)` selects the intended one.
+- Several older handwritten setters and getters ignore their `unitType`
+  argument, while the new direct-member dispatch converts declared units.
+  Their existing validation and selector behavior takes priority in this
+  migration. Unit handling should be made consistent before clients assume
+  every described time constant accepts nondefault units.
+
+As with SEXS, object-field snapshots alone do not save solver integration
+history, event queues, network state, or initialization-derived data.

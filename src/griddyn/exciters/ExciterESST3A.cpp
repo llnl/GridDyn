@@ -9,6 +9,7 @@
 #include "StaticExciterRectifier.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -29,6 +30,63 @@ namespace {
     constexpr index_t staticFieldRegulatorState = 2;
     constexpr double limitTolerance = 1e-7;
 }  // namespace
+
+const ModelDescription& ExciterESST3A::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterESST3A>(
+        "ExciterESST3A",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"}, &ExciterESST3A::Tr, units::second, "Voltage measurement time constant"),
+         parameter({"vimax"}, &ExciterESST3A::Vimax, units::one, "Vimax upper limit"),
+         parameter({"vimin"}, &ExciterESST3A::Vimin, units::one, "Vimin lower limit"),
+         parameter({"km"}, &ExciterESST3A::Km, units::one, "Km gain or coefficient"),
+         parameter({"tc"}, &ExciterESST3A::Tc, units::second, "Lead-lag numerator time constant"),
+         parameter({"tb"}, &ExciterESST3A::Tb, units::second, "Lead-lag denominator time constant"),
+         parameter({"kg"}, &ExciterESST3A::Kg, units::one, "Kg gain or coefficient"),
+         parameter({"kp"}, &ExciterESST3A::Kp, units::one, "Kp gain or coefficient"),
+         parameter({"ki"}, &ExciterESST3A::Ki, units::one, "Ki gain or coefficient"),
+         parameter({"vbmax"}, &ExciterESST3A::Vbmax, units::one, "Vbmax upper limit"),
+         parameter({"kc"}, &ExciterESST3A::Kc, units::one, "Kc gain or coefficient"),
+         parameter({"xl"}, &ExciterESST3A::Xl, units::one, "Xl model setting"),
+         parameter({"vgmax"}, &ExciterESST3A::Vgmax, units::one, "Vgmax upper limit"),
+         parameter({"thetap"}, &ExciterESST3A::ThetaP, units::rad, "ThetaP model setting"),
+         parameter({"tm"}, &ExciterESST3A::Tm, units::second, "Tm time constant"),
+         parameter({"vmmax"}, &ExciterESST3A::Vmmax, units::one, "Vmmax upper limit"),
+         parameter({"vmmin"}, &ExciterESST3A::Vmmin, units::one, "Vmmin lower limit"),
+         localState("vr_limited",
+                    &ExciterESST3A::opFlags,
+                    ExciterESST3A::VR_LIMITED,
+                    "Retained vr_limited mode"),
+         localState("vr_limit_high",
+                    &ExciterESST3A::opFlags,
+                    ExciterESST3A::VR_LIMIT_HIGH,
+                    "Retained vr_limit_high mode"),
+         localState("vm_limited",
+                    &ExciterESST3A::opFlags,
+                    ExciterESST3A::VM_LIMITED,
+                    "Retained vm_limited mode"),
+         localState("vm_limit_high",
+                    &ExciterESST3A::opFlags,
+                    ExciterESST3A::VM_LIMIT_HIGH,
+                    "Retained vm_limit_high mode"),
+         state("efd", units::one, "Field voltage"),
+         state("vmeas", units::one, "Measured terminal voltage"),
+         state("ll", units::one, "Lead-lag state"),
+         state("vr", units::one, "Regulator state"),
+         state("vm", units::one, "vm solver state")});
+    return description;
+}
+
+void ExciterESST3A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterESST3A::getModelDescription();
+    getParamString<ExciterESST3A, Exciter>(this,
+                                           pstr,
+                                           description.numericNames(),
+                                           description.stringNames(),
+                                           description.flagNames(),
+                                           pstype);
+}
 
 ExciterESST3A::ExciterESST3A(const std::string& objName): Exciter(objName)
 {
@@ -533,7 +591,9 @@ ChangeCode ExciterESST3A::rootCheck(const IOdata& /*inputs*/,
 
 void ExciterESST3A::set(std::string_view param, std::string_view val)
 {
-    Exciter::set(param, val);
+    if (!ExciterESST3A::getModelDescription().trySetLocal(*this, param, val)) {
+        Exciter::set(param, val);
+    }
 }
 
 void ExciterESST3A::set(std::string_view param, double val, units::unit unitType)

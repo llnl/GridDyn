@@ -34,6 +34,8 @@ class ExciterEXAC2 final: public ExciterEXAC1 {
     double vlr0 = 0.0;
 
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     explicit ExciterEXAC2(const std::string& objName = "exciterEXAC2_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;

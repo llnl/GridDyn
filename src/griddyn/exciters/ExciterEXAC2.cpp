@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <algorithm>
 #include <cmath>
 #include <string>
@@ -38,6 +39,31 @@ namespace {
     constexpr double lowCurrentSlope = 0.577;  // NOLINT(modernize-use-std-numbers)
     constexpr double highCurrentSlope = 1.732;  // NOLINT(modernize-use-std-numbers)
 }  // namespace
+
+const ModelDescription& ExciterEXAC2::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterEXAC2>(
+        "ExciterEXAC2",
+        &ExciterEXAC1::getModelDescription(),
+        {parameter({"vamax"}, &ExciterEXAC2::Vamax, units::one, "Vamax upper limit"),
+         parameter({"vamin"}, &ExciterEXAC2::Vamin, units::one, "Vamin lower limit"),
+         parameter({"vlr"}, &ExciterEXAC2::Vlr, units::one, "Vlr model setting"),
+         parameter({"kl"}, &ExciterEXAC2::Kl, units::one, "Kl gain or coefficient"),
+         parameter({"kh"}, &ExciterEXAC2::Kh, units::one, "Kh gain or coefficient"),
+         parameter({"kb"}, &ExciterEXAC2::Kb, units::one, "Kb gain or coefficient")});
+    return description;
+}
+
+void ExciterEXAC2::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterEXAC2::getModelDescription();
+    getParamString<ExciterEXAC2, ExciterEXAC1>(this,
+                                               pstr,
+                                               description.numericNames(),
+                                               description.stringNames(),
+                                               description.flagNames(),
+                                               pstype);
+}
 
 ExciterEXAC2::ExciterEXAC2(const std::string& objName): ExciterEXAC1(objName) {}
 
@@ -111,7 +137,9 @@ void ExciterEXAC2::dynObjectInitializeB(const IOdata& inputs,
 
 void ExciterEXAC2::set(std::string_view param, std::string_view val)
 {
-    ExciterEXAC1::set(param, val);
+    if (!ExciterEXAC2::getModelDescription().trySetLocal(*this, param, val)) {
+        ExciterEXAC1::set(param, val);
+    }
 }
 
 void ExciterEXAC2::set(std::string_view param, double val, units::unit unitType)

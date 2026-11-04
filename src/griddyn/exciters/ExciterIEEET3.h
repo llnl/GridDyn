@@ -42,6 +42,8 @@ namespace griddyn::exciters {
  */
 class ExciterIEEET3 final: public Exciter {
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     enum IEEET3Flags {
         REGULATOR_LIMITED = OBJECT_FLAG5,
         REGULATOR_LIMIT_HIGH = OBJECT_FLAG6,

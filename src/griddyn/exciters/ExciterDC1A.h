@@ -18,6 +18,9 @@ class ExciterDC1A: public ExciterIEEEtype1 {
     double Tb = 1.0;
 
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
+    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     explicit ExciterDC1A(const std::string& objName = "exciterDC1A_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 

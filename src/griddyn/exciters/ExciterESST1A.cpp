@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -29,6 +30,56 @@ namespace {
         return std::isfinite(value) && (std::floor(value) == value);
     }
 }  // namespace
+
+const ModelDescription& ExciterESST1A::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterESST1A>(
+        "ExciterESST1A",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"}, &ExciterESST1A::Tr, units::second, "Voltage measurement time constant"),
+         parameter({"vimax"}, &ExciterESST1A::Vimax, units::one, "Vimax upper limit"),
+         parameter({"vimin"}, &ExciterESST1A::Vimin, units::one, "Vimin lower limit"),
+         parameter({"tb"}, &ExciterESST1A::Tb, units::second, "Lead-lag denominator time constant"),
+         parameter({"tc"}, &ExciterESST1A::Tc, units::second, "Lead-lag numerator time constant"),
+         parameter({"tb1"}, &ExciterESST1A::Tb1, units::second, "Tb1 time constant"),
+         parameter({"tc1"}, &ExciterESST1A::Tc1, units::second, "Tc1 time constant"),
+         parameter({"vamax"}, &ExciterESST1A::Vamax, units::one, "Vamax upper limit"),
+         parameter({"vamin"}, &ExciterESST1A::Vamin, units::one, "Vamin lower limit"),
+         parameter({"ilr"}, &ExciterESST1A::Ilr, units::one, "Ilr model setting"),
+         parameter({"klr"}, &ExciterESST1A::Klr, units::one, "Klr gain or coefficient"),
+         parameter({"kc"}, &ExciterESST1A::Kc, units::one, "Kc gain or coefficient"),
+         parameter({"kf"}, &ExciterESST1A::Kf, units::one, "Kf gain or coefficient"),
+         parameter({"tf"}, &ExciterESST1A::Tf, units::second, "Feedback time constant"),
+         parameter({"uel"}, &ExciterESST1A::uelSelector, units::one, "uelSelector model setting"),
+         parameter(
+             {"vos", "vosc"}, &ExciterESST1A::vosSelector, units::one, "vosSelector model setting"),
+         localState("amplifier_limited",
+                    &ExciterESST1A::opFlags,
+                    ExciterESST1A::AMPLIFIER_LIMITED,
+                    "Retained amplifier_limited mode"),
+         localState("amplifier_limit_high",
+                    &ExciterESST1A::opFlags,
+                    ExciterESST1A::AMPLIFIER_LIMIT_HIGH,
+                    "Retained amplifier_limit_high mode"),
+         state("efd", units::one, "Field voltage"),
+         state("vmeas", units::one, "Measured terminal voltage"),
+         state("ll1", units::one, "ll1 solver state"),
+         state("ll2", units::one, "ll2 solver state"),
+         state("va", units::one, "Amplifier state"),
+         state("rf", units::one, "rf solver state")});
+    return description;
+}
+
+void ExciterESST1A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterESST1A::getModelDescription();
+    getParamString<ExciterESST1A, Exciter>(this,
+                                           pstr,
+                                           description.numericNames(),
+                                           description.stringNames(),
+                                           description.flagNames(),
+                                           pstype);
+}
 
 ExciterESST1A::ExciterESST1A(const std::string& objName): Exciter(objName)
 {
@@ -495,7 +546,9 @@ ChangeCode ExciterESST1A::rootCheck(const IOdata& inputs,
 
 void ExciterESST1A::set(std::string_view param, std::string_view val)
 {
-    Exciter::set(param, val);
+    if (!ExciterESST1A::getModelDescription().trySetLocal(*this, param, val)) {
+        Exciter::set(param, val);
+    }
 }
 
 void ExciterESST1A::set(std::string_view param, double val, units::unit unitType)

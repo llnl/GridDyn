@@ -562,4 +562,20 @@ TEST(ModelParameterTests, RejectsDuplicateAliasesButOwnsDescriptionStrings)
                  std::invalid_argument);
 }
 
+TEST(ModelParameterTests, ResolvesParameterBeforeSameNamedStateRegardlessOfDeclarationOrder)
+{
+    auto description = ModelDescription::define<ParameterModel>(
+        "SharedNameModel",
+        nullptr,
+        {state("gain", units::one),
+         parameter({"gain"}, &ParameterModel::mGain, units::one, "Gain")});
+    ParameterModel model;
+    ASSERT_NE(description.find("gain", ModelFieldKind::STATE), nullptr);
+    ASSERT_NE(description.findLocal("gain"), nullptr);
+    EXPECT_EQ(description.findLocal("gain")->kind(), ModelFieldKind::PARAMETER);
+    EXPECT_TRUE(description.trySetLocal(model, "gain", 2.5));
+    ASSERT_TRUE(description.tryGetLocal(model, "gain").has_value());
+    EXPECT_DOUBLE_EQ(*description.tryGetLocal(model, "gain"), 2.5);
+}
+
 }  // namespace griddyn

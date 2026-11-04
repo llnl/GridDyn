@@ -10,12 +10,34 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
 #include <string>
 
 namespace griddyn::exciters {
+
+const ModelDescription& ExciterIEEEX1::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<ExciterIEEEX1>("ExciterIEEEX1",
+                                                &ExciterDC2A::getModelDescription(),
+                                                {});
+    return description;
+}
+
+void ExciterIEEEX1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterIEEEX1::getModelDescription();
+    getParamString<ExciterIEEEX1, ExciterDC2A>(this,
+                                               pstr,
+                                               description.numericNames(),
+                                               description.stringNames(),
+                                               description.flagNames(),
+                                               pstype);
+}
+
 ExciterIEEEX1::ExciterIEEEX1(const std::string& objName): ExciterDC2A(objName) {}
 
 CoreObject* ExciterIEEEX1::clone(CoreObject* obj) const

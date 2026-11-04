@@ -10,6 +10,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -19,6 +20,30 @@ namespace griddyn::exciters {
 namespace {
     constexpr double initialLimitContactTolerance = 1e-7;
 }  // namespace
+
+const ModelDescription& ExciterIEEEtype2::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterIEEEtype2>(
+        "ExciterIEEEtype2",
+        &ExciterIEEEtype1::getModelDescription(),
+        {parameter({"tf2"}, &ExciterIEEEtype2::Tf2, units::second, "Tf2 time constant"),
+         state("ef", units::one, "Field voltage"),
+         state("vr", units::one, "Regulator state"),
+         state("x1", units::one, "x1 solver state"),
+         state("x2", units::one, "x2 solver state")});
+    return description;
+}
+
+void ExciterIEEEtype2::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterIEEEtype2::getModelDescription();
+    getParamString<ExciterIEEEtype2, ExciterIEEEtype1>(this,
+                                                       pstr,
+                                                       description.numericNames(),
+                                                       description.stringNames(),
+                                                       description.flagNames(),
+                                                       pstype);
+}
 
 ExciterIEEEtype2::ExciterIEEEtype2(const std::string& objName): ExciterIEEEtype1(objName) {}
 
@@ -247,7 +272,9 @@ ChangeCode ExciterIEEEtype2::rootCheck(const IOdata& inputs,
 
 void ExciterIEEEtype2::set(std::string_view param, std::string_view val)
 {
-    ExciterIEEEtype1::set(param, val);
+    if (!ExciterIEEEtype2::getModelDescription().trySetLocal(*this, param, val)) {
+        ExciterIEEEtype1::set(param, val);
+    }
 }
 
 // set parameters

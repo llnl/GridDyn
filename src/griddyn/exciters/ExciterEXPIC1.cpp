@@ -9,6 +9,7 @@
 #include "StaticExciterRectifier.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -113,6 +114,53 @@ namespace {
         return std::isfinite(value) && (std::abs(value) < 1e20);
     }
 }  // namespace
+
+const ModelDescription& ExciterEXPIC1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterEXPIC1>(
+        "ExciterEXPIC1",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"}, &ExciterEXPIC1::Tr, units::second, "Voltage measurement time constant"),
+         parameter({"ta1"}, &ExciterEXPIC1::Ta1, units::second, "Ta1 time constant"),
+         parameter({"vr1"}, &ExciterEXPIC1::Vr1, units::one, "Vr1 model setting"),
+         parameter({"vr2"}, &ExciterEXPIC1::Vr2, units::one, "Vr2 model setting"),
+         parameter({"ta2"}, &ExciterEXPIC1::Ta2, units::second, "Ta2 time constant"),
+         parameter({"ta3"}, &ExciterEXPIC1::Ta3, units::second, "Ta3 time constant"),
+         parameter({"ta4"}, &ExciterEXPIC1::Ta4, units::second, "Ta4 time constant"),
+         parameter({"kf"}, &ExciterEXPIC1::Kf, units::one, "Kf gain or coefficient"),
+         parameter({"tf1"}, &ExciterEXPIC1::Tf1, units::second, "Tf1 time constant"),
+         parameter({"tf2"}, &ExciterEXPIC1::Tf2, units::second, "Tf2 time constant"),
+         parameter({"efdmax"}, &ExciterEXPIC1::Efdmax, units::one, "Efdmax upper limit"),
+         parameter({"efdmin"}, &ExciterEXPIC1::Efdmin, units::one, "Efdmin lower limit"),
+         parameter({"ke"}, &ExciterEXPIC1::Ke, units::one, "Ke gain or coefficient"),
+         parameter({"te"}, &ExciterEXPIC1::Te, units::second, "Exciter time constant"),
+         parameter({"e1"}, &ExciterEXPIC1::E1, units::one, "E1 model setting"),
+         parameter({"se1"}, &ExciterEXPIC1::Se1, units::one, "Se1 model setting"),
+         parameter({"e2"}, &ExciterEXPIC1::E2, units::one, "E2 model setting"),
+         parameter({"se2"}, &ExciterEXPIC1::Se2, units::one, "Se2 model setting"),
+         parameter({"kp"}, &ExciterEXPIC1::Kp, units::one, "Kp gain or coefficient"),
+         parameter({"ki"}, &ExciterEXPIC1::Ki, units::one, "Ki gain or coefficient"),
+         parameter({"kc"}, &ExciterEXPIC1::Kc, units::one, "Kc gain or coefficient"),
+         state("efd", units::one, "Field voltage"),
+         state("et", units::one, "et solver state"),
+         state("xa", units::one, "xa solver state"),
+         state("vr1", units::one, "vr1 solver state"),
+         state("vr", units::one, "Regulator state"),
+         state("vf1", units::one, "vf1 solver state"),
+         state("vf", units::one, "Feedback state")});
+    return description;
+}
+
+void ExciterEXPIC1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterEXPIC1::getModelDescription();
+    getParamString<ExciterEXPIC1, Exciter>(this,
+                                           pstr,
+                                           description.numericNames(),
+                                           description.stringNames(),
+                                           description.flagNames(),
+                                           pstype);
+}
 
 ExciterEXPIC1::ExciterEXPIC1(const std::string& objName): Exciter(objName)
 {
@@ -561,7 +609,9 @@ index_t ExciterEXPIC1::findIndex(std::string_view field, const SolverMode& sMode
 
 void ExciterEXPIC1::set(std::string_view param, std::string_view val)
 {
-    Exciter::set(param, val);
+    if (!ExciterEXPIC1::getModelDescription().trySetLocal(*this, param, val)) {
+        Exciter::set(param, val);
+    }
 }
 
 void ExciterEXPIC1::set(std::string_view param, double val, units::unit unitType)

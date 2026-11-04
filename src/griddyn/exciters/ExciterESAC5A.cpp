@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -15,6 +16,43 @@
 #include <vector>
 
 namespace griddyn::exciters {
+
+const ModelDescription& ExciterESAC5A::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterESAC5A>(
+        "ExciterESAC5A",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"}, &ExciterESAC5A::Tr, units::second, "Voltage measurement time constant"),
+         parameter({"te"}, &ExciterESAC5A::Te, units::second, "Exciter time constant"),
+         parameter({"kf"}, &ExciterESAC5A::Kf, units::one, "Kf gain or coefficient"),
+         parameter({"tf1"}, &ExciterESAC5A::Tf1, units::second, "Tf1 time constant"),
+         parameter({"tf2"}, &ExciterESAC5A::Tf2, units::second, "Tf2 time constant"),
+         parameter({"tf3"}, &ExciterESAC5A::Tf3, units::second, "Tf3 time constant"),
+         parameter({"ke"}, &ExciterESAC5A::Ke, units::one, "Ke gain or coefficient"),
+         parameter({"e1"}, &ExciterESAC5A::E1, units::one, "E1 model setting"),
+         parameter({"se1"}, &ExciterESAC5A::Se1, units::one, "Se1 model setting"),
+         parameter({"e2"}, &ExciterESAC5A::E2, units::one, "E2 model setting"),
+         parameter({"se2"}, &ExciterESAC5A::Se2, units::one, "Se2 model setting"),
+         state("efd", units::one, "Field voltage"),
+         state("vc", units::one, "Sensed terminal voltage"),
+         state("vr", units::one, "Regulator state"),
+         state("xll", units::one, "Lead-lag state"),
+         state("xwf", units::one, "Washout state"),
+         state("ve", units::one, "Exciter voltage")});
+    return description;
+}
+
+void ExciterESAC5A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterESAC5A::getModelDescription();
+    getParamString<ExciterESAC5A, Exciter>(this,
+                                           pstr,
+                                           description.numericNames(),
+                                           description.stringNames(),
+                                           description.flagNames(),
+                                           pstype);
+}
+
 ExciterESAC5A::ExciterESAC5A(const std::string& objName): Exciter(objName)
 {
     m_inputSize = exciterInputCount;
@@ -403,83 +441,24 @@ index_t ExciterESAC5A::findIndex(std::string_view field, const SolverMode& sMode
 
 void ExciterESAC5A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "tr") {
-        Tr = val;
-    } else if (param == "te") {
-        Te = val;
-    } else if (param == "kf") {
-        Kf = val;
-    } else if (param == "tf1") {
-        Tf1 = val;
-    } else if (param == "tf2") {
-        Tf2 = val;
-    } else if (param == "tf3") {
-        Tf3 = val;
-    } else if (param == "ke") {
-        Ke = val;
-    } else if (param == "e1") {
-        E1 = val;
-    } else if (param == "se1") {
-        Se1 = val;
-    } else if (param == "e2") {
-        E2 = val;
-    } else if (param == "se2") {
-        Se2 = val;
-    } else {
+    if (!ExciterESAC5A::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         Exciter::set(param, val, unitType);
     }
 }
 
 double ExciterESAC5A::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if (param == "vrmax") {
-        return Vrmax;
-    }
-    if (param == "vrmin") {
-        return Vrmin;
-    }
-    if (param == "vref") {
-        return Vref;
-    }
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if (param == "kf") {
-        return Kf;
-    }
-    if (param == "tf1") {
-        return Tf1;
-    }
-    if (param == "tf2") {
-        return Tf2;
-    }
-    if (param == "tf3") {
-        return Tf3;
-    }
-    if (param == "ke") {
-        return Ke;
-    }
-    if (param == "e1") {
-        return E1;
-    }
-    if (param == "se1") {
-        return Se1;
-    }
-    if (param == "e2") {
-        return E2;
-    }
-    if (param == "se2") {
-        return Se2;
+    if (const auto value = ExciterESAC5A::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Exciter::get(param, unitType);
 }
+
+void ExciterESAC5A::set(std::string_view param, std::string_view val)
+{
+    if (!ExciterESAC5A::getModelDescription().trySetLocal(*this, param, val)) {
+        Exciter::set(param, val);
+    }
+}
+
 }  // namespace griddyn::exciters

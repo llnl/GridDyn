@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -25,6 +26,54 @@ namespace {
     constexpr index_t washoutState = 3;
     constexpr double limitTolerance = 1e-7;
 }  // namespace
+
+const ModelDescription& ExciterEXST1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterEXST1>(
+        "ExciterEXST1",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"}, &ExciterEXST1::Tr, units::second, "Voltage measurement time constant"),
+         parameter({"vimax"}, &ExciterEXST1::Vimax, units::one, "Vimax upper limit"),
+         parameter({"vimin"}, &ExciterEXST1::Vimin, units::one, "Vimin lower limit"),
+         parameter({"tc"}, &ExciterEXST1::Tc, units::second, "Lead-lag numerator time constant"),
+         parameter({"tb"}, &ExciterEXST1::Tb, units::second, "Lead-lag denominator time constant"),
+         parameter({"kc"}, &ExciterEXST1::Kc, units::one, "Kc gain or coefficient"),
+         parameter({"kf"}, &ExciterEXST1::Kf, units::one, "Kf gain or coefficient"),
+         parameter({"tf"}, &ExciterEXST1::Tf, units::second, "Feedback time constant"),
+         localState("input_limited",
+                    &ExciterEXST1::opFlags,
+                    ExciterEXST1::INPUT_LIMITED,
+                    "Retained input_limited mode"),
+         localState("input_limit_high",
+                    &ExciterEXST1::opFlags,
+                    ExciterEXST1::INPUT_LIMIT_HIGH,
+                    "Retained input_limit_high mode"),
+         localState("output_limited",
+                    &ExciterEXST1::opFlags,
+                    ExciterEXST1::OUTPUT_LIMITED,
+                    "Retained output_limited mode"),
+         localState("output_limit_high",
+                    &ExciterEXST1::opFlags,
+                    ExciterEXST1::OUTPUT_LIMIT_HIGH,
+                    "Retained output_limit_high mode"),
+         state("efd", units::one, "Field voltage"),
+         state("vmeas", units::one, "Measured terminal voltage"),
+         state("ll", units::one, "Lead-lag state"),
+         state("vr", units::one, "Regulator state"),
+         state("wf", units::one, "Washout state")});
+    return description;
+}
+
+void ExciterEXST1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterEXST1::getModelDescription();
+    getParamString<ExciterEXST1, Exciter>(this,
+                                          pstr,
+                                          description.numericNames(),
+                                          description.stringNames(),
+                                          description.flagNames(),
+                                          pstype);
+}
 
 ExciterEXST1::ExciterEXST1(const std::string& objName): Exciter(objName)
 {
@@ -372,7 +421,9 @@ ChangeCode ExciterEXST1::rootCheck(const IOdata& inputs,
 
 void ExciterEXST1::set(std::string_view param, std::string_view val)
 {
-    Exciter::set(param, val);
+    if (!ExciterEXST1::getModelDescription().trySetLocal(*this, param, val)) {
+        Exciter::set(param, val);
+    }
 }
 
 void ExciterEXST1::set(std::string_view param, double val, units::unit unitType)

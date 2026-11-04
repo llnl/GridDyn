@@ -8,10 +8,33 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <cmath>
 #include <string>
 
 namespace griddyn::exciters {
+
+const ModelDescription& ExciterESAC1A::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterESAC1A>(
+        "ExciterESAC1A",
+        &ExciterEXAC1::getModelDescription(),
+        {parameter({"vamax"}, &ExciterESAC1A::Vamax, units::one, "Vamax upper limit"),
+         parameter({"vamin"}, &ExciterESAC1A::Vamin, units::one, "Vamin lower limit")});
+    return description;
+}
+
+void ExciterESAC1A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterESAC1A::getModelDescription();
+    getParamString<ExciterESAC1A, ExciterEXAC1>(this,
+                                                pstr,
+                                                description.numericNames(),
+                                                description.stringNames(),
+                                                description.flagNames(),
+                                                pstype);
+}
+
 ExciterESAC1A::ExciterESAC1A(const std::string& objName): ExciterEXAC1(objName) {}
 
 CoreObject* ExciterESAC1A::clone(CoreObject* obj) const
@@ -36,22 +59,15 @@ void ExciterESAC1A::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 
 void ExciterESAC1A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "vamax") {
-        Vamax = val;
-    } else if (param == "vamin") {
-        Vamin = val;
-    } else {
+    if (!ExciterESAC1A::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         ExciterEXAC1::set(param, val, unitType);
     }
 }
 
 double ExciterESAC1A::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "vamax") {
-        return Vamax;
-    }
-    if (param == "vamin") {
-        return Vamin;
+    if (const auto value = ExciterESAC1A::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return ExciterEXAC1::get(param, unitType);
 }
@@ -70,4 +86,12 @@ double ExciterESAC1A::regulatorLowerLimit() const
 {
     return Vamin;
 }
+
+void ExciterESAC1A::set(std::string_view param, std::string_view val)
+{
+    if (!ExciterESAC1A::getModelDescription().trySetLocal(*this, param, val)) {
+        ExciterEXAC1::set(param, val);
+    }
+}
+
 }  // namespace griddyn::exciters

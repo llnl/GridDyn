@@ -50,6 +50,8 @@ namespace griddyn::exciters {
  */
 class ExciterAC7B final: public Exciter {
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     enum AC7BFlags {
         PID_LIMITED = OBJECT_FLAG5,
         PID_LIMIT_HIGH = OBJECT_FLAG6,

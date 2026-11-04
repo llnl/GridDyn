@@ -9,6 +9,7 @@
 #include "StaticExciterRectifier.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -32,6 +33,56 @@ namespace {
         return std::isfinite(value) && (std::abs(value) < 1e20);
     }
 }  // namespace
+
+const ModelDescription& ExciterESST2A::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterESST2A>(
+        "ExciterESST2A",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"}, &ExciterESST2A::Tr, units::second, "Voltage measurement time constant"),
+         parameter({"kp"}, &ExciterESST2A::Kp, units::one, "Kp gain or coefficient"),
+         parameter({"ki"}, &ExciterESST2A::Ki, units::one, "Ki gain or coefficient"),
+         parameter({"kc"}, &ExciterESST2A::Kc, units::one, "Kc gain or coefficient"),
+         parameter({"kf"}, &ExciterESST2A::Kf, units::one, "Kf gain or coefficient"),
+         parameter({"tf"}, &ExciterESST2A::Tf, units::second, "Feedback time constant"),
+         parameter({"ke"}, &ExciterESST2A::Ke, units::one, "Ke gain or coefficient"),
+         parameter({"te"}, &ExciterESST2A::Te, units::second, "Exciter time constant"),
+         parameter({"efdmax", "efmax"}, &ExciterESST2A::Efdmax, units::one, "Efdmax upper limit"),
+         flag({"uel_enabled"}, &ExciterESST2A::underSelectorEnabled, "underSelectorEnabled option"),
+         localState("regulator_limited",
+                    &ExciterESST2A::opFlags,
+                    ExciterESST2A::REGULATOR_LIMITED,
+                    "Retained regulator_limited mode"),
+         localState("regulator_limit_high",
+                    &ExciterESST2A::opFlags,
+                    ExciterESST2A::REGULATOR_LIMIT_HIGH,
+                    "Retained regulator_limit_high mode"),
+         localState("field_limited",
+                    &ExciterESST2A::opFlags,
+                    ExciterESST2A::FIELD_LIMITED,
+                    "Retained field_limited mode"),
+         localState("field_limit_high",
+                    &ExciterESST2A::opFlags,
+                    ExciterESST2A::FIELD_LIMIT_HIGH,
+                    "Retained field_limit_high mode"),
+         state("efd", units::one, "Field voltage"),
+         state("vmeas", units::one, "Measured terminal voltage"),
+         state("va", units::one, "Amplifier state"),
+         state("wf", units::one, "Washout state"),
+         state("efstate", units::one, "efstate solver state")});
+    return description;
+}
+
+void ExciterESST2A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterESST2A::getModelDescription();
+    getParamString<ExciterESST2A, Exciter>(this,
+                                           pstr,
+                                           description.numericNames(),
+                                           description.stringNames(),
+                                           description.flagNames(),
+                                           pstype);
+}
 
 ExciterESST2A::ExciterESST2A(const std::string& objName): Exciter(objName)
 {
@@ -489,7 +540,9 @@ index_t ExciterESST2A::findIndex(std::string_view field, const SolverMode& sMode
 
 void ExciterESST2A::set(std::string_view param, std::string_view val)
 {
-    Exciter::set(param, val);
+    if (!ExciterESST2A::getModelDescription().trySetLocal(*this, param, val)) {
+        Exciter::set(param, val);
+    }
 }
 
 void ExciterESST2A::set(std::string_view param, double val, units::unit unitType)
@@ -580,4 +633,20 @@ bool ExciterESST2A::supportsLimiterSignal(ExciterLimiterSignal signal) const
     return signal == ExciterLimiterSignal::OVER || underSelectorEnabled;
 }
 // NOLINTEND(readability-math-missing-parentheses)
+
+void ExciterESST2A::setFlag(std::string_view param, bool value)
+{
+    if (!ExciterESST2A::getModelDescription().trySetFlagLocal(*this, param, value)) {
+        Exciter::setFlag(param, value);
+    }
+}
+
+bool ExciterESST2A::getFlag(std::string_view param) const
+{
+    if (const auto value = ExciterESST2A::getModelDescription().tryGetFlagLocal(*this, param)) {
+        return *value;
+    }
+    return Exciter::getFlag(param);
+}
+
 }  // namespace griddyn::exciters

@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -31,6 +32,51 @@ namespace {
     constexpr int rectifierInverseIterations = 40;
     constexpr double initializationTolerance = 1e-7;
 }  // namespace
+
+const ModelDescription& ExciterESAC2A::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterESAC2A>(
+        "ExciterESAC2A",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"}, &ExciterESAC2A::Tr, units::second, "Voltage measurement time constant"),
+         parameter({"tb"}, &ExciterESAC2A::Tb, units::second, "Lead-lag denominator time constant"),
+         parameter({"tc"}, &ExciterESAC2A::Tc, units::second, "Lead-lag numerator time constant"),
+         parameter({"te"}, &ExciterESAC2A::Te, units::second, "Exciter time constant"),
+         parameter({"vamax"}, &ExciterESAC2A::Vamax, units::one, "Vamax upper limit"),
+         parameter({"vamin"}, &ExciterESAC2A::Vamin, units::one, "Vamin lower limit"),
+         parameter({"kb"}, &ExciterESAC2A::Kb, units::one, "Kb gain or coefficient"),
+         parameter({"vfemax"}, &ExciterESAC2A::Vfemax, units::one, "Vfemax upper limit"),
+         parameter({"kh"}, &ExciterESAC2A::Kh, units::one, "Kh gain or coefficient"),
+         parameter({"kf"}, &ExciterESAC2A::Kf, units::one, "Kf gain or coefficient"),
+         parameter({"tf"}, &ExciterESAC2A::Tf, units::second, "Feedback time constant"),
+         parameter({"kc"}, &ExciterESAC2A::Kc, units::one, "Kc gain or coefficient"),
+         parameter({"kd"}, &ExciterESAC2A::Kd, units::one, "Kd gain or coefficient"),
+         parameter({"ke"}, &ExciterESAC2A::Ke, units::one, "Ke gain or coefficient"),
+         parameter({"e1"}, &ExciterESAC2A::E1, units::one, "E1 model setting"),
+         parameter({"se1"}, &ExciterESAC2A::Se1, units::one, "Se1 model setting"),
+         parameter({"e2"}, &ExciterESAC2A::E2, units::one, "E2 model setting"),
+         parameter({"se2"}, &ExciterESAC2A::Se2, units::one, "Se2 model setting"),
+         flag({"uel_enabled"}, &ExciterESAC2A::underSelectorEnabled, "underSelectorEnabled option"),
+         flag({"oel_enabled"}, &ExciterESAC2A::overSelectorEnabled, "overSelectorEnabled option"),
+         state("efd", units::one, "Field voltage"),
+         state("vc", units::one, "Sensed terminal voltage"),
+         state("xll", units::one, "Lead-lag state"),
+         state("va", units::one, "Amplifier state"),
+         state("ve", units::one, "Exciter voltage"),
+         state("vf", units::one, "Feedback state")});
+    return description;
+}
+
+void ExciterESAC2A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterESAC2A::getModelDescription();
+    getParamString<ExciterESAC2A, Exciter>(this,
+                                           pstr,
+                                           description.numericNames(),
+                                           description.stringNames(),
+                                           description.flagNames(),
+                                           pstype);
+}
 
 ExciterESAC2A::ExciterESAC2A(const std::string& objName): Exciter(objName)
 {
@@ -659,4 +705,28 @@ bool ExciterESAC2A::supportsLimiterSignal(ExciterLimiterSignal signal) const
 {
     return signal == ExciterLimiterSignal::UNDER ? underSelectorEnabled : overSelectorEnabled;
 }
+
+void ExciterESAC2A::set(std::string_view param, std::string_view val)
+{
+    if (!ExciterESAC2A::getModelDescription().trySetLocal(*this, param, val)) {
+        Exciter::set(param, val);
+    }
+}
+
+
+void ExciterESAC2A::setFlag(std::string_view param, bool value)
+{
+    if (!ExciterESAC2A::getModelDescription().trySetFlagLocal(*this, param, value)) {
+        Exciter::setFlag(param, value);
+    }
+}
+
+bool ExciterESAC2A::getFlag(std::string_view param) const
+{
+    if (const auto value = ExciterESAC2A::getModelDescription().tryGetFlagLocal(*this, param)) {
+        return *value;
+    }
+    return Exciter::getFlag(param);
+}
+
 }  // namespace griddyn::exciters

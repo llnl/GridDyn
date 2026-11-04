@@ -134,6 +134,8 @@ class ModelDescription {
     [[nodiscard]] const ModelField* findLocal(std::string_view name) const;
     /** Search this class and then its described ancestors. */
     [[nodiscard]] const ModelField* find(std::string_view name) const;
+    /** Resolve a name that is shared by a parameter and solver state. */
+    [[nodiscard]] const ModelField* find(std::string_view name, ModelFieldKind kind) const;
     /** Default member dispatch, called after the class handles its special cases. */
     bool trySetLocal(CoreObject& object,
                      std::string_view name,

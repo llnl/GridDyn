@@ -9,6 +9,7 @@
 #include "StaticExciterRectifier.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -159,6 +160,55 @@ namespace {
         return std::isfinite(value) && (std::abs(value) < 1e20);
     }
 }  // namespace
+
+const ModelDescription& ExciterESAC6A::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterESAC6A>(
+        "ExciterESAC6A",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"}, &ExciterESAC6A::Tr, units::second, "Voltage measurement time constant"),
+         parameter({"tk"}, &ExciterESAC6A::Tk, units::second, "Tk time constant"),
+         parameter({"tb"}, &ExciterESAC6A::Tb, units::second, "Lead-lag denominator time constant"),
+         parameter({"tc"}, &ExciterESAC6A::Tc, units::second, "Lead-lag numerator time constant"),
+         parameter({"vamax"}, &ExciterESAC6A::Vamax, units::one, "Vamax upper limit"),
+         parameter({"vamin"}, &ExciterESAC6A::Vamin, units::one, "Vamin lower limit"),
+         parameter({"te"}, &ExciterESAC6A::Te, units::second, "Exciter time constant"),
+         parameter({"vfelim"}, &ExciterESAC6A::Vfelim, units::one, "Vfelim model setting"),
+         parameter({"kh"}, &ExciterESAC6A::Kh, units::one, "Kh gain or coefficient"),
+         parameter({"vhmax"}, &ExciterESAC6A::Vhmax, units::one, "Vhmax upper limit"),
+         parameter({"th"}, &ExciterESAC6A::Th, units::second, "Th time constant"),
+         parameter({"tj"}, &ExciterESAC6A::Tj, units::second, "Tj time constant"),
+         parameter({"kc"}, &ExciterESAC6A::Kc, units::one, "Kc gain or coefficient"),
+         parameter({"kd"}, &ExciterESAC6A::Kd, units::one, "Kd gain or coefficient"),
+         parameter({"ke"}, &ExciterESAC6A::Ke, units::one, "Ke gain or coefficient"),
+         parameter({"e1"}, &ExciterESAC6A::E1, units::one, "E1 model setting"),
+         parameter({"se1"}, &ExciterESAC6A::Se1, units::one, "Se1 model setting"),
+         parameter({"e2"}, &ExciterESAC6A::E2, units::one, "E2 model setting"),
+         parameter({"se2"}, &ExciterESAC6A::Se2, units::one, "Se2 model setting"),
+         flag({"spdmlt"}, &ExciterESAC6A::speedMultiplier, "speedMultiplier option"),
+         localState("exciter_at_lower_limit",
+                    &ExciterESAC6A::opFlags,
+                    ExciterESAC6A::EXCITER_AT_LOWER_LIMIT,
+                    "Retained exciter_at_lower_limit mode"),
+         state("efd", units::one, "Field voltage"),
+         state("vc", units::one, "Sensed terminal voltage"),
+         state("xa", units::one, "xa solver state"),
+         state("xll", units::one, "Lead-lag state"),
+         state("ve", units::one, "Exciter voltage"),
+         state("vf", units::one, "Feedback state")});
+    return description;
+}
+
+void ExciterESAC6A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExciterESAC6A::getModelDescription();
+    getParamString<ExciterESAC6A, Exciter>(this,
+                                           pstr,
+                                           description.numericNames(),
+                                           description.stringNames(),
+                                           description.flagNames(),
+                                           pstype);
+}
 
 ExciterESAC6A::ExciterESAC6A(const std::string& objName): Exciter(objName)
 {
@@ -812,4 +862,20 @@ bool ExciterESAC6A::supportsLimiterSignal(ExciterLimiterSignal signal) const
 {
     return signal == ExciterLimiterSignal::UNDER;
 }
+
+void ExciterESAC6A::setFlag(std::string_view param, bool value)
+{
+    if (!ExciterESAC6A::getModelDescription().trySetFlagLocal(*this, param, value)) {
+        Exciter::setFlag(param, value);
+    }
+}
+
+bool ExciterESAC6A::getFlag(std::string_view param) const
+{
+    if (const auto value = ExciterESAC6A::getModelDescription().tryGetFlagLocal(*this, param)) {
+        return *value;
+    }
+    return Exciter::getFlag(param);
+}
+
 }  // namespace griddyn::exciters

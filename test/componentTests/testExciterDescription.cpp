@@ -7,13 +7,37 @@
 #include "core/CoreExceptions.h"
 #include "core/ModelDescription.h"
 #include "core/coreDefinitions.hpp"
+#include "griddyn/exciters/ExciterAC7B.h"
+#include "griddyn/exciters/ExciterAC8B.h"
+#include "griddyn/exciters/ExciterDC1A.h"
+#include "griddyn/exciters/ExciterDC2A.h"
+#include "griddyn/exciters/ExciterESAC1A.h"
+#include "griddyn/exciters/ExciterESAC2A.h"
+#include "griddyn/exciters/ExciterESAC5A.h"
+#include "griddyn/exciters/ExciterESAC6A.h"
+#include "griddyn/exciters/ExciterESST1A.h"
+#include "griddyn/exciters/ExciterESST2A.h"
+#include "griddyn/exciters/ExciterESST3A.h"
+#include "griddyn/exciters/ExciterESST4B.h"
+#include "griddyn/exciters/ExciterEXAC1.h"
+#include "griddyn/exciters/ExciterEXAC2.h"
+#include "griddyn/exciters/ExciterEXAC4.h"
+#include "griddyn/exciters/ExciterEXPIC1.h"
+#include "griddyn/exciters/ExciterEXST1.h"
+#include "griddyn/exciters/ExciterIEEET3.h"
+#include "griddyn/exciters/ExciterIEEEX1.h"
+#include "griddyn/exciters/ExciterIEEEtype1.h"
+#include "griddyn/exciters/ExciterIEEEtype2.h"
+#include "griddyn/exciters/ExciterSCRX.h"
 #include "griddyn/exciters/ExciterSEXS.h"
 #include "griddyn/solvers/SolverMode.hpp"
 #include "utilities/MatrixDataSparse.hpp"
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <gtest/gtest.h>
+#include <limits>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -430,6 +454,100 @@ TEST(ExciterDescriptionTests, RejectsMalformedLimiterStorageBeforeChangingAnyFie
     EXPECT_DOUBLE_EQ(model.get("te"), 0.9);
     EXPECT_DOUBLE_EQ(model.get("vbias"), 0.25);
     EXPECT_DOUBLE_EQ(operatingBias(model), 0.5);
+}
+
+TEST(ExciterDescriptionTests, CoversEveryConcreteExciterAndItsActiveStateNames)
+{
+    std::vector<std::unique_ptr<Exciter>> models;
+    models.emplace_back(std::make_unique<exciters::ExciterAC7B>());
+    models.emplace_back(std::make_unique<exciters::ExciterAC8B>());
+    models.emplace_back(std::make_unique<exciters::ExciterDC1A>());
+    models.emplace_back(std::make_unique<exciters::ExciterDC2A>());
+    models.emplace_back(std::make_unique<exciters::ExciterESAC1A>());
+    models.emplace_back(std::make_unique<exciters::ExciterESAC2A>());
+    models.emplace_back(std::make_unique<exciters::ExciterESAC5A>());
+    models.emplace_back(std::make_unique<exciters::ExciterESAC6A>());
+    models.emplace_back(std::make_unique<exciters::ExciterESST1A>());
+    models.emplace_back(std::make_unique<exciters::ExciterESST2A>());
+    models.emplace_back(std::make_unique<exciters::ExciterESST3A>());
+    models.emplace_back(std::make_unique<exciters::ExciterESST4B>());
+    models.emplace_back(std::make_unique<exciters::ExciterEXAC1>());
+    models.emplace_back(std::make_unique<exciters::ExciterEXAC2>());
+    models.emplace_back(std::make_unique<exciters::ExciterEXAC4>());
+    models.emplace_back(std::make_unique<exciters::ExciterEXPIC1>());
+    models.emplace_back(std::make_unique<exciters::ExciterEXST1>());
+    models.emplace_back(std::make_unique<exciters::ExciterIEEET3>());
+    models.emplace_back(std::make_unique<exciters::ExciterIEEEX1>());
+    models.emplace_back(std::make_unique<exciters::ExciterIEEEtype1>());
+    models.emplace_back(std::make_unique<exciters::ExciterIEEEtype2>());
+    models.emplace_back(std::make_unique<exciters::ExciterSCRX>());
+    models.emplace_back(std::make_unique<exciters::ExciterSEXS>());
+    for (const auto& model : models) {
+        const auto& description = model->getModelDescription();
+        SCOPED_TRACE(std::string(description.name()));
+        EXPECT_TRUE(description.describesExactType(*model));
+        const auto saved = ModelFieldSnapshot::capture(*model);
+        EXPECT_FALSE(saved.mFields.empty());
+        EXPECT_NO_THROW(saved.restore(*model));
+        const auto stateOnly = ModelFieldSnapshot::capture(*model, FieldSnapshotLevel::STATE);
+        EXPECT_NO_THROW(stateOnly.restore(*model));
+        for (const auto& name : model->localStateNames()) {
+            EXPECT_NE(description.find(name, ModelFieldKind::STATE), nullptr) << name;
+        }
+        for (const auto& field : description.fields()) {
+            if (field.kind() != ModelFieldKind::PARAMETER ||
+                field.valueType() != ModelFieldType::REAL) {
+                continue;
+            }
+            const auto stored = std::get<double>(field.value(*model));
+            if (std::isfinite(stored)) {
+                EXPECT_DOUBLE_EQ(model->get(field.name()), stored) << field.name();
+            }
+        }
+    }
+}
+
+TEST(ExciterDescriptionTests, DistinguishesExpic1ParameterAndStateWithTheSameName)
+{
+    exciters::ExciterEXPIC1 model;
+    const auto& description = model.getModelDescription();
+    ASSERT_NE(description.find("vr1"), nullptr);
+    EXPECT_EQ(description.find("vr1")->kind(), ModelFieldKind::PARAMETER);
+    ASSERT_NE(description.find("vr1", ModelFieldKind::STATE), nullptr);
+    EXPECT_EQ(description.find("vr1", ModelFieldKind::STATE)->kind(), ModelFieldKind::STATE);
+}
+
+TEST(ExciterDescriptionTests, UsesMemberDispatchAndPreservesSpecialValidation)
+{
+    exciters::ExciterAC7B simple;
+    simple.set("tr", 250.0, units::ms);
+    EXPECT_NEAR(simple.get("tr"), 0.25, 1e-6);
+    EXPECT_NEAR(simple.get("tr", units::ms), 250.0, 1e-4);
+
+    exciters::ExciterESAC2A validated;
+    EXPECT_THROW(validated.set("tr", std::numeric_limits<double>::infinity()),
+                 InvalidParameterValue);
+
+    exciters::ExciterIEEEtype1 inherited;
+    inherited.set("ke", 2.0);
+    EXPECT_DOUBLE_EQ(inherited.get("ke"), 2.0);
+    const auto* limiter = inherited.getModelDescription().find("limiter");
+    ASSERT_NE(limiter, nullptr);
+    EXPECT_EQ(limiter->kind(), ModelFieldKind::COMMAND);
+}
+
+TEST(ExciterDescriptionTests, RestoresPackedLimiterHistoryInAnotherExciter)
+{
+    exciters::ExciterAC7B model;
+    auto original = ModelFieldSnapshot::capture(model, FieldSnapshotLevel::STATE);
+    auto changed = original;
+    entry(changed, "pid_limited").mValue = true;
+    changed.restore(model);
+    const auto* limiter = model.getModelDescription().find("pid_limited");
+    ASSERT_NE(limiter, nullptr);
+    EXPECT_TRUE(std::get<bool>(limiter->value(model)));
+    original.restore(model);
+    EXPECT_FALSE(std::get<bool>(limiter->value(model)));
 }
 
 }  // namespace griddyn

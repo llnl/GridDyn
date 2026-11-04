@@ -162,16 +162,19 @@ This demonstrates the model-description and model-level restore boundary. It
 does not serialize an integrator's history or resume a whole dynamic simulation.
 A future checkpoint coordinator still needs to restore case inputs and solver
 resources and refresh solver root/Jacobian caches at its normal restart boundary.
+
 ## Migration across the exciter family
 
 Every concrete exciter now has an exact-type description. Each table declares
 its own stored parameters, user flags, retained local state where needed, and
 the names of its possible solver states. Inherited fields remain in the parent
 table. The existing `getParameterStrings` implementations use these tables for
-parameter discovery. Simple setters and getters use `trySetLocal` and
-`tryGetLocal`; models with coupled setters, model-specific validation, or
-special aliases retain their explicit dispatch. The description is metadata
-and a snapshot binding in those cases, not a replacement for the public setter.
+parameter discovery. Ordinary local assignments and reads now use `trySetLocal`
+and `tryGetLocal` in nearly every exciter. Value-only range checks for local
+fields are predicates in their `parameter(...)` declarations. Class code still
+handles numeric switches, inherited aliases, child-specific constraints on
+inherited parameters, and setters with side effects. `IEEEtype1` keeps its
+saturation-mode and limiter-command handling in the class.
 
 Several details need attention when building a full dynamic checkpoint:
 

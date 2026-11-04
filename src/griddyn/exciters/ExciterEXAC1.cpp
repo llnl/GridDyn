@@ -56,12 +56,28 @@ const ModelDescription& ExciterEXAC1::getModelDescription() const
     static const auto description = ModelDescription::define<ExciterEXAC1>(
         "ExciterEXAC1",
         &Exciter::getModelDescription(),
-        {parameter({"tr"}, &ExciterEXAC1::Tr, units::second, "Voltage measurement time constant"),
-         parameter({"tb"}, &ExciterEXAC1::Tb, units::second, "Lead-lag denominator time constant"),
+        {parameter({"tr"},
+                   &ExciterEXAC1::Tr,
+                   units::second,
+                   "Voltage measurement time constant",
+                   parameterValidators::nonnegative),
+         parameter({"tb"},
+                   &ExciterEXAC1::Tb,
+                   units::second,
+                   "Lead-lag denominator time constant",
+                   parameterValidators::nonnegative),
          parameter({"tc"}, &ExciterEXAC1::Tc, units::second, "Lead-lag numerator time constant"),
-         parameter({"te"}, &ExciterEXAC1::Te, units::second, "Exciter time constant"),
+         parameter({"te"},
+                   &ExciterEXAC1::Te,
+                   units::second,
+                   "Exciter time constant",
+                   parameterValidators::positive),
          parameter({"kf"}, &ExciterEXAC1::Kf, units::one, "Kf gain or coefficient"),
-         parameter({"tf"}, &ExciterEXAC1::Tf, units::second, "Feedback time constant"),
+         parameter({"tf"},
+                   &ExciterEXAC1::Tf,
+                   units::second,
+                   "Feedback time constant",
+                   parameterValidators::positive),
          parameter({"kc"}, &ExciterEXAC1::Kc, units::one, "Kc gain or coefficient"),
          parameter({"kd"}, &ExciterEXAC1::Kd, units::one, "Kd gain or coefficient"),
          parameter({"ke"}, &ExciterEXAC1::Ke, units::one, "Ke gain or coefficient"),
@@ -976,119 +992,16 @@ void ExciterEXAC1::set(std::string_view param, std::string_view val)
 
 void ExciterEXAC1::set(std::string_view param, double val, units::unit unitType)
 {
-    const auto positive = [val](const char* label) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue(std::string("EXAC1 ") + label +
-                                        " must be positive and finite");
-        }
-    };
-    const auto nonnegative = [val](const char* label) {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue(std::string("EXAC1 ") + label +
-                                        " must be nonnegative and finite");
-        }
-    };
-    const auto finite = [val](const char* label) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue(std::string("EXAC1 ") + label + " must be finite");
-        }
-    };
-    if (param == "tr") {
-        nonnegative("TR");
-        Tr = val;
-    } else if (param == "tb") {
-        nonnegative("TB");
-        Tb = val;
-    } else if (param == "tc") {
-        finite("TC");
-        Tc = val;
-    } else if (param == "te") {
-        positive("TE");
-        Te = val;
-    } else if (param == "tf") {
-        positive("TF");
-        Tf = val;
-    } else if (param == "kf") {
-        finite("KF");
-        Kf = val;
-    } else if (param == "kc") {
-        finite("KC");
-        Kc = val;
-    } else if (param == "kd") {
-        finite("KD");
-        Kd = val;
-    } else if (param == "ke") {
-        finite("KE");
-        Ke = val;
-    } else if (param == "e1") {
-        finite("E1");
-        E1 = val;
-    } else if (param == "se1") {
-        finite("SE1");
-        Se1 = val;
-    } else if (param == "e2") {
-        finite("E2");
-        E2 = val;
-    } else if (param == "se2") {
-        finite("SE2");
-        Se2 = val;
-    } else {
+    if (!ExciterEXAC1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         Exciter::set(param, val, unitType);
     }
 }
 
 double ExciterEXAC1::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if ((param == "vrmax") || (param == "urmax")) {
-        return Vrmax;
-    }
-    if ((param == "vrmin") || (param == "urmin")) {
-        return Vrmin;
-    }
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "tb") {
-        return Tb;
-    }
-    if (param == "tc") {
-        return Tc;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if (param == "tf") {
-        return Tf;
-    }
-    if (param == "kf") {
-        return Kf;
-    }
-    if (param == "kc") {
-        return Kc;
-    }
-    if (param == "kd") {
-        return Kd;
-    }
-    if (param == "ke") {
-        return Ke;
-    }
-    if (param == "e1") {
-        return E1;
-    }
-    if (param == "se1") {
-        return Se1;
-    }
-    if (param == "e2") {
-        return E2;
-    }
-    if (param == "se2") {
-        return Se2;
+    if (const auto value =
+            ExciterEXAC1::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Exciter::get(param, unitType);
 }

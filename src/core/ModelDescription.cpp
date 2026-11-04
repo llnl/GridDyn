@@ -214,8 +214,21 @@ bool ModelDescription::trySetLocal(CoreObject& object,
                                    double value,
                                    units::unit unitType) const
 {
+    if (name.empty() || name.front() == '#') {
+        return true;
+    }
+    if (!std::isfinite(value)) {
+        throw InvalidParameterValue(name);
+    }
     const auto* field = findLocal(name);
-    if (field == nullptr || field->kind() != ModelFieldKind::PARAMETER) {
+    if (field == nullptr) {
+        return false;
+    }
+    if (field->kind() == ModelFieldKind::FLAG) {
+        object.setFlag(name, value != 0.0);
+        return true;
+    }
+    if (field->kind() != ModelFieldKind::PARAMETER) {
         return false;
     }
     if (field->valueType() == ModelFieldType::STRING) {
@@ -230,6 +243,9 @@ bool ModelDescription::trySetLocal(CoreObject& object,
                                    std::string_view name,
                                    std::string_view value) const
 {
+    if (name.empty() || name.front() == '#') {
+        return true;
+    }
     const auto* field = findLocal(name);
     if (field == nullptr || !field->editable()) {
         return false;

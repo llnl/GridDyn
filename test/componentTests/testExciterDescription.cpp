@@ -485,6 +485,12 @@ TEST(ExciterDescriptionTests, CoversEveryConcreteExciterAndItsActiveStateNames)
     for (const auto& model : models) {
         const auto& description = model->getModelDescription();
         SCOPED_TRACE(std::string(description.name()));
+        EXPECT_NO_THROW(model->set("", std::numeric_limits<double>::quiet_NaN()));
+        EXPECT_NO_THROW(model->set("# ignored", std::numeric_limits<double>::infinity()));
+        EXPECT_NO_THROW(model->set("", "ignored"));
+        EXPECT_NO_THROW(model->set("# ignored", "ignored"));
+        EXPECT_THROW(model->set("unknown_parameter", std::numeric_limits<double>::quiet_NaN()),
+                     InvalidParameterValue);
         EXPECT_TRUE(description.describesExactType(*model));
         const auto saved = ModelFieldSnapshot::capture(*model);
         EXPECT_FALSE(saved.mFields.empty());
@@ -527,6 +533,19 @@ TEST(ExciterDescriptionTests, UsesMemberDispatchAndPreservesSpecialValidation)
     exciters::ExciterESAC2A validated;
     EXPECT_THROW(validated.set("tr", std::numeric_limits<double>::infinity()),
                  InvalidParameterValue);
+    validated.set("uel_enabled", -2.0);
+    EXPECT_TRUE(validated.getFlag("uel_enabled"));
+    EXPECT_THROW(validated.set("uel_enabled", std::numeric_limits<double>::quiet_NaN()),
+                 InvalidParameterValue);
+    EXPECT_TRUE(validated.getFlag("uel_enabled"));
+    EXPECT_THROW(validated.set("oel_enabled", std::numeric_limits<double>::infinity()),
+                 InvalidParameterValue);
+    const auto basePower = validated.get("basepower");
+    EXPECT_THROW(validated.set("basepower", std::numeric_limits<double>::infinity()),
+                 InvalidParameterValue);
+    EXPECT_DOUBLE_EQ(validated.get("basepower"), basePower);
+    EXPECT_NO_THROW(validated.set("# ignored", std::numeric_limits<double>::quiet_NaN()));
+    EXPECT_NO_THROW(validated.set("", std::numeric_limits<double>::infinity()));
 
     exciters::ExciterIEEEtype1 inherited;
     inherited.set("ke", 2.0);
@@ -548,6 +567,51 @@ TEST(ExciterDescriptionTests, RestoresPackedLimiterHistoryInAnotherExciter)
     EXPECT_TRUE(std::get<bool>(limiter->value(model)));
     original.restore(model);
     EXPECT_FALSE(std::get<bool>(limiter->value(model)));
+}
+
+TEST(ExciterDescriptionTests, DispatchesValidatedFieldsAndInheritedAliases)
+{
+    exciters::ExciterEXAC1 exac1;
+    EXPECT_THROW(exac1.set("te", 0.0), InvalidParameterValue);
+    exac1.set("te", 250.0, units::ms);
+    EXPECT_NEAR(exac1.get("te", units::ms), 250.0, 1e-4);
+
+    exciters::ExciterEXAC2 exac2;
+    EXPECT_THROW(exac2.set("kl", 0.0), InvalidParameterValue);
+    exciters::ExciterESST3A esst3a;
+    EXPECT_THROW(esst3a.set("kp", 0.0), InvalidParameterValue);
+    exciters::ExciterEXST1 exst1;
+    EXPECT_THROW(exst1.set("ta", 0.0), InvalidParameterValue);
+
+    exciters::ExciterSCRX scrx;
+    scrx.set("k", 3.0);
+    scrx.set("efdmax", 5.0);
+    EXPECT_DOUBLE_EQ(scrx.get("ka"), 3.0);
+    EXPECT_DOUBLE_EQ(scrx.get("emax"), 5.0);
+
+    exciters::ExciterIEEEtype2 type2;
+    type2.set("tf1", 500.0, units::ms);
+    EXPECT_NEAR(type2.get("tf1", units::ms), 500.0, 1e-4);
+}
+
+TEST(ExciterDescriptionTests, ValidatesLocalFieldsThroughTheirDescriptions)
+{
+    exciters::ExciterESST3A esst3a;
+    const auto& esst3aDescription = esst3a.getModelDescription();
+    const auto originalGain = esst3a.get("kp");
+    EXPECT_THROW(esst3aDescription.trySetLocal(esst3a, "kp", 0.0), InvalidParameterValue);
+    EXPECT_DOUBLE_EQ(esst3a.get("kp"), originalGain);
+    EXPECT_THROW(esst3aDescription.trySetLocal(
+                     esst3a, "vimax", std::numeric_limits<double>::infinity()),
+                 InvalidParameterValue);
+    esst3a.set("theta_p", 0.2);
+    EXPECT_NEAR(esst3a.get("thetap"), 0.2, 1e-6);
+
+    exciters::ExciterEXST1 exst1;
+    EXPECT_THROW(exst1.getModelDescription().trySetLocal(exst1, "tb", 0.0),
+                 InvalidParameterValue);
+    exciters::ExciterESST1A esst1a;
+    EXPECT_THROW(esst1a.set("uel", 1.5), InvalidParameterValue);
 }
 
 }  // namespace griddyn

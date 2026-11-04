@@ -277,36 +277,6 @@ ChangeCode ExciterIEEEX1::rootCheck(const IOdata& inputs,
 
 double ExciterIEEEX1::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if (param == "tb") {
-        return Tb;
-    }
-    if (param == "tc") {
-        return Tc;
-    }
-    if ((param == "vrmax") || (param == "urmax")) {
-        return Vrmax;
-    }
-    if ((param == "vrmin") || (param == "urmin")) {
-        return Vrmin;
-    }
-    if (param == "ke") {
-        return Ke;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if (param == "kf") {
-        return Kf;
-    }
-    if (param == "tf") {
-        return Tf;
-    }
     if (param == "switch") {
         return 0.0;
     }

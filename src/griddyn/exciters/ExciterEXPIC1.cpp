@@ -616,129 +616,17 @@ void ExciterEXPIC1::set(std::string_view param, std::string_view val)
 
 void ExciterEXPIC1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!std::isfinite(val)) {
-        throw InvalidParameterValue("EXPIC1 parameters must be finite");
+    if (ExciterEXPIC1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
-    if (param == "tr") {
-        Tr = val;
-    } else if (param == "ta1") {
-        Ta1 = val;
-    } else if (param == "vr1") {
-        Vr1 = val;
-    } else if (param == "vr2") {
-        Vr2 = val;
-    } else if (param == "ta2") {
-        Ta2 = val;
-    } else if (param == "ta3") {
-        Ta3 = val;
-    } else if (param == "ta4") {
-        Ta4 = val;
-    } else if (param == "kf") {
-        Kf = val;
-    } else if (param == "tf1") {
-        Tf1 = val;
-    } else if (param == "tf2") {
-        Tf2 = val;
-    } else if (param == "efdmax") {
-        Efdmax = val;
-    } else if (param == "efdmin") {
-        Efdmin = val;
-    } else if (param == "ke") {
-        Ke = val;
-    } else if (param == "te") {
-        Te = val;
-    } else if (param == "e1") {
-        E1 = val;
-    } else if (param == "se1") {
-        Se1 = val;
-    } else if (param == "e2") {
-        E2 = val;
-    } else if (param == "se2") {
-        Se2 = val;
-    } else if (param == "kp") {
-        Kp = val;
-    } else if (param == "ki") {
-        Ki = val;
-    } else if (param == "kc") {
-        Kc = val;
-    } else {
-        Exciter::set(param, val, unitType);
-    }
+    Exciter::set(param, val, unitType);
 }
 
 double ExciterEXPIC1::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "ka") {
-        return Ka;
-    }
-    if ((param == "vrmax") || (param == "urmax")) {
-        return Vrmax;
-    }
-    if ((param == "vrmin") || (param == "urmin")) {
-        return Vrmin;
-    }
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "ta1") {
-        return Ta1;
-    }
-    if (param == "vr1") {
-        return Vr1;
-    }
-    if (param == "vr2") {
-        return Vr2;
-    }
-    if (param == "ta2") {
-        return Ta2;
-    }
-    if (param == "ta3") {
-        return Ta3;
-    }
-    if (param == "ta4") {
-        return Ta4;
-    }
-    if (param == "kf") {
-        return Kf;
-    }
-    if (param == "tf1") {
-        return Tf1;
-    }
-    if (param == "tf2") {
-        return Tf2;
-    }
-    if (param == "efdmax") {
-        return Efdmax;
-    }
-    if (param == "efdmin") {
-        return Efdmin;
-    }
-    if (param == "ke") {
-        return Ke;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if (param == "e1") {
-        return E1;
-    }
-    if (param == "se1") {
-        return Se1;
-    }
-    if (param == "e2") {
-        return E2;
-    }
-    if (param == "se2") {
-        return Se2;
-    }
-    if (param == "kp") {
-        return Kp;
-    }
-    if (param == "ki") {
-        return Ki;
-    }
-    if (param == "kc") {
-        return Kc;
+    if (const auto value =
+            ExciterEXPIC1::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Exciter::get(param, unitType);
 }

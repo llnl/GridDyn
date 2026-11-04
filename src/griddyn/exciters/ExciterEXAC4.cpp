@@ -28,11 +28,19 @@ const ModelDescription& ExciterEXAC4::getModelDescription() const
     static const auto description = ModelDescription::define<ExciterEXAC4>(
         "ExciterEXAC4",
         &Exciter::getModelDescription(),
-        {parameter({"tr"}, &ExciterEXAC4::Tr, units::second, "Voltage measurement time constant"),
+        {parameter({"tr"},
+                   &ExciterEXAC4::Tr,
+                   units::second,
+                   "Voltage measurement time constant",
+                   parameterValidators::positive),
          parameter({"vimax"}, &ExciterEXAC4::Vimax, units::one, "Vimax upper limit"),
          parameter({"vimin"}, &ExciterEXAC4::Vimin, units::one, "Vimin lower limit"),
          parameter({"tc"}, &ExciterEXAC4::Tc, units::second, "Lead-lag numerator time constant"),
-         parameter({"tb"}, &ExciterEXAC4::Tb, units::second, "Lead-lag denominator time constant"),
+         parameter({"tb"},
+                   &ExciterEXAC4::Tb,
+                   units::second,
+                   "Lead-lag denominator time constant",
+                   parameterValidators::positive),
          parameter({"kc"}, &ExciterEXAC4::Kc, units::one, "Kc gain or coefficient"),
          localState("input_limited",
                     &ExciterEXAC4::opFlags,
@@ -330,68 +338,15 @@ void ExciterEXAC4::set(std::string_view param, std::string_view val)
 }
 void ExciterEXAC4::set(std::string_view param, double val, units::unit unitType)
 {
-    const auto finite = [val](const char* label) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue(std::string("EXAC4 ") + label + " must be finite");
-        }
-    };
-    if (param == "tr") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("EXAC4 TR must be positive and finite");
-        }
-        Tr = val;
-    } else if (param == "tb") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("EXAC4 TB must be positive and finite");
-        }
-        Tb = val;
-    } else if (param == "tc") {
-        finite("TC");
-        Tc = val;
-    } else if (param == "vimax") {
-        finite("VIMAX");
-        Vimax = val;
-    } else if (param == "vimin") {
-        finite("VIMIN");
-        Vimin = val;
-    } else if (param == "kc") {
-        finite("KC");
-        Kc = val;
-    } else {
+    if (!ExciterEXAC4::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         Exciter::set(param, val, unitType);
     }
 }
 double ExciterEXAC4::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if ((param == "vrmax") || (param == "urmax")) {
-        return Vrmax;
-    }
-    if ((param == "vrmin") || (param == "urmin")) {
-        return Vrmin;
-    }
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "tb") {
-        return Tb;
-    }
-    if (param == "tc") {
-        return Tc;
-    }
-    if (param == "vimax") {
-        return Vimax;
-    }
-    if (param == "vimin") {
-        return Vimin;
-    }
-    if (param == "kc") {
-        return Kc;
+    if (const auto value =
+            ExciterEXAC4::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Exciter::get(param, unitType);
 }

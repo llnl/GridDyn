@@ -576,127 +576,23 @@ index_t ExciterESAC2A::findIndex(std::string_view field, const SolverMode& sMode
 
 void ExciterESAC2A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!std::isfinite(val)) {
-        throw InvalidParameterValue("ESAC2A parameters must be finite");
+    if (ExciterESAC2A::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
-    if (param == "uel_enabled") {
-        underSelectorEnabled = val != 0.0;
-    } else if (param == "oel_enabled") {
-        overSelectorEnabled = val != 0.0;
-    } else if (param == "tr") {
-        Tr = val;
-    } else if (param == "tb") {
-        Tb = val;
-    } else if (param == "tc") {
-        Tc = val;
-    } else if (param == "te") {
-        Te = val;
-    } else if (param == "vamax") {
-        Vamax = val;
-    } else if (param == "vamin") {
-        Vamin = val;
-    } else if (param == "kb") {
-        Kb = val;
-    } else if (param == "vfemax") {
-        Vfemax = val;
-    } else if (param == "kh") {
-        Kh = val;
-    } else if (param == "kf") {
-        Kf = val;
-    } else if (param == "tf") {
-        Tf = val;
-    } else if (param == "kc") {
-        Kc = val;
-    } else if (param == "kd") {
-        Kd = val;
-    } else if (param == "ke") {
-        Ke = val;
-    } else if (param == "e1") {
-        E1 = val;
-    } else if (param == "se1") {
-        Se1 = val;
-    } else if (param == "e2") {
-        E2 = val;
-    } else if (param == "se2") {
-        Se2 = val;
-    } else {
-        Exciter::set(param, val, unitType);
-    }
+    Exciter::set(param, val, unitType);
 }
 
 double ExciterESAC2A::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if (param == "vrmax") {
-        return Vrmax;
-    }
-    if (param == "vrmin") {
-        return Vrmin;
-    }
     if (param == "uel_enabled") {
         return underSelectorEnabled ? 1.0 : 0.0;
     }
     if (param == "oel_enabled") {
         return overSelectorEnabled ? 1.0 : 0.0;
     }
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "tb") {
-        return Tb;
-    }
-    if (param == "tc") {
-        return Tc;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if (param == "vamax") {
-        return Vamax;
-    }
-    if (param == "vamin") {
-        return Vamin;
-    }
-    if (param == "kb") {
-        return Kb;
-    }
-    if (param == "vfemax") {
-        return Vfemax;
-    }
-    if (param == "kh") {
-        return Kh;
-    }
-    if (param == "kf") {
-        return Kf;
-    }
-    if (param == "tf") {
-        return Tf;
-    }
-    if (param == "kc") {
-        return Kc;
-    }
-    if (param == "kd") {
-        return Kd;
-    }
-    if (param == "ke") {
-        return Ke;
-    }
-    if (param == "e1") {
-        return E1;
-    }
-    if (param == "se1") {
-        return Se1;
-    }
-    if (param == "e2") {
-        return E2;
-    }
-    if (param == "se2") {
-        return Se2;
+    if (const auto value =
+            ExciterESAC2A::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Exciter::get(param, unitType);
 }
@@ -712,7 +608,6 @@ void ExciterESAC2A::set(std::string_view param, std::string_view val)
         Exciter::set(param, val);
     }
 }
-
 
 void ExciterESAC2A::setFlag(std::string_view param, bool value)
 {

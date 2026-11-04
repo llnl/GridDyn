@@ -39,15 +39,35 @@ const ModelDescription& ExciterESST2A::getModelDescription() const
     static const auto description = ModelDescription::define<ExciterESST2A>(
         "ExciterESST2A",
         &Exciter::getModelDescription(),
-        {parameter({"tr"}, &ExciterESST2A::Tr, units::second, "Voltage measurement time constant"),
+        {parameter({"tr"},
+                   &ExciterESST2A::Tr,
+                   units::second,
+                   "Voltage measurement time constant",
+                   parameterValidators::nonnegative),
          parameter({"kp"}, &ExciterESST2A::Kp, units::one, "Kp gain or coefficient"),
          parameter({"ki"}, &ExciterESST2A::Ki, units::one, "Ki gain or coefficient"),
-         parameter({"kc"}, &ExciterESST2A::Kc, units::one, "Kc gain or coefficient"),
+         parameter({"kc"},
+                   &ExciterESST2A::Kc,
+                   units::one,
+                   "Kc gain or coefficient",
+                   parameterValidators::nonnegative),
          parameter({"kf"}, &ExciterESST2A::Kf, units::one, "Kf gain or coefficient"),
-         parameter({"tf"}, &ExciterESST2A::Tf, units::second, "Feedback time constant"),
+         parameter({"tf"},
+                   &ExciterESST2A::Tf,
+                   units::second,
+                   "Feedback time constant",
+                   parameterValidators::positive),
          parameter({"ke"}, &ExciterESST2A::Ke, units::one, "Ke gain or coefficient"),
-         parameter({"te"}, &ExciterESST2A::Te, units::second, "Exciter time constant"),
-         parameter({"efdmax", "efmax"}, &ExciterESST2A::Efdmax, units::one, "Efdmax upper limit"),
+         parameter({"te"},
+                   &ExciterESST2A::Te,
+                   units::second,
+                   "Exciter time constant",
+                   parameterValidators::positive),
+         parameter({"efdmax", "efmax"},
+                   &ExciterESST2A::Efdmax,
+                   units::one,
+                   "Efdmax upper limit",
+                   parameterValidators::nonnegative),
          flag({"uel_enabled"}, &ExciterESST2A::underSelectorEnabled, "underSelectorEnabled option"),
          localState("regulator_limited",
                     &ExciterESST2A::opFlags,
@@ -547,38 +567,13 @@ void ExciterESST2A::set(std::string_view param, std::string_view val)
 
 void ExciterESST2A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!std::isfinite(val)) {
-        throw InvalidParameterValue("ESST2A parameters must be finite");
+    if (ExciterESST2A::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
-    if (((param == "tr" || param == "ta" || param == "kc" || param == "efdmax" ||
-          param == "efmax") &&
-         val < 0.0) ||
-        ((param == "ka" || param == "tf" || param == "te") && val <= 0.0)) {
-        throw InvalidParameterValue("ESST2A gain, time constant, or field limit");
+    if ((param == "ta" && val < 0.0) || (param == "ka" && val <= 0.0)) {
+        throw InvalidParameterValue("ESST2A gain or time constant");
     }
-    if (param == "uel_enabled") {
-        underSelectorEnabled = val != 0.0;
-    } else if (param == "tr") {
-        Tr = val;
-    } else if (param == "kp") {
-        Kp = val;
-    } else if (param == "ki") {
-        Ki = val;
-    } else if (param == "kc") {
-        Kc = val;
-    } else if (param == "kf") {
-        Kf = val;
-    } else if (param == "tf") {
-        Tf = val;
-    } else if (param == "ke") {
-        Ke = val;
-    } else if (param == "te") {
-        Te = val;
-    } else if ((param == "efdmax") || (param == "efmax")) {
-        Efdmax = val;
-    } else {
-        Exciter::set(param, val, unitType);
-    }
+    Exciter::set(param, val, unitType);
 }
 
 double ExciterESST2A::get(std::string_view param, units::unit unitType) const
@@ -586,44 +581,9 @@ double ExciterESST2A::get(std::string_view param, units::unit unitType) const
     if (param == "uel_enabled") {
         return underSelectorEnabled ? 1.0 : 0.0;
     }
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if ((param == "vrmax") || (param == "urmax")) {
-        return Vrmax;
-    }
-    if ((param == "vrmin") || (param == "urmin")) {
-        return Vrmin;
-    }
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "kp") {
-        return Kp;
-    }
-    if (param == "ki") {
-        return Ki;
-    }
-    if (param == "kc") {
-        return Kc;
-    }
-    if (param == "kf") {
-        return Kf;
-    }
-    if (param == "tf") {
-        return Tf;
-    }
-    if (param == "ke") {
-        return Ke;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if ((param == "efdmax") || (param == "efmax")) {
-        return Efdmax;
+    if (const auto value =
+            ExciterESST2A::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Exciter::get(param, unitType);
 }

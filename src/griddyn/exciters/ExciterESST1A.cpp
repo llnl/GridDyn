@@ -25,10 +25,6 @@ namespace {
     constexpr index_t amplifierState = 3;
     constexpr index_t feedbackState = 4;
 
-    bool isWholeNumber(double value)
-    {
-        return std::isfinite(value) && (std::floor(value) == value);
-    }
 }  // namespace
 
 const ModelDescription& ExciterESST1A::getModelDescription() const
@@ -553,110 +549,16 @@ void ExciterESST1A::set(std::string_view param, std::string_view val)
 
 void ExciterESST1A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "tr") {
-        Tr = val;
-    } else if (param == "vimax") {
-        Vimax = val;
-    } else if (param == "vimin") {
-        Vimin = val;
-    } else if (param == "tb") {
-        Tb = val;
-    } else if (param == "tc") {
-        Tc = val;
-    } else if (param == "tb1") {
-        Tb1 = val;
-    } else if (param == "tc1") {
-        Tc1 = val;
-    } else if (param == "vamax") {
-        Vamax = val;
-    } else if (param == "vamin") {
-        Vamin = val;
-    } else if (param == "ilr") {
-        Ilr = val;
-    } else if (param == "klr") {
-        Klr = val;
-    } else if (param == "kc") {
-        Kc = val;
-    } else if (param == "kf") {
-        Kf = val;
-    } else if (param == "tf") {
-        Tf = val;
-    } else if (param == "uel") {
-        if (!isWholeNumber(val)) {
-            throw InvalidParameterValue("ESST1A UEL selector must be an integer");
-        }
-        uelSelector = static_cast<int>(val);
-    } else if ((param == "vos") || (param == "vosc")) {
-        if (!isWholeNumber(val)) {
-            throw InvalidParameterValue("ESST1A VOS selector must be an integer");
-        }
-        vosSelector = static_cast<int>(val);
-    } else {
+    if (!ExciterESST1A::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         Exciter::set(param, val, unitType);
     }
 }
 
 double ExciterESST1A::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "vimax") {
-        return Vimax;
-    }
-    if (param == "vimin") {
-        return Vimin;
-    }
-    if (param == "tb") {
-        return Tb;
-    }
-    if (param == "tc") {
-        return Tc;
-    }
-    if (param == "tb1") {
-        return Tb1;
-    }
-    if (param == "tc1") {
-        return Tc1;
-    }
-    if (param == "vamax") {
-        return Vamax;
-    }
-    if (param == "vamin") {
-        return Vamin;
-    }
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if ((param == "vrmax") || (param == "urmax")) {
-        return Vrmax;
-    }
-    if ((param == "vrmin") || (param == "urmin")) {
-        return Vrmin;
-    }
-    if (param == "ilr") {
-        return Ilr;
-    }
-    if (param == "klr") {
-        return Klr;
-    }
-    if (param == "kc") {
-        return Kc;
-    }
-    if (param == "kf") {
-        return Kf;
-    }
-    if (param == "tf") {
-        return Tf;
-    }
-    if (param == "uel") {
-        return static_cast<double>(uelSelector);
-    }
-    if ((param == "vos") || (param == "vosc")) {
-        return static_cast<double>(vosSelector);
+    if (const auto value =
+            ExciterESST1A::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Exciter::get(param, unitType);
 }

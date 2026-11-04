@@ -448,7 +448,8 @@ void ExciterESAC5A::set(std::string_view param, double val, units::unit unitType
 
 double ExciterESAC5A::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value = ExciterESAC5A::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value =
+            ExciterESAC5A::getModelDescription().tryGetLocal(*this, param, unitType)) {
         return *value;
     }
     return Exciter::get(param, unitType);

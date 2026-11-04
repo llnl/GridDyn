@@ -470,7 +470,8 @@ void ExciterESST4B::set(std::string_view param, double val, units::unit unitType
 
 double ExciterESST4B::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value = ExciterESST4B::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value =
+            ExciterESST4B::getModelDescription().tryGetLocal(*this, param, unitType)) {
         return *value;
     }
     return Exciter::get(param, unitType);

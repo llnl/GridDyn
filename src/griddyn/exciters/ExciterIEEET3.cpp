@@ -478,7 +478,8 @@ void ExciterIEEET3::set(std::string_view param, double val, units::unit unitType
 
 double ExciterIEEET3::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value = ExciterIEEET3::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value =
+            ExciterIEEET3::getModelDescription().tryGetLocal(*this, param, unitType)) {
         return *value;
     }
     return Exciter::get(param, unitType);

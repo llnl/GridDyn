@@ -601,15 +601,15 @@ TEST(ExciterDescriptionTests, ValidatesLocalFieldsThroughTheirDescriptions)
     const auto originalGain = esst3a.get("kp");
     EXPECT_THROW(esst3aDescription.trySetLocal(esst3a, "kp", 0.0), InvalidParameterValue);
     EXPECT_DOUBLE_EQ(esst3a.get("kp"), originalGain);
-    EXPECT_THROW(esst3aDescription.trySetLocal(
-                     esst3a, "vimax", std::numeric_limits<double>::infinity()),
+    EXPECT_THROW(esst3aDescription.trySetLocal(esst3a,
+                                               "vimax",
+                                               std::numeric_limits<double>::infinity()),
                  InvalidParameterValue);
     esst3a.set("theta_p", 0.2);
     EXPECT_NEAR(esst3a.get("thetap"), 0.2, 1e-6);
 
     exciters::ExciterEXST1 exst1;
-    EXPECT_THROW(exst1.getModelDescription().trySetLocal(exst1, "tb", 0.0),
-                 InvalidParameterValue);
+    EXPECT_THROW(exst1.getModelDescription().trySetLocal(exst1, "tb", 0.0), InvalidParameterValue);
     exciters::ExciterESST1A esst1a;
     EXPECT_THROW(esst1a.set("uel", 1.5), InvalidParameterValue);
 }

@@ -411,7 +411,6 @@ void ExciterDC1A::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-
 double ExciterDC1A::get(std::string_view param, units::unit unitType) const
 {
     if (const auto value = ExciterDC1A::getModelDescription().tryGetLocal(*this, param, unitType)) {

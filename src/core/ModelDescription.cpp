@@ -138,13 +138,11 @@ ModelDescription::ModelDescription(std::string_view name,
     std::vector<std::pair<std::string_view, ModelFieldKind>> declaredNames;
     for (const auto& field : mFields) {
         for (const auto& fieldName : field.names()) {
-            const auto duplicate = std::find_if(declaredNames.begin(),
-                                                declaredNames.end(),
-                                                [fieldName](const auto& entry) {
-                                                    return entry.first == fieldName;
-                                                });
-            const bool parameterAndState =
-                duplicate != declaredNames.end() &&
+            const auto duplicate =
+                std::find_if(declaredNames.begin(),
+                             declaredNames.end(),
+                             [fieldName](const auto& entry) { return entry.first == fieldName; });
+            const bool parameterAndState = duplicate != declaredNames.end() &&
                 ((duplicate->second == ModelFieldKind::PARAMETER &&
                   field.kind() == ModelFieldKind::STATE) ||
                  (duplicate->second == ModelFieldKind::STATE &&
@@ -197,11 +195,12 @@ const ModelField* ModelDescription::find(std::string_view name) const
 const ModelField* ModelDescription::find(std::string_view name, ModelFieldKind kind) const
 {
     for (const auto* layer = this; layer != nullptr; layer = layer->parent()) {
-        const auto field = std::find_if(layer->mFields.begin(),
-                                        layer->mFields.end(),
-                                        [name, kind](const auto& candidate) {
-                                            return candidate.kind() == kind && candidate.matches(name);
-                                        });
+        const auto field =
+            std::find_if(layer->mFields.begin(),
+                         layer->mFields.end(),
+                         [name, kind](const auto& candidate) {
+                             return candidate.kind() == kind && candidate.matches(name);
+                         });
         if (field != layer->mFields.end()) {
             return &*field;
         }

@@ -70,6 +70,7 @@ class StabilizerIee2st: public Stabilizer {
   public:
     explicit StabilizerIee2st(const std::string& objName = "pssIEE2ST_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
 
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,

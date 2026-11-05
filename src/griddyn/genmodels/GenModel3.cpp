@@ -9,6 +9,7 @@
 #include "../Generator.h"
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
@@ -19,6 +20,32 @@ GenModel3::GenModel3(const std::string& objName): GenModelClassical(objName)
     // default values
 
     Xd = 1.05;
+}
+
+const ModelDescription& GenModel3::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GenModel3>(
+        "GenModel3",
+        &GenModelClassical::getModelDescription(),
+        {parameter({"xq"}, &GenModel3::Xq, units::one, "Q-axis reactance"),
+         parameter({"xl"}, &GenModel3::Xl, units::one, "Leakage reactance"),
+         parameter({"xp", "xdp"}, &GenModel3::Xdp, units::one, "D-axis transient reactance"),
+         parameter({"tdop", "td0p", "top", "t0p"},
+                   &GenModel3::Tdop,
+                   units::second,
+                   "D-axis transient open-circuit time"),
+         localState("constant_field", &GenModel3::E),
+         command({"x"}, units::one, "Set both d-axis and q-axis reactances"),
+         state("eqp", units::one, "Solver variable eqp")});
+    return description;
+}
+
+double GenModel3::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value = GenModel3::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return GenModelClassical::get(param, unitType);
 }
 
 CoreObject* GenModel3::clone(CoreObject* obj) const
@@ -235,21 +262,12 @@ void GenModel3::set(std::string_view param, std::string_view val)
 
 void GenModel3::set(std::string_view param, double val, units::unit unitType)
 {
+    if (GenModel3::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
+    GenModelClassical::set(param, val, unitType);
     if (param == "x") {
-        Xq = val;
-        Xd = val;
-    } else if (param == "xq") {
-        Xq = val;
-    } else if (param == "xl") {
-        Xl = val;
-    } else if ((param == "xp") || (param == "xdp")) {
-        Xdp = val;
-    } else if ((param == "tdop") || (param == "td0p")) {
-        Tdop = val;
-    } else if ((param == "top") || (param == "t0p")) {
-        Tdop = val;
-    } else {
-        GenModelClassical::set(param, val, unitType);
+        Xq = Xd;
     }
 }
 }  // namespace griddyn::genmodels

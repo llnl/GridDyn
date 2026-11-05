@@ -9,6 +9,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -29,6 +30,28 @@ namespace {
 }  // namespace
 
 GenModelCSVGN1::GenModelCSVGN1(const std::string& objName): GenModel(objName) {}
+
+const ModelDescription& GenModelCSVGN1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GenModelCSVGN1>(
+        "GenModelCSVGN1",
+        &GenModel::getModelDescription(),
+        {parameter({"k"}, &GenModelCSVGN1::K, units::one, "Regulator gain"),
+         parameter({"t1"}, &GenModelCSVGN1::T1, units::second, "Regulator time constant T1"),
+         parameter({"t2"}, &GenModelCSVGN1::T2, units::second, "Regulator time constant T2"),
+         parameter({"t3"}, &GenModelCSVGN1::T3, units::second, "Regulator time constant T3"),
+         parameter({"t4"}, &GenModelCSVGN1::T4, units::second, "Regulator time constant T4"),
+         parameter({"t5"}, &GenModelCSVGN1::T5, units::second, "Regulator time constant T5"),
+         parameter({"rmin"}, &GenModelCSVGN1::RMIN, units::MVAR, "Minimum reactor loading"),
+         parameter({"vmax"}, &GenModelCSVGN1::VMAX, units::one, "Maximum regulator output"),
+         parameter({"vmin"}, &GenModelCSVGN1::VMIN, units::one, "Minimum regulator output"),
+         parameter({"cbase"}, &GenModelCSVGN1::CBASE, units::MVAR, "Parallel capacitor rating"),
+         localState("voltageReference", &GenModelCSVGN1::m_voltageReference),
+         state("regulator1", units::one, "Solver variable regulator1"),
+         state("regulator2", units::one, "Solver variable regulator2"),
+         state("thyristor", units::one, "Solver variable thyristor")});
+    return description;
+}
 
 CoreObject* GenModelCSVGN1::clone(CoreObject* obj) const
 {
@@ -112,62 +135,16 @@ void GenModelCSVGN1::set(std::string_view param, std::string_view val)
 
 void GenModelCSVGN1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "k") {
-        K = val;
-    } else if (param == "t1") {
-        T1 = val;
-    } else if (param == "t2") {
-        T2 = val;
-    } else if (param == "t3") {
-        T3 = val;
-    } else if (param == "t4") {
-        T4 = val;
-    } else if (param == "t5") {
-        T5 = val;
-    } else if (param == "rmin") {
-        RMIN = val;
-    } else if (param == "vmax") {
-        VMAX = val;
-    } else if (param == "vmin") {
-        VMIN = val;
-    } else if (param == "cbase") {
-        CBASE = val;
-    } else {
+    if (!GenModelCSVGN1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         GenModel::set(param, val, unitType);
     }
 }
 
 double GenModelCSVGN1::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "k") {
-        return K;
-    }
-    if (param == "t1") {
-        return T1;
-    }
-    if (param == "t2") {
-        return T2;
-    }
-    if (param == "t3") {
-        return T3;
-    }
-    if (param == "t4") {
-        return T4;
-    }
-    if (param == "t5") {
-        return T5;
-    }
-    if (param == "rmin") {
-        return RMIN;
-    }
-    if (param == "vmax") {
-        return VMAX;
-    }
-    if (param == "vmin") {
-        return VMIN;
-    }
-    if (param == "cbase") {
-        return CBASE;
+    if (const auto value =
+            GenModelCSVGN1::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return GenModel::get(param, unitType);
 }

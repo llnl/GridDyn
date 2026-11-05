@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -28,6 +29,95 @@ StabilizerIEEEST::StabilizerIEEEST(const std::string& objName): Stabilizer(objNa
 {
     m_inputSize = pssInputCount;
     m_outputSize = 1;
+}
+
+const ModelDescription& StabilizerIEEEST::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<StabilizerIEEEST>(
+        "StabilizerIEEEST",
+        &Stabilizer::getModelDescription(),
+        {parameter(
+             {"mode"}, &StabilizerIEEEST::mode, units::one, "Input signal selector", supportedMode),
+         parameter({"busr"},
+                   &StabilizerIEEEST::remoteBus,
+                   units::one,
+                   "Remote bus selector",
+                   [](int value) { return value == 0; }),
+         parameter({"a1"},
+                   &StabilizerIEEEST::A1,
+                   units::second,
+                   "Filter coefficient A1",
+                   parameterValidators::nonnegative),
+         parameter({"a2"},
+                   &StabilizerIEEEST::A2,
+                   (units::second * units::second),
+                   "Filter coefficient A2",
+                   parameterValidators::nonnegative),
+         parameter({"a3"}, &StabilizerIEEEST::A3, units::second, "Filter coefficient A3"),
+         parameter({"a4"},
+                   &StabilizerIEEEST::A4,
+                   (units::second * units::second),
+                   "Filter coefficient A4",
+                   parameterValidators::nonnegative),
+         parameter({"a5"}, &StabilizerIEEEST::A5, units::second, "Filter coefficient A5"),
+         parameter({"a6"},
+                   &StabilizerIEEEST::A6,
+                   (units::second * units::second),
+                   "Filter coefficient A6"),
+         parameter({"t1"},
+                   &StabilizerIEEEST::T1,
+                   units::second,
+                   "T1 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"t2"},
+                   &StabilizerIEEEST::T2,
+                   units::second,
+                   "T2 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"t3"},
+                   &StabilizerIEEEST::T3,
+                   units::second,
+                   "T3 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"t4"},
+                   &StabilizerIEEEST::T4,
+                   units::second,
+                   "T4 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"t5"},
+                   &StabilizerIEEEST::T5,
+                   units::second,
+                   "T5 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"t6"},
+                   &StabilizerIEEEST::T6,
+                   units::second,
+                   "T6 time constant",
+                   parameterValidators::positive),
+         parameter({"ks"}, &StabilizerIEEEST::Ks, units::one, "Ks gain"),
+         parameter({"lsmax", "vmax"}, &StabilizerIEEEST::Lsmax, units::one, "Lsmax signal limit"),
+         parameter({"lsmin", "vmin"}, &StabilizerIEEEST::Lsmin, units::one, "Lsmin signal limit"),
+         parameter({"vcu"}, &StabilizerIEEEST::Vcu, units::one, "Vcu gain"),
+         parameter({"vcl"}, &StabilizerIEEEST::Vcl, units::one, "Vcl gain"),
+         localState("initialVoltage", &StabilizerIEEEST::initialVoltage, "Initialized reference"),
+         localState("initialPmech", &StabilizerIEEEST::initialPmech, "Initialized reference"),
+         localState(
+             "output_limited", &StabilizerIEEEST::opFlags, OUTPUT_LIMITED, "Output limiter active"),
+         localState("output_limit_high",
+                    &StabilizerIEEEST::opFlags,
+                    OUTPUT_LIMIT_HIGH,
+                    "Upper output limit active"),
+         localState(
+             "voltage_gated", &StabilizerIEEEST::opFlags, VOLTAGE_GATED, "Voltage gating history"),
+         state("vs", units::one, "Stabilizer solver variable vs"),
+         state("f1x", units::one, "Stabilizer solver variable f1x"),
+         state("f1y", units::one, "Stabilizer solver variable f1y"),
+         state("f2x", units::one, "Stabilizer solver variable f2x"),
+         state("f2y", units::one, "Stabilizer solver variable f2y"),
+         state("ll1", units::one, "Stabilizer solver variable ll1"),
+         state("ll2", units::one, "Stabilizer solver variable ll2"),
+         state("wo", units::one, "Stabilizer solver variable wo")});
+    return description;
 }
 
 CoreObject* StabilizerIEEEST::clone(CoreObject* obj) const
@@ -520,177 +610,56 @@ void StabilizerIEEEST::set(std::string_view param, std::string_view val)
 
 void StabilizerIEEEST::set(std::string_view param, double val, units::unit unitType)
 {
-    const auto finite = [val](const char* parameterName) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue(std::string("IEEEST ") + parameterName + " must be finite");
+    if (param == "lsmax" || param == "vmax") {
+        const double proposed = units::convert(val, unitType, units::one);
+        if (!std::isfinite(proposed) || proposed < Lsmin) {
+            throw InvalidParameterValue(param);
         }
-    };
-    if (param == "mode") {
-        if (!std::isfinite(val) || (std::floor(val) != val) ||
-            !supportedMode(static_cast<int>(val))) {
-            throw InvalidParameterValue("IEEEST MODE is unsupported");
+        Lsmax = proposed;
+        return;
+    }
+    if (param == "lsmin" || param == "vmin") {
+        const double proposed = units::convert(val, unitType, units::one);
+        if (!std::isfinite(proposed) || proposed > Lsmax) {
+            throw InvalidParameterValue(param);
         }
-        mode = static_cast<int>(val);
-    } else if (param == "busr") {
-        if (!std::isfinite(val) || (std::floor(val) != val) || (val != 0.0)) {
-            throw InvalidParameterValue("IEEEST remote BUSR is unsupported");
+        Lsmin = proposed;
+        return;
+    }
+    if (param == "vcu") {
+        const double proposed = units::convert(val, unitType, units::one);
+        if (!std::isfinite(proposed)) {
+            throw InvalidParameterValue(param);
         }
-        remoteBus = 0;
-    } else if (param == "a1") {
-        finite("A1");
-        if (val < 0.0) {
-            throw InvalidParameterValue("IEEEST A1 must be nonnegative");
+        const double mapped = proposed == 0.0 ? 999.0 : proposed;
+        if (mapped < Vcl) {
+            throw InvalidParameterValue(param);
         }
-        A1 = val;
-    } else if (param == "a2") {
-        finite("A2");
-        if (val < 0.0) {
-            throw InvalidParameterValue("IEEEST A2 must be nonnegative");
+        Vcu = mapped;
+        return;
+    }
+    if (param == "vcl") {
+        const double proposed = units::convert(val, unitType, units::one);
+        if (!std::isfinite(proposed)) {
+            throw InvalidParameterValue(param);
         }
-        A2 = val;
-    } else if (param == "a3") {
-        finite("A3");
-        A3 = val;
-    } else if (param == "a4") {
-        finite("A4");
-        if (val < 0.0) {
-            throw InvalidParameterValue("IEEEST A4 must be nonnegative");
+        const double mapped = proposed == 0.0 ? -999.0 : proposed;
+        if (mapped > Vcu) {
+            throw InvalidParameterValue(param);
         }
-        A4 = val;
-    } else if (param == "a5") {
-        finite("A5");
-        A5 = val;
-    } else if (param == "a6") {
-        finite("A6");
-        A6 = val;
-    } else if (param == "t1") {
-        finite("T1");
-        if (val < 0.0) {
-            throw InvalidParameterValue("IEEEST T1 must be nonnegative");
-        }
-        T1 = val;
-    } else if (param == "t2") {
-        finite("T2");
-        if (val < 0.0) {
-            throw InvalidParameterValue("IEEEST T2 must be nonnegative");
-        }
-        T2 = val;
-    } else if (param == "t3") {
-        finite("T3");
-        if (val < 0.0) {
-            throw InvalidParameterValue("IEEEST T3 must be nonnegative");
-        }
-        T3 = val;
-    } else if (param == "t4") {
-        finite("T4");
-        if (val < 0.0) {
-            throw InvalidParameterValue("IEEEST T4 must be nonnegative");
-        }
-        T4 = val;
-    } else if (param == "t5") {
-        finite("T5");
-        if (val < 0.0) {
-            throw InvalidParameterValue("IEEEST T5 must be nonnegative");
-        }
-        T5 = val;
-    } else if (param == "t6") {
-        finite("T6");
-        if (val <= 0.0) {
-            throw InvalidParameterValue("IEEEST T6 must be positive");
-        }
-        T6 = val;
-    } else if (param == "ks") {
-        finite("KS");
-        Ks = val;
-    } else if ((param == "lsmax") || (param == "vmax")) {
-        finite("LSMAX");
-        if (val < Lsmin) {
-            throw InvalidParameterValue("IEEEST LSMAX must not be less than LSMIN");
-        }
-        Lsmax = val;
-    } else if ((param == "lsmin") || (param == "vmin")) {
-        finite("LSMIN");
-        if (val > Lsmax) {
-            throw InvalidParameterValue("IEEEST LSMIN must not exceed LSMAX");
-        }
-        Lsmin = val;
-    } else if (param == "vcu") {
-        finite("VCU");
-        const double mappedValue = (val == 0.0) ? 999.0 : val;
-        if (mappedValue < Vcl) {
-            throw InvalidParameterValue("IEEEST VCU must not be less than VCL");
-        }
-        Vcu = mappedValue;
-    } else if (param == "vcl") {
-        finite("VCL");
-        const double mappedValue = (val == 0.0) ? -999.0 : val;
-        if (mappedValue > Vcu) {
-            throw InvalidParameterValue("IEEEST VCL must not exceed VCU");
-        }
-        Vcl = mappedValue;
-    } else {
+        Vcl = mapped;
+        return;
+    }
+    if (!StabilizerIEEEST::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         Stabilizer::set(param, val, unitType);
     }
 }
 
 double StabilizerIEEEST::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "mode") {
-        return mode;
-    }
-    if (param == "busr") {
-        return remoteBus;
-    }
-    if (param == "a1") {
-        return A1;
-    }
-    if (param == "a2") {
-        return A2;
-    }
-    if (param == "a3") {
-        return A3;
-    }
-    if (param == "a4") {
-        return A4;
-    }
-    if (param == "a5") {
-        return A5;
-    }
-    if (param == "a6") {
-        return A6;
-    }
-    if (param == "t1") {
-        return T1;
-    }
-    if (param == "t2") {
-        return T2;
-    }
-    if (param == "t3") {
-        return T3;
-    }
-    if (param == "t4") {
-        return T4;
-    }
-    if (param == "t5") {
-        return T5;
-    }
-    if (param == "t6") {
-        return T6;
-    }
-    if (param == "ks") {
-        return Ks;
-    }
-    if ((param == "lsmax") || (param == "vmax")) {
-        return Lsmax;
-    }
-    if ((param == "lsmin") || (param == "vmin")) {
-        return Lsmin;
-    }
-    if (param == "vcu") {
-        return Vcu;
-    }
-    if (param == "vcl") {
-        return Vcl;
+    if (const auto value =
+            StabilizerIEEEST::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Stabilizer::get(param, unitType);
 }

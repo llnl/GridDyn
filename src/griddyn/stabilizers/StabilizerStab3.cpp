@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -28,6 +29,48 @@ StabilizerStab3::StabilizerStab3(const std::string& objName): Stabilizer(objName
 {
     m_inputSize = pssInputCount;
     m_outputSize = 1;
+}
+
+const ModelDescription& StabilizerStab3::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<StabilizerStab3>(
+        "StabilizerStab3",
+        &Stabilizer::getModelDescription(),
+        {parameter({"tt"},
+                   &StabilizerStab3::Tt,
+                   units::second,
+                   "Tt time constant",
+                   parameterValidators::nonnegative),
+         parameter({"tx1"},
+                   &StabilizerStab3::Tx1,
+                   units::second,
+                   "Tx1 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"tx2"},
+                   &StabilizerStab3::Tx2,
+                   units::second,
+                   "Tx2 time constant",
+                   parameterValidators::positive),
+         parameter({"kx"}, &StabilizerStab3::Kx, units::one, "Kx gain"),
+         parameter({"vlim", "vmax"},
+                   &StabilizerStab3::Vlim,
+                   units::one,
+                   "Vlim gain",
+                   parameterValidators::nonnegative),
+         localState("initialElectricalPower",
+                    &StabilizerStab3::initialElectricalPower,
+                    "Initialized reference"),
+         localState(
+             "output_limited", &StabilizerStab3::opFlags, OUTPUT_LIMITED, "Output limiter active"),
+         localState("output_limit_high",
+                    &StabilizerStab3::opFlags,
+                    OUTPUT_LIMIT_HIGH,
+                    "Upper output limit active"),
+         state("vs", units::one, "Stabilizer solver variable vs"),
+         state("transducer", units::one, "Stabilizer solver variable transducer"),
+         state("lowpass", units::one, "Stabilizer solver variable lowpass"),
+         state("washout", units::one, "Stabilizer solver variable washout")});
+    return description;
 }
 
 CoreObject* StabilizerStab3::clone(CoreObject* obj) const
@@ -355,52 +398,16 @@ void StabilizerStab3::set(std::string_view param, std::string_view val)
 
 void StabilizerStab3::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!std::isfinite(val)) {
-        throw InvalidParameterValue("STAB3 parameters must be finite");
-    }
-    if (param == "tt") {
-        if (val < 0.0) {
-            throw InvalidParameterValue("STAB3 TT must be nonnegative");
-        }
-        Tt = val;
-    } else if (param == "tx1") {
-        if (val < 0.0) {
-            throw InvalidParameterValue("STAB3 TX1 must be nonnegative");
-        }
-        Tx1 = val;
-    } else if (param == "tx2") {
-        if (val <= 0.0) {
-            throw InvalidParameterValue("STAB3 TX2 must be positive");
-        }
-        Tx2 = val;
-    } else if (param == "kx") {
-        Kx = val;
-    } else if ((param == "vlim") || (param == "vmax")) {
-        if (val < 0.0) {
-            throw InvalidParameterValue("STAB3 VLIM must be nonnegative");
-        }
-        Vlim = val;
-    } else {
+    if (!StabilizerStab3::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         Stabilizer::set(param, val, unitType);
     }
 }
 
 double StabilizerStab3::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "tt") {
-        return Tt;
-    }
-    if (param == "tx1") {
-        return Tx1;
-    }
-    if (param == "tx2") {
-        return Tx2;
-    }
-    if (param == "kx") {
-        return Kx;
-    }
-    if ((param == "vlim") || (param == "vmax")) {
-        return Vlim;
+    if (const auto value =
+            StabilizerStab3::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Stabilizer::get(param, unitType);
 }

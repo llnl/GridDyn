@@ -8,12 +8,38 @@
 
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <string>
 namespace griddyn::genmodels {
 GenModel4::GenModel4(const std::string& objName): GenModel3(objName) {}
+const ModelDescription& GenModel4::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GenModel4>(
+        "GenModel4",
+        &GenModel3::getModelDescription(),
+        {parameter({"xqp"}, &GenModel4::Xqp, units::one, "Q-axis transient reactance"),
+         parameter({"tqop", "tq0p"},
+                   &GenModel4::Tqop,
+                   units::second,
+                   "Q-axis transient open-circuit time"),
+         parameter({"s10", "s1"}, &GenModel4::S10, units::one, "Saturation at 1.0 per unit"),
+         parameter({"s12"}, &GenModel4::S12, units::one, "Saturation at 1.2 per unit"),
+         command({"top", "t0p"}, units::second, "Set both transient open-circuit times"),
+         state("edp", units::one, "Solver variable edp")});
+    return description;
+}
+
+double GenModel4::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value = GenModel4::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return GenModel3::get(param, unitType);
+}
+
 CoreObject* GenModel4::clone(CoreObject* obj) const
 {
     auto* gd = cloneBase<GenModel4, GenModel3>(this, obj);
@@ -263,24 +289,16 @@ void GenModel4::set(std::string_view param, std::string_view val)
 
 void GenModel4::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "xd") {
-        Xd = val;
-    } else if (param == "xqp") {
-        Xqp = val;
-    } else if ((param == "tqop") || (param == "tq0p")) {
-        Tqop = val;
-    } else if ((param == "top") || (param == "t0p")) {
-        Tqop = val;
-        Tdop = val;
-    } else if ((param == "s1") || (param == "s10")) {
-        S10 = val;
-        sat.setParam(S10, S12);
-    } else if (param == "s12") {
-        S12 = val;
-        sat.setParam(S10, S12);
-    } else {
-        GenModel3::set(param, val, unitType);
+    if (GenModel4::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        if (param == "s1" || param == "s10" || param == "s12") {
+            sat.setParam(S10, S12);
+        }
+        return;
     }
+    if (param == "top" || param == "t0p") {
+        GenModel4::set("tqop", val, unitType);
+    }
+    GenModel3::set(param, val, unitType);
 }
 
 }  // namespace griddyn::genmodels

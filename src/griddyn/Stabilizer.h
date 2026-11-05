@@ -32,6 +32,7 @@ class Stabilizer: public GridSubModel {
   public:
     explicit Stabilizer(const std::string& objName = "pss_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
     virtual ~Stabilizer();
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,

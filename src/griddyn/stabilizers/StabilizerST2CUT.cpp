@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -32,6 +33,107 @@ StabilizerST2CUT::StabilizerST2CUT(const std::string& objName): Stabilizer(objNa
 {
     m_inputSize = pssInputCount;
     m_outputSize = 1;
+}
+
+const ModelDescription& StabilizerST2CUT::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<StabilizerST2CUT>(
+        "StabilizerST2CUT",
+        &Stabilizer::getModelDescription(),
+        {parameter({"mode", "mode1"},
+                   &StabilizerST2CUT::mode1,
+                   units::one,
+                   "Input signal selector",
+                   supportedMode),
+         parameter({"mode2", "mode_2"},
+                   &StabilizerST2CUT::mode2,
+                   units::one,
+                   "Input signal selector",
+                   supportedMode),
+         parameter({"busr", "busr1"},
+                   &StabilizerST2CUT::remoteBus1,
+                   units::one,
+                   "Remote bus selector",
+                   [](int value) { return value == 0; }),
+         parameter({"busr2"},
+                   &StabilizerST2CUT::remoteBus2,
+                   units::one,
+                   "Remote bus selector",
+                   [](int value) { return value == 0; }),
+         parameter({"k1"}, &StabilizerST2CUT::K1, units::one, "K1 gain"),
+         parameter({"k2"}, &StabilizerST2CUT::K2, units::one, "K2 gain"),
+         parameter({"t1"},
+                   &StabilizerST2CUT::T1,
+                   units::second,
+                   "T1 time constant",
+                   parameterValidators::positive),
+         parameter({"t2"},
+                   &StabilizerST2CUT::T2,
+                   units::second,
+                   "T2 time constant",
+                   parameterValidators::positive),
+         parameter({"t3"},
+                   &StabilizerST2CUT::T3,
+                   units::second,
+                   "T3 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"t4"},
+                   &StabilizerST2CUT::T4,
+                   units::second,
+                   "T4 time constant",
+                   parameterValidators::positive),
+         parameter({"t5"},
+                   &StabilizerST2CUT::T5,
+                   units::second,
+                   "T5 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"t6"},
+                   &StabilizerST2CUT::T6,
+                   units::second,
+                   "T6 time constant",
+                   parameterValidators::positive),
+         parameter({"t7"},
+                   &StabilizerST2CUT::T7,
+                   units::second,
+                   "T7 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"t8"},
+                   &StabilizerST2CUT::T8,
+                   units::second,
+                   "T8 time constant",
+                   parameterValidators::positive),
+         parameter({"t9"},
+                   &StabilizerST2CUT::T9,
+                   units::second,
+                   "T9 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"t10"},
+                   &StabilizerST2CUT::T10,
+                   units::second,
+                   "T10 time constant",
+                   parameterValidators::positive),
+         parameter({"lsmax", "vmax"}, &StabilizerST2CUT::Lsmax, units::one, "Lsmax signal limit"),
+         parameter({"lsmin", "vmin"}, &StabilizerST2CUT::Lsmin, units::one, "Lsmin signal limit"),
+         parameter({"vcu"}, &StabilizerST2CUT::Vcu, units::one, "Vcu gain"),
+         parameter({"vcl"}, &StabilizerST2CUT::Vcl, units::one, "Vcl gain"),
+         localState("initialVoltage", &StabilizerST2CUT::initialVoltage, "Initialized reference"),
+         localState("initialPmech", &StabilizerST2CUT::initialPmech, "Initialized reference"),
+         localState(
+             "output_limited", &StabilizerST2CUT::opFlags, OUTPUT_LIMITED, "Output limiter active"),
+         localState("output_limit_high",
+                    &StabilizerST2CUT::opFlags,
+                    OUTPUT_LIMIT_HIGH,
+                    "Upper output limit active"),
+         localState(
+             "voltage_gated", &StabilizerST2CUT::opFlags, VOLTAGE_GATED, "Voltage gating history"),
+         state("vs", units::one, "Stabilizer solver variable vs"),
+         state("l1", units::one, "Stabilizer solver variable l1"),
+         state("l2", units::one, "Stabilizer solver variable l2"),
+         state("wo", units::one, "Stabilizer solver variable wo"),
+         state("ll1", units::one, "Stabilizer solver variable ll1"),
+         state("ll2", units::one, "Stabilizer solver variable ll2"),
+         state("ll3", units::one, "Stabilizer solver variable ll3")});
+    return description;
 }
 
 CoreObject* StabilizerST2CUT::clone(CoreObject* obj) const
@@ -437,191 +539,56 @@ void StabilizerST2CUT::set(std::string_view param, std::string_view val)
 
 void StabilizerST2CUT::set(std::string_view param, double val, units::unit unitType)
 {
-    const auto setFinite = [val](const char* parameterName) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue(std::string("ST2CUT ") + parameterName + " must be finite");
+    if (param == "lsmax" || param == "vmax") {
+        const double proposed = units::convert(val, unitType, units::one);
+        if (!std::isfinite(proposed) || proposed < Lsmin) {
+            throw InvalidParameterValue(param);
         }
-    };
-    if ((param == "mode") || (param == "mode1")) {
-        if (!std::isfinite(val) || (std::floor(val) != val) ||
-            !supportedMode(static_cast<int>(val))) {
-            throw InvalidParameterValue("ST2CUT MODE is unsupported");
+        Lsmax = proposed;
+        return;
+    }
+    if (param == "lsmin" || param == "vmin") {
+        const double proposed = units::convert(val, unitType, units::one);
+        if (!std::isfinite(proposed) || proposed > Lsmax) {
+            throw InvalidParameterValue(param);
         }
-        mode1 = static_cast<int>(val);
-    } else if ((param == "mode2") || (param == "mode_2")) {
-        if (!std::isfinite(val) || (std::floor(val) != val) ||
-            !supportedMode(static_cast<int>(val))) {
-            throw InvalidParameterValue("ST2CUT MODE2 is unsupported");
+        Lsmin = proposed;
+        return;
+    }
+    if (param == "vcu") {
+        const double proposed = units::convert(val, unitType, units::one);
+        if (!std::isfinite(proposed)) {
+            throw InvalidParameterValue(param);
         }
-        mode2 = static_cast<int>(val);
-    } else if ((param == "busr") || (param == "busr1")) {
-        if (!std::isfinite(val) || (std::floor(val) != val) || (val != 0.0)) {
-            throw InvalidParameterValue("ST2CUT remote BUSR is unsupported");
+        const double mapped = proposed == 0.0 ? 999.0 : proposed;
+        if (mapped < Vcl) {
+            throw InvalidParameterValue(param);
         }
-        remoteBus1 = 0;
-    } else if (param == "busr2") {
-        if (!std::isfinite(val) || (std::floor(val) != val) || (val != 0.0)) {
-            throw InvalidParameterValue("ST2CUT remote BUSR2 is unsupported");
+        Vcu = mapped;
+        return;
+    }
+    if (param == "vcl") {
+        const double proposed = units::convert(val, unitType, units::one);
+        if (!std::isfinite(proposed)) {
+            throw InvalidParameterValue(param);
         }
-        remoteBus2 = 0;
-    } else if (param == "k1") {
-        setFinite("K1");
-        K1 = val;
-    } else if (param == "k2") {
-        setFinite("K2");
-        K2 = val;
-    } else if (param == "t1") {
-        setFinite("T1");
-        if (val <= 0.0) {
-            throw InvalidParameterValue("ST2CUT T1 must be positive");
+        const double mapped = proposed == 0.0 ? -999.0 : proposed;
+        if (mapped > Vcu) {
+            throw InvalidParameterValue(param);
         }
-        T1 = val;
-    } else if (param == "t2") {
-        setFinite("T2");
-        if (val <= 0.0) {
-            throw InvalidParameterValue("ST2CUT T2 must be positive");
-        }
-        T2 = val;
-    } else if (param == "t3") {
-        setFinite("T3");
-        if (val < 0.0) {
-            throw InvalidParameterValue("ST2CUT T3 must be nonnegative");
-        }
-        T3 = val;
-    } else if (param == "t4") {
-        setFinite("T4");
-        if (val <= 0.0) {
-            throw InvalidParameterValue("ST2CUT T4 must be positive");
-        }
-        T4 = val;
-    } else if (param == "t5") {
-        setFinite("T5");
-        if (val < 0.0) {
-            throw InvalidParameterValue("ST2CUT T5 must be nonnegative");
-        }
-        T5 = val;
-    } else if (param == "t6") {
-        setFinite("T6");
-        if (val <= 0.0) {
-            throw InvalidParameterValue("ST2CUT T6 must be positive");
-        }
-        T6 = val;
-    } else if (param == "t7") {
-        setFinite("T7");
-        if (val < 0.0) {
-            throw InvalidParameterValue("ST2CUT T7 must be nonnegative");
-        }
-        T7 = val;
-    } else if (param == "t8") {
-        setFinite("T8");
-        if (val <= 0.0) {
-            throw InvalidParameterValue("ST2CUT T8 must be positive");
-        }
-        T8 = val;
-    } else if (param == "t9") {
-        setFinite("T9");
-        if (val < 0.0) {
-            throw InvalidParameterValue("ST2CUT T9 must be nonnegative");
-        }
-        T9 = val;
-    } else if (param == "t10") {
-        setFinite("T10");
-        if (val <= 0.0) {
-            throw InvalidParameterValue("ST2CUT T10 must be positive");
-        }
-        T10 = val;
-    } else if ((param == "lsmax") || (param == "vmax")) {
-        setFinite("LSMAX");
-        if (val < Lsmin) {
-            throw InvalidParameterValue("ST2CUT LSMAX must not be less than LSMIN");
-        }
-        Lsmax = val;
-    } else if ((param == "lsmin") || (param == "vmin")) {
-        setFinite("LSMIN");
-        if (val > Lsmax) {
-            throw InvalidParameterValue("ST2CUT LSMIN must not exceed LSMAX");
-        }
-        Lsmin = val;
-    } else if (param == "vcu") {
-        setFinite("VCU");
-        const double mappedValue = (val == 0.0) ? 999.0 : val;
-        if (mappedValue < Vcl) {
-            throw InvalidParameterValue("ST2CUT VCU must not be less than VCL");
-        }
-        Vcu = mappedValue;
-    } else if (param == "vcl") {
-        setFinite("VCL");
-        const double mappedValue = (val == 0.0) ? -999.0 : val;
-        if (mappedValue > Vcu) {
-            throw InvalidParameterValue("ST2CUT VCL must not exceed VCU");
-        }
-        Vcl = mappedValue;
-    } else {
+        Vcl = mapped;
+        return;
+    }
+    if (!StabilizerST2CUT::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         Stabilizer::set(param, val, unitType);
     }
 }
 
 double StabilizerST2CUT::get(std::string_view param, units::unit unitType) const
 {
-    if ((param == "mode") || (param == "mode1")) {
-        return mode1;
-    }
-    if (param == "mode2") {
-        return mode2;
-    }
-    if ((param == "busr") || (param == "busr1")) {
-        return remoteBus1;
-    }
-    if (param == "busr2") {
-        return remoteBus2;
-    }
-    if (param == "k1") {
-        return K1;
-    }
-    if (param == "k2") {
-        return K2;
-    }
-    if (param == "t1") {
-        return T1;
-    }
-    if (param == "t2") {
-        return T2;
-    }
-    if (param == "t3") {
-        return T3;
-    }
-    if (param == "t4") {
-        return T4;
-    }
-    if (param == "t5") {
-        return T5;
-    }
-    if (param == "t6") {
-        return T6;
-    }
-    if (param == "t7") {
-        return T7;
-    }
-    if (param == "t8") {
-        return T8;
-    }
-    if (param == "t9") {
-        return T9;
-    }
-    if (param == "t10") {
-        return T10;
-    }
-    if ((param == "lsmax") || (param == "vmax")) {
-        return Lsmax;
-    }
-    if ((param == "lsmin") || (param == "vmin")) {
-        return Lsmin;
-    }
-    if (param == "vcu") {
-        return Vcu;
-    }
-    if (param == "vcl") {
-        return Vcl;
+    if (const auto value =
+            StabilizerST2CUT::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Stabilizer::get(param, unitType);
 }

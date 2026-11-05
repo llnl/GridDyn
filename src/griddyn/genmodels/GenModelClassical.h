@@ -54,6 +54,7 @@ class GenModelClassical: public GenModel {
     //!< @brief default constructor
     explicit GenModelClassical(const std::string& objName = "genModelClassic_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
 
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,

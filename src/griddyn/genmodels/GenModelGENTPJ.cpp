@@ -4,6 +4,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <array>
@@ -138,6 +139,20 @@ GenModelGENTPJ::GenModelGENTPJ(const std::string& objName): GenModel5(objName)
     sat.setType(utilities::Saturation::SaturationType::CUTOFF_SCALED_QUADRATIC);
     sat.setParam(S10, S12);
 }
+const ModelDescription& GenModelGENTPJ::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GenModelGENTPJ>(
+        "GenModelGENTPJ",
+        &GenModel5::getModelDescription(),
+        {parameter(
+             {"kis"}, &GenModelGENTPJ::Kis, units::one, "Saturation armature-current correction"),
+         state("epd", units::one, "Solver variable epd"),
+         state("epq", units::one, "Solver variable epq"),
+         state("psippd", units::one, "Solver variable psippd"),
+         state("psippq", units::one, "Solver variable psippq")});
+    return description;
+}
+
 CoreObject* GenModelGENTPJ::clone(CoreObject* obj) const
 {
     auto* c = cloneBase<GenModelGENTPJ, GenModel5>(this, obj);
@@ -231,21 +246,16 @@ void GenModelGENTPJ::dynObjectInitializeB(const IOdata& inputs,
 }
 void GenModelGENTPJ::set(std::string_view param, double value, units::unit unitType)
 {
-    if (param == "kis") {
-        Kis = value;
-    } else if (param == "s10" || param == "s1") {
-        S10 = value;
-        sat.setParam(S10, S12);
-    } else if (param == "s12") {
-        S12 = value;
-        sat.setParam(S10, S12);
-    } else {
+    if (!GenModelGENTPJ::getModelDescription().trySetLocal(*this, param, value, unitType)) {
         GenModel5::set(param, value, unitType);
     }
 }
 double GenModelGENTPJ::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "kis") return Kis;
+    if (const auto value =
+            GenModelGENTPJ::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
     return GenModel5::get(param, unitType);
 }
 stringVec GenModelGENTPJ::localStateNames() const

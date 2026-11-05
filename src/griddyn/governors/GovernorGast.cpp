@@ -331,32 +331,18 @@ void GovernorGast::set(std::string_view param, double val, units::unit unitType)
     if (GovernorGast::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         return;
     }
-    if ((param == "vmax") || (param == "pmax")) {
-        Pmax = val;
-    } else if ((param == "vmin") || (param == "pmin")) {
-        Pmin = val;
-    } else if ((param == "t1") || (param == "t2") || (param == "t3")) {
-        if (val < 0.0) {
-            throw InvalidParameterValue("GAST time constants must be non-negative");
-        }
-        Governor::set(param, val, unitType);
-    } else {
-        Governor::set(param, val, unitType);
+    if ((param == "t1" || param == "t2" || param == "t3") && val < 0.0) {
+        throw InvalidParameterValue("GAST time constants must be non-negative");
     }
+    Governor::set(canonicalValveLimitName(param), val, unitType);
 }
 
 double GovernorGast::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "vmax") {
-        return Pmax;
-    }
-    if (param == "vmin") {
-        return Pmin;
-    }
     if (const auto value =
             GovernorGast::getModelDescription().tryGetLocal(*this, param, unitType)) {
         return *value;
     }
-    return Governor::get(param, unitType);
+    return Governor::get(canonicalValveLimitName(param), unitType);
 }
 }  // namespace griddyn::governors

@@ -108,46 +108,46 @@ void GovernorIeeeSimple::dynObjectInitializeB(const IOdata& /*inputs*/,
 
 // residual
 void GovernorIeeeSimple::residual(const IOdata& inputs,
-                                  const StateData& sD,
+                                  const StateData& stateData,
                                   double resid[],
                                   const SolverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
         return;
     }
-    auto Loc = offsets.getLocations(sD, resid, sMode, this);
-    derivative(inputs, sD, resid, sMode);
+    const auto locations = offsets.getLocations(stateData, resid, sMode, this);
+    derivative(inputs, stateData, resid, sMode);
 
-    Loc.destDiffLoc[0] -= Loc.dstateLoc[0];
-    Loc.destDiffLoc[1] -= Loc.dstateLoc[1];
+    locations.destDiffLoc[0] -= locations.dstateLoc[0];
+    locations.destDiffLoc[1] -= locations.dstateLoc[1];
 }
 
 void GovernorIeeeSimple::derivative(const IOdata& inputs,
-                                    const StateData& sD,
+                                    const StateData& stateData,
                                     double deriv[],
                                     const SolverMode& sMode)
 {
-    auto Loc = offsets.getLocations(sD, deriv, sMode, this);
+    const auto locations = offsets.getLocations(stateData, deriv, sMode, this);
 
-    const double* gs = Loc.diffStateLoc;
-    // double omega = getControlFrequency (inputs);
-    double omega = inputs[govOmegaInLocation];
+    const double* state = locations.diffStateLoc;
+    const double omega = inputs[govOmegaInLocation];
     if (opFlags[POWER_LIMITED]) {
-        Loc.destDiffLoc[0] = 0;
+        locations.destDiffLoc[0] = 0;
     } else {
-        Loc.destDiffLoc[0] =
-            (effectivePowerSetpoint(inputs) - gs[0] - K * gs[1] - K * T2 * (omega - 1.0) / T1) / T3;
+        locations.destDiffLoc[0] = (effectivePowerSetpoint(inputs) - state[0] - (K * state[1]) -
+                                    (K * T2 * (omega - 1.0) / T1)) /
+            T3;
     }
 
-    Loc.destDiffLoc[1] = (-gs[1] + (1 - T2 / T1) * (omega - 1.0)) / T1;
+    locations.destDiffLoc[1] = (-state[1] + ((1 - (T2 / T1)) * (omega - 1.0))) / T1;
 }
 
 void GovernorIeeeSimple::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     GovernorIeeeSimple::derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
-    double dt = time - prevTime;
-    m_state[0] += dt * m_dstate_dt[0];
-    m_state[1] += dt * m_dstate_dt[1];
+    const double elapsed = time - prevTime;
+    m_state[0] += elapsed * m_dstate_dt[0];
+    m_state[1] += elapsed * m_dstate_dt[1];
     if (opFlags[POWER_LIMITED]) {
     } else {
         if (m_state[0] > Pmax) {
@@ -161,49 +161,33 @@ void GovernorIeeeSimple::timestep(CoreTime time, const IOdata& inputs, const Sol
 }
 
 void GovernorIeeeSimple::jacobianElements(const IOdata& /*inputs*/,
-                                          const StateData& sD,
-                                          MatrixData<double>& md,
+                                          const StateData& stateData,
+                                          MatrixData<double>& matrixData,
                                           const IOlocs& inputLocs,
                                           const SolverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
         return;
     }
-    auto Loc = offsets.getLocations(sD, nullptr, sMode, this);
+    const auto locations = offsets.getLocations(stateData, nullptr, sMode, this);
 
-    int refI = Loc.diffOffset;
-    // use the md.assign Macro defined in basicDefs
-    // md.assign(arrayIndex, RowIndex, ColIndex, value)
-    bool linkOmega = true;
-    if (inputLocs[govOmegaInLocation] == kNullLocation) {
-        linkOmega = false;
-    }
-    /*
-if (opFlags.test (uses_deadband))
-  {
-    if (!opFlags.test (outside_deadband))
-      {
-        linkOmega = false;
-      }
-  }
-      */
-    // Pm
-    if (linkOmega) {
+    const auto stateIndex = locations.diffOffset;
+    if (inputLocs[govOmegaInLocation] != kNullLocation) {
         if (!opFlags[POWER_LIMITED]) {
-            md.assign(refI, inputLocs[govOmegaInLocation], -K * T2 / (T1 * T3));
+            matrixData.assign(stateIndex, inputLocs[govOmegaInLocation], -K * T2 / (T1 * T3));
         }
-        md.assign(refI + 1, inputLocs[govOmegaInLocation], (T1 - T2) / (T1 * T1));
+        matrixData.assign(stateIndex + 1, inputLocs[govOmegaInLocation], (T1 - T2) / (T1 * T1));
     }
     if (opFlags[POWER_LIMITED]) {
         // The active limiter residual is -dPm/dt, so its DAE diagonal is -cj.
-        md.assign(refI, refI, -sD.cj);
+        matrixData.assign(stateIndex, stateIndex, -stateData.cj);
     } else {
-        md.assign(refI, refI, -1 / T3 - sD.cj);
-        md.assign(refI, refI + 1, -K / T3);
+        matrixData.assign(stateIndex, stateIndex, (-1 / T3) - stateData.cj);
+        matrixData.assign(stateIndex, stateIndex + 1, -K / T3);
 
-        md.assignCheck(refI, inputLocs[govpSetInLocation], 1 / T3);
+        matrixData.assignCheck(stateIndex, inputLocs[govpSetInLocation], 1 / T3);
     }
-    md.assign(refI + 1, refI + 1, -1 / T1 - sD.cj);
+    matrixData.assign(stateIndex + 1, stateIndex + 1, (-1 / T1) - stateData.cj);
 }
 
 index_t GovernorIeeeSimple::findIndex(std::string_view field, const SolverMode& sMode) const
@@ -219,38 +203,33 @@ index_t GovernorIeeeSimple::findIndex(std::string_view field, const SolverMode& 
 }
 
 void GovernorIeeeSimple::rootTest(const IOdata& inputs,
-                                  const StateData& sD,
+                                  const StateData& stateData,
                                   double roots[],
                                   const SolverMode& sMode)
 {
-    int rootOffset = offsets.getRootOffset(sMode);
-    /*if (opFlags.test (uses_deadband))
-  {
-    Governor::rootTest (inputs, sD, roots, sMode);
-    ++rootOffset;
-  }
-      */
+    const auto rootOffset = offsets.getRootOffset(sMode);
     if (opFlags[USES_POWER_LIMITS]) {
-        auto Loc = offsets.getLocations(sD, nullptr, sMode, this);
+        const auto locations = offsets.getLocations(stateData, nullptr, sMode, this);
 
-        double Pmech = Loc.diffStateLoc[0];
+        const double mechanicalPower = locations.diffStateLoc[0];
 
         if (!opFlags[POWER_LIMITED]) {
-            roots[rootOffset] = std::min(Pmax - Pmech, Pmech - Pmin) + powerLimitRootTolerance;
-            if (Pmech >= Pmax) {
+            roots[rootOffset] =
+                std::min(Pmax - mechanicalPower, mechanicalPower - Pmin) + powerLimitRootTolerance;
+            if (mechanicalPower >= Pmax) {
                 opFlags.set(POWER_LIMIT_HIGH);
-            } else if (Pmech <= Pmin) {
+            } else if (mechanicalPower <= Pmin) {
                 opFlags.reset(POWER_LIMIT_HIGH);
             }
         } else {
             const double omega = inputs[govOmegaInLocation];
-            const double releaseRate = (effectivePowerSetpoint(inputs) - Pmech -
-                                        K * Loc.diffStateLoc[1] - K * T2 * (omega - 1.0) / T1) /
+            const double releaseRate =
+                (effectivePowerSetpoint(inputs) - mechanicalPower -
+                 (K * locations.diffStateLoc[1]) - (K * T2 * (omega - 1.0) / T1)) /
                 T3;
             roots[rootOffset] =
                 (opFlags[POWER_LIMIT_HIGH] ? releaseRate : -releaseRate) + powerLimitRootTolerance;
         }
-        ++rootOffset;
     }
 }
 

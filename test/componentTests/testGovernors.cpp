@@ -104,16 +104,16 @@ TEST(GovernorDescriptionTests, FlagsAndIndexedParametersUseSharedGetAndSet)
     EXPECT_THROW(tg2.set("deadband", std::numeric_limits<double>::quiet_NaN()),
                  InvalidParameterValue);
 
-    governors::GovernorIeeeG1 g1;
-    g1.set("t4", 500.0, units::ms);
-    g1.set("k8", 0.2);
-    EXPECT_NEAR(g1.get("t4"), 0.5, 1e-6);
-    EXPECT_DOUBLE_EQ(g1.get("k8"), 0.2);
-    EXPECT_THROW(g1.set("k8", -0.1), InvalidParameterValue);
-    auto saved = ModelFieldSnapshot::capture(g1, FieldSnapshotLevel::PARAMETERS);
-    g1.set("k8", 0.3);
-    saved.restore(g1);
-    EXPECT_DOUBLE_EQ(g1.get("k8"), 0.2);
+    governors::GovernorIeeeG1 ieeeG1;
+    ieeeG1.set("t4", 500.0, units::ms);
+    ieeeG1.set("k8", 0.2);
+    EXPECT_NEAR(ieeeG1.get("t4"), 0.5, 1e-6);
+    EXPECT_DOUBLE_EQ(ieeeG1.get("k8"), 0.2);
+    EXPECT_THROW(ieeeG1.set("k8", -0.1), InvalidParameterValue);
+    auto saved = ModelFieldSnapshot::capture(ieeeG1, FieldSnapshotLevel::PARAMETERS);
+    ieeeG1.set("k8", 0.3);
+    saved.restore(ieeeG1);
+    EXPECT_DOUBLE_EQ(ieeeG1.get("k8"), 0.2);
 
     governors::GovernorGPWSCC gpwscc;
     gpwscc.set("gv2", 0.4);
@@ -175,6 +175,26 @@ TEST(GovernorDescriptionTests, UsesDeclaredUnitsAndPreservesSpecialSetterPaths)
     EXPECT_DOUBLE_EQ(tg2.get("deadband"), 1.0);
     tg2.set("deadband", 0.0);
     EXPECT_FALSE(tg2.getFlag("deadbandenabled"));
+}
+
+TEST(GovernorDescriptionTests, ValveLimitAliasesUseInheritedLimits)
+{
+    governors::GovernorGgov1 ggov1;
+    governors::GovernorGast gast;
+    for (auto* model : std::array<Governor*, 2>{&ggov1, &gast}) {
+        const auto& description = model->getModelDescription();
+        EXPECT_EQ(description.findLocal("pmax"), nullptr);
+        EXPECT_EQ(description.findLocal("pmin"), nullptr);
+        ASSERT_NE(description.find("pmax"), nullptr);
+        ASSERT_NE(description.find("pmin"), nullptr);
+
+        model->set("pmax", 80.0, units::MW);
+        model->set("vmin", 10.0, units::MW);
+        EXPECT_NEAR(model->get("vmax"), 0.8, 1e-6);
+        EXPECT_NEAR(model->get("pmin"), 0.1, 1e-6);
+        EXPECT_NEAR(model->get("vmax", units::MW), 80.0, 1e-6);
+        EXPECT_NEAR(model->get("pmin", units::MW), 10.0, 1e-6);
+    }
 }
 
 void configureIeeeG1(governors::GovernorIeeeG1& governor)

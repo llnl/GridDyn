@@ -391,7 +391,7 @@ void GovernorGPWSCC::dynObjectInitializeB(const IOdata& inputs,
         const double speedError =
             evaluateDeadband(1.0 - inputs[govOmegaInLocation], db1 + eps).value;
         const double initialFeedback = (Tt > 0.0) ? electricalPower : initialGate;
-        const double baselineError = speedError + Paux - R * initialFeedback;
+        const double baselineError = speedError + Paux - (R * initialFeedback);
         initialSetpointOverdrive =
             scale * (signedMargin - baselineError + ((Tt > 0.0) ? 0.0 : R * controllerOverdrive));
     }

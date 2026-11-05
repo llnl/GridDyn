@@ -485,27 +485,24 @@ void GovernorHygov::rootTest(const IOdata& inputs,
         roots[rootOffset + 1] = opFlags[GATE_POSITION_LIMIT_HIGH] ?
             -limitedRateValue - positionLimitRootTolerance :
             limitedRateValue - positionLimitRootTolerance;
-    } else if (((state[gatePositionState] >= (Pmax - positionLimitTolerance)) &&
-                (limitedRateValue < 0.0)) ||
-               ((state[gatePositionState] <= (Pmin + positionLimitTolerance)) &&
-                (limitedRateValue > 0.0))) {
-        // At a geometric boundary with an inward rate the governor is not
-        // limited, but the distance-only root would still be exactly zero.
-        // Keep IDA away from that non-eventful surface.
-        roots[rootOffset + 1] = positionLimitRootTolerance;
-    } else if ((std::abs(limitedRateValue) <= positionLimitTolerance) &&
-               (((state[gatePositionState] >= (Pmax - positionLimitTolerance)) &&
-                 (state[gatePositionState] <= (Pmax + positionLimitTolerance))) ||
-                ((state[gatePositionState] >= (Pmin - positionLimitTolerance)) &&
-                 (state[gatePositionState] <= (Pmin + positionLimitTolerance))))) {
-        // Likewise, a zero-rate operating point on a position bound is not a
-        // crossing.  Return a small positive value until the rate gives a
-        // definite direction for a real limiter entry or release.
-        roots[rootOffset + 1] = positionLimitRootTolerance;
     } else {
-        roots[rootOffset + 1] =
-            std::min(Pmax - state[gatePositionState], state[gatePositionState] - Pmin) +
-            positionLimitRootTolerance;
+        const double gatePosition = state[gatePositionState];
+        const bool atOrAboveUpper = gatePosition >= (Pmax - positionLimitTolerance);
+        const bool atOrBelowLower = gatePosition <= (Pmin + positionLimitTolerance);
+        const bool movingInward = (atOrAboveUpper && (limitedRateValue < 0.0)) ||
+            (atOrBelowLower && (limitedRateValue > 0.0));
+        const bool nearBound =
+            (atOrAboveUpper && (gatePosition <= (Pmax + positionLimitTolerance))) ||
+            (atOrBelowLower && (gatePosition >= (Pmin - positionLimitTolerance)));
+        const bool stationaryAtBound =
+            nearBound && (std::abs(limitedRateValue) <= positionLimitTolerance);
+        // Inward motion or near-zero motion at a bound does not cross a limiter root.
+        if (movingInward || stationaryAtBound) {
+            roots[rootOffset + 1] = positionLimitRootTolerance;
+        } else {
+            roots[rootOffset + 1] =
+                std::min(Pmax - gatePosition, gatePosition - Pmin) + positionLimitRootTolerance;
+        }
     }
 }
 

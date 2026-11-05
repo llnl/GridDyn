@@ -296,7 +296,7 @@ void ExciterSCRX::dynObjectInitializeB(const IOdata& inputs,
         (inputs[exciterVsetInLocation] - 1.0) - inputs[exciterVssInLocation] -
         inputs[exciterVuelInLocation] + inputs[exciterVoelInLocation];
     const double correction = std::max(0.0, Vrmax - originalUpperLimit);
-    const double guard = 10.0 * limiterRootTolerance * Te + std::abs(Ka) * 1e-5;
+    const double guard = (10.0 * limiterRootTolerance * Te) + (std::abs(Ka) * 1e-5);
     double overdrive = 0.0;
     if ((Vrmax != 0.0) && (amplifierOutput >= Vrmax)) {
         overdrive = std::max(0.2 * correction, guard);

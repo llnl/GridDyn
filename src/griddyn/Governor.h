@@ -40,8 +40,8 @@ class Governor: public GridSubModel {
     model_parameter T1 = 0.1;  //!< [s]   droop control time constant 1
     model_parameter T2 = 0.0;  //!< [s]   droop control  time constant 2
     model_parameter T3 = 0.0;  //!< [s]  throttle response
-    model_parameter Pmax = kBigNum;  //!< [pu] maximum turbine output
-    model_parameter Pmin = -kBigNum;  //!< [pu] minimum turbine output
+    model_parameter Pmax = kBigNum;  //!< [pu] upper governor limit
+    model_parameter Pmin = -kBigNum;  //!< [pu] lower governor limit
     model_parameter Pset = 0.0;  //!< [pu] Set point and initial Pm
     model_parameter Wref = -kBigNum;  //!<[rad]  reference frequency
     model_parameter deadbandHigh = -kBigNum;  //!< upper threshold on the deadband;
@@ -77,6 +77,8 @@ class Governor: public GridSubModel {
      */
     bool adjustInitialUpperLimit(double initialValue, std::string_view limitName);
     double effectivePowerSetpoint(const IOdata& inputs) const;
+    /** Resolve legacy valve-limit names for models that use the shared governor limits. */
+    static std::string_view canonicalValveLimitName(std::string_view param);
 
   public:
     virtual void set(std::string_view param, std::string_view val) override;

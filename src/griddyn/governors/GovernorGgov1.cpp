@@ -742,28 +742,16 @@ void GovernorGgov1::set(std::string_view param, double value, units::unit unitTy
     if (GovernorGgov1::getModelDescription().trySetLocal(*this, param, value, unitType)) {
         return;
     }
-    if (param == "vmax" || param == "pmax") {
-        Pmax = value;
-    } else if (param == "vmin" || param == "pmin") {
-        Pmin = value;
-    } else {
-        Governor::set(param, value, unitType);
-    }
+    Governor::set(canonicalValveLimitName(param), value, unitType);
 }
 
 double GovernorGgov1::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "vmax") {
-        return Pmax;
-    }
-    if (param == "vmin") {
-        return Pmin;
-    }
     if (const auto result =
             GovernorGgov1::getModelDescription().tryGetLocal(*this, param, unitType)) {
         return *result;
     }
-    return Governor::get(param, unitType);
+    return Governor::get(canonicalValveLimitName(param), unitType);
 }
 
 stringVec GovernorGgov1::localStateNames() const

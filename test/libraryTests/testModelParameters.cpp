@@ -642,8 +642,9 @@ TEST(ModelParameterTests, ResolvesParameterBeforeSameNamedStateRegardlessOfDecla
     ASSERT_NE(description.findLocal("gain"), nullptr);
     EXPECT_EQ(description.findLocal("gain")->kind(), ModelFieldKind::PARAMETER);
     EXPECT_TRUE(description.trySetLocal(model, "gain", 2.5));
-    ASSERT_TRUE(description.tryGetLocal(model, "gain").has_value());
-    EXPECT_DOUBLE_EQ(*description.tryGetLocal(model, "gain"), 2.5);
+    const auto gain = description.tryGetLocal(model, "gain");
+    ASSERT_TRUE(gain.has_value());
+    EXPECT_DOUBLE_EQ(*gain, 2.5);
 }
 
 }  // namespace griddyn

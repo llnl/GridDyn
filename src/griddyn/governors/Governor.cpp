@@ -87,8 +87,8 @@ const ModelDescription& Governor::getModelDescription() const
          parameter({"t1"}, &Governor::T1, units::second, "Control time constant T1"),
          parameter({"t2"}, &Governor::T2, units::second, "Control time constant T2"),
          parameter({"t3"}, &Governor::T3, units::second, "Throttle time constant T3"),
-         parameter({"pmax"}, &Governor::Pmax, units::puMW, "Maximum turbine output"),
-         parameter({"pmin"}, &Governor::Pmin, units::puMW, "Minimum turbine output"),
+         parameter({"pmax"}, &Governor::Pmax, units::puMW, "Upper governor limit"),
+         parameter({"pmin"}, &Governor::Pmin, units::puMW, "Lower governor limit"),
          parameter({"omegaref", "wref"},
                    &Governor::Wref,
                    units::rad / units::s,
@@ -172,6 +172,17 @@ void Governor::setInitialLimitPolicy(std::uint32_t flags)
 double Governor::effectivePowerSetpoint(const IOdata& inputs) const
 {
     return inputs[govpSetInLocation] + initialSetpointOverdrive;
+}
+
+std::string_view Governor::canonicalValveLimitName(std::string_view param)
+{
+    if (param == "vmax") {
+        return "pmax";
+    }
+    if (param == "vmin") {
+        return "pmin";
+    }
+    return param;
 }
 
 bool Governor::adjustInitialUpperLimit(double initialValue, std::string_view limitName)
@@ -399,10 +410,14 @@ void Governor::set(std::string_view param, double val, unit unitType)
         Governor::getModelDescription().trySetLocal(*this, "k", 1.0 / val);
         dbb.set("k", -K);
     } else if (param == "pmax") {
-        Pmax = convert(val, unitType, puMW, systemBasePower);
+        Governor::getModelDescription().trySetLocal(*this,
+                                                    param,
+                                                    convert(val, unitType, puMW, systemBasePower));
         delay.set("max", Pmax);
     } else if (param == "pmin") {
-        Pmin = convert(val, unitType, puMW, systemBasePower);
+        Governor::getModelDescription().trySetLocal(*this,
+                                                    param,
+                                                    convert(val, unitType, puMW, systemBasePower));
         delay.set("min", Pmin);
     } else if (param == "deadband") {
         deadbandHigh = convert(val, unitType, puHz, systemBaseFrequency);

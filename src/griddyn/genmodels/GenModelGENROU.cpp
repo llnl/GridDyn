@@ -10,6 +10,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <array>
@@ -69,6 +70,18 @@ GenModelGENROU::GenModelGENROU(const std::string& objName): GenModel5(objName)
     S12 = 1.0;
     sat.setType(utilities::Saturation::SaturationType::CUTOFF_SCALED_QUADRATIC);
     sat.setParam(S10, S12);
+}
+
+const ModelDescription& GenModelGENROU::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<GenModelGENROU>("GenModelGENROU",
+                                                 &GenModel5::getModelDescription(),
+                                                 {state("e1d", units::one, "Solver variable e1d"),
+                                                  state("e1q", units::one, "Solver variable e1q"),
+                                                  state("e2q", units::one, "Solver variable e2q"),
+                                                  state("e2d", units::one, "Solver variable e2d")});
+    return description;
 }
 
 CoreObject* GenModelGENROU::clone(CoreObject* obj) const
@@ -520,80 +533,6 @@ MachineSignalDerivativeData
                   -reactanceDifference * coefficients.mGd2 +
                       dSaturationTermD * (1.0 - coefficients.mGd1));
     return derivatives;
-}
-
-void GenModelGENROU::set(std::string_view param, std::string_view val)
-{
-    GenModel5::set(param, val);
-}
-
-void GenModelGENROU::set(std::string_view param, double val, units::unit unitType)
-{
-    if ((param == "s1") || (param == "s10")) {
-        S10 = val;
-        sat.setParam(S10, S12);
-    } else if (param == "s12") {
-        S12 = val;
-        sat.setParam(S10, S12);
-    } else if (param == "xpp") {
-        Xdpp = val;
-        Xqpp = val;
-    } else {
-        GenModel5::set(param, val, unitType);
-    }
-}
-
-double GenModelGENROU::get(std::string_view param, units::unit unitType) const
-{
-    if (param == "h") {
-        return H;
-    }
-    if (param == "d") {
-        return D;
-    }
-    if ((param == "r") || (param == "rs") || (param == "ra")) {
-        return Rs;
-    }
-    if (param == "xl") {
-        return Xl;
-    }
-    if (param == "xd") {
-        return Xd;
-    }
-    if (param == "xq") {
-        return Xq;
-    }
-    if (param == "xdp") {
-        return Xdp;
-    }
-    if (param == "xqp") {
-        return Xqp;
-    }
-    if ((param == "xdpp") || (param == "xpp")) {
-        return Xdpp;
-    }
-    if (param == "xqpp") {
-        return Xqpp;
-    }
-    if ((param == "tdop") || (param == "td0p")) {
-        return Tdop;
-    }
-    if ((param == "tdopp") || (param == "td0pp")) {
-        return Tdopp;
-    }
-    if ((param == "tqop") || (param == "tq0p")) {
-        return Tqop;
-    }
-    if ((param == "tqopp") || (param == "tq0pp")) {
-        return Tqopp;
-    }
-    if ((param == "s1") || (param == "s10")) {
-        return S10;
-    }
-    if (param == "s12") {
-        return S12;
-    }
-    return GenModel5::get(param, unitType);
 }
 
 static const stringVec

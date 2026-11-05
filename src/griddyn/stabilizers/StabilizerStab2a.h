@@ -29,6 +29,7 @@ class StabilizerStab2a: public Stabilizer {
 
     explicit StabilizerStab2a(const std::string& objName = "pssSTAB2A_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,

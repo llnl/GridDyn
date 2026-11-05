@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -29,6 +30,124 @@ StabilizerPss2a::StabilizerPss2a(const std::string& objName): Stabilizer(objName
     m_inputSize = pssInputCount;
     m_outputSize = 1;
     rampFilterState.fill(kNullLocation);
+}
+
+const ModelDescription& StabilizerPss2a::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<StabilizerPss2a>(
+        "StabilizerPss2a",
+        &Stabilizer::getModelDescription(),
+        {parameter({"mode", "mode1"},
+                   &StabilizerPss2a::mode1,
+                   units::one,
+                   "Input signal selector",
+                   supportedMode),
+         parameter({"mode2"},
+                   &StabilizerPss2a::mode2,
+                   units::one,
+                   "Input signal selector",
+                   supportedMode),
+         parameter({"busr", "busr1"},
+                   &StabilizerPss2a::remoteBus1,
+                   units::one,
+                   "Remote bus selector",
+                   [](int value) { return value == 0; }),
+         parameter({"busr2"},
+                   &StabilizerPss2a::remoteBus2,
+                   units::one,
+                   "Remote bus selector",
+                   [](int value) { return value == 0; }),
+         parameter({"tw1"},
+                   &StabilizerPss2a::Tw1,
+                   units::second,
+                   "Tw1 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"tw2"},
+                   &StabilizerPss2a::Tw2,
+                   units::second,
+                   "Tw2 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"t6"},
+                   &StabilizerPss2a::T6,
+                   units::second,
+                   "T6 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"tw3"},
+                   &StabilizerPss2a::Tw3,
+                   units::second,
+                   "Tw3 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"tw4"},
+                   &StabilizerPss2a::Tw4,
+                   units::second,
+                   "Tw4 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"t7"},
+                   &StabilizerPss2a::T7,
+                   units::second,
+                   "T7 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"ks1"}, &StabilizerPss2a::Ks1, units::one, "Ks1 gain"),
+         parameter({"ks2"}, &StabilizerPss2a::Ks2, units::one, "Ks2 gain"),
+         parameter({"ks3"}, &StabilizerPss2a::Ks3, units::one, "Ks3 gain"),
+         parameter({"t8"},
+                   &StabilizerPss2a::T8,
+                   units::second,
+                   "T8 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"t9"},
+                   &StabilizerPss2a::T9,
+                   units::second,
+                   "T9 time constant",
+                   parameterValidators::positive),
+         parameter({"t1"},
+                   &StabilizerPss2a::T1,
+                   units::second,
+                   "T1 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"t2"},
+                   &StabilizerPss2a::T2,
+                   units::second,
+                   "T2 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"t3"},
+                   &StabilizerPss2a::T3,
+                   units::second,
+                   "T3 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"t4"},
+                   &StabilizerPss2a::T4,
+                   units::second,
+                   "T4 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"vstmax", "vmax"}, &StabilizerPss2a::Vstmax, units::one, "Vstmax signal limit"),
+         parameter({"vstmin", "vmin"}, &StabilizerPss2a::Vstmin, units::one, "Vstmin signal limit"),
+         localState("initialPmech", &StabilizerPss2a::initialPmech, "Initialized reference"),
+         localState(
+             "output_limited", &StabilizerPss2a::opFlags, OUTPUT_LIMITED, "Output limiter active"),
+         localState("output_limit_high",
+                    &StabilizerPss2a::opFlags,
+                    OUTPUT_LIMIT_HIGH,
+                    "Upper output limit active"),
+         state("vs", units::one, "Stabilizer solver variable vs"),
+         state("w1a", units::one, "Stabilizer solver variable w1a"),
+         state("w1b", units::one, "Stabilizer solver variable w1b"),
+         state("l1", units::one, "Stabilizer solver variable l1"),
+         state("w2a", units::one, "Stabilizer solver variable w2a"),
+         state("w2b", units::one, "Stabilizer solver variable w2b"),
+         state("l2", units::one, "Stabilizer solver variable l2"),
+         state("rtf", units::one, "Stabilizer solver variable rtf"),
+         state("ll1", units::one, "Stabilizer solver variable ll1"),
+         state("ll2", units::one, "Stabilizer solver variable ll2"),
+         state("ll3", units::one, "Stabilizer solver variable ll3"),
+         state("rtf1", units::one, "Stabilizer solver variable rtf1"),
+         state("rtf2", units::one, "Stabilizer solver variable rtf2"),
+         state("rtf3", units::one, "Stabilizer solver variable rtf3"),
+         state("rtf4", units::one, "Stabilizer solver variable rtf4"),
+         state("rtf5", units::one, "Stabilizer solver variable rtf5"),
+         state("rtf6", units::one, "Stabilizer solver variable rtf6"),
+         state("rtf7", units::one, "Stabilizer solver variable rtf7")});
+    return description;
 }
 
 CoreObject* StabilizerPss2a::clone(CoreObject* obj) const
@@ -774,157 +893,32 @@ void StabilizerPss2a::set(std::string_view param, std::string_view val)
 
 void StabilizerPss2a::set(std::string_view param, double val, units::unit unitType)
 {
-    const auto finite = [val](const char* parameterName) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue(std::string("PSS2A ") + parameterName + " must be finite");
+    if (param == "vstmax" || param == "vmax") {
+        const double proposed = units::convert(val, unitType, units::one);
+        if (!std::isfinite(proposed) || proposed < Vstmin) {
+            throw InvalidParameterValue(param);
         }
-    };
-    const auto time = [&finite, &val](const char* parameterName, double& target, bool positive) {
-        finite(parameterName);
-        if (positive ? (val <= 0.0) : (val < 0.0)) {
-            throw InvalidParameterValue(std::string("PSS2A ") + parameterName +
-                                        (positive ? " must be positive" : " must be nonnegative"));
+        Vstmax = proposed;
+        return;
+    }
+    if (param == "vstmin" || param == "vmin") {
+        const double proposed = units::convert(val, unitType, units::one);
+        if (!std::isfinite(proposed) || proposed > Vstmax) {
+            throw InvalidParameterValue(param);
         }
-        target = val;
-    };
-    if ((param == "mode") || (param == "mode1")) {
-        finite("MODE");
-        if ((std::floor(val) != val) || (val < 0.0) || (val > 5.0)) {
-            throw InvalidParameterValue("PSS2A MODE is unsupported");
-        }
-        mode1 = static_cast<int>(val);
-    } else if (param == "mode2") {
-        finite("MODE2");
-        if ((std::floor(val) != val) || (val < 0.0) || (val > 5.0)) {
-            throw InvalidParameterValue("PSS2A MODE2 is unsupported");
-        }
-        mode2 = static_cast<int>(val);
-    } else if ((param == "busr") || (param == "busr1")) {
-        finite("BUSR");
-        if ((std::floor(val) != val) || (val != 0.0)) {
-            throw InvalidParameterValue("PSS2A remote BUSR is unsupported");
-        }
-        remoteBus1 = 0;
-    } else if (param == "busr2") {
-        finite("BUSR2");
-        if ((std::floor(val) != val) || (val != 0.0)) {
-            throw InvalidParameterValue("PSS2A remote BUSR2 is unsupported");
-        }
-        remoteBus2 = 0;
-    } else if (param == "tw1") {
-        time("TW1", Tw1, false);
-    } else if (param == "tw2") {
-        time("TW2", Tw2, false);
-    } else if (param == "t6") {
-        time("T6", T6, false);
-    } else if (param == "tw3") {
-        time("TW3", Tw3, false);
-    } else if (param == "tw4") {
-        time("TW4", Tw4, false);
-    } else if (param == "t7") {
-        time("T7", T7, false);
-    } else if (param == "t8") {
-        time("T8", T8, false);
-    } else if (param == "t9") {
-        time("T9", T9, true);
-    } else if (param == "t1") {
-        time("T1", T1, false);
-    } else if (param == "t2") {
-        time("T2", T2, false);
-    } else if (param == "t3") {
-        time("T3", T3, false);
-    } else if (param == "t4") {
-        time("T4", T4, false);
-    } else if (param == "ks1") {
-        finite("KS1");
-        Ks1 = val;
-    } else if (param == "ks2") {
-        finite("KS2");
-        Ks2 = val;
-    } else if (param == "ks3") {
-        finite("KS3");
-        Ks3 = val;
-    } else if ((param == "vstmax") || (param == "vmax")) {
-        finite("VSTMAX");
-        if (val < Vstmin) {
-            throw InvalidParameterValue("PSS2A VSTMAX must not be less than VSTMIN");
-        }
-        Vstmax = val;
-    } else if ((param == "vstmin") || (param == "vmin")) {
-        finite("VSTMIN");
-        if (val > Vstmax) {
-            throw InvalidParameterValue("PSS2A VSTMIN must not exceed VSTMAX");
-        }
-        Vstmin = val;
-    } else {
+        Vstmin = proposed;
+        return;
+    }
+    if (!StabilizerPss2a::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         Stabilizer::set(param, val, unitType);
     }
 }
 
 double StabilizerPss2a::get(std::string_view param, units::unit unitType) const
 {
-    if ((param == "mode") || (param == "mode1")) {
-        return mode1;
-    }
-    if (param == "mode2") {
-        return mode2;
-    }
-    if ((param == "busr") || (param == "busr1")) {
-        return remoteBus1;
-    }
-    if (param == "busr2") {
-        return remoteBus2;
-    }
-    if (param == "tw1") {
-        return Tw1;
-    }
-    if (param == "tw2") {
-        return Tw2;
-    }
-    if (param == "t6") {
-        return T6;
-    }
-    if (param == "tw3") {
-        return Tw3;
-    }
-    if (param == "tw4") {
-        return Tw4;
-    }
-    if (param == "t7") {
-        return T7;
-    }
-    if (param == "ks1") {
-        return Ks1;
-    }
-    if (param == "ks2") {
-        return Ks2;
-    }
-    if (param == "ks3") {
-        return Ks3;
-    }
-    if (param == "t8") {
-        return T8;
-    }
-    if (param == "t9") {
-        return T9;
-    }
-    if (param == "t1") {
-        return T1;
-    }
-    if (param == "t2") {
-        return T2;
-    }
-    if (param == "t3") {
-        return T3;
-    }
-    if (param == "t4") {
-        return T4;
-    }
-    if ((param == "vstmax") || (param == "vmax")) {
-        return Vstmax;
-    }
-    if ((param == "vstmin") || (param == "vmin")) {
-        return Vstmin;
+    if (const auto value =
+            StabilizerPss2a::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Stabilizer::get(param, unitType);
 }

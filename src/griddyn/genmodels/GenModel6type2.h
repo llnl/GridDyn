@@ -16,6 +16,8 @@ class GenModel6type2: public GenModel5type2 {
   public:
     explicit GenModel6type2(const std::string& objName = "genModel6type2_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
+
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,

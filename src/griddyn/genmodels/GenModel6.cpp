@@ -9,6 +9,7 @@
 #include "../Generator.h"
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cassert>
@@ -21,6 +22,15 @@ GenModel6::GenModel6(const std::string& objName): GenModel5(objName)
     // changing some of the default values;
     Xqp = 0.30;
     D = 0.03;
+}
+
+const ModelDescription& GenModel6::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<GenModel6>("GenModel6",
+                                            &GenModel5::getModelDescription(),
+                                            {state("eqpp", units::one, "Solver variable eqpp")});
+    return description;
 }
 
 CoreObject* GenModel6::clone(CoreObject* obj) const

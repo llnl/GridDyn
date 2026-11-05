@@ -68,6 +68,7 @@ set(generator_component_gtest_sources
     componentTests/testPSS2BESAC2A.cpp
     componentTests/testGenerators.cpp
     componentTests/testGenModels.cpp
+    componentTests/testMachineDescription.cpp
     componentTests/testEPCGEN.cpp
     componentTests/testRenewableModels.cpp
     componentTests/testDistributedModels.cpp

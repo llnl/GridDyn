@@ -47,6 +47,8 @@ class GenModel: public GridSubModel {
     //!< @brief default constructor
     explicit GenModel(const std::string& objName = "genModel_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
+    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,

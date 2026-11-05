@@ -126,6 +126,7 @@ class StabilizerST2CUT: public Stabilizer {
   public:
     explicit StabilizerST2CUT(const std::string& objName = "pssST2CUT_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
 
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,

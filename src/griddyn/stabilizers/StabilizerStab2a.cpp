@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -17,6 +18,51 @@
 
 namespace griddyn::stabilizers {
 StabilizerStab2a::StabilizerStab2a(const std::string& objName): Stabilizer(objName) {}
+
+const ModelDescription& StabilizerStab2a::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<StabilizerStab2a>(
+        "StabilizerStab2a",
+        &Stabilizer::getModelDescription(),
+        {parameter({"k2"}, &StabilizerStab2a::K2, units::one, "K2 gain"),
+         parameter({"t2"},
+                   &StabilizerStab2a::T2,
+                   units::second,
+                   "T2 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"k3"}, &StabilizerStab2a::K3, units::one, "K3 gain"),
+         parameter({"t3"},
+                   &StabilizerStab2a::T3,
+                   units::second,
+                   "T3 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"k4"}, &StabilizerStab2a::K4, units::one, "K4 gain"),
+         parameter({"k5"}, &StabilizerStab2a::K5, units::one, "K5 gain"),
+         parameter({"t5"},
+                   &StabilizerStab2a::T5,
+                   units::second,
+                   "T5 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"hlim", "h_lim"},
+                   &StabilizerStab2a::Hlim,
+                   units::one,
+                   "Hlim gain",
+                   parameterValidators::nonnegative),
+         localState(
+             "output_limited", &StabilizerStab2a::opFlags, OUTPUT_LIMITED, "Output limiter active"),
+         localState("output_limit_high",
+                    &StabilizerStab2a::opFlags,
+                    OUTPUT_LIMIT_HIGH,
+                    "Upper output limit active"),
+         state("washout1", units::one, "Stabilizer solver variable washout1"),
+         state("washout2", units::one, "Stabilizer solver variable washout2"),
+         state("washout3", units::one, "Stabilizer solver variable washout3"),
+         state("lowpass", units::one, "Stabilizer solver variable lowpass"),
+         state("outputlag1", units::one, "Stabilizer solver variable outputlag1"),
+         state("outputlag2", units::one, "Stabilizer solver variable outputlag2"),
+         state("vs", units::one, "Stabilizer solver variable vs")});
+    return description;
+}
 
 CoreObject* StabilizerStab2a::clone(CoreObject* obj) const
 {
@@ -320,59 +366,16 @@ void StabilizerStab2a::set(std::string_view param, std::string_view val)
 
 void StabilizerStab2a::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!std::isfinite(val)) {
-        throw InvalidParameterValue("STAB2A parameters must be finite");
-    }
-    if ((param == "t2" || param == "t3" || param == "t5" || param == "hlim" || param == "h_lim") &&
-        val < 0.0) {
-        throw InvalidParameterValue("STAB2A time constants and HLIM must be nonnegative");
-    }
-    if (param == "k2") {
-        K2 = val;
-    } else if (param == "t2") {
-        T2 = val;
-    } else if (param == "k3") {
-        K3 = val;
-    } else if (param == "t3") {
-        T3 = val;
-    } else if (param == "k4") {
-        K4 = val;
-    } else if (param == "k5") {
-        K5 = val;
-    } else if (param == "t5") {
-        T5 = val;
-    } else if (param == "hlim" || param == "h_lim") {
-        Hlim = val;
-    } else {
+    if (!StabilizerStab2a::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         Stabilizer::set(param, val, unitType);
     }
 }
 
 double StabilizerStab2a::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "k2") {
-        return K2;
-    }
-    if (param == "t2") {
-        return T2;
-    }
-    if (param == "k3") {
-        return K3;
-    }
-    if (param == "t3") {
-        return T3;
-    }
-    if (param == "k4") {
-        return K4;
-    }
-    if (param == "k5") {
-        return K5;
-    }
-    if (param == "t5") {
-        return T5;
-    }
-    if (param == "hlim" || param == "h_lim") {
-        return Hlim;
+    if (const auto value =
+            StabilizerStab2a::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Stabilizer::get(param, unitType);
 }

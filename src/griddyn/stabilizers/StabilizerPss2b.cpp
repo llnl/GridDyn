@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <algorithm>
 #include <cmath>
 #include <string>
@@ -18,6 +19,43 @@ StabilizerPss2b::StabilizerPss2b(const std::string& objName): StabilizerPss2a(ob
     mode2 = 3;
     T10 = 1e-9;
     T11 = 0.033;
+}
+
+const ModelDescription& StabilizerPss2b::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<StabilizerPss2b>(
+        "StabilizerPss2b",
+        &StabilizerPss2a::getModelDescription(),
+        {parameter({"m"},
+                   &StabilizerPss2b::rampM,
+                   units::one,
+                   "rampM gain",
+                   [](int value) { return value >= 0 && value <= 8; }),
+         parameter({"n"},
+                   &StabilizerPss2b::rampN,
+                   units::one,
+                   "rampN gain",
+                   [](int value) { return value >= 0 && value <= 8; }),
+         parameter({"t10"},
+                   &StabilizerPss2b::T10,
+                   units::second,
+                   "T10 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"t11"},
+                   &StabilizerPss2b::T11,
+                   units::second,
+                   "T11 time constant",
+                   parameterValidators::nonnegative),
+         parameter({"vs1max"}, &StabilizerPss2b::Vs1max, units::one, "Vs1max signal limit"),
+         parameter({"vs1min"}, &StabilizerPss2b::Vs1min, units::one, "Vs1min signal limit"),
+         parameter({"vs2max"}, &StabilizerPss2b::Vs2max, units::one, "Vs2max signal limit"),
+         parameter({"vs2min"}, &StabilizerPss2b::Vs2min, units::one, "Vs2min signal limit"),
+         parameter({"t9"},
+                   &StabilizerPss2b::T9,
+                   units::second,
+                   "T9 time constant",
+                   parameterValidators::nonnegative)});
+    return description;
 }
 
 CoreObject* StabilizerPss2b::clone(CoreObject* obj) const
@@ -133,64 +171,16 @@ void StabilizerPss2b::rootTrigger(CoreTime time,
 
 void StabilizerPss2b::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "m" || param == "n") {
-        if (!std::isfinite(val) || val != std::floor(val) || val < 0.0 || val > 8.0) {
-            throw InvalidParameterValue("PSS2B M/N must be integers in [0,8]");
-        }
-        (param == "m" ? rampM : rampN) = static_cast<int>(val);
-    } else if (param == "t10" || param == "t11") {
-        if (!std::isfinite(val) || val < 0.0) {
-            throw InvalidParameterValue("PSS2B T10/T11 must be nonnegative and finite");
-        }
-        (param == "t10" ? T10 : T11) = val;
-    } else if (param == "t9") {
-        if (!std::isfinite(val) || val < 0.0) {
-            throw InvalidParameterValue("PSS2B T9 must be nonnegative and finite");
-        }
-        T9 = val;
-    } else if (param == "vs1max" || param == "vs1min" || param == "vs2max" || param == "vs2min") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("PSS2B input limits must be finite");
-        }
-        if (param == "vs1max") {
-            Vs1max = val;
-        } else if (param == "vs1min") {
-            Vs1min = val;
-        } else if (param == "vs2max") {
-            Vs2max = val;
-        } else {
-            Vs2min = val;
-        }
-    } else {
+    if (!StabilizerPss2b::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         StabilizerPss2a::set(param, val, unitType);
     }
 }
 
 double StabilizerPss2b::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "m") {
-        return rampM;
-    }
-    if (param == "n") {
-        return rampN;
-    }
-    if (param == "t10") {
-        return T10;
-    }
-    if (param == "t11") {
-        return T11;
-    }
-    if (param == "vs1max") {
-        return Vs1max;
-    }
-    if (param == "vs1min") {
-        return Vs1min;
-    }
-    if (param == "vs2max") {
-        return Vs2max;
-    }
-    if (param == "vs2min") {
-        return Vs2min;
+    if (const auto value =
+            StabilizerPss2b::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return StabilizerPss2a::get(param, unitType);
 }

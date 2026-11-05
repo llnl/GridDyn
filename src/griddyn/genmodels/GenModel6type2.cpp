@@ -9,6 +9,7 @@
 #include "../Generator.h"
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
@@ -16,6 +17,15 @@
 
 namespace griddyn::genmodels {
 GenModel6type2::GenModel6type2(const std::string& objName): GenModel5type2(objName) {}
+const ModelDescription& GenModel6type2::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<GenModel6type2>("GenModel6type2",
+                                                 &GenModel5type2::getModelDescription(),
+                                                 {state("edp", units::one, "Solver variable edp")});
+    return description;
+}
+
 CoreObject* GenModel6type2::clone(CoreObject* obj) const
 {
     auto* gd = cloneBase<GenModel6type2, GenModel5type2>(this, obj);

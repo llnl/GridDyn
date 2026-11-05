@@ -9,6 +9,7 @@
 #include "../Generator.h"
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
@@ -18,6 +19,34 @@
 
 namespace griddyn::genmodels {
 GenModel5::GenModel5(const std::string& objName): GenModel4(objName) {}
+const ModelDescription& GenModel5::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GenModel5>(
+        "GenModel5",
+        &GenModel4::getModelDescription(),
+        {parameter(
+             {"tqopp", "tq0pp"}, &GenModel5::Tqopp, units::second, "Q-axis subtransient time"),
+         parameter({"taa"}, &GenModel5::Taa, units::second, "Armature time constant"),
+         parameter(
+             {"tdopp", "td0pp"}, &GenModel5::Tdopp, units::second, "D-axis subtransient time"),
+         parameter({"xdpp"}, &GenModel5::Xdpp, units::one, "D-axis subtransient reactance"),
+         parameter({"xqpp"}, &GenModel5::Xqpp, units::one, "Q-axis subtransient reactance"),
+         command({"xpp"}, units::one, "Set both subtransient reactances"),
+         state("edpp", units::one, "Solver variable edpp")});
+    return description;
+}
+
+double GenModel5::get(std::string_view param, units::unit unitType) const
+{
+    if (param == "xpp") {
+        return GenModel5::get("xdpp", unitType);
+    }
+    if (const auto value = GenModel5::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return GenModel4::get(param, unitType);
+}
+
 CoreObject* GenModel5::clone(CoreObject* obj) const
 {
     auto* clonedModel = cloneBase<GenModel5, GenModel4>(this, obj);
@@ -331,19 +360,12 @@ void GenModel5::set(std::string_view param, std::string_view val)
 }
 void GenModel5::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "tqopp") || (param == "tq0pp")) {
-        Tqopp = val;
-    } else if (param == "taa") {
-        Taa = val;
-    } else if ((param == "tdopp") || (param == "td0pp")) {
-        Tdopp = val;
-    } else if (param == "xdpp") {
-        Xdpp = val;
-    } else if (param == "xqpp") {
-        Xqpp = val;
-    } else if (param == "xpp") {
-        Xdpp = val;
-        Xqpp = val;
+    if (GenModel5::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
+    if (param == "xpp") {
+        GenModel5::set("xdpp", val, unitType);
+        Xqpp = Xdpp;
     } else {
         GenModel4::set(param, val, unitType);
     }

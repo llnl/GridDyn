@@ -10,6 +10,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactory.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
@@ -25,6 +26,21 @@ GenModelClassical::GenModelClassical(const std::string& objName): GenModel(objNa
 {
     opFlags.set(INTERNAL_FREQUENCY_CALCULATION);
     Xd = 0.2;
+}
+
+const ModelDescription& GenModelClassical::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GenModelClassical>(
+        "GenModelClassical",
+        &GenModel::getModelDescription(),
+        {parameter({"h"}, &GenModelClassical::H, units::second, "Inertia constant"),
+         parameter({"d"}, &GenModelClassical::D, units::puHz, "Speed damping"),
+         parameter({"xd1", "xdp"}, &GenModelClassical::Xd, units::one, "Transient reactance"),
+         parameter({"ra"}, &GenModelClassical::Rs, units::one, "Armature resistance"),
+         command({"m"}, units::second, "Set twice the inertia constant"),
+         state("delta", units::rad, "Solver variable delta"),
+         state("freq", units::one, "Solver variable freq")});
+    return description;
 }
 
 CoreObject* GenModelClassical::clone(CoreObject* obj) const
@@ -417,67 +433,32 @@ void GenModelClassical::set(std::string_view param, std::string_view val)
 }
 void GenModelClassical::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param.length() == 1) {
-        switch (param[0]) {
-            case 'x':
-                Xd = val;
-                break;
-            case 'h':
-                H = val;
-                break;
-            case 'r':
-                Rs = val;
-                break;
-            case 'm':
-                H = val / 2.0;
-                break;
-            case 'd':
-                D = units::convert(val, unitType, units::puHz, systemBaseFrequency);
-                break;
-
-            default:
-                throw(UnrecognizedParameter(param));
-        }
+    if (param == "d") {
+        const auto damping = units::convert(val, unitType, units::puHz, systemBaseFrequency);
+        GenModelClassical::getModelDescription().trySetLocal(*this, param, damping);
         return;
     }
-
-    if (param == "kw") {
-        // Retained as an accepted legacy/PSAT parameter. GENCLS has no
-        // voltage-speed feedback term; damping belongs only in the swing
-        // equation.
+    if (GenModelClassical::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         return;
     }
-    if (param == "kp") {
-        // Retained as an accepted legacy/PSAT parameter. GridDyn's synchronous
-        // machine models do not include this active-power feedback term.
-        return;
-    }
-    if ((param == "xd1") || (param == "xdp")) {
-        Xd = val;
-    } else if (param == "ra") {
-        Rs = val;
-    } else {
+    if (param == "m") {
+        GenModelClassical::set("h", val / 2.0, unitType);
+    } else if (param != "kw" && param != "kp") {
         GenModel::set(param, val, unitType);
     }
 }
 
 double GenModelClassical::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "h") {
-        return H;
-    }
     if (param == "m") {
         return 2.0 * H;
     }
     if (param == "d") {
         return units::convert(D, units::puHz, unitType, systemBaseFrequency);
     }
-    if ((param == "x") || (param == "xd") || (param == "xs") || (param == "xd1") ||
-        (param == "xdp")) {
-        return Xd;
-    }
-    if ((param == "r") || (param == "rs") || (param == "ra")) {
-        return Rs;
+    if (const auto value =
+            GenModelClassical::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return GenModel::get(param, unitType);
 }

@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -32,6 +33,46 @@ GovernorTgov1Variant::GovernorTgov1Variant(bool deadband,
 GovernorTgov1Variant::GovernorTgov1Variant(const std::string& objName):
     GovernorTgov1Variant(false, false, objName)
 {
+}
+
+const ModelDescription& GovernorTgov1Variant::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorTgov1Variant>(
+        "GovernorTgov1Variant",
+        &Governor::getModelDescription(),
+        {parameter({"dbl"}, &GovernorTgov1Variant::dbL, units::one, "Lower deadband limit"),
+         parameter({"dbu"}, &GovernorTgov1Variant::dbU, units::one, "Upper deadband limit"),
+         parameter({"dt"}, &GovernorTgov1Variant::Dt, units::one, "Turbine damping"),
+         parameter({"paux"}, &GovernorTgov1Variant::paux, units::puMW, "Auxiliary power"),
+         localState("reference_offset", &GovernorTgov1Variant::referenceOffset),
+         state("pmech", units::puMW, "Mechanical power"),
+         state("valve", units::one, "Valve state"),
+         state("turbine", units::one, "Turbine state")});
+    return description;
+}
+const ModelDescription& GovernorTgov1DB::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<GovernorTgov1DB>("GovernorTgov1DB",
+                                                  &GovernorTgov1Variant::getModelDescription(),
+                                                  {});
+    return description;
+}
+const ModelDescription& GovernorTgov1N::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<GovernorTgov1N>("GovernorTgov1N",
+                                                 &GovernorTgov1Variant::getModelDescription(),
+                                                 {});
+    return description;
+}
+const ModelDescription& GovernorTgov1NDB::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<GovernorTgov1NDB>("GovernorTgov1NDB",
+                                                   &GovernorTgov1Variant::getModelDescription(),
+                                                   {});
+    return description;
 }
 
 CoreObject* GovernorTgov1Variant::clone(CoreObject* obj) const
@@ -267,34 +308,16 @@ index_t GovernorTgov1Variant::findIndex(std::string_view field, const SolverMode
 }
 void GovernorTgov1Variant::set(std::string_view param, double value, units::unit unitType)
 {
-    if (!std::isfinite(value)) {
-        throw InvalidParameterValue("ANDES TGOV1 parameter must be finite");
+    if (GovernorTgov1Variant::getModelDescription().trySetLocal(*this, param, value, unitType)) {
+        return;
     }
-    if (param == "dbl") {
-        dbL = value;
-    } else if (param == "dbu") {
-        dbU = value;
-    } else if (param == "dt") {
-        Dt = value;
-    } else if (param == "paux") {
-        paux = value;
-    } else {
-        Governor::set(param, value, unitType);
-    }
+    Governor::set(param, value, unitType);
 }
 double GovernorTgov1Variant::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "dbl") {
-        return dbL;
-    }
-    if (param == "dbu") {
-        return dbU;
-    }
-    if (param == "dt") {
-        return Dt;
-    }
-    if (param == "paux") {
-        return paux;
+    if (const auto result =
+            GovernorTgov1Variant::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *result;
     }
     return Governor::get(param, unitType);
 }

@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -34,6 +35,35 @@ GovernorGast::GovernorGast(const std::string& objName): Governor(objName)
     opFlags.set(IGNORE_FILTER);
     opFlags.set(IGNORE_THROTTLE);
     opFlags.set(USES_POWER_LIMITS);
+}
+
+const ModelDescription& GovernorGast::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorGast>(
+        "GovernorGast",
+        &Governor::getModelDescription(),
+        {parameter(
+             {"r"}, &GovernorGast::R, units::one, "Speed droop", parameterValidators::positive),
+         parameter({"at"},
+                   &GovernorGast::AT,
+                   units::one,
+                   "Ambient temperature load limit",
+                   parameterValidators::nonnegative),
+         parameter({"kt", "k_t"},
+                   &GovernorGast::KT,
+                   units::one,
+                   "Temperature control gain",
+                   parameterValidators::nonnegative),
+         parameter({"dt", "dturb"},
+                   &GovernorGast::Dt,
+                   units::one,
+                   "Turbine damping",
+                   parameterValidators::nonnegative),
+         state("pmech", units::puMW, "Mechanical power"),
+         state("valve", units::one, "Valve position"),
+         state("turbine", units::one, "Turbine output"),
+         state("temperature", units::one, "Temperature state")});
+    return description;
 }
 
 CoreObject* GovernorGast::clone(CoreObject* obj) const
@@ -298,54 +328,21 @@ void GovernorGast::set(std::string_view param, std::string_view val)
 
 void GovernorGast::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!std::isfinite(val)) {
-        throw InvalidParameterValue("GAST parameters must be finite");
+    if (GovernorGast::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
-    if (param == "r") {
-        if (val <= 0.0) {
-            throw InvalidParameterValue("GAST R must be positive");
-        }
-        R = val;
-    } else if (param == "at") {
-        AT = val;
-    } else if ((param == "kt") || (param == "k_t")) {
-        KT = val;
-    } else if ((param == "dt") || (param == "dturb")) {
-        Dt = val;
-    } else if ((param == "vmax") || (param == "pmax")) {
-        Pmax = val;
-    } else if ((param == "vmin") || (param == "pmin")) {
-        Pmin = val;
-    } else if ((param == "t1") || (param == "t2") || (param == "t3")) {
-        if (val < 0.0) {
-            throw InvalidParameterValue("GAST time constants must be non-negative");
-        }
-        Governor::set(param, val, unitType);
-    } else {
-        Governor::set(param, val, unitType);
+    if ((param == "t1" || param == "t2" || param == "t3") && val < 0.0) {
+        throw InvalidParameterValue("GAST time constants must be non-negative");
     }
+    Governor::set(canonicalValveLimitName(param), val, unitType);
 }
 
 double GovernorGast::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "r") {
-        return R;
+    if (const auto value =
+            GovernorGast::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
-    if (param == "at") {
-        return AT;
-    }
-    if ((param == "kt") || (param == "k_t")) {
-        return KT;
-    }
-    if ((param == "dt") || (param == "dturb")) {
-        return Dt;
-    }
-    if (param == "vmax") {
-        return Pmax;
-    }
-    if (param == "vmin") {
-        return Pmin;
-    }
-    return Governor::get(param, unitType);
+    return Governor::get(canonicalValveLimitName(param), unitType);
 }
 }  // namespace griddyn::governors

@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -33,6 +34,41 @@ GovernorSteamTCSR::GovernorSteamTCSR(const std::string& objName): GovernorSteamN
     offsets.local().local.algSize = 1;
     offsets.local().local.diffSize = 5;
     offsets.local().local.jacSize = 18;
+}
+
+const ModelDescription& GovernorSteamTCSR::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorSteamTCSR>(
+        "GovernorSteamTCSR",
+        &GovernorSteamNR::getModelDescription(),
+        {parameter({"trh", "t5"},
+                   &GovernorSteamTCSR::Trh,
+                   units::second,
+                   "Reheater time constant",
+                   parameterValidators::positive),
+         parameter({"tco", "t6"},
+                   &GovernorSteamTCSR::Tco,
+                   units::second,
+                   "Crossover time constant",
+                   parameterValidators::positive),
+         parameter({"fch", "fhp"},
+                   &GovernorSteamTCSR::Fch,
+                   units::one,
+                   "High-pressure power fraction",
+                   parameterValidators::nonnegative),
+         parameter({"fip", "frh"},
+                   &GovernorSteamTCSR::Fip,
+                   units::one,
+                   "Intermediate-pressure power fraction",
+                   parameterValidators::nonnegative),
+         parameter({"flp", "fco"},
+                   &GovernorSteamTCSR::Flp,
+                   units::one,
+                   "Low-pressure power fraction",
+                   parameterValidators::nonnegative),
+         state("reheater", units::one, "Reheater state"),
+         state("crossover", units::one, "Crossover state")});
+    return description;
 }
 
 CoreObject* GovernorSteamTCSR::clone(CoreObject* obj) const
@@ -223,37 +259,17 @@ void GovernorSteamTCSR::set(std::string_view param, std::string_view val)
 
 void GovernorSteamTCSR::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "trh") || (param == "t5")) {
-        Trh = val;
-    } else if ((param == "tco") || (param == "t6")) {
-        Tco = val;
-    } else if ((param == "fch") || (param == "fhp")) {
-        Fch = val;
-    } else if ((param == "fip") || (param == "frh")) {
-        Fip = val;
-    } else if ((param == "flp") || (param == "fco")) {
-        Flp = val;
-    } else {
-        GovernorSteamNR::set(param, val, unitType);
+    if (GovernorSteamTCSR::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    GovernorSteamNR::set(param, val, unitType);
 }
 
 double GovernorSteamTCSR::get(std::string_view param, units::unit unitType) const
 {
-    if ((param == "trh") || (param == "t5")) {
-        return Trh;
-    }
-    if ((param == "tco") || (param == "t6")) {
-        return Tco;
-    }
-    if ((param == "fch") || (param == "fhp")) {
-        return Fch;
-    }
-    if ((param == "fip") || (param == "frh")) {
-        return Fip;
-    }
-    if ((param == "flp") || (param == "fco")) {
-        return Flp;
+    if (const auto value =
+            GovernorSteamTCSR::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return GovernorSteamNR::get(param, unitType);
 }

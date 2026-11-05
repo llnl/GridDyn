@@ -62,6 +62,7 @@ class GovernorHygov: public Governor {
     explicit GovernorHygov(const std::string& objName = "govHygov_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     ~GovernorHygov() override;
+    const ModelDescription& getModelDescription() const override;
 
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,

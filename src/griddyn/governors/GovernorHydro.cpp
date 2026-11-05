@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -34,6 +35,23 @@ GovernorHydro::GovernorHydro(const std::string& objName): Governor(objName)
     opFlags.set(IGNORE_FILTER);
     opFlags.set(IGNORE_THROTTLE);
     opFlags.set(USES_POWER_LIMITS);
+}
+
+const ModelDescription& GovernorHydro::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorHydro>(
+        "GovernorHydro",
+        &Governor::getModelDescription(),
+        {parameter({"tw", "t4"},
+                   &GovernorHydro::Tw,
+                   units::second,
+                   "Water starting time",
+                   parameterValidators::positive),
+         state("pmech", units::puMW, "Mechanical power"),
+         state("leadlag", units::one, "Speed lead-lag state"),
+         state("gate_lag", units::one, "Gate actuator state"),
+         state("waterway", units::one, "Waterway state")});
+    return description;
 }
 
 CoreObject* GovernorHydro::clone(CoreObject* obj) const
@@ -252,35 +270,20 @@ void GovernorHydro::set(std::string_view param, std::string_view val)
 
 void GovernorHydro::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "tw") || (param == "t4")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("hydro governor Tw/T4 must be positive and finite");
-        }
-        Tw = val;
-    } else if ((param == "t1") || (param == "t3")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("hydro governor time constant must be positive and finite");
-        }
-        Governor::set(param, val, unitType);
-    } else if (param == "t2") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("hydro governor lead time must be finite");
-        }
-        Governor::set(param, val, unitType);
-    } else if ((param == "pmax") || (param == "pmin")) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("hydro governor gate limit must be finite");
-        }
-        Governor::set(param, val, unitType);
-    } else {
-        Governor::set(param, val, unitType);
+    if (GovernorHydro::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    if ((param == "t1" || param == "t3") && !parameterValidators::positive(val)) {
+        throw InvalidParameterValue("hydro governor time constant must be positive");
+    }
+    Governor::set(param, val, unitType);
 }
 
 double GovernorHydro::get(std::string_view param, units::unit unitType) const
 {
-    if ((param == "tw") || (param == "t4")) {
-        return Tw;
+    if (const auto value =
+            GovernorHydro::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Governor::get(param, unitType);
 }

@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -34,6 +35,40 @@ GovernorReheat::GovernorReheat(const std::string& objName): Governor(objName)
     opFlags.set(IGNORE_DEADBAND);
     opFlags.set(IGNORE_FILTER);
     opFlags.set(IGNORE_THROTTLE);
+}
+
+const ModelDescription& GovernorReheat::getModelDescription() const
+{
+    const auto powerFraction = [](double value) { return value >= 0.0 && value <= 1.0; };
+    static const auto description = ModelDescription::define<GovernorReheat>(
+        "GovernorReheat",
+        &Governor::getModelDescription(),
+        {parameter(
+             {"k2"}, &GovernorReheat::K2, units::one, "Reheater power fraction", powerFraction),
+         parameter(
+             {"k3"}, &GovernorReheat::K3, units::one, "Crossover power fraction", powerFraction),
+         parameter({"t4"},
+                   &GovernorReheat::T4,
+                   units::second,
+                   "Steam-chest delay",
+                   parameterValidators::positive),
+         parameter({"t5"},
+                   &GovernorReheat::T5,
+                   units::second,
+                   "Reheater delay",
+                   parameterValidators::positive),
+         parameter({"t6"},
+                   &GovernorReheat::T6,
+                   units::second,
+                   "Crossover delay",
+                   parameterValidators::positive),
+         state("pmech", units::puMW, "Mechanical power"),
+         state("filter", units::one, "Speed filter"),
+         state("governor", units::one, "Governor output"),
+         state("steamchest", units::one, "Steam-chest state"),
+         state("reheater", units::one, "Reheater state"),
+         state("crossover", units::one, "Crossover state")});
+    return description;
 }
 
 CoreObject* GovernorReheat::clone(CoreObject* obj) const
@@ -208,30 +243,14 @@ void GovernorReheat::set(std::string_view param, std::string_view val)
 
 void GovernorReheat::set(std::string_view param, double val, unit unitType)
 {
-    if ((param == "t1") || (param == "t2") || (param == "t3") || (param == "t4") ||
-        (param == "t5") || (param == "t6") || (param == "k1") || (param == "k2") ||
-        (param == "k3") || (param == "pmax") || (param == "pmin")) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("IEESGO parameter must be finite");
-        }
-        if (param == "k1") {
-            K = val;
-        } else if (param == "k2") {
-            K2 = val;
-        } else if (param == "k3") {
-            K3 = val;
-        } else if (param == "t4") {
-            T4 = val;
-        } else if (param == "t5") {
-            T5 = val;
-        } else if (param == "t6") {
-            T6 = val;
-        } else {
-            Governor::set(param, val, unitType);
-        }
-    } else {
-        Governor::set(param, val, unitType);
+    if (GovernorReheat::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    if (param == "k1") {
+        K = val;
+        return;
+    }
+    Governor::set(param, val, unitType);
 }
 
 double GovernorReheat::get(std::string_view param, unit unitType) const
@@ -239,20 +258,9 @@ double GovernorReheat::get(std::string_view param, unit unitType) const
     if (param == "k1") {
         return K;
     }
-    if (param == "k2") {
-        return K2;
-    }
-    if (param == "k3") {
-        return K3;
-    }
-    if (param == "t4") {
-        return T4;
-    }
-    if (param == "t5") {
-        return T5;
-    }
-    if (param == "t6") {
-        return T6;
+    if (const auto value =
+            GovernorReheat::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return Governor::get(param, unitType);
 }

@@ -60,6 +60,20 @@ parameter({"p", "load p"}, &GridLoad::P, units::puMW,
           "Real power at nominal voltage")
 ```
 
+Fixed-size indexed parameters use the same declaration with an element index.
+Each named element is captured and restored separately:
+
+```cpp
+parameter({"t4"}, &GovernorIeeeG1::turbineTime, 0, units::second,
+          "Turbine stage 4 time", parameterValidators::nonnegative)
+```
+
+Governor tables follow the class hierarchy. Direct scalar and indexed setters
+use `trySetLocal`; setters that update a block, use a machine-specific base, or
+recalculate dependent limits remain in the model class. Solver vector entries
+use `state(...)`, while initialized reference offsets and transition history
+use `localState(...)`.
+
 ## Ordinary access and class-specific handling
 
 Public callers continue to use `set(name, value, units)`, `get(name, units)`,
@@ -124,6 +138,7 @@ flag({"usepowerfactor"}, &GridLoad::opFlags, USE_POWER_FACTOR_FLAG,
 Numeric `trySetLocal` calls also recognize declared flags: zero means false,
 and any other finite value means true. They dispatch through the model's
 `setFlag` method so class-specific flag behavior still runs.
+Numeric `tryGetLocal` calls return `1.0` or `0.0` for declared flags.
 A class with additional behavior, such as enabling power-factor control or
 notifying an update scheduler, handles that case first in its public method.
 Packed controls are read and restored one bit at a time; unrelated bits remain

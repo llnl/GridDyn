@@ -39,6 +39,7 @@ class GovernorTgov1: public GovernorIeeeSimple {
     explicit GovernorTgov1(const std::string& objName = "govTgov1_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual ~GovernorTgov1();
+    const ModelDescription& getModelDescription() const override;
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,

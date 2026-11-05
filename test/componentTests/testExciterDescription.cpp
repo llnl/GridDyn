@@ -137,6 +137,27 @@ TEST(ExciterDescriptionTests, DiscoversInheritedParametersSolverStatesAndLimiter
     EXPECT_EQ(std::find(names.begin(), names.end(), "operating_bias"), names.end());
 }
 
+TEST(ExciterDescriptionTests, ReadsDeclaredFlagsThroughNumericGet)
+{
+    exciters::ExciterESAC2A esac2a;
+    esac2a.set("uel_enabled", 2.0);
+    esac2a.set("oel_enabled", 0.0);
+    EXPECT_DOUBLE_EQ(esac2a.get("uel_enabled"), 1.0);
+    EXPECT_DOUBLE_EQ(esac2a.get("oel_enabled"), 0.0);
+
+    exciters::ExciterESAC6A esac6a;
+    esac6a.set("spdmlt", 1.0);
+    EXPECT_DOUBLE_EQ(esac6a.get("spdmlt"), 1.0);
+
+    exciters::ExciterESST2A esst2a;
+    esst2a.set("uel_enabled", 1.0);
+    EXPECT_DOUBLE_EQ(esst2a.get("uel_enabled"), 1.0);
+
+    exciters::ExciterSCRX scrx;
+    scrx.set("cswitch", 1.0);
+    EXPECT_DOUBLE_EQ(scrx.get("cswitch"), 1.0);
+}
+
 TEST(ExciterDescriptionTests, UsesExistingSetGetUnitsAliasesAndParentDispatch)
 {
     ExciterSEXS model;

@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -46,6 +47,64 @@ GovernorHygov::GovernorHygov(const std::string& objName): Governor(objName)
     opFlags.set(IGNORE_THROTTLE);
     opFlags.set(USES_POWER_LIMITS);
     opFlags.set(USES_RAMP_LIMITS);
+}
+
+const ModelDescription& GovernorHygov::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorHygov>(
+        "GovernorHygov",
+        &Governor::getModelDescription(),
+        {parameter({"temporarydroop", "rtmp", "rtemp"},
+                   &GovernorHygov::temporaryDroop,
+                   units::one,
+                   "Temporary droop",
+                   parameterValidators::positive),
+         parameter({"tr", "t_r", "t1"},
+                   &GovernorHygov::Tr,
+                   units::second,
+                   "Temporary droop lead time",
+                   parameterValidators::positive),
+         parameter({"tf", "t_f"},
+                   &GovernorHygov::Tf,
+                   units::second,
+                   "Speed filter time",
+                   parameterValidators::positive),
+         parameter({"tg", "t_g"},
+                   &GovernorHygov::Tg,
+                   units::second,
+                   "Gate servo time",
+                   parameterValidators::positive),
+         parameter({"velm", "velmax"},
+                   &GovernorHygov::VELM,
+                   units::one,
+                   "Gate velocity limit",
+                   parameterValidators::nonnegative),
+         parameter({"tw", "t_w"},
+                   &GovernorHygov::Tw,
+                   units::second,
+                   "Water inertia time",
+                   parameterValidators::positive),
+         parameter({"at", "a_t"},
+                   &GovernorHygov::At,
+                   units::one,
+                   "Turbine gain",
+                   parameterValidators::positive),
+         parameter({"dt", "dturb", "d_turb"}, &GovernorHygov::Dturb, units::one, "Turbine damping"),
+         parameter({"qnl", "q_nl"}, &GovernorHygov::qNL, units::one, "No-load flow"),
+         parameter({"h0", "head0"},
+                   &GovernorHygov::h0,
+                   units::one,
+                   "Initial head",
+                   parameterValidators::positive),
+         localState("rate_root_transition_pending", &GovernorHygov::rateRootTransitionPending),
+         localState("position_root_transition_pending",
+                    &GovernorHygov::positionRootTransitionPending),
+         state("pmech", units::puMW, "Mechanical power"),
+         state("filter", units::one, "Speed filter"),
+         state("gate_position", units::one, "Gate position"),
+         state("gate", units::one, "Gate servo"),
+         state("flow", units::one, "Water flow")});
+    return description;
 }
 
 CoreObject* GovernorHygov::clone(CoreObject* obj) const
@@ -426,27 +485,24 @@ void GovernorHygov::rootTest(const IOdata& inputs,
         roots[rootOffset + 1] = opFlags[GATE_POSITION_LIMIT_HIGH] ?
             -limitedRateValue - positionLimitRootTolerance :
             limitedRateValue - positionLimitRootTolerance;
-    } else if (((state[gatePositionState] >= (Pmax - positionLimitTolerance)) &&
-                (limitedRateValue < 0.0)) ||
-               ((state[gatePositionState] <= (Pmin + positionLimitTolerance)) &&
-                (limitedRateValue > 0.0))) {
-        // At a geometric boundary with an inward rate the governor is not
-        // limited, but the distance-only root would still be exactly zero.
-        // Keep IDA away from that non-eventful surface.
-        roots[rootOffset + 1] = positionLimitRootTolerance;
-    } else if ((std::abs(limitedRateValue) <= positionLimitTolerance) &&
-               (((state[gatePositionState] >= (Pmax - positionLimitTolerance)) &&
-                 (state[gatePositionState] <= (Pmax + positionLimitTolerance))) ||
-                ((state[gatePositionState] >= (Pmin - positionLimitTolerance)) &&
-                 (state[gatePositionState] <= (Pmin + positionLimitTolerance))))) {
-        // Likewise, a zero-rate operating point on a position bound is not a
-        // crossing.  Return a small positive value until the rate gives a
-        // definite direction for a real limiter entry or release.
-        roots[rootOffset + 1] = positionLimitRootTolerance;
     } else {
-        roots[rootOffset + 1] =
-            std::min(Pmax - state[gatePositionState], state[gatePositionState] - Pmin) +
-            positionLimitRootTolerance;
+        const double gatePosition = state[gatePositionState];
+        const bool atOrAboveUpper = gatePosition >= (Pmax - positionLimitTolerance);
+        const bool atOrBelowLower = gatePosition <= (Pmin + positionLimitTolerance);
+        const bool movingInward = (atOrAboveUpper && (limitedRateValue < 0.0)) ||
+            (atOrBelowLower && (limitedRateValue > 0.0));
+        const bool nearBound =
+            (atOrAboveUpper && (gatePosition <= (Pmax + positionLimitTolerance))) ||
+            (atOrBelowLower && (gatePosition >= (Pmin - positionLimitTolerance)));
+        const bool stationaryAtBound =
+            nearBound && (std::abs(limitedRateValue) <= positionLimitTolerance);
+        // Inward motion or near-zero motion at a bound does not cross a limiter root.
+        if (movingInward || stationaryAtBound) {
+            roots[rootOffset + 1] = positionLimitRootTolerance;
+        } else {
+            roots[rootOffset + 1] =
+                std::min(Pmax - gatePosition, gatePosition - Pmin) + positionLimitRootTolerance;
+        }
     }
 }
 
@@ -596,71 +652,16 @@ void GovernorHygov::set(std::string_view param, std::string_view val)
 
 void GovernorHygov::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "r") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("HYGOV R must be positive and finite");
-        }
-        Governor::set(param, val, unitType);
-    } else if ((param == "temporarydroop") || (param == "rtmp") || (param == "rtemp")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("HYGOV temporary droop must be positive and finite");
-        }
-        temporaryDroop = val;
-    } else if ((param == "tr") || (param == "t_r") || (param == "t1")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("HYGOV Tr must be positive and finite");
-        }
-        Tr = val;
-    } else if ((param == "tf") || (param == "t_f")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("HYGOV Tf must be positive and finite");
-        }
-        Tf = val;
-    } else if ((param == "tg") || (param == "t_g")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("HYGOV Tg must be positive and finite");
-        }
-        Tg = val;
-    } else if ((param == "velm") || (param == "velmax")) {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("HYGOV VELM must be nonnegative and finite");
-        }
-        VELM = val;
-    } else if ((param == "gmax") || (param == "pmax")) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("HYGOV maximum gate limit must be finite");
-        }
+    if (GovernorHygov::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
+    if (param == "r" && !parameterValidators::positive(val)) {
+        throw InvalidParameterValue("HYGOV R must be positive");
+    }
+    if ((param == "gmax") || (param == "pmax")) {
         Pmax = val;
     } else if ((param == "gmin") || (param == "pmin")) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("HYGOV minimum gate limit must be finite");
-        }
         Pmin = val;
-    } else if ((param == "tw") || (param == "t_w")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("HYGOV Tw must be positive and finite");
-        }
-        Tw = val;
-    } else if ((param == "at") || (param == "a_t")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("HYGOV At must be positive and finite");
-        }
-        At = val;
-    } else if ((param == "dt") || (param == "dturb") || (param == "d_turb")) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("HYGOV Dturb must be finite");
-        }
-        Dturb = val;
-    } else if ((param == "qnl") || (param == "q_nl")) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("HYGOV qNL must be finite");
-        }
-        qNL = val;
-    } else if ((param == "h0") || (param == "head0")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("HYGOV h0 must be positive and finite");
-        }
-        h0 = val;
     } else {
         Governor::set(param, val, unitType);
     }
@@ -668,38 +669,12 @@ void GovernorHygov::set(std::string_view param, double val, units::unit unitType
 
 double GovernorHygov::get(std::string_view param, units::unit unitType) const
 {
-    if ((param == "temporarydroop") || (param == "rtmp") || (param == "rtemp")) {
-        return temporaryDroop;
-    }
-    if ((param == "tr") || (param == "t_r") || (param == "t1")) {
-        return Tr;
-    }
-    if ((param == "tf") || (param == "t_f")) {
-        return Tf;
-    }
-    if ((param == "tg") || (param == "t_g")) {
-        return Tg;
-    }
-    if ((param == "velm") || (param == "velmax")) {
-        return VELM;
+    if (const auto result =
+            GovernorHygov::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *result;
     }
     if ((param == "gmax") || (param == "gmin")) {
         return (param == "gmax") ? Pmax : Pmin;
-    }
-    if ((param == "tw") || (param == "t_w")) {
-        return Tw;
-    }
-    if ((param == "at") || (param == "a_t")) {
-        return At;
-    }
-    if ((param == "dt") || (param == "dturb") || (param == "d_turb")) {
-        return Dturb;
-    }
-    if ((param == "qnl") || (param == "q_nl")) {
-        return qNL;
-    }
-    if ((param == "h0") || (param == "head0")) {
-        return h0;
     }
     if (param == "head") {
         return turbineHead(m_state.data() + offsets.getDiffOffset(cLocalSolverMode));

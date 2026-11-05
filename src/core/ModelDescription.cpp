@@ -264,7 +264,13 @@ std::optional<double> ModelDescription::tryGetLocal(const CoreObject& object,
                                                     units::unit unitType) const
 {
     const auto* field = findLocal(name);
-    if (field == nullptr || field->kind() != ModelFieldKind::PARAMETER ||
+    if (field == nullptr) {
+        return std::nullopt;
+    }
+    if (field->kind() == ModelFieldKind::FLAG) {
+        return std::get<bool>(field->mRead(object)) ? 1.0 : 0.0;
+    }
+    if (field->kind() != ModelFieldKind::PARAMETER ||
         field->valueType() == ModelFieldType::STRING) {
         return std::nullopt;
     }

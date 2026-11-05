@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -67,6 +68,110 @@ GovernorGgov1::GovernorGgov1(const std::string& objName): Governor(objName)
     opFlags.set(IGNORE_DEADBAND);
     opFlags.set(IGNORE_FILTER);
     opFlags.set(IGNORE_THROTTLE);
+}
+
+const ModelDescription& GovernorGgov1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorGgov1>(
+        "GovernorGgov1",
+        &Governor::getModelDescription(),
+        {parameter({"rselect"}, &GovernorGgov1::Rselect, units::one, "Droop signal selector"),
+         parameter({"fswitch", "flag"}, &GovernorGgov1::fuelFlag, units::one, "Fuel flow switch"),
+         parameter(
+             {"r"}, &GovernorGgov1::R, units::one, "Speed droop", parameterValidators::nonnegative),
+         parameter({"tpelec", "t_pelec"},
+                   &GovernorGgov1::Tpelec,
+                   units::second,
+                   "Electrical power filter time",
+                   parameterValidators::positive),
+         parameter({"maxerr"}, &GovernorGgov1::maxerr, units::one, "Maximum governor error"),
+         parameter({"minerr"}, &GovernorGgov1::minerr, units::one, "Minimum governor error"),
+         parameter({"kpgov"},
+                   &GovernorGgov1::Kpgov,
+                   units::one,
+                   "Governor proportional gain",
+                   parameterValidators::nonnegative),
+         parameter({"kigov"}, &GovernorGgov1::Kigov, units::one, "Governor integral gain"),
+         parameter({"kdgov"},
+                   &GovernorGgov1::Kdgov,
+                   units::one,
+                   "Governor derivative gain",
+                   parameterValidators::nonnegative),
+         parameter({"tdgov"},
+                   &GovernorGgov1::Tdgov,
+                   units::second,
+                   "Governor derivative filter time",
+                   parameterValidators::positive),
+         parameter({"tact"},
+                   &GovernorGgov1::Tact,
+                   units::second,
+                   "Actuator time constant",
+                   parameterValidators::positive),
+         parameter({"kturb"},
+                   &GovernorGgov1::Kturb,
+                   units::one,
+                   "Turbine gain",
+                   parameterValidators::positive),
+         parameter({"wfnl"}, &GovernorGgov1::Wfnl, units::one, "No-load fuel flow"),
+         parameter({"tb"},
+                   &GovernorGgov1::Tb,
+                   units::second,
+                   "Turbine lag time",
+                   parameterValidators::positive),
+         parameter({"tc"}, &GovernorGgov1::Tc, units::second, "Turbine lead time"),
+         parameter({"teng"}, &GovernorGgov1::Teng, units::second, "Engine delay"),
+         parameter({"tfload"},
+                   &GovernorGgov1::Tfload,
+                   units::second,
+                   "Load limiter filter time",
+                   parameterValidators::positive),
+         parameter(
+             {"kpload"}, &GovernorGgov1::Kpload, units::one, "Load limiter proportional gain"),
+         parameter({"kiload"}, &GovernorGgov1::Kiload, units::one, "Load limiter integral gain"),
+         parameter({"ldref"}, &GovernorGgov1::Ldref, units::one, "Load reference"),
+         parameter({"dm"}, &GovernorGgov1::Dm, units::one, "Speed sensitivity"),
+         parameter({"ropen"},
+                   &GovernorGgov1::Ropen,
+                   units::one,
+                   "Valve opening rate",
+                   parameterValidators::nonnegative),
+         parameter({"rclose"},
+                   &GovernorGgov1::Rclose,
+                   units::one,
+                   "Valve closing rate",
+                   parameterValidators::nonpositive),
+         parameter({"kimw"}, &GovernorGgov1::Kimw, units::one, "MW controller integral gain"),
+         parameter({"aset"}, &GovernorGgov1::Aset, units::one, "Acceleration setpoint"),
+         parameter({"ka"}, &GovernorGgov1::Ka, units::one, "Acceleration limiter gain"),
+         parameter({"ta"},
+                   &GovernorGgov1::TaAccel,
+                   units::second,
+                   "Acceleration filter time",
+                   parameterValidators::positive),
+         parameter({"trate"}, &GovernorGgov1::Trate, units::one, "Turbine rating"),
+         parameter({"db"}, &GovernorGgov1::db, units::one, "Speed deadband"),
+         parameter({"tsa"}, &GovernorGgov1::Tsa, units::second, "Temperature lead time"),
+         parameter({"tsb"},
+                   &GovernorGgov1::Tsb,
+                   units::second,
+                   "Temperature lag time",
+                   parameterValidators::nonnegative),
+         parameter({"rup"}, &GovernorGgov1::Rup, units::one, "Upper ramp rate"),
+         parameter({"rdown"}, &GovernorGgov1::Rdown, units::one, "Lower ramp rate"),
+         localState("power_reference", &GovernorGgov1::powerReference),
+         localState("initial_valve_overdrive", &GovernorGgov1::initialValveOverdrive),
+         state("pmech", units::puMW, "Mechanical power"),
+         state("pelec_f", units::one, "Electrical power filter"),
+         state("mw_reset", units::one, "MW reset state"),
+         state("gov_int", units::one, "Governor integral"),
+         state("derr_f", units::one, "Derivative error filter"),
+         state("valve", units::one, "Valve position"),
+         state("turbine", units::one, "Turbine state"),
+         state("temp_ll", units::one, "Temperature lead-lag state"),
+         state("temp", units::one, "Temperature state"),
+         state("load_int", units::one, "Load integral"),
+         state("accel_f", units::one, "Acceleration filter")});
+    return description;
 }
 
 CoreObject* GovernorGgov1::clone(CoreObject* obj) const
@@ -634,189 +739,19 @@ void GovernorGgov1::set(std::string_view param, std::string_view value)
 
 void GovernorGgov1::set(std::string_view param, double value, units::unit unitType)
 {
-    if (param == "rselect") {
-        Rselect = static_cast<int>(value);
-    } else if ((param == "fswitch") || (param == "flag")) {
-        fuelFlag = static_cast<int>(value);
-    } else if (param == "r") {
-        R = value;
-    } else if ((param == "tpelec") || (param == "t_pelec")) {
-        Tpelec = value;
-    } else if (param == "maxerr") {
-        maxerr = value;
-    } else if (param == "minerr") {
-        minerr = value;
-    } else if (param == "kpgov") {
-        Kpgov = value;
-    } else if (param == "kigov") {
-        Kigov = value;
-    } else if (param == "kdgov") {
-        Kdgov = value;
-    } else if (param == "tdgov") {
-        Tdgov = value;
-    } else if ((param == "vmax") || (param == "pmax")) {
-        Pmax = value;
-    } else if ((param == "vmin") || (param == "pmin")) {
-        Pmin = value;
-    } else if (param == "tact") {
-        Tact = value;
-    } else if (param == "kturb") {
-        Kturb = value;
-    } else if (param == "wfnl") {
-        Wfnl = value;
-    } else if (param == "tb") {
-        Tb = value;
-    } else if (param == "tc") {
-        Tc = value;
-    } else if (param == "teng") {
-        Teng = value;
-    } else if (param == "tfload") {
-        Tfload = value;
-    } else if (param == "kpload") {
-        Kpload = value;
-    } else if (param == "kiload") {
-        Kiload = value;
-    } else if (param == "ldref") {
-        Ldref = value;
-    } else if (param == "dm") {
-        Dm = value;
-    } else if (param == "ropen") {
-        Ropen = value;
-    } else if (param == "rclose") {
-        Rclose = value;
-    } else if (param == "kimw") {
-        Kimw = value;
-    } else if (param == "aset") {
-        Aset = value;
-    } else if (param == "ka") {
-        Ka = value;
-    } else if (param == "ta") {
-        TaAccel = value;
-    } else if (param == "trate") {
-        Trate = value;
-    } else if (param == "db") {
-        db = value;
-    } else if (param == "tsa") {
-        Tsa = value;
-    } else if (param == "tsb") {
-        Tsb = value;
-    } else if (param == "rup") {
-        Rup = value;
-    } else if (param == "rdown") {
-        Rdown = value;
-    } else {
-        Governor::set(param, value, unitType);
+    if (GovernorGgov1::getModelDescription().trySetLocal(*this, param, value, unitType)) {
+        return;
     }
+    Governor::set(canonicalValveLimitName(param), value, unitType);
 }
 
 double GovernorGgov1::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "rselect") {
-        return Rselect;
+    if (const auto result =
+            GovernorGgov1::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *result;
     }
-    if (param == "fswitch") {
-        return fuelFlag;
-    }
-    if (param == "r") {
-        return R;
-    }
-    if (param == "tpelec") {
-        return Tpelec;
-    }
-    if (param == "maxerr") {
-        return maxerr;
-    }
-    if (param == "minerr") {
-        return minerr;
-    }
-    if (param == "kpgov") {
-        return Kpgov;
-    }
-    if (param == "kigov") {
-        return Kigov;
-    }
-    if (param == "kdgov") {
-        return Kdgov;
-    }
-    if (param == "tdgov") {
-        return Tdgov;
-    }
-    if (param == "vmax") {
-        return Pmax;
-    }
-    if (param == "vmin") {
-        return Pmin;
-    }
-    if (param == "tact") {
-        return Tact;
-    }
-    if (param == "kturb") {
-        return Kturb;
-    }
-    if (param == "wfnl") {
-        return Wfnl;
-    }
-    if (param == "tb") {
-        return Tb;
-    }
-    if (param == "tc") {
-        return Tc;
-    }
-    if (param == "teng") {
-        return Teng;
-    }
-    if (param == "tfload") {
-        return Tfload;
-    }
-    if (param == "kpload") {
-        return Kpload;
-    }
-    if (param == "kiload") {
-        return Kiload;
-    }
-    if (param == "ldref") {
-        return Ldref;
-    }
-    if (param == "dm") {
-        return Dm;
-    }
-    if (param == "ropen") {
-        return Ropen;
-    }
-    if (param == "rclose") {
-        return Rclose;
-    }
-    if (param == "kimw") {
-        return Kimw;
-    }
-    if (param == "aset") {
-        return Aset;
-    }
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return TaAccel;
-    }
-    if (param == "trate") {
-        return Trate;
-    }
-    if (param == "db") {
-        return db;
-    }
-    if (param == "tsa") {
-        return Tsa;
-    }
-    if (param == "tsb") {
-        return Tsb;
-    }
-    if (param == "rup") {
-        return Rup;
-    }
-    if (param == "rdown") {
-        return Rdown;
-    }
-    return Governor::get(param, unitType);
+    return Governor::get(canonicalValveLimitName(param), unitType);
 }
 
 stringVec GovernorGgov1::localStateNames() const

@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -46,6 +47,105 @@ GovernorIeeeG1::GovernorIeeeG1(const std::string& objName): Governor(objName)
     opFlags.set(IGNORE_THROTTLE);
     opFlags.set(USES_POWER_LIMITS);
     opFlags.set(USES_RAMP_LIMITS);
+}
+
+const ModelDescription& GovernorIeeeG1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorIeeeG1>(
+        "GovernorIeeeG1",
+        &Governor::getModelDescription(),
+        {parameter({"uo"},
+                   &GovernorIeeeG1::Uo,
+                   units::one,
+                   "Valve opening rate",
+                   parameterValidators::nonnegative),
+         parameter({"uc"},
+                   &GovernorIeeeG1::Uc,
+                   units::one,
+                   "Valve closing rate",
+                   parameterValidators::nonpositive),
+         parameter({"paux"}, &GovernorIeeeG1::auxiliaryPower, units::puMW, "Auxiliary power"),
+         parameter({"t4"},
+                   &GovernorIeeeG1::turbineTime,
+                   0,
+                   units::second,
+                   "Turbine stage 4 time",
+                   parameterValidators::nonnegative),
+         parameter({"t5"},
+                   &GovernorIeeeG1::turbineTime,
+                   1,
+                   units::second,
+                   "Turbine stage 5 time",
+                   parameterValidators::nonnegative),
+         parameter({"t6"},
+                   &GovernorIeeeG1::turbineTime,
+                   2,
+                   units::second,
+                   "Turbine stage 6 time",
+                   parameterValidators::nonnegative),
+         parameter({"t7"},
+                   &GovernorIeeeG1::turbineTime,
+                   3,
+                   units::second,
+                   "Turbine stage 7 time",
+                   parameterValidators::nonnegative),
+         parameter({"k1"},
+                   &GovernorIeeeG1::powerFraction,
+                   0,
+                   units::one,
+                   "Power fraction 1",
+                   parameterValidators::nonnegative),
+         parameter({"k2"},
+                   &GovernorIeeeG1::powerFraction,
+                   1,
+                   units::one,
+                   "Power fraction 2",
+                   parameterValidators::nonnegative),
+         parameter({"k3"},
+                   &GovernorIeeeG1::powerFraction,
+                   2,
+                   units::one,
+                   "Power fraction 3",
+                   parameterValidators::nonnegative),
+         parameter({"k4"},
+                   &GovernorIeeeG1::powerFraction,
+                   3,
+                   units::one,
+                   "Power fraction 4",
+                   parameterValidators::nonnegative),
+         parameter({"k5"},
+                   &GovernorIeeeG1::powerFraction,
+                   4,
+                   units::one,
+                   "Power fraction 5",
+                   parameterValidators::nonnegative),
+         parameter({"k6"},
+                   &GovernorIeeeG1::powerFraction,
+                   5,
+                   units::one,
+                   "Power fraction 6",
+                   parameterValidators::nonnegative),
+         parameter({"k7"},
+                   &GovernorIeeeG1::powerFraction,
+                   6,
+                   units::one,
+                   "Power fraction 7",
+                   parameterValidators::nonnegative),
+         parameter({"k8"},
+                   &GovernorIeeeG1::powerFraction,
+                   7,
+                   units::one,
+                   "Power fraction 8",
+                   parameterValidators::nonnegative),
+         state("php", units::puMW, "High-pressure mechanical power"),
+         state("plp", units::puMW, "Low-pressure mechanical power"),
+         state("leadlag", units::one, "Speed lead-lag state"),
+         state("valve", units::one, "Valve position"),
+         state("p4", units::one, "Turbine stage 4 output"),
+         state("p5", units::one, "Turbine stage 5 output"),
+         state("p6", units::one, "Turbine stage 6 output"),
+         state("p7", units::one, "Turbine stage 7 output")});
+    return description;
 }
 
 CoreObject* GovernorIeeeG1::clone(CoreObject* obj) const
@@ -548,59 +648,30 @@ void GovernorIeeeG1::set(std::string_view param, std::string_view val)
 
 void GovernorIeeeG1::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "k") || (param == "droop")) {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("IEEEG1 gain must be nonnegative and finite");
-        }
-        Governor::set(param, val, unitType);
-    } else if (param == "r") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("IEEEG1 R must be positive and finite");
-        }
-        Governor::set(param, val, unitType);
-    } else if ((param == "t1") || (param == "t2")) {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("IEEEG1 T1/T2 must be nonnegative and finite");
-        }
-        Governor::set(param, val, unitType);
-    } else if (param == "t3") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("IEEEG1 T3 must be positive and finite");
-        }
-        Governor::set(param, val, unitType);
-    } else if (param == "uo") {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("IEEEG1 UO must be nonnegative and finite");
-        }
-        Uo = val;
-    } else if (param == "uc") {
-        if (!std::isfinite(val) || (val > 0.0)) {
-            throw InvalidParameterValue("IEEEG1 UC must be nonpositive and finite");
-        }
-        Uc = val;
-    } else if (param == "paux") {
+    if (param == "paux") {
         if (!std::isfinite(val)) {
             throw InvalidParameterValue("IEEEG1 auxiliary reference must be finite");
         }
-        auxiliaryPower = units::convert(val, unitType, units::puMW, systemBasePower);
-    } else if ((param == "pmax") || (param == "pmin")) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("IEEEG1 valve limit must be finite");
-        }
-        Governor::set(param, val, unitType);
-    } else if ((param.size() == 2) && (param[0] == 't') && (param[1] >= '4') && (param[1] <= '7')) {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("IEEEG1 turbine time constant must be nonnegative");
-        }
-        turbineTime[static_cast<std::size_t>(param[1] - '4')] = val;
-    } else if ((param.size() == 2) && (param[0] == 'k') && (param[1] >= '1') && (param[1] <= '8')) {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("IEEEG1 power fraction must be nonnegative");
-        }
-        powerFraction[static_cast<std::size_t>(param[1] - '1')] = val;
-    } else {
-        Governor::set(param, val, unitType);
+        const auto power = units::convert(val, unitType, units::puMW, systemBasePower);
+        GovernorIeeeG1::getModelDescription().trySetLocal(*this, param, power);
+        return;
     }
+    if (GovernorIeeeG1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
+    if ((param == "k" || param == "droop") && !parameterValidators::nonnegative(val)) {
+        throw InvalidParameterValue("IEEEG1 gain must be nonnegative");
+    }
+    if (param == "r" && !parameterValidators::positive(val)) {
+        throw InvalidParameterValue("IEEEG1 R must be positive");
+    }
+    if ((param == "t1" || param == "t2") && !parameterValidators::nonnegative(val)) {
+        throw InvalidParameterValue("IEEEG1 T1/T2 must be nonnegative");
+    }
+    if (param == "t3" && !parameterValidators::positive(val)) {
+        throw InvalidParameterValue("IEEEG1 T3 must be positive");
+    }
+    Governor::set(param, val, unitType);
 }
 
 double GovernorIeeeG1::get(std::string_view param, units::unit unitType) const
@@ -608,17 +679,9 @@ double GovernorIeeeG1::get(std::string_view param, units::unit unitType) const
     if (param == "paux") {
         return units::convert(auxiliaryPower, units::puMW, unitType, systemBasePower);
     }
-    if (param == "uo") {
-        return Uo;
-    }
-    if (param == "uc") {
-        return Uc;
-    }
-    if ((param.size() == 2) && (param[0] == 't') && (param[1] >= '4') && (param[1] <= '7')) {
-        return turbineTime[static_cast<std::size_t>(param[1] - '4')];
-    }
-    if ((param.size() == 2) && (param[0] == 'k') && (param[1] >= '1') && (param[1] <= '8')) {
-        return powerFraction[static_cast<std::size_t>(param[1] - '1')];
+    if (const auto result =
+            GovernorIeeeG1::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *result;
     }
     if ((param.size() == 3) && (param[0] == 'k') && (param[1] >= '1') && (param[1] <= '8') &&
         (param[2] == 'n')) {

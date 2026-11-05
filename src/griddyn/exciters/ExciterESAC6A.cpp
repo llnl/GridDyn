@@ -735,9 +735,6 @@ void ExciterESAC6A::set(std::string_view param, double val, units::unit unitType
 
 double ExciterESAC6A::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "spdmlt") {
-        return speedMultiplier ? 1.0 : 0.0;
-    }
     if (const auto value =
             ExciterESAC6A::getModelDescription().tryGetLocal(*this, param, unitType)) {
         return *value;

@@ -124,53 +124,57 @@ namespace {
             return description;
         }
 
-        void
-            set(std::string_view name, double value, units::unit unitType = units::defunit) override
+        void set(std::string_view fieldName,
+                 double value,
+                 units::unit unitType = units::defunit) override
         {
-            if (name == "hooked") {
+            if (fieldName == "hooked") {
                 const auto converted = units::convert(value, unitType, units::one);
                 if (!std::isfinite(converted)) {
-                    throw InvalidParameterValue(name);
+                    throw InvalidParameterValue(fieldName);
                 }
                 setHooked(converted);
                 return;
             }
-            if (!ParameterModel::getModelDescription().trySetLocal(*this, name, value, unitType)) {
-                CoreObject::set(name, value, unitType);
+            if (!ParameterModel::getModelDescription().trySetLocal(
+                    *this, fieldName, value, unitType)) {
+                CoreObject::set(fieldName, value, unitType);
             }
         }
-        void set(std::string_view name, std::string_view value) override
+        void set(std::string_view fieldName, std::string_view value) override
         {
-            if (!ParameterModel::getModelDescription().trySetLocal(*this, name, value)) {
-                CoreObject::set(name, value);
+            if (!ParameterModel::getModelDescription().trySetLocal(*this, fieldName, value)) {
+                CoreObject::set(fieldName, value);
             }
         }
-        [[nodiscard]] double get(std::string_view name,
+        [[nodiscard]] double get(std::string_view fieldName,
                                  units::unit unitType = units::defunit) const override
         {
-            if (name == "hooked") {
+            if (fieldName == "hooked") {
                 return units::convert(mHooked, units::one, unitType);
             }
             const auto value =
-                ParameterModel::getModelDescription().tryGetLocal(*this, name, unitType);
-            return value ? *value : CoreObject::get(name, unitType);
+                ParameterModel::getModelDescription().tryGetLocal(*this, fieldName, unitType);
+            return value ? *value : CoreObject::get(fieldName, unitType);
         }
-        void setFlag(std::string_view name, bool value) override
+        void setFlag(std::string_view flagName, bool value) override
         {
-            if (!ParameterModel::getModelDescription().trySetFlagLocal(*this, name, value)) {
-                CoreObject::setFlag(name, value);
+            if (!ParameterModel::getModelDescription().trySetFlagLocal(*this, flagName, value)) {
+                CoreObject::setFlag(flagName, value);
             }
         }
-        [[nodiscard]] bool getFlag(std::string_view name) const override
+        [[nodiscard]] bool getFlag(std::string_view flagName) const override
         {
-            const auto value = ParameterModel::getModelDescription().tryGetFlagLocal(*this, name);
-            return value ? *value : CoreObject::getFlag(name);
+            const auto value =
+                ParameterModel::getModelDescription().tryGetFlagLocal(*this, flagName);
+            return value ? *value : CoreObject::getFlag(flagName);
         }
         [[nodiscard]] double calculated() const { return (mGain * mCount) + mSamples.back(); }
-        [[nodiscard]] std::string getString(std::string_view name) const override
+        [[nodiscard]] std::string getString(std::string_view fieldName) const override
         {
-            const auto value = ParameterModel::getModelDescription().tryGetStringLocal(*this, name);
-            return value ? *value : CoreObject::getString(name);
+            const auto value =
+                ParameterModel::getModelDescription().tryGetStringLocal(*this, fieldName);
+            return value ? *value : CoreObject::getString(fieldName);
         }
     };
 
@@ -186,20 +190,22 @@ namespace {
                 {parameter({"gain"}, &DerivedParameterModel::mOwnGain, units::one, "Child gain")});
             return description;
         }
-        void
-            set(std::string_view name, double value, units::unit unitType = units::defunit) override
+        void set(std::string_view fieldName,
+                 double value,
+                 units::unit unitType = units::defunit) override
         {
             if (!DerivedParameterModel::getModelDescription().trySetLocal(
-                    *this, name, value, unitType)) {
-                ParameterModel::set(name, value, unitType);
+                    *this, fieldName, value, unitType)) {
+                ParameterModel::set(fieldName, value, unitType);
             }
         }
-        [[nodiscard]] double get(std::string_view name,
+        [[nodiscard]] double get(std::string_view fieldName,
                                  units::unit unitType = units::defunit) const override
         {
-            const auto value =
-                DerivedParameterModel::getModelDescription().tryGetLocal(*this, name, unitType);
-            return value ? *value : ParameterModel::get(name, unitType);
+            const auto value = DerivedParameterModel::getModelDescription().tryGetLocal(*this,
+                                                                                        fieldName,
+                                                                                        unitType);
+            return value ? *value : ParameterModel::get(fieldName, unitType);
         }
     };
 

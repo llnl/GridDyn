@@ -16,6 +16,7 @@
 #include <cmath>
 #include <cstddef>
 #include <functional>
+#include <limits>
 #include <string>
 
 namespace griddyn {
@@ -92,6 +93,11 @@ void COISensor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
         throw InvalidParameterValue(
             "COI measurement requires an enabled synchronous dynamic generator with positive inertia");
     }
+    constexpr auto maxMachines =
+        static_cast<std::size_t>(std::numeric_limits<count_t>::max() / 2 - 1);
+    if (machines.size() > maxMachines) {
+        throw InvalidParameterValue("COI measurement exceeds the solver Jacobian size limit");
+    }
     for (auto& machine : machines) {
         machine.weight /= totalInertia;
     }
@@ -100,7 +106,7 @@ void COISensor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     auto& local = offsets.local().local;
     local.algSize = 2;
     local.diffSize = 0;
-    local.jacSize = 2 * (machines.size() + 1);
+    local.jacSize = 2 * (static_cast<count_t>(machines.size()) + 1);
     m_state.assign(2, 0.0);
     m_dstate_dt.assign(2, 0.0);
 }

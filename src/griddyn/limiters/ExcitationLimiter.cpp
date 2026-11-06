@@ -12,6 +12,7 @@
 #include "ExcitationLimiterUEL2C.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -35,6 +36,35 @@ namespace {
     ChildTypeFactory<limiters::ExcitationLimiterUEL2C, ExcitationLimiter>
         gUel2cFactory("excitationlimiter", "uel2c");
 }  // namespace
+
+const ModelDescription& ExcitationLimiter::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExcitationLimiter>(
+        "ExcitationLimiter",
+        &GridSubModel::getModelDescription(),
+        {parameter({"gain"}, &ExcitationLimiter::gain, units::one, "Gain"),
+         parameter({"maxaction", "max_action"},
+                   &ExcitationLimiter::maximumAction,
+                   units::one,
+                   "Maximum action"),
+         parameter({"threshold"}, &ExcitationLimiter::threshold, units::one, "Threshold"),
+         localState("limiterRole", &ExcitationLimiter::limiterRole, "Limiter role"),
+         localState("thresholdSet", &ExcitationLimiter::thresholdSet, "Threshold set"),
+         localState("roleInitialized", &ExcitationLimiter::roleInitialized, "Role initialized"),
+         command({"role"}, units::defunit, "Configure role", ModelFieldType::STRING)});
+    return description;
+}
+
+void ExcitationLimiter::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExcitationLimiter::getModelDescription();
+    getParamString<ExcitationLimiter, GridSubModel>(this,
+                                                    pstr,
+                                                    description.numericNames(),
+                                                    description.stringNames(),
+                                                    description.flagNames(),
+                                                    pstype);
+}
 
 ExcitationLimiter::ExcitationLimiter(const std::string& objName): GridSubModel(objName)
 {
@@ -87,29 +117,22 @@ void ExcitationLimiter::set(std::string_view param, std::string_view val)
 
 void ExcitationLimiter::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "threshold") {
-        threshold = val;
-        thresholdSet = true;
-    } else if (param == "gain") {
-        gain = val;
-    } else if ((param == "maxaction") || (param == "max_action")) {
-        maximumAction = val;
-    } else {
-        GridSubModel::set(param, val, unitType);
+    if (ExcitationLimiter::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        if (param == "threshold") {
+            thresholdSet = true;
+        }
+        return;
     }
+    GridSubModel::set(param, val, unitType);
 }
 
 double ExcitationLimiter::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "threshold") {
-        return threshold;
+    if (const auto value =
+            ExcitationLimiter::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
-    if (param == "gain") {
-        return gain;
-    }
-    if ((param == "maxaction") || (param == "max_action")) {
-        return maximumAction;
-    }
+
     return GridSubModel::get(param, unitType);
 }
 

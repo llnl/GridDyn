@@ -9,11 +9,52 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <string>
 namespace griddyn::loads {
+void FDepLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = FDepLoad::getModelDescription();
+    getParamString<FDepLoad, ExponentialLoad>(this,
+                                              pstr,
+                                              description.numericNames(),
+                                              description.stringNames(),
+                                              description.flagNames(),
+                                              pstype);
+}
+
+const ModelDescription& FDepLoad::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<FDepLoad>(
+        "FDepLoad",
+        &ExponentialLoad::getModelDescription(),
+        {parameter({"betap"},
+                   &FDepLoad::betaP,
+                   units::one,
+                   "The frequency exponent parameter for the real power output"),
+         parameter({"betaq"},
+                   &FDepLoad::betaQ,
+                   units::one,
+                   "The frequency exponent parameter for the reactive power output"),
+         parameter({"p_scale"},
+                   &FDepLoad::powerScaleP,
+                   units::one,
+                   "Optional real-power scale at the reference voltage"),
+         parameter({"q_scale"},
+                   &FDepLoad::powerScaleQ,
+                   units::one,
+                   "Optional reactive-power scale at the reference voltage"),
+         command({"loadtype"}, units::defunit, "Configure loadtype", ModelFieldType::STRING),
+         command({"beta"}, units::defunit, "Set beta"),
+         command({"kp"}, units::defunit, "Set kp"),
+         command({"kq"}, units::defunit, "Set kq"),
+         command({"vref", "v0"}, units::defunit, "Set vref")});
+    return description;
+}
+
 FDepLoad::FDepLoad(const std::string& objName): ExponentialLoad(objName) {}
 FDepLoad::FDepLoad(double realPower, double reactivePower, const std::string& objName):
     ExponentialLoad(realPower, reactivePower, objName)
@@ -186,16 +227,18 @@ void FDepLoad::set(std::string_view param, std::string_view val)
 
 void FDepLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "betap") {
-        betaP = val;
-    } else if (param == "betaq") {
-        betaQ = val;
-    } else if (param == "beta") {
+    if (FDepLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        if (!param.empty() && param.front() != '#' && ((betaP != 0.0) || (betaQ != 0.0))) {
+            opFlags.set(USES_BUS_FREQUENCY);
+        }
+        return;
+    }
+    if (param == "beta") {
         betaP = betaQ = val;
-    } else if ((param == "kp") || (param == "p_scale")) {
-        powerScaleP = (param == "kp") ? val / 100.0 : val;
-    } else if ((param == "kq") || (param == "q_scale")) {
-        powerScaleQ = (param == "kq") ? val / 100.0 : val;
+    } else if (param == "kp") {
+        powerScaleP = val / 100.0;
+    } else if (param == "kq") {
+        powerScaleQ = val / 100.0;
     } else if ((param == "vref") || (param == "v0")) {
         if (val > 0.0) {
             voltageReference = val;
@@ -210,15 +253,16 @@ void FDepLoad::set(std::string_view param, double val, units::unit unitType)
 
 double FDepLoad::get(std::string_view param, units::unit unitType) const
 {
+    if (const auto value = FDepLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
     if (param == "kp") {
         return powerScaleP * 100.0;
     }
     if (param == "kq") {
         return powerScaleQ * 100.0;
     }
-    if ((param == "p_scale") || (param == "q_scale")) {
-        return (param == "p_scale") ? powerScaleP : powerScaleQ;
-    }
+
     if ((param == "vref") || (param == "v0")) {
         return voltageReference;
     }

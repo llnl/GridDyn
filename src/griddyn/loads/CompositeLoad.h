@@ -29,6 +29,7 @@ namespace griddyn::loads {
  */
 class CompositeLoad: public GridLoad {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit CompositeLoad(const std::string& objName = "loadComposition_$");
 
     CoreObject* clone(CoreObject* obj = nullptr) const override;

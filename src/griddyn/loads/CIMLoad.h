@@ -69,6 +69,9 @@ namespace griddyn::loads {
  */
 class CIM5: public MotorLoad5 {
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     explicit CIM5(const std::string& objName = "cim5_$");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     using MotorLoad5::set;
@@ -125,6 +128,9 @@ class CIM5: public MotorLoad5 {
  */
 class CIM6: public MotorLoad5 {
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     explicit CIM6(const std::string& objName = "cim6_$");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     using MotorLoad5::set;

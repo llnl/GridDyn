@@ -21,6 +21,7 @@ class IEELLoad: public GridLoad {
     double frequencyCoefficient(bool reactive) const;
 
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit IEELLoad(const std::string& objName = "ieelLoad_$");
 
     CoreObject* clone(CoreObject* obj = nullptr) const override;

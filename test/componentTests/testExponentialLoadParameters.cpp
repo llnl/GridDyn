@@ -144,7 +144,8 @@ TEST(ExponentialParameterTests, EnumeratesLocalAndInheritedDeclarations)
     const auto& description = load.getModelDescription();
     EXPECT_EQ(description.name(), "ExponentialLoad");
     EXPECT_EQ(description.parent()->name(), "GridLoad");
-    EXPECT_EQ(description.parent()->parent()->name(), "GridComponent");
+    EXPECT_EQ(description.parent()->parent()->name(), "GridSecondary");
+    EXPECT_EQ(description.parent()->parent()->parent()->name(), "GridComponent");
     ASSERT_NE(description.find("alphap"), nullptr);
     EXPECT_EQ(description.find("ap"), description.find("alphap"));
     EXPECT_EQ(description.find("alphap")->description(), "Voltage exponent for real power");

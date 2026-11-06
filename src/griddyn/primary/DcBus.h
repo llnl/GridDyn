@@ -27,6 +27,7 @@ class DcBus: public GridBus {
     friend class DcBusControls;
 
   public:
+    const ModelDescription& getModelDescription() const override;
     enum BusFlags {
         USE_AUTOGEN = OBJECT_FLAG2,  //!< indicator if the bus is using an autogen
         SLAVE_BUS = OBJECT_FLAG3,  //!< indicator that the bus is a slave Bus

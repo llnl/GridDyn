@@ -9,6 +9,7 @@
 #include "GridBus.h"
 #include "GridSubModel.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelDescription.h"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
 #include <string>
@@ -41,6 +42,15 @@ namespace {
         return outputNames;
     }
 }  // namespace
+
+const ModelDescription& GridSecondary::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<GridSecondary>("GridSecondary",
+                                                &GridComponent::getModelDescription(),
+                                                {});
+    return description;
+}
 
 GridSecondary::GridSecondary(const std::string& objName): GridComponent(objName), bus(&defaultBus())
 {
@@ -133,9 +143,10 @@ void GridSecondary::set(std::string_view param, std::string_view val)
 }
 void GridSecondary::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!param.empty()) {
-        GridComponent::set(param, val, unitType);
+    if (GridSecondary::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    GridComponent::set(param, val, unitType);
 }
 
 double GridSecondary::getRealPower(const IOdata& /*inputs*/,

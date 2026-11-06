@@ -26,6 +26,10 @@ power flow solution modes of a generator with no dynamics
 */
 class Generator: public GridSecondary {
   public:
+    bool getFlag(std::string_view flag) const override;
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     /** @brief flags for controlling operation of the generator*/
     enum GeneratorFlags {
         VARIABLE_GENERATION = OBJECT_FLAG1,  //!< flag indicating that the generator has

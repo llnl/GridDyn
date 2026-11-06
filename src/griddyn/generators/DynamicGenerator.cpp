@@ -19,6 +19,7 @@
 #include "IsocController.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/containers/mapOps.hpp"
@@ -67,6 +68,65 @@ using units::s;
 using units::unit;
 
 // default bus object
+
+bool DynamicGenerator::getFlag(std::string_view flag) const
+{
+    if (const auto value = DynamicGenerator::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    return Generator::getFlag(flag);
+}
+
+const ModelDescription& DynamicGenerator::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<DynamicGenerator>(
+        "DynamicGenerator",
+        &Generator::getModelDescription(),
+        {parameter({"eft"},
+                   &DynamicGenerator::m_Eft,
+                   units::one,
+                   "Place to store a constant the exciter field"),
+         flag({"isoc", "isochronous"}, &DynamicGenerator::opFlags, ISOCHRONOUS_OPERATION, "Isoc"),
+         command({"dynmodel"}, units::defunit, "Configure dynmodel", ModelFieldType::STRING),
+         command(
+             {"mechanical_power_source", "mechanicalpowersource", "pmech_source", "pmechsource"},
+             units::defunit,
+             "Configure mechanical power source",
+             ModelFieldType::STRING),
+         command({"xs"}, units::defunit, "Set xs"),
+         command({"rs"}, units::defunit, "Set rs"),
+         command(
+             {"mechanical_power_output", "mechanicalpoweroutput", "pmech_output", "pmechoutput"},
+             units::defunit,
+             "Set mechanical power output"),
+         command({"vref"}, units::defunit, "Set vref"),
+         command({"rating", "base", "mbase"}, units::defunit, "Set rating"),
+         command({"basepower"}, units::defunit, "Set basepower"),
+         command({"basefrequency", "basefreq"}, units::defunit, "Set basefrequency"),
+         command({"pmax"}, units::defunit, "Set pmax"),
+         command({"pmin"}, units::defunit, "Set pmin")});
+    return description;
+}
+
+double DynamicGenerator::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value =
+            DynamicGenerator::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return Generator::get(param, unitType);
+}
+
+void DynamicGenerator::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = DynamicGenerator::getModelDescription();
+    getParamString<DynamicGenerator, Generator>(this,
+                                                pstr,
+                                                description.numericNames(),
+                                                description.stringNames(),
+                                                description.flagNames(),
+                                                pstype);
+}
 
 DynamicGenerator::DynamicGenerator(const std::string& objName): Generator(objName) {}
 
@@ -1027,13 +1087,16 @@ void DynamicGenerator::setFlag(std::string_view flag, bool val)
                 isoc->deactivate();
             }
         }
-    } else {
+    } else if (!DynamicGenerator::getModelDescription().trySetFlagLocal(*this, flag, val)) {
         Generator::setFlag(flag, val);
     }
 }
 
 void DynamicGenerator::set(std::string_view param, double val, unit unitType)
 {
+    if (DynamicGenerator::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if (param.length() == 1) {
         switch (param.front()) {
             case 'r':
@@ -1073,8 +1136,6 @@ void DynamicGenerator::set(std::string_view param, double val, unit unitType)
         if (genModel != nullptr) {
             genModel->set("rs", val);
         }
-    } else if (param == "eft") {
-        m_Eft = val;
     } else if ((param == "mechanical_power_output") || (param == "mechanicalpoweroutput") ||
                (param == "pmech_output") || (param == "pmechoutput")) {
         if (signalRoutesReady) {

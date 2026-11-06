@@ -13,6 +13,9 @@ namespace griddyn::limiters {
 /** PSS/E MNLEX2 circular P-Q underexcitation limiter. */
 class ExcitationLimiterMNLEX2 final: public ExcitationLimiter {
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     explicit ExcitationLimiterMNLEX2(const std::string& objName = "mnlex2_#");
     using ExcitationLimiter::set;
     CoreObject* clone(CoreObject* obj = nullptr) const override;

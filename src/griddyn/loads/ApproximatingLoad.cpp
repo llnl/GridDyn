@@ -9,6 +9,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
@@ -26,6 +27,68 @@ using gmlc::utilities::convertToLowerCase;
 // #define SGS_DEBUG
 namespace griddyn::loads {
 #define CONJUGATE 1
+
+void ApproximatingLoad::setFlag(std::string_view flag, bool val)
+{
+    if (!ApproximatingLoad::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+        RampLoad::setFlag(flag, val);
+    }
+}
+
+bool ApproximatingLoad::getFlag(std::string_view flag) const
+{
+    if (const auto value = ApproximatingLoad::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    return RampLoad::getFlag(flag);
+}
+
+const ModelDescription& ApproximatingLoad::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ApproximatingLoad>(
+        "ApproximatingLoad",
+        &RampLoad::getModelDescription(),
+        {parameter(
+             {"mult", "multiplier"}, &ApproximatingLoad::m_mult, units::one, "A load multiplier"),
+         parameter({"spread", "band"},
+                   &ApproximatingLoad::spread,
+                   units::one,
+                   "The voltage spread to use when calculating the parameters",
+                   [](double value) { return std::abs(value) > kMin_Res; }),
+         flag({"bounds", "usebounds"}, &ApproximatingLoad::opFlags, USES_BOUNDS_FLAG, "Bounds"),
+         flag({"dual", "dualmode"}, &ApproximatingLoad::opFlags, DUAL_MODE_FLAG, "Dual"),
+         flag({"lineartriple"}, &ApproximatingLoad::opFlags, LINEARIZE_TRIPLE, "Lineartriple"),
+         command({"detail"}, units::defunit, "Configure detail", ModelFieldType::STRING),
+         command({"mode", "coupling", "dyncoupling"},
+                 units::defunit,
+                 "Configure mode",
+                 ModelFieldType::STRING),
+         command({"pflow", "pflowcoupling"},
+                 units::defunit,
+                 "Configure pflow",
+                 ModelFieldType::STRING)});
+    return description;
+}
+
+double ApproximatingLoad::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value =
+            ApproximatingLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return RampLoad::get(param, unitType);
+}
+
+void ApproximatingLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ApproximatingLoad::getModelDescription();
+    getParamString<ApproximatingLoad, RampLoad>(this,
+                                                pstr,
+                                                description.numericNames(),
+                                                description.stringNames(),
+                                                description.flagNames(),
+                                                pstype);
+}
 
 ApproximatingLoad::ApproximatingLoad(const std::string& objName): RampLoad(objName)
 {
@@ -517,18 +580,11 @@ void ApproximatingLoad::set(std::string_view param, std::string_view val)
 
 void ApproximatingLoad::set(std::string_view param, double val, units::unit unitType)
 {
+    if (ApproximatingLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     // TODO(phlpt): Convert some of these to a setFlags function.
-    if ((param == "spread") || (param == "band")) {
-        if (std::abs(val) > kMin_Res) {
-            spread = val;
-        } else {
-            throw(InvalidParameterValue(param));
-        }
-    } else if ((param == "bounds") || (param == "usebounds")) {
-        opFlags.set(USES_BOUNDS_FLAG, (val > 0));
-    } else if ((param == "mult") || (param == "multiplier")) {
-        m_mult = val;
-    } else if (param == "detail") {
+    if (param == "detail") {
         if (val <= 1.5) {
             cDetail = CouplingDetail::single;
         } else if (val < 2.25) {
@@ -539,10 +595,6 @@ void ApproximatingLoad::set(std::string_view param, double val, units::unit unit
         } else if (val >= 2.75) {
             cDetail = CouplingDetail::triple;
         }
-    } else if ((param == "dual") || (param == "dualmode")) {
-        opFlags.set(DUAL_MODE_FLAG, (val > 0.0));
-    } else if (param == "lineartriple") {
-        opFlags.set(LINEARIZE_TRIPLE, (val > 0.0));
     } else {
         ZipLoad::set(param, val, unitType);
     }

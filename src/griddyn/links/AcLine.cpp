@@ -12,6 +12,7 @@
 #include "../simulation/Contingency.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
@@ -39,7 +40,34 @@ using units::unit;
 #define DERIVCOMP (this->*(derivCalc[getLinkApprox(sMode)]))
 #define DEFAULTDERIVCOMP (this->*(derivCalc[0]))
 
-// NOLINTNEXTLINE
+const ModelDescription& AcLine::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<AcLine>(
+        "AcLine",
+        &Link::getModelDescription(),
+        {parameter({"b1"}, &AcLine::mp_B1, units::one, "Mp b1"),
+         parameter({"g1"}, &AcLine::mp_G1, units::one, "Mp g1"),
+         parameter({"b2"}, &AcLine::mp_B2, units::one, "Mp b2"),
+         parameter({"g2"}, &AcLine::mp_G2, units::one, "Mp g2"),
+         parameter({"r"}, &AcLine::r, units::puOhm, "Per unit series resistance"),
+         parameter({"x"}, &AcLine::x, units::puOhm, "Per unit series reactance"),
+         parameter({"tap", "ratio"}, &AcLine::tap, units::one, "Tap"),
+         parameter({"length"}, &AcLine::length, units::km, "Length"),
+         parameter({"tapangle"}, &AcLine::tapAngle, units::rad, "Tap angle"),
+         parameter({"minangle"}, &AcLine::minAngle, units::rad, "Min angle"),
+         parameter({"maxangle"},
+                   &AcLine::maxAngle,
+                   units::rad,
+                   "The maximum angle the link can handle--related to rating"),
+         command(
+             {"approximation"}, units::defunit, "Configure approximation", ModelFieldType::STRING),
+         command({"b"}, units::defunit, "Set b"),
+         command({"g"}, units::defunit, "Set g"),
+         command({"p"}, units::defunit, "Set p")});
+    return description;
+}
+
+// NOLINTNEXTLINE(hicpp-member-init)
 AcLine::AcLine(const std::string& objName): Link(objName)
 {
     // default values
@@ -158,27 +186,15 @@ void AcLine::timestep(const CoreTime time, const IOdata& /*inputs*/, const Solve
 
 void AcLine::checkMerge() {}
 
-static constexpr auto locNumStrings = std::array<std::string_view, 15>{"r",
-                                                                       "x",
-                                                                       "link",
-                                                                       "b",
-                                                                       "g",
-                                                                       "b1",
-                                                                       "g1",
-                                                                       "b2",
-                                                                       "g2",
-                                                                       "tap",
-                                                                       "tapangle",
-                                                                       "switch1",
-                                                                       "switch2",
-                                                                       "fault",
-                                                                       "p"};
-static constexpr auto locStrStrings = std::array<std::string_view, 2>{"from", "to"};
-static constexpr std::array<std::string_view, 0> flagStrings{};
 void AcLine::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    getParamString<AcLine, GridComponent>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
+    const auto& description = AcLine::getModelDescription();
+    getParamString<AcLine, Link>(this,
+                                 pstr,
+                                 description.numericNames(),
+                                 description.stringNames(),
+                                 description.flagNames(),
+                                 pstype);
 }
 
 // set properties
@@ -240,18 +256,14 @@ void AcLine::set(std::string_view param, std::string_view val)
 
 void AcLine::set(std::string_view param, double val, unit unitType)
 {
+    if (AcLine::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        if (param == "r" || param == "x") {
+            setAdmit();
+        }
+        return;
+    }
     if (param.length() == 1) {
         switch (param[0]) {
-            case 'r':
-                r = val;
-                // set line admittance
-                setAdmit();
-                break;
-            case 'x':
-                x = val;
-                // set line admittance
-                setAdmit();
-                break;
             case 'b':
                 mp_B1 = 0.5 * val;
                 mp_B2 = 0.5 * val;
@@ -269,22 +281,7 @@ void AcLine::set(std::string_view param, double val, unit unitType)
         }
         return;
     }
-    if (param == "b1") {
-        mp_B1 = val;
-        return;
-    }
-    if (param == "g1") {
-        mp_G1 = val;
-        return;
-    }
-    if (param == "b2") {
-        mp_B2 = val;
-        return;
-    }
-    if (param == "g2") {
-        mp_G2 = val;
-        return;
-    }
+
     std::string outparam;
     gmlc::utilities::stringOps::trailingStringInt(param, outparam, 1);
     if (outparam == "length") {
@@ -326,6 +323,9 @@ void AcLine::set(std::string_view param, double val, unit unitType)
 
 double AcLine::get(std::string_view param, unit unitType) const
 {
+    if (const auto value = AcLine::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
     double val = kNullVal;
     if (param.length() == 1) {
         switch (param[0]) {
@@ -352,18 +352,7 @@ double AcLine::get(std::string_view param, unit unitType) const
         }
         return val;
     }
-    if (param == "b1") {
-        return mp_B1;
-    }
-    if (param == "g1") {
-        return mp_G1;
-    }
-    if (param == "b2") {
-        return mp_B2;
-    }
-    if (param == "g2") {
-        return mp_G2;
-    }
+
     std::string outparam;
     gmlc::utilities::stringOps::trailingStringInt(param, outparam, 1);
     if (outparam == "impedance") {

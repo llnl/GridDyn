@@ -22,6 +22,7 @@ class GridBus;
 /** Generator host for independently replaceable renewable dynamic components. */
 class RenewableGenerator: public Generator {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit RenewableGenerator(const std::string& name = "renGen_$");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 

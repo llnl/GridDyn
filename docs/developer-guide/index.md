@@ -36,6 +36,7 @@ epcgen-reference
 esac5a-model
 esst2a-model
 exciter-model-description
+component-model-descriptions
 governor-variants
 gpwscc-reference
 pss2b-esac2a-models

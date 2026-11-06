@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -43,6 +44,99 @@ namespace {
     }
 }  // namespace
 
+void DistributedConverter::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = DistributedConverter::getModelDescription();
+    getParamString<DistributedConverter, TerminalElectricalModel>(this,
+                                                                  pstr,
+                                                                  description.numericNames(),
+                                                                  description.stringNames(),
+                                                                  description.flagNames(),
+                                                                  pstype);
+}
+
+void DistributedConverter::setFlag(std::string_view flag, bool val)
+{
+    if (!DistributedConverter::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+        TerminalElectricalModel::setFlag(flag, val);
+    }
+}
+
+bool DistributedConverter::getFlag(std::string_view flag) const
+{
+    if (const auto value =
+            DistributedConverter::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    return TerminalElectricalModel::getFlag(flag);
+}
+
+const ModelDescription& DistributedConverter::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<DistributedConverter>(
+        "DistributedConverter",
+        &TerminalElectricalModel::getModelDescription(),
+        {parameter({"fn"}, &DistributedConverter::fn, units::Hz, "Fn"),
+         parameter({"xc"}, &DistributedConverter::xc, units::one, "Xc"),
+         parameter({"pqflag"}, &DistributedConverter::pqflag, units::one, "Pqflag"),
+         parameter({"qmx"}, &DistributedConverter::qmx, units::one, "Qmx"),
+         parameter({"qmn"}, &DistributedConverter::qmn, units::one, "Qmn"),
+         parameter({"pmx"}, &DistributedConverter::pmx, units::one, "Pmx"),
+         parameter({"pmn"}, &DistributedConverter::pmn, units::one, "Pmn"),
+         parameter({"v0"}, &DistributedConverter::v0, units::one, "V0"),
+         parameter({"v1"}, &DistributedConverter::v1, units::one, "V1"),
+         parameter({"dqdv"}, &DistributedConverter::dqdv, units::one, "Dqdv"),
+         parameter({"fdbd"}, &DistributedConverter::fdbd, units::one, "Fdbd"),
+         parameter({"ddn"}, &DistributedConverter::ddn, units::one, "Ddn"),
+         parameter({"ialim"}, &DistributedConverter::ialim, units::one, "Ialim"),
+         parameter({"vt0"}, &DistributedConverter::vt0, units::one, "Vt0"),
+         parameter({"vt1"}, &DistributedConverter::vt1, units::one, "Vt1"),
+         parameter({"vt2"}, &DistributedConverter::vt2, units::one, "Vt2"),
+         parameter({"vt3"}, &DistributedConverter::vt3, units::one, "Vt3"),
+         parameter({"ft0"}, &DistributedConverter::ft0, units::Hz, "Ft0"),
+         parameter({"ft1"}, &DistributedConverter::ft1, units::Hz, "Ft1"),
+         parameter({"ft2"}, &DistributedConverter::ft2, units::Hz, "Ft2"),
+         parameter({"ft3"}, &DistributedConverter::ft3, units::Hz, "Ft3"),
+         parameter({"vrflag"}, &DistributedConverter::vrflag, units::one, "Vrflag"),
+         parameter({"frflag"}, &DistributedConverter::frflag, units::one, "Frflag"),
+         parameter({"recflag"}, &DistributedConverter::recflag, units::one, "Recflag"),
+         parameter({"tip"}, &DistributedConverter::tip, units::second, "Tip"),
+         parameter({"tiq"}, &DistributedConverter::tiq, units::second, "Tiq"),
+         parameter({"paux", "pext0"}, &DistributedConverter::paux, units::one, "Paux"),
+         parameter({"pcap"}, &DistributedConverter::pcap, units::one, "Pcap"),
+         parameter({"tf"}, &DistributedConverter::tf, units::second, "Tf"),
+         parameter({"socmin"}, &DistributedConverter::socmin, units::one, "Socmin"),
+         parameter({"socmax"}, &DistributedConverter::socmax, units::one, "Socmax"),
+         parameter({"socinit"}, &DistributedConverter::socinit, units::one, "Socinit"),
+         parameter({"en"}, &DistributedConverter::en, units::one, "En"),
+         parameter({"etac"}, &DistributedConverter::etac, units::one, "Etac"),
+         parameter({"etad"}, &DistributedConverter::etad, units::one, "Etad"),
+         parameter({"busf", "frequency_sensor"},
+                   &DistributedConverter::frequencySensor,
+                   units::defunit,
+                   "Frequency measurement source"),
+         parameter({"igreg", "regulation_bus"},
+                   &DistributedConverter::regulationBus,
+                   units::defunit,
+                   "Regulation bus source"),
+         flag({"blocked"}, &DistributedConverter::blocked, "Blocked"),
+         localState("prefConfigured", &DistributedConverter::prefConfigured, "Pref configured"),
+         localState("qrefConfigured", &DistributedConverter::qrefConfigured, "Qref configured"),
+         localState("voltageLatched", &DistributedConverter::voltageLatched, "Voltage latched"),
+         localState("frequencyLatched",
+                    &DistributedConverter::frequencyLatched,
+                    "Frequency latched"),
+         parameter({"pref", "pref0"}, &DistributedConverter::pref, units::one, "Pref"),
+         parameter({"qref", "qref0"}, &DistributedConverter::qref, units::one, "Qref"),
+         command({"reset"}, units::defunit, "Set reset"),
+         state("Pe", units::one, "Solver variable Pe when active"),
+         state("Qe", units::one, "Solver variable Qe when active"),
+         state("Ip", units::one, "Solver variable Ip when active"),
+         state("Iq", units::one, "Solver variable Iq when active"),
+         state("SOC", units::one, "Solver variable SOC when active")});
+    return description;
+}
+
 DistributedConverter::DistributedConverter(Variant type, const std::string& objName):
     TerminalElectricalModel(objName), variant(type)
 {
@@ -77,66 +171,21 @@ std::string_view DistributedConverter::sourceName(RenewableSignal signal) const
 
 void DistributedConverter::set(std::string_view param, double val, units::unit unitType)
 {
+    if (DistributedConverter::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        if (param == "pref" || param == "pref0") {
+            prefConfigured = true;
+        }
+        return;
+    }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (!std::isfinite(val)) {
-        throw InvalidParameterValue("distributed converter parameter must be finite");
-    }
-#define SET_FIELD(name, field)                                                                     \
-    if (key == (name)) {                                                                           \
-        (field) = val;                                                                             \
-        return;                                                                                    \
-    }
-    SET_FIELD("fn", fn)
-    SET_FIELD("xc", xc)
-    SET_FIELD("pqflag", pqflag)
-    SET_FIELD("qmx", qmx)
-    SET_FIELD("qmn", qmn)
-    SET_FIELD("pmx", pmx)
-    SET_FIELD("pmn", pmn)
-    SET_FIELD("v0", v0)
-    SET_FIELD("v1", v1)
-    SET_FIELD("dqdv", dqdv)
-    SET_FIELD("fdbd", fdbd)
-    SET_FIELD("ddn", ddn)
-    SET_FIELD("ialim", ialim)
-    SET_FIELD("vt0", vt0)
-    SET_FIELD("vt1", vt1)
-    SET_FIELD("vt2", vt2)
-    SET_FIELD("vt3", vt3)
-    SET_FIELD("ft0", ft0)
-    SET_FIELD("ft1", ft1)
-    SET_FIELD("ft2", ft2)
-    SET_FIELD("ft3", ft3)
-    SET_FIELD("vrflag", vrflag)
-    SET_FIELD("frflag", frflag)
-    SET_FIELD("recflag", recflag)
-    SET_FIELD("tip", tip)
-    SET_FIELD("tiq", tiq)
-    SET_FIELD("paux", paux)
-    SET_FIELD("pext0", paux)
-    SET_FIELD("pcap", pcap)
-    SET_FIELD("tf", tf)
-    SET_FIELD("socmin", socmin)
-    SET_FIELD("socmax", socmax)
-    SET_FIELD("socinit", socinit)
-    SET_FIELD("en", en)
-    SET_FIELD("etac", etac)
-    SET_FIELD("etad", etad)
-#undef SET_FIELD
-    if (key == "pref" || key == "pref0") {
-        pref = val;
-        prefConfigured = true;
+    if (key != param &&
+        DistributedConverter::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+        if (key == "pref" || key == "pref0") {
+            prefConfigured = true;
+        }
         return;
     }
-    if (key == "qref" || key == "qref0") {
-        qref = val;
-        qrefConfigured = true;
-        return;
-    }
-    if (key == "blocked") {
-        blocked = val != 0.0;
-        return;
-    }
+
     if (key == "reset") {
         if (val != 0.0) {
             voltageLatched = false;
@@ -149,69 +198,23 @@ void DistributedConverter::set(std::string_view param, double val, units::unit u
 
 void DistributedConverter::set(std::string_view param, std::string_view val)
 {
+    if (DistributedConverter::getModelDescription().trySetLocal(*this, param, val)) {
+        return;
+    }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "busf" || key == "frequency_sensor") {
-        frequencySensor = std::string{val};
-        return;
+    if (!DistributedConverter::getModelDescription().trySetLocal(*this, key, val)) {
+        TerminalElectricalModel::set(param, val);
     }
-    if (key == "igreg" || key == "regulation_bus") {
-        regulationBus = std::string{val};
-        return;
-    }
-    TerminalElectricalModel::set(param, val);
 }
 
 double DistributedConverter::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-#define GET_FIELD(name, field)                                                                     \
-    if (key == (name)) {                                                                           \
-        return (field);                                                                            \
+    if (const auto value =
+            DistributedConverter::getModelDescription().tryGetLocal(*this, key, unitType)) {
+        return *value;
     }
-    GET_FIELD("fn", fn)
-    GET_FIELD("xc", xc)
-    GET_FIELD("pqflag", pqflag)
-    GET_FIELD("qmx", qmx)
-    GET_FIELD("qmn", qmn)
-    GET_FIELD("pmx", pmx)
-    GET_FIELD("pmn", pmn)
-    GET_FIELD("v0", v0)
-    GET_FIELD("v1", v1)
-    GET_FIELD("dqdv", dqdv)
-    GET_FIELD("fdbd", fdbd)
-    GET_FIELD("ddn", ddn)
-    GET_FIELD("ialim", ialim)
-    GET_FIELD("vt0", vt0)
-    GET_FIELD("vt1", vt1)
-    GET_FIELD("vt2", vt2)
-    GET_FIELD("vt3", vt3)
-    GET_FIELD("ft0", ft0)
-    GET_FIELD("ft1", ft1)
-    GET_FIELD("ft2", ft2)
-    GET_FIELD("ft3", ft3)
-    GET_FIELD("vrflag", vrflag)
-    GET_FIELD("frflag", frflag)
-    GET_FIELD("recflag", recflag)
-    GET_FIELD("tip", tip)
-    GET_FIELD("tiq", tiq)
-    GET_FIELD("pref", pref)
-    GET_FIELD("pref0", pref)
-    GET_FIELD("qref", qref)
-    GET_FIELD("qref0", qref)
-    GET_FIELD("paux", paux)
-    GET_FIELD("pext0", paux)
-    GET_FIELD("pcap", pcap)
-    GET_FIELD("tf", tf)
-    GET_FIELD("socmin", socmin)
-    GET_FIELD("socmax", socmax)
-    GET_FIELD("socinit", socinit)
-    GET_FIELD("en", en)
-    GET_FIELD("etac", etac)
-    GET_FIELD("etad", etad)
-#undef GET_FIELD
-    if (key == "blocked") {
-        return blocked ? 1.0 : 0.0;
-    }
+
     if (key == "voltage_latched") {
         return voltageLatched ? 1.0 : 0.0;
     }
@@ -636,9 +639,37 @@ void DistributedConverter::copyParametersTo(DistributedConverter* target) const
         }                                                                                          \
         return out == nullptr ? obj : out;                                                         \
     }
+const ModelDescription& PVD1::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<PVD1>("PVD1", &DistributedConverter::getModelDescription(), {});
+    return description;
+}
+
 DISTRIBUTED_VARIANT(PVD1, pv)
+const ModelDescription& ESD1::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<ESD1>("ESD1", &DistributedConverter::getModelDescription(), {});
+    return description;
+}
+
 DISTRIBUTED_VARIANT(ESD1, storage)
+const ModelDescription& EV1::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<EV1>("EV1", &DistributedConverter::getModelDescription(), {});
+    return description;
+}
+
 DISTRIBUTED_VARIANT(EV1, ev1)
+const ModelDescription& EV2::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<EV2>("EV2", &DistributedConverter::getModelDescription(), {});
+    return description;
+}
+
 DISTRIBUTED_VARIANT(EV2, ev2)
 #undef DISTRIBUTED_VARIANT
 }  // namespace griddyn

@@ -22,6 +22,7 @@ namespace griddyn::loads {
  */
 class ElectronicLoad: public GridLoad {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit ElectronicLoad(const std::string& objName = "electronicLoad_$");
 
     CoreObject* clone(CoreObject* obj = nullptr) const override;

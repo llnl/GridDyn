@@ -47,6 +47,7 @@ Each link has a disconnect switch at the from bus and the to bus
 */
 class Link: public GridPrimary {
   public:
+    const ModelDescription& getModelDescription() const override;
     static std::atomic<count_t> linkCount;  //!< static variable counting the number of created
                                             //!< lines used for automatic user ID creation
     // it can be edited as it does not impact link operations just for user convenience

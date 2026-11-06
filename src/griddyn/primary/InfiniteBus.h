@@ -22,6 +22,9 @@ class infiniteBus: public GridBus {
     model_parameter dvdt = 0;  //!< [puV/s] ramp rate for voltage
     model_parameter dfdt = 0;  //!< [puHz/s] ramp rate for frequency
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     /** @brief default constructor
      *@param[in] objName  the name of the infinite bus object
      */

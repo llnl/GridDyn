@@ -15,6 +15,7 @@
 #include "VSCShunt.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
@@ -72,6 +73,33 @@ std::atomic<count_t> Link::linkCount(0);
 #define MODEPOWERCOMP (this->*(flowCalc[getLinkApprox(sMode)]))
 #define DERIVCOMP (this->*(derivCalc[getLinkApprox(sMode)]))
 #define DEFAULTDERIVCOMP (this->*(derivCalc[0]))
+
+const ModelDescription& Link::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<Link>(
+        "Link",
+        &GridPrimary::getModelDescription(),
+        {parameter(
+             {"circuit"}, &Link::circuitNum, units::one, "Helper field for multicircuit links"),
+         command({"bus1", "from"}, units::defunit, "Configure bus1", ModelFieldType::STRING),
+         command({"bus2", "to"}, units::defunit, "Configure bus2", ModelFieldType::STRING),
+         command({"status"}, units::defunit, "Configure status", ModelFieldType::STRING),
+         command(
+             {"state", "switch", "switch1", "breaker", "breaker_open", "breaker1", "breaker_open1"},
+             units::defunit,
+             "Set state"),
+         command({"switch2", "breaker2", "breaker_open2"}, units::defunit, "Set switch2"),
+         command({"breaker_close1", "breaker_close"}, units::defunit, "Set breaker close1"),
+         command({"breaker_close2"}, units::defunit, "Set breaker close2"),
+         command({"pset"}, units::defunit, "Set pset"),
+         command({"loss", "lossfraction"}, units::defunit, "Set loss"),
+         command({"ratinga", "rating"}, units::defunit, "Set ratinga"),
+         command({"ratingb"}, units::defunit, "Set ratingb"),
+         command({"ratinge", "emergency_rating", "erating", "ratingc"},
+                 units::defunit,
+                 "Set ratinge")});
+    return description;
+}
 
 Link::Link(const std::string& objName): GridPrimary(objName)
 {
@@ -181,14 +209,15 @@ void Link::timestep(const CoreTime time, const IOdata& /*inputs*/, const SolverM
     }*/
 }
 
-static constexpr auto locNumStrings =
-    std::array<std::string_view, 4>{"loss", "switch1", "switch2", "p"};
-static constexpr auto locStrStrings = std::array<std::string_view, 2>{"from", "to"};
-static constexpr std::array<std::string_view, 0> flagStrings{};
 void Link::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    getParamString<Link, GridPrimary>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
+    const auto& description = Link::getModelDescription();
+    getParamString<Link, GridPrimary>(this,
+                                      pstr,
+                                      description.numericNames(),
+                                      description.stringNames(),
+                                      description.flagNames(),
+                                      pstype);
 }
 
 // set properties
@@ -337,6 +366,9 @@ void Link::reconnect()
 
 void Link::set(std::string_view param, double val, unit unitType)
 {
+    if (Link::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if ((param == "state") || (param == "switch") || (param == "switch1") || (param == "breaker") ||
         (param == "breaker_open") || (param == "breaker1") || (param == "breaker_open1")) {
         switchMode(1, (val > 0.01));
@@ -360,8 +392,6 @@ void Link::set(std::string_view param, double val, unit unitType)
     } else if ((param == "ratinge") || (param == "emergency_rating") || (param == "erating") ||
                (param == "ratingc")) {
         Erating = convert(val, unitType, puMW, systemBasePower);
-    } else if (param == "circuit") {
-        circuitNum = static_cast<index_t>(val);
     } else {
         GridPrimary::set(param, val, unitType);
     }
@@ -383,6 +413,9 @@ CoreObject* Link::getSubObject(std::string_view typeName, index_t num) const
 
 double Link::get(std::string_view param, unit unitType) const
 {
+    if (const auto value = Link::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
     double val = kNullVal;
 
     if ((param == "breaker1") || (param == "switch1") || (param == "breaker_open1")) {
@@ -408,8 +441,6 @@ double Link::get(std::string_view param, unit unitType) const
         val = convert(getLoss(), puMW, unitType, systemBasePower);
     } else if (param == "lossfraction") {
         val = lossFraction;
-    } else if (param == "circuit") {
-        val = circuitNum;
     } else {
         auto fptr = getObjectFunction(this, param);
         if (fptr.first) {

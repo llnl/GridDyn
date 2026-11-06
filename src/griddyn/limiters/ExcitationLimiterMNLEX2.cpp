@@ -7,12 +7,42 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
 #include <string>
 
 namespace griddyn::limiters {
+
+const ModelDescription& ExcitationLimiterMNLEX2::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExcitationLimiterMNLEX2>(
+        "ExcitationLimiterMNLEX2",
+        &ExcitationLimiter::getModelDescription(),
+        {parameter({"kf2", "k_f2"}, &ExcitationLimiterMNLEX2::kF2, units::one, "K f2"),
+         parameter({"tf2", "t_f2"}, &ExcitationLimiterMNLEX2::tF2, units::second, "T f2"),
+         parameter({"km", "k_m"}, &ExcitationLimiterMNLEX2::kM, units::one, "K m"),
+         parameter({"tm", "t_m"}, &ExcitationLimiterMNLEX2::tM, units::second, "T m"),
+         parameter({"melmax", "mel_max"}, &ExcitationLimiterMNLEX2::melMax, units::one, "Mel max"),
+         parameter({"q0", "q_0"}, &ExcitationLimiterMNLEX2::q0, units::one, "Q0"),
+         parameter({"radius"}, &ExcitationLimiterMNLEX2::radius, units::one, "Radius"),
+         state("vuel", units::one, "Solver variable vuel when active"),
+         state("mel", units::one, "Solver variable mel when active"),
+         state("feedback", units::one, "Solver variable feedback when active")});
+    return description;
+}
+
+void ExcitationLimiterMNLEX2::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExcitationLimiterMNLEX2::getModelDescription();
+    getParamString<ExcitationLimiterMNLEX2, ExcitationLimiter>(this,
+                                                               pstr,
+                                                               description.numericNames(),
+                                                               description.stringNames(),
+                                                               description.flagNames(),
+                                                               pstype);
+}
 
 ExcitationLimiterMNLEX2::ExcitationLimiterMNLEX2(const std::string& objName):
     ExcitationLimiter(objName)
@@ -40,47 +70,17 @@ CoreObject* ExcitationLimiterMNLEX2::clone(CoreObject* obj) const
 
 void ExcitationLimiterMNLEX2::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "kf2" || param == "k_f2") {
-        kF2 = val;
-    } else if (param == "tf2" || param == "t_f2") {
-        tF2 = val;
-    } else if (param == "km" || param == "k_m") {
-        kM = val;
-    } else if (param == "tm" || param == "t_m") {
-        tM = val;
-    } else if (param == "melmax" || param == "mel_max") {
-        melMax = val;
-    } else if (param == "q0" || param == "q_0") {
-        q0 = val;
-    } else if (param == "radius") {
-        radius = val;
-    } else {
-        ExcitationLimiter::set(param, val, unitType);
+    if (ExcitationLimiterMNLEX2::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    ExcitationLimiter::set(param, val, unitType);
 }
 
 double ExcitationLimiterMNLEX2::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "kf2" || param == "k_f2") {
-        return kF2;
-    }
-    if (param == "tf2" || param == "t_f2") {
-        return tF2;
-    }
-    if (param == "km" || param == "k_m") {
-        return kM;
-    }
-    if (param == "tm" || param == "t_m") {
-        return tM;
-    }
-    if (param == "melmax" || param == "mel_max") {
-        return melMax;
-    }
-    if (param == "q0" || param == "q_0") {
-        return q0;
-    }
-    if (param == "radius") {
-        return radius;
+    if (const auto value =
+            ExcitationLimiterMNLEX2::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return ExcitationLimiter::get(param, unitType);
 }

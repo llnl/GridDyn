@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -109,13 +110,6 @@ namespace {
     {
         return inputs.size() > index && inputs[index] != kNullVal ? inputs[index] : 0.0;
     }
-    int binaryFlag(double value)
-    {
-        if (value != 0.0 && value != 1.0) {
-            throw InvalidParameterValue("REECA1 flag must be zero or one");
-        }
-        return static_cast<int>(value);
-    }
     bool disabledCurve(const std::array<double, 4>& voltage, const std::array<double, 4>& current)
     {
         return std::all_of(voltage.begin(),
@@ -124,6 +118,98 @@ namespace {
             std::all_of(current.begin(), current.end(), [](double index) { return index == 0.0; });
     }
 }  // namespace
+
+const ModelDescription& REECA1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<REECA1>(
+        "REECA1",
+        &RenewableComponent::getModelDescription(),
+        {parameter({"vdip"}, &REECA1::Vdip, units::one, "Vdip"),
+         parameter({"vup"}, &REECA1::Vup, units::one, "Vup"),
+         parameter({"trv"}, &REECA1::Trv, units::second, "Trv"),
+         parameter({"dbd1"}, &REECA1::dbd1, units::one, "Dbd1"),
+         parameter({"dbd2"}, &REECA1::dbd2, units::one, "Dbd2"),
+         parameter({"kqv"}, &REECA1::Kqv, units::one, "Kqv"),
+         parameter({"iqh1"}, &REECA1::Iqh1, units::one, "Iqh1"),
+         parameter({"iql1"}, &REECA1::Iql1, units::one, "Iql1"),
+         parameter({"vref0"}, &REECA1::Vref0, units::one, "Vref0"),
+         parameter({"pfaref"}, &REECA1::pfaref, units::one, "Pfaref"),
+         parameter({"iqfrz"}, &REECA1::Iqfrz, units::one, "Iqfrz"),
+         parameter({"thld"}, &REECA1::Thld, units::second, "Thld"),
+         parameter({"tp"}, &REECA1::Tp, units::second, "Tp"),
+         parameter({"qmax"}, &REECA1::QMax, units::one, "Qmax"),
+         parameter({"qmin"}, &REECA1::QMin, units::one, "Qmin"),
+         parameter({"vmax"}, &REECA1::VMAX, units::one, "Vmax"),
+         parameter({"vmin"}, &REECA1::VMIN, units::one, "Vmin"),
+         parameter({"kqp"}, &REECA1::Kqp, units::one, "Kqp"),
+         parameter({"kqi"}, &REECA1::Kqi, units::one, "Kqi"),
+         parameter({"kvp"}, &REECA1::Kvp, units::one, "Kvp"),
+         parameter({"kvi"}, &REECA1::Kvi, units::one, "Kvi"),
+         parameter({"vref1"}, &REECA1::Vref1, units::one, "Vref1"),
+         parameter({"tiq"}, &REECA1::Tiq, units::second, "Tiq"),
+         parameter({"dpmax"}, &REECA1::dPmax, units::one, "D pmax"),
+         parameter({"dpmin"}, &REECA1::dPmin, units::one, "D pmin"),
+         parameter({"pmax"}, &REECA1::PMAX, units::one, "Pmax"),
+         parameter({"pmin"}, &REECA1::PMIN, units::one, "Pmin"),
+         parameter({"imax"}, &REECA1::Imax, units::one, "Imax"),
+         parameter({"tpord"}, &REECA1::Tpord, units::second, "Tpord"),
+         parameter({"tpfilt"}, &REECA1::Tpfilt, units::second, "Tpfilt"),
+         parameter({"vq1"}, &REECA1::Vq, 0, units::one, "Vq"),
+         parameter({"vq2"}, &REECA1::Vq, 1, units::one, "Vq"),
+         parameter({"vq3"}, &REECA1::Vq, 2, units::one, "Vq"),
+         parameter({"vq4"}, &REECA1::Vq, 3, units::one, "Vq"),
+         parameter({"iq1"}, &REECA1::Iq, 0, units::one, "Iq"),
+         parameter({"iq2"}, &REECA1::Iq, 1, units::one, "Iq"),
+         parameter({"iq3"}, &REECA1::Iq, 2, units::one, "Iq"),
+         parameter({"iq4"}, &REECA1::Iq, 3, units::one, "Iq"),
+         parameter({"vp1"}, &REECA1::Vp, 0, units::one, "Vp"),
+         parameter({"vp2"}, &REECA1::Vp, 1, units::one, "Vp"),
+         parameter({"vp3"}, &REECA1::Vp, 2, units::one, "Vp"),
+         parameter({"vp4"}, &REECA1::Vp, 3, units::one, "Vp"),
+         parameter({"ip1"}, &REECA1::Ip, 0, units::one, "Ip"),
+         parameter({"ip2"}, &REECA1::Ip, 1, units::one, "Ip"),
+         parameter({"ip3"}, &REECA1::Ip, 2, units::one, "Ip"),
+         parameter({"ip4"}, &REECA1::Ip, 3, units::one, "Ip"),
+         parameter({"pfflag"}, &REECA1::PFFLAG, units::one, "Pfflag", parameterValidators::binary),
+         parameter({"vflag"}, &REECA1::VFLAG, units::one, "Vflag", parameterValidators::binary),
+         parameter({"qflag"}, &REECA1::QFLAG, units::one, "Qflag", parameterValidators::binary),
+         parameter({"pflag"}, &REECA1::PFLAG, units::one, "Pflag", parameterValidators::binary),
+         parameter({"pqflag"}, &REECA1::PQFLAG, units::one, "Pqflag", parameterValidators::binary),
+         localState("initialP", &REECA1::initialP, "Initial p"),
+         localState("initialQ", &REECA1::initialQ, "Initial q"),
+         localState("initialVref", &REECA1::initialVref, "Initial vref"),
+         localState("initialPowerFactorAngle",
+                    &REECA1::initialPowerFactorAngle,
+                    "Initial power factor angle"),
+         localState("voltageDipActive", &REECA1::voltageDipActive, "Voltage dip active"),
+         localState("activeLimitHeld", &REECA1::activeLimitHeld, "Active limit held"),
+         localState("activeLimitRelease", &REECA1::activeLimitRelease, "Active limit release"),
+         localState("heldActiveLimit", &REECA1::heldActiveLimit, "Held active limit"),
+         localState("heldPowerOrder", &REECA1::heldPowerOrder, "Held power order"),
+         command({"thld2"}, units::defunit, "Set thld2"),
+         state("Ipcmd", units::one, "Solver variable Ipcmd when active"),
+         state("Iqcmd", units::one, "Solver variable Iqcmd when active"),
+         state("Vf", units::one, "Solver variable Vf when active"),
+         state("Pf", units::one, "Solver variable Pf when active"),
+         state("Pord", units::one, "Solver variable Pord when active"),
+         state("Vpi", units::one, "Solver variable Vpi when active"),
+         state("Qpi", units::one, "Solver variable Qpi when active"),
+         state("Qf", units::one, "Solver variable Qf when active"),
+         state("SOC", units::one, "Solver variable SOC when active"),
+         state("PgenFilter", units::one, "Solver variable PgenFilter when active")});
+    return description;
+}
+
+void REECA1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = REECA1::getModelDescription();
+    getParamString<REECA1, RenewableComponent>(this,
+                                               pstr,
+                                               description.numericNames(),
+                                               description.stringNames(),
+                                               description.flagNames(),
+                                               pstype);
+}
 
 REECA1::REECA1(const std::string& objName): RenewableComponent(objName)
 {
@@ -225,101 +311,26 @@ std::span<const RenewablePort> REECA1::outputPorts() const
 
 void REECA1::set(std::string_view param, double val, units::unit unitType)
 {
+    if (REECA1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        if (param == "vflag" || param == "qflag" || param == "pflag") {
+            updateInputSize();
+        }
+        return;
+    }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "pfflag") {
-        PFFLAG = binaryFlag(val);
-    } else if (key == "vflag") {
-        VFLAG = binaryFlag(val);
-        updateInputSize();
-    } else if (key == "qflag") {
-        QFLAG = binaryFlag(val);
-        updateInputSize();
-    } else if (key == "pflag") {
-        PFLAG = binaryFlag(val);
-        updateInputSize();
-    } else if (key == "pqflag") {
-        PQFLAG = binaryFlag(val);
-    } else if (key == "vdip") {
-        Vdip = val;
-    } else if (key == "vup") {
-        Vup = val;
-    } else if (key == "trv") {
-        Trv = val;
-    } else if (key == "dbd1") {
-        dbd1 = val;
-    } else if (key == "dbd2") {
-        dbd2 = val;
-    } else if (key == "kqv") {
-        Kqv = val;
-    } else if (key == "iqh1") {
-        Iqh1 = val;
-    } else if (key == "iql1") {
-        Iql1 = val;
-    } else if (key == "vref0") {
-        Vref0 = val;
-    } else if (key == "pfaref") {
-        pfaref = val;
-    } else if (key == "iqfrz") {
-        Iqfrz = val;
-    } else if (key == "thld") {
-        Thld = val;
-    } else if (key == "thld2") {
+    if (key != param && REECA1::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+        if (key == "vflag" || key == "qflag" || key == "pflag") {
+            updateInputSize();
+        }
+        return;
+    }
+    if (key == "thld2") {
         const bool hadRoots = Thld2 > 0.0;
         Thld2 = val;
         const bool hasRoots = Thld2 > 0.0;
         if (hadRoots != hasRoots) {
             offsets.local().local.algRoots = hasRoots ? 2 : 0;
             alert(this, hasRoots ? ROOT_COUNT_INCREASE : ROOT_COUNT_DECREASE);
-        }
-    } else if (key == "tp") {
-        Tp = val;
-    } else if (key == "qmax") {
-        QMax = val;
-    } else if (key == "qmin") {
-        QMin = val;
-    } else if (key == "vmax") {
-        VMAX = val;
-    } else if (key == "vmin") {
-        VMIN = val;
-    } else if (key == "kqp") {
-        Kqp = val;
-    } else if (key == "kqi") {
-        Kqi = val;
-    } else if (key == "kvp") {
-        Kvp = val;
-    } else if (key == "kvi") {
-        Kvi = val;
-    } else if (key == "vref1") {
-        Vref1 = val;
-    } else if (key == "tiq") {
-        Tiq = val;
-    } else if (key == "dpmax") {
-        dPmax = val;
-    } else if (key == "dpmin") {
-        dPmin = val;
-    } else if (key == "pmax") {
-        PMAX = val;
-    } else if (key == "pmin") {
-        PMIN = val;
-    } else if (key == "imax") {
-        Imax = val;
-    } else if (key == "tpord") {
-        Tpord = val;
-    } else if (key == "tpfilt") {
-        Tpfilt = val;
-    } else if (key.size() == 3 &&
-               (key.starts_with("vq") || key.starts_with("iq") || key.starts_with("vp") ||
-                key.starts_with("ip")) &&
-               key[2] >= '1' && key[2] <= '4') {
-        const auto index = static_cast<std::size_t>(key[2] - '1');
-        if (key.starts_with("vq")) {
-            Vq[index] = val;
-        } else if (key.starts_with("iq")) {
-            Iq[index] = val;
-        } else if (key.starts_with("vp")) {
-            Vp[index] = val;
-        } else {
-            Ip[index] = val;
         }
     } else {
         RenewableComponent::set(param, val, unitType);
@@ -329,129 +340,14 @@ void REECA1::set(std::string_view param, double val, units::unit unitType)
 double REECA1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "pfflag") {
-        return PFFLAG;
+    if (const auto value = REECA1::getModelDescription().tryGetLocal(*this, key, unitType)) {
+        return *value;
     }
-    if (key == "vflag") {
-        return VFLAG;
-    }
-    if (key == "qflag") {
-        return QFLAG;
-    }
-    if (key == "pflag") {
-        return PFLAG;
-    }
-    if (key == "pqflag") {
-        return PQFLAG;
-    }
-    if (key == "vdip") {
-        return Vdip;
-    }
-    if (key == "vup") {
-        return Vup;
-    }
-    if (key == "trv") {
-        return Trv;
-    }
-    if (key == "dbd1") {
-        return dbd1;
-    }
-    if (key == "dbd2") {
-        return dbd2;
-    }
-    if (key == "kqv") {
-        return Kqv;
-    }
-    if (key == "iqh1") {
-        return Iqh1;
-    }
-    if (key == "iql1") {
-        return Iql1;
-    }
-    if (key == "iqfrz") {
-        return Iqfrz;
-    }
-    if (key == "thld") {
-        return Thld;
-    }
+
     if (key == "thld2") {
         return Thld2;
     }
-    if (key == "tp") {
-        return Tp;
-    }
-    if (key == "tiq") {
-        return Tiq;
-    }
-    if (key == "tpord") {
-        return Tpord;
-    }
-    if (key == "imax") {
-        return Imax;
-    }
-    if (key == "pmax") {
-        return PMAX;
-    }
-    if (key == "pmin") {
-        return PMIN;
-    }
-    if (key == "qmax") {
-        return QMax;
-    }
-    if (key == "qmin") {
-        return QMin;
-    }
-    if (key == "dpmax") {
-        return dPmax;
-    }
-    if (key == "dpmin") {
-        return dPmin;
-    }
-    if (key == "vref0") {
-        return Vref0;
-    }
-    if (key == "pfaref") {
-        return pfaref;
-    }
-    if (key == "vref1") {
-        return Vref1;
-    }
-    if (key == "vmax") {
-        return VMAX;
-    }
-    if (key == "vmin") {
-        return VMIN;
-    }
-    if (key == "kqp") {
-        return Kqp;
-    }
-    if (key == "kqi") {
-        return Kqi;
-    }
-    if (key == "kvp") {
-        return Kvp;
-    }
-    if (key == "kvi") {
-        return Kvi;
-    }
-    if (key == "tpfilt") {
-        return Tpfilt;
-    }
-    if (key.size() == 3 && key[2] >= '1' && key[2] <= '4') {
-        const auto index = static_cast<std::size_t>(key[2] - '1');
-        if (key.starts_with("vq")) {
-            return Vq[index];
-        }
-        if (key.starts_with("iq")) {
-            return Iq[index];
-        }
-        if (key.starts_with("vp")) {
-            return Vp[index];
-        }
-        if (key.starts_with("ip")) {
-            return Ip[index];
-        }
-    }
+
     return RenewableComponent::get(param, unitType);
 }
 

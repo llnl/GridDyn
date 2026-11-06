@@ -9,6 +9,7 @@
 #include "../sources/sourceTypes.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <cmath>
 #include <functional>
 #include <map>
@@ -17,6 +18,13 @@
 #include <utility>
 
 namespace griddyn::loads {
+const ModelDescription& SourceLoad::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<SourceLoad>("SourceLoad", &ZipLoad::getModelDescription(), {});
+    return description;
+}
+
 SourceLoad::SourceLoad(const std::string& objName): ZipLoad(objName), sourceLink{}
 {
     sourceLink.fill(-1);
@@ -242,6 +250,9 @@ void SourceLoad::setState(CoreTime time,
 
 void SourceLoad::set(std::string_view param, double val, units::unit unitType)
 {
+    if (SourceLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     auto sfnd = param.find_last_of(":?");
     if (sfnd != std::string::npos) {
         auto* src = findSource(param.substr(0, sfnd));

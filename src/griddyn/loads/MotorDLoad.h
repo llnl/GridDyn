@@ -22,6 +22,7 @@ struct MotorDPower {
 /** WECC single-phase A/C compressor performance model (Motor D core). */
 class MotorDLoad: public GridLoad {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit MotorDLoad(const std::string& objName = "motorD_$");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 

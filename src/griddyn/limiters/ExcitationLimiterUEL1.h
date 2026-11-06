@@ -13,6 +13,9 @@ namespace griddyn::limiters {
 /** IEEE UEL1 circular characteristic with the AVR stabilizing input disabled. */
 class ExcitationLimiterUEL1 final: public ExcitationLimiter {
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     explicit ExcitationLimiterUEL1(const std::string& objName = "uel1_#");
     using ExcitationLimiter::set;
     CoreObject* clone(CoreObject* obj = nullptr) const override;

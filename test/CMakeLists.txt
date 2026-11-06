@@ -58,6 +58,7 @@ set(network_component_gtest_sources
     componentTests/testLinks.cpp
     componentTests/testAdjustableTX.cpp
     componentTests/testExponentialLoadParameters.cpp
+    componentTests/testComponentDescriptions.cpp
 )
 
 set(generator_component_gtest_sources

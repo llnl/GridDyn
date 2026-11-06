@@ -16,6 +16,9 @@ namespace griddyn::limiters {
  */
 class ExcitationLimiterUEL2C final: public ExcitationLimiter {
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     explicit ExcitationLimiterUEL2C(const std::string& objName = "uel2c_#");
     using ExcitationLimiter::set;
     CoreObject* clone(CoreObject* obj = nullptr) const override;

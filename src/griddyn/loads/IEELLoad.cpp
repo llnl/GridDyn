@@ -8,16 +8,107 @@
 
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "utilities/MatrixData.hpp"
 #include <array>
-#include <charconv>
 #include <cmath>
-#include <optional>
 #include <string>
 
 namespace griddyn::loads {
 static ChildTypeFactory<IEELLoad, GridLoad> gIEELLoadFactory("load", "ieel");
+
+const ModelDescription& IEELLoad::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<IEELLoad>("IEELLoad",
+                                           &GridLoad::getModelDescription(),
+                                           {parameter({"a1"},
+                                                      &IEELLoad::parameters,
+                                                      &IEELParameters::coefficients,
+                                                      0,
+                                                      units::one,
+                                                      "Load coefficient 1"),
+                                            parameter({"a2"},
+                                                      &IEELLoad::parameters,
+                                                      &IEELParameters::coefficients,
+                                                      1,
+                                                      units::one,
+                                                      "Load coefficient 2"),
+                                            parameter({"a3"},
+                                                      &IEELLoad::parameters,
+                                                      &IEELParameters::coefficients,
+                                                      2,
+                                                      units::one,
+                                                      "Load coefficient 3"),
+                                            parameter({"a4"},
+                                                      &IEELLoad::parameters,
+                                                      &IEELParameters::coefficients,
+                                                      3,
+                                                      units::one,
+                                                      "Load coefficient 4"),
+                                            parameter({"a5"},
+                                                      &IEELLoad::parameters,
+                                                      &IEELParameters::coefficients,
+                                                      4,
+                                                      units::one,
+                                                      "Load coefficient 5"),
+                                            parameter({"a6"},
+                                                      &IEELLoad::parameters,
+                                                      &IEELParameters::coefficients,
+                                                      5,
+                                                      units::one,
+                                                      "Load coefficient 6"),
+                                            parameter({"a7"},
+                                                      &IEELLoad::parameters,
+                                                      &IEELParameters::coefficients,
+                                                      6,
+                                                      units::one,
+                                                      "Load coefficient 7"),
+                                            parameter({"a8"},
+                                                      &IEELLoad::parameters,
+                                                      &IEELParameters::coefficients,
+                                                      7,
+                                                      units::one,
+                                                      "Load coefficient 8"),
+                                            parameter({"n1"},
+                                                      &IEELLoad::parameters,
+                                                      &IEELParameters::exponents,
+                                                      0,
+                                                      units::one,
+                                                      "Voltage exponent 1"),
+                                            parameter({"n2"},
+                                                      &IEELLoad::parameters,
+                                                      &IEELParameters::exponents,
+                                                      1,
+                                                      units::one,
+                                                      "Voltage exponent 2"),
+                                            parameter({"n3"},
+                                                      &IEELLoad::parameters,
+                                                      &IEELParameters::exponents,
+                                                      2,
+                                                      units::one,
+                                                      "Voltage exponent 3"),
+                                            parameter({"n4"},
+                                                      &IEELLoad::parameters,
+                                                      &IEELParameters::exponents,
+                                                      3,
+                                                      units::one,
+                                                      "Voltage exponent 4"),
+                                            parameter({"n5"},
+                                                      &IEELLoad::parameters,
+                                                      &IEELParameters::exponents,
+                                                      4,
+                                                      units::one,
+                                                      "Voltage exponent 5"),
+                                            parameter({"n6"},
+                                                      &IEELLoad::parameters,
+                                                      &IEELParameters::exponents,
+                                                      5,
+                                                      units::one,
+                                                      "Voltage exponent 6")});
+    return description;
+}
 
 IEELLoad::IEELLoad(const std::string& objName): GridLoad(objName) {}
 
@@ -70,33 +161,15 @@ double IEELLoad::frequencyCoefficient(bool reactive) const
     return parameters.coefficients[reactive ? 7U : 6U];
 }
 
-static std::optional<std::size_t>
-    parameterIndex(std::string_view param, char prefix, std::size_t maxIndex)
-{
-    if ((param.size() < 2U) || (param.front() != prefix)) {
-        return std::nullopt;
-    }
-    std::size_t value = 0;
-    const auto parsed = std::from_chars(param.data() + 1, param.data() + param.size(), value);
-    if ((parsed.ec != std::errc{}) || (parsed.ptr != param.data() + param.size()) ||
-        (value == 0U) || (value > maxIndex)) {
-        return std::nullopt;
-    }
-    return value - 1U;
-}
-
 void IEELLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    static constexpr std::array<std::string_view, 14> parameterNames{
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "n1", "n2", "n3", "n4", "n5", "n6"};
-    if (pstype == ParamStringType::LOCAL_NUM) {
-        pstr.assign(parameterNames.begin(), parameterNames.end());
-        return;
-    }
-    if ((pstype == ParamStringType::ALL) || (pstype == ParamStringType::NUMERIC)) {
-        pstr.insert(pstr.end(), parameterNames.begin(), parameterNames.end());
-    }
-    GridLoad::getParameterStrings(pstr, pstype);
+    const auto& description = IEELLoad::getModelDescription();
+    getParamString<IEELLoad, GridLoad>(this,
+                                       pstr,
+                                       description.numericNames(),
+                                       description.stringNames(),
+                                       description.flagNames(),
+                                       pstype);
 }
 
 void IEELLoad::set(std::string_view param, std::string_view val)
@@ -106,24 +179,21 @@ void IEELLoad::set(std::string_view param, std::string_view val)
 
 void IEELLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (const auto coefficientIndex = parameterIndex(param, 'a', parameters.coefficients.size())) {
-        parameters.coefficients[*coefficientIndex] = val;
-        setIEELParameters(parameters);
-    } else if (const auto exponentIndex = parameterIndex(param, 'n', parameters.exponents.size())) {
-        parameters.exponents[*exponentIndex] = val;
-    } else {
-        GridLoad::set(param, val, unitType);
+    if (IEELLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        if (!param.empty() && param.front() != '#') {
+            setIEELParameters(parameters);
+        }
+        return;
     }
+    GridLoad::set(param, val, unitType);
 }
 
 double IEELLoad::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto index = parameterIndex(param, 'a', parameters.coefficients.size())) {
-        return parameters.coefficients[*index];
+    if (const auto value = IEELLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
-    if (const auto index = parameterIndex(param, 'n', parameters.exponents.size())) {
-        return parameters.exponents[*index];
-    }
+
     return GridLoad::get(param, unitType);
 }
 

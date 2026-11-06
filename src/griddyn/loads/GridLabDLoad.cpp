@@ -9,6 +9,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "coupling/GhostSwingBusManager.h"
 #include "gmlc/utilities/stringConversion.h"
@@ -30,6 +31,67 @@ static const std::complex<double> rotp120(-0.5, sqrt(3.0) / 2.0);
 static const std::complex<double> rotn120(-0.5, -sqrt(3.0) / 2.0);
 
 #define CONJUGATE 1
+
+void GridLabDLoad::setFlag(std::string_view flag, bool val)
+{
+    if (!GridLabDLoad::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+        RampLoad::setFlag(flag, val);
+    }
+}
+
+bool GridLabDLoad::getFlag(std::string_view flag) const
+{
+    if (const auto value = GridLabDLoad::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    return RampLoad::getFlag(flag);
+}
+
+const ModelDescription& GridLabDLoad::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridLabDLoad>(
+        "GridLabDLoad",
+        &RampLoad::getModelDescription(),
+        {parameter({"mult", "multiplier"}, &GridLabDLoad::m_mult, units::one, "A load multiplier"),
+         parameter({"spread", "band"},
+                   &GridLabDLoad::spread,
+                   units::one,
+                   "The voltage spread to use when calculating the parameters",
+                   [](double value) { return std::abs(value) > kMin_Res; }),
+         flag({"bounds", "usebounds"}, &GridLabDLoad::opFlags, USES_BOUNDS_FLAG, "Bounds"),
+         flag({"dual", "dualmode"}, &GridLabDLoad::opFlags, DUAL_MODE_FLAG, "Dual"),
+         flag({"lineartriple"}, &GridLabDLoad::opFlags, LINEARIZE_TRIPLE, "Lineartriple"),
+         command({"detail"}, units::defunit, "Configure detail", ModelFieldType::STRING),
+         command({"mode", "coupling", "dyncoupling"},
+                 units::defunit,
+                 "Configure mode",
+                 ModelFieldType::STRING),
+         command({"pflow", "pflowcoupling"},
+                 units::defunit,
+                 "Configure pflow",
+                 ModelFieldType::STRING)});
+    return description;
+}
+
+double GridLabDLoad::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value =
+            GridLabDLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return RampLoad::get(param, unitType);
+}
+
+void GridLabDLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = GridLabDLoad::getModelDescription();
+    getParamString<GridLabDLoad, RampLoad>(this,
+                                           pstr,
+                                           description.numericNames(),
+                                           description.stringNames(),
+                                           description.flagNames(),
+                                           pstype);
+}
 
 GridLabDLoad::GridLabDLoad(const std::string& objName): RampLoad(objName)
 {
@@ -943,18 +1005,11 @@ void GridLabDLoad::set(std::string_view param, std::string_view val)
 
 void GridLabDLoad::set(std::string_view param, double val, units::unit unitType)
 {
+    if (GridLabDLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     // TODO(phlpt): Convert some of these to a setFlags function.
-    if ((param == "spread") || (param == "band")) {
-        if (std::abs(val) > kMin_Res) {
-            spread = val;
-        } else {
-            throw(InvalidParameterValue(param));
-        }
-    } else if ((param == "bounds") || (param == "usebounds")) {
-        opFlags.set(USES_BOUNDS_FLAG, (val > 0));
-    } else if ((param == "mult") || (param == "multiplier")) {
-        m_mult = val;
-    } else if (param == "detail") {
+    if (param == "detail") {
         if (val <= 1.5) {
             cDetail = CouplingDetail::single;
         } else if (val < 2.25) {
@@ -965,10 +1020,6 @@ void GridLabDLoad::set(std::string_view param, double val, units::unit unitType)
         } else if (val >= 2.75) {
             cDetail = CouplingDetail::triple;
         }
-    } else if ((param == "dual") || (param == "dualmode")) {
-        opFlags.set(DUAL_MODE_FLAG, (val > 0.0));
-    } else if (param == "lineartriple") {
-        opFlags.set(LINEARIZE_TRIPLE, (val > 0.0));
     } else {
         ZipLoad::set(param, val, unitType);
     }

@@ -23,6 +23,9 @@ inline constexpr count_t excitationLimiterInputCount = 5;
 /** A generic, instantaneous limiter action; this is not a WECC OEL/UEL model. */
 class ExcitationLimiter: public GridSubModel {
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     enum class Role { UNDER, OVER };
 
     explicit ExcitationLimiter(const std::string& objName = "limiter_#");

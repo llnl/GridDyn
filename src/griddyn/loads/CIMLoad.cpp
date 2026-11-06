@@ -8,30 +8,12 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <cmath>
 #include <string>
 
 namespace griddyn::loads {
 namespace {
-    void setSaturationParameter(std::string_view param,
-                                double value,
-                                double& energy1,
-                                double& saturationAtEnergy1,
-                                double& energy2,
-                                double& saturationAtEnergy2,
-                                utilities::Saturation& saturation)
-    {
-        if (param == "e1") {
-            energy1 = value;
-        } else if (param == "se1") {
-            saturationAtEnergy1 = value;
-        } else if (param == "e2") {
-            energy2 = value;
-        } else if (param == "se2") {
-            saturationAtEnergy2 = value;
-        }
-        saturation.setParam(energy1, saturationAtEnergy1, energy2, saturationAtEnergy2);
-    }
 
     double cimSaturationFactor(double erpp, double empp, const utilities::Saturation& saturation)
     {
@@ -59,6 +41,33 @@ namespace {
     }
 }  // namespace
 
+const ModelDescription& CIM5::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<CIM5>(
+        "CIM5",
+        &MotorLoad5::getModelDescription(),
+        {parameter({"ra", "rs"}, &CIM5::r, units::one, "R"),
+         parameter({"xa"}, &CIM5::x, units::one, "X"),
+         parameter({"tnom", "t_nom"}, &CIM5::torqueNominal, units::one, "Torque nominal"),
+         parameter({"d", "torqueexponent"}, &CIM5::torqueExponent, units::one, "Torque exponent"),
+         parameter({"e1"}, &CIM5::saturationE1, units::one, "Saturation e1"),
+         parameter({"se1"}, &CIM5::saturationSE1, units::one, "Saturation se1"),
+         parameter({"e2"}, &CIM5::saturationE2, units::one, "Saturation e2"),
+         parameter({"se2"}, &CIM5::saturationSE2, units::one, "Saturation se2")});
+    return description;
+}
+
+void CIM5::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = CIM5::getModelDescription();
+    getParamString<CIM5, MotorLoad5>(this,
+                                     pstr,
+                                     description.numericNames(),
+                                     description.stringNames(),
+                                     description.flagNames(),
+                                     pstype);
+}
+
 CIM5::CIM5(const std::string& objName): MotorLoad5(objName)
 {
     saturation.setParam(saturationE1, saturationSE1, saturationE2, saturationSE2);
@@ -79,41 +88,20 @@ CoreObject* CIM5::clone(CoreObject* obj) const
 }
 void CIM5::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "e1") || (param == "se1") || (param == "e2") || (param == "se2")) {
-        setSaturationParameter(
-            param, val, saturationE1, saturationSE1, saturationE2, saturationSE2, saturation);
-    } else if ((param == "ra") || (param == "rs")) {
-        r = val;
-    } else if (param == "xa") {
-        x = val;
-    } else if ((param == "tnom") || (param == "t_nom")) {
-        torqueNominal = val;
-    } else if ((param == "d") || (param == "torqueexponent")) {
-        torqueExponent = val;
-    } else {
-        MotorLoad5::set(param, val, unitType);
+    if (CIM5::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        if (param == "e1" || param == "se1" || param == "e2" || param == "se2") {
+            saturation.setParam(saturationE1, saturationSE1, saturationE2, saturationSE2);
+        }
+        return;
     }
+    MotorLoad5::set(param, val, unitType);
 }
 double CIM5::get(std::string_view param, units::unit unitType) const
 {
-    if ((param == "tnom") || (param == "t_nom")) {
-        return torqueNominal;
+    if (const auto value = CIM5::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
-    if ((param == "d") || (param == "torqueexponent")) {
-        return torqueExponent;
-    }
-    if (param == "e1") {
-        return saturationE1;
-    }
-    if (param == "se1") {
-        return saturationSE1;
-    }
-    if (param == "e2") {
-        return saturationE2;
-    }
-    if (param == "se2") {
-        return saturationSE2;
-    }
+
     return MotorLoad5::get(param, unitType);
 }
 double CIM5::mechPower(double slip) const
@@ -134,6 +122,37 @@ void CIM5::saturationFactorDerivatives(double erpp,
                                        double& derivativeEmpp) const
 {
     cimSaturationFactorDerivatives(erpp, empp, saturation, derivativeErpp, derivativeEmpp);
+}
+
+const ModelDescription& CIM6::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<CIM6>(
+        "CIM6",
+        &MotorLoad5::getModelDescription(),
+        {parameter({"ra", "rs"}, &CIM6::r, units::one, "R"),
+         parameter({"xa"}, &CIM6::x, units::one, "X"),
+         parameter({"tnom", "t_nom"}, &CIM6::torqueNominal, units::one, "Torque nominal"),
+         parameter({"a"}, &CIM6::coefficientA, units::one, "Coefficient a"),
+         parameter({"b"}, &CIM6::coefficientB, units::one, "Coefficient b"),
+         parameter({"c0", "cimc"}, &CIM6::coefficientC, units::one, "Coefficient c"),
+         parameter({"d", "cimd"}, &CIM6::coefficientD, units::one, "Coefficient d"),
+         parameter({"e"}, &CIM6::exponentE, units::one, "Exponent e"),
+         parameter({"e1"}, &CIM6::saturationE1, units::one, "Saturation e1"),
+         parameter({"se1"}, &CIM6::saturationSE1, units::one, "Saturation se1"),
+         parameter({"e2"}, &CIM6::saturationE2, units::one, "Saturation e2"),
+         parameter({"se2"}, &CIM6::saturationSE2, units::one, "Saturation se2")});
+    return description;
+}
+
+void CIM6::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = CIM6::getModelDescription();
+    getParamString<CIM6, MotorLoad5>(this,
+                                     pstr,
+                                     description.numericNames(),
+                                     description.stringNames(),
+                                     description.flagNames(),
+                                     pstype);
 }
 
 CIM6::CIM6(const std::string& objName): MotorLoad5(objName)
@@ -160,61 +179,20 @@ CoreObject* CIM6::clone(CoreObject* obj) const
 }
 void CIM6::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "e1") || (param == "se1") || (param == "e2") || (param == "se2")) {
-        setSaturationParameter(
-            param, val, saturationE1, saturationSE1, saturationE2, saturationSE2, saturation);
-    } else if ((param == "ra") || (param == "rs")) {
-        r = val;
-    } else if (param == "xa") {
-        x = val;
-    } else if ((param == "tnom") || (param == "t_nom")) {
-        torqueNominal = val;
-    } else if (param == "a") {
-        coefficientA = val;
-    } else if (param == "b") {
-        coefficientB = val;
-    } else if ((param == "c0") || (param == "cimc")) {
-        coefficientC = val;
-    } else if ((param == "d") || (param == "cimd")) {
-        coefficientD = val;
-    } else if (param == "e") {
-        exponentE = val;
-    } else {
-        MotorLoad5::set(param, val, unitType);
+    if (CIM6::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        if (param == "e1" || param == "se1" || param == "e2" || param == "se2") {
+            saturation.setParam(saturationE1, saturationSE1, saturationE2, saturationSE2);
+        }
+        return;
     }
+    MotorLoad5::set(param, val, unitType);
 }
 double CIM6::get(std::string_view param, units::unit unitType) const
 {
-    if ((param == "tnom") || (param == "t_nom")) {
-        return torqueNominal;
+    if (const auto value = CIM6::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
-    if (param == "a") {
-        return coefficientA;
-    }
-    if (param == "b") {
-        return coefficientB;
-    }
-    if ((param == "c0") || (param == "cimc")) {
-        return coefficientC;
-    }
-    if ((param == "d") || (param == "cimd")) {
-        return coefficientD;
-    }
-    if (param == "e") {
-        return exponentE;
-    }
-    if (param == "e1") {
-        return saturationE1;
-    }
-    if (param == "se1") {
-        return saturationSE1;
-    }
-    if (param == "e2") {
-        return saturationE2;
-    }
-    if (param == "se2") {
-        return saturationSE2;
-    }
+
     return MotorLoad5::get(param, unitType);
 }
 double CIM6::mechPower(double slip) const

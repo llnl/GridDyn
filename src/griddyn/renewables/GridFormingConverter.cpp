@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -61,11 +62,6 @@ namespace {
         DD,
         COUNT
     };
-    constexpr std::array<std::string_view, COUNT> names{
-        {"fn",   "tc",   "kw",     "kv",     "m",    "d",     "ra",    "xs",   "kpvd",   "kivd",
-         "kpvq", "kivq", "kpid",   "kiid",   "kpiq", "kiiq",  "tid",   "tiq",  "wdrp",   "qdrp",
-         "tr",   "te",   "kpi",    "kii",    "kpv",  "kiv",   "pmax",  "pmin", "kpplim", "kiplim",
-         "qmax", "qmin", "kpqlim", "kiqlim", "tpm",  "dwmax", "dwmin", "mf",   "dd"}};
     constexpr std::array<double, COUNT> defaults{
         {60.0, .01,  0.0, 0.0,  10.0, 0.0,  0.0,  .2,   .5,   .02,  .5,    .02, .2,
          .01,  .2,   .01, .01,  .01,  .033, .045, .005, .005, .5,   20.0,  3.0, 10.0,
@@ -85,6 +81,97 @@ namespace {
     }};
     constexpr double piConstant = 3.14159265358979323846;
 }  // namespace
+
+void GridFormingConverter::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = GridFormingConverter::getModelDescription();
+    getParamString<GridFormingConverter, TerminalElectricalModel>(this,
+                                                                  pstr,
+                                                                  description.numericNames(),
+                                                                  description.stringNames(),
+                                                                  description.flagNames(),
+                                                                  pstype);
+}
+
+const ModelDescription& GridFormingConverter::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridFormingConverter>(
+        "GridFormingConverter",
+        &TerminalElectricalModel::getModelDescription(),
+        {parameter({"fn"}, &GridFormingConverter::parameters, 0, units::Hz, "Converter fn"),
+         parameter({"tc"}, &GridFormingConverter::parameters, 1, units::second, "Converter tc"),
+         parameter({"kw"}, &GridFormingConverter::parameters, 2, units::one, "Converter kw"),
+         parameter({"kv"}, &GridFormingConverter::parameters, 3, units::one, "Converter kv"),
+         parameter({"m"}, &GridFormingConverter::parameters, 4, units::one, "Converter m"),
+         parameter({"d"}, &GridFormingConverter::parameters, 5, units::one, "Converter d"),
+         parameter({"ra", "rf"}, &GridFormingConverter::parameters, 6, units::one, "Converter ra"),
+         parameter({"xs", "xf"}, &GridFormingConverter::parameters, 7, units::one, "Converter xs"),
+         parameter({"kpvd"}, &GridFormingConverter::parameters, 8, units::one, "Converter kpvd"),
+         parameter({"kivd"}, &GridFormingConverter::parameters, 9, units::one, "Converter kivd"),
+         parameter({"kpvq"}, &GridFormingConverter::parameters, 10, units::one, "Converter kpvq"),
+         parameter({"kivq"}, &GridFormingConverter::parameters, 11, units::one, "Converter kivq"),
+         parameter({"kpid"}, &GridFormingConverter::parameters, 12, units::one, "Converter kpid"),
+         parameter({"kiid"}, &GridFormingConverter::parameters, 13, units::one, "Converter kiid"),
+         parameter({"kpiq"}, &GridFormingConverter::parameters, 14, units::one, "Converter kpiq"),
+         parameter({"kiiq"}, &GridFormingConverter::parameters, 15, units::one, "Converter kiiq"),
+         parameter({"tid"}, &GridFormingConverter::parameters, 16, units::second, "Converter tid"),
+         parameter({"tiq"}, &GridFormingConverter::parameters, 17, units::second, "Converter tiq"),
+         parameter({"wdrp"}, &GridFormingConverter::parameters, 18, units::one, "Converter wdrp"),
+         parameter({"qdrp"}, &GridFormingConverter::parameters, 19, units::one, "Converter qdrp"),
+         parameter({"tr"}, &GridFormingConverter::parameters, 20, units::second, "Converter tr"),
+         parameter({"te"}, &GridFormingConverter::parameters, 21, units::second, "Converter te"),
+         parameter({"kpi"}, &GridFormingConverter::parameters, 22, units::one, "Converter kpi"),
+         parameter({"kii"}, &GridFormingConverter::parameters, 23, units::one, "Converter kii"),
+         parameter({"kpv"}, &GridFormingConverter::parameters, 24, units::one, "Converter kpv"),
+         parameter({"kiv"}, &GridFormingConverter::parameters, 25, units::one, "Converter kiv"),
+         parameter({"pmax"}, &GridFormingConverter::parameters, 26, units::one, "Converter pmax"),
+         parameter({"pmin"}, &GridFormingConverter::parameters, 27, units::one, "Converter pmin"),
+         parameter(
+             {"kpplim"}, &GridFormingConverter::parameters, 28, units::one, "Converter kpplim"),
+         parameter(
+             {"kiplim"}, &GridFormingConverter::parameters, 29, units::one, "Converter kiplim"),
+         parameter({"qmax"}, &GridFormingConverter::parameters, 30, units::one, "Converter qmax"),
+         parameter({"qmin"}, &GridFormingConverter::parameters, 31, units::one, "Converter qmin"),
+         parameter(
+             {"kpqlim"}, &GridFormingConverter::parameters, 32, units::one, "Converter kpqlim"),
+         parameter(
+             {"kiqlim"}, &GridFormingConverter::parameters, 33, units::one, "Converter kiqlim"),
+         parameter({"tpm"}, &GridFormingConverter::parameters, 34, units::second, "Converter tpm"),
+         parameter({"dwmax"}, &GridFormingConverter::parameters, 35, units::one, "Converter dwmax"),
+         parameter({"dwmin"}, &GridFormingConverter::parameters, 36, units::one, "Converter dwmin"),
+         parameter({"mf"}, &GridFormingConverter::parameters, 37, units::one, "Converter mf"),
+         parameter({"dd"}, &GridFormingConverter::parameters, 38, units::one, "Converter dd"),
+         parameter(
+             {"pll"}, &GridFormingConverter::pllName, units::defunit, "PLL measurement source"),
+         localState("initialActivePower",
+                    &GridFormingConverter::initialActivePower,
+                    "Initial active power"),
+         localState("initialReactivePower",
+                    &GridFormingConverter::initialReactivePower,
+                    "Initial reactive power"),
+         localState("initialVoltage", &GridFormingConverter::initialVoltage, "Initial voltage"),
+         state("Pe", units::one, "Solver variable Pe when active"),
+         state("Qe", units::one, "Solver variable Qe when active"),
+         state("dw", units::one, "Solver variable dw when active"),
+         state("delta", units::one, "Solver variable delta when active"),
+         state("PIvd", units::one, "Solver variable PIvd when active"),
+         state("PIvq", units::one, "Solver variable PIvq when active"),
+         state("PIId", units::one, "Solver variable PIId when active"),
+         state("PIIq", units::one, "Solver variable PIIq when active"),
+         state("ud", units::one, "Solver variable ud when active"),
+         state("uq", units::one, "Solver variable uq when active"),
+         state("Id", units::one, "Solver variable Id when active"),
+         state("Iq", units::one, "Solver variable Iq when active"),
+         state("Psen", units::one, "Solver variable Psen when active"),
+         state("Qsen", units::one, "Solver variable Qsen when active"),
+         state("Psig", units::one, "Solver variable Psig when active"),
+         state("Qsig", units::one, "Solver variable Qsig when active"),
+         state("PIplim", units::one, "Solver variable PIplim when active"),
+         state("PIqlim", units::one, "Solver variable PIqlim when active"),
+         state("INTw", units::one, "Solver variable INTw when active"),
+         state("vref2", units::one, "Solver variable vref2 when active")});
+    return description;
+}
 
 GridFormingConverter::GridFormingConverter(Variant variantType, const std::string& objName):
     TerminalElectricalModel(objName), variant(variantType)
@@ -131,37 +218,30 @@ std::string_view GridFormingConverter::sourceName(RenewableSignal signal) const
 
 void GridFormingConverter::set(std::string_view param, double val, units::unit unitType)
 {
+    if (GridFormingConverter::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    for (index_t parameterIndex = 0; parameterIndex < COUNT; ++parameterIndex) {
-        if (key == names[parameterIndex] || (key == "rf" && parameterIndex == RESISTANCE) ||
-            (key == "xf" && parameterIndex == REACTANCE)) {
-            if (!std::isfinite(val)) {
-                throw InvalidParameterValue("grid-forming converter parameter must be finite");
-            }
-            parameters[parameterIndex] = val;
-            return;
-        }
+    if (GridFormingConverter::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+        return;
     }
     TerminalElectricalModel::set(param, val, unitType);
 }
 
 void GridFormingConverter::set(std::string_view param, std::string_view val)
 {
-    if (gmlc::utilities::convertToLowerCase(std::string{param}) == "pll") {
-        pllName = std::string{val};
-        return;
+    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (!GridFormingConverter::getModelDescription().trySetLocal(*this, key, val)) {
+        TerminalElectricalModel::set(param, val);
     }
-    GridComponent::set(param, val);
 }
 
 double GridFormingConverter::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    for (index_t parameterIndex = 0; parameterIndex < COUNT; ++parameterIndex) {
-        if (key == names[parameterIndex] || (key == "rf" && parameterIndex == RESISTANCE) ||
-            (key == "xf" && parameterIndex == REACTANCE)) {
-            return parameters[parameterIndex];
-        }
+    if (const auto value =
+            GridFormingConverter::getModelDescription().tryGetLocal(*this, key, unitType)) {
+        return *value;
     }
     return TerminalElectricalModel::get(param, unitType);
 }
@@ -590,10 +670,49 @@ stringVec GridFormingConverter::localStateNames() const
         }                                                                                          \
         return out == nullptr ? obj : out;                                                         \
     }
+const ModelDescription& REGCV1::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<REGCV1>("REGCV1",
+                                         &GridFormingConverter::getModelDescription(),
+                                         {});
+    return description;
+}
+
 GRID_FORMING_MODEL_IMPL(REGCV1, cv1)
+const ModelDescription& REGCV2::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<REGCV2>("REGCV2",
+                                         &GridFormingConverter::getModelDescription(),
+                                         {});
+    return description;
+}
+
 GRID_FORMING_MODEL_IMPL(REGCV2, cv2)
+const ModelDescription& REGF1::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<REGF1>("REGF1", &GridFormingConverter::getModelDescription(), {});
+    return description;
+}
+
 GRID_FORMING_MODEL_IMPL(REGF1, f1)
+const ModelDescription& REGF2::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<REGF2>("REGF2", &GridFormingConverter::getModelDescription(), {});
+    return description;
+}
+
 GRID_FORMING_MODEL_IMPL(REGF2, f2)
+const ModelDescription& REGF3::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<REGF3>("REGF3", &GridFormingConverter::getModelDescription(), {});
+    return description;
+}
+
 GRID_FORMING_MODEL_IMPL(REGF3, f3)
 #undef GRID_FORMING_MODEL_IMPL
 

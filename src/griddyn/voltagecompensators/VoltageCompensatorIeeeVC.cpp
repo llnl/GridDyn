@@ -8,11 +8,33 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <string>
 
 namespace griddyn::voltagecompensators {
+const ModelDescription& VoltageCompensatorIeeeVC::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<VoltageCompensatorIeeeVC>(
+        "VoltageCompensatorIeeeVC",
+        &VoltageCompensator::getModelDescription(),
+        {parameter({"rc"}, &VoltageCompensatorIeeeVC::RC, units::one, "Rc"),
+         parameter({"xc"}, &VoltageCompensatorIeeeVC::XC, units::one, "Xc")});
+    return description;
+}
+
+void VoltageCompensatorIeeeVC::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = VoltageCompensatorIeeeVC::getModelDescription();
+    getParamString<VoltageCompensatorIeeeVC, VoltageCompensator>(this,
+                                                                 pstr,
+                                                                 description.numericNames(),
+                                                                 description.stringNames(),
+                                                                 description.flagNames(),
+                                                                 pstype);
+}
+
 VoltageCompensatorIeeeVC::VoltageCompensatorIeeeVC(const std::string& objName):
     VoltageCompensator(objName)
 {
@@ -58,22 +80,17 @@ void VoltageCompensatorIeeeVC::set(std::string_view param, std::string_view val)
 
 void VoltageCompensatorIeeeVC::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "rc") {
-        RC = val;
-    } else if (param == "xc") {
-        XC = val;
-    } else {
-        GridSubModel::set(param, val, unitType);
+    if (VoltageCompensatorIeeeVC::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    GridSubModel::set(param, val, unitType);
 }
 
 double VoltageCompensatorIeeeVC::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "rc") {
-        return RC;
-    }
-    if (param == "xc") {
-        return XC;
+    if (const auto value =
+            VoltageCompensatorIeeeVC::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return GridSubModel::get(param, unitType);
 }

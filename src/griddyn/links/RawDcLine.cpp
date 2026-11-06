@@ -7,6 +7,8 @@
 #include "RawDcLine.h"
 
 #include "../GridBus.h"
+#include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixDataCompact.hpp"
 #include <cmath>
 #include <string>
@@ -15,6 +17,47 @@ namespace griddyn::links {
 using units::convert;
 using units::puMW;
 using units::unit;
+
+void RawDcLine::setFlag(std::string_view flag, bool val)
+{
+    if (!RawDcLine::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+        Link::setFlag(flag, val);
+    }
+}
+
+bool RawDcLine::getFlag(std::string_view flag) const
+{
+    if (const auto value = RawDcLine::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    return Link::getFlag(flag);
+}
+
+const ModelDescription& RawDcLine::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<RawDcLine>(
+        "RawDcLine",
+        &Link::getModelDescription(),
+        {parameter(
+             {"from_vtarget"}, &RawDcLine::fromVoltageTarget, units::one, "From voltage target"),
+         parameter({"to_vtarget"}, &RawDcLine::toVoltageTarget, units::one, "To voltage target"),
+         flag({"from_voltage_control"}, &RawDcLine::controlFromVoltage, "Control from voltage"),
+         flag({"to_voltage_control"}, &RawDcLine::controlToVoltage, "Control to voltage"),
+         command({"from_q"}, units::defunit, "Set from q"),
+         command({"to_q"}, units::defunit, "Set to q")});
+    return description;
+}
+
+void RawDcLine::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = RawDcLine::getModelDescription();
+    getParamString<RawDcLine, Link>(this,
+                                    pstr,
+                                    description.numericNames(),
+                                    description.stringNames(),
+                                    description.flagNames(),
+                                    pstype);
+}
 
 RawDcLine::RawDcLine(const std::string& objName): Link(objName) {}
 
@@ -34,18 +77,13 @@ index_t RawDcLine::toReactiveOffset(const SolverMode& sMode) const
 
 void RawDcLine::set(std::string_view param, double val, unit unitType)
 {
-    if (param == "from_vtarget") {
-        fromVoltageTarget = val;
-    } else if (param == "to_vtarget") {
-        toVoltageTarget = val;
-    } else if (param == "from_q") {
+    if (RawDcLine::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
+    if (param == "from_q") {
         fromReactivePower = convert(val, unitType, puMW, systemBasePower);
     } else if (param == "to_q") {
         toReactivePower = convert(val, unitType, puMW, systemBasePower);
-    } else if (param == "from_voltage_control") {
-        controlFromVoltage = (val > 0.5);
-    } else if (param == "to_voltage_control") {
-        controlToVoltage = (val > 0.5);
     } else {
         Link::set(param, val, unitType);
     }
@@ -53,11 +91,8 @@ void RawDcLine::set(std::string_view param, double val, unit unitType)
 
 double RawDcLine::get(std::string_view param, unit unitType) const
 {
-    if (param == "from_vtarget") {
-        return fromVoltageTarget;
-    }
-    if (param == "to_vtarget") {
-        return toVoltageTarget;
+    if (const auto value = RawDcLine::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     if (param == "from_q") {
         return convert(fromReactivePower, puMW, unitType, systemBasePower);
@@ -65,12 +100,7 @@ double RawDcLine::get(std::string_view param, unit unitType) const
     if (param == "to_q") {
         return convert(toReactivePower, puMW, unitType, systemBasePower);
     }
-    if (param == "from_voltage_control") {
-        return controlFromVoltage ? 1.0 : 0.0;
-    }
-    if (param == "to_voltage_control") {
-        return controlToVoltage ? 1.0 : 0.0;
-    }
+
     return Link::get(param, unitType);
 }
 

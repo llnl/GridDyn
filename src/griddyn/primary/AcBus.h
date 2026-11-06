@@ -31,6 +31,7 @@ class AcBus: public GridBus {
     friend class BusControls;
 
   public:
+    const ModelDescription& getModelDescription() const override;
     /** @brief flags for the buses*/
     enum BusFlags {
         USE_AUTOGEN = OBJECT_FLAG2,  //!< indicator if the bus is using an autogen
@@ -162,7 +163,7 @@ class AcBus: public GridBus {
      * dynamic initialization. Repeating the current setting is a no-op.
      * @throws InvalidParameterValue if an estimator state change is requested after initialization
      */
-    virtual void setFlag(std::string_view flag, bool val) override;
+    virtual void setFlag(std::string_view flag, bool val = true) override;
     /** @brief Query the estimator-enabled flag or an inherited flag. */
     virtual bool getFlag(std::string_view flag) const override;
     virtual void set(std::string_view param, std::string_view val) override;

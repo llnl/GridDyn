@@ -26,6 +26,7 @@ class FrequencySensitiveLoad: public GridLoad {
     // needs to be defined and implemented consistently.
     GridLoad* subLoad = nullptr;  //!< pointer to the subload type
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit FrequencySensitiveLoad(const std::string& objName = "load_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;

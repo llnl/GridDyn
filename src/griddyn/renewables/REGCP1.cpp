@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <array>
@@ -31,6 +32,18 @@ namespace {
         {.signal = RenewableSignal::measuredAngle, .ioIndex = 4, .required = false},
     }};
 }  // namespace
+
+const ModelDescription& REGCP1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<REGCP1>(
+        "REGCP1",
+        &REGCA1::getModelDescription(),
+        {command({"pll"},
+                 units::defunit,
+                 "PLL measurement source; numeric zero clears the source",
+                 ModelFieldType::STRING)});
+    return description;
+}
 
 REGCP1::REGCP1(const std::string& objName): REGCA1(objName)
 {
@@ -65,6 +78,9 @@ void REGCP1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 
 void REGCP1::set(std::string_view param, double val, units::unit unitType)
 {
+    if (REGCP1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if (gmlc::utilities::convertToLowerCase(std::string{param}) == "pll") {
         if (val != 0.0) {
             throw InvalidParameterValue("REGCP1 PLL reference must be a sensor name");

@@ -21,6 +21,7 @@ class GridSecondary: public GridComponent {
   protected:
     GridBus* bus = nullptr;  //!< reference to the bus connecting the object;
   public:
+    const ModelDescription& getModelDescription() const override;
     /** @brief default constructor*/
     explicit GridSecondary(const std::string& objName = "");
 

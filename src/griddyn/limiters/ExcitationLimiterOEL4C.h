@@ -13,6 +13,9 @@ namespace griddyn::limiters {
 /** Reactive-power delayed PI OEL4C; output is a positive VOEL magnitude. */
 class ExcitationLimiterOEL4C final: public ExcitationLimiter {
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     explicit ExcitationLimiterOEL4C(const std::string& objName = "oel4c_#");
     using ExcitationLimiter::set;
     CoreObject* clone(CoreObject* obj = nullptr) const override;

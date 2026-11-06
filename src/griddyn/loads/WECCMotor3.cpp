@@ -9,6 +9,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include <algorithm>
 #include <array>
@@ -22,27 +23,6 @@ namespace {
     TypeFactory<WECCMotor3> gWeccMotor3Factory(
         "load",
         std::to_array<std::string_view>({"weccmotor3", "motorabc", "cmp_mo3_2"}));
-
-    constexpr std::array<std::string_view, 18> numericParameters{"lfm",
-                                                                 "ls",
-                                                                 "lp",
-                                                                 "lpp",
-                                                                 "tpo",
-                                                                 "tppo",
-                                                                 "etrq",
-                                                                 "tmo",
-                                                                 "vtr1",
-                                                                 "ttr1",
-                                                                 "ftr1",
-                                                                 "vrc1",
-                                                                 "trc1",
-                                                                 "vtr2",
-                                                                 "ttr2",
-                                                                 "ftr2",
-                                                                 "vrc2",
-                                                                 "trc2"};
-    constexpr std::array<std::string_view, 0> stringParameters{};
-    constexpr std::array<std::string_view, 0> flagParameters{};
 
     template<std::size_t N>
     bool solveLinear(std::array<std::array<double, N + 1>, N>& equations,
@@ -80,6 +60,55 @@ namespace {
     }
 }  // namespace
 
+const ModelDescription& WECCMotor3::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<WECCMotor3>(
+        "WECCMotor3",
+        &CIM6::getModelDescription(),
+        {parameter({"lfm", "LFm"},
+                   &WECCMotor3::loadFactor,
+                   units::one,
+                   "CMPLDW LFm, MW/MVA rating",
+                   parameterValidators::positive),
+         parameter({"ls", "Ls"},
+                   &WECCMotor3::synchronousReactance,
+                   units::one,
+                   "Ls",
+                   parameterValidators::positive),
+         parameter({"lp", "Lp"},
+                   &WECCMotor3::transientReactance,
+                   units::one,
+                   "Lp",
+                   parameterValidators::positive),
+         parameter({"lpp", "Lpp"},
+                   &WECCMotor3::subtransientReactance,
+                   units::one,
+                   "Lpp",
+                   parameterValidators::positive),
+         parameter({"tpo", "Tpo"},
+                   &WECCMotor3::transientTimeConstant,
+                   units::one,
+                   "Tpo",
+                   parameterValidators::positive),
+         parameter({"tppo", "Tppo"},
+                   &WECCMotor3::subtransientTimeConstant,
+                   units::one,
+                   "Tppo",
+                   parameterValidators::nonnegative),
+         parameter({"etrq", "Etrq"},
+                   &WECCMotor3::torqueExponent,
+                   units::one,
+                   "CMPLDW Etrq",
+                   parameterValidators::nonnegative),
+         command({"tmo", "Tmo"}, units::defunit, "Set tmo"),
+         command({"base", "mbase", "rating"}, units::defunit, "Set base"),
+         command({"p"}, units::defunit, "Set p"),
+         command({"vtr1", "ttr1", "ftr1", "vrc1", "trc1"}, units::defunit, "Set vtr1"),
+         command({"vtr2", "ttr2", "ftr2", "vrc2", "trc2"}, units::defunit, "Set vtr2"),
+         command({"rs", "ra", "Rs"}, units::defunit, "Set rs")});
+    return description;
+}
+
 WECCMotor3::WECCMotor3(const std::string& objName): CIM6(objName)
 {
     for (std::size_t stage = 0; stage < MotorProtectionGroups::stageCount; ++stage) {
@@ -109,8 +138,13 @@ CoreObject* WECCMotor3::clone(CoreObject* obj) const
 
 void WECCMotor3::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    getParamString<WECCMotor3, CIM6>(
-        this, pstr, numericParameters, stringParameters, flagParameters, pstype);
+    const auto& description = WECCMotor3::getModelDescription();
+    getParamString<WECCMotor3, CIM6>(this,
+                                     pstr,
+                                     description.numericNames(),
+                                     description.stringNames(),
+                                     description.flagNames(),
+                                     pstype);
 }
 
 void WECCMotor3::set(std::string_view param, std::string_view val)
@@ -120,43 +154,11 @@ void WECCMotor3::set(std::string_view param, std::string_view val)
 
 void WECCMotor3::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "lfm") || (param == "LFm")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("WECC motor LFm must be positive");
-        }
-        loadFactor = val;
-    } else if ((param == "ls") || (param == "Ls")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("WECC motor Ls must be positive");
-        }
-        synchronousReactance = val;
-    } else if ((param == "lp") || (param == "Lp")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("WECC motor Lp must be positive");
-        }
-        transientReactance = val;
-    } else if ((param == "lpp") || (param == "Lpp")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("WECC motor Lpp must be positive");
-        }
-        subtransientReactance = val;
-    } else if ((param == "tpo") || (param == "Tpo")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("WECC motor Tpo must be positive");
-        }
-        transientTimeConstant = val;
-    } else if ((param == "tppo") || (param == "Tppo")) {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("WECC motor Tppo must be non-negative");
-        }
-        subtransientTimeConstant = val;
-    } else if ((param == "etrq") || (param == "Etrq")) {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("WECC motor Etrq must be non-negative");
-        }
-        torqueExponent = val;
-    } else if ((param == "tmo") || (param == "Tmo")) {
-        if (!std::isfinite(val) || (val < 0.0)) {
+    if (WECCMotor3::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
+    if ((param == "tmo") || (param == "Tmo")) {
+        if (val < 0.0) {
             throw InvalidParameterValue("WECC motor Tmo must be non-negative");
         }
         torqueNominal = val;
@@ -174,7 +176,7 @@ void WECCMotor3::set(std::string_view param, double val, units::unit unitType)
                param == "trc2") {
         setProtectionParameter(1, param, val);
     } else if ((param == "rs") || (param == "ra") || (param == "Rs")) {
-        if (!std::isfinite(val) || (val < 0.0)) {
+        if (val < 0.0) {
             throw InvalidParameterValue("WECC motor stator resistance must be non-negative");
         }
         CIM6::set("rs", val, unitType);
@@ -185,26 +187,8 @@ void WECCMotor3::set(std::string_view param, double val, units::unit unitType)
 
 double WECCMotor3::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "lfm" || param == "LFm") {
-        return loadFactor;
-    }
-    if (param == "ls" || param == "Ls") {
-        return synchronousReactance;
-    }
-    if (param == "lp" || param == "Lp") {
-        return transientReactance;
-    }
-    if (param == "lpp" || param == "Lpp") {
-        return subtransientReactance;
-    }
-    if (param == "tpo" || param == "Tpo") {
-        return transientTimeConstant;
-    }
-    if (param == "tppo" || param == "Tppo") {
-        return subtransientTimeConstant;
-    }
-    if (param == "etrq" || param == "Etrq") {
-        return torqueExponent;
+    if (const auto value = WECCMotor3::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     if (param == "tmo" || param == "Tmo") {
         return torqueNominal;

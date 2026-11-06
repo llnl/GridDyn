@@ -9,6 +9,7 @@
 #include "../GridArea.h"
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include "utilities/MatrixData.hpp"
@@ -29,6 +30,47 @@ using units::convert;
 using units::puMW;
 using units::puV;
 using units::unit;
+
+const ModelDescription& Svd::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<Svd>(
+        "Svd",
+        &RampLoad::getModelDescription(),
+        {parameter({"participation"}, &Svd::participation, units::one, "A participation factor"),
+         parameter({"vref"}, &Svd::andesVref, units::one, "Andes vref"),
+         parameter({"dv"}, &Svd::andesDv, units::one, "Andes dv"),
+         parameter({"dt"}, &Svd::andesDt, units::second, "Andes dt"),
+         parameter({"adjm", "adjustmentmethod"},
+                   &Svd::adjustmentMethod,
+                   units::one,
+                   "RAW ADJM metadata; exact PSS/E switching method is not modeled"),
+         command({"blocks", "block"}, units::defunit, "Configure blocks", ModelFieldType::STRING),
+         command({"mode"}, units::defunit, "Configure mode", ModelFieldType::STRING),
+         command({"control"}, units::defunit, "Configure control", ModelFieldType::STRING),
+         command({"qlow"}, units::defunit, "Set qlow"),
+         command({"qhigh"}, units::defunit, "Set qhigh"),
+         command({"qmin"}, units::defunit, "Set qmin"),
+         command({"qmax"}, units::defunit, "Set qmax"),
+         command({"vmax"}, units::defunit, "Set vmax"),
+         command({"vmin"}, units::defunit, "Set vmin"),
+         command({"yq"}, units::defunit, "Set yq"),
+         command({"step"}, units::defunit, "Set step"),
+         command({"min_iter"}, units::defunit, "Set min iter"),
+         command({"err_tol"}, units::defunit, "Set err tol"),
+         command({"count"}, units::defunit, "Set count")});
+    return description;
+}
+
+void Svd::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = Svd::getModelDescription();
+    getParamString<Svd, RampLoad>(this,
+                                  pstr,
+                                  description.numericNames(),
+                                  description.stringNames(),
+                                  description.flagNames(),
+                                  pstype);
+}
 
 Svd::Svd(const std::string& objName): RampLoad(objName) {}
 Svd::Svd(double realPower, double reactivePower, const std::string& objName):
@@ -587,6 +629,9 @@ void Svd::set(std::string_view param, std::string_view val)
 }
 void Svd::set(std::string_view param, double val, unit unitType)
 {
+    if (Svd::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if (param == "qlow") {
         const auto newQlow = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
         if (!Cblocks.empty()) {
@@ -612,20 +657,10 @@ void Svd::set(std::string_view param, double val, unit unitType)
         setLoad(convertedValue);
     } else if (param == "step") {
         updateSetting(static_cast<int>(val));
-    } else if (param == "participation") {
-        participation = val;
-    } else if (param == "vref") {
-        andesVref = val;
-    } else if (param == "dv") {
-        andesDv = val;
-    } else if (param == "dt") {
-        andesDt = val;
     } else if (param == "min_iter") {
         minIter = (std::max)(0, static_cast<int>(val));
     } else if (param == "err_tol") {
         errTol = (std::max)(0.0, val);
-    } else if ((param == "adjm") || (param == "adjustmentmethod")) {
-        adjustmentMethod = static_cast<int>(val);
     } else if (param == "block") {
         if (Cblocks.size() == 1) {
             if (Cblocks[0].second == 0) {
@@ -656,21 +691,14 @@ void Svd::set(std::string_view param, double val, unit unitType)
 
 double Svd::get(std::string_view param, unit unitType) const
 {
-    if ((param == "adjm") || (param == "adjustmentmethod")) {
-        return static_cast<double>(adjustmentMethod);
+    if (const auto value = Svd::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
+
     if (param == "step") {
         return static_cast<double>(currentStep);
     }
-    if (param == "vref") {
-        return andesVref;
-    }
-    if (param == "dv") {
-        return andesDv;
-    }
-    if (param == "dt") {
-        return andesDt;
-    }
+
     if (param == "min_iter") {
         return static_cast<double>(minIter);
     }

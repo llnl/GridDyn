@@ -21,6 +21,8 @@ conversions to positive sequence values.
 */
     class ThreePhaseLoad: public GridLoad {
       public:
+        bool getFlag(std::string_view flag) const override;
+        const ModelDescription& getModelDescription() const override;
         enum ThreePhaseLoadFlags {
             USE_ABS_ANGLE = OBJECT_FLAG5,
             THREE_PHASE_OUTPUT = OBJECT_FLAG6,

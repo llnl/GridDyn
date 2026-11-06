@@ -290,9 +290,10 @@ std::optional<std::string> ModelDescription::tryGetStringLocal(const CoreObject&
 
 ModelField command(std::initializer_list<std::string_view> names,
                    units::unit unitType,
-                   std::string_view description)
+                   std::string_view description,
+                   ModelFieldType valueType)
 {
-    return {names, unitType, description, ModelFieldKind::COMMAND, ModelFieldType::REAL};
+    return {names, unitType, description, ModelFieldKind::COMMAND, valueType};
 }
 
 ModelField state(std::string_view name, units::unit unitType, std::string_view description)

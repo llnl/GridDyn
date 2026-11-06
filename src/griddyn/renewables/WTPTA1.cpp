@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -36,6 +37,59 @@ namespace {
     }();
     constexpr index_t theta = 0, speedIntegral = 1, powerIntegral = 2;
 }  // namespace
+
+void WTPTA1::setFlag(std::string_view flag, bool val)
+{
+    if (!WTPTA1::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+        RenewableComponent::setFlag(flag, val);
+    }
+}
+
+bool WTPTA1::getFlag(std::string_view flag) const
+{
+    if (const auto value = WTPTA1::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    return RenewableComponent::getFlag(flag);
+}
+
+const ModelDescription& WTPTA1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<WTPTA1>(
+        "WTPTA1",
+        &RenewableComponent::getModelDescription(),
+        {parameter({"kiw"}, &WTPTA1::Kiw, units::one, "Kiw"),
+         parameter({"kpw"}, &WTPTA1::Kpw, units::one, "Kpw"),
+         parameter({"kic"}, &WTPTA1::Kic, units::one, "Kic"),
+         parameter({"kpc"}, &WTPTA1::Kpc, units::one, "Kpc"),
+         parameter({"kcc"}, &WTPTA1::Kcc, units::one, "Kcc"),
+         parameter({"tp"}, &WTPTA1::Tp, units::second, "Tp"),
+         parameter({"tetamax"}, &WTPTA1::thetaMax, units::one, "Theta max"),
+         parameter({"tetamin"}, &WTPTA1::thetaMin, units::one, "Theta min"),
+         parameter({"rtetamax"}, &WTPTA1::rateMax, units::one, "Rate max"),
+         parameter({"rtetamin"}, &WTPTA1::rateMin, units::one, "Rate min"),
+         flag({"aligninitialpset"}, &WTPTA1::alignInitialPset, "Align initial pset"),
+         localState("Pset", &WTPTA1::Pset, "Pset"),
+         localState("configuredPset", &WTPTA1::configuredPset, "Configured pset"),
+         localState("hasFixedPset", &WTPTA1::hasFixedPset, "Has fixed pset"),
+         localState("initialSpeed", &WTPTA1::initialSpeed, "Initial speed"),
+         command({"pset"}, units::defunit, "Set pset"),
+         state("theta", units::one, "Solver variable theta when active"),
+         state("speedIntegral", units::one, "Solver variable speedIntegral when active"),
+         state("powerIntegral", units::one, "Solver variable powerIntegral when active")});
+    return description;
+}
+
+void WTPTA1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = WTPTA1::getModelDescription();
+    getParamString<WTPTA1, RenewableComponent>(this,
+                                               pstr,
+                                               description.numericNames(),
+                                               description.stringNames(),
+                                               description.flagNames(),
+                                               pstype);
+}
 
 WTPTA1::WTPTA1(const std::string& objName): RenewableComponent(objName)
 {
@@ -78,33 +132,17 @@ std::span<const RenewablePort> WTPTA1::outputPorts() const
 
 void WTPTA1::set(std::string_view param, double val, units::unit unitType)
 {
+    if (WTPTA1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "kiw") {
-        Kiw = val;
-    } else if (key == "kpw") {
-        Kpw = val;
-    } else if (key == "kic") {
-        Kic = val;
-    } else if (key == "kpc") {
-        Kpc = val;
-    } else if (key == "kcc") {
-        Kcc = val;
-    } else if (key == "tp") {
-        Tp = val;
-    } else if (key == "tetamax") {
-        thetaMax = val;
-    } else if (key == "tetamin") {
-        thetaMin = val;
-    } else if (key == "rtetamax") {
-        rateMax = val;
-    } else if (key == "rtetamin") {
-        rateMin = val;
-    } else if (key == "pset") {
+    if (key != param && WTPTA1::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+        return;
+    }
+    if (key == "pset") {
         Pset = val;
         configuredPset = val;
         hasFixedPset = true;
-    } else if (key == "aligninitialpset") {
-        alignInitialPset = (val != 0.0);
     } else {
         RenewableComponent::set(param, val, unitType);
     }
@@ -113,35 +151,8 @@ void WTPTA1::set(std::string_view param, double val, units::unit unitType)
 double WTPTA1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "kiw") {
-        return Kiw;
-    }
-    if (key == "kpw") {
-        return Kpw;
-    }
-    if (key == "kic") {
-        return Kic;
-    }
-    if (key == "kpc") {
-        return Kpc;
-    }
-    if (key == "kcc") {
-        return Kcc;
-    }
-    if (key == "tp") {
-        return Tp;
-    }
-    if (key == "tetamax") {
-        return thetaMax;
-    }
-    if (key == "tetamin") {
-        return thetaMin;
-    }
-    if (key == "rtetamax") {
-        return rateMax;
-    }
-    if (key == "rtetamin") {
-        return rateMin;
+    if (const auto value = WTPTA1::getModelDescription().tryGetLocal(*this, key, unitType)) {
+        return *value;
     }
     if (key == "pset") {
         return hasFixedPset ? Pset : kNullVal;

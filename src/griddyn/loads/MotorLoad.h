@@ -16,6 +16,9 @@ namespace griddyn::loads {
  */
 class MotorLoad: public GridLoad {
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     /** @brief motor load flags*/
     enum MotorLoadFlags {
         INIT_TRANSIENT =

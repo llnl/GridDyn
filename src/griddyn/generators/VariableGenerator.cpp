@@ -10,12 +10,34 @@
 #include "../GridBus.h"
 #include "../Source.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <string>
 
 namespace griddyn {
 using units::convert;
 using units::puV;
 using units::unit;
+
+void VariableGenerator::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = VariableGenerator::getModelDescription();
+    getParamString<VariableGenerator, DynamicGenerator>(this,
+                                                        pstr,
+                                                        description.numericNames(),
+                                                        description.stringNames(),
+                                                        description.flagNames(),
+                                                        pstype);
+}
+
+const ModelDescription& VariableGenerator::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<VariableGenerator>(
+        "VariableGenerator",
+        &DynamicGenerator::getModelDescription(),
+        {command({"vcutout"}, units::defunit, "Set vcutout"),
+         command({"vmax"}, units::defunit, "Set vmax")});
+    return description;
+}
 
 VariableGenerator::VariableGenerator(const std::string& objName): DynamicGenerator(objName)
 {
@@ -110,6 +132,9 @@ void VariableGenerator::set(std::string_view param, std::string_view val)
 
 void VariableGenerator::set(std::string_view param, double val, unit unitType)
 {
+    if (VariableGenerator::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if (param == "vcutout") {
         mp_Vcutout = convert(val, unitType, puV, systemBasePower, localBaseVoltage);
     } else if (param == "vmax") {

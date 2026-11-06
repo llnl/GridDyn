@@ -23,6 +23,9 @@ class VariableGenerator: public DynamicGenerator {
     model_parameter mp_Vcutout = -1.0;  //!<[pu] the cutout voltage
     model_parameter mp_Vmax = kBigNum;  //!< [pu] the maximum operating voltage
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     //!< @brief new submodel locations for the extra variable generator block extends the ones
     //!< defined in Generator
     enum ExtraBlockLocations { SOURCE_LOC = 5, CONTROL_BLOCK_LOC = 6 };

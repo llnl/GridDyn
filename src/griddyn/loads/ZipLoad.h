@@ -16,6 +16,8 @@ Z-constant impedance, I-constant current, P- constant Power
 */
 class ZipLoad: public GridLoad {
   public:
+    bool getFlag(std::string_view flag) const override;
+    const ModelDescription& getModelDescription() const override;
     enum LoadFlags {
         CONVERT_TO_CONSTANT_IMPEDANCE = OBJECT_FLAG2,
         NO_PQVOLTAGE_LIMIT = OBJECT_FLAG3,

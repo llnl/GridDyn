@@ -14,6 +14,7 @@
 #include "DynamicGenerator.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include "utilities/MatrixDataCustomWriteOnly.hpp"
 #include "utilities/MatrixDataScale.hpp"
@@ -40,6 +41,15 @@ namespace {
         return requested.empty() || requested == provider->getName();
     }
 }  // namespace
+
+const ModelDescription& RenewableGenerator::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<RenewableGenerator>("RenewableGenerator",
+                                                     &Generator::getModelDescription(),
+                                                     {});
+    return description;
+}
 
 RenewableGenerator::RenewableGenerator(const std::string& objName): Generator(objName) {}
 

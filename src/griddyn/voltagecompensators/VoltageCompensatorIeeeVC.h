@@ -17,6 +17,9 @@ class VoltageCompensatorIeeeVC: public VoltageCompensator {
     model_parameter XC = 0.0;
 
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     explicit VoltageCompensatorIeeeVC(const std::string& objName = "ieeevc_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 

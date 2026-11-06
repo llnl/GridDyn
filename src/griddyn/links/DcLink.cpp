@@ -11,6 +11,7 @@
 #include "../primary/DcBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <cmath>
@@ -22,6 +23,56 @@ namespace griddyn::links {
 using units::convert;
 using units::puMW;
 using units::unit;
+void DcLink::setFlag(std::string_view flag, bool val)
+{
+    if (!DcLink::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+        Link::setFlag(flag, val);
+    }
+}
+
+bool DcLink::getFlag(std::string_view flag) const
+{
+    if (const auto value = DcLink::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    return Link::getFlag(flag);
+}
+
+const ModelDescription& DcLink::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<DcLink>(
+        "DcLink",
+        &Link::getModelDescription(),
+        {parameter({"r", "rdc"}, &DcLink::r, units::one, "The dc resistance"),
+         parameter({"l", "x", "ldc"}, &DcLink::x, units::one, "The dc inductance"),
+         parameter({"c", "cdc"}, &DcLink::c, units::one, "The dc capacitance"),
+         flag({"andes_current_balance", "current_balance"},
+              &DcLink::currentBalance,
+              "Use ANDES' nodal-current convention"),
+         command(
+             {"model", "topology"}, units::defunit, "Configure model", ModelFieldType::STRING)});
+    return description;
+}
+
+double DcLink::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value = DcLink::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return Link::get(param, unitType);
+}
+
+void DcLink::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = DcLink::getModelDescription();
+    getParamString<DcLink, Link>(this,
+                                 pstr,
+                                 description.numericNames(),
+                                 description.stringNames(),
+                                 description.flagNames(),
+                                 pstype);
+}
+
 DcLink::DcLink(const std::string& objName): Link(objName)
 {
     opFlags.set(DC_ONLY);
@@ -138,18 +189,10 @@ void DcLink::set(std::string_view param, std::string_view val)
 }
 void DcLink::set(std::string_view param, double val, unit unitType)
 {
-    if ((param == "r") || (param == "rdc")) {
-        r = val;
-    } else if ((param == "l") || (param == "x") || (param == "ldc")) {
-        x = val;
-        // set line admittance
-    } else if ((param == "c") || (param == "cdc")) {
-        c = val;
-    } else if ((param == "andes_current_balance") || (param == "current_balance")) {
-        currentBalance = (val > 0.5);
-    } else {
-        Link::set(param, val, unitType);
+    if (DcLink::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    Link::set(param, val, unitType);
 }
 
 void DcLink::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)

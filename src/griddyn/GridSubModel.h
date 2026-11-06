@@ -23,6 +23,7 @@ class GridSubModel: public GridComponent {
   protected:
     double m_output = 0.0;  //!< storage location for the current output
   public:
+    const ModelDescription& getModelDescription() const override;
     /** @brief default constructor*/
     explicit GridSubModel(const std::string& objName = "submodel_#");
 

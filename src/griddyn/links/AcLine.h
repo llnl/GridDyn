@@ -52,6 +52,7 @@ Each link has a disconnect switch at the "from" bus and the "to" bus
 */
 class AcLine: public Link {
   public:
+    const ModelDescription& getModelDescription() const override;
     enum AcLineFlags {
         // indicator that the angle slipped past 90 degree on a test
         ANGLE_SLIP_ON_TEST = OBJECT_FLAG10,

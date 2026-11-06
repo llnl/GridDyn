@@ -7,12 +7,58 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
 #include <string>
 
 namespace griddyn::limiters {
+
+const ModelDescription& ExcitationLimiterOEL3C::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExcitationLimiterOEL3C>(
+        "ExcitationLimiterOEL3C",
+        &ExcitationLimiter::getModelDescription(),
+        {parameter({"itfpu", "itf_pu"}, &ExcitationLimiterOEL3C::itfpu, units::one, "Itfpu"),
+         parameter({"kscale", "k_scale"}, &ExcitationLimiterOEL3C::kscale, units::one, "Kscale"),
+         parameter({"tf"}, &ExcitationLimiterOEL3C::tf, units::second, "Tf"),
+         parameter({"k1"},
+                   &ExcitationLimiterOEL3C::k1,
+                   units::one,
+                   "K1",
+                   [](int value) { return value == 1 || value == 2; }),
+         parameter({"koel", "k_oel"}, &ExcitationLimiterOEL3C::koel, units::one, "Koel"),
+         parameter({"toel", "t_oel"}, &ExcitationLimiterOEL3C::toel, units::second, "Toel"),
+         parameter({"kpoel", "kp_oel"}, &ExcitationLimiterOEL3C::kpoel, units::one, "Kpoel"),
+         parameter(
+             {"voelmax1", "voel_max1"}, &ExcitationLimiterOEL3C::voelMax1, units::one, "Voel max1"),
+         parameter(
+             {"voelmin1", "voel_min1"}, &ExcitationLimiterOEL3C::voelMin1, units::one, "Voel min1"),
+         parameter(
+             {"voelmax2", "voel_max2"}, &ExcitationLimiterOEL3C::voelMax2, units::one, "Voel max2"),
+         parameter(
+             {"voelmin2", "voel_min2"}, &ExcitationLimiterOEL3C::voelMin2, units::one, "Voel min2"),
+         command({"oelinput", "oel_input"}, units::defunit, "Set oelinput"),
+         state("voel", units::one, "Solver variable voel when active"),
+         state("field_current_filter",
+               units::one,
+               "Solver variable field_current_filter when active"),
+         state("integral", units::one, "Solver variable integral when active"),
+         localState("prevTime", &ExcitationLimiterOEL3C::prevTime, "Prev time")});
+    return description;
+}
+
+void ExcitationLimiterOEL3C::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExcitationLimiterOEL3C::getModelDescription();
+    getParamString<ExcitationLimiterOEL3C, ExcitationLimiter>(this,
+                                                              pstr,
+                                                              description.numericNames(),
+                                                              description.stringNames(),
+                                                              description.flagNames(),
+                                                              pstype);
+}
 
 ExcitationLimiterOEL3C::ExcitationLimiterOEL3C(const std::string& objName):
     ExcitationLimiter(objName)
@@ -45,36 +91,14 @@ CoreObject* ExcitationLimiterOEL3C::clone(CoreObject* obj) const
 
 void ExcitationLimiterOEL3C::set(std::string_view param, double val, units::unit unitType)
 {
+    if (ExcitationLimiterOEL3C::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if (param == "oelinput" || param == "oel_input") {
         if (val != 0.0) {
             throw InvalidParameterValue(
                 "OEL3C currently supports OELInput=0 (machine field current)");
         }
-    } else if (param == "itfpu" || param == "itf_pu") {
-        itfpu = val;
-    } else if (param == "kscale" || param == "k_scale") {
-        kscale = val;
-    } else if (param == "tf") {
-        tf = val;
-    } else if (param == "k1") {
-        if (!std::isfinite(val) || (val != 1.0 && val != 2.0)) {
-            throw InvalidParameterValue("OEL3C K1 must be 1 or 2");
-        }
-        k1 = static_cast<int>(val);
-    } else if (param == "koel" || param == "k_oel") {
-        koel = val;
-    } else if (param == "toel" || param == "t_oel") {
-        toel = val;
-    } else if (param == "kpoel" || param == "kp_oel") {
-        kpoel = val;
-    } else if (param == "voelmax1" || param == "voel_max1") {
-        voelMax1 = val;
-    } else if (param == "voelmin1" || param == "voel_min1") {
-        voelMin1 = val;
-    } else if (param == "voelmax2" || param == "voel_max2") {
-        voelMax2 = val;
-    } else if (param == "voelmin2" || param == "voel_min2") {
-        voelMin2 = val;
     } else {
         ExcitationLimiter::set(param, val, unitType);
     }
@@ -82,42 +106,14 @@ void ExcitationLimiterOEL3C::set(std::string_view param, double val, units::unit
 
 double ExcitationLimiterOEL3C::get(std::string_view param, units::unit unitType) const
 {
+    if (const auto value =
+            ExcitationLimiterOEL3C::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
     if (param == "oelinput" || param == "oel_input") {
         return 0.0;
     }
-    if (param == "itfpu" || param == "itf_pu") {
-        return itfpu;
-    }
-    if (param == "kscale" || param == "k_scale") {
-        return kscale;
-    }
-    if (param == "tf") {
-        return tf;
-    }
-    if (param == "k1") {
-        return static_cast<double>(k1);
-    }
-    if (param == "koel" || param == "k_oel") {
-        return koel;
-    }
-    if (param == "toel" || param == "t_oel") {
-        return toel;
-    }
-    if (param == "kpoel" || param == "kp_oel") {
-        return kpoel;
-    }
-    if (param == "voelmax1" || param == "voel_max1") {
-        return voelMax1;
-    }
-    if (param == "voelmin1" || param == "voel_min1") {
-        return voelMin1;
-    }
-    if (param == "voelmax2" || param == "voel_max2") {
-        return voelMax2;
-    }
-    if (param == "voelmin2" || param == "voel_min2") {
-        return voelMin2;
-    }
+
     return ExcitationLimiter::get(param, unitType);
 }
 

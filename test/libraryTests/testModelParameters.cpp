@@ -7,6 +7,7 @@
 #include "core/CoreExceptions.h"
 #include "core/ModelParameter.hpp"
 #include <algorithm>
+#include <array>
 #include <bitset>
 #include <chrono>
 #include <cmath>
@@ -25,6 +26,12 @@ namespace {
     // NOLINTBEGIN(google-default-arguments)
     class ParameterModel: public CoreObject {
       public:
+        struct Settings {
+            double delay = 0.5;
+            int selector = 0;
+            std::array<double, 2> coefficients{0.25, 0.75};
+        };
+        Settings mSettings;
         enum class Mode : std::uint8_t { FIRST, SECOND };
         double mGain = 1.0;
         double mDelay = 0.5;
@@ -59,7 +66,26 @@ namespace {
             static const auto description = ModelDescription::define<ParameterModel>(
                 "ParameterModel",
                 &CoreObject::getModelDescription(),
-                {parameter({"gain", "k"}, &ParameterModel::mGain, units::one, "Gain"),
+                {parameter({"nested_delay", "nested_t"},
+                           &ParameterModel::mSettings,
+                           &Settings::delay,
+                           units::second,
+                           "Structured delay",
+                           parameterValidators::positive),
+                 parameter({"nested_selector"},
+                           &ParameterModel::mSettings,
+                           &Settings::selector,
+                           units::one,
+                           "Structured selector",
+                           parameterValidators::binary),
+                 parameter({"nested_coefficient"},
+                           &ParameterModel::mSettings,
+                           &Settings::coefficients,
+                           1,
+                           units::one,
+                           "Structured coefficient",
+                           parameterValidators::unitInterval),
+                 parameter({"gain", "k"}, &ParameterModel::mGain, units::one, "Gain"),
                  parameter({"delay"},
                            &ParameterModel::mDelay,
                            units::second,
@@ -645,6 +671,59 @@ TEST(ModelParameterTests, ResolvesParameterBeforeSameNamedStateRegardlessOfDecla
     const auto gain = description.tryGetLocal(model, "gain");
     ASSERT_TRUE(gain.has_value());
     EXPECT_DOUBLE_EQ(*gain, 2.5);
+}
+
+TEST(ModelParameterTests, StructuredParametersConvertValidateAndRestoreAtomically)
+{
+    ParameterModel model;
+    model.set("nested_t", 250.0, units::ms);
+    model.set("nested_coefficient", 50.0, units::percent);
+    model.set("nested_selector", 1.0);
+    EXPECT_NEAR(model.get("nested_delay", units::ms), 250.0, 1e-4);
+    EXPECT_DOUBLE_EQ(model.mSettings.coefficients[0], 0.25);
+    EXPECT_NEAR(model.mSettings.coefficients[1], 0.5, 1e-6);
+    EXPECT_THROW(model.set("nested_selector", 0.5), InvalidParameterValue);
+    EXPECT_THROW(model.set("nested_selector", 2.0), InvalidParameterValue);
+    EXPECT_THROW(model.set("nested_coefficient", 1.1), InvalidParameterValue);
+    EXPECT_THROW(model.set("nested_delay", 1.0, units::MW), InvalidParameterValue);
+
+    const auto saved = ModelFieldSnapshot::capture(model);
+    model.set("nested_delay", 1.5);
+    model.set("nested_coefficient", 0.2);
+    auto damaged = saved;
+    entry(damaged, "ParameterModel", "nested_selector").mValue = std::string{"bad type"};
+    EXPECT_THROW(damaged.restore(model), FileOperationError);
+    EXPECT_DOUBLE_EQ(model.get("nested_delay"), 1.5);
+    EXPECT_DOUBLE_EQ(model.get("nested_coefficient"), 0.2);
+    saved.restore(model);
+    EXPECT_NEAR(model.get("nested_delay"), 0.25, 1e-6);
+    EXPECT_NEAR(model.get("nested_coefficient"), 0.5, 1e-6);
+    EXPECT_DOUBLE_EQ(model.get("nested_selector"), 1.0);
+}
+
+TEST(ModelParameterTests, RejectsOutOfBoundsStructuredCoefficientDeclarations)
+{
+    EXPECT_THROW((parameter({"bad_index"},
+                            &ParameterModel::mSettings,
+                            &ParameterModel::Settings::coefficients,
+                            2,
+                            units::one,
+                            "Invalid element")),
+                 std::invalid_argument);
+}
+
+TEST(ModelParameterTests, DiscoversStringCommandsWithoutInterceptingTheirImplementation)
+{
+    auto description = ModelDescription::define<ParameterModel>(
+        "StringCommandModel",
+        nullptr,
+        {command({"role"}, units::defunit, "Select model role", ModelFieldType::STRING)});
+    ASSERT_EQ(description.stringNames().size(), 1U);
+    EXPECT_EQ(description.stringNames().front(), "role");
+    EXPECT_TRUE(description.numericNames().empty());
+    ParameterModel model;
+    EXPECT_FALSE(description.trySetLocal(model, "role", "under"));
+    EXPECT_FALSE(description.trySetLocal(model, "role", 0.0));
 }
 
 }  // namespace griddyn

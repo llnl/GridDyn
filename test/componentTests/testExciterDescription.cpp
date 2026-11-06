@@ -104,7 +104,8 @@ TEST(ExciterDescriptionTests, DiscoversInheritedParametersSolverStatesAndLimiter
     EXPECT_EQ(description.name(), "ExciterSEXS");
     ASSERT_NE(description.parent(), nullptr);
     EXPECT_EQ(description.parent()->name(), "Exciter");
-    EXPECT_EQ(description.parent()->parent()->name(), "GridComponent");
+    EXPECT_EQ(description.parent()->parent()->name(), "GridSubModel");
+    EXPECT_EQ(description.parent()->parent()->parent()->name(), "GridComponent");
     for (const auto* name :
          {"tb", "te", "ta", "ka", "vref", "vrmax", "vrmin", "vbias", "basepower"}) {
         ASSERT_NE(description.find(name), nullptr);

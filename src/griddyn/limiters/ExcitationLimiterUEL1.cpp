@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -15,6 +16,51 @@
 namespace griddyn::limiters {
 namespace {
     constexpr double signalTolerance = 1e-14;
+}
+
+const ModelDescription& ExcitationLimiterUEL1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExcitationLimiterUEL1>(
+        "ExcitationLimiterUEL1",
+        &ExcitationLimiter::getModelDescription(),
+        {parameter({"kur", "ku_r"}, &ExcitationLimiterUEL1::kur, units::one, "Kur"),
+         parameter({"kuc", "ku_c"}, &ExcitationLimiterUEL1::kuc, units::one, "Kuc"),
+         parameter({"vurmax", "vur_max"}, &ExcitationLimiterUEL1::vurMax, units::one, "Vur max"),
+         parameter({"vucmax", "vuc_max"}, &ExcitationLimiterUEL1::vucMax, units::one, "Vuc max"),
+         parameter({"kui", "ku_i"}, &ExcitationLimiterUEL1::kuI, units::one, "Ku i"),
+         parameter({"kul", "ku_l"}, &ExcitationLimiterUEL1::kuL, units::one, "Ku l"),
+         parameter({"vuimax", "vui_max"}, &ExcitationLimiterUEL1::vuiMax, units::one, "Vui max"),
+         parameter({"vuimin", "vui_min"}, &ExcitationLimiterUEL1::vuiMin, units::one, "Vui min"),
+         parameter({"tu1"}, &ExcitationLimiterUEL1::tu1, units::second, "Tu1"),
+         parameter({"tu2"}, &ExcitationLimiterUEL1::tu2, units::second, "Tu2"),
+         parameter({"tu3"}, &ExcitationLimiterUEL1::tu3, units::second, "Tu3"),
+         parameter({"tu4"}, &ExcitationLimiterUEL1::tu4, units::second, "Tu4"),
+         parameter({"vulmax", "vuelmax", "vul_max"},
+                   &ExcitationLimiterUEL1::vulMax,
+                   units::one,
+                   "Vul max"),
+         parameter({"vulmin", "vuelmin", "vul_min"},
+                   &ExcitationLimiterUEL1::vulMin,
+                   units::one,
+                   "Vul min"),
+         parameter({"kuf", "ku_f"}, &ExcitationLimiterUEL1::kuf, units::one, "Kuf"),
+         state("vuel", units::one, "Solver variable vuel when active"),
+         state("integral", units::one, "Solver variable integral when active"),
+         state("lead_lag_1", units::one, "Solver variable lead_lag_1 when active"),
+         state("lead_lag_2", units::one, "Solver variable lead_lag_2 when active"),
+         localState("prevTime", &ExcitationLimiterUEL1::prevTime, "Prev time")});
+    return description;
+}
+
+void ExcitationLimiterUEL1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExcitationLimiterUEL1::getModelDescription();
+    getParamString<ExcitationLimiterUEL1, ExcitationLimiter>(this,
+                                                             pstr,
+                                                             description.numericNames(),
+                                                             description.stringNames(),
+                                                             description.flagNames(),
+                                                             pstype);
 }
 
 ExcitationLimiterUEL1::ExcitationLimiterUEL1(const std::string& objName): ExcitationLimiter(objName)
@@ -51,87 +97,17 @@ CoreObject* ExcitationLimiterUEL1::clone(CoreObject* obj) const
 
 void ExcitationLimiterUEL1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "kur" || param == "ku_r") {
-        kur = val;
-    } else if (param == "kuc" || param == "ku_c") {
-        kuc = val;
-    } else if (param == "vurmax" || param == "vur_max") {
-        vurMax = val;
-    } else if (param == "vucmax" || param == "vuc_max") {
-        vucMax = val;
-    } else if (param == "kui" || param == "ku_i") {
-        kuI = val;
-    } else if (param == "kul" || param == "ku_l") {
-        kuL = val;
-    } else if (param == "vuimax" || param == "vui_max") {
-        vuiMax = val;
-    } else if (param == "vuimin" || param == "vui_min") {
-        vuiMin = val;
-    } else if (param == "tu1") {
-        tu1 = val;
-    } else if (param == "tu2") {
-        tu2 = val;
-    } else if (param == "tu3") {
-        tu3 = val;
-    } else if (param == "tu4") {
-        tu4 = val;
-    } else if (param == "vulmax" || param == "vuelmax" || param == "vul_max") {
-        vulMax = val;
-    } else if (param == "vulmin" || param == "vuelmin" || param == "vul_min") {
-        vulMin = val;
-    } else if (param == "kuf" || param == "ku_f") {
-        kuf = val;
-    } else {
-        ExcitationLimiter::set(param, val, unitType);
+    if (ExcitationLimiterUEL1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    ExcitationLimiter::set(param, val, unitType);
 }
 
 double ExcitationLimiterUEL1::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "kur" || param == "ku_r") {
-        return kur;
-    }
-    if (param == "kuc" || param == "ku_c") {
-        return kuc;
-    }
-    if (param == "vurmax" || param == "vur_max") {
-        return vurMax;
-    }
-    if (param == "vucmax" || param == "vuc_max") {
-        return vucMax;
-    }
-    if (param == "kui" || param == "ku_i") {
-        return kuI;
-    }
-    if (param == "kul" || param == "ku_l") {
-        return kuL;
-    }
-    if (param == "vuimax" || param == "vui_max") {
-        return vuiMax;
-    }
-    if (param == "vuimin" || param == "vui_min") {
-        return vuiMin;
-    }
-    if (param == "tu1") {
-        return tu1;
-    }
-    if (param == "tu2") {
-        return tu2;
-    }
-    if (param == "tu3") {
-        return tu3;
-    }
-    if (param == "tu4") {
-        return tu4;
-    }
-    if (param == "vulmax" || param == "vuelmax" || param == "vul_max") {
-        return vulMax;
-    }
-    if (param == "vulmin" || param == "vuelmin" || param == "vul_min") {
-        return vulMin;
-    }
-    if (param == "kuf" || param == "ku_f") {
-        return kuf;
+    if (const auto value =
+            ExcitationLimiterUEL1::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return ExcitationLimiter::get(param, unitType);
 }

@@ -20,6 +20,7 @@ namespace griddyn::loads {
  */
 class ShuntTD: public ZipLoad {
   public:
+    const ModelDescription& getModelDescription() const override;
     enum ShuntTDOutputs {
         VTA_OUTPUT = 2,
         VTB_OUTPUT = 3,

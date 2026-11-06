@@ -9,6 +9,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -24,13 +25,6 @@ namespace griddyn::loads {
 namespace {
     TypeFactory<MotorDLoad> gMotorDFactory("load",
                                            std::to_array<std::string_view>({"motord", "motor_d"}));
-
-    constexpr std::array<std::string_view, 22> numericParameters{
-        "lfm",   "comppf", "vstall", "rstall", "xstall", "tstall", "frst",   "vrst",
-        "trst",  "fuvr",   "vtr1",   "ttr1",   "vtr2",   "ttr2",   "vc1off", "vc2off",
-        "vc1on", "vc2on",  "tth",    "th1t",   "th2t",   "tv"};
-    constexpr std::array<std::string_view, 0> stringParameters{};
-    constexpr std::array<std::string_view, 0> flagParameters{};
 
     struct MotorDPowerDerivatives {
         double mPVoltage = 0.0;
@@ -75,14 +69,151 @@ namespace {
         return derivative;
     }
 
-    double validateUnitInterval(std::string_view name, double value)
-    {
-        if (!std::isfinite(value) || (value < 0.0) || (value > 1.0)) {
-            throw InvalidParameterValue(std::string{name} + " must be in [0, 1]");
-        }
-        return value;
-    }
 }  // namespace
+
+const ModelDescription& MotorDLoad::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<MotorDLoad>(
+        "MotorDLoad",
+        &GridLoad::getModelDescription(),
+        {parameter({"lfm", "LFm"},
+                   &MotorDLoad::loadFactor,
+                   units::one,
+                   "LFm: load MW / motor MVA rating",
+                   parameterValidators::positive),
+         parameter({"comppf", "CompPF"},
+                   &MotorDLoad::compPF,
+                   units::one,
+                   "Comp pf",
+                   [](double value) { return value > 0.0 && value <= 1.0; }),
+         parameter({"vstall", "Vstall"},
+                   &MotorDLoad::stallVoltage,
+                   units::one,
+                   "Stall voltage",
+                   [](double value) { return value > 0.0 && value < 2.0; }),
+         parameter({"rstall", "Rstall"},
+                   &MotorDLoad::stallResistance,
+                   units::one,
+                   "Stall resistance",
+                   parameterValidators::positive),
+         parameter({"xstall", "Xstall"},
+                   &MotorDLoad::stallReactance,
+                   units::one,
+                   "Stall reactance",
+                   parameterValidators::positive),
+         parameter({"tstall", "Tstall"}, &MotorDLoad::stallDelay, units::second, "Stall delay"),
+         parameter({"vrst", "Vrst"},
+                   &MotorDLoad::restartVoltage,
+                   units::one,
+                   "Restart voltage",
+                   [](double value) { return value > 0.0 && value < 2.0; }),
+         parameter({"trst", "Trst"},
+                   &MotorDLoad::restartDelay,
+                   units::second,
+                   "Restart delay",
+                   parameterValidators::nonnegative),
+         parameter({"vtr1", "Vtr1"},
+                   &MotorDLoad::tripVoltage1,
+                   units::one,
+                   "Trip voltage1",
+                   parameterValidators::nonnegative),
+         parameter({"ttr1", "Ttr1"},
+                   &MotorDLoad::tripDelay1,
+                   units::second,
+                   "Trip delay1",
+                   parameterValidators::nonnegative),
+         parameter({"vtr2", "Vtr2"},
+                   &MotorDLoad::tripVoltage2,
+                   units::one,
+                   "Trip voltage2",
+                   parameterValidators::nonnegative),
+         parameter({"ttr2", "Ttr2"},
+                   &MotorDLoad::tripDelay2,
+                   units::second,
+                   "Trip delay2",
+                   parameterValidators::nonnegative),
+         parameter({"vc1off", "Vc1off"},
+                   &MotorDLoad::contactorVoltageOff1,
+                   units::one,
+                   "Contactor voltage off1",
+                   [](double value) { return value >= 0.0 && value < 2.0; }),
+         parameter({"vc2off", "Vc2off"},
+                   &MotorDLoad::contactorVoltageOff2,
+                   units::one,
+                   "Contactor voltage off2",
+                   [](double value) { return value >= 0.0 && value < 2.0; }),
+         parameter({"vc1on", "Vc1on"},
+                   &MotorDLoad::contactorVoltageOn1,
+                   units::one,
+                   "Contactor voltage on1",
+                   [](double value) { return value >= 0.0 && value < 2.0; }),
+         parameter({"vc2on", "Vc2on"},
+                   &MotorDLoad::contactorVoltageOn2,
+                   units::one,
+                   "Contactor voltage on2",
+                   [](double value) { return value >= 0.0 && value < 2.0; }),
+         parameter({"tth", "Tth"},
+                   &MotorDLoad::thermalTimeConstant,
+                   units::second,
+                   "Thermal time constant",
+                   parameterValidators::nonnegative),
+         parameter({"th1t", "Th1t"},
+                   &MotorDLoad::thermalTripStart,
+                   units::one,
+                   "Thermal trip start",
+                   parameterValidators::nonnegative),
+         parameter({"th2t", "Th2t"},
+                   &MotorDLoad::thermalTripComplete,
+                   units::one,
+                   "Thermal trip complete",
+                   parameterValidators::nonnegative),
+         parameter({"tv", "Tv"},
+                   &MotorDLoad::voltageMeasurementLag,
+                   units::second,
+                   "Voltage measurement lag",
+                   parameterValidators::nonnegative),
+         parameter({"frst", "Frst"},
+                   &MotorDLoad::restartableFraction,
+                   units::one,
+                   "Restartable fraction",
+                   parameterValidators::unitInterval),
+         parameter({"fuvr", "Fuvr"},
+                   &MotorDLoad::undervoltageFraction,
+                   units::one,
+                   "Undervoltage fraction",
+                   parameterValidators::unitInterval),
+         localState("hasStalled", &MotorDLoad::hasStalled, "Has stalled"),
+         localState("restartablePartStalled",
+                    &MotorDLoad::restartablePartStalled,
+                    "Restartable part stalled"),
+         localState("undervoltageTripped",
+                    &MotorDLoad::undervoltageTripped,
+                    "Undervoltage tripped"),
+         localState("stallTimerActive", &MotorDLoad::stallTimerActive, "Stall timer active"),
+         localState("restartTimerActive", &MotorDLoad::restartTimerActive, "Restart timer active"),
+         localState("tripTimerActive1", &MotorDLoad::tripTimerActive1, "Trip timer active1"),
+         localState("tripTimerActive2", &MotorDLoad::tripTimerActive2, "Trip timer active2"),
+         localState("stallStart", &MotorDLoad::stallStart, "Stall start"),
+         localState("restartStart", &MotorDLoad::restartStart, "Restart start"),
+         localState("tripStart1", &MotorDLoad::tripStart1, "Trip start1"),
+         localState("tripStart2", &MotorDLoad::tripStart2, "Trip start2"),
+         localState("contactorFraction", &MotorDLoad::contactorFraction, "Contactor fraction"),
+         localState("previousContactorVoltage",
+                    &MotorDLoad::previousContactorVoltage,
+                    "Previous contactor voltage"),
+         localState("inverseTimeActive", &MotorDLoad::inverseTimeActive, "Inverse time active"),
+         localState("inverseTimeStart", &MotorDLoad::inverseTimeStart, "Inverse time start"),
+         localState("inverseTimeCycles", &MotorDLoad::inverseTimeCycles, "Inverse time cycles"),
+         localState("inverseTimeAccumulation",
+                    &MotorDLoad::inverseTimeAccumulation,
+                    "Inverse time accumulation"),
+         state("voltage_measurement",
+               units::one,
+               "Solver variable voltage_measurement when active"),
+         state("thermal_a", units::one, "Solver variable thermal_a when active"),
+         state("thermal_b", units::one, "Solver variable thermal_b when active")});
+    return description;
+}
 
 MotorDLoad::MotorDLoad(const std::string& objName): GridLoad(objName)
 {
@@ -144,8 +275,13 @@ CoreObject* MotorDLoad::clone(CoreObject* obj) const
 
 void MotorDLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    getParamString<MotorDLoad, GridLoad>(
-        this, pstr, numericParameters, stringParameters, flagParameters, pstype);
+    const auto& description = MotorDLoad::getModelDescription();
+    getParamString<MotorDLoad, GridLoad>(this,
+                                         pstr,
+                                         description.numericNames(),
+                                         description.stringNames(),
+                                         description.flagNames(),
+                                         pstype);
 }
 
 void MotorDLoad::set(std::string_view param, std::string_view val)
@@ -155,183 +291,18 @@ void MotorDLoad::set(std::string_view param, std::string_view val)
 
 void MotorDLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "lfm" || param == "LFm") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("Motor D LFm must be positive");
-        }
-        loadFactor = val;
-    } else if (param == "comppf" || param == "CompPF") {
-        if (!std::isfinite(val) || (val <= 0.0) || (val > 1.0)) {
-            throw InvalidParameterValue("Motor D CompPF must be in (0, 1]");
-        }
-        compPF = val;
-    } else if (param == "vstall" || param == "Vstall") {
-        if (!std::isfinite(val) || (val <= 0.0) || (val >= 2.0)) {
-            throw InvalidParameterValue("Motor D Vstall must be in (0, 2)");
-        }
-        stallVoltage = val;
-    } else if (param == "rstall" || param == "Rstall") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("Motor D Rstall must be positive");
-        }
-        stallResistance = val;
-    } else if (param == "xstall" || param == "Xstall") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("Motor D Xstall must be positive");
-        }
-        stallReactance = val;
-    } else if (param == "tstall" || param == "Tstall") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("Motor D Tstall must be finite");
-        }
-        stallDelay = val;
-    } else if (param == "frst" || param == "Frst") {
-        restartableFraction = validateUnitInterval(param, val);
-    } else if (param == "vrst" || param == "Vrst") {
-        if (!std::isfinite(val) || (val <= 0.0) || (val >= 2.0)) {
-            throw InvalidParameterValue("Motor D Vrst must be in (0, 2)");
-        }
-        restartVoltage = val;
-    } else if (param == "trst" || param == "Trst") {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("Motor D Trst must be non-negative");
-        }
-        restartDelay = val;
-    } else if (param == "fuvr" || param == "Fuvr") {
-        undervoltageFraction = validateUnitInterval(param, val);
-    } else if (param == "vtr1" || param == "Vtr1") {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("Motor D Vtr1 must be non-negative");
-        }
-        tripVoltage1 = val;
-    } else if (param == "ttr1" || param == "Ttr1") {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("Motor D Ttr1 must be non-negative");
-        }
-        tripDelay1 = val;
-    } else if (param == "vtr2" || param == "Vtr2") {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("Motor D Vtr2 must be non-negative");
-        }
-        tripVoltage2 = val;
-    } else if (param == "ttr2" || param == "Ttr2") {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("Motor D Ttr2 must be non-negative");
-        }
-        tripDelay2 = val;
-    } else if (param == "vc1off" || param == "Vc1off") {
-        if (!std::isfinite(val) || (val < 0.0) || (val >= 2.0)) {
-            throw InvalidParameterValue("Motor D Vc1off must be in [0, 2)");
-        }
-        contactorVoltageOff1 = val;
-    } else if (param == "vc2off" || param == "Vc2off") {
-        if (!std::isfinite(val) || (val < 0.0) || (val >= 2.0)) {
-            throw InvalidParameterValue("Motor D Vc2off must be in [0, 2)");
-        }
-        contactorVoltageOff2 = val;
-    } else if (param == "vc1on" || param == "Vc1on") {
-        if (!std::isfinite(val) || (val < 0.0) || (val >= 2.0)) {
-            throw InvalidParameterValue("Motor D Vc1on must be in [0, 2)");
-        }
-        contactorVoltageOn1 = val;
-    } else if (param == "vc2on" || param == "Vc2on") {
-        if (!std::isfinite(val) || (val < 0.0) || (val >= 2.0)) {
-            throw InvalidParameterValue("Motor D Vc2on must be in [0, 2)");
-        }
-        contactorVoltageOn2 = val;
-    } else if (param == "tth" || param == "Tth") {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("Motor D Tth must be non-negative");
-        }
-        thermalTimeConstant = val;
-    } else if (param == "th1t" || param == "Th1t") {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("Motor D Th1t must be non-negative");
-        }
-        thermalTripStart = val;
-    } else if (param == "th2t" || param == "Th2t") {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("Motor D Th2t must be non-negative");
-        }
-        thermalTripComplete = val;
-    } else if (param == "tv" || param == "Tv") {
-        if (!std::isfinite(val) || (val < 0.0)) {
-            throw InvalidParameterValue("Motor D Tv must be non-negative");
-        }
-        voltageMeasurementLag = val;
-    } else {
-        GridLoad::set(param, val, unitType);
+    if (MotorDLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    GridLoad::set(param, val, unitType);
 }
 
 double MotorDLoad::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "lfm" || param == "LFm") {
-        return loadFactor;
+    if (const auto value = MotorDLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
-    if (param == "comppf" || param == "CompPF") {
-        return compPF;
-    }
-    if (param == "vstall" || param == "Vstall") {
-        return stallVoltage;
-    }
-    if (param == "rstall" || param == "Rstall") {
-        return stallResistance;
-    }
-    if (param == "xstall" || param == "Xstall") {
-        return stallReactance;
-    }
-    if (param == "tstall" || param == "Tstall") {
-        return stallDelay;
-    }
-    if (param == "frst" || param == "Frst") {
-        return restartableFraction;
-    }
-    if (param == "vrst" || param == "Vrst") {
-        return restartVoltage;
-    }
-    if (param == "trst" || param == "Trst") {
-        return restartDelay;
-    }
-    if (param == "fuvr" || param == "Fuvr") {
-        return undervoltageFraction;
-    }
-    if (param == "vtr1" || param == "Vtr1") {
-        return tripVoltage1;
-    }
-    if (param == "ttr1" || param == "Ttr1") {
-        return tripDelay1;
-    }
-    if (param == "vtr2" || param == "Vtr2") {
-        return tripVoltage2;
-    }
-    if (param == "ttr2" || param == "Ttr2") {
-        return tripDelay2;
-    }
-    if (param == "vc1off" || param == "Vc1off") {
-        return contactorVoltageOff1;
-    }
-    if (param == "vc2off" || param == "Vc2off") {
-        return contactorVoltageOff2;
-    }
-    if (param == "vc1on" || param == "Vc1on") {
-        return contactorVoltageOn1;
-    }
-    if (param == "vc2on" || param == "Vc2on") {
-        return contactorVoltageOn2;
-    }
-    if (param == "tth" || param == "Tth") {
-        return thermalTimeConstant;
-    }
-    if (param == "th1t" || param == "Th1t") {
-        return thermalTripStart;
-    }
-    if (param == "th2t" || param == "Th2t") {
-        return thermalTripComplete;
-    }
-    if (param == "tv" || param == "Tv") {
-        return voltageMeasurementLag;
-    }
+
     return GridLoad::get(param, unitType);
 }
 

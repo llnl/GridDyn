@@ -9,6 +9,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactory.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
@@ -29,6 +30,40 @@ namespace griddyn::loads {
 //             readability-inconsistent-ifelse-braces, readability-implicit-bool-conversion,
 //             hicpp-named-parameter, readability-named-parameter)
 // setup the load object factories
+
+const ModelDescription& MotorLoad5::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<MotorLoad5>(
+        "MotorLoad5",
+        &MotorLoad3::getModelDescription(),
+        {parameter({"mtype", "type"},
+                   &MotorLoad5::motorType,
+                   units::one,
+                   "PSS/E CIM motor topology: 1 (A) or 2 (B)",
+                   [](int value) { return value == 1 || value == 2; }),
+         parameter({"r2"}, &MotorLoad5::r2, units::one, "3rd level loop resistance"),
+         parameter({"x2"}, &MotorLoad5::x2, units::one, "3 impedance loop reactance")});
+    return description;
+}
+
+double MotorLoad5::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value = MotorLoad5::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return MotorLoad3::get(param, unitType);
+}
+
+void MotorLoad5::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = MotorLoad5::getModelDescription();
+    getParamString<MotorLoad5, MotorLoad3>(this,
+                                           pstr,
+                                           description.numericNames(),
+                                           description.stringNames(),
+                                           description.flagNames(),
+                                           pstype);
+}
 
 MotorLoad5::MotorLoad5(const std::string& objName): MotorLoad3(objName)
 {
@@ -231,18 +266,10 @@ void MotorLoad5::set(std::string_view param, std::string_view val)
 
 void MotorLoad5::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "mtype") || (param == "type")) {
-        if ((std::abs(val - std::round(val)) > 1e-12) || ((val != 1.0) && (val != 2.0))) {
-            throw InvalidParameterValue("CIM motor type must be 1 (A) or 2 (B)");
-        }
-        motorType = static_cast<int>(val);
-    } else if (param == "r2") {
-        r2 = val;
-    } else if (param == "x2") {
-        x2 = val;
-    } else {
-        MotorLoad3::set(param, val, unitType);
+    if (MotorLoad5::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    MotorLoad3::set(param, val, unitType);
 }
 
 double MotorLoad5::mechPower(double slip) const

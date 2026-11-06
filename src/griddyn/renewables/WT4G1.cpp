@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -49,6 +50,41 @@ namespace {
     }
 }  // namespace
 
+const ModelDescription& WT4G1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<WT4G1>(
+        "WT4G1",
+        &TerminalElectricalModel::getModelDescription(),
+        {parameter({"tiqcmd"}, &WT4G1::TIqcmd, units::second, "Tiqcmd"),
+         parameter({"tipcmd"}, &WT4G1::TIpCmd, units::second, "Tip cmd"),
+         parameter({"vlvpl1"}, &WT4G1::Vlvpl1, units::one, "Vlvpl1"),
+         parameter({"vlvpl2"}, &WT4G1::Vlvpl2, units::one, "Vlvpl2"),
+         parameter({"glvpl"}, &WT4G1::Glvpl, units::one, "Glvpl"),
+         parameter({"vhvrcr"}, &WT4G1::Vhvrcr, units::one, "Vhvrcr"),
+         parameter({"curhvrcr"}, &WT4G1::Curhvrcr, units::one, "Curhvrcr"),
+         parameter({"riplvpl"}, &WT4G1::RIpLvpl, units::one, "Rip lvpl"),
+         parameter({"tlvpl"}, &WT4G1::TLvpl, units::second, "Tlvpl"),
+         state("Pe", units::one, "Solver variable Pe when active"),
+         state("Qe", units::one, "Solver variable Qe when active"),
+         state("Ip", units::one, "Solver variable Ip when active"),
+         state("Iq", units::one, "Solver variable Iq when active"),
+         state("Vf", units::one, "Solver variable Vf when active"),
+         localState("heldIp", &WT4G1::heldIp, "Held ip"),
+         localState("heldIq", &WT4G1::heldIq, "Held iq")});
+    return description;
+}
+
+void WT4G1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = WT4G1::getModelDescription();
+    getParamString<WT4G1, TerminalElectricalModel>(this,
+                                                   pstr,
+                                                   description.numericNames(),
+                                                   description.stringNames(),
+                                                   description.flagNames(),
+                                                   pstype);
+}
+
 WT4G1::WT4G1(const std::string& objName): TerminalElectricalModel(objName)
 {
     m_inputSize = 3;
@@ -84,59 +120,21 @@ std::span<const RenewablePort> WT4G1::outputPorts() const
 
 void WT4G1::set(std::string_view param, double val, units::unit unitType)
 {
-    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "tiqcmd") {
-        TIqcmd = val;
-    } else if (key == "tipcmd") {
-        TIpCmd = val;
-    } else if (key == "vlvpl1") {
-        Vlvpl1 = val;
-    } else if (key == "vlvpl2") {
-        Vlvpl2 = val;
-    } else if (key == "glvpl") {
-        Glvpl = val;
-    } else if (key == "vhvrcr") {
-        Vhvrcr = val;
-    } else if (key == "curhvrcr") {
-        Curhvrcr = val;
-    } else if (key == "riplvpl") {
-        RIpLvpl = val;
-    } else if (key == "tlvpl") {
-        TLvpl = val;
-    } else {
-        TerminalElectricalModel::set(param, val, unitType);
+    if (WT4G1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (key != param && WT4G1::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+        return;
+    }
+    TerminalElectricalModel::set(param, val, unitType);
 }
 
 double WT4G1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "tiqcmd") {
-        return TIqcmd;
-    }
-    if (key == "tipcmd") {
-        return TIpCmd;
-    }
-    if (key == "vlvpl1") {
-        return Vlvpl1;
-    }
-    if (key == "vlvpl2") {
-        return Vlvpl2;
-    }
-    if (key == "glvpl") {
-        return Glvpl;
-    }
-    if (key == "vhvrcr") {
-        return Vhvrcr;
-    }
-    if (key == "curhvrcr") {
-        return Curhvrcr;
-    }
-    if (key == "riplvpl") {
-        return RIpLvpl;
-    }
-    if (key == "tlvpl") {
-        return TLvpl;
+    if (const auto value = WT4G1::getModelDescription().tryGetLocal(*this, key, unitType)) {
+        return *value;
     }
     return TerminalElectricalModel::get(param, unitType);
 }

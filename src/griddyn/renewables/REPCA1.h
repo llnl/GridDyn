@@ -13,6 +13,9 @@ namespace griddyn {
 /** REPCA1 local plant reactive/voltage controller with optional frequency response. */
 class REPCA1 final: public RenewableComponent {
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     explicit REPCA1(const std::string& name = "REPCA1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     using RenewableComponent::set;

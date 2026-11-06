@@ -32,6 +32,11 @@ power system stabilizer. as well as control for the power set point and voltage 
 */
 class DynamicGenerator: public Generator {
   public:
+    bool getFlag(std::string_view flag) const override;
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
+    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     enum class DynModel {
         INVALID,
         SIMPLE,

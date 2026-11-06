@@ -26,6 +26,7 @@ namespace griddyn::loads {
  */
 class WECCMotor3: public CIM6 {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit WECCMotor3(const std::string& objName = "weccMotor3_$");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 

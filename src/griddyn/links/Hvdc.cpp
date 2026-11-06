@@ -13,6 +13,7 @@
 #include "AcDcConverter.h"
 #include "DcLink.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
@@ -22,6 +23,31 @@ namespace griddyn::links {
 using units::unit;
 
 static TypeFactory<Hvdc> gHvdcFactory("link", std::to_array<std::string_view>({"hvdc"}));
+
+void Hvdc::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = Hvdc::getModelDescription();
+    getParamString<Hvdc, Subsystem>(this,
+                                    pstr,
+                                    description.numericNames(),
+                                    description.stringNames(),
+                                    description.flagNames(),
+                                    pstype);
+}
+
+const ModelDescription& Hvdc::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<Hvdc>(
+        "Hvdc",
+        &Subsystem::getModelDescription(),
+        {command({"from"}, units::defunit, "Configure from", ModelFieldType::STRING),
+         command({"to"}, units::defunit, "Configure to", ModelFieldType::STRING),
+         command({"r"}, units::defunit, "Set r"),
+         command({"x"}, units::defunit, "Set x"),
+         command({"pset"}, units::defunit, "Set pset"),
+         command({"pout"}, units::defunit, "Set pout")});
+    return description;
+}
 
 Hvdc::Hvdc(const std::string& objName): Subsystem(4, objName)
 {
@@ -89,6 +115,9 @@ void Hvdc::set(std::string_view param, std::string_view val)
 
 void Hvdc::set(std::string_view param, double val, unit unitType)
 {
+    if (Hvdc::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if (param == "r") {
         getLink(0)->set("r", val, unitType);
     } else if (param == "x") {
@@ -116,6 +145,9 @@ void Hvdc::set(std::string_view param, double val, unit unitType)
 
 double Hvdc::get(std::string_view param, unit unitType) const
 {
+    if (const auto value = Hvdc::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
     double val = kNullVal;
     if (param == "#") {
     } else {

@@ -18,6 +18,7 @@ namespace loads {
 eventually will replace most of the shaped loads*/
     class SourceLoad: public ZipLoad {
       public:
+        const ModelDescription& getModelDescription() const override;
         enum SourceLoc {
             P_SOURCE = 0,
             Q_SOURCE = 1,

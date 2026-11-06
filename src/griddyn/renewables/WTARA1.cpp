@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <array>
@@ -26,6 +27,30 @@ namespace {
         {.signal = RenewableSignal::initialPitchAngle, .ioIndex = 1},
     }};
 }  // namespace
+
+const ModelDescription& WTARA1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<WTARA1>(
+        "WTARA1",
+        &RenewableComponent::getModelDescription(),
+        {parameter({"ka"}, &WTARA1::Ka, units::one, "Ka"),
+         parameter({"theta0"}, &WTARA1::theta0, units::one, "Theta0"),
+         state("Pm", units::one, "Solver variable Pm when active"),
+         state("theta0", units::one, "Solver variable theta0 when active"),
+         localState("initialPower", &WTARA1::initialPower, "Initial power")});
+    return description;
+}
+
+void WTARA1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = WTARA1::getModelDescription();
+    getParamString<WTARA1, RenewableComponent>(this,
+                                               pstr,
+                                               description.numericNames(),
+                                               description.stringNames(),
+                                               description.flagNames(),
+                                               pstype);
+}
 
 WTARA1::WTARA1(const std::string& objName): RenewableComponent(objName)
 {
@@ -55,24 +80,21 @@ std::span<const RenewablePort> WTARA1::outputPorts() const
 
 void WTARA1::set(std::string_view param, double val, units::unit unitType)
 {
-    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "ka") {
-        Ka = val;
-    } else if (key == "theta0") {
-        theta0 = val;
-    } else {
-        RenewableComponent::set(param, val, unitType);
+    if (WTARA1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (key != param && WTARA1::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+        return;
+    }
+    RenewableComponent::set(param, val, unitType);
 }
 
 double WTARA1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "ka") {
-        return Ka;
-    }
-    if (key == "theta0") {
-        return theta0;
+    if (const auto value = WTARA1::getModelDescription().tryGetLocal(*this, key, unitType)) {
+        return *value;
     }
     return RenewableComponent::get(param, unitType);
 }

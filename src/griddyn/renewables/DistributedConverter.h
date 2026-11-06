@@ -18,6 +18,11 @@ namespace griddyn {
 /** Distributed PV, storage, and vehicle current-source converter equations. */
 class DistributedConverter: public TerminalElectricalModel {
   public:
+    bool getFlag(std::string_view flag) const override;
+    void setFlag(std::string_view flag, bool val = true) override;
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     enum class Variant { pv, storage, ev1, ev2 };
 
     DistributedConverter(Variant type, const std::string& name);
@@ -102,21 +107,25 @@ class DistributedConverter: public TerminalElectricalModel {
 
 class PVD1 final: public DistributedConverter {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit PVD1(const std::string& name = "PVD1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 };
 class ESD1 final: public DistributedConverter {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit ESD1(const std::string& name = "ESD1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 };
 class EV1 final: public DistributedConverter {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit EV1(const std::string& name = "EV1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 };
 class EV2 final: public DistributedConverter {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit EV2(const std::string& name = "EV2_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 };

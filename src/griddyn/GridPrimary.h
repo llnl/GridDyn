@@ -50,6 +50,9 @@ other classes also containing primary objects.
 **/
 class GridPrimary: public GridComponent {
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     int zone = 1;  //!< publicly accessible loss zone indicator not used internally
     index_t locIndex2 = kNullLocation;  //!< a second lookup index for the object to reference
                                         //!< parent location in storage arrays for

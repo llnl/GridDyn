@@ -8,12 +8,20 @@
 
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <cmath>
 #include <cstddef>
 #include <string>
 #include <vector>
 
 namespace griddyn::loads {
+const ModelDescription& ShuntTD::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<ShuntTD>("ShuntTD", &ZipLoad::getModelDescription(), {});
+    return description;
+}
+
 ShuntTD::ShuntTD(const std::string& objName): ZipLoad(objName) {}
 
 ShuntTD::ShuntTD(double realPower, double reactivePower, const std::string& objName):

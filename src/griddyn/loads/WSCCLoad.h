@@ -39,6 +39,7 @@ class WSCCLoad: public GridLoad {
     double powerFrequencyDerivative(bool reactive, double voltage) const;
 
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit WSCCLoad(const std::string& objName = "wsccLoad_$");
 
     CoreObject* clone(CoreObject* obj = nullptr) const override;

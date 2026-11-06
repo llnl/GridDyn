@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <array>
@@ -41,6 +42,27 @@ namespace {
     }};
 }  // namespace
 
+const ModelDescription& REECA1G::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<REECA1G>("REECA1G",
+                                          &REECA1::getModelDescription(),
+                                          {parameter({"kf"}, &REECA1G::Kf, units::one, "Kf"),
+                                           command({"pflag"}, units::defunit, "Set pflag")});
+    return description;
+}
+
+void REECA1G::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = REECA1G::getModelDescription();
+    getParamString<REECA1G, REECA1>(this,
+                                    pstr,
+                                    description.numericNames(),
+                                    description.stringNames(),
+                                    description.flagNames(),
+                                    pstype);
+}
+
 REECA1G::REECA1G(const std::string& objName): REECA1(objName)
 {
     m_inputSize = 6;
@@ -69,14 +91,16 @@ std::string_view REECA1G::sourceName(RenewableSignal signal) const
 
 void REECA1G::set(std::string_view param, double val, units::unit unitType)
 {
+    if (REECA1G::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "kf") {
-        Kf = val;
-    } else {
-        REECA1::set(param, val, unitType);
-        if (key == "pflag") {
-            m_inputSize = 6;
-        }
+    if (key != param && REECA1G::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+        return;
+    }
+    REECA1::set(param, val, unitType);
+    if (key == "pflag") {
+        m_inputSize = 6;
     }
 }
 
@@ -91,6 +115,9 @@ void REECA1G::set(std::string_view param, std::string_view val)
 
 double REECA1G::get(std::string_view param, units::unit unitType) const
 {
+    if (const auto value = REECA1G::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
     return gmlc::utilities::convertToLowerCase(std::string{param}) == "kf" ?
         Kf :
         REECA1::get(param, unitType);

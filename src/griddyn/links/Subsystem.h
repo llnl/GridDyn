@@ -19,6 +19,9 @@ namespace griddyn {
 */
 class Subsystem: public Link {
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     enum SubsystemFlags {
         DIRECT_CONNECTION = OBJECT_FLAG5,  //!< flag indicating directly connected objects (skipping
                                            //!< the terminal link structure)

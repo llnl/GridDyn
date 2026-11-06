@@ -19,6 +19,7 @@ class ZBreaker: public Link {
     bool& merged;  //!< flag indicating that the buses have been merged using the extra bool in
                    //!< CoreObject
   public:
+    const ModelDescription& getModelDescription() const override;
     ZBreaker(const std::string& objName = "zbreaker_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // parameter set functions

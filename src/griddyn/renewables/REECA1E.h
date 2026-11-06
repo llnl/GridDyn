@@ -14,6 +14,9 @@ namespace griddyn {
 /** REECA1 with bus frequency and ROCOF active-power support. */
 class REECA1E final: public REECA1 {
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     explicit REECA1E(const std::string& name = "REECA1E_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     std::span<const RenewablePort> inputPorts() const override;

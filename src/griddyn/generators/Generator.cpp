@@ -32,6 +32,7 @@
 #include "VariableGenerator.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
@@ -120,6 +121,89 @@ using units::unit;
 
 std::atomic<count_t> Generator::genCount(0);
 // default bus object
+
+bool Generator::getFlag(std::string_view flag) const
+{
+    if (const auto value = Generator::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    return GridSecondary::getFlag(flag);
+}
+
+const ModelDescription& Generator::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<Generator>(
+        "Generator",
+        &GridSecondary::getModelDescription(),
+        {parameter({"xs"}, &Generator::m_Xs, units::one, "Generator impedance defined on Mbase;"),
+         parameter(
+             {"rs"}, &Generator::m_Rs, units::one, "The real part of the generator impedance"),
+         parameter({"participation"},
+                   &Generator::participation,
+                   units::one,
+                   "A participation factor used in auto allocating load."),
+         parameter({"rampagc", "rampreg"},
+                   &Generator::rampAgc,
+                   units::one,
+                   "Load-following/AGC ramp capability"),
+         parameter({"ramp10"}, &Generator::ramp10, units::one, "10-minute reserve capability"),
+         parameter({"ramp30"}, &Generator::ramp30, units::one, "30-minute reserve capability"),
+         parameter({"rampq"}, &Generator::rampQ, units::one, "Reactive ramp capability"),
+         parameter({"vcontrolfrac", "vregfraction", "vcfrac"},
+                   &Generator::vRegFraction,
+                   units::one,
+                   "Fraction of output reactive power to maintain voltage regulation"),
+         flag({"capabilitycurve"}, &Generator::opFlags, USE_CAPABILITY_CURVE, "Capabilitycurve"),
+         flag({"variable", "variablegen"}, &Generator::opFlags, VARIABLE_GENERATION, "Variable"),
+         flag({"adjustable_q"}, &Generator::opFlags, ADJUSTABLE_Q, "Adjustable q"),
+         flag({"local_voltage_control"},
+              &Generator::opFlags,
+              LOCAL_VOLTAGE_CONTROL,
+              "Local voltage control"),
+         flag({"remote_voltage_control"},
+              &Generator::opFlags,
+              REMOTE_VOLTAGE_CONTROL,
+              "Remote voltage control"),
+         flag({"reserve", "reservecapable"}, &Generator::opFlags, RESERVE_CAPABLE, "Reserve"),
+         flag({"agc", "agccapable", "agc_capable"}, &Generator::opFlags, AGC_CAPABLE, "Agc"),
+         flag({"indirect_voltage_control"},
+              &Generator::opFlags,
+              INDIRECT_VOLTAGE_CONTROL,
+              "Indirect voltage control"),
+         flag({"isoc", "isochronous"}, &Generator::opFlags, ISOCHRONOUS_OPERATION, "Isoc"),
+         command({"remote"}, units::defunit, "Configure remote", ModelFieldType::STRING),
+         command({"remote_power_control"},
+                 units::defunit,
+                 "Configure remote power control",
+                 ModelFieldType::STRING),
+         command({"p"}, units::defunit, "Configure p", ModelFieldType::STRING),
+         command({"q"}, units::defunit, "Configure q", ModelFieldType::STRING),
+         command({"pset"}, units::defunit, "Set pset"),
+         command({"p+", "adjustment"}, units::defunit, "Set p+"),
+         command({"qmax"}, units::defunit, "Set qmax"),
+         command({"qmin"}, units::defunit, "Set qmin"),
+         command({"qbias"}, units::defunit, "Set qbias"),
+         command({"vref", "vtarget"}, units::defunit, "Set vref"),
+         command({"rating", "base", "mbase"}, units::defunit, "Set rating"),
+         command({"dpdt"}, units::defunit, "Set dpdt"),
+         command({"dqdt"}, units::defunit, "Set dqdt"),
+         command({"pmax"}, units::defunit, "Set pmax"),
+         command({"pmin"}, units::defunit, "Set pmin"),
+         command({"r"}, units::defunit, "Set r"),
+         command({"x"}, units::defunit, "Set x")});
+    return description;
+}
+
+void Generator::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = Generator::getModelDescription();
+    getParamString<Generator, GridSecondary>(this,
+                                             pstr,
+                                             description.numericNames(),
+                                             description.stringNames(),
+                                             description.flagNames(),
+                                             pstype);
+}
 
 Generator::Generator(const std::string& objName): GridSecondary(objName)
 {
@@ -451,21 +535,12 @@ void Generator::set(std::string_view param, std::string_view val)
 
 double Generator::get(std::string_view param, unit unitType) const
 {
+    if (const auto value = Generator::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
     double ret = kNullVal;
-    if (param == "vcontrolfrac") {
-        ret = vRegFraction;
-    } else if (param == "vtarget") {
+    if (param == "vtarget") {
         ret = m_Vtarget;
-    } else if (param == "participation") {
-        ret = participation;
-    } else if ((param == "rampagc") || (param == "rampreg")) {
-        ret = rampAgc;
-    } else if (param == "ramp10") {
-        ret = ramp10;
-    } else if (param == "ramp30") {
-        ret = ramp30;
-    } else if (param == "rampq") {
-        ret = rampQ;
     } else if ((param == "mbase") || (param == "base") || (param == "rating")) {
         const double machineBase =
             opFlags[INDEPENDENT_MACHINE_BASE] ? machineBasePower : systemBasePower;
@@ -589,16 +664,6 @@ void Generator::setFlag(std::string_view flag, bool val)
         opFlags.set(REMOTE_POWER_CONTROL, false);
         opFlags.set(LOCAL_VOLTAGE_CONTROL, false);
         opFlags.set(REMOTE_VOLTAGE_CONTROL, false);
-    } else if (flag == "adjustable_q") {
-        opFlags.set(ADJUSTABLE_Q, val);
-    } else if (flag == "local_voltage_control") {
-        opFlags.set(LOCAL_VOLTAGE_CONTROL, val);
-    } else if (flag == "remote_voltage_control") {
-        opFlags.set(REMOTE_VOLTAGE_CONTROL, val);
-    } else if ((flag == "reserve") || (flag == "reservecapable")) {
-        opFlags.set(RESERVE_CAPABLE, val);
-    } else if ((flag == "agc") || (flag == "agccapable") || (flag == "agc_capable")) {
-        opFlags.set(AGC_CAPABLE, val);
     } else if (flag == "indirect_voltage_control") {
         const bool wasIndirect = opFlags[INDIRECT_VOLTAGE_CONTROL];
         opFlags.set(INDIRECT_VOLTAGE_CONTROL, val);
@@ -606,15 +671,16 @@ void Generator::setFlag(std::string_view flag, bool val)
             offsets.stateUnload();
             alert(this, STATE_COUNT_CHANGE);
         }
-    } else if ((flag == "isoc") || (flag == "isochronous")) {
-        opFlags.set(ISOCHRONOUS_OPERATION, val);
-    } else {
+    } else if (!Generator::getModelDescription().trySetFlagLocal(*this, flag, val)) {
         GridSecondary::setFlag(flag, val);
     }
 }
 
 void Generator::set(std::string_view param, double val, unit unitType)
 {
+    if (Generator::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if (param.length() == 1) {
         switch (param[0]) {
             case 'p':
@@ -646,10 +712,6 @@ void Generator::set(std::string_view param, double val, unit unitType)
         Qmin = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
     } else if (param == "qbias") {
         Qbias = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
-    } else if (param == "xs") {
-        m_Xs = val;
-    } else if (param == "rs") {
-        m_Rs = val;
     } else if ((param == "vref") || (param == "vtarget")) {
         m_Vtarget = convert(val, unitType, puV, systemBasePower, localBaseVoltage);
     } else if ((param == "rating") || (param == "base") || (param == "mbase")) {
@@ -659,18 +721,6 @@ void Generator::set(std::string_view param, double val, unit unitType)
         dPdt = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
     } else if (param == "dqdt") {
         dQdt = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
-    } else if (param == "participation") {
-        participation = val;
-    } else if ((param == "rampagc") || (param == "rampreg")) {
-        rampAgc = val;
-    } else if (param == "ramp10") {
-        ramp10 = val;
-    } else if (param == "ramp30") {
-        ramp30 = val;
-    } else if (param == "rampq") {
-        rampQ = val;
-    } else if (param == "vcontrolfrac" || param == "vregfraction" || param == "vcfrac") {
-        vRegFraction = val;
     } else if (param == "pmax") {
         Pmax = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
         if (machineBasePower < 0) {

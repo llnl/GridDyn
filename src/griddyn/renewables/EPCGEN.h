@@ -30,6 +30,9 @@ namespace griddyn {
  */
 class EPCGEN final: public TerminalElectricalModel {
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     explicit EPCGEN(const std::string& name = "EPCGEN_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     std::span<const RenewablePort> inputPorts() const override;

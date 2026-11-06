@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include "utilities/logger.h"
@@ -58,6 +59,78 @@ namespace {
         return inputData.size() > index && inputData[index] != kNullVal ? inputData[index] : 0.0;
     }
 }  // namespace
+const ModelDescription& WT3E1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<WT3E1>(
+        "WT3E1",
+        &RenewableComponent::getModelDescription(),
+        {parameter({"varflg"},
+                   &WT3E1::varFlag,
+                   units::one,
+                   "Var flag",
+                   [](int value) { return value >= -1 && value <= 1; }),
+         parameter({"vlrflg"},
+                   &WT3E1::vlrFlag,
+                   units::one,
+                   "Vlr flag",
+                   [](int value) { return value >= 0 && value <= 2; }),
+         parameter({"tfv"}, &WT3E1::Tfv, units::second, "Tfv"),
+         parameter({"kpv"}, &WT3E1::Kpv, units::one, "Kpv"),
+         parameter({"kiv"}, &WT3E1::Kiv, units::one, "Kiv"),
+         parameter({"xc"}, &WT3E1::Xc, units::one, "Xc"),
+         parameter({"tfp"}, &WT3E1::Tfp, units::second, "Tfp"),
+         parameter({"kpp"}, &WT3E1::Kpp, units::one, "Kpp"),
+         parameter({"kip"}, &WT3E1::Kip, units::one, "Kip"),
+         parameter({"pmx"}, &WT3E1::Pmax, units::one, "Pmax"),
+         parameter({"pmn"}, &WT3E1::Pmin, units::one, "Pmin"),
+         parameter({"qmx"}, &WT3E1::Qmax, units::one, "Qmax"),
+         parameter({"qmn"}, &WT3E1::Qmin, units::one, "Qmin"),
+         parameter({"ipmax"}, &WT3E1::Ipmax, units::one, "Ipmax"),
+         parameter({"trv"}, &WT3E1::Trv, units::second, "Trv"),
+         parameter({"rpmx"}, &WT3E1::Rpmax, units::one, "Rpmax"),
+         parameter({"rpmn"}, &WT3E1::Rpmin, units::one, "Rpmin"),
+         parameter({"tpower"}, &WT3E1::Tpower, units::second, "Tpower"),
+         parameter({"kqi"}, &WT3E1::Kqi, units::one, "Kqi"),
+         parameter({"vmincl"}, &WT3E1::Vmincl, units::one, "Vmincl"),
+         parameter({"vmaxcl"}, &WT3E1::Vmaxcl, units::one, "Vmaxcl"),
+         parameter({"kqv"}, &WT3E1::Kqv, units::one, "Kqv"),
+         parameter({"xiqmin"}, &WT3E1::Xiqmin, units::one, "Xiqmin"),
+         parameter({"xiqmax"}, &WT3E1::Xiqmax, units::one, "Xiqmax"),
+         parameter({"tv"}, &WT3E1::Tv, units::second, "Tv"),
+         parameter({"tp"}, &WT3E1::Tp, units::second, "Tp"),
+         parameter({"fn"}, &WT3E1::Fn, units::Hz, "Fn"),
+         parameter({"wpmin"}, &WT3E1::Wpmin, units::one, "Wpmin"),
+         parameter({"wp20"}, &WT3E1::Wp20, units::one, "Wp20"),
+         parameter({"wp40"}, &WT3E1::Wp40, units::one, "Wp40"),
+         parameter({"wp60"}, &WT3E1::Wp60, units::one, "Wp60"),
+         parameter({"pminspeed"}, &WT3E1::PminSpeed, units::one, "Pmin speed"),
+         parameter({"wp100"}, &WT3E1::Wp100, units::one, "Wp100"),
+         state("Ipcmd", units::one, "Solver variable Ipcmd when active"),
+         state("Eqcmd", units::one, "Solver variable Eqcmd when active"),
+         state("Pord", units::one, "Solver variable Pord when active"),
+         state("wref", units::one, "Solver variable wref when active"),
+         state("Vf", units::one, "Solver variable Vf when active"),
+         state("Pf", units::one, "Solver variable Pf when active"),
+         state("Pint", units::one, "Solver variable Pint when active"),
+         state("Qint", units::one, "Solver variable Qint when active"),
+         localState("initialP", &WT3E1::initialP, "Initial p"),
+         localState("initialQ", &WT3E1::initialQ, "Initial q"),
+         localState("vref", &WT3E1::vref, "Vref"),
+         localState("initialEq", &WT3E1::initialEq, "Initial eq")});
+    return description;
+}
+
+void WT3E1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = WT3E1::getModelDescription();
+    getParamString<WT3E1, RenewableComponent>(this,
+                                              pstr,
+                                              description.numericNames(),
+                                              description.stringNames(),
+                                              description.flagNames(),
+                                              pstype);
+}
+
 WT3E1::WT3E1(const std::string& objName): RenewableComponent(objName)
 {
     m_inputSize = 8;
@@ -118,184 +191,20 @@ std::span<const RenewablePort> WT3E1::outputPorts() const
 }
 void WT3E1::set(std::string_view param, double value, units::unit unitType)
 {
-    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "varflg") {
-        if (value != -1 && value != 0 && value != 1) {
-            throw InvalidParameterValue("WT3E1 VARFLG must be -1, 0, or 1");
-        }
-        varFlag = static_cast<int>(value);
-    } else if (key == "vlrflg") {
-        if (value < 0 || value > 2 || std::floor(value) != value) {
-            throw InvalidParameterValue("WT3E1 VLRFLG must be 0, 1, or 2");
-        }
-        vlrFlag = static_cast<int>(value);
-    } else if (key == "tfv") {
-        Tfv = value;
-    } else if (key == "kpv") {
-        Kpv = value;
-    } else if (key == "kiv") {
-        Kiv = value;
-    } else if (key == "xc") {
-        Xc = value;
-    } else if (key == "tfp") {
-        Tfp = value;
-    } else if (key == "kpp") {
-        Kpp = value;
-    } else if (key == "kip") {
-        Kip = value;
-    } else if (key == "pmx") {
-        Pmax = value;
-    } else if (key == "pmn") {
-        Pmin = value;
-    } else if (key == "qmx") {
-        Qmax = value;
-    } else if (key == "qmn") {
-        Qmin = value;
-    } else if (key == "ipmax") {
-        Ipmax = value;
-    } else if (key == "trv") {
-        Trv = value;
-    } else if (key == "rpmx") {
-        Rpmax = value;
-    } else if (key == "rpmn") {
-        Rpmin = value;
-    } else if (key == "tpower") {
-        Tpower = value;
-    } else if (key == "kqi") {
-        Kqi = value;
-    } else if (key == "vmincl") {
-        Vmincl = value;
-    } else if (key == "vmaxcl") {
-        Vmaxcl = value;
-    } else if (key == "kqv") {
-        Kqv = value;
-    } else if (key == "xiqmin") {
-        Xiqmin = value;
-    } else if (key == "xiqmax") {
-        Xiqmax = value;
-    } else if (key == "tv") {
-        Tv = value;
-    } else if (key == "tp") {
-        Tp = value;
-    } else if (key == "fn") {
-        Fn = value;
-    } else if (key == "wpmin") {
-        Wpmin = value;
-    } else if (key == "wp20") {
-        Wp20 = value;
-    } else if (key == "wp40") {
-        Wp40 = value;
-    } else if (key == "wp60") {
-        Wp60 = value;
-    } else if (key == "pminspeed") {
-        PminSpeed = value;
-    } else if (key == "wp100") {
-        Wp100 = value;
-    } else {
-        RenewableComponent::set(param, value, unitType);
+    if (WT3E1::getModelDescription().trySetLocal(*this, param, value, unitType)) {
+        return;
     }
+    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (key != param && WT3E1::getModelDescription().trySetLocal(*this, key, value, unitType)) {
+        return;
+    }
+    RenewableComponent::set(param, value, unitType);
 }
 double WT3E1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "varflg") {
-        return varFlag;
-    }
-    if (key == "vlrflg") {
-        return vlrFlag;
-    }
-    if (key == "tfv") {
-        return Tfv;
-    }
-    if (key == "kpv") {
-        return Kpv;
-    }
-    if (key == "kiv") {
-        return Kiv;
-    }
-    if (key == "xc") {
-        return Xc;
-    }
-    if (key == "tfp") {
-        return Tfp;
-    }
-    if (key == "kpp") {
-        return Kpp;
-    }
-    if (key == "kip") {
-        return Kip;
-    }
-    if (key == "pmx") {
-        return Pmax;
-    }
-    if (key == "pmn") {
-        return Pmin;
-    }
-    if (key == "qmx") {
-        return Qmax;
-    }
-    if (key == "qmn") {
-        return Qmin;
-    }
-    if (key == "ipmax") {
-        return Ipmax;
-    }
-    if (key == "trv") {
-        return Trv;
-    }
-    if (key == "rpmx") {
-        return Rpmax;
-    }
-    if (key == "rpmn") {
-        return Rpmin;
-    }
-    if (key == "tpower") {
-        return Tpower;
-    }
-    if (key == "kqi") {
-        return Kqi;
-    }
-    if (key == "vmincl") {
-        return Vmincl;
-    }
-    if (key == "vmaxcl") {
-        return Vmaxcl;
-    }
-    if (key == "kqv") {
-        return Kqv;
-    }
-    if (key == "xiqmin") {
-        return Xiqmin;
-    }
-    if (key == "xiqmax") {
-        return Xiqmax;
-    }
-    if (key == "tv") {
-        return Tv;
-    }
-    if (key == "tp") {
-        return Tp;
-    }
-    if (key == "fn") {
-        return Fn;
-    }
-    if (key == "wpmin") {
-        return Wpmin;
-    }
-    if (key == "wp20") {
-        return Wp20;
-    }
-    if (key == "wp40") {
-        return Wp40;
-    }
-    if (key == "wp60") {
-        return Wp60;
-    }
-    if (key == "pminspeed") {
-        return PminSpeed;
-    }
-    if (key == "wp100") {
-        return Wp100;
+    if (const auto value = WT3E1::getModelDescription().tryGetLocal(*this, key, unitType)) {
+        return *value;
     }
     return RenewableComponent::get(param, unitType);
 }

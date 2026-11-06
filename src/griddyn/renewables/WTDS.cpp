@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -29,6 +30,31 @@ namespace {
         {.signal = RenewableSignal::turbineSpeed, .ioIndex = 1},
     }};
 }  // namespace
+
+const ModelDescription& WTDS::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<WTDS>(
+        "WTDS",
+        &RenewableComponent::getModelDescription(),
+        {parameter({"h"}, &WTDS::H, units::second, "H"),
+         parameter({"d"}, &WTDS::D, units::one, "D"),
+         parameter({"w0"}, &WTDS::w0, units::one, "W0"),
+         state("w", units::one, "Solver variable w when active"),
+         localState("initialPower", &WTDS::initialPower, "Initial power"),
+         localState("operatingSpeed", &WTDS::operatingSpeed, "Operating speed")});
+    return description;
+}
+
+void WTDS::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = WTDS::getModelDescription();
+    getParamString<WTDS, RenewableComponent>(this,
+                                             pstr,
+                                             description.numericNames(),
+                                             description.stringNames(),
+                                             description.flagNames(),
+                                             pstype);
+}
 
 WTDS::WTDS(const std::string& objName): RenewableComponent(objName)
 {
@@ -61,29 +87,21 @@ std::span<const RenewablePort> WTDS::outputPorts() const
 
 void WTDS::set(std::string_view param, double val, units::unit unitType)
 {
-    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "h") {
-        H = val;
-    } else if (key == "d") {
-        D = val;
-    } else if (key == "w0") {
-        w0 = val;
-    } else {
-        RenewableComponent::set(param, val, unitType);
+    if (WTDS::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (key != param && WTDS::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+        return;
+    }
+    RenewableComponent::set(param, val, unitType);
 }
 
 double WTDS::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "h") {
-        return H;
-    }
-    if (key == "d") {
-        return D;
-    }
-    if (key == "w0") {
-        return w0;
+    if (const auto value = WTDS::getModelDescription().tryGetLocal(*this, key, unitType)) {
+        return *value;
     }
     return RenewableComponent::get(param, unitType);
 }

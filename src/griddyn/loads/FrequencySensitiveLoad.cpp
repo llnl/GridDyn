@@ -9,6 +9,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "utilities/MatrixData.hpp"
 #include <array>
@@ -19,6 +20,21 @@
 
 namespace griddyn::loads {
 using units::unit;
+
+const ModelDescription& FrequencySensitiveLoad::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<FrequencySensitiveLoad>(
+        "FrequencySensitiveLoad",
+        &GridLoad::getModelDescription(),
+        {parameter({"dpdf"},
+                   &FrequencySensitiveLoad::dPdf,
+                   units::one,
+                   "Factor for determining how sensitive Pout is to frequency"),
+         parameter(
+             {"h"}, &FrequencySensitiveLoad::H, units::one, "Load inertia used in computing dPdf"),
+         parameter({"m"}, &FrequencySensitiveLoad::M, units::one, "Load droop factor")});
+    return description;
+}
 
 FrequencySensitiveLoad::FrequencySensitiveLoad(const std::string& objName): GridLoad(objName) {}
 
@@ -75,16 +91,15 @@ void FrequencySensitiveLoad::updateOutputs(double frequency)
     Qout += Qout * (frequency - 1.0) * M;
 }
 
-static constexpr auto locNumStrings = std::array<std::string_view, 2>{"h", "m"};
-
-static constexpr std::array<std::string_view, 0> locStrStrings{};
-
-static constexpr std::array<std::string_view, 0> flagStrings{};
-
 void FrequencySensitiveLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    getParamString<FrequencySensitiveLoad, GridLoad>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
+    const auto& description = FrequencySensitiveLoad::getModelDescription();
+    getParamString<FrequencySensitiveLoad, GridLoad>(this,
+                                                     pstr,
+                                                     description.numericNames(),
+                                                     description.stringNames(),
+                                                     description.flagNames(),
+                                                     pstype);
 }
 
 void FrequencySensitiveLoad::setFlag(std::string_view flag, bool val)
@@ -111,32 +126,22 @@ void FrequencySensitiveLoad::set(std::string_view param, std::string_view val)
 
 double FrequencySensitiveLoad::get(std::string_view param, unit unitType) const
 {
-    if (param == "dpdf") {
-        return dPdf;
-    }
-    if (param == "h") {
-        return H;
-    }
-    if (param == "m") {
-        return M;
+    if (const auto value =
+            FrequencySensitiveLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return (subLoad != nullptr) ? subLoad->get(param, unitType) : GridLoad::get(param, unitType);
 }
 
 void FrequencySensitiveLoad::set(std::string_view param, double val, unit unitType)
 {
-    if (param == "dpdf") {
-        dPdf = val;
-    } else if (param == "h") {
-        H = val;
-    } else if (param == "m") {
-        M = val;
+    if (FrequencySensitiveLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
+    if (subLoad != nullptr) {
+        subLoad->set(param, val, unitType);
     } else {
-        if (subLoad != nullptr) {
-            subLoad->set(param, val, unitType);
-        } else {
-            GridLoad::set(param, val, unitType);
-        }
+        GridLoad::set(param, val, unitType);
     }
 }
 

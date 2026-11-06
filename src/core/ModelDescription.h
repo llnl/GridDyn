@@ -196,7 +196,8 @@ class ModelFieldSnapshot {
 /** Describe a compound/custom setter without inventing a stored member for it. */
 ModelField command(std::initializer_list<std::string_view> names,
                    units::unit unitType,
-                   std::string_view description);
+                   std::string_view description,
+                   ModelFieldType valueType = ModelFieldType::REAL);
 
 /** Solver-managed variable; use GridComponent::findIndex with the active mode to resolve it.
  * Its values belong to the shared solver-state payload, not object-field snapshots.

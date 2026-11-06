@@ -58,6 +58,7 @@ class busPowers {
  */
 class GridBus: public GridPrimary {
   public:
+    const ModelDescription& getModelDescription() const override;
     /** @brief flags for the buses*/
 
     static std::atomic<count_t> busCount;  //!<  counter for the buses
@@ -195,7 +196,7 @@ class GridBus: public GridPrimary {
     virtual void getParameterStrings(stringVec& pstr,
                                      ParamStringType pstype = ParamStringType::all) const override;
     /** @brief Set connected or an inherited flag; true means connected for that flag. */
-    virtual void setFlag(std::string_view flag, bool val) override;
+    virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;

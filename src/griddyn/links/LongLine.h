@@ -26,6 +26,9 @@ class LongLine: public Subsystem {
   private:
     int faultLink = -1;  //!< link number of the fault if one is present
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
     /** @brief default constructor*/
     LongLine(const std::string& objName = "longLine_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;

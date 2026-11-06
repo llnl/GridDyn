@@ -18,6 +18,9 @@ commands have no stored value or snapshot record.
 
 The [SEXS exciter example](exciter-model-description.md) applies these declarations
 to differential states, adjustable limits and retained limiter history.
+The [component migration notes](component-model-descriptions.md) cover loads,
+network components, generator containers, limiters, compensators, and renewables,
+including structured parameter storage and behavior that stays in the models.
 
 ## One declaration per value
 

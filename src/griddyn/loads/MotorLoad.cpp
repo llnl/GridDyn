@@ -11,6 +11,7 @@
 #include "MotorLoad5.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
@@ -36,6 +37,34 @@ static TypeFactory<CIM5> gCim5Factory("load", std::to_array<std::string_view>({"
 static TypeFactory<CIM6> gCim6Factory("load", std::to_array<std::string_view>({"cim6"}));
 
 static constexpr double cSmallDiff = 1e-7;
+void MotorLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = MotorLoad::getModelDescription();
+    getParamString<MotorLoad, GridLoad>(this,
+                                        pstr,
+                                        description.numericNames(),
+                                        description.stringNames(),
+                                        description.flagNames(),
+                                        pstype);
+}
+
+const ModelDescription& MotorLoad::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<MotorLoad>(
+        "MotorLoad",
+        &GridLoad::getModelDescription(),
+        {parameter({"h"}, &MotorLoad::H, units::second, "The inertial constant on the motor"),
+         parameter({"r1"}, &MotorLoad::r1, units::one, "Primary resistance on the motor"),
+         parameter({"x1"}, &MotorLoad::x1, units::one, "Primary inductance of the motor"),
+         parameter({"xm"}, &MotorLoad::xm, units::one, "The inductive load of the motor"),
+         command({"p"}, units::defunit, "Set p"),
+         command({"a"}, units::defunit, "Set a"),
+         command({"b"}, units::defunit, "Set b"),
+         command({"c"}, units::defunit, "Set c"),
+         localState("stalled", &MotorLoad::opFlags, STALLED, "Motor stalled latch")});
+    return description;
+}
+
 MotorLoad::MotorLoad(const std::string& objName): GridLoad(objName)
 {
     // default values
@@ -148,6 +177,9 @@ void MotorLoad::set(std::string_view param, std::string_view val)
 
 double MotorLoad::get(std::string_view param, units::unit unitType) const
 {
+    if (const auto value = MotorLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
     if (param == "pmot") {
         return convert(Pmot, puMW, unitType, systemBasePower, localBaseVoltage);
     }
@@ -157,18 +189,7 @@ double MotorLoad::get(std::string_view param, units::unit unitType) const
     if (param == "x") {
         return x;
     }
-    if (param == "r1") {
-        return r1;
-    }
-    if (param == "x1") {
-        return x1;
-    }
-    if (param == "xm") {
-        return xm;
-    }
-    if (param == "h") {
-        return H;
-    }
+
     if (param == "alpha") {
         return alpha;
     }
@@ -204,13 +225,13 @@ double MotorLoad::get(std::string_view param, units::unit unitType) const
 
 void MotorLoad::set(std::string_view param, double val, units::unit unitType)
 {
+    if (MotorLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     bool slipCheck = false;
 
     if (param.size() == 1) {
         switch (param[0]) {
-            case 'h':
-                H = val;
-                break;
             case 'p':
                 Pmot = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
                 if (mBase < 0) {
@@ -241,13 +262,7 @@ void MotorLoad::set(std::string_view param, double val, units::unit unitType)
                 throw(UnrecognizedParameter(param));
         }
     } else {
-        if (param == "r1") {
-            r1 = val;
-        } else if (param == "x1") {
-            x1 = val;
-        } else if (param == "xm") {
-            xm = val;
-        } else if (param == "alpha") {
+        if (param == "alpha") {
             alpha = val;
             a = alpha - b - c;
             slipCheck = true;

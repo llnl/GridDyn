@@ -24,6 +24,12 @@ namespace loads {
      * Swing Bus Manager*/
     class GridLabDLoad: public RampLoad {
       public:
+        bool getFlag(std::string_view flag) const override;
+        void setFlag(std::string_view flag, bool val = true) override;
+        void getParameterStrings(stringVec& pstr,
+                                 ParamStringType pstype = ParamStringType::ALL) const override;
+        const ModelDescription& getModelDescription() const override;
+        double get(std::string_view param, units::unit unitType = units::defunit) const override;
         GridLabDLoad(const std::string& objName = "gridlabDLoad_$");
 
         virtual ~GridLabDLoad();

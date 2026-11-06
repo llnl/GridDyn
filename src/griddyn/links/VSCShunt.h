@@ -23,6 +23,10 @@ namespace links {
      */
     class VSCShunt final: public AcDcConverter {
       public:
+        void getParameterStrings(stringVec& pstr,
+                                 ParamStringType pstype = ParamStringType::ALL) const override;
+        const ModelDescription& getModelDescription() const override;
+        double get(std::string_view param, units::unit unitType = units::defunit) const override;
         enum class Control { PQ = 0, PV = 1, VQ = 2, VV = 3 };
 
       private:

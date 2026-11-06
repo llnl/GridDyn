@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -42,6 +43,73 @@ namespace {
                       lag = 3, activePowerFilter = 4, activeIntegral = 5, activeLag = 6;
     constexpr index_t frequencyInput = 2, electricalPowerInput = 3, activeReferenceInput = 4;
 }  // namespace
+
+const ModelDescription& REPCA1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<REPCA1>(
+        "REPCA1",
+        &RenewableComponent::getModelDescription(),
+        {parameter({"tfltr"}, &REPCA1::Tfltr, units::second, "Tfltr"),
+         parameter({"kp"}, &REPCA1::Kp, units::one, "Kp"),
+         parameter({"ki"}, &REPCA1::Ki, units::one, "Ki"),
+         parameter({"tft"}, &REPCA1::Tft, units::second, "Tft"),
+         parameter({"tfv"}, &REPCA1::Tfv, units::second, "Tfv"),
+         parameter({"vfrz"}, &REPCA1::Vfrz, units::one, "Vfrz"),
+         parameter({"rc"}, &REPCA1::Rc, units::one, "Rc"),
+         parameter({"xc"}, &REPCA1::Xc, units::one, "Xc"),
+         parameter({"kc"}, &REPCA1::Kc, units::one, "Kc"),
+         parameter({"emax"}, &REPCA1::emax, units::one, "Emax"),
+         parameter({"emin"}, &REPCA1::emin, units::one, "Emin"),
+         parameter({"dbd1"}, &REPCA1::dbd1, units::one, "Dbd1"),
+         parameter({"dbd2"}, &REPCA1::dbd2, units::one, "Dbd2"),
+         parameter({"qmax"}, &REPCA1::Qmax, units::one, "Qmax"),
+         parameter({"qmin"}, &REPCA1::Qmin, units::one, "Qmin"),
+         parameter({"kpg"}, &REPCA1::Kpg, units::one, "Kpg"),
+         parameter({"kig"}, &REPCA1::Kig, units::one, "Kig"),
+         parameter({"tp"}, &REPCA1::Tp, units::second, "Tp"),
+         parameter({"fdbd1"}, &REPCA1::fdbd1, units::one, "Fdbd1"),
+         parameter({"fdbd2"}, &REPCA1::fdbd2, units::one, "Fdbd2"),
+         parameter({"femax"}, &REPCA1::femax, units::one, "Femax"),
+         parameter({"femin"}, &REPCA1::femin, units::one, "Femin"),
+         parameter({"pmax"}, &REPCA1::Pmax, units::one, "Pmax"),
+         parameter({"pmin"}, &REPCA1::Pmin, units::one, "Pmin"),
+         parameter({"tg", "tlag"}, &REPCA1::Tg, units::second, "Tg"),
+         parameter({"ddn"}, &REPCA1::Ddn, units::one, "Ddn"),
+         parameter({"dup"}, &REPCA1::Dup, units::one, "Dup"),
+         parameter({"freqref"}, &REPCA1::FreqRef, units::one, "Freq ref"),
+         parameter({"vref"}, &REPCA1::vReference, units::one, "V reference"),
+         parameter({"qref"}, &REPCA1::qReference, units::one, "Q reference"),
+         parameter({"vcflag"}, &REPCA1::VCFlag, units::one, "Vcflag", parameterValidators::binary),
+         parameter(
+             {"refflag"}, &REPCA1::RefFlag, units::one, "Ref flag", parameterValidators::binary),
+         parameter({"fflag"}, &REPCA1::Fflag, units::one, "Fflag", parameterValidators::binary),
+         parameter({"plflag"}, &REPCA1::PLflag, units::one, "Plflag", parameterValidators::binary),
+         command({"vbus"}, units::defunit, "Set vbus"),
+         state("Pext", units::one, "Solver variable Pext when active"),
+         state("Qext", units::one, "Solver variable Qext when active"),
+         state("Vf", units::one, "Solver variable Vf when active"),
+         state("Qf", units::one, "Solver variable Qf when active"),
+         state("Qi", units::one, "Solver variable Qi when active"),
+         state("Qlag", units::one, "Solver variable Qlag when active"),
+         state("PbranchFilter", units::one, "Solver variable PbranchFilter when active"),
+         state("Pintegral", units::one, "Solver variable Pintegral when active"),
+         state("Plag", units::one, "Solver variable Plag when active"),
+         localState("initialActiveReference",
+                    &REPCA1::initialActiveReference,
+                    "Initial active reference")});
+    return description;
+}
+
+void REPCA1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = REPCA1::getModelDescription();
+    getParamString<REPCA1, RenewableComponent>(this,
+                                               pstr,
+                                               description.numericNames(),
+                                               description.stringNames(),
+                                               description.flagNames(),
+                                               pstype);
+}
 
 REPCA1::REPCA1(const std::string& objName): RenewableComponent(objName)
 {
@@ -121,88 +189,24 @@ index_t REPCA1::sourceBusID(RenewableSignal signal) const
 
 void REPCA1::set(std::string_view param, double val, units::unit unitType)
 {
+    if (REPCA1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        if (param == "fflag") {
+            updateInputSize();
+        }
+        return;
+    }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (key != param && REPCA1::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+        if (key == "fflag") {
+            updateInputSize();
+        }
+        return;
+    }
     if (key == "vbus") {
-        if (!std::isfinite(val) || val < 0 || std::trunc(val) != val ||
-            val >= static_cast<double>(kNullLocation)) {
+        if (val < 0 || std::trunc(val) != val || val >= static_cast<double>(kNullLocation)) {
             throw InvalidParameterValue("REPCA1 Vbus must be a non-negative integer bus ID");
         }
         Vbus = val == 0.0 ? kNullLocation : static_cast<index_t>(val);
-    } else if (key == "vcflag" || key == "refflag" || key == "fflag" || key == "plflag") {
-        if (val != 0.0 && val != 1.0) {
-            throw InvalidParameterValue("REPCA1 flag must be zero or one");
-        }
-        const auto flag = static_cast<int>(val);
-        if (key == "vcflag") {
-            VCFlag = flag;
-        } else if (key == "refflag") {
-            RefFlag = flag;
-        } else if (key == "fflag") {
-            Fflag = flag;
-            updateInputSize();
-        } else {
-            PLflag = flag;
-        }
-    } else if (key == "tfltr") {
-        Tfltr = val;
-    } else if (key == "kp") {
-        Kp = val;
-    } else if (key == "ki") {
-        Ki = val;
-    } else if (key == "tft") {
-        Tft = val;
-    } else if (key == "tfv") {
-        Tfv = val;
-    } else if (key == "vfrz") {
-        Vfrz = val;
-    } else if (key == "rc") {
-        Rc = val;
-    } else if (key == "xc") {
-        Xc = val;
-    } else if (key == "kc") {
-        Kc = val;
-    } else if (key == "emax") {
-        emax = val;
-    } else if (key == "emin") {
-        emin = val;
-    } else if (key == "dbd1") {
-        dbd1 = val;
-    } else if (key == "dbd2") {
-        dbd2 = val;
-    } else if (key == "qmax") {
-        Qmax = val;
-    } else if (key == "qmin") {
-        Qmin = val;
-    } else if (key == "kpg") {
-        Kpg = val;
-    } else if (key == "kig") {
-        Kig = val;
-    } else if (key == "tp") {
-        Tp = val;
-    } else if (key == "fdbd1") {
-        fdbd1 = val;
-    } else if (key == "fdbd2") {
-        fdbd2 = val;
-    } else if (key == "femax") {
-        femax = val;
-    } else if (key == "femin") {
-        femin = val;
-    } else if (key == "pmax") {
-        Pmax = val;
-    } else if (key == "pmin") {
-        Pmin = val;
-    } else if (key == "tg" || key == "tlag") {
-        Tg = val;
-    } else if (key == "ddn") {
-        Ddn = val;
-    } else if (key == "dup") {
-        Dup = val;
-    } else if (key == "freqref") {
-        FreqRef = val;
-    } else if (key == "vref") {
-        vReference = val;
-    } else if (key == "qref") {
-        qReference = val;
     } else {
         RenewableComponent::set(param, val, unitType);
     }
@@ -211,81 +215,13 @@ void REPCA1::set(std::string_view param, double val, units::unit unitType)
 double REPCA1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (const auto value = REPCA1::getModelDescription().tryGetLocal(*this, key, unitType)) {
+        return *value;
+    }
     if (key == "vbus") {
         return Vbus == kNullLocation ? 0.0 : static_cast<double>(Vbus);
     }
-    if (key == "vcflag") {
-        return VCFlag;
-    }
-    if (key == "refflag") {
-        return RefFlag;
-    }
-    if (key == "fflag") {
-        return Fflag;
-    }
-    if (key == "plflag") {
-        return PLflag;
-    }
-    if (key == "kp") {
-        return Kp;
-    }
-    if (key == "ki") {
-        return Ki;
-    }
-    if (key == "tfltr") {
-        return Tfltr;
-    }
-    if (key == "vref") {
-        return vReference;
-    }
-    if (key == "qref") {
-        return qReference;
-    }
-    if (key == "qmax") {
-        return Qmax;
-    }
-    if (key == "qmin") {
-        return Qmin;
-    }
-    if (key == "kpg") {
-        return Kpg;
-    }
-    if (key == "kig") {
-        return Kig;
-    }
-    if (key == "tp") {
-        return Tp;
-    }
-    if (key == "fdbd1") {
-        return fdbd1;
-    }
-    if (key == "fdbd2") {
-        return fdbd2;
-    }
-    if (key == "femax") {
-        return femax;
-    }
-    if (key == "femin") {
-        return femin;
-    }
-    if (key == "pmax") {
-        return Pmax;
-    }
-    if (key == "pmin") {
-        return Pmin;
-    }
-    if (key == "tg" || key == "tlag") {
-        return Tg;
-    }
-    if (key == "ddn") {
-        return Ddn;
-    }
-    if (key == "dup") {
-        return Dup;
-    }
-    if (key == "freqref") {
-        return FreqRef;
-    }
+
     return RenewableComponent::get(param, unitType);
 }
 

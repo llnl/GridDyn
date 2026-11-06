@@ -9,10 +9,46 @@
 #include "../primary/AcBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <cmath>
 #include <string>
 
 namespace griddyn::links {
+const ModelDescription& LongLine::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<LongLine>(
+        "LongLine",
+        &Subsystem::getModelDescription(),
+        {parameter({"segmentationlength", "segmentlength"},
+                   &LongLine::segmentationLength,
+                   units::km,
+                   "The length of each segment"),
+         parameter({"length"}, &LongLine::length, units::km, "Transmission line length"),
+         parameter({"r"}, &LongLine::r, units::one, "Per unit resistance"),
+         parameter({"x"}, &LongLine::x, units::one, "Per unit reactance"),
+         parameter({"b"},
+                   &LongLine::mp_B,
+                   units::one,
+                   "Per unit shunt capacitance (jb/2 on each end of the line)"),
+         parameter({"g"},
+                   &LongLine::mp_G,
+                   units::one,
+                   "Per unit shunt conductance (g/2 on each end of the line)"),
+         command({"fault"}, units::defunit, "Set fault")});
+    return description;
+}
+
+void LongLine::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = LongLine::getModelDescription();
+    getParamString<LongLine, Subsystem>(this,
+                                        pstr,
+                                        description.numericNames(),
+                                        description.stringNames(),
+                                        description.flagNames(),
+                                        pstype);
+}
+
 LongLine::LongLine(const std::string& objName): Subsystem(objName) {}
 CoreObject* LongLine::clone(CoreObject* obj) const
 {
@@ -45,32 +81,11 @@ void LongLine::set(std::string_view param, std::string_view val)
 }
 void LongLine::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param.length() == 1) {
-        switch (param[0]) {
-            case 'r':
-                r = val;
-                break;
-            case 'x':
-                x = val;
-                break;
-            case 'b':
-                mp_B = val;
-                break;
-            case 'g':
-                mp_G = val;
-                break;
-
-            default:
-                throw(UnrecognizedParameter(param));
-        }
+    if (LongLine::getModelDescription().trySetLocal(*this, param, val, unitType)) {
         return;
     }
 
-    if ((param == "segmentationlength") || (param == "segmentlength")) {
-        segmentationLength = convert(val, unitType, units::km);
-    } else if (param == "length") {
-        length = convert(val, unitType, units::km);
-    } else if (param == "fault") {
+    if (param == "fault") {
         if (opFlags[POWERFLOW_INITIALIZED]) {
             fault = val;
             if (fault > 1.0) {
@@ -109,12 +124,11 @@ void LongLine::set(std::string_view param, double val, units::unit unitType)
 
 double LongLine::get(std::string_view param, units::unit unitType) const
 {
-    double val = kNullVal;
-    if (param == "segmentationlength") {
-        val = segmentationLength;
-    } else {
-        val = Subsystem::get(param, unitType);
+    if (const auto value = LongLine::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
+    double val = kNullVal;
+    val = Subsystem::get(param, unitType);
     return val;
 }
 

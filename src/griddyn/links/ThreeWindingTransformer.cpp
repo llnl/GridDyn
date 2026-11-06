@@ -9,6 +9,7 @@
 #include "../primary/AcBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <cmath>
@@ -17,11 +18,46 @@
 #include <utility>
 
 namespace griddyn::links {
+namespace {
+    bool isWindingParameter(std::string_view param)
+    {
+        return param == "r" || param == "x" || param == "b" || param == "g" || param == "tap" ||
+            param == "tapangle" || param == "ratinga" || param == "ratingb" || param == "ratingc";
+    }
+}  // namespace
 static TypeFactory<ThreeWindingTransformer>
     gThreeWindingTransformerFactory("link",
                                     std::to_array<std::string_view>({"three winding transformer",
                                                                      "threewindingtransformer",
                                                                      "threewinding"}));
+
+const ModelDescription& ThreeWindingTransformer::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ThreeWindingTransformer>(
+        "ThreeWindingTransformer",
+        &Subsystem::getModelDescription(),
+        {parameter({"segmentationlength", "segmentlength"},
+                   &ThreeWindingTransformer::segmentationLength,
+                   units::km,
+                   "Segmentation length"),
+         parameter({"length"}, &ThreeWindingTransformer::length, units::km, "Length"),
+         command({"primary"}, units::defunit, "Configure primary", ModelFieldType::STRING),
+         command({"secondary"}, units::defunit, "Configure secondary", ModelFieldType::STRING),
+         command({"tertiary"}, units::defunit, "Configure tertiary", ModelFieldType::STRING),
+         command({"fault"}, units::defunit, "Set fault")});
+    return description;
+}
+
+void ThreeWindingTransformer::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ThreeWindingTransformer::getModelDescription();
+    getParamString<ThreeWindingTransformer, Subsystem>(this,
+                                                       pstr,
+                                                       description.numericNames(),
+                                                       description.stringNames(),
+                                                       description.flagNames(),
+                                                       pstype);
+}
 
 ThreeWindingTransformer::ThreeWindingTransformer(const std::string& objName): Subsystem(objName)
 {
@@ -90,13 +126,14 @@ void ThreeWindingTransformer::set(std::string_view param, std::string_view val)
 
 void ThreeWindingTransformer::set(std::string_view param, double val, units::unit unitType)
 {
+    if (ThreeWindingTransformer::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     std::string baseParam;
     const int winding = gmlc::utilities::stringOps::trailingStringInt(param, baseParam, -1);
     if ((winding >= 1) && (winding <= 3)) {
         auto* leg = windingLeg(static_cast<index_t>(winding));
-        if ((baseParam == "r") || (baseParam == "x") || (baseParam == "b") || (baseParam == "g") ||
-            (baseParam == "tap") || (baseParam == "tapangle") || (baseParam == "ratinga") ||
-            (baseParam == "ratingb") || (baseParam == "ratingc")) {
+        if (isWindingParameter(baseParam)) {
             leg->set(baseParam, val, unitType);
             return;
         }
@@ -126,11 +163,7 @@ void ThreeWindingTransformer::set(std::string_view param, double val, units::uni
         return;
     }
 
-    if ((param == "segmentationlength") || (param == "segmentlength")) {
-        segmentationLength = convert(val, unitType, units::km);
-    } else if (param == "length") {
-        length = convert(val, unitType, units::km);
-    } else if (param == "fault") {
+    if (param == "fault") {
         if (opFlags[POWERFLOW_INITIALIZED]) {
             fault = val;
             if (fault > 1.0) {
@@ -258,13 +291,16 @@ void ThreeWindingTransformer::updateBus(GridBus* bus, index_t busnumber)
 
 double ThreeWindingTransformer::get(std::string_view param, units::unit unitType) const
 {
-    double val = kNullVal;
-    if (param == "NULL") {
-        val = kNullVal;
-    } else {
-        val = Subsystem::get(param, unitType);
+    if (const auto value =
+            ThreeWindingTransformer::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
-    return val;
+    std::string baseParam;
+    const int winding = gmlc::utilities::stringOps::trailingStringInt(param, baseParam, -1);
+    if (winding >= 1 && winding <= 3 && isWindingParameter(baseParam)) {
+        return windingLeg(static_cast<index_t>(winding))->get(baseParam, unitType);
+    }
+    return param == "NULL" ? kNullVal : Subsystem::get(param, unitType);
 }
 
 }  // namespace griddyn::links

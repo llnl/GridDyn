@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -15,6 +16,69 @@
 namespace griddyn::limiters {
 namespace {
     constexpr double inputTolerance = 1e-14;
+}
+
+const ModelDescription& ExcitationLimiterUEL2C::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExcitationLimiterUEL2C>(
+        "ExcitationLimiterUEL2C",
+        &ExcitationLimiter::getModelDescription(),
+        {parameter({"k1"},
+                   &ExcitationLimiterUEL2C::k1,
+                   units::one,
+                   "K1",
+                   [](int value) { return value >= 0 && value <= 2; }),
+         parameter({"k2"},
+                   &ExcitationLimiterUEL2C::k2,
+                   units::one,
+                   "K2",
+                   [](int value) { return value >= 0 && value <= 2; }),
+         parameter({"kui", "ku_i"}, &ExcitationLimiterUEL2C::kuI, units::one, "Ku i"),
+         parameter({"kul", "ku_l"}, &ExcitationLimiterUEL2C::kuL, units::one, "Ku l"),
+         parameter({"vuimax", "vui_max"}, &ExcitationLimiterUEL2C::vuiMax, units::one, "Vui max"),
+         parameter({"vuimin", "vui_min"}, &ExcitationLimiterUEL2C::vuiMin, units::one, "Vui min"),
+         parameter({"vulmax1", "vuelmax", "vul_max1"},
+                   &ExcitationLimiterUEL2C::vulMax1,
+                   units::one,
+                   "Vul max1"),
+         parameter({"vulmin1", "vuelmin", "vul_min1"},
+                   &ExcitationLimiterUEL2C::vulMin1,
+                   units::one,
+                   "Vul min1"),
+         parameter(
+             {"vulmax2", "vul_max2"}, &ExcitationLimiterUEL2C::vulMax2, units::one, "Vul max2"),
+         parameter(
+             {"vulmin2", "vul_min2"}, &ExcitationLimiterUEL2C::vulMin2, units::one, "Vul min2"),
+         parameter({"p0"}, &ExcitationLimiterUEL2C::pPoints, 0, units::one, "P points"),
+         parameter({"p1"}, &ExcitationLimiterUEL2C::pPoints, 1, units::one, "P points"),
+         parameter({"p2"}, &ExcitationLimiterUEL2C::pPoints, 2, units::one, "P points"),
+         parameter({"p3"}, &ExcitationLimiterUEL2C::pPoints, 3, units::one, "P points"),
+         parameter({"p4"}, &ExcitationLimiterUEL2C::pPoints, 4, units::one, "P points"),
+         parameter({"p5"}, &ExcitationLimiterUEL2C::pPoints, 5, units::one, "P points"),
+         parameter({"p6"}, &ExcitationLimiterUEL2C::pPoints, 6, units::one, "P points"),
+         parameter({"q0"}, &ExcitationLimiterUEL2C::qPoints, 0, units::one, "Q points"),
+         parameter({"q1"}, &ExcitationLimiterUEL2C::qPoints, 1, units::one, "Q points"),
+         parameter({"q2"}, &ExcitationLimiterUEL2C::qPoints, 2, units::one, "Q points"),
+         parameter({"q3"}, &ExcitationLimiterUEL2C::qPoints, 3, units::one, "Q points"),
+         parameter({"q4"}, &ExcitationLimiterUEL2C::qPoints, 4, units::one, "Q points"),
+         parameter({"q5"}, &ExcitationLimiterUEL2C::qPoints, 5, units::one, "Q points"),
+         parameter({"q6"}, &ExcitationLimiterUEL2C::qPoints, 6, units::one, "Q points"),
+         localState("pointCount", &ExcitationLimiterUEL2C::pointCount, "Point count"),
+         state("vuel", units::one, "Solver variable vuel when active"),
+         state("integral", units::one, "Solver variable integral when active"),
+         localState("prevTime", &ExcitationLimiterUEL2C::prevTime, "Prev time")});
+    return description;
+}
+
+void ExcitationLimiterUEL2C::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ExcitationLimiterUEL2C::getModelDescription();
+    getParamString<ExcitationLimiterUEL2C, ExcitationLimiter>(this,
+                                                              pstr,
+                                                              description.numericNames(),
+                                                              description.stringNames(),
+                                                              description.flagNames(),
+                                                              pstype);
 }
 
 ExcitationLimiterUEL2C::ExcitationLimiterUEL2C(const std::string& objName):
@@ -50,95 +114,21 @@ CoreObject* ExcitationLimiterUEL2C::clone(CoreObject* obj) const
 
 void ExcitationLimiterUEL2C::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "k1") {
-        if (!std::isfinite(val) || std::floor(val) != val) {
-            throw InvalidParameterValue("UEL2C K1 must be an integer in [0,2]");
+    if (ExcitationLimiterUEL2C::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        if (param.size() == 2 && (param.front() == 'p' || param.front() == 'q') &&
+            param[1] >= '0' && param[1] <= '6') {
+            pointCount = std::max(pointCount, static_cast<std::size_t>(param[1] - '0' + 1));
         }
-        k1 = static_cast<int>(val);
-    } else if (param == "k2") {
-        if (!std::isfinite(val) || std::floor(val) != val) {
-            throw InvalidParameterValue("UEL2C K2 must be an integer in [0,2]");
-        }
-        k2 = static_cast<int>(val);
-    } else if (param == "kui" || param == "ku_i") {
-        kuI = val;
-    } else if (param == "kul" || param == "ku_l") {
-        kuL = val;
-    } else if (param == "vuimax" || param == "vui_max") {
-        vuiMax = val;
-    } else if (param == "vuimin" || param == "vui_min") {
-        vuiMin = val;
-    } else if (param == "vulmax1" || param == "vuelmax" || param == "vul_max1") {
-        vulMax1 = val;
-    } else if (param == "vulmin1" || param == "vuelmin" || param == "vul_min1") {
-        vulMin1 = val;
-    } else if (param == "vulmax2" || param == "vul_max2") {
-        vulMax2 = val;
-    } else if (param == "vulmin2" || param == "vul_min2") {
-        vulMin2 = val;
-    } else {
-        bool found = false;
-        for (std::size_t point = 0; point < pPoints.size(); ++point) {
-            const auto index = std::to_string(point);
-            if (param == ("p" + index)) {
-                pPoints[point] = val;
-                pointCount = std::max(pointCount, point + 1);
-                found = true;
-                break;
-            }
-            if (param == ("q" + index)) {
-                qPoints[point] = val;
-                pointCount = std::max(pointCount, point + 1);
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            ExcitationLimiter::set(param, val, unitType);
-        }
+        return;
     }
+    ExcitationLimiter::set(param, val, unitType);
 }
 
 double ExcitationLimiterUEL2C::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "k1") {
-        return static_cast<double>(k1);
-    }
-    if (param == "k2") {
-        return static_cast<double>(k2);
-    }
-    if (param == "kui" || param == "ku_i") {
-        return kuI;
-    }
-    if (param == "kul" || param == "ku_l") {
-        return kuL;
-    }
-    if (param == "vuimax" || param == "vui_max") {
-        return vuiMax;
-    }
-    if (param == "vuimin" || param == "vui_min") {
-        return vuiMin;
-    }
-    if (param == "vulmax1" || param == "vuelmax" || param == "vul_max1") {
-        return vulMax1;
-    }
-    if (param == "vulmin1" || param == "vuelmin" || param == "vul_min1") {
-        return vulMin1;
-    }
-    if (param == "vulmax2" || param == "vul_max2") {
-        return vulMax2;
-    }
-    if (param == "vulmin2" || param == "vul_min2") {
-        return vulMin2;
-    }
-    for (std::size_t point = 0; point < pPoints.size(); ++point) {
-        const auto index = std::to_string(point);
-        if (param == ("p" + index)) {
-            return pPoints[point];
-        }
-        if (param == ("q" + index)) {
-            return qPoints[point];
-        }
+    if (const auto value =
+            ExcitationLimiterUEL2C::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     return ExcitationLimiter::get(param, unitType);
 }

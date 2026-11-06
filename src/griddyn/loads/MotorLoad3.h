@@ -23,6 +23,10 @@ class MotorLoad3: public MotorLoad {
 
     // double theta=0;
   public:
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+    const ModelDescription& getModelDescription() const override;
+    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     /** @brief constructor
 @param[in] objName  the name of the object
 */

@@ -18,6 +18,7 @@
 #include "ThreePhaseLoad.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "utilities/MatrixData.hpp"
 #include <array>
@@ -72,6 +73,50 @@ namespace loads {
         gApproximatingLoadFactory("load",
                                   std::to_array<std::string_view>({"approx", "approximating"}));
 }  // namespace loads
+
+bool ZipLoad::getFlag(std::string_view flag) const
+{
+    if (const auto value = ZipLoad::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    return GridLoad::getFlag(flag);
+}
+
+const ModelDescription& ZipLoad::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ZipLoad>(
+        "ZipLoad",
+        &GridLoad::getModelDescription(),
+        {parameter(
+             {"basevoltage", "base vol", "vbase", "voltagebase", "basev", "bv", "base voltage"},
+             &ZipLoad::localBaseVoltage,
+             units::kV,
+             "Local base voltage"),
+         flag({"converttoimpedance"},
+              &ZipLoad::opFlags,
+              CONVERT_TO_CONSTANT_IMPEDANCE,
+              "Converttoimpedance"),
+         flag({"no_pqvoltage_limit"}, &ZipLoad::opFlags, NO_PQVOLTAGE_LIMIT, "No pqvoltage limit"),
+         command({"p+"}, units::defunit, "Set p+"),
+         command({"q+"}, units::defunit, "Set q+"),
+         command({"yp+", "zr+"}, units::defunit, "Set yp+"),
+         command({"yq+", "zq+"}, units::defunit, "Set yq+"),
+         command({"ir+", "ip+"}, units::defunit, "Set ir+"),
+         command({"iq+"}, units::defunit, "Set iq+"),
+         command({"load p"}, units::defunit, "Set load p"),
+         command({"load q"}, units::defunit, "Set load q"),
+         command({"yp", "shunt g", "zr"}, units::defunit, "Set yp"),
+         command({"yq", "shunt b", "zq"}, units::defunit, "Set yq"),
+         command({"ir", "ip"}, units::defunit, "Set ir"),
+         command({"iq"}, units::defunit, "Set iq"),
+         command({"pf", "powerfactor"}, units::defunit, "Set pf"),
+         command({"scale"}, units::defunit, "Set scale"),
+         command({"qratio"}, units::defunit, "Set qratio"),
+         command({"vpqmin"}, units::defunit, "Set vpqmin"),
+         command({"vpqmax"}, units::defunit, "Set vpqmax"),
+         command({"pqlowvlimit"}, units::defunit, "Set pqlowvlimit")});
+    return description;
+}
 
 ZipLoad::ZipLoad(const std::string& objName): GridLoad(objName) {}
 ZipLoad::ZipLoad(double realPower, double reactivePower, const std::string& objName):
@@ -157,19 +202,15 @@ void ZipLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*
 #endif
 }
 
-static constexpr auto locNumStrings =
-    std::array<std::string_view,
-               10>{"yp", "yq", "ip", "iq", "x", "r", "h", "m", "vpqmin", "vpqmax"};
-
-static constexpr std::array<std::string_view, 0> locStrStrings{};
-
-static constexpr auto flagStrings =
-    std::array<std::string_view, 2>{"converttoimpedance", "no_pqvoltage_limit"};
-
 void ZipLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    getParamString<ZipLoad, GridLoad>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
+    const auto& description = ZipLoad::getModelDescription();
+    getParamString<ZipLoad, GridLoad>(this,
+                                      pstr,
+                                      description.numericNames(),
+                                      description.stringNames(),
+                                      description.flagNames(),
+                                      pstype);
 }
 
 void ZipLoad::setFlag(std::string_view flag, bool val)
@@ -183,15 +224,13 @@ void ZipLoad::setFlag(std::string_view flag, bool val)
         } else {
             opFlags.reset(USE_POWER_FACTOR_FLAG);
         }
-    } else if (flag == "converttoimpedance") {
-        opFlags.set(CONVERT_TO_CONSTANT_IMPEDANCE, val);
     } else if (flag == "no_pqvoltage_limit") {
         opFlags.set(NO_PQVOLTAGE_LIMIT, val);
         if (opFlags[NO_PQVOLTAGE_LIMIT]) {
             Vpqmax = 100;
             Vpqmin = -1.0;
         }
-    } else {
+    } else if (!ZipLoad::getModelDescription().trySetFlagLocal(*this, flag, val)) {
         GridLoad::setFlag(flag, val);
     }
 }
@@ -207,6 +246,9 @@ void ZipLoad::set(std::string_view param, std::string_view val)
 
 double ZipLoad::get(std::string_view param, unit unitType) const
 {
+    if (const auto value = ZipLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
     double val = kNullVal;
     if (param.length() == 1) {
         switch (param[0]) {
@@ -259,6 +301,9 @@ double ZipLoad::get(std::string_view param, unit unitType) const
 
 void ZipLoad::set(std::string_view param, double val, unit unitType)
 {
+    if (ZipLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if (param.empty()) {
         return;
     }
@@ -391,10 +436,6 @@ void ZipLoad::set(std::string_view param, double val, unit unitType)
                 }
             }
         }
-    } else if (param == "basevoltage" || param == "base vol" || param == "vbase" ||
-               param == "voltagebase" || param == "basev" || param == "bv" ||
-               param == "base voltage") {
-        localBaseVoltage = convert(val, unitType, units::kV);
     } else {
         GridLoad::set(param, val, unitType);
     }

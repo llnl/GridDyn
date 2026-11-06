@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -26,6 +27,46 @@ namespace {
     }};
     constexpr index_t pref = 0, pef = 0, wref = 1, integral = 2;
 }  // namespace
+
+const ModelDescription& WTTQA1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<WTTQA1>(
+        "WTTQA1",
+        &RenewableComponent::getModelDescription(),
+        {parameter({"tflag"}, &WTTQA1::Tflag, units::one, "Tflag", parameterValidators::binary),
+         parameter({"kpp"}, &WTTQA1::Kpp, units::one, "Kpp"),
+         parameter({"kip"}, &WTTQA1::Kip, units::one, "Kip"),
+         parameter({"tp"}, &WTTQA1::Tp, units::second, "Tp"),
+         parameter({"twref"}, &WTTQA1::Twref, units::second, "Twref"),
+         parameter({"temax"}, &WTTQA1::Temax, units::one, "Temax"),
+         parameter({"temin"}, &WTTQA1::Temin, units::one, "Temin"),
+         parameter({"trate"}, &WTTQA1::TRATE, units::one, "Trate"),
+         parameter({"p1"}, &WTTQA1::power, 0, units::one, "Power"),
+         parameter({"p2"}, &WTTQA1::power, 1, units::one, "Power"),
+         parameter({"p3"}, &WTTQA1::power, 2, units::one, "Power"),
+         parameter({"p4"}, &WTTQA1::power, 3, units::one, "Power"),
+         parameter({"spd1"}, &WTTQA1::speed, 0, units::one, "Speed"),
+         parameter({"spd2"}, &WTTQA1::speed, 1, units::one, "Speed"),
+         parameter({"spd3"}, &WTTQA1::speed, 2, units::one, "Speed"),
+         parameter({"spd4"}, &WTTQA1::speed, 3, units::one, "Speed"),
+         state("Pref", units::one, "Solver variable Pref when active"),
+         state("PeFiltered", units::one, "Solver variable PeFiltered when active"),
+         state("speedReference", units::one, "Solver variable speedReference when active"),
+         state("torqueIntegral", units::one, "Solver variable torqueIntegral when active"),
+         localState("initialPower", &WTTQA1::initialPower, "Initial power")});
+    return description;
+}
+
+void WTTQA1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = WTTQA1::getModelDescription();
+    getParamString<WTTQA1, RenewableComponent>(this,
+                                               pstr,
+                                               description.numericNames(),
+                                               description.stringNames(),
+                                               description.flagNames(),
+                                               pstype);
+}
 
 WTTQA1::WTTQA1(const std::string& objName): RenewableComponent(objName)
 {
@@ -63,68 +104,23 @@ std::span<const RenewablePort> WTTQA1::outputPorts() const
 
 void WTTQA1::set(std::string_view param, double val, units::unit unitType)
 {
-    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "tflag") {
-        if (val != 0.0 && val != 1.0) {
-            throw InvalidParameterValue("WTTQA1 Tflag must be zero or one");
-        }
-        Tflag = static_cast<int>(val);
-    } else if (key == "kpp") {
-        Kpp = val;
-    } else if (key == "kip") {
-        Kip = val;
-    } else if (key == "tp") {
-        Tp = val;
-    } else if (key == "twref") {
-        Twref = val;
-    } else if (key == "temax") {
-        Temax = val;
-    } else if (key == "temin") {
-        Temin = val;
-    } else if (key == "trate") {
-        TRATE = val;
-    } else if (key.size() == 2 && key[1] >= '1' && key[1] <= '4' && key[0] == 'p') {
-        power[key[1] - '1'] = val;
-    } else if (key.size() == 4 && key.starts_with("spd") && key[3] >= '1' && key[3] <= '4') {
-        speed[key[3] - '1'] = val;
-    } else {
-        RenewableComponent::set(param, val, unitType);
+    if (WTTQA1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (key != param && WTTQA1::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+        return;
+    }
+    RenewableComponent::set(param, val, unitType);
 }
 
 double WTTQA1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "tflag") {
-        return Tflag;
+    if (const auto value = WTTQA1::getModelDescription().tryGetLocal(*this, key, unitType)) {
+        return *value;
     }
-    if (key == "kpp") {
-        return Kpp;
-    }
-    if (key == "kip") {
-        return Kip;
-    }
-    if (key == "tp") {
-        return Tp;
-    }
-    if (key == "twref") {
-        return Twref;
-    }
-    if (key == "temax") {
-        return Temax;
-    }
-    if (key == "temin") {
-        return Temin;
-    }
-    if (key == "trate") {
-        return TRATE;
-    }
-    if (key.size() == 2 && key[1] >= '1' && key[1] <= '4' && key[0] == 'p') {
-        return power[key[1] - '1'];
-    }
-    if (key.size() == 4 && key.starts_with("spd") && key[3] >= '1' && key[3] <= '4') {
-        return speed[key[3] - '1'];
-    }
+
     return RenewableComponent::get(param, unitType);
 }
 

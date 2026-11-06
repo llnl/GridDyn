@@ -9,6 +9,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -21,8 +22,6 @@ namespace griddyn::loads {
 static ChildTypeFactory<WSCCLoad, GridLoad> gWSCCLoadFactory("load", "wscc");
 
 namespace {
-    constexpr std::array<std::string_view, 11>
-        parameterNames{"p1", "q1", "p2", "q2", "p3", "q3", "p4", "q4", "lpd", "lqd", "vmin"};
 
     bool allFinite(const WSCCParameters& parameters)
     {
@@ -34,6 +33,26 @@ namespace {
             std::isfinite(parameters.vmin);
     }
 }  // namespace
+
+const ModelDescription& WSCCLoad::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<WSCCLoad>(
+        "WSCCLoad",
+        &GridLoad::getModelDescription(),
+        {parameter({"p1"}, &WSCCLoad::parameters, &WSCCParameters::p1, units::one, "WSCC p1"),
+         parameter({"q1"}, &WSCCLoad::parameters, &WSCCParameters::q1, units::one, "WSCC q1"),
+         parameter({"p2"}, &WSCCLoad::parameters, &WSCCParameters::p2, units::one, "WSCC p2"),
+         parameter({"q2"}, &WSCCLoad::parameters, &WSCCParameters::q2, units::one, "WSCC q2"),
+         parameter({"p3"}, &WSCCLoad::parameters, &WSCCParameters::p3, units::one, "WSCC p3"),
+         parameter({"q3"}, &WSCCLoad::parameters, &WSCCParameters::q3, units::one, "WSCC q3"),
+         parameter({"p4"}, &WSCCLoad::parameters, &WSCCParameters::p4, units::one, "WSCC p4"),
+         parameter({"q4"}, &WSCCLoad::parameters, &WSCCParameters::q4, units::one, "WSCC q4"),
+         parameter({"lpd"}, &WSCCLoad::parameters, &WSCCParameters::lpd, units::one, "WSCC lpd"),
+         parameter({"lqd"}, &WSCCLoad::parameters, &WSCCParameters::lqd, units::one, "WSCC lqd"),
+         parameter(
+             {"vmin"}, &WSCCLoad::parameters, &WSCCParameters::vmin, units::one, "WSCC vmin")});
+    return description;
+}
 
 WSCCLoad::WSCCLoad(const std::string& objName): GridLoad(objName) {}
 
@@ -159,14 +178,13 @@ double WSCCLoad::powerFrequencyDerivative(bool reactive, double voltage) const
 
 void WSCCLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    if (pstype == ParamStringType::LOCAL_NUM) {
-        pstr.assign(parameterNames.begin(), parameterNames.end());
-        return;
-    }
-    if ((pstype == ParamStringType::ALL) || (pstype == ParamStringType::NUMERIC)) {
-        pstr.insert(pstr.end(), parameterNames.begin(), parameterNames.end());
-    }
-    GridLoad::getParameterStrings(pstr, pstype);
+    const auto& description = WSCCLoad::getModelDescription();
+    getParamString<WSCCLoad, GridLoad>(this,
+                                       pstr,
+                                       description.numericNames(),
+                                       description.stringNames(),
+                                       description.flagNames(),
+                                       pstype);
 }
 
 void WSCCLoad::set(std::string_view param, std::string_view val)
@@ -176,75 +194,21 @@ void WSCCLoad::set(std::string_view param, std::string_view val)
 
 void WSCCLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    auto updatedParameters = parameters;
-    bool handled = true;
-    if (param == "p1") {
-        updatedParameters.p1 = val;
-    } else if (param == "q1") {
-        updatedParameters.q1 = val;
-    } else if (param == "p2") {
-        updatedParameters.p2 = val;
-    } else if (param == "q2") {
-        updatedParameters.q2 = val;
-    } else if (param == "p3") {
-        updatedParameters.p3 = val;
-    } else if (param == "q3") {
-        updatedParameters.q3 = val;
-    } else if (param == "p4") {
-        updatedParameters.p4 = val;
-    } else if (param == "q4") {
-        updatedParameters.q4 = val;
-    } else if (param == "lpd") {
-        updatedParameters.lpd = val;
-    } else if (param == "lqd") {
-        updatedParameters.lqd = val;
-    } else if (param == "vmin") {
-        updatedParameters.vmin = val;
-    } else {
-        handled = false;
+    if (WSCCLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        if (!param.empty() && param.front() != '#') {
+            setWSCCParameters(parameters);
+        }
+        return;
     }
-    if (handled) {
-        setWSCCParameters(updatedParameters);
-    } else {
-        GridLoad::set(param, val, unitType);
-    }
+    GridLoad::set(param, val, unitType);
 }
 
 double WSCCLoad::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "p1") {
-        return parameters.p1;
+    if (const auto value = WSCCLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
-    if (param == "q1") {
-        return parameters.q1;
-    }
-    if (param == "p2") {
-        return parameters.p2;
-    }
-    if (param == "q2") {
-        return parameters.q2;
-    }
-    if (param == "p3") {
-        return parameters.p3;
-    }
-    if (param == "q3") {
-        return parameters.q3;
-    }
-    if (param == "p4") {
-        return parameters.p4;
-    }
-    if (param == "q4") {
-        return parameters.q4;
-    }
-    if (param == "lpd") {
-        return parameters.lpd;
-    }
-    if (param == "lqd") {
-        return parameters.lqd;
-    }
-    if (param == "vmin") {
-        return parameters.vmin;
-    }
+
     return GridLoad::get(param, unitType);
 }
 

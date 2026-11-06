@@ -50,33 +50,34 @@ function(griddyn_add_hdf5)
     set(HDF5_LIB_DEPENDENCIES ${griddyn_hdf5_zlib})
 
     if(GRIDDYN_HDF5_USE_MSVC_PROBE_PRESETS AND WIN32 AND CMAKE_C_COMPILER_ID STREQUAL "MSVC")
-        # Supply known negative results for the stock Windows CI toolchain. Keep the defaults
-        # local to HDF5 so disabling the presets allows the normal probes to run again.
-        foreach(probe IN ITEMS
-                H5_HAVE_SYS_FILE_H
-                H5_HAVE_SYS_IOCTL_H
-                H5_HAVE_SYS_RESOURCE_H
-                H5_HAVE_SYS_SOCKET_H
-                H5_HAVE_SYS_TIME_H
-                H5_HAVE_DIRENT_H
-                H5_HAVE_UNISTD_H
-                H5_HAVE_PWD_H
-                H5_HAVE_PTHREAD_H
-                H5_HAVE_DLFCN_H
-                H5_HAVE_NETINET_IN_H
-                H5_HAVE_NETDB_H
-                H5_HAVE_ARPA_INET_H
-                H5_HAVE_LIBUCB
-                H5_HAVE_ALARM
-                H5_HAVE_FCNTL
-                H5_HAVE_FLOCK
-                H5_HAVE_FORK
-                H5_HAVE_GETRUSAGE
-                H5_HAVE_PREAD
-                H5_HAVE_PWRITE
-                H5_HAVE_STRCASESTR
-                H5_HAVE_SYMLINK
-                H5_HAVE_WAITPID
+        # Supply known negative results for the stock Windows CI toolchain. Keep the defaults local
+        # to HDF5 so disabling the presets allows the normal probes to run again.
+        foreach(
+            probe IN
+            ITEMS H5_HAVE_SYS_FILE_H
+                  H5_HAVE_SYS_IOCTL_H
+                  H5_HAVE_SYS_RESOURCE_H
+                  H5_HAVE_SYS_SOCKET_H
+                  H5_HAVE_SYS_TIME_H
+                  H5_HAVE_DIRENT_H
+                  H5_HAVE_UNISTD_H
+                  H5_HAVE_PWD_H
+                  H5_HAVE_PTHREAD_H
+                  H5_HAVE_DLFCN_H
+                  H5_HAVE_NETINET_IN_H
+                  H5_HAVE_NETDB_H
+                  H5_HAVE_ARPA_INET_H
+                  H5_HAVE_LIBUCB
+                  H5_HAVE_ALARM
+                  H5_HAVE_FCNTL
+                  H5_HAVE_FLOCK
+                  H5_HAVE_FORK
+                  H5_HAVE_GETRUSAGE
+                  H5_HAVE_PREAD
+                  H5_HAVE_PWRITE
+                  H5_HAVE_STRCASESTR
+                  H5_HAVE_SYMLINK
+                  H5_HAVE_WAITPID
         )
             if(NOT DEFINED ${probe})
                 set(${probe} OFF)

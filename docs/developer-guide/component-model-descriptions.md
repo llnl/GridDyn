@@ -40,13 +40,13 @@ may still need a small range validator, but does not need another integer check.
 The declarations do not replace algorithms or infer object-specific unit bases.
 The following operations intentionally keep class code:
 
-| Family | Behavior |
-| --- | --- |
-| Loads | Base-dependent power/current/impedance conversion; power-factor changes; component allocation; scheduling and source forwarding; motor torque and saturation updates; switched-shunt bank operations. |
-| Links and transformers | Admittance refresh after impedance changes; faults and breaker changes; tap clamping and initial tap bookkeeping; winding and subsystem forwarding; converter control-block updates. |
-| Buses and generator containers | Voltage/power propagation to attached models; control targets; topology and remote-bus selection; governor/machine parameter forwarding; structural changes. |
-| Excitation limiters | Role checks; explicit-threshold bookkeeping; configured curve length; delayed limiter activation. |
-| Renewables | Input-layout and root-count changes; initialization-reference bookkeeping; variant-specific restrictions and dependent limits; external measurement source selection. |
+| Family                         | Behavior                                                                                                                                                                                              |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Loads                          | Base-dependent power/current/impedance conversion; power-factor changes; component allocation; scheduling and source forwarding; motor torque and saturation updates; switched-shunt bank operations. |
+| Links and transformers         | Admittance refresh after impedance changes; faults and breaker changes; tap clamping and initial tap bookkeeping; winding and subsystem forwarding; converter control-block updates.                  |
+| Buses and generator containers | Voltage/power propagation to attached models; control targets; topology and remote-bus selection; governor/machine parameter forwarding; structural changes.                                          |
+| Excitation limiters            | Role checks; explicit-threshold bookkeeping; configured curve length; delayed limiter activation.                                                                                                     |
+| Renewables                     | Input-layout and root-count changes; initialization-reference bookkeeping; variant-specific restrictions and dependent limits; external measurement source selection.                                 |
 
 For a directly bound value that also needs a small update, the model performs
 that update after successful table dispatch. For example, REECA1 updates its

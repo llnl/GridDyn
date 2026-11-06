@@ -92,11 +92,12 @@ jobs:
           imageName: "windows-latest"
           langArch: "x64"
           vsArch: "x64"
-          extraFlags: "-DGRIDDYN_ENABLE_FMI=ON -DGRIDDYN_BUILD_CXX_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON"
+          extraFlags: "-DGRIDDYN_ENABLE_FMI=OFF -DGRIDDYN_BUILD_CXX_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON"
         VS2022-64bit:
           imageName: "windows-2022"
           langArch: "x64"
           vsArch: "x64"
+          extraFlags: "-DGRIDDYN_ENABLE_FMI=ON"
     pool:
       vmImage: $(imageName)
     variables:
@@ -107,6 +108,28 @@ jobs:
       # -----------------------
       # Install dependencies
       # -----------------------
+      - bash: |
+          submodules=(
+            ThirdParty/containers
+            ThirdParty/concurrency
+            ThirdParty/utilities
+            ThirdParty/spdlog
+            ThirdParty/googletest
+            ThirdParty/units
+            ThirdParty/sundials
+            ThirdParty/hdf5
+            ThirdParty/pugixml
+            ThirdParty/toml
+            ThirdParty/yaml-cpp
+            ThirdParty/suitesparse-cmake
+          )
+          if [[ " $EXTRAFLAGS " == *" -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON "* ]]; then
+            submodules+=(ThirdParty/highs)
+          fi
+          git submodule update --init --checkout --depth 1 --jobs 4 -- "${submodules[@]}"
+        displayName: Fetch pinned submodules
+        workingDirectory: $(Build.SourcesDirectory)
+
       - task: Cache@2
         inputs:
           path: $(BOOST_ROOT)
@@ -147,7 +170,7 @@ jobs:
         displayName: Show environment info
       - task: CMake@1
         inputs:
-          cmakeArgs: -A $(vsArch) -DBOOST_INSTALL_PATH=$(BOOST_ROOT) -DGRIDDYN_ENABLE_PACKAGE_BUILD=ON -DGRIDDYN_BUILD_TESTS=ON $(extraFlags) ..
+          cmakeArgs: -A $(vsArch) -DBOOST_INSTALL_PATH=$(BOOST_ROOT) -DGRIDDYN_ENABLE_PACKAGE_BUILD=ON -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_HDF5_USE_MSVC_PROBE_PRESETS=ON $(extraFlags) ..
         displayName: "Configure GridDyn"
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
 

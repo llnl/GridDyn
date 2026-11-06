@@ -26,6 +26,11 @@ if(CMAKE_CXX_STANDARD LESS 23)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# GridDyn does not use C++ modules. Skip dependency scanning by default.
+if(NOT DEFINED CMAKE_CXX_SCAN_FOR_MODULES)
+    set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+endif()
+
 # Minimum supported compiler versions for C++23-era GridDyn.
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14)
     message(FATAL_ERROR "GridDyn requires GCC 14 or newer")

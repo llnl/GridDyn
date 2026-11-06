@@ -21,7 +21,7 @@ jobs:
       should_build: ${{ steps.version.outputs.should_build }}
       version: ${{ steps.version.outputs.version }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
@@ -85,7 +85,7 @@ jobs:
     if: needs.check_version.outputs.should_build == 'true'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         submodules: true
 
@@ -112,11 +112,11 @@ jobs:
         os: [ubuntu-latest, ubuntu-26.04-arm, macos-26, windows-latest]
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         submodules: true
 
-    - uses: actions/setup-python@v6
+    - uses: actions/setup-python@v7
       with:
         python-version: "3.14"
 
@@ -162,7 +162,7 @@ jobs:
             env.write(f"BOOST_INSTALL_PATH={host_boost_root}\n")
             env.write(f"CIBW_ENVIRONMENT={cibw_environment}\n")
         PY
-    - uses: pypa/cibuildwheel@v3.4
+    - uses: pypa/cibuildwheel@v4.3.5
 
     - name: Verify clean tracked files
       run: git diff --exit-code --ignore-submodules=dirty
@@ -189,7 +189,7 @@ jobs:
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
     steps:
-    - uses: actions/setup-python@v6
+    - uses: actions/setup-python@v7
       with:
         python-version: "3.14"
     - uses: actions/download-artifact@v8
@@ -202,6 +202,57 @@ jobs:
       with:
         verbose: true
         repository-url: https://test.pypi.org/legacy/
+
+  verify-testpypi:
+    name: Smoke test published TestPyPI wheel
+    needs: [check_version, publish-to-testpypi]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+    - uses: actions/setup-python@v7
+      with:
+        python-version: "3.14"
+
+    - name: Install the published wheel
+      shell: bash
+      env:
+        PACKAGE_VERSION: ${{ needs.check_version.outputs.version }}
+      run: |
+        python -m venv "$RUNNER_TEMP/testpypi"
+        source "$RUNNER_TEMP/testpypi/bin/activate"
+
+        # Allow time for the uploaded wheel to appear in the package index.
+        for delay in 0 5 15 30; do
+          sleep "$delay"
+          if python -m pip --isolated install --no-cache-dir --no-deps \
+              --only-binary=:all: --index-url https://test.pypi.org/simple/ \
+              "griddyn==$PACKAGE_VERSION"; then
+            exit 0
+          fi
+        done
+        exit 1
+
+    - name: Check the installed version and run a power flow
+      shell: bash
+      run: |
+        source "$RUNNER_TEMP/testpypi/bin/activate"
+        python - <<'PY'
+        from importlib.metadata import version
+        import griddyn
+
+        package_version = version("griddyn")
+        native_version = griddyn.__version__.split()[0]
+        if native_version != package_version and not native_version.startswith(
+            f"{package_version}-"
+        ):
+            raise SystemExit(
+                f"native version {native_version!r} does not match "
+                f"package version {package_version!r}"
+            )
+        PY
+        python -m griddyn.examples.power_flow
+
   publish-to-pypi:
     name: >-
       Publish Python distribution to PyPI

@@ -707,6 +707,8 @@ if(GRIDDYN_SUITESPARSE_LOCAL_BUILD AND GRIDDYN_ENABLE_KLU)
         if(TARGET ${_griddyn_suite_target})
             get_target_property(_griddyn_suite_type ${_griddyn_suite_target} TYPE)
             if(_griddyn_suite_type STREQUAL "SHARED_LIBRARY")
+                # The bundled SuiteSparse headers are private to the GridDyn build.
+                set_property(TARGET ${_griddyn_suite_target} PROPERTY PUBLIC_HEADER)
                 install(
                     TARGETS ${_griddyn_suite_target}
                     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT applications

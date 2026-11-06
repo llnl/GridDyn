@@ -8,11 +8,34 @@
 
 #include "../measurement/GrabberSet.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectInterpreter.h"
 #include <memory>
 #include <string>
 
 namespace griddyn::sources {
+const ModelDescription& GrabberSource::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GrabberSource>(
+        "GrabberSource",
+        &RampSource::getModelDescription(),
+        {command({"field"}, units::defunit, "Field", ModelFieldType::STRING),
+         command({"target"}, units::defunit, "Target", ModelFieldType::STRING),
+         command({"gain", "multiplier"}, units::defunit, "Gain")});
+    return description;
+}
+
+void GrabberSource::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = GrabberSource::getModelDescription();
+    getParamString<GrabberSource, RampSource>(this,
+                                              pstr,
+                                              description.numericNames(),
+                                              description.stringNames(),
+                                              description.flagNames(),
+                                              pstype);
+}
+
 GrabberSource::GrabberSource(const std::string& objName): RampSource(objName) {}
 GrabberSource::~GrabberSource() = default;
 
@@ -59,6 +82,9 @@ void GrabberSource::set(std::string_view param, std::string_view val)
 
 void GrabberSource::set(std::string_view param, double val, units::unit unitType)
 {
+    if (GrabberSource::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if ((param == "gain") || (param == "multiplier")) {
         multiplier = val;
         if (gset) {

@@ -32,6 +32,10 @@ namespace griddyn::blocks {
  */
 class LutBlock: public GridBlock {
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+
   private:
     std::vector<std::pair<double, double>> lut;  //!< the lookup table
 

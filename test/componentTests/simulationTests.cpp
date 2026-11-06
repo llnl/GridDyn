@@ -6,8 +6,10 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreOwningPtr.hpp"
+#include "core/ModelDescription.h"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
+#include "griddyn/GridArea.h"
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/griddyn-config.h"
 #include "griddyn/simulation/FaultResetRecovery.h"
@@ -316,3 +318,33 @@ TEST(OptimizationFactoryTests, PrepObjectsIgnoresInvalidRequests)
     EXPECT_EQ(factory.remainingPrepped(), 0U);
 }
 #endif
+
+TEST(SimulationDescriptionTests, InheritedClockSettingsAndSimulationFlags)
+{
+    griddyn::GridDynSimulation simulation;
+    const auto& description = simulation.getModelDescription();
+    ASSERT_TRUE(description.describesExactType(simulation));
+    ASSERT_NE(description.parent(), nullptr);
+    EXPECT_EQ(description.parent()->name(), "GridSimulation");
+    ASSERT_NE(description.parent()->parent(), nullptr);
+    EXPECT_EQ(description.parent()->parent()->name(), "GridArea");
+
+    simulation.set("step", 250.0, units::ms);
+    simulation.set("timetolerance", 2.0, units::ms);
+    simulation.set("rtol", 1e-6);
+    EXPECT_NEAR(simulation.get("stepsize"), 0.25, 1e-7);
+    EXPECT_NEAR(simulation.get("timetolerance", units::ms), 2.0, 1e-6);
+    EXPECT_DOUBLE_EQ(simulation.get("tolerance"), 1e-6);
+
+    simulation.set("strictgovernorlimits", 0.01);
+    EXPECT_TRUE(simulation.getFlag("strict_governor_limits"));
+    EXPECT_DOUBLE_EQ(simulation.get("strict_governor_limits"), 1.0);
+    simulation.set("sparse", 0.0);
+    EXPECT_TRUE(simulation.getFlag("dense"));
+    simulation.set("reverse_converge", 1.0);
+    EXPECT_TRUE(simulation.getFlag("reverse_converge"));
+
+    simulation.set("schedulednetinterchange", 0.25, units::puMW);
+    EXPECT_DOUBLE_EQ(simulation.get("schedulednetinterchange", units::MW),
+                     0.25 * simulation.get("basepower", units::MW));
+}

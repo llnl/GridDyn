@@ -16,6 +16,11 @@ automatically recovers
 */
 class LoadRelay: public Relay {
   public:
+    double get(std::string_view param, units::unit unitType = units::defunit) const override;
+    bool getFlag(std::string_view flag) const override;
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
     enum LoadRelayFlags {
         NONDIRECTIONAL_FLAG = OBJECT_FLAG10,
     };

@@ -7,6 +7,7 @@
 #include "PulseSource.h"
 
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <cmath>
@@ -14,6 +15,44 @@
 
 namespace griddyn::sources {
 using units::unit;
+
+const ModelDescription& PulseSource::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<PulseSource>(
+        "PulseSource",
+        &Source::getModelDescription(),
+        {command({"type", "pulsetype"}, units::defunit, "Type", ModelFieldType::STRING),
+         command({"a", "amplitude", "amp"}, units::defunit, "Denominator coefficients"),
+         parameter({"period"}, &PulseSource::period, units::defunit, "Pulse period"),
+         command({"frequency"}, units::defunit, "Frequency"),
+         command({"dutycycle"}, units::defunit, "Dutycycle"),
+         command({"shift"}, units::defunit, "Shift"),
+         command({"base"}, units::defunit, "Base"),
+         command({"invert"}, units::defunit, "Invert"),
+         localState("cycle_time",
+                    &PulseSource::cycleTime,
+                    "Start time of the current pulse cycle")});
+    return description;
+}
+
+double PulseSource::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value = PulseSource::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return Source::get(param, unitType);
+}
+
+void PulseSource::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = PulseSource::getModelDescription();
+    getParamString<PulseSource, Source>(this,
+                                        pstr,
+                                        description.numericNames(),
+                                        description.stringNames(),
+                                        description.flagNames(),
+                                        pstype);
+}
 
 PulseSource::PulseSource(const std::string& objName, double startVal):
     Source(objName, startVal), baseValue(startVal)
@@ -131,12 +170,13 @@ void PulseSource::setLevel(double val)
 
 void PulseSource::set(std::string_view param, double val, unit unitType)
 {
+    if (PulseSource::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if ((param == "a") || (param == "amplitude") || (param == "amp")) {
         Amplitude = val;
         // done to ensure a new value is computed at the next update
         cycleTime -= period;
-    } else if (param == "period") {
-        period = val;
     } else if (param == "frequency") {
         period = 1.0 / val;
     } else if (param == "dutycycle") {

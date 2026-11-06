@@ -14,6 +14,10 @@ namespace griddyn::extra {
  */
 class TxThermalModel: public Sensor {
   public:
+    bool getFlag(std::string_view flag) const override;
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
     enum ThermalModelFlags {
         AUTO_PARAMETER_LOAD = OBJECT_FLAG10,
         ENABLE_PARAMETER_UPDATES = OBJECT_FLAG11,

@@ -7,6 +7,7 @@
 #include "DeadbandBlock.h"
 
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
@@ -15,6 +16,79 @@
 #include <vector>
 
 namespace griddyn::blocks {
+const ModelDescription& DeadbandBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<DeadbandBlock>(
+        "DeadbandBlock",
+        &GridBlock::getModelDescription(),
+        {flag({"shifted"}, &DeadbandBlock::opFlags, USES_SHIFTED_OUTPUT, "Shifted"),
+         parameter({"level", "dblevel", "deadbandlevel"},
+                   &DeadbandBlock::mDeadbandLevel,
+                   units::defunit,
+                   "The output level while the input is inside the deadband"),
+         command({"deadband", "db"}, units::defunit, "Deadband"),
+         command({"deadbandhigh", "dbhigh", "high"}, units::defunit, "Deadbandhigh"),
+         parameter({"tolerance"},
+                   &DeadbandBlock::mTolerance,
+                   units::defunit,
+                   "The tolerance for resetting on the check function"),
+         command({"deadbandlow", "dblow", "low"}, units::defunit, "Deadbandlow"),
+         command({"rampband", "ramp"}, units::defunit, "Rampband"),
+         parameter({"rampupband", "rampup"},
+                   &DeadbandBlock::mRampUpBand,
+                   units::defunit,
+                   "Ramp band on the up side"),
+         parameter({"rampdownband", "rampdown"},
+                   &DeadbandBlock::mRampDownBand,
+                   units::defunit,
+                   "Ramp band on the low side"),
+         command({"resetlevel", "reset"}, units::defunit, "Reset level"),
+         parameter({"resethigh"},
+                   &DeadbandBlock::mResetHigh,
+                   units::defunit,
+                   "The reset level to go off the deadband"),
+         parameter({"resetlow"},
+                   &DeadbandBlock::mResetLow,
+                   units::defunit,
+                   "The reset level to go back in the deadband on the low side"),
+         command({"unshifted"}, units::defunit, "Unshifted", ModelFieldType::BOOLEAN),
+         command({"no_down_deadband"}, units::defunit, "No down deadband", ModelFieldType::BOOLEAN),
+         localState("deadband_mode", &DeadbandBlock::mDeadbandState, "Active deadband region"),
+         localState("trigger_high",
+                    &DeadbandBlock::opFlags,
+                    DB_TRIGGER_HIGH,
+                    "Side that triggered the deadband")});
+    return description;
+}
+
+double DeadbandBlock::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value =
+            DeadbandBlock::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return GridBlock::get(param, unitType);
+}
+
+bool DeadbandBlock::getFlag(std::string_view flag) const
+{
+    if (const auto value = DeadbandBlock::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    return GridBlock::getFlag(flag);
+}
+
+void DeadbandBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = DeadbandBlock::getModelDescription();
+    getParamString<DeadbandBlock, GridBlock>(this,
+                                             pstr,
+                                             description.numericNames(),
+                                             description.stringNames(),
+                                             description.flagNames(),
+                                             pstype);
+}
+
 DeadbandBlock::DeadbandBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(USE_STATE);
@@ -506,9 +580,10 @@ ChangeCode DeadbandBlock::rootCheck(const IOdata& inputs,
 
 void DeadbandBlock::setFlag(std::string_view flag, bool val)
 {
-    if (flag == "shifted") {
-        opFlags.set(USES_SHIFTED_OUTPUT, val);
-    } else if (flag == "unshifted") {
+    if (DeadbandBlock::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+        return;
+    }
+    if (flag == "unshifted") {
         opFlags.set(USES_SHIFTED_OUTPUT, !val);
     } else if (flag == "no_down_deadband") {
         mResetLow = mDeadbandLevel;
@@ -528,9 +603,10 @@ void DeadbandBlock::set(std::string_view param, std::string_view val)
 
 void DeadbandBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "level") || (param == "dblevel") || (param == "deadbandlevel")) {
-        mDeadbandLevel = val;
-    } else if ((param == "deadband") || (param == "db")) {
+    if (DeadbandBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
+    if ((param == "deadband") || (param == "db")) {
         mDeadbandHigh = mDeadbandLevel + val;
         mDeadbandLow = mDeadbandLevel - val;
     } else if ((param == "deadbandhigh") || (param == "dbhigh") || (param == "high")) {
@@ -539,8 +615,6 @@ void DeadbandBlock::set(std::string_view param, double val, units::unit unitType
         } else {
             mDeadbandHigh = mDeadbandLevel + val;
         }
-    } else if (param == "tolerance") {
-        mTolerance = val;
     } else if ((param == "deadbandlow") || (param == "dblow") || (param == "low")) {
         if (val < mDeadbandLevel) {
             mDeadbandLow = val;
@@ -550,17 +624,9 @@ void DeadbandBlock::set(std::string_view param, double val, units::unit unitType
     } else if ((param == "rampband") || (param == "ramp")) {
         mRampUpBand = val;
         mRampDownBand = val;
-    } else if ((param == "rampupband") || (param == "rampup")) {
-        mRampUpBand = val;
-    } else if ((param == "rampdownband") || (param == "rampdown")) {
-        mRampDownBand = val;
     } else if ((param == "resetlevel") || (param == "reset")) {
         mResetHigh = mDeadbandLevel + val;
         mResetLow = mDeadbandLevel - val;
-    } else if (param == "resethigh") {
-        mResetHigh = val;
-    } else if (param == "resetlow") {
-        mResetLow = val;
     } else {
         GridBlock::set(param, val, unitType);
     }

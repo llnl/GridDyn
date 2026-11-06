@@ -8,12 +8,48 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactory.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <string>
 
 namespace griddyn::blocks {
+const ModelDescription& DerivativeBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<DerivativeBlock>(
+        "DerivativeBlock",
+        &GridBlock::getModelDescription(),
+        {parameter({"t1", "t"},
+                   &DerivativeBlock::mT1,
+                   units::defunit,
+                   "Delay time constant for the derivative filtering operation",
+                   [](double value) { return !(std::abs(value) < kMin_Res); }),
+         state("deriv", units::defunit, "Derivative output"),
+         state("delayI", units::defunit, "Derivative filter state")});
+    return description;
+}
+
+double DerivativeBlock::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value =
+            DerivativeBlock::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return GridBlock::get(param, unitType);
+}
+
+void DerivativeBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = DerivativeBlock::getModelDescription();
+    getParamString<DerivativeBlock, GridBlock>(this,
+                                               pstr,
+                                               description.numericNames(),
+                                               description.stringNames(),
+                                               description.flagNames(),
+                                               pstype);
+}
+
 DerivativeBlock::DerivativeBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(USE_STATE);
@@ -163,14 +199,10 @@ void DerivativeBlock::set(std::string_view param, std::string_view val)
 }
 void DerivativeBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "t1") || (param == "t")) {
-        if (std::abs(val) < kMin_Res) {
-            throw(InvalidParameterValue(param));
-        }
-        mT1 = val;
-    } else {
-        GridBlock::set(param, val, unitType);
+    if (DerivativeBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    GridBlock::set(param, val, unitType);
 }
 
 stringVec DerivativeBlock::localStateNames() const

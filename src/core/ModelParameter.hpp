@@ -257,7 +257,8 @@ namespace detail {
                                     Validator validator)
     {
         using Value = std::remove_cvref_t<decltype(access(std::declval<Model&>()))>;
-        static_assert(std::is_arithmetic_v<Value> && !std::is_same_v<Value, bool>);
+        static_assert((std::is_arithmetic_v<Value> && !std::is_same_v<Value, bool>) ||
+                      std::is_same_v<Value, CoreTime>);
         ModelField::Reader read = [access](const CoreObject& object) -> ModelFieldValue {
             return storedValue(access(fieldOwner<Model>(object)));
         };
@@ -304,8 +305,9 @@ namespace parameterValidators {
 
 /** A numeric member kept in a model's parameter structure. */
 template<class Model, class Storage, class Value, class Validator = detail::AcceptModelValue>
-    requires std::is_arithmetic_v<Value> &&
-    (!std::is_same_v<Value, bool>) && std::predicate<Validator, const Value&>
+    requires((std::is_arithmetic_v<Value> && !std::is_same_v<Value, bool>) ||
+             std::is_same_v<Value, CoreTime>) &&
+    std::predicate<Validator, const Value&>
 ModelField parameter(std::initializer_list<std::string_view> names,
                      Storage Model::* storage,
                      Value Storage::* member,

@@ -9,10 +9,34 @@
 #include "../Block.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <algorithm>
 #include <string>
 #include <vector>
 namespace griddyn::sources {
+const ModelDescription& BlockSource::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<BlockSource>(
+        "BlockSource",
+        &Source::getModelDescription(),
+        {parameter({"maxstepsize"},
+                   &BlockSource::maxStepSize,
+                   units::defunit,
+                   "Calculation for the maximum step size that should be taken in a timestep")});
+    return description;
+}
+
+void BlockSource::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = BlockSource::getModelDescription();
+    getParamString<BlockSource, Source>(this,
+                                        pstr,
+                                        description.numericNames(),
+                                        description.stringNames(),
+                                        description.flagNames(),
+                                        pstype);
+}
+
 BlockSource::BlockSource(const std::string& objName): Source(objName) {}
 CoreObject* BlockSource::clone(CoreObject* obj) const
 {
@@ -125,21 +149,23 @@ void BlockSource::set(std::string_view param, double val, units::unit unitType)
     if (subObjectSet(param, val, unitType)) {
         return;
     }
-    if (param == "maxstepsize") {
-        maxStepSize = val;
-    } else {
-        try {
-            Source::set(param, val, unitType);
-        }
-        catch (const UnrecognizedParameter&) {
-            if (src != nullptr) {
-                src->set(param, val, unitType);
-            }
+    if (BlockSource::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
+    try {
+        Source::set(param, val, unitType);
+    }
+    catch (const UnrecognizedParameter&) {
+        if (src != nullptr) {
+            src->set(param, val, unitType);
         }
     }
 }
 double BlockSource::get(std::string_view param, units::unit unitType) const
 {
+    if (const auto value = BlockSource::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
     double rval = Source::get(param, unitType);
     if (rval == kNullVal) {
         if (src != nullptr) {

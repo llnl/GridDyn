@@ -36,6 +36,8 @@ class GridArea: public GridPrimary {
     friend class ListMaintainer;
 
   public:
+    bool getFlag(std::string_view flag) const override;
+    const ModelDescription& getModelDescription() const override;
     /** A scheduled transfer specification between two areas. Power is stored in MW. */
     struct InterAreaTransfer {
         index_t fromAreaID{0};

@@ -24,6 +24,7 @@ class ControlSystem: public GridSubModel {
     std::vector<double> blockOutputs;  //!< current vector of block outputs
 
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit ControlSystem(const std::string& objName = "control_system_#");
     virtual ~ControlSystem();
 

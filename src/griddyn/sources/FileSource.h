@@ -14,6 +14,11 @@ namespace griddyn::sources {
 /** Source getting its data from a file*/
 class FileSource: public RampSource {
   public:
+    double get(std::string_view param, units::unit unitType = units::defunit) const override;
+    bool getFlag(std::string_view flag) const override;
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
     /** enumerations of flags used in the file source*/
     enum FileLoadFlags {
         USE_ABSOLUTE_TIME_FLAG =

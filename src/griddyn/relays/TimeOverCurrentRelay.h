@@ -31,6 +31,7 @@ namespace griddyn::relays {
  */
 class TimeOverCurrentRelay: public Relay {
   public:
+    const ModelDescription& getModelDescription() const override;
     enum class Curve {
         IEC_STANDARD_INVERSE,
         IEC_VERY_INVERSE,

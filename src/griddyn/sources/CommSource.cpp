@@ -11,6 +11,7 @@
 #include "../comms/ControlMessage.h"
 #include "../events/EventQueue.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <cassert>
 #include <memory>
 #include <string>
@@ -33,6 +34,44 @@ namespace {
         }
     }
 }  // namespace
+
+const ModelDescription& CommSource::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<CommSource>(
+        "CommSource",
+        &RampSource::getModelDescription(),
+        {flag({"no_reply_message"}, &CommSource::opFlags, NO_MESSAGE_REPLY, "No reply message"),
+         command({"ramp", "maxramp"}, units::defunit, "Ramp"),
+         command({"reply_message"}, units::defunit, "Reply message", ModelFieldType::BOOLEAN)});
+    return description;
+}
+
+double CommSource::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value = CommSource::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return RampSource::get(param, unitType);
+}
+
+bool CommSource::getFlag(std::string_view flag) const
+{
+    if (const auto value = CommSource::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    return RampSource::getFlag(flag);
+}
+
+void CommSource::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = CommSource::getModelDescription();
+    getParamString<CommSource, RampSource>(this,
+                                           pstr,
+                                           description.numericNames(),
+                                           description.stringNames(),
+                                           description.flagNames(),
+                                           pstype);
+}
 
 CommSource::CommSource(const std::string& objName): RampSource(objName)
 {
@@ -91,6 +130,9 @@ void CommSource::set(std::string_view param, std::string_view val)
 
 void CommSource::set(std::string_view param, double val, units::unit unitType)
 {
+    if (CommSource::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if ((param == "ramp") || (param == "maxramp")) {
         maxRamp = std::abs(val);
     } else {
@@ -102,10 +144,11 @@ void CommSource::set(std::string_view param, double val, units::unit unitType)
 
 void CommSource::setFlag(std::string_view flag, bool val)
 {
+    if (CommSource::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+        return;
+    }
     if (flag == "ramp") {
         opFlags.set(USE_RAMP, val);
-    } else if (flag == "no_reply_message") {
-        opFlags.set(NO_MESSAGE_REPLY, val);
     } else if (flag == "reply_message") {
         opFlags.set(NO_MESSAGE_REPLY, !val);
     } else {

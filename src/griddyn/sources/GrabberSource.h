@@ -21,6 +21,9 @@ namespace sources {
         std::string target;  //!< the name of the target
         model_parameter multiplier = 1.0;  //!< a multiplier on the grabber value
       public:
+        const ModelDescription& getModelDescription() const override;
+        void getParameterStrings(stringVec& pstr,
+                                 ParamStringType pstype = ParamStringType::ALL) const override;
         GrabberSource(const std::string& objName = "grabbersource_#");
         ~GrabberSource();
 

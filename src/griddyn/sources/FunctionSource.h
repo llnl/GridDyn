@@ -20,6 +20,7 @@ class FunctionSource: public Source {
     std::function<double(double)> sourceFunc;  //!< the function object used as a signal generator
 
   public:
+    const ModelDescription& getModelDescription() const override;
     FunctionSource(const std::string& objName = "functionsource_#");
 
     CoreObject* clone(CoreObject* obj = nullptr) const override;

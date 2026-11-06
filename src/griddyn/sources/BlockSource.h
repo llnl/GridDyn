@@ -22,6 +22,9 @@ namespace sources {
         double maxStepSize =
             kBigNum;  //!< calculation for the maximum step size that should be taken in a timestep
       public:
+        const ModelDescription& getModelDescription() const override;
+        void getParameterStrings(stringVec& pstr,
+                                 ParamStringType pstype = ParamStringType::ALL) const override;
         BlockSource(const std::string& objName = "blocksource_#");
 
         virtual CoreObject* clone(CoreObject* obj = nullptr) const override;

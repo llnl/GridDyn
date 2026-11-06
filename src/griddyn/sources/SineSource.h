@@ -14,6 +14,10 @@ namespace griddyn::sources {
  */
 class SineSource: public PulseSource {
   public:
+    double get(std::string_view param, units::unit unitType = units::defunit) const override;
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
     static const char pulsedFlag = OBJECT_FLAG4;  //!< indicator that the source should be pulsed
   protected:
     model_parameter frequency = 0.0;  //!<[Hz] frequency of an oscillation

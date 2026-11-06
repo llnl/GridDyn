@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
@@ -15,6 +16,40 @@
 #include <string>
 
 namespace griddyn::blocks {
+const ModelDescription& FunctionBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<FunctionBlock>(
+        "FunctionBlock",
+        &GridBlock::getModelDescription(),
+        {command({"function", "func"}, units::defunit, "Function", ModelFieldType::STRING),
+         parameter({"gain"}, &FunctionBlock::mGain, units::defunit, "Extra gain factor"),
+         parameter({"arg"},
+                   &FunctionBlock::mArg2,
+                   units::defunit,
+                   "Second argument for 2 argument functions")});
+    return description;
+}
+
+double FunctionBlock::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value =
+            FunctionBlock::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return GridBlock::get(param, unitType);
+}
+
+void FunctionBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = FunctionBlock::getModelDescription();
+    getParamString<FunctionBlock, GridBlock>(this,
+                                             pstr,
+                                             description.numericNames(),
+                                             description.stringNames(),
+                                             description.flagNames(),
+                                             pstype);
+}
+
 FunctionBlock::FunctionBlock(): GridBlock("functionBlock_#")
 {
     offsets.local().local.algSize = 2;
@@ -140,13 +175,10 @@ void FunctionBlock::set(std::string_view param, std::string_view val)
 
 void FunctionBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "gain") {
-        mGain = val;
-    } else if (param == "arg") {
-        mArg2 = val;
-    } else {
-        GridBlock::set(param, val, unitType);
+    if (FunctionBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    GridBlock::set(param, val, unitType);
 }
 
 void FunctionBlock::setFunction(const std::string& functionName)

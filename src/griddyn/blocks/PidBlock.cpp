@@ -7,11 +7,54 @@
 #include "PidBlock.h"
 
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <string>
 namespace griddyn::blocks {
+const ModelDescription& PidBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<PidBlock>(
+        "PidBlock",
+        &GridBlock::getModelDescription(),
+        {parameter({"p", "proportional"},
+                   &PidBlock::m_P,
+                   units::defunit,
+                   "Proportional control constant"),
+         parameter({"i", "integral"}, &PidBlock::m_I, units::defunit, "Integral control constant"),
+         command({"d", "derivative"}, units::defunit, "D"),
+         parameter({"t", "t1"},
+                   &PidBlock::m_T1,
+                   units::defunit,
+                   "Filtering delay on the input for the differential calculation"),
+         parameter({"iv", "initial_value"},
+                   &PidBlock::iv,
+                   units::defunit,
+                   "Intermediate value for calculations"),
+         state("deriv_delay", units::defunit, "Filtered derivative state")});
+    return description;
+}
+
+double PidBlock::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value = PidBlock::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return GridBlock::get(param, unitType);
+}
+
+void PidBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = PidBlock::getModelDescription();
+    getParamString<PidBlock, GridBlock>(this,
+                                        pstr,
+                                        description.numericNames(),
+                                        description.stringNames(),
+                                        description.flagNames(),
+                                        pstype);
+}
+
 PidBlock::PidBlock(const std::string& objName): GridBlock(objName), no_D(extra_bool)
 {
     opFlags.set(USE_STATE);
@@ -234,17 +277,12 @@ void PidBlock::set(std::string_view param, std::string_view val)
 }
 void PidBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "p") || (param == "proportional")) {
-        m_P = val;
-    } else if ((param == "i") || (param == "integral")) {
-        m_I = val;
-    } else if ((param == "d") || (param == "derivative")) {
+    if (PidBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
+    if ((param == "d") || (param == "derivative")) {
         m_D = val;
         no_D = (m_D == 0.0);
-    } else if ((param == "t") || (param == "t1")) {
-        m_T1 = val;
-    } else if ((param == "iv") || (param == "initial_value")) {
-        iv = val;
     } else {
         GridBlock::set(param, val, unitType);
     }

@@ -7,6 +7,7 @@
 #include "ControlRelay.h"
 
 #include "core/CoreExceptions.h"
+#include "core/ModelParameter.hpp"
 // #include "utilities/TimeSeries.hpp"
 #include "../comms/Communicator.h"
 #include "../comms/ControlMessage.h"
@@ -22,6 +23,51 @@
 #include <utility>
 
 namespace griddyn::relays {
+const ModelDescription& ControlRelay::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ControlRelay>(
+        "ControlRelay",
+        &Relay::getModelDescription(),
+        {flag({"noreply"}, &ControlRelay::opFlags, NO_MESSAGE_REPLY, "Noreply"),
+         command({"measurement"}, units::defunit, "Measurement", ModelFieldType::STRING),
+         parameter(
+             {"autoname"}, &ControlRelay::autoName, units::defunit, "Variable for autonaming"),
+         parameter({"delay"},
+                   &ControlRelay::actionDelay,
+                   units::defunit,
+                   "The delay between comm signal and action"),
+         command({"terminal"}, units::defunit, "Terminal")});
+    return description;
+}
+
+double ControlRelay::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value =
+            ControlRelay::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return Relay::get(param, unitType);
+}
+
+bool ControlRelay::getFlag(std::string_view flag) const
+{
+    if (const auto value = ControlRelay::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    return Relay::getFlag(flag);
+}
+
+void ControlRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ControlRelay::getModelDescription();
+    getParamString<ControlRelay, Relay>(this,
+                                        pstr,
+                                        description.numericNames(),
+                                        description.stringNames(),
+                                        description.flagNames(),
+                                        pstype);
+}
+
 ControlRelay::ControlRelay(const std::string& objName): Relay(objName) {}
 
 CoreObject* ControlRelay::clone(CoreObject* obj) const
@@ -40,11 +86,10 @@ CoreObject* ControlRelay::clone(CoreObject* obj) const
 
 void ControlRelay::setFlag(std::string_view flag, bool val)
 {
-    if (flag == "noreply") {
-        opFlags.set(NO_MESSAGE_REPLY, val);
-    } else {
-        Relay::setFlag(flag, val);
+    if (ControlRelay::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+        return;
     }
+    Relay::setFlag(flag, val);
 }
 
 void ControlRelay::addMeasurement(std::string_view measure)
@@ -99,11 +144,10 @@ void ControlRelay::set(std::string_view param, std::string_view val)
 
 void ControlRelay::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "autoname") {
-        autoName = static_cast<int>(val);
-    } else if (param == "delay") {
-        actionDelay = val;
-    } else if (param == "terminal") {
+    if (ControlRelay::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
+    if (param == "terminal") {
         m_terminal = static_cast<index_t>(val);
         m_terminal_key = std::to_string(m_terminal);
     } else {

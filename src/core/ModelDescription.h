@@ -50,10 +50,11 @@ enum class FieldSnapshotLevel : std::uint8_t { STATE, PARAMETERS };
 /** Metadata and typed access to one existing member; no member value is stored here.
  *
  * parameter() and flag() describe controls. state() identifies solver variables;
- * localState() binds retained model memory. command() only describes actions.
- * Normal clients continue to use CoreObject::set/get. The local dispatch helpers
- * perform direct member access for model implementations. Handle special cases
- * in the class before calling them; they do not dispatch to parent tables.
+ * localState() binds retained model memory. command() describes operations implemented by the
+ * class. A Boolean command dispatches to setFlag(). Normal clients continue to use
+ * CoreObject::set/get. The local dispatch helpers perform direct member access for model
+ * implementations. Handle special cases in the class before calling them; they do not dispatch to
+ * parent tables.
  */
 class ModelField {
   public:

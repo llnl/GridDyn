@@ -45,6 +45,10 @@ class GridOptObject;
 
 class GridDynOptimization: public GridDynSimulation, public MatPowerCostCurveProvider {
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+
   protected:
     // storageSpace for SUNDIALS solverInterface
     std::vector<std::shared_ptr<OptimizerInterface>> mOptimizerData;

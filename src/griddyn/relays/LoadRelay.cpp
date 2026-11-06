@@ -9,12 +9,64 @@
 #include "../events/Event.h"
 #include "../measurement/Condition.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <format>
 #include <memory>
 #include <string>
 #include <utility>
 
 namespace griddyn::relays {
+const ModelDescription& LoadRelay::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<LoadRelay>(
+        "LoadRelay",
+        &Relay::getModelDescription(),
+        {flag({"nondirectional"}, &LoadRelay::opFlags, NONDIRECTIONAL_FLAG, "Nondirectional"),
+         command({"cutoutvoltage", "voltagelimit"}, units::defunit, "Cutoutvoltage"),
+         command({"cutoutfrequency", "freqlimit"}, units::defunit, "Cutoutfrequency"),
+         command({"delay"}, units::defunit, "Delay"),
+         parameter({"voltagedelay"},
+                   &LoadRelay::mVoltageDelay,
+                   units::defunit,
+                   "The delay on the voltage trip"),
+         parameter({"frequencydelay"},
+                   &LoadRelay::mFrequencyDelay,
+                   units::defunit,
+                   "The delay on the frequency tripping"),
+         parameter({"offtime"},
+                   &LoadRelay::mOffTime,
+                   units::defunit,
+                   "The time before the load comes back on line if the trip")});
+    return description;
+}
+
+double LoadRelay::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value = LoadRelay::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return Relay::get(param, unitType);
+}
+
+bool LoadRelay::getFlag(std::string_view flag) const
+{
+    if (const auto value = LoadRelay::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    return Relay::getFlag(flag);
+}
+
+void LoadRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = LoadRelay::getModelDescription();
+    getParamString<LoadRelay, Relay>(this,
+                                     pstr,
+                                     description.numericNames(),
+                                     description.stringNames(),
+                                     description.flagNames(),
+                                     pstype);
+}
+
 LoadRelay::LoadRelay(const std::string& objName): Relay(objName)
 {
     // opFlags.set(CONTINUOUS_FLAG);
@@ -37,11 +89,10 @@ CoreObject* LoadRelay::clone(CoreObject* obj) const
 
 void LoadRelay::setFlag(std::string_view flag, bool val)
 {
-    if (flag == "nondirectional") {
-        opFlags.set(NONDIRECTIONAL_FLAG, val);
-    } else {
-        Relay::setFlag(flag, val);
+    if (LoadRelay::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+        return;
     }
+    Relay::setFlag(flag, val);
 }
 /*
 std::string commDestName;
@@ -58,6 +109,9 @@ void LoadRelay::set(std::string_view param, std::string_view val)
 
 void LoadRelay::set(std::string_view param, double val, units::unit unitType)
 {
+    if (LoadRelay::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if ((param == "cutoutvoltage") || (param == "voltagelimit")) {
         mCutoutVoltage = units::convert(val, unitType, units::puV, systemBasePower, baseVoltage());
     } else if ((param == "cutoutfrequency") || (param == "freqlimit")) {
@@ -65,12 +119,6 @@ void LoadRelay::set(std::string_view param, double val, units::unit unitType)
     } else if (param == "delay") {
         mVoltageDelay = val;
         mFrequencyDelay = val;
-    } else if (param == "voltagedelay") {
-        mVoltageDelay = val;
-    } else if (param == "frequencydelay") {
-        mFrequencyDelay = val;
-    } else if (param == "offtime") {
-        mOffTime = val;
     } else {
         Relay::set(param, val, unitType);
     }

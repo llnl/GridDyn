@@ -8,6 +8,7 @@
 #include "ValueLimiter.h"
 #include "blockLibrary.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewConversion.h"
@@ -46,6 +47,43 @@ static const ChildTypeFactory<blocks::TransferFunctionBlock, GridBlock>
     TRANSFER_FUNCTION_BLOCK_FACTORY(
         "block",
         std::to_array<std::string_view>({"transfer_function", "transferfunction", "tf"}));
+
+const ModelDescription& GridBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridBlock>(
+        "GridBlock",
+        &GridSubModel::getModelDescription(),
+        {parameter({"k", "gain"}, &GridBlock::K, units::defunit, "Gain"),
+         parameter({"bias", "b"}, &GridBlock::bias, units::defunit, "Bias"),
+         command({"omax", "max"}, units::defunit, "Upper output limit"),
+         command({"omin", "min"}, units::defunit, "Lower output limit"),
+         command({"limit"}, units::defunit, "Operating limit"),
+         command({"rampmax"}, units::defunit, "Upper slew rate limit"),
+         command({"rampmin"}, units::defunit, "Lower slew rate limit"),
+         command({"ramplimit"}, units::defunit, "Symmetric slew rate limit"),
+         command({"resetlevel"}, units::defunit, "Reset level"),
+         command({"use_limits"}, units::defunit, "Use limits", ModelFieldType::BOOLEAN),
+         command({"simplified"}, units::defunit, "Simplified", ModelFieldType::BOOLEAN),
+         command({"use_direct"}, units::defunit, "Use direct", ModelFieldType::BOOLEAN),
+         command(
+             {"differential_input"}, units::defunit, "Differential input", ModelFieldType::BOOLEAN),
+         command({"use_ramp_limits"}, units::defunit, "Use ramp limits", ModelFieldType::BOOLEAN),
+         localState("previous_input",
+                    &GridBlock::prevInput,
+                    "Previous input for step interpolation")});
+    return description;
+}
+
+void GridBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = GridBlock::getModelDescription();
+    getParamString<GridBlock, GridSubModel>(this,
+                                            pstr,
+                                            description.numericNames(),
+                                            description.stringNames(),
+                                            description.flagNames(),
+                                            pstype);
+}
 
 GridBlock::GridBlock(const std::string& objName): GridSubModel(objName)
 {
@@ -765,13 +803,12 @@ void GridBlock::set(std::string_view param, std::string_view val)
 }
 void GridBlock::set(std::string_view param, double val, units::unit unitType)
 {
+    if (GridBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     // param   = GridDynSimulation::toLower(param);
 
-    if ((param == "k") || (param == "gain")) {
-        K = val;
-    } else if ((param == "bias") || (param == "b")) {
-        bias = val;
-    } else if ((param == "omax") || (param == "max")) {
+    if ((param == "omax") || (param == "max")) {
         Omax = val;
         valLimiterUpdate();
     } else if ((param == "omin") || (param == "min")) {
@@ -806,6 +843,9 @@ void GridBlock::set(std::string_view param, double val, units::unit unitType)
 
 double GridBlock::get(std::string_view param, units::unit unitType) const
 {
+    if (const auto value = GridBlock::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
     if (param == "maxstepsize") {
         return kBigNum;
     }

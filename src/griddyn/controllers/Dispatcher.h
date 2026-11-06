@@ -16,6 +16,8 @@ class Scheduler;
 
 class Dispatcher: public CoreObject {
   public:
+    const ModelDescription& getModelDescription() const override;
+
   protected:
     double totalDispatch = 0.0;
     double capacity = 0.0;

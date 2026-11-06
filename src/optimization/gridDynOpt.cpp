@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gridOptObjects.h"
@@ -102,6 +103,37 @@ namespace {
         return nullptr;
     }
 }  // namespace
+
+const ModelDescription& GridDynOptimization::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridDynOptimization>(
+        "GridDynOptimization",
+        &GridDynSimulation::getModelDescription(),
+        {command({"flags"}, units::defunit, "Flags", ModelFieldType::STRING),
+         command({"defaultoptmode", "defaultopt"},
+                 units::defunit,
+                 "Defaultoptmode",
+                 ModelFieldType::STRING),
+         command({"optimizer", "optimizer_type", "optimizersolver"},
+                 units::defunit,
+                 "Optimizer",
+                 ModelFieldType::STRING),
+         command(
+             {"optimization_mode"}, units::defunit, "Optimization mode", ModelFieldType::STRING),
+         command({"optimtol"}, units::defunit, "Optimtol")});
+    return description;
+}
+
+void GridDynOptimization::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = GridDynOptimization::getModelDescription();
+    getParamString<GridDynOptimization, GridDynSimulation>(this,
+                                                           pstr,
+                                                           description.numericNames(),
+                                                           description.stringNames(),
+                                                           description.flagNames(),
+                                                           pstype);
+}
 
 GridDynOptimization::GridDynOptimization(const std::string& simName):
     GridDynSimulation(simName), mOptimizationMode(DEFAULT_OPTIMIZATION)
@@ -261,6 +293,9 @@ void GridDynOptimization::setFlags(size_t param, int val)
 
 void GridDynOptimization::set(std::string_view param, double val, units::unit unitType)
 {
+    if (GridDynOptimization::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if (param == "optimtol") {
         tols.rtol = val;
     } else {

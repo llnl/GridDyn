@@ -17,6 +17,7 @@
 #include "../measurement/Collector.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/logger.h"
 #include <limits>
@@ -33,6 +34,73 @@ static void boundedIncrement(CountType& value)
     if (value < std::numeric_limits<CountType>::max()) {
         ++value;
     }
+}
+
+const ModelDescription& GridSimulation::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridSimulation>(
+        "GridSimulation",
+        &GridArea::getModelDescription(),
+        {command({"recorddirectory", "outputdirectory"},
+                 units::defunit,
+                 "Recorddirectory",
+                 ModelFieldType::STRING),
+         command({"logprintlevel"}, units::defunit, "Logprintlevel", ModelFieldType::STRING),
+         command(
+             {"consoleprintlevel"}, units::defunit, "Consoleprintlevel", ModelFieldType::STRING),
+         command({"version"}, units::defunit, "Version", ModelFieldType::STRING),
+         command({"printlevel"}, units::defunit, "Printlevel", ModelFieldType::STRING),
+         command({"logfile"}, units::defunit, "Logfile", ModelFieldType::STRING),
+         parameter({"statefile"},
+                   &GridSimulation::stateFile,
+                   units::defunit,
+                   "Record file for the state"),
+         parameter(
+             {"sourcefile"}, &GridSimulation::sourceFile, units::defunit, "Main source file name"),
+         parameter({"timestart", "start", "starttime"},
+                   &GridSimulation::startTime,
+                   units::second,
+                   "Start time"),
+         parameter({"abstime", "walltime"},
+                   &GridSimulation::absTime,
+                   units::defunit,
+                   "Simulation start as a Unix timestamp"),
+         parameter({"stoptime", "stop", "timestop"},
+                   &GridSimulation::stopTime,
+                   units::second,
+                   "End time"),
+         parameter({"steptime", "step", "timestep"},
+                   &GridSimulation::stepTime,
+                   units::second,
+                   "Time step"),
+         parameter({"minupdatetime"},
+                   &GridSimulation::minUpdateTime,
+                   units::second,
+                   "Minimum time between updates"),
+         parameter({"maxupdatetime"},
+                   &GridSimulation::maxUpdateTime,
+                   units::second,
+                   "Maximum time between updates"),
+         parameter({"staterecordperiod"},
+                   &GridSimulation::state_record_period,
+                   units::second,
+                   "How often to record the state"),
+         parameter(
+             {"recordstop"}, &GridSimulation::recordStop, units::second, "Recorder stop time"),
+         parameter(
+             {"recordstart"}, &GridSimulation::recordStart, units::second, "Recorder start time")});
+    return description;
+}
+
+void GridSimulation::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = GridSimulation::getModelDescription();
+    getParamString<GridSimulation, GridArea>(this,
+                                             pstr,
+                                             description.numericNames(),
+                                             description.stringNames(),
+                                             description.flagNames(),
+                                             pstype);
 }
 
 GridSimulation::GridSimulation(const std::string& objName):
@@ -161,6 +229,9 @@ void GridSimulation::saveRecorders()
 static constexpr char consoleprint[] = "consoleprintlevel";
 void GridSimulation::set(std::string_view param, std::string_view val)
 {
+    if (GridSimulation::getModelDescription().trySetLocal(*this, param, val)) {
+        return;
+    }
     std::string temp;
     if ((param == "recorddirectory") || (param == "outputdirectory")) {
         recordDirectory = val;
@@ -182,10 +253,6 @@ void GridSimulation::set(std::string_view param, std::string_view val)
     } else if (param == "logfile") {
         logFile = val;
         gridLog->openFile(std::string{val});
-    } else if (param == "statefile") {
-        stateFile = val;
-    } else if (param == "sourcefile") {
-        sourceFile = val;
     } else {
         GridArea::set(param, val);
     }
@@ -193,15 +260,13 @@ void GridSimulation::set(std::string_view param, std::string_view val)
 
 std::string GridSimulation::getString(std::string_view param) const
 {
+    if (const auto value = GridSimulation::getModelDescription().tryGetStringLocal(*this, param)) {
+        return *value;
+    }
     if (param == "logfile") {
         return logFile;
     }
-    if (param == "statefile") {
-        return stateFile;
-    }
-    if (param == "sourcefile") {
-        return sourceFile;
-    }
+
     if (param == "version") {
         return version;
     }
@@ -210,13 +275,10 @@ std::string GridSimulation::getString(std::string_view param) const
 
 void GridSimulation::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "timestart") || (param == "start") || (param == "starttime")) {
-        startTime = units::convert(val, unitType, units::second);
-    } else if ((param == "abstime") || (param == "walltime")) {
-        absTime = val;
-    } else if ((param == "stoptime") || (param == "stop") || (param == "timestop")) {
-        stopTime = units::convert(val, unitType, units::second);
-    } else if (param == "printlevel") {
+    if (GridSimulation::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
+    if (param == "printlevel") {
         auto testLevel = static_cast<PrintLevel>(static_cast<int>(val));
         if ((testLevel > PrintLevel::TRACE) || (testLevel < PrintLevel::NO_PRINT)) {
             throw(InvalidParameterValue(param));
@@ -237,20 +299,8 @@ void GridSimulation::set(std::string_view param, double val, units::unit unitTyp
         }
         logPrintLevel = testLevel;
         gridLog->changeLevels(static_cast<int>(consolePrintLevel), static_cast<int>(logPrintLevel));
-    } else if ((param == "steptime") || (param == "step") || (param == "timestep")) {
-        stepTime = units::convert(val, unitType, units::second);
-    } else if ((param == "minupdatetime")) {
-        minUpdateTime = units::convert(val, unitType, units::second);
-    } else if (param == "maxupdatetime") {
-        maxUpdateTime = units::convert(val, unitType, units::second);
-    } else if (param == "staterecordperiod") {
-        state_record_period = units::convert(val, unitType, units::second);
-    } else if (param == "recordstop") {
-        recordStop = units::convert(val, unitType, units::second);
     } else if (param == "version") {
         version = std::to_string(val);
-    } else if (param == "recordstart") {
-        recordStart = units::convert(val, unitType, units::second);
     } else {
         GridArea::set(param, val, unitType);
     }
@@ -404,6 +454,10 @@ void GridSimulation::alert(CoreObject* object, int code)
 
 double GridSimulation::get(std::string_view param, units::unit unitType) const
 {
+    if (const auto value =
+            GridSimulation::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
     count_t ival = kInvalidCount;
     double fval = kNullVal;
     if ((param == "collectorcount") || (param == "recordercount")) {
@@ -421,14 +475,10 @@ double GridSimulation::get(std::string_view param, units::unit unitType) const
         ival = static_cast<int>(logPrintLevel);
     } else if ((param == "consoleprintlevel") || (param == "printlevel")) {
         ival = static_cast<int>(consolePrintLevel);
-    } else if ((param == "stepsize") || (param == "steptime")) {
+    } else if (param == "stepsize") {
         fval = units::convert(stepTime, units::second, unitType);
-    } else if ((param == "stop") || (param == "stoptime")) {
-        fval = units::convert(stopTime, units::second, unitType);
     } else if ((param == "currenttime") || (param == "time")) {
         fval = units::convert(getSimulationTime(), units::second, unitType);
-    } else if (param == "starttime") {
-        fval = units::convert(getStartTime(), units::second, unitType);
     } else if (param == "eventtime") {
         fval = units::convert(getEventTime(), units::second, unitType);
     } else if (param == "state") {

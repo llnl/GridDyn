@@ -5,7 +5,9 @@
  */
 
 #include "../gtestHelper.h"
+#include "core/ModelDescription.h"
 #include "fileInput/readElement.h"
+#include "griddyn/sources/FileSource.h"
 #include "griddyn/sources/sourceTypes.h"
 #include <cstdio>
 #include <gtest/gtest.h>
@@ -76,4 +78,23 @@ TEST_F(SourceTests, SineSourceTest)
     }
     delete src1;
     delete src2;
+}
+
+TEST_F(SourceTests, DescriptionPreservesSourceAliasesAndFileFlags)
+{
+    RampSource ramp;
+    ASSERT_TRUE(ramp.getModelDescription().describesExactType(ramp));
+    ramp.set("purpose", "pset");
+    ramp.set("dodt", 0.5);
+    EXPECT_EQ(ramp.getString("purpose"), "pset");
+    EXPECT_DOUBLE_EQ(ramp.get("rate"), 0.5);
+
+    FileSource file;
+    ASSERT_TRUE(file.getModelDescription().describesExactType(file));
+    file.set("relative", 1.0);
+    EXPECT_FALSE(file.getFlag("absolute"));
+    file.set("step", 1.0);
+    EXPECT_DOUBLE_EQ(file.get("step"), 1.0);
+    file.setFlag("interpolate", true);
+    EXPECT_FALSE(file.getFlag("step"));
 }

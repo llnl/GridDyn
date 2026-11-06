@@ -153,7 +153,9 @@ ModelDescription::ModelDescription(std::string_view name,
             }
             declaredNames.emplace_back(fieldName, field.kind());
             if (field.editable()) {
-                if (field.kind() == ModelFieldKind::FLAG) {
+                if (field.kind() == ModelFieldKind::FLAG ||
+                    (field.kind() == ModelFieldKind::COMMAND &&
+                     field.valueType() == ModelFieldType::BOOLEAN)) {
                     mFlagNames.push_back(fieldName);
                 } else if (field.valueType() == ModelFieldType::STRING) {
                     mStringNames.push_back(fieldName);
@@ -223,7 +225,9 @@ bool ModelDescription::trySetLocal(CoreObject& object,
     if (field == nullptr) {
         return false;
     }
-    if (field->kind() == ModelFieldKind::FLAG) {
+    if (field->kind() == ModelFieldKind::FLAG ||
+        (field->kind() == ModelFieldKind::COMMAND &&
+         field->valueType() == ModelFieldType::BOOLEAN)) {
         object.setFlag(name, value != 0.0);
         return true;
     }

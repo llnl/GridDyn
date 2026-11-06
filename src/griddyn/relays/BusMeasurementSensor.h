@@ -19,6 +19,7 @@ class Link;
 /** Continuous bus measurement whose states belong to the containing area. */
 class BusMeasurementSensor: public Sensor {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit BusMeasurementSensor(const std::string& name);
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
@@ -50,6 +51,9 @@ class BusMeasurementSensor: public Sensor {
 /** ANDES PLL1/PLL2 equations; each instance has an independent bus source and state. */
 class PLLSensor: public BusMeasurementSensor {
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
     explicit PLLSensor(const std::string& name = "PLL_#", bool voltagePhase = false);
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     using BusMeasurementSensor::set;
@@ -87,12 +91,14 @@ class PLLSensor: public BusMeasurementSensor {
 
 class PLL1Sensor final: public PLLSensor {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit PLL1Sensor(const std::string& objName = "PLL1_#"): PLLSensor(objName, false) {}
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 };
 
 class PLL2Sensor final: public PLLSensor {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit PLL2Sensor(const std::string& objName = "PLL2_#"): PLLSensor(objName, true) {}
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 };
@@ -100,6 +106,9 @@ class PLL2Sensor final: public PLLSensor {
 /** Bus-angle frequency deviation and ROCOF with the BUSROCOF filter equations. */
 class BusROCOFSensor final: public BusMeasurementSensor {
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
     explicit BusROCOFSensor(const std::string& name = "BUSROCOF_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     using BusMeasurementSensor::set;
@@ -141,6 +150,7 @@ class BusROCOFSensor final: public BusMeasurementSensor {
 /** Algebraic network frequency divider on a closed electrical area. */
 class FreqDivSensor final: public BusMeasurementSensor {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit FreqDivSensor(const std::string& name = "FreqDiv_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;

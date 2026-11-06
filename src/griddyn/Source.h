@@ -15,6 +15,10 @@ The component Definition class defines the interface for a Source
 */
 class Source: public GridSubModel {
   public:
+    std::string getString(std::string_view param) const override;
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
     std::string purpose_;  //!< string for use by applications to indicate usage
   protected:
     double m_tempOut = 0;  //!< temporary output corresponding to desired time

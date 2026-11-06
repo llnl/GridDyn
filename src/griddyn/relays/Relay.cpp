@@ -26,6 +26,7 @@
 #include "ZonalRelay.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/PropertyBuffer.h"
 #include "gmlc/utilities/stringConversion.h"
@@ -73,6 +74,56 @@ namespace relays {
 }  // namespace relays
 
 std::atomic<count_t> Relay::relayCount(0);
+
+const ModelDescription& Relay::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<Relay>(
+        "Relay",
+        &GridPrimary::getModelDescription(),
+        {flag(
+             {"comm_enabled", "comms", "usecomms"}, &Relay::opFlags, USE_COMM_LINK, "Comm enabled"),
+         flag({"resettable"}, &Relay::opFlags, RESETTABLE_FLAG, "Resettable"),
+         flag({"powerflow_check"}, &Relay::opFlags, POWER_FLOW_CHECKS_FLAG, "Powerflow check"),
+         command({"condition"}, units::defunit, "Condition", ModelFieldType::STRING),
+         command({"action"}, units::defunit, "Action", ModelFieldType::STRING),
+         command({"samplingperiod", "ts", "sampleperiod"}, units::defunit, "Sampling interval"),
+         command({"rate", "fs", "samplerate"}, units::defunit, "Sampling frequency"),
+         command({"continuous"},
+                 units::defunit,
+                 "Use continuous relay evaluation",
+                 ModelFieldType::BOOLEAN),
+         command(
+             {"sampled"}, units::defunit, "Use sampled relay evaluation", ModelFieldType::BOOLEAN),
+         localState("next_sample_time",
+                    &Relay::m_nextSampleTime,
+                    "Time of the next relay sample")});
+    return description;
+}
+
+bool Relay::getFlag(std::string_view flag) const
+{
+    if (const auto value = Relay::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    if (flag == "continuous") {
+        return opFlags[CONTINUOUS_FLAG];
+    }
+    if (flag == "sampled") {
+        return !opFlags[CONTINUOUS_FLAG];
+    }
+    return GridPrimary::getFlag(flag);
+}
+
+void Relay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = Relay::getModelDescription();
+    getParamString<Relay, GridPrimary>(this,
+                                       pstr,
+                                       description.numericNames(),
+                                       description.stringNames(),
+                                       description.flagNames(),
+                                       pstype);
+}
 
 Relay::Relay(const std::string& objName): GridPrimary(objName)
 {
@@ -383,6 +434,9 @@ void Relay::set(std::string_view param, std::string_view val)
 
 void Relay::set(std::string_view param, double val, units::unit unitType)
 {
+    if (Relay::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if ((param == "samplingperiod") || (param == "ts") || (param == "sampleperiod")) {
         CoreObject::set("period", val, unitType);  // NOLINT
         m_nextSampleTime = timeZero;
@@ -400,16 +454,25 @@ void Relay::set(std::string_view param, double val, units::unit unitType)
 
 double Relay::get(std::string_view param, units::unit unitType) const
 {
+    if (const auto value = Relay::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
     auto fptr = getObjectFunction(this, param);
     if (fptr.first) {
         CoreObject* tobj = const_cast<Relay*>(this);
         return convert(fptr.first(tobj), fptr.second, unitType, systemBasePower);
+    }
+    if (param == "continuous" || param == "sampled") {
+        return getFlag(param) ? 1.0 : 0.0;
     }
     return GridPrimary::get(param, unitType);
 }
 
 void Relay::setFlag(std::string_view flag, bool val)
 {
+    if (Relay::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+        return;
+    }
     if (flag == "continuous") {
         opFlags.set(CONTINUOUS_FLAG, val);
         if (!val) {
@@ -420,12 +483,6 @@ void Relay::setFlag(std::string_view flag, bool val)
         if (val) {
             m_nextSampleTime = (prevTime < timeZero) ? timeZero : prevTime;
         }
-    } else if ((flag == "comm_enabled") || (flag == "comms") || (flag == "usecomms")) {
-        opFlags.set(USE_COMM_LINK, val);
-    } else if (flag == "resettable") {
-        opFlags.set(RESETTABLE_FLAG, val);
-    } else if (flag == "powerflow_check") {
-        opFlags.set(POWER_FLOW_CHECKS_FLAG, val);
     } else {
         if (cManager.setFlag(flag, val)) {
             opFlags.set(USE_COMM_LINK);

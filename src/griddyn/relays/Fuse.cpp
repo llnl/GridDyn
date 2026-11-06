@@ -17,6 +17,7 @@
 #include "../measurement/StateGrabber.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixDataSparse.hpp"
 #include <algorithm>
 #include <cmath>
@@ -29,6 +30,40 @@
 namespace griddyn::relays {
 using units::convert;
 using units::puA;
+const ModelDescription& Fuse::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<Fuse>("Fuse",
+                                       &Relay::getModelDescription(),
+                                       {command({"limit"}, units::defunit, "Operating limit"),
+                                        command({"i2t"}, units::defunit, "I2t"),
+                                        parameter({"terminal"},
+                                                  &Fuse::m_terminal,
+                                                  units::defunit,
+                                                  "Line terminal  (typically 1 or 2)"),
+                                        command({"minblowtime"}, units::defunit, "Minblowtime")});
+    return description;
+}
+
+double Fuse::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value = Fuse::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return Relay::get(param, unitType);
+}
+
+void Fuse::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = Fuse::getModelDescription();
+    getParamString<Fuse, Relay>(this,
+                                pstr,
+                                description.numericNames(),
+                                description.stringNames(),
+                                description.flagNames(),
+                                pstype);
+}
+
 Fuse::Fuse(const std::string& objName): Relay(objName), useI2T(extra_bool)
 {
     opFlags.set(CONTINUOUS_FLAG);
@@ -67,12 +102,13 @@ void Fuse::set(std::string_view param, std::string_view val)
 
 void Fuse::set(std::string_view param, double val, units::unit unitType)
 {
+    if (Fuse::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if (param == "limit") {
         limit = convert(val, unitType, puA, systemBasePower, Vbase);
     } else if (param == "i2t") {
         mp_I2T = convert(val, unitType, puA, systemBasePower, Vbase);
-    } else if (param == "terminal") {
-        m_terminal = static_cast<int>(val);
     } else if (param == "minblowtime") {
         if (val > 0.001) {
             minBlowTime = val;

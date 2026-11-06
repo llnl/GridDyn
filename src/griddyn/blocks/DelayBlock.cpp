@@ -8,10 +8,31 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <string>
 namespace griddyn::blocks {
+const ModelDescription& DelayBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<DelayBlock>(
+        "DelayBlock",
+        &GridBlock::getModelDescription(),
+        {command({"t1", "t"}, units::defunit, "Time constant")});
+    return description;
+}
+
+void DelayBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = DelayBlock::getModelDescription();
+    getParamString<DelayBlock, GridBlock>(this,
+                                          pstr,
+                                          description.numericNames(),
+                                          description.stringNames(),
+                                          description.flagNames(),
+                                          pstype);
+}
+
 DelayBlock::DelayBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(DIFFERENTIAL_OUTPUT);
@@ -156,6 +177,9 @@ void DelayBlock::set(std::string_view param, std::string_view val)
 }
 void DelayBlock::set(std::string_view param, double val, units::unit unitType)
 {
+    if (DelayBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     // param = GridDynSimulation::toLower(param);
     if ((param == "t1") || (param == "t")) {
         if (opFlags[DYN_INITIALIZED]) {

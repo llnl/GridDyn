@@ -7,10 +7,20 @@
 #include "FunctionSource.h"
 
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <string>
 #include <utility>
 
 namespace griddyn::sources {
+const ModelDescription& FunctionSource::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<FunctionSource>("FunctionSource",
+                                                 &Source::getModelDescription(),
+                                                 {});
+    return description;
+}
+
 FunctionSource::FunctionSource(const std::string& objName): Source(objName) {}
 CoreObject* FunctionSource::clone(CoreObject* obj) const
 {

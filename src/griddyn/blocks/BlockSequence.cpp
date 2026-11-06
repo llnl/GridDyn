@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
@@ -17,6 +18,46 @@
 #include <vector>
 
 namespace griddyn::blocks {
+const ModelDescription& BlockSequence::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<BlockSequence>("BlockSequence",
+                                                &GridBlock::getModelDescription(),
+                                                {flag({"differential_input"},
+                                                      &BlockSequence::opFlags,
+                                                      DIFFERENTIAL_INPUT_ACTUAL,
+                                                      "Differential input")});
+    return description;
+}
+
+double BlockSequence::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value =
+            BlockSequence::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return GridBlock::get(param, unitType);
+}
+
+bool BlockSequence::getFlag(std::string_view flag) const
+{
+    if (const auto value = BlockSequence::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    return GridBlock::getFlag(flag);
+}
+
+void BlockSequence::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = BlockSequence::getModelDescription();
+    getParamString<BlockSequence, GridBlock>(this,
+                                             pstr,
+                                             description.numericNames(),
+                                             description.stringNames(),
+                                             description.flagNames(),
+                                             pstype);
+}
+
 BlockSequence::BlockSequence(const std::string& objName): GridBlock(objName)
 {
     opFlags[USE_DIRECT] = true;
@@ -273,11 +314,10 @@ ChangeCode BlockSequence::rootCheck(const IOdata& inputs,
 
 void BlockSequence::setFlag(std::string_view flag, bool val)
 {
-    if (flag == "differential_input") {
-        opFlags.set(DIFFERENTIAL_INPUT_ACTUAL, val);
-    } else {
-        GridBlock::setFlag(flag, val);
+    if (BlockSequence::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+        return;
     }
+    GridBlock::setFlag(flag, val);
 }
 // set parameters
 void BlockSequence::set(std::string_view param, std::string_view val)
@@ -290,6 +330,9 @@ void BlockSequence::set(std::string_view param, std::string_view val)
 
 void BlockSequence::set(std::string_view param, double val, units::unit unitType)
 {
+    if (BlockSequence::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if (param.empty() || param[0] == '#') {
     } else {
         GridBlock::set(param, val, unitType);

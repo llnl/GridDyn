@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactory.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -15,6 +16,45 @@
 #include <string>
 
 namespace griddyn::blocks {
+const ModelDescription& FilteredDerivativeBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<FilteredDerivativeBlock>(
+        "FilteredDerivativeBlock",
+        &GridBlock::getModelDescription(),
+        {parameter({"t1"},
+                   &FilteredDerivativeBlock::mT1,
+                   units::defunit,
+                   "Delay time constant for the derivative filtering operation"),
+         parameter({"t2"},
+                   &FilteredDerivativeBlock::mT2,
+                   units::defunit,
+                   "Filter on the derivative of block 1",
+                   [](double value) { return !(std::abs(value) < kMin_Res); }),
+         state("deriv", units::defunit, "Derivative output"),
+         state("filter", units::defunit, "Derivative filter state")});
+    return description;
+}
+
+double FilteredDerivativeBlock::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value =
+            FilteredDerivativeBlock::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return GridBlock::get(param, unitType);
+}
+
+void FilteredDerivativeBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = FilteredDerivativeBlock::getModelDescription();
+    getParamString<FilteredDerivativeBlock, GridBlock>(this,
+                                                       pstr,
+                                                       description.numericNames(),
+                                                       description.stringNames(),
+                                                       description.flagNames(),
+                                                       pstype);
+}
+
 FilteredDerivativeBlock::FilteredDerivativeBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(USE_STATE);
@@ -160,16 +200,10 @@ void FilteredDerivativeBlock::set(std::string_view param, std::string_view val)
 }
 void FilteredDerivativeBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "t1") {
-        mT1 = val;
-    } else if (param == "t2") {
-        if (std::abs(val) < kMin_Res) {
-            throw(InvalidParameterValue(param));
-        }
-        mT2 = val;
-    } else {
-        GridBlock::set(param, val, unitType);
+    if (FilteredDerivativeBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    GridBlock::set(param, val, unitType);
 }
 
 stringVec FilteredDerivativeBlock::localStateNames() const

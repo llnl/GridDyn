@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/GridRandom.h"
 #include <cassert>
@@ -16,6 +17,73 @@
 #include <string>
 
 namespace griddyn::sources {
+const ModelDescription& RandomSource::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<RandomSource>(
+        "RandomSource",
+        &RampSource::getModelDescription(),
+        {flag({"repeated"}, &RandomSource::opFlags, REPEATED_FLAG, "Repeated"),
+         flag({"proportional"}, &RandomSource::opFlags, PROPORTIONAL_FLAG, "Proportional"),
+         command(
+             {"trigger_dist", "time_dist"}, units::defunit, "Trigger dist", ModelFieldType::STRING),
+         command({"size_dist", "change_dist"}, units::defunit, "Size dist", ModelFieldType::STRING),
+         command({"seed"}, units::defunit, "Seed", ModelFieldType::STRING),
+         command({"min_t"}, units::defunit, "Min t"),
+         parameter({"max_t", "param2_t"},
+                   &RandomSource::param2_t,
+                   units::defunit,
+                   "Parameter 2 for time distribution"),
+         parameter({"min_l", "param1_l", "mean_l"},
+                   &RandomSource::param1_L,
+                   units::defunit,
+                   "Parameter 1 for level distribution"),
+         parameter({"max_l", "param2_l", "stdev_l"},
+                   &RandomSource::param2_L,
+                   units::defunit,
+                   "Parameter 2 for level distribution"),
+         command({"mean_t"}, units::defunit, "Mean t"),
+         command({"scale_t"}, units::defunit, "Scale t"),
+         parameter({"param1_t"},
+                   &RandomSource::param1_t,
+                   units::defunit,
+                   "Parameter 1 for time distribution"),
+         parameter({"zbias"},
+                   &RandomSource::zbias,
+                   units::defunit,
+                   "A factor describing the preference of changes to trend toward zero mean"),
+         command({"interpolate"}, units::defunit, "Interpolate", ModelFieldType::BOOLEAN),
+         command({"step"}, units::defunit, "Step", ModelFieldType::BOOLEAN)});
+    return description;
+}
+
+double RandomSource::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value =
+            RandomSource::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return RampSource::get(param, unitType);
+}
+
+bool RandomSource::getFlag(std::string_view flag) const
+{
+    if (const auto value = RandomSource::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    return RampSource::getFlag(flag);
+}
+
+void RandomSource::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = RandomSource::getModelDescription();
+    getParamString<RandomSource, RampSource>(this,
+                                             pstr,
+                                             description.numericNames(),
+                                             description.stringNames(),
+                                             description.flagNames(),
+                                             pstype);
+}
+
 RandomSource::RandomSource(const std::string& objName, double startVal):
     RampSource(objName, startVal), param1_L(startVal)
 {
@@ -68,6 +136,9 @@ void RandomSource::set(std::string_view param, std::string_view val)
 
 void RandomSource::setFlag(std::string_view flag, bool val)
 {
+    if (RandomSource::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+        return;
+    }
     /*
 independentFlag=OBJECT_FLAG3,
 INTERPOLATE_FLAG=OBJECT_FLAG4,
@@ -85,10 +156,6 @@ armedFlag=OBJECT_FLAG8,*/
         if (val) {
             mp_dOdt = 0.0;
         }
-    } else if (flag == "repeated") {
-        opFlags.set(REPEATED_FLAG, val);
-    } else if (flag == "proportional") {
-        opFlags.set(PROPORTIONAL_FLAG, val);
     } else {
         Source::setFlag(flag, val);
     }
@@ -96,18 +163,15 @@ armedFlag=OBJECT_FLAG8,*/
 
 void RandomSource::set(std::string_view param, double val, units::unit unitType)
 {
+    if (RandomSource::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if (param == "min_t") {
         if (val <= 0.0) {
             throw(InvalidParameterValue(param));
         }
         param1_t = val;
         timeParamUpdate();
-    } else if ((param == "max_t") || (param == "param2_t")) {
-        param2_t = val;
-    } else if ((param == "min_l") || (param == "param1_l") || (param == "mean_l")) {
-        param1_L = val;
-    } else if ((param == "max_l") || (param == "param2_l") || (param == "stdev_l")) {
-        param2_L = val;
     } else if (param == "mean_t") {
         if (val <= 0.0) {
             logging::warning(this, "mean_t parameter must be > 0");
@@ -120,10 +184,6 @@ void RandomSource::set(std::string_view param, double val, units::unit unitType)
             throw(InvalidParameterValue(param));
         }
         param2_t = val;
-    } else if (param == "param1_t") {
-        param1_t = val;
-    } else if (param == "zbias") {
-        zbias = val;
     } else if (param == "seed") {
         utilities::GridRandom::setSeed(static_cast<int>(val));
     } else {

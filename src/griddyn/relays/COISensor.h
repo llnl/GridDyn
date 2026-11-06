@@ -16,6 +16,7 @@ class DynamicGenerator;
 /** Area-scoped inertia-weighted synchronous-machine frequency and angle measurement. */
 class COISensor final: public Sensor {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit COISensor(const std::string& name = "COI_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;

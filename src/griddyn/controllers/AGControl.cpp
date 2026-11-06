@@ -17,6 +17,7 @@
 #include "Scheduler.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include <algorithm>
 #include <array>
@@ -29,6 +30,50 @@
 namespace griddyn {
 static const TypeFactory<AGControl>
     AGC_FACTORY("agc", std::to_array<std::string_view>({"basic", "agc"}), "basic");
+
+const ModelDescription& AGControl::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<AGControl>(
+        "AGControl",
+        &GridSubModel::getModelDescription(),
+        {command({"frequencysensor"}, units::defunit, "Frequencysensor", ModelFieldType::STRING),
+         command({"deadband"}, units::defunit, "Deadband"),
+         parameter({"bias"},
+                   &AGControl::bias,
+                   units::defunit,
+                   "MW per 0.1 Hz, negative by convention",
+                   parameterValidators::nonpositive),
+         command({"beta"}, units::defunit, "Beta"),
+         parameter({"ki"}, &AGControl::ki, units::defunit, "Ki", parameterValidators::nonnegative),
+         parameter({"kp"}, &AGControl::kp, units::defunit, "Kp", parameterValidators::nonnegative),
+         parameter({"tf"}, &AGControl::tf, units::s, "Tf", parameterValidators::nonnegative),
+         parameter({"tr"}, &AGControl::tr, units::s, "Tr", parameterValidators::nonnegative),
+         parameter({"frequency"},
+                   &AGControl::fixedFrequency,
+                   units::defunit,
+                   "Pu; can be set by a Player",
+                   parameterValidators::positive),
+         parameter({"targetfrequency"},
+                   &AGControl::targetFrequency,
+                   units::defunit,
+                   "Pu",
+                   parameterValidators::positive),
+         command({"frequencyoutput"}, units::defunit, "Frequencyoutput"),
+         command({"frequencyisdeviation"}, units::defunit, "Frequencyisdeviation"),
+         command({"period", "updateperiod", "sampleinterval"}, units::defunit, "Period")});
+    return description;
+}
+
+void AGControl::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = AGControl::getModelDescription();
+    getParamString<AGControl, GridSubModel>(this,
+                                            pstr,
+                                            description.numericNames(),
+                                            description.stringNames(),
+                                            description.flagNames(),
+                                            pstype);
+}
 
 AGControl::AGControl(const std::string& objName): GridSubModel(objName)
 {
@@ -404,8 +449,8 @@ void AGControl::set(std::string_view param, std::string_view val)
 
 void AGControl::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!std::isfinite(val)) {
-        throw InvalidParameterValue("AGC parameters must be finite");
+    if (AGControl::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
     if (param == "deadband") {
         if (val < 0.0) {
@@ -415,43 +460,8 @@ void AGControl::set(std::string_view param, double val, units::unit unitType)
                                   unitType == units::defunit ? units::MW : unitType,
                                   units::MW,
                                   systemBasePower);
-    } else if (param == "bias") {
-        if (val > 0.0) {
-            throw InvalidParameterValue("AGC frequency bias must be nonpositive");
-        }
-        bias = val;
     } else if (param == "beta") {
         bias = -std::abs(val);
-    } else if (param == "ki") {
-        if (val < 0.0) {
-            throw InvalidParameterValue("AGC integral gain must be nonnegative");
-        }
-        ki = val;
-    } else if (param == "kp") {
-        if (val < 0.0) {
-            throw InvalidParameterValue("AGC proportional gain must be nonnegative");
-        }
-        kp = val;
-    } else if (param == "tf") {
-        if (val < 0.0) {
-            throw InvalidParameterValue("AGC filter time must be nonnegative");
-        }
-        tf = units::convert(val, unitType == units::defunit ? units::s : unitType, units::s);
-    } else if (param == "tr") {
-        if (val < 0.0) {
-            throw InvalidParameterValue("AGC response time must be nonnegative");
-        }
-        tr = units::convert(val, unitType == units::defunit ? units::s : unitType, units::s);
-    } else if (param == "frequency") {
-        if (val <= 0.0) {
-            throw InvalidParameterValue("AGC frequency must be positive");
-        }
-        fixedFrequency = val;
-    } else if (param == "targetfrequency") {
-        if (val <= 0.0) {
-            throw InvalidParameterValue("AGC target frequency must be positive");
-        }
-        targetFrequency = val;
     } else if (param == "frequencyoutput") {
         if (val < 0.0 || std::floor(val) != val ||
             val > static_cast<double>(std::numeric_limits<index_t>::max())) {
@@ -477,6 +487,9 @@ void AGControl::set(std::string_view param, double val, units::unit unitType)
 
 double AGControl::get(std::string_view param, units::unit unitType) const
 {
+    if (const auto value = AGControl::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
     if (param == "ace") {
         return units::convert(ace,
                               units::MW,
@@ -492,8 +505,8 @@ double AGControl::get(std::string_view param, units::unit unitType) const
     if (param == "regulation") {
         return reg;
     }
-    if (param == "bias" || param == "beta") {
-        return param == "beta" ? -bias : bias;
+    if (param == "beta") {
+        return -bias;
     }
     if (param == "sampleinterval") {
         return updatePeriod;

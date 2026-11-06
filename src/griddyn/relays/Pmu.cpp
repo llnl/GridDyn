@@ -18,6 +18,7 @@
 #include "../measurement/GridGrabbers.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <cmath>
 #include <limits>
 #include <memory>
@@ -25,6 +26,64 @@
 #include <utility>
 
 namespace griddyn::relays {
+const ModelDescription& Pmu::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<Pmu>(
+        "Pmu",
+        &Sensor::getModelDescription(),
+        {flag({"transmit", "transmitactive", "transmit_active"},
+              &Pmu::opFlags,
+              TRANSMIT_ACTIVE,
+              "Transmit"),
+         flag({"current_active", "current"}, &Pmu::opFlags, CURRENT_ACTIVE, "Current active"),
+         parameter({"tv", "voltagedelay"},
+                   &Pmu::mVoltageFilterTime,
+                   units::defunit,
+                   "Filter time constant for the voltage measurement"),
+         parameter({"ttheta", "tangle", "angledelay"},
+                   &Pmu::mAngleFilterTime,
+                   units::defunit,
+                   "Filter time constant for the angle measurement"),
+         parameter({"trocof"},
+                   &Pmu::mRocofFilterTime,
+                   units::defunit,
+                   "Filter time constant for computing the ROCOF"),
+         parameter({"tcurrent", "tI", "currentdelay"},
+                   &Pmu::mCurrentFilterTime,
+                   units::defunit,
+                   "Filter time constant for the current measurement"),
+         command({"transmitrate", "rate"}, units::defunit, "Transmitrate"),
+         parameter({"transmitperiod", "period"},
+                   &Pmu::mTransmissionPeriod,
+                   units::second,
+                   "The rate of data transmission"),
+         parameter({"samplerate"}, &Pmu::mSampleRate, units::defunit, "The actual sample time"),
+         command({"three_phase", "3phase", "three_phase_active"},
+                 units::defunit,
+                 "Three phase",
+                 ModelFieldType::BOOLEAN)});
+    return description;
+}
+
+bool Pmu::getFlag(std::string_view flag) const
+{
+    if (const auto value = Pmu::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    return Sensor::getFlag(flag);
+}
+
+void Pmu::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = Pmu::getModelDescription();
+    getParamString<Pmu, Sensor>(this,
+                                pstr,
+                                description.numericNames(),
+                                description.stringNames(),
+                                description.flagNames(),
+                                pstype);
+}
+
 Pmu::Pmu(const std::string& objName): Sensor(objName)
 {
     outputStrings = {{"voltage"}, {"angle"}, {"frequency"}, {"rocof"}};
@@ -48,13 +107,12 @@ CoreObject* Pmu::clone(CoreObject* obj) const
 
 void Pmu::setFlag(std::string_view flag, bool val)
 {
-    if ((flag == "transmit") || (flag == "transmitactive") || (flag == "transmit_active")) {
-        opFlags.set(TRANSMIT_ACTIVE, val);
-    } else if ((flag == "three_phase") || (flag == "3phase") || (flag == "three_phase_active")) {
+    if (Pmu::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+        return;
+    }
+    if ((flag == "three_phase") || (flag == "3phase") || (flag == "three_phase_active")) {
         opFlags.set(THREE_PHASE_SET, val);
         opFlags.set(THREE_PHASE_ACTIVE, val);
-    } else if ((flag == "current_active") || (flag == "current")) {
-        opFlags.set(CURRENT_ACTIVE, val);
     } else {
         Sensor::setFlag(flag, val);
     }
@@ -73,28 +131,11 @@ using units::unit;
 
 void Pmu::set(std::string_view param, double val, unit unitType)
 {
-    if ((param == "tv") || (param == "voltagedelay")) {
-        mVoltageFilterTime = val;
-        if (opFlags[DYN_INITIALIZED]) {
-        }
-    } else if ((param == "ttheta") || (param == "tangle") || (param == "angledelay")) {
-        mAngleFilterTime = val;
-        if (opFlags[DYN_INITIALIZED]) {
-        }
-    } else if (param == "trocof") {
-        mRocofFilterTime = val;
-        if (opFlags[DYN_INITIALIZED]) {
-        }
-    } else if ((param == "tcurrent") || (param == "tI") || (param == "currentdelay")) {
-        mCurrentFilterTime = val;
-        if (opFlags[DYN_INITIALIZED]) {
-        }
-    } else if ((param == "transmitrate") || (param == "rate")) {
+    if (Pmu::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
+    if ((param == "transmitrate") || (param == "rate")) {
         mTransmissionPeriod = (val >= kMin_Res) ? 1.0 / val : kBigNum;
-    } else if ((param == "transmitperiod") || (param == "period")) {
-        mTransmissionPeriod = convert(val, unitType, units::second);
-    } else if (param == "samplerate") {
-        mSampleRate = val;
     } else {
         Sensor::set(param, val, unitType);
     }
@@ -102,27 +143,13 @@ void Pmu::set(std::string_view param, double val, unit unitType)
 
 double Pmu::get(std::string_view param, units::unit unitType) const
 {
-    if ((param == "tv") || (param == "voltagedelay")) {
-        return mVoltageFilterTime;
-    }
-    if ((param == "ttheta") || (param == "tangle") || (param == "angledelay")) {
-        return mAngleFilterTime;
-    }
-    if ((param == "tcurrent") || (param == "tI") || (param == "currentdelay")) {
-        return mCurrentFilterTime;
-    }
-    if (param == "trocof") {
-        return mRocofFilterTime;
+    if (const auto value = Pmu::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
     }
     if ((param == "transmitrate") || (param == "rate")) {
         return 1.0 / mTransmissionPeriod;
     }
-    if (param == "transmitperiod") {
-        return mTransmissionPeriod;
-    }
-    if (param == "samplerate") {
-        return mSampleRate;
-    }
+
     return Sensor::get(param, unitType);
 }
 

@@ -9,6 +9,7 @@
 #include "ValueLimiter.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
@@ -19,6 +20,29 @@
 #include <vector>
 
 namespace griddyn::blocks {
+const ModelDescription& TransferFunctionBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<TransferFunctionBlock>(
+        "TransferFunctionBlock",
+        &GridBlock::getModelDescription(),
+        {command({"b"}, units::defunit, "Numerator coefficients", ModelFieldType::STRING),
+         command({"a"}, units::defunit, "Denominator coefficients", ModelFieldType::STRING),
+         command({"a0"}, units::defunit, "Denominator coefficient; append its index to a"),
+         command({"b0"}, units::defunit, "Numerator coefficient; append its index to b")});
+    return description;
+}
+
+void TransferFunctionBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = TransferFunctionBlock::getModelDescription();
+    getParamString<TransferFunctionBlock, GridBlock>(this,
+                                                     pstr,
+                                                     description.numericNames(),
+                                                     description.stringNames(),
+                                                     description.flagNames(),
+                                                     pstype);
+}
+
 TransferFunctionBlock::TransferFunctionBlock(const std::string& objName):
     GridBlock(objName), a{1.0, 1.0}, b{1.0, 0.0}
 {
@@ -458,6 +482,9 @@ void TransferFunctionBlock::set(std::string_view param, std::string_view value)
 
 void TransferFunctionBlock::set(std::string_view param, double value, units::unit unitType)
 {
+    if (TransferFunctionBlock::getModelDescription().trySetLocal(*this, param, value, unitType)) {
+        return;
+    }
     std::string prefix;
     const int coefficientIndex = gmlc::utilities::stringOps::trailingStringInt(param, prefix, -1);
     if ((coefficientIndex >= 0) && ((prefix == "a") || (prefix == "b"))) {

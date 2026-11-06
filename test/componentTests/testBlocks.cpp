@@ -6,6 +6,7 @@
 
 #include "../gtestHelper.h"
 #include "core/CoreExceptions.h"
+#include "core/ModelDescription.h"
 #include "core/ObjectFactory.hpp"
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
@@ -510,3 +511,21 @@ TEST_P(BlockCompareTests, BlockAlgDiffJacTest)
 }
 
 #endif
+
+TEST(BlockDescriptionTests, InheritedSettingsAndClassManagedLimits)
+{
+    ControlBlock block;
+    ASSERT_TRUE(block.getModelDescription().describesExactType(block));
+    block.set("gain", 2.0);
+    block.set("t", 0.2);
+    block.set("t2", 0.1);
+    EXPECT_DOUBLE_EQ(block.get("k"), 2.0);
+    EXPECT_DOUBLE_EQ(block.get("t1"), 0.2);
+    EXPECT_DOUBLE_EQ(block.get("t2"), 0.1);
+    EXPECT_NO_THROW(block.set("# unused", kNullVal));
+
+    const auto* limit = block.getModelDescription().find("max");
+    ASSERT_NE(limit, nullptr);
+    EXPECT_EQ(limit->kind(), ModelFieldKind::COMMAND);
+    EXPECT_NO_THROW(block.set("max", 1.0));
+}

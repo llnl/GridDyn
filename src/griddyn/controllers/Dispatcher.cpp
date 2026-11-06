@@ -7,9 +7,17 @@
 #include "Dispatcher.h"
 
 #include "core/CoreExceptions.h"
+#include "core/ModelParameter.hpp"
 #include <string>
 
 namespace griddyn {
+const ModelDescription& Dispatcher::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<Dispatcher>("Dispatcher", &CoreObject::getModelDescription(), {});
+    return description;
+}
+
 Dispatcher::Dispatcher(const std::string& objName): CoreObject(objName) {}
 
 Dispatcher::~Dispatcher() = default;

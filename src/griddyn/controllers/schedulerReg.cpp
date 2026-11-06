@@ -10,6 +10,7 @@
 #include "Scheduler.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -17,6 +18,36 @@
 #include <string>
 
 namespace griddyn {
+const ModelDescription& SchedulerReg::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<SchedulerReg>(
+        "SchedulerReg",
+        &SchedulerRamp::getModelDescription(),
+        {command({"max"}, units::defunit, "Max"),
+         command({"min"}, units::defunit, "Min"),
+         command({"rampup"}, units::defunit, "Rampup"),
+         command({"rampdown"}, units::defunit, "Rampdown"),
+         command({"ramp"}, units::defunit, "Ramp"),
+         command({"rating", "base"}, units::defunit, "Rating"),
+         command({"regfrac"}, units::defunit, "Regfrac"),
+         command({"regupfrac"}, units::defunit, "Regupfrac"),
+         command({"regdownfrac"}, units::defunit, "Regdownfrac"),
+         command({"regenabled"}, units::defunit, "Regenabled"),
+         command({"reserve"}, units::defunit, "Reserve")});
+    return description;
+}
+
+void SchedulerReg::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = SchedulerReg::getModelDescription();
+    getParamString<SchedulerReg, SchedulerRamp>(this,
+                                                pstr,
+                                                description.numericNames(),
+                                                description.stringNames(),
+                                                description.flagNames(),
+                                                pstype);
+}
+
 SchedulerReg::SchedulerReg(const std::string& objName):
     SchedulerRamp(objName), regMax(pMax), regMin(pMin), regRampUp(rampUp), regRampDown(rampDown)
 {
@@ -266,10 +297,9 @@ void SchedulerReg::set(std::string_view param, std::string_view val)
 
 void SchedulerReg::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!std::isfinite(val)) {
-        throw InvalidParameterValue("scheduler regulation parameters must be finite");
+    if (SchedulerReg::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
-
     double newBaseMW = m_Base;
     double newMin = regMin;
     double newMax = regMax;

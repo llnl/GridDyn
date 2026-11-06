@@ -9,11 +9,36 @@
 #include "ValueLimiter.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <string>
 
 namespace griddyn::blocks {
+const ModelDescription& LeadLagBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<LeadLagBlock>(
+        "LeadLagBlock",
+        &GridBlock::getModelDescription(),
+        {command({"ta"}, units::defunit, "Lead time constant"),
+         command({"tb", "t"}, units::defunit, "Lag time constant"),
+         command({"k", "gain"}, units::defunit, "Gain"),
+         state("unlimited_output", units::defunit, "Lead-lag output before limiting"),
+         state("lag_state", units::defunit, "Lag state")});
+    return description;
+}
+
+void LeadLagBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = LeadLagBlock::getModelDescription();
+    getParamString<LeadLagBlock, GridBlock>(this,
+                                            pstr,
+                                            description.numericNames(),
+                                            description.stringNames(),
+                                            description.flagNames(),
+                                            pstype);
+}
+
 LeadLagBlock::LeadLagBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(USE_STATE);
@@ -172,10 +197,10 @@ void LeadLagBlock::set(std::string_view param, std::string_view val)
 
 void LeadLagBlock::set(std::string_view param, double val, units::unit unitType)
 {
+    if (LeadLagBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if (param == "ta") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("lead-lag Ta must be finite");
-        }
         section.setParameters(val, section.lagTime(), section.gain());
     } else if ((param == "tb") || (param == "t")) {
         if (!std::isfinite(val) || (val <= 0.0)) {
@@ -183,9 +208,6 @@ void LeadLagBlock::set(std::string_view param, double val, units::unit unitType)
         }
         section.setParameters(section.leadTime(), val, section.gain());
     } else if ((param == "k") || (param == "gain")) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("lead-lag gain must be finite");
-        }
         GridBlock::set(param, val, unitType);
         section.setParameters(section.leadTime(), section.lagTime(), val);
     } else {

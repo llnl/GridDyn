@@ -7,10 +7,34 @@
 #include "NullBlock.h"
 
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <string>
 #include <vector>
 
 namespace griddyn::blocks {
+const ModelDescription& NullBlock::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<NullBlock>("NullBlock",
+                                            &GridBlock::getModelDescription(),
+                                            {command({"differential_input"},
+                                                     units::defunit,
+                                                     "Differential input",
+                                                     ModelFieldType::BOOLEAN)});
+    return description;
+}
+
+void NullBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = NullBlock::getModelDescription();
+    getParamString<NullBlock, GridBlock>(this,
+                                         pstr,
+                                         description.numericNames(),
+                                         description.stringNames(),
+                                         description.flagNames(),
+                                         pstype);
+}
+
 NullBlock::NullBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags[USE_DIRECT] = true;
@@ -169,7 +193,9 @@ void NullBlock::set(std::string_view param, std::string_view val)
 }
 void NullBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    GridSubModel::set(param, val, unitType);
+    if (!NullBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        GridSubModel::set(param, val, unitType);
+    }
 }
 
 double NullBlock::get(std::string_view param, units::unit unitType) const

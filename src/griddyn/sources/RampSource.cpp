@@ -7,11 +7,43 @@
 #include "RampSource.h"
 
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <ctime>
 #include <string>
 
 namespace griddyn::sources {
+const ModelDescription& RampSource::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<RampSource>("RampSource",
+                                             &Source::getModelDescription(),
+                                             {parameter({"dodt", "ramp", "rate"},
+                                                        &RampSource::mp_dOdt,
+                                                        units::defunit,
+                                                        "The ramp rate of the output")});
+    return description;
+}
+
+double RampSource::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value = RampSource::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return Source::get(param, unitType);
+}
+
+void RampSource::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = RampSource::getModelDescription();
+    getParamString<RampSource, Source>(this,
+                                       pstr,
+                                       description.numericNames(),
+                                       description.stringNames(),
+                                       description.flagNames(),
+                                       pstype);
+}
+
 RampSource::RampSource(const std::string& objName, double startVal): Source(objName, startVal) {}
 CoreObject* RampSource::clone(CoreObject* obj) const
 {
@@ -30,11 +62,10 @@ void RampSource::set(std::string_view param, std::string_view val)
 }
 void RampSource::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "dodt") || (param == "ramp") || (param == "rate")) {
-        mp_dOdt = val;
-    } else {
-        Source::set(param, val, unitType);
+    if (RampSource::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
+    Source::set(param, val, unitType);
 }
 
 double RampSource::computeOutput(CoreTime time) const

@@ -19,6 +19,7 @@
 #include "GridDynSimulationFileOps.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/containers/mapOps.hpp"
@@ -38,7 +39,6 @@
 #include <memory>
 #include <queue>
 #include <string>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -60,6 +60,247 @@ void GridDynSimulation::partitionedDiagnostic(std::string_view message) const
     if (traceFile.is_open()) {
         traceFile << message << '\n';
     }
+}
+
+const ModelDescription& GridDynSimulation::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridDynSimulation>(
+        "GridDynSimulation",
+        &GridSimulation::getModelDescription(),
+        {command({"powerflowfile"}, units::defunit, "Powerflowfile", ModelFieldType::STRING),
+         command(
+             {"powerflowinputfile"}, units::defunit, "Powerflowinputfile", ModelFieldType::STRING),
+         command({"defpowerflow"},
+                 units::defunit,
+                 "Default power-flow solver mode",
+                 ModelFieldType::STRING),
+         command({"defdae"}, units::defunit, "Default DAE solver mode", ModelFieldType::STRING),
+         command({"defdynalg"},
+                 units::defunit,
+                 "Default algebraic solver mode",
+                 ModelFieldType::STRING),
+         command({"defdyndiff"},
+                 units::defunit,
+                 "Default differential solver mode",
+                 ModelFieldType::STRING),
+         command({"action"}, units::defunit, "Action", ModelFieldType::STRING),
+         command({"ordering"}, units::defunit, "Ordering", ModelFieldType::STRING),
+         command({"dynamicsolvermethod"},
+                 units::defunit,
+                 "Dynamicsolvermethod",
+                 ModelFieldType::STRING),
+         command({"residualparallelmode", "residualparallel"},
+                 units::defunit,
+                 "Residualparallelmode",
+                 ModelFieldType::STRING),
+         command({"arkodetable", "erktable"},
+                 units::defunit,
+                 "ARKode explicit Runge-Kutta table",
+                 ModelFieldType::STRING),
+         command({"arkodecompensatedsums", "compensatedsums"},
+                 units::defunit,
+                 "Use compensated sums in ARKode",
+                 ModelFieldType::STRING),
+         parameter({"tolerance", "rtol"},
+                   &GridDynSimulation::tols,
+                   &tolerances::rtol,
+                   units::defunit,
+                   "Relative solver tolerance"),
+         command({"voltagetolerance"}, units::defunit, "Voltagetolerance"),
+         parameter({"angletolerance"},
+                   &GridDynSimulation::tols,
+                   &tolerances::angleTolerance,
+                   units::rad,
+                   "Voltage angle tolerance"),
+         parameter({"defaulttolerance"},
+                   &GridDynSimulation::tols,
+                   &tolerances::defaultTolerance,
+                   units::defunit,
+                   "Default solver tolerance"),
+         parameter({"tolerancerelaxation"},
+                   &GridDynSimulation::tols,
+                   &tolerances::toleranceRelaxationFactor,
+                   units::defunit,
+                   "Tolerance relaxation factor"),
+         parameter({"powerflowstarttime"},
+                   &GridDynSimulation::powerFlowStartTime,
+                   units::second,
+                   "Power-flow start time"),
+         parameter({"timetolerance"},
+                   &GridDynSimulation::tols,
+                   &tolerances::timeTol,
+                   units::second,
+                   "Time tolerance"),
+         command({"poweradjustthreshold"}, units::defunit, "Poweradjustthreshold"),
+         parameter({"maxpoweradjustiterations"},
+                   &GridDynSimulation::max_Padjust_iterations,
+                   units::defunit,
+                   "Maximum number of Power adjust iterations"),
+         parameter({"maxvoltageadjustiterations"},
+                   &GridDynSimulation::max_Vadjust_iterations,
+                   units::defunit,
+                   "Maximum number of Voltage adjust iterations"),
+         flag({"autoallocate", "power_adjust"},
+              &GridDynSimulation::controlFlags,
+              POWER_ADJUST_ENABLED,
+              "Power adjust enabled"),
+         flag({"dense"}, &GridDynSimulation::controlFlags, DENSE_SOLVER, "Dense solver"),
+         flag({"no_auto_autogen", "NO_AUTO_AUTOGEN"},
+              &GridDynSimulation::controlFlags,
+              NO_AUTO_AUTOGEN,
+              "No auto autogen"),
+         flag({"auto_bus_disconnect", "AUTO_BUS_DISCONNECT"},
+              &GridDynSimulation::controlFlags,
+              AUTO_BUS_DISCONNECT,
+              "Auto bus disconnect"),
+         flag({"roots_disabled", "ROOTS_DISABLED"},
+              &GridDynSimulation::controlFlags,
+              ROOTS_DISABLED,
+              "Roots disabled"),
+         flag({"voltageconstraints"},
+              &GridDynSimulation::controlFlags,
+              VOLTAGE_CONSTRAINTS_FLAG,
+              "Voltage constraints"),
+         flag({"record_on_halt"},
+              &GridDynSimulation::controlFlags,
+              RECORD_ON_HALT_FLAG,
+              "Record on halt"),
+         flag({"constraints_disabled", "CONSTRAINTS_DISABLED"},
+              &GridDynSimulation::controlFlags,
+              CONSTRAINTS_DISABLED,
+              "Constraints disabled"),
+         flag({"dc_mode", "DC_MODE"}, &GridDynSimulation::controlFlags, DC_MODE, "Dc mode"),
+         flag({"dcFlow_initialization", "DC_FLOW_INITIALIZATION"},
+              &GridDynSimulation::controlFlags,
+              DC_FLOW_INITIALIZATION,
+              "Dc flow initialization"),
+         flag({"no_link_adjustments", "DISABLE_LINK_ADJUSTMENTS"},
+              &GridDynSimulation::controlFlags,
+              DISABLE_LINK_ADJUSTMENTS,
+              "Disable link adjustments"),
+         flag({"no_tap_changer", "no_tap_changer_adjustments", "DISABLE_TAP_CHANGER_ADJUSTMENTS"},
+              &GridDynSimulation::controlFlags,
+              DISABLE_TAP_CHANGER_ADJUSTMENTS,
+              "Disable tap changer adjustments"),
+         flag(
+             {"no_shunt_adjustments", "no_switched_shunt_adjustments", "DISABLE_SHUNT_ADJUSTMENTS"},
+             &GridDynSimulation::controlFlags,
+             DISABLE_SHUNT_ADJUSTMENTS,
+             "Disable shunt adjustments"),
+         flag({"first_run_limits_only", "FIRST_RUN_LIMITS_ONLY"},
+              &GridDynSimulation::controlFlags,
+              FIRST_RUN_LIMITS_ONLY,
+              "First run limits only"),
+         flag({"no_reset", "NO_RESET"}, &GridDynSimulation::controlFlags, NO_RESET, "No reset"),
+         flag({"ignore_bus_limits", "IGNORE_BUS_LIMITS"},
+              &GridDynSimulation::controlFlags,
+              IGNORE_BUS_LIMITS,
+              "Ignore bus limits"),
+         flag({"ignore_reactive_limits"},
+              &GridDynSimulation::controlFlags,
+              IGNORE_REACTIVE_POWER_LIMITS,
+              "Ignore reactive power limits"),
+         flag({"no_auto_slack_bus", "DISABLE_AUTO_SLACK_BUS"},
+              &GridDynSimulation::controlFlags,
+              DISABLE_AUTO_SLACK_BUS,
+              "Disable auto slack bus"),
+         flag({"no_auto_disconnect", "DISABLE_AUTO_DISCONNECT"},
+              &GridDynSimulation::controlFlags,
+              DISABLE_AUTO_DISCONNECT,
+              "Disable auto disconnect"),
+         flag({"no_automatic_load_loss", "DISABLE_AUTOMATIC_LOAD_LOSS"},
+              &GridDynSimulation::controlFlags,
+              DISABLE_AUTOMATIC_LOAD_LOSS,
+              "Disable automatic load loss"),
+         flag({"powerflow_only"},
+              &GridDynSimulation::controlFlags,
+              POWER_FLOW_ONLY,
+              "Power flow only"),
+         flag({"no_powerflow_adjustments", "NO_POWERFLOW_ADJUSTMENTS"},
+              &GridDynSimulation::controlFlags,
+              NO_POWERFLOW_ADJUSTMENTS,
+              "No powerflow adjustments"),
+         flag({"savepowerflow"},
+              &GridDynSimulation::controlFlags,
+              SAVE_POWER_FLOW_DATA,
+              "Save power flow data"),
+         flag({"savepowerflowinput"},
+              &GridDynSimulation::controlFlags,
+              SAVE_POWER_FLOW_INPUT_DATA,
+              "Save power flow input data"),
+         flag({"low_voltage_check"},
+              &GridDynSimulation::controlFlags,
+              LOW_VOLTAGE_CHECKING,
+              "Low voltage checking"),
+         flag({"no_powerflow_error_recovery", "NO_POWERFLOW_ERROR_RECOVERY"},
+              &GridDynSimulation::controlFlags,
+              NO_POWERFLOW_ERROR_RECOVERY,
+              "No powerflow error recovery"),
+         flag({"dae_initialization_for_partitioned", "DAE_INITIALIZATION_FOR_PARTITIONED"},
+              &GridDynSimulation::controlFlags,
+              DAE_INITIALIZATION_FOR_PARTITIONED,
+              "Dae initialization for partitioned"),
+         flag({"strict_governor_limits", "strictgovernorlimits"},
+              &GridDynSimulation::controlFlags,
+              STRICT_GOVERNOR_LIMITS,
+              "Strict governor limits"),
+         flag({"strict_exciter_limits", "strictexciterlimits"},
+              &GridDynSimulation::controlFlags,
+              STRICT_EXCITER_LIMITS,
+              "Strict exciter limits"),
+         flag({"ida_initial_condition_diagnostics",
+               "idainitialconditiondiagnostics",
+               "ida_ic_diagnostics"},
+              &GridDynSimulation::controlFlags,
+              IDA_INITIAL_CONDITION_DIAGNOSTICS,
+              "Ida initial condition diagnostics"),
+         flag({"ida_initial_condition_stop_on_failure",
+               "idainitialconditionstoponfailure",
+               "ida_ic_stop_on_failure"},
+              &GridDynSimulation::controlFlags,
+              IDA_INITIAL_CONDITION_STOP_ON_FAILURE,
+              "Ida initial condition stop on failure"),
+         flag({"ida_integration_diagnostics", "ida_integration_trace"},
+              &GridDynSimulation::controlFlags,
+              IDA_INTEGRATION_DIAGNOSTICS_FLAG,
+              "Ida integration diagnostics"),
+         flag({"partitioned_diagnostics", "partitioned_trace"},
+              &GridDynSimulation::controlFlags,
+              PARTITIONED_DIAGNOSTICS_FLAG,
+              "Partitioned diagnostics"),
+         flag({"disable_stabilizers"},
+              &GridDynSimulation::controlFlags,
+              DISABLE_STABILIZERS_FOR_DIAGNOSTICS,
+              "Disable stabilizers for diagnostics"),
+         flag({"force_event_powerflow", "FORCE_POWER_FLOW"},
+              &GridDynSimulation::controlFlags,
+              FORCE_POWER_FLOW,
+              "Force power flow"),
+         flag({"force_powerflow", "force_extra_powerflow", "FORCE_EXTRA_POWERFLOW"},
+              &GridDynSimulation::controlFlags,
+              FORCE_EXTRA_POWERFLOW,
+              "Force extra powerflow"),
+         flag({"droop_power_flow", "DROOP_POWER_FLOW"},
+              &GridDynSimulation::controlFlags,
+              DROOP_POWER_FLOW,
+              "Droop power flow"),
+         command({"sparse"}, units::defunit, "Use a sparse solver", ModelFieldType::BOOLEAN),
+         command({"threads"},
+                 units::defunit,
+                 "Set parallel residual, Jacobian, and contingency execution",
+                 ModelFieldType::BOOLEAN)});
+    return description;
+}
+
+void GridDynSimulation::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = GridDynSimulation::getModelDescription();
+    getParamString<GridDynSimulation, GridSimulation>(this,
+                                                      pstr,
+                                                      description.numericNames(),
+                                                      description.stringNames(),
+                                                      description.flagNames(),
+                                                      pstype);
 }
 
 GridDynSimulation::GridDynSimulation(const std::string& objName):
@@ -1033,98 +1274,14 @@ void GridDynSimulation::setDefaultMode(SolutionModes mode, const SolverMode& sMo
     }
 }
 
-static const std::unordered_map<std::string, int>& getFlagControlMap()
-{
-    static const std::unordered_map<std::string, int> flagControlMap{
-        {"autoallocate", POWER_ADJUST_ENABLED},
-        {"power_adjust", POWER_ADJUST_ENABLED},
-        {"sparse", -DENSE_SOLVER},
-        {"dense", DENSE_SOLVER},
-        {"no_auto_autogen", NO_AUTO_AUTOGEN},
-        {"NO_AUTO_AUTOGEN", NO_AUTO_AUTOGEN},
-        {"auto_bus_disconnect", AUTO_BUS_DISCONNECT},
-        {"AUTO_BUS_DISCONNECT", AUTO_BUS_DISCONNECT},
-        {"roots_disabled", ROOTS_DISABLED},
-        {"ROOTS_DISABLED", ROOTS_DISABLED},
-        {"voltageconstraints", VOLTAGE_CONSTRAINTS_FLAG},
-        {"record_on_halt", RECORD_ON_HALT_FLAG},
-        {"constraints_disabled", CONSTRAINTS_DISABLED},
-        {"CONSTRAINTS_DISABLED", CONSTRAINTS_DISABLED},
-        {"dc_mode", DC_MODE},
-        {"DC_MODE", DC_MODE},
-        {"dcFlow_initialization", DC_FLOW_INITIALIZATION},
-        {"DC_FLOW_INITIALIZATION", DC_FLOW_INITIALIZATION},
-        {"no_link_adjustments", DISABLE_LINK_ADJUSTMENTS},
-        {"DISABLE_LINK_ADJUSTMENTS", DISABLE_LINK_ADJUSTMENTS},
-        {"no_tap_changer", DISABLE_TAP_CHANGER_ADJUSTMENTS},
-        {"no_tap_changer_adjustments", DISABLE_TAP_CHANGER_ADJUSTMENTS},
-        {"DISABLE_TAP_CHANGER_ADJUSTMENTS", DISABLE_TAP_CHANGER_ADJUSTMENTS},
-        {"no_shunt_adjustments", DISABLE_SHUNT_ADJUSTMENTS},
-        {"no_switched_shunt_adjustments", DISABLE_SHUNT_ADJUSTMENTS},
-        {"DISABLE_SHUNT_ADJUSTMENTS", DISABLE_SHUNT_ADJUSTMENTS},
-        {"first_run_limits_only", FIRST_RUN_LIMITS_ONLY},
-        {"FIRST_RUN_LIMITS_ONLY", FIRST_RUN_LIMITS_ONLY},
-        {"no_reset", NO_RESET},
-        {"NO_RESET", NO_RESET},
-        {"ignore_bus_limits", IGNORE_BUS_LIMITS},
-        {"ignore_reactive_limits", IGNORE_REACTIVE_POWER_LIMITS},
-        {"IGNORE_BUS_LIMITS", IGNORE_BUS_LIMITS},
-        {"no_auto_slack_bus", DISABLE_AUTO_SLACK_BUS},
-        {"DISABLE_AUTO_SLACK_BUS", DISABLE_AUTO_SLACK_BUS},
-        {"no_auto_disconnect", DISABLE_AUTO_DISCONNECT},
-        {"DISABLE_AUTO_DISCONNECT", DISABLE_AUTO_DISCONNECT},
-        {"no_automatic_load_loss", DISABLE_AUTOMATIC_LOAD_LOSS},
-        {"DISABLE_AUTOMATIC_LOAD_LOSS", DISABLE_AUTOMATIC_LOAD_LOSS},
-        {"powerflow_only", POWER_FLOW_ONLY},
-        {"no_powerflow_adjustments", NO_POWERFLOW_ADJUSTMENTS},
-        {"NO_POWERFLOW_ADJUSTMENTS", NO_POWERFLOW_ADJUSTMENTS},
-        {"savepowerflow", SAVE_POWER_FLOW_DATA},
-        {"savepowerflowinput", SAVE_POWER_FLOW_INPUT_DATA},
-        {"low_voltage_check", LOW_VOLTAGE_CHECKING},
-        {"no_powerflow_error_recovery", NO_POWERFLOW_ERROR_RECOVERY},
-        {"NO_POWERFLOW_ERROR_RECOVERY", NO_POWERFLOW_ERROR_RECOVERY},
-        {"dae_initialization_for_partitioned", DAE_INITIALIZATION_FOR_PARTITIONED},
-        {"DAE_INITIALIZATION_FOR_PARTITIONED", DAE_INITIALIZATION_FOR_PARTITIONED},
-        {"strict_governor_limits", STRICT_GOVERNOR_LIMITS},
-        {"strictgovernorlimits", STRICT_GOVERNOR_LIMITS},
-        {"strict_exciter_limits", STRICT_EXCITER_LIMITS},
-        {"strictexciterlimits", STRICT_EXCITER_LIMITS},
-        {"ida_initial_condition_diagnostics", IDA_INITIAL_CONDITION_DIAGNOSTICS},
-        {"idainitialconditiondiagnostics", IDA_INITIAL_CONDITION_DIAGNOSTICS},
-        {"ida_ic_diagnostics", IDA_INITIAL_CONDITION_DIAGNOSTICS},
-        {"ida_initial_condition_stop_on_failure", IDA_INITIAL_CONDITION_STOP_ON_FAILURE},
-        {"idainitialconditionstoponfailure", IDA_INITIAL_CONDITION_STOP_ON_FAILURE},
-        {"ida_ic_stop_on_failure", IDA_INITIAL_CONDITION_STOP_ON_FAILURE},
-        {"ida_integration_diagnostics", IDA_INTEGRATION_DIAGNOSTICS_FLAG},
-        {"ida_integration_trace", IDA_INTEGRATION_DIAGNOSTICS_FLAG},
-        {"partitioned_diagnostics", PARTITIONED_DIAGNOSTICS_FLAG},
-        {"partitioned_trace", PARTITIONED_DIAGNOSTICS_FLAG},
-        {"disable_stabilizers", DISABLE_STABILIZERS_FOR_DIAGNOSTICS},
-        {"force_event_powerflow", FORCE_POWER_FLOW},
-        {"FORCE_POWER_FLOW", FORCE_POWER_FLOW},
-        {"force_powerflow", FORCE_EXTRA_POWERFLOW},
-        {"force_extra_powerflow", FORCE_EXTRA_POWERFLOW},
-        {"FORCE_EXTRA_POWERFLOW", FORCE_EXTRA_POWERFLOW},
-        {"droop_power_flow", DROOP_POWER_FLOW},
-        {"DROOP_POWER_FLOW", DROOP_POWER_FLOW},
-    };
-    return flagControlMap;
-}
-
 void GridDynSimulation::setFlag(std::string_view flag, bool val)
 {
-    const auto& flagControlMap = getFlagControlMap();
-    auto flagIter = flagControlMap.find(std::string{flag});
-    if (flagIter != flagControlMap.end()) {
-        if (flagIter->second >= 0) {
-            controlFlags.set(flagIter->second, val);
-        } else {
-            controlFlags.set(-flagIter->second, !val);
-        }
+    if (GridDynSimulation::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+        return;
+    }
+    if (flag == "sparse") {
+        controlFlags.set(DENSE_SOLVER, !val);
     } else if (flag == "threads") {
-        /*PARALLEL_RESIDUAL_ENABLED = 7,
-                        PARALLEL_JACOBIAN_ENABLED = 8,
-                        PARALLEL_CONTINGENCY_ENABLED = 9,*/
         controlFlags.set(PARALLEL_RESIDUAL_ENABLED, val);
         controlFlags.set(PARALLEL_CONTINGENCY_ENABLED, val);
         controlFlags.set(PARALLEL_JACOBIAN_ENABLED, val);
@@ -1134,26 +1291,30 @@ void GridDynSimulation::setFlag(std::string_view flag, bool val)
     }
 }
 
+bool GridDynSimulation::getFlag(std::string_view flag) const
+{
+    if (const auto value = GridDynSimulation::getModelDescription().tryGetFlagLocal(*this, flag)) {
+        return *value;
+    }
+    if (flag == "sparse") {
+        return !controlFlags[DENSE_SOLVER];
+    }
+    if (flag == "threads") {
+        return controlFlags[PARALLEL_RESIDUAL_ENABLED] &&
+            controlFlags[PARALLEL_CONTINGENCY_ENABLED] && controlFlags[PARALLEL_JACOBIAN_ENABLED];
+    }
+    return GridSimulation::getFlag(flag);
+}
+
 void GridDynSimulation::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "tolerance") || (param == "rtol")) {
-        tols.rtol = val;
-    } else if (param == "voltagetolerance") {
+    if (GridDynSimulation::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
+    if (param == "voltagetolerance") {
         tols.voltageTolerance = units::convert(val, unitType, units::puV, systemBasePower);
-    } else if (param == "angletolerance") {
-        tols.angleTolerance = units::convert(val, unitType, units::rad);
-    } else if (param == "defaulttolerance") {
-        tols.defaultTolerance = val;
-    } else if (param == "tolerancerelaxation") {
-        tols.toleranceRelaxationFactor = val;
-    } else if (param == "powerflowstarttime") {
-        powerFlowStartTime = units::convert(val, unitType, units::second);
-    } else if (param == "timetolerance") {
-        tols.timeTol = units::convert(val, unitType, units::second);
     } else if (param == "poweradjustthreshold") {
         powerAdjustThreshold = units::convert(val, unitType, units::puMW, systemBasePower);
-    } else if (param == "maxpoweradjustiterations") {
-        max_Padjust_iterations = static_cast<count_t>(val);
     } else if (param == "defpowerflow") {
         setDefaultMode(SolutionModes::POWERFLOW_MODE, getSolverMode(static_cast<index_t>(val)));
     } else if (param == "defdae") {
@@ -1162,8 +1323,6 @@ void GridDynSimulation::set(std::string_view param, double val, units::unit unit
         setDefaultMode(SolutionModes::ALGEBRAIC_MODE, getSolverMode(static_cast<index_t>(val)));
     } else if (param == "defdyndiff") {
         setDefaultMode(SolutionModes::DIFFERENTIAL_MODE, getSolverMode(static_cast<index_t>(val)));
-    } else if (param == "maxvoltageadjustiterations") {
-        max_Vadjust_iterations = static_cast<count_t>(val);
     } else {
         try {
             GridSimulation::set(param, val, unitType);
@@ -1190,6 +1349,13 @@ void GridDynSimulation::solverSet(std::string_view solverName,
 
 double GridDynSimulation::get(std::string_view param, units::unit unitType) const
 {
+    if (const auto value =
+            GridDynSimulation::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    if (param == "sparse" || param == "threads") {
+        return getFlag(param) ? 1.0 : 0.0;
+    }
     count_t val = kInvalidCount;
     double fval = kNullVal;
 
@@ -1264,12 +1430,6 @@ double GridDynSimulation::get(std::string_view param, units::unit unitType) cons
         }
     } else if (param == "voltagetolerance") {
         fval = tols.voltageTolerance;
-    } else if (param == "tolerance" || param == "rtol") {
-        fval = tols.rtol;
-    } else if (param == "angletolerance") {
-        fval = tols.angleTolerance;
-    } else if (param == "timetolerance") {
-        fval = tols.timeTol;
     } else if (param == "poweradjustthreshold") {
         fval = powerAdjustThreshold;
     } else {

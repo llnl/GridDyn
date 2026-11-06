@@ -6,6 +6,7 @@
 
 #include "../gtestHelper.h"
 #include "core/CoreExceptions.h"
+#include "core/ModelDescription.h"
 #include "fileInput/fileInput.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/comms/CommMessage.h"
@@ -14,6 +15,7 @@
 #include "griddyn/comms/ControlMessage.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include "griddyn/relays/ControlRelay.h"
+#include "griddyn/relays/DGProtectionRelay.h"
 #include "griddyn/relays/Pmu.h"
 #include "griddyn/relays/Sensor.h"
 #include "griddyn/relays/TimeOverCurrentRelay.h"
@@ -498,4 +500,29 @@ TEST_F(RelayTests, PmuTest1)
 
     EXPECT_GT(rocof2, 0.0);
     EXPECT_GT(rocof3, 0.0);
+}
+
+TEST(RelayDescriptionTests, ArrayBindingsAndLocalFlags)
+{
+    DGPRCT1 relay;
+    EXPECT_TRUE(relay.getModelDescription().describesExactType(relay));
+    relay.set("FL1", 57.0, units::Hz);
+    relay.set("tfl1", 100.0, units::ms);
+    relay.set("VEn", 0.01);
+    relay.set("sampled", 1.0);
+    relay.set("ts", 25.0, units::ms);
+    EXPECT_DOUBLE_EQ(relay.get("fl1", units::Hz), 57.0);
+    EXPECT_NEAR(relay.get("tfl1"), 0.1, 1e-8);
+    EXPECT_TRUE(relay.getFlag("ven"));
+    EXPECT_DOUBLE_EQ(relay.get("ven"), 1.0);
+    EXPECT_TRUE(relay.getFlag("sampled"));
+    EXPECT_FALSE(relay.getFlag("continuous"));
+    EXPECT_NEAR(relay.get("period"), 0.025, 1e-8);
+
+    const auto snapshot = ModelFieldSnapshot::capture(relay, FieldSnapshotLevel::PARAMETERS);
+    relay.set("fl1", 55.0);
+    relay.setFlag("ven", false);
+    snapshot.restore(relay);
+    EXPECT_DOUBLE_EQ(relay.get("fl1"), 57.0);
+    EXPECT_TRUE(relay.getFlag("ven"));
 }

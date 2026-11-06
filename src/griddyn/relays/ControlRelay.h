@@ -54,6 +54,11 @@ namespace relays {
      */
     class ControlRelay: public Relay {
       public:
+        double get(std::string_view param, units::unit unitType = units::defunit) const override;
+        bool getFlag(std::string_view flag) const override;
+        const ModelDescription& getModelDescription() const override;
+        void getParameterStrings(stringVec& pstr,
+                                 ParamStringType pstype = ParamStringType::ALL) const override;
         enum ControlRelayFlags {
             LINK_TYPE_SOURCE = OBJECT_FLAG9,
             LINK_TYPE_SINK = OBJECT_FLAG10,

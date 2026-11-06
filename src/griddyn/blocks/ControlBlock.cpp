@@ -7,11 +7,44 @@
 #include "ControlBlock.h"
 
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <string>
 
 namespace griddyn::blocks {
+const ModelDescription& ControlBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ControlBlock>(
+        "ControlBlock",
+        &GridBlock::getModelDescription(),
+        {parameter({"t1", "t"}, &ControlBlock::mT1, units::defunit, "Delay time constant"),
+         parameter({"t2"}, &ControlBlock::mT2, units::defunit, "Upper time constant"),
+         state("output", units::defunit, "Controller output"),
+         state("intermediate", units::defunit, "Intermediate controller state")});
+    return description;
+}
+
+double ControlBlock::get(std::string_view param, units::unit unitType) const
+{
+    if (const auto value =
+            ControlBlock::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
+    return GridBlock::get(param, unitType);
+}
+
+void ControlBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = ControlBlock::getModelDescription();
+    getParamString<ControlBlock, GridBlock>(this,
+                                            pstr,
+                                            description.numericNames(),
+                                            description.stringNames(),
+                                            description.flagNames(),
+                                            pstype);
+}
+
 ControlBlock::ControlBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(USE_STATE);
@@ -210,15 +243,12 @@ void ControlBlock::set(std::string_view param, std::string_view val)
 }
 void ControlBlock::set(std::string_view param, double val, units::unit unitType)
 {
+    if (ControlBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     // param   = GridDynSimulation::toLower(param);
 
-    if ((param == "t1") || (param == "t")) {
-        mT1 = val;
-    } else if (param == "t2") {
-        mT2 = val;
-    } else {
-        GridBlock::set(param, val, unitType);
-    }
+    GridBlock::set(param, val, unitType);
 }
 
 stringVec ControlBlock::localStateNames() const

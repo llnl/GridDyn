@@ -9,10 +9,20 @@
 #include "../Block.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <string>
 #include <vector>
 
 namespace griddyn {
+const ModelDescription& ControlSystem::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<ControlSystem>("ControlSystem",
+                                                &GridSubModel::getModelDescription(),
+                                                {});
+    return description;
+}
+
 ControlSystem::ControlSystem(const std::string& objName): GridSubModel(objName) {}
 
 ControlSystem::~ControlSystem() = default;

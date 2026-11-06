@@ -10,6 +10,7 @@
 #include "Scheduler.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <algorithm>
@@ -199,6 +200,42 @@ namespace {
         return {.mRampRate = rampRate, .mNextUpdateTime = nextUpdateTime};
     }
 }  // namespace
+
+const ModelDescription& SchedulerRamp::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<SchedulerRamp>(
+        "SchedulerRamp",
+        &Scheduler::getModelDescription(),
+        {command({"rampmode"}, units::defunit, "Rampmode", ModelFieldType::STRING),
+         command({"reserve"}, units::defunit, "Reserve"),
+         command({"ramp"}, units::defunit, "Ramp"),
+         command({"rampup"}, units::defunit, "Rampup"),
+         command({"rampdown"}, units::defunit, "Rampdown"),
+         command({"ramp10"}, units::defunit, "Ramp10"),
+         command({"ramp10up"}, units::defunit, "Ramp10up"),
+         command({"ramp10down"}, units::defunit, "Ramp10down"),
+         command({"ramp30"}, units::defunit, "Ramp30"),
+         command({"ramp30up"}, units::defunit, "Ramp30up"),
+         command({"ramp30down"}, units::defunit, "Ramp30down"),
+         parameter({"ramptime"},
+                   &SchedulerRamp::rampTime,
+                   units::second,
+                   "Ramp duration",
+                   [](CoreTime value) { return value > timeZero; }),
+         command({"reserveramptime"}, units::second, "Reserve ramp duration")});
+    return description;
+}
+
+void SchedulerRamp::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = SchedulerRamp::getModelDescription();
+    getParamString<SchedulerRamp, Scheduler>(this,
+                                             pstr,
+                                             description.numericNames(),
+                                             description.stringNames(),
+                                             description.flagNames(),
+                                             pstype);
+}
 
 SchedulerRamp::SchedulerRamp(const std::string& objName): Scheduler(objName) {}
 
@@ -436,10 +473,9 @@ void SchedulerRamp::reserveDispatcherLink()
 
 void SchedulerRamp::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!std::isfinite(val)) {
-        throw InvalidParameterValue("scheduler ramp parameters must be finite");
+    if (SchedulerRamp::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
     }
-
     if (param == "ramp") {
         const double rate = units::convert(val, unitType, units::puMW / units::s, m_Base);
         if (!std::isfinite(rate) || rate < 0.0) {
@@ -497,13 +533,6 @@ void SchedulerRamp::set(std::string_view param, double val, units::unit unitType
             throw InvalidParameterValue("scheduler 30-minute ramp limits must be nonnegative");
         }
         ramp30Down = amount;
-    } else if (param == "ramptime") {
-        const double seconds =
-            units::convert(val, unitType == units::defunit ? units::s : unitType, units::s);
-        if (!std::isfinite(seconds) || seconds <= 0.0) {
-            throw InvalidParameterValue("scheduler ramp time must be positive");
-        }
-        rampTime = seconds;
     } else if (param == "reserve") {
         const double amount = units::convert(val, unitType, units::puMW, m_Base);
         if (!std::isfinite(amount) || amount < 0.0 || amount > pMax - pMin) {
@@ -693,6 +722,10 @@ void SchedulerRamp::insertTarget(Tsched targetSchedule)
 
 double SchedulerRamp::get(std::string_view param, units::unit unitType) const
 {
+    if (const auto value =
+            SchedulerRamp::getModelDescription().tryGetLocal(*this, param, unitType)) {
+        return *value;
+    }
     if (param == "reserve") {
         return units::convert(reserveAvail, units::puMW, unitType, m_Base);
     }
@@ -722,9 +755,6 @@ double SchedulerRamp::get(std::string_view param, units::unit unitType) const
     }
     if (param == "ramp30down") {
         return units::convert(ramp30Down, units::puMW, unitType, m_Base);
-    }
-    if (param == "ramptime") {
-        return units::convert(rampTime, units::s, unitType);
     }
     if (param == "reserveramptime") {
         return units::convert(reserveRampTime, units::s, unitType);

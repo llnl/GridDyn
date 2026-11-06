@@ -12,6 +12,7 @@
 #include "../generators/DynamicGenerator.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <cstddef>
@@ -20,6 +21,16 @@
 #include <string>
 
 namespace griddyn {
+const ModelDescription& COISensor::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<COISensor>(
+        "COISensor",
+        &Sensor::getModelDescription(),
+        {state("frequency", units::puHz, "Center-of-inertia frequency"),
+         state("angle", units::rad, "Center-of-inertia angle")});
+    return description;
+}
+
 COISensor::COISensor(const std::string& objName): Sensor(objName)
 {
     m_outputSize = 2;

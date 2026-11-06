@@ -10,11 +10,36 @@
 #include "../events/EventQueue.h"
 #include "../measurement/Condition.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <memory>
 #include <string>
 #include <utility>
 
 namespace griddyn::relays {
+const ModelDescription& BusRelay::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<BusRelay>(
+        "BusRelay",
+        &Relay::getModelDescription(),
+        {command({"cutoutvoltage", "voltagelimit"}, units::defunit, "Cutoutvoltage"),
+         command({"cutoutfrequency", "freqlimit"}, units::defunit, "Cutoutfrequency"),
+         command({"delay"}, units::defunit, "Delay"),
+         command({"voltagedelay"}, units::defunit, "Voltagedelay"),
+         command({"frequencydelay"}, units::defunit, "Frequencydelay")});
+    return description;
+}
+
+void BusRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = BusRelay::getModelDescription();
+    getParamString<BusRelay, Relay>(this,
+                                    pstr,
+                                    description.numericNames(),
+                                    description.stringNames(),
+                                    description.flagNames(),
+                                    pstype);
+}
+
 BusRelay::BusRelay(const std::string& objName): Relay(objName)
 {
     opFlags.set(CONTINUOUS_FLAG);
@@ -56,6 +81,9 @@ void BusRelay::set(std::string_view param, std::string_view val)
 
 void BusRelay::set(std::string_view param, double val, units::unit unitType)
 {
+    if (BusRelay::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if ((param == "cutoutvoltage") || (param == "voltagelimit")) {
         mCutoutVoltage = units::convert(val, unitType, units::puV, systemBasePower, baseVoltage());
         if (opFlags[DYN_INITIALIZED]) {

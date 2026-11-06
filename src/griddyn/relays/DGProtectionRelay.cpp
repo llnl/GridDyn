@@ -13,6 +13,7 @@
 #include "../renewables/DistributedConverter.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <algorithm>
 #include <cmath>
@@ -21,6 +22,63 @@
 #include <string>
 
 namespace griddyn {
+const ModelDescription& DGProtectionRelay::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<DGProtectionRelay>(
+        "DGProtectionRelay",
+        &Relay::getModelDescription(),
+        {command({"external_voltage", "v"}, units::defunit, "External voltage"),
+         parameter({"tres"}, &DGProtectionRelay::resetTime, units::second, "Reset time"),
+         parameter({"fn"}, &DGProtectionRelay::fn, units::Hz, "Nominal frequency"),
+         flag({"fen"}, &DGProtectionRelay::frequencyEnabled, "Enable frequency protection"),
+         flag({"ven"}, &DGProtectionRelay::voltageEnabled, "Enable voltage protection"),
+         parameter({"fl3"}, &DGProtectionRelay::frequency, 0, units::Hz, "Frequency threshold"),
+         parameter({"fl2"}, &DGProtectionRelay::frequency, 1, units::Hz, "Frequency threshold"),
+         parameter({"fl1"}, &DGProtectionRelay::frequency, 2, units::Hz, "Frequency threshold"),
+         parameter({"fu1"}, &DGProtectionRelay::frequency, 3, units::Hz, "Frequency threshold"),
+         parameter({"fu2"}, &DGProtectionRelay::frequency, 4, units::Hz, "Frequency threshold"),
+         parameter({"fu3"}, &DGProtectionRelay::frequency, 5, units::Hz, "Frequency threshold"),
+         parameter({"vl4"}, &DGProtectionRelay::voltage, 0, units::puV, "Voltage threshold"),
+         parameter({"vl3"}, &DGProtectionRelay::voltage, 1, units::puV, "Voltage threshold"),
+         parameter({"vl2"}, &DGProtectionRelay::voltage, 2, units::puV, "Voltage threshold"),
+         parameter({"vl1"}, &DGProtectionRelay::voltage, 3, units::puV, "Voltage threshold"),
+         parameter({"vu1"}, &DGProtectionRelay::voltage, 4, units::puV, "Voltage threshold"),
+         parameter({"vu2"}, &DGProtectionRelay::voltage, 5, units::puV, "Voltage threshold"),
+         parameter({"vu3"}, &DGProtectionRelay::voltage, 6, units::puV, "Voltage threshold"),
+         parameter(
+             {"tfl1"}, &DGProtectionRelay::frequencyTime, 0, units::second, "Frequency trip delay"),
+         parameter(
+             {"tfl2"}, &DGProtectionRelay::frequencyTime, 1, units::second, "Frequency trip delay"),
+         parameter(
+             {"tfu1"}, &DGProtectionRelay::frequencyTime, 2, units::second, "Frequency trip delay"),
+         parameter(
+             {"tfu2"}, &DGProtectionRelay::frequencyTime, 3, units::second, "Frequency trip delay"),
+         parameter(
+             {"tvl1"}, &DGProtectionRelay::voltageTime, 0, units::second, "Voltage trip delay"),
+         parameter(
+             {"tvl2"}, &DGProtectionRelay::voltageTime, 1, units::second, "Voltage trip delay"),
+         parameter(
+             {"tvl3"}, &DGProtectionRelay::voltageTime, 2, units::second, "Voltage trip delay"),
+         parameter(
+             {"tvu1"}, &DGProtectionRelay::voltageTime, 3, units::second, "Voltage trip delay"),
+         parameter(
+             {"tvu2"}, &DGProtectionRelay::voltageTime, 4, units::second, "Voltage trip delay"),
+         localState("locked", &DGProtectionRelay::lock, "Protection lockout latch"),
+         localState("clear_deadline", &DGProtectionRelay::clearDeadline, "Earliest release time")});
+    return description;
+}
+
+void DGProtectionRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = DGProtectionRelay::getModelDescription();
+    getParamString<DGProtectionRelay, Relay>(this,
+                                             pstr,
+                                             description.numericNames(),
+                                             description.stringNames(),
+                                             description.flagNames(),
+                                             pstype);
+}
+
 DGProtectionRelay::DGProtectionRelay(bool useExternalVoltage, const std::string& objName):
     Relay(objName), externalVoltage(useExternalVoltage)
 {
@@ -31,23 +89,7 @@ DGProtectionRelay::DGProtectionRelay(bool useExternalVoltage, const std::string&
 void DGProtectionRelay::set(std::string_view param, double val, units::unit unitType)
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (!std::isfinite(val)) {
-        throw InvalidParameterValue("DG protection parameter must be finite");
-    }
-    if (key == "fen") {
-        frequencyEnabled = val != 0.0;
-        return;
-    }
-    if (key == "ven") {
-        voltageEnabled = val != 0.0;
-        return;
-    }
-    if (key == "fn") {
-        fn = val;
-        return;
-    }
-    if (key == "tres") {
-        resetTime = val;
+    if (DGProtectionRelay::getModelDescription().trySetLocal(*this, key, val, unitType)) {
         return;
     }
     if (key == "external_voltage" || key == "v") {
@@ -58,58 +100,38 @@ void DGProtectionRelay::set(std::string_view param, double val, units::unit unit
         externalConfigured = true;
         return;
     }
-    constexpr std::array<std::string_view, 6> fNames{{"fl3", "fl2", "fl1", "fu1", "fu2", "fu3"}};
-    constexpr std::array<std::string_view, 7> vNames{
-        {"vl4", "vl3", "vl2", "vl1", "vu1", "vu2", "vu3"}};
-    constexpr std::array<std::string_view, 4> ftNames{{"tfl1", "tfl2", "tfu1", "tfu2"}};
-    constexpr std::array<std::string_view, 5> vtNames{{"tvl1", "tvl2", "tvl3", "tvu1", "tvu2"}};
-    for (std::size_t index = 0; index < fNames.size(); ++index) {
-        if (key == fNames[index]) {
-            frequency[index] = val;
-            return;
-        }
-    }
-    for (std::size_t index = 0; index < vNames.size(); ++index) {
-        if (key == vNames[index]) {
-            voltage[index] = val;
-            return;
-        }
-    }
-    for (std::size_t index = 0; index < ftNames.size(); ++index) {
-        if (key == ftNames[index]) {
-            frequencyTime[index] = val;
-            return;
-        }
-    }
-    for (std::size_t index = 0; index < vtNames.size(); ++index) {
-        if (key == vtNames[index]) {
-            voltageTime[index] = val;
-            return;
-        }
-    }
     Relay::set(param, val, unitType);
+}
+
+void DGProtectionRelay::setFlag(std::string_view flag, bool val)
+{
+    const auto key = gmlc::utilities::convertToLowerCase(std::string{flag});
+    if (!DGProtectionRelay::getModelDescription().trySetFlagLocal(*this, key, val)) {
+        Relay::setFlag(flag, val);
+    }
+}
+
+bool DGProtectionRelay::getFlag(std::string_view flag) const
+{
+    const auto key = gmlc::utilities::convertToLowerCase(std::string{flag});
+    if (const auto value = DGProtectionRelay::getModelDescription().tryGetFlagLocal(*this, key)) {
+        return *value;
+    }
+    return Relay::getFlag(flag);
 }
 
 double DGProtectionRelay::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (const auto value =
+            DGProtectionRelay::getModelDescription().tryGetLocal(*this, key, unitType)) {
+        return *value;
+    }
     if (key == "external_voltage" || key == "v") {
         return externalV;
     }
     if (key == "lock") {
         return lock ? 1.0 : 0.0;
-    }
-    if (key == "fen") {
-        return frequencyEnabled ? 1.0 : 0.0;
-    }
-    if (key == "ven") {
-        return voltageEnabled ? 1.0 : 0.0;
-    }
-    if (key == "fn") {
-        return fn;
-    }
-    if (key == "tres") {
-        return resetTime;
     }
     return Relay::get(param, unitType);
 }
@@ -259,6 +281,13 @@ void DGProtectionRelay::copyParametersTo(DGProtectionRelay* out) const
     out->voltageTime = voltageTime;
 }
 
+const ModelDescription& DGPRCT1::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<DGPRCT1>("DGPRCT1", &DGProtectionRelay::getModelDescription(), {});
+    return description;
+}
+
 DGPRCT1::DGPRCT1(const std::string& objName): DGProtectionRelay(false, objName) {}
 CoreObject* DGPRCT1::clone(CoreObject* obj) const
 {
@@ -268,6 +297,15 @@ CoreObject* DGPRCT1::clone(CoreObject* obj) const
     }
     return out == nullptr ? obj : out;
 }
+const ModelDescription& DGPRCTExt::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<DGPRCTExt>("DGPRCTExt",
+                                            &DGProtectionRelay::getModelDescription(),
+                                            {});
+    return description;
+}
+
 DGPRCTExt::DGPRCTExt(const std::string& objName): DGProtectionRelay(true, objName) {}
 CoreObject* DGPRCTExt::clone(CoreObject* obj) const
 {

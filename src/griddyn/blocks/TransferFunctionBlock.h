@@ -37,6 +37,10 @@ namespace griddyn::blocks {
  */
 class TransferFunctionBlock: public GridBlock {
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
+
   protected:
     std::vector<double> a;  //!< denominator coefficients, ascending powers of s
     std::vector<double> b;  //!< numerator coefficients, ascending powers of s

@@ -12,6 +12,7 @@
 #include "../measurement/Condition.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
 #include <algorithm>
@@ -66,6 +67,40 @@ namespace {
         return "sqrt(p^2+q^2)/@bus:v";
     }
 }  // namespace
+
+const ModelDescription& TimeOverCurrentRelay::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<TimeOverCurrentRelay>(
+        "TimeOverCurrentRelay",
+        &Relay::getModelDescription(),
+        {command({"curve", "characteristic"}, units::defunit, "Curve", ModelFieldType::STRING),
+         command({"pickup", "pickuplevel", "ipickup", "limit"}, units::defunit, "Pickup"),
+         command({"instantaneous", "instantaneouspickup", "instpickup", "highset"},
+                 units::defunit,
+                 "Instantaneous"),
+         parameter({"instantaneousdelay", "instdelay", "highsetdelay"},
+                   &TimeOverCurrentRelay::mInstantaneousDelay,
+                   units::second,
+                   "High-set delay"),
+         parameter({"delay", "definitetime", "minimumtime", "tripdelay"},
+                   &TimeOverCurrentRelay::mDefiniteTime,
+                   units::second,
+                   "Additive/minimum delay, or definite delay"),
+         parameter({"timedial", "td"},
+                   &TimeOverCurrentRelay::mTimeDial,
+                   units::defunit,
+                   "Dimensionless inverse-time multiplier"),
+         command({"resetmargin", "margin"}, units::defunit, "Resetmargin"),
+         parameter({"terminal", "side"},
+                   &TimeOverCurrentRelay::mTerminal,
+                   units::defunit,
+                   "Link terminal (1 or 2)"),
+         parameter({"voltagebase"},
+                   &TimeOverCurrentRelay::mVoltageBase,
+                   units::defunit,
+                   "Voltage base for current conversion")});
+    return description;
+}
 
 TimeOverCurrentRelay::TimeOverCurrentRelay(const std::string& objName): Relay(objName)
 {
@@ -142,29 +177,17 @@ void TimeOverCurrentRelay::setTimeCurrentCurve(std::span<const TimeCurrentPoint>
 void TimeOverCurrentRelay::set(std::string_view param, double val, units::unit unitType)
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (TimeOverCurrentRelay::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+        return;
+    }
     if (key == "pickup" || key == "pickuplevel" || key == "ipickup" || key == "limit") {
         mPickup = units::convert(val, unitType, units::puA, systemBasePower, mVoltageBase);
     } else if (key == "instantaneous" || key == "instantaneouspickup" || key == "instpickup" ||
                key == "highset") {
         mInstantaneousPickup =
             units::convert(val, unitType, units::puA, systemBasePower, mVoltageBase);
-    } else if (key == "instantaneousdelay" || key == "instdelay" || key == "highsetdelay") {
-        mInstantaneousDelay = units::convert(val,
-                                             unitType == units::defunit ? units::second : unitType,
-                                             units::second);
-    } else if (key == "delay" || key == "definitetime" || key == "minimumtime" ||
-               key == "tripdelay") {
-        mDefiniteTime = units::convert(val,
-                                       unitType == units::defunit ? units::second : unitType,
-                                       units::second);
-    } else if (key == "timedial" || key == "td") {
-        mTimeDial = val;
     } else if (key == "resetmargin" || key == "margin") {
         mResetMargin = units::convert(val, unitType, units::puA, systemBasePower, mVoltageBase);
-    } else if (key == "terminal" || key == "side") {
-        mTerminal = static_cast<index_t>(val);
-    } else if (key == "voltagebase") {
-        mVoltageBase = val;
     } else {
         Relay::set(param, val, unitType);
     }
@@ -173,6 +196,10 @@ void TimeOverCurrentRelay::set(std::string_view param, double val, units::unit u
 double TimeOverCurrentRelay::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (const auto value =
+            TimeOverCurrentRelay::getModelDescription().tryGetLocal(*this, key, unitType)) {
+        return *value;
+    }
     if (key == "pickup" || key == "pickuplevel" || key == "ipickup" || key == "limit") {
         return units::convert(mPickup, units::puA, unitType, systemBasePower, mVoltageBase);
     }
@@ -181,24 +208,10 @@ double TimeOverCurrentRelay::get(std::string_view param, units::unit unitType) c
         return units::convert(
             mInstantaneousPickup, units::puA, unitType, systemBasePower, mVoltageBase);
     }
-    if (key == "instantaneousdelay" || key == "instdelay" || key == "highsetdelay") {
-        return units::convert(mInstantaneousDelay, units::second, unitType);
-    }
-    if (key == "delay" || key == "definitetime" || key == "minimumtime" || key == "tripdelay") {
-        return units::convert(mDefiniteTime, units::second, unitType);
-    }
-    if (key == "timedial" || key == "td") {
-        return mTimeDial;
-    }
     if (key == "resetmargin" || key == "margin") {
         return units::convert(mResetMargin, units::puA, unitType, systemBasePower, mVoltageBase);
     }
-    if (key == "terminal" || key == "side") {
-        return static_cast<double>(mTerminal);
-    }
-    if (key == "voltagebase") {
-        return mVoltageBase;
-    }
+
     if (key == "tripped") {
         return mTripped ? 1.0 : 0.0;
     }
@@ -216,20 +229,13 @@ std::string TimeOverCurrentRelay::getString(std::string_view param) const
 
 void TimeOverCurrentRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    static constexpr auto numericParameterStrings =
-        std::array<std::string_view, 9>{"pickup",
-                                        "instantaneous",
-                                        "instantaneousdelay",
-                                        "delay",
-                                        "timedial",
-                                        "resetmargin",
-                                        "terminal",
-                                        "voltagebase",
-                                        "tripped"};
-    static constexpr auto stringParameterStrings = std::array<std::string_view, 1>{"curve"};
-    static constexpr std::array<std::string_view, 0> flagStrings{};
-    getParamString<TimeOverCurrentRelay, Relay>(
-        this, pstr, numericParameterStrings, stringParameterStrings, flagStrings, pstype);
+    const auto& description = TimeOverCurrentRelay::getModelDescription();
+    getParamString<TimeOverCurrentRelay, Relay>(this,
+                                                pstr,
+                                                description.numericNames(),
+                                                description.stringNames(),
+                                                description.flagNames(),
+                                                pstype);
 }
 
 TimeOverCurrentRelay::Curve TimeOverCurrentRelay::curveFromString(std::string_view curveName)

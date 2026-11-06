@@ -41,6 +41,9 @@ namespace griddyn::blocks {
  */
 class LeadLagBlock: public GridBlock {
   public:
+    const ModelDescription& getModelDescription() const override;
+    void getParameterStrings(stringVec& pstr,
+                             ParamStringType pstype = ParamStringType::ALL) const override;
     /** @brief Construct a unity-gain block with @f$T_a=0@f$, @f$T_b=1@f$. */
     explicit LeadLagBlock(const std::string& objName = "leadLagBlock_#");
     /**

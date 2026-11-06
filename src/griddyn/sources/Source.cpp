@@ -7,6 +7,7 @@
 #include "../Source.h"
 
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "otherSources.h"
 #include "sourceTypes.h"
@@ -28,6 +29,45 @@ namespace sources {
     static ChildTypeFactory<GrabberSource, Source>
         gRbsrc("source", std::to_array<std::string_view>({"grabber", "data"}));
 }  // namespace sources
+
+const ModelDescription& Source::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<Source>(
+        "Source",
+        &GridSubModel::getModelDescription(),
+        {parameter({"purpose"},
+                   &Source::purpose_,
+                   units::defunit,
+                   "String for use by applications to indicate usage"),
+         command({"units", "outputunits"},
+                 units::defunit,
+                 "Source output units",
+                 ModelFieldType::STRING),
+         command({"val", "setval", "level", "value", "output"},
+                 units::defunit,
+                 "Set the source output level"),
+         localState("current_output", &Source::m_output, "Committed source output")});
+    return description;
+}
+
+std::string Source::getString(std::string_view param) const
+{
+    if (const auto value = Source::getModelDescription().tryGetStringLocal(*this, param)) {
+        return *value;
+    }
+    return GridSubModel::getString(param);
+}
+
+void Source::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+{
+    const auto& description = Source::getModelDescription();
+    getParamString<Source, GridSubModel>(this,
+                                         pstr,
+                                         description.numericNames(),
+                                         description.stringNames(),
+                                         description.flagNames(),
+                                         pstype);
+}
 
 Source::Source(const std::string& objName, double startVal):
     GridSubModel(objName), m_tempOut(startVal)
@@ -53,9 +93,10 @@ CoreObject* Source::clone(CoreObject* obj) const
 
 void Source::set(std::string_view param, std::string_view val)
 {
-    if (param == "purpose") {
-        purpose_ = val;
-    } else if ((param == "units") || (param == "outputunits")) {
+    if (Source::getModelDescription().trySetLocal(*this, param, val)) {
+        return;
+    }
+    if ((param == "units") || (param == "outputunits")) {
         outputUnits_ = units::unit_cast_from_string(std::string{val});
     } else {
         GridSubModel::set(param, val);
@@ -68,6 +109,9 @@ void Source::setLevel(double newLevel)
 }
 void Source::set(std::string_view param, double val, units::unit unitType)
 {
+    if (Source::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+        return;
+    }
     if ((param == "val") || (param == "setval") || (param == "level") || (param == "value") ||
         (param == "output")) {
         setLevel(units::convert(val, unitType, outputUnits_, systemBasePower, localBaseVoltage));

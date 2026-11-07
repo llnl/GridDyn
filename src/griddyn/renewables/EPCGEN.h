@@ -37,6 +37,7 @@ class EPCGEN final: public TerminalElectricalModel {
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     std::span<const RenewablePort> inputPorts() const override;
     std::span<const RenewablePort> outputPorts() const override;
+    using TerminalElectricalModel::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;

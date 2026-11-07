@@ -39,7 +39,7 @@ jobs:
             cmake_flags: -DCMAKE_CXX_STANDARD=26 -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_BUILD_CXX_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_FMI_EXPORT=ON -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=OFF -DGRIDDYN_ENABLE_HIGHS=OFF
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 

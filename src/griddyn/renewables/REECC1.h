@@ -18,6 +18,7 @@ class REECC1 final: public REECA1 {
     const ModelDescription& getModelDescription() const override;
     explicit REECC1(const std::string& name = "REECC1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using REECA1::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;

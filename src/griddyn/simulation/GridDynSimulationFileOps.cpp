@@ -839,11 +839,11 @@ void saveStateBinary(GridDynSimulation* gds,
                      bool append)
 {
     stateFileOperation([&]() {
-        const auto selected = gds->getSolverInterface(gds->getCurrentMode(sMode));
-        if (!selected) {
+        const auto selectedSolver = gds->getSolverInterface(gds->getCurrentMode(sMode));
+        if (!selectedSolver) {
             throw FileOperationError("solver is unavailable");
         }
-        const auto mode = selected->getSolverMode();
+        const auto mode = selectedSolver->getSolverMode();
         const auto path = fileName.empty() ? gds->getString("statefile") : fileName;
         if (path.empty()) {
             throw FileOperationError("no HDF5 state file specified");

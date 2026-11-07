@@ -2,6 +2,11 @@
 # See the top-level NOTICE for additional details. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 
+option(GRIDDYN_HDF5_USE_MSVC_PROBE_PRESETS
+       "Skip HDF5 probes for POSIX headers and functions absent on stock MSVC Windows builds" OFF
+)
+mark_as_advanced(GRIDDYN_HDF5_USE_MSVC_PROBE_PRESETS)
+
 # Keep upstream's generic build options local to its directory. GridDyn owns the C++ storage
 # interface and uses only HDF5's C library.
 function(griddyn_add_hdf5)
@@ -43,6 +48,43 @@ function(griddyn_add_hdf5)
         set(griddyn_hdf5_zlib ${GRIDDYN_ZLIB_TARGET})
     endif()
     set(HDF5_LIB_DEPENDENCIES ${griddyn_hdf5_zlib})
+
+    if(GRIDDYN_HDF5_USE_MSVC_PROBE_PRESETS AND WIN32 AND CMAKE_C_COMPILER_ID STREQUAL "MSVC")
+        # Supply known negative results for the stock Windows CI toolchain. Keep the defaults local
+        # to HDF5 so disabling the presets allows the normal probes to run again.
+        foreach(
+            probe IN
+            ITEMS H5_HAVE_SYS_FILE_H
+                  H5_HAVE_SYS_IOCTL_H
+                  H5_HAVE_SYS_RESOURCE_H
+                  H5_HAVE_SYS_SOCKET_H
+                  H5_HAVE_SYS_TIME_H
+                  H5_HAVE_DIRENT_H
+                  H5_HAVE_UNISTD_H
+                  H5_HAVE_PWD_H
+                  H5_HAVE_PTHREAD_H
+                  H5_HAVE_DLFCN_H
+                  H5_HAVE_NETINET_IN_H
+                  H5_HAVE_NETDB_H
+                  H5_HAVE_ARPA_INET_H
+                  H5_HAVE_LIBUCB
+                  H5_HAVE_ALARM
+                  H5_HAVE_FCNTL
+                  H5_HAVE_FLOCK
+                  H5_HAVE_FORK
+                  H5_HAVE_GETRUSAGE
+                  H5_HAVE_PREAD
+                  H5_HAVE_PWRITE
+                  H5_HAVE_STRCASESTR
+                  H5_HAVE_SYMLINK
+                  H5_HAVE_WAITPID
+        )
+            if(NOT DEFINED ${probe})
+                set(${probe} OFF)
+            endif()
+        endforeach()
+    endif()
+
     add_subdirectory("${hdf5_SOURCE_DIR}" "${hdf5_BINARY_DIR}" EXCLUDE_FROM_ALL)
 
     if(NOT TARGET hdf5-static)

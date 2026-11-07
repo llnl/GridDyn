@@ -133,9 +133,9 @@ void GridLoad::set(std::string_view param, std::string_view val)
 double GridLoad::get(std::string_view param, unit unitType) const
 {
     const auto* field = GridLoad::getModelDescription().findLocal(param);
-    const auto name = field != nullptr ? field->name() : param;
-    if (name == "p" || name == "q") {
-        return convertPower(name == "p" ? P : Q, puMW, unitType);
+    const auto canonicalName = field != nullptr ? field->name() : param;
+    if (canonicalName == "p" || canonicalName == "q") {
+        return convertPower(canonicalName == "p" ? P : Q, puMW, unitType);
     }
     if (const auto value = GridLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
         return *value;
@@ -163,10 +163,10 @@ void GridLoad::set(std::string_view param, double val, unit unitType)
         return;
     }
     const auto* field = GridLoad::getModelDescription().findLocal(param);
-    const auto name = field != nullptr ? field->name() : param;
-    if (name == "p" || name == "q") {
+    const auto canonicalName = field != nullptr ? field->name() : param;
+    if (canonicalName == "p" || canonicalName == "q") {
         const auto power = convertPower(val, unitType, puMW);
-        if (name == "p") {
+        if (canonicalName == "p") {
             setP(power);
         } else {
             setQ(power);
@@ -174,7 +174,7 @@ void GridLoad::set(std::string_view param, double val, unit unitType)
         return;
     }
     if (GridLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
-        if (name == "qratio") {
+        if (canonicalName == "qratio") {
             opFlags.set(USE_POWER_FACTOR_FLAG);
         }
         return;

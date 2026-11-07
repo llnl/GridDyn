@@ -26,6 +26,11 @@ if(CMAKE_CXX_STANDARD LESS 23)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# GridDyn does not use C++ modules. Skip dependency scanning by default.
+if(NOT DEFINED CMAKE_CXX_SCAN_FOR_MODULES)
+    set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+endif()
+
 # Minimum supported compiler versions for C++23-era GridDyn.
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14)
     message(FATAL_ERROR "GridDyn requires GCC 14 or newer")
@@ -702,6 +707,8 @@ if(GRIDDYN_SUITESPARSE_LOCAL_BUILD AND GRIDDYN_ENABLE_KLU)
         if(TARGET ${_griddyn_suite_target})
             get_target_property(_griddyn_suite_type ${_griddyn_suite_target} TYPE)
             if(_griddyn_suite_type STREQUAL "SHARED_LIBRARY")
+                # The bundled SuiteSparse headers are private to the GridDyn build.
+                set_property(TARGET ${_griddyn_suite_target} PROPERTY PUBLIC_HEADER)
                 install(
                     TARGETS ${_griddyn_suite_target}
                     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT applications

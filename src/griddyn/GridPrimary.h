@@ -78,7 +78,6 @@ class GridPrimary: public GridComponent {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-
     virtual void setState(CoreTime time,
                           const double state[],
                           const double dstateDt[],

@@ -340,8 +340,7 @@ void GovernorGast::set(std::string_view param, double val, units::unit unitType)
 
 double GovernorGast::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value =
-            GovernorGast::getModelDescription().tryGet(*this, param, unitType)) {
+    if (const auto value = GovernorGast::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     return Governor::get(canonicalValveLimitName(param), unitType);

@@ -39,7 +39,6 @@ class GridLoad: public GridSecondary {
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     const ModelDescription& getModelDescription() const override;
 
-
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;

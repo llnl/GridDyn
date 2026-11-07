@@ -207,7 +207,8 @@ TEST(ComponentDescriptionTests, AliasLookupAndNumericGetAgreeWithDeclaredStorage
                 if (field.kind() == ModelFieldKind::STATE) {
                     EXPECT_EQ(description.find(alias, ModelFieldKind::STATE), &field);
                 } else if (field.kind() == ModelFieldKind::INDEXED_COMMAND) {
-                    EXPECT_EQ(description.find(alias + "0", ModelFieldKind::INDEXED_COMMAND), &field);
+                    EXPECT_EQ(description.find(alias + "0", ModelFieldKind::INDEXED_COMMAND),
+                              &field);
                 } else {
                     EXPECT_EQ(description.findLocal(alias), &field);
                 }
@@ -499,12 +500,14 @@ TEST(ComponentDescriptionTests, InheritedEnumerationUsesEachNativeDescription)
     for (const auto& model : componentModels()) {
         const auto& description = model->getModelDescription();
         SCOPED_TRACE(description.name());
-        for (const auto type : {ParamStringType::LOCAL_NUM, ParamStringType::LOCAL_STR,
+        for (const auto type : {ParamStringType::LOCAL_NUM,
+                                ParamStringType::LOCAL_STR,
                                 ParamStringType::LOCAL_FLAGS}) {
             stringVec names{"existing"};
             model->getParameterStrings(names, type);
             const auto declared = type == ParamStringType::LOCAL_NUM ? description.numericNames() :
-                type == ParamStringType::LOCAL_STR ? description.stringNames() : description.flagNames();
+                type == ParamStringType::LOCAL_STR                   ? description.stringNames() :
+                                                                       description.flagNames();
             EXPECT_EQ(names, (stringVec{declared.begin(), declared.end()}));
         }
         stringVec names;

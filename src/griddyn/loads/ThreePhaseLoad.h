@@ -46,7 +46,6 @@ conversions to positive sequence values.
 
         virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
-
         virtual void set(std::string_view param, std::string_view val) override;
         virtual void
             set(std::string_view param, double val, units::unit unitType = units::defunit) override;

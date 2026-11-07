@@ -131,14 +131,14 @@ that would otherwise be delegated to a parent.
 
 `trySetLocal()` returns the single `SetResult` enumeration in every model:
 
-| Result            | Value | Meaning                                              |
-| ----------------- | ----- | ---------------------------------------------------- |
-| `NO_MATCH`        | 0     | Continue class-specific handling or parent dispatch   |
-| `PARAMETER`       | 1     | Conversion, validation, and assignment completed      |
-| `FLAG`            | 2     | Boolean dispatch through `setFlag()` completed        |
-| `COMMAND`         | 3     | A declared operation for the class to execute         |
-| `INDEXED_COMMAND` | 4     | An indexed operation for the class to execute         |
-| `IGNORED`         | 10    | An empty/comment name, handled before value checks    |
+| Result            | Value | Meaning                                             |
+| ----------------- | ----- | --------------------------------------------------- |
+| `NO_MATCH`        | 0     | Continue class-specific handling or parent dispatch |
+| `PARAMETER`       | 1     | Conversion, validation, and assignment completed    |
+| `FLAG`            | 2     | Boolean dispatch through `setFlag()` completed      |
+| `COMMAND`         | 3     | A declared operation for the class to execute       |
+| `INDEXED_COMMAND` | 4     | An indexed operation for the class to execute       |
+| `IGNORED`         | 10    | An empty/comment name, handled before value checks  |
 
 `isSetHandled()` recognizes the completed results. Exact numeric Boolean commands
 return `FLAG` after their existing virtual flag dispatch. Setters that only need
@@ -340,7 +340,6 @@ restore. `ExponentialParameterTests` exercises the model's equations, power unit
 control targets, fault notifications, role-based restoration and state lookup
 through changing solver layouts.
 
-
 ### Dispatch and declaration audit
 
 Both setter overloads now return `SetResult` throughout the library. There is one
@@ -367,17 +366,17 @@ index bases, bounds, structural changes and side effects.
 The following require further work before descriptions can claim complete
 external-interface and checkpoint coverage:
 
-| Area | Remaining issue |
-| --- | --- |
-| Computed getters | Counts, solver statistics, controller outputs and diagnostic values are often absent. They need a read-only description distinct from solver `state` and retained `localState`. |
-| Legacy suffix parsing | AcLine accepts redundant numeric suffixes; ZonalRelay parses only one digit and maps other suffixes to zone zero; ThreeWindingTransformer dispatches a fixed set of suffixed leg settings. These interfaces need consistent declarations and bounds behavior. |
-| Helper hierarchies | Solvers, recorders, players, events, communications and optimizer interfaces derive from HelperObject rather than CoreObject. They do not share this description mechanism yet. |
-| Optimization objects | GridOptObject and its area/bus/generator/link/load/relay subclasses still lack their own tables, including indexed generator cost coefficients. |
-| Command-backed data | Describing a command does not save its values. Fractions, transfer-function coefficient arrays, relay zones, internal block settings and external-file configuration need underlying parameter/state bindings and restore coordination. |
-| Retained runtime history | Controller integrals, relay pending actions, file cursors and random-source state require a separate history audit. |
-| Inherited restrictions | Some models reject settings advertised by a parent table, such as REECB1 restrictions on REECA1 settings. Effective external descriptions must account for that. |
-| Overloaded command types | CoreObject accepts numeric IDs and also uses a string `id` as a rename operation. A command currently advertises one value type. |
-| External integrations | FMI and HELICS remain deferred. |
+| Area                     | Remaining issue                                                                                                                                                                                                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Computed getters         | Counts, solver statistics, controller outputs and diagnostic values are often absent. They need a read-only description distinct from solver `state` and retained `localState`.                                                                               |
+| Legacy suffix parsing    | AcLine accepts redundant numeric suffixes; ZonalRelay parses only one digit and maps other suffixes to zone zero; ThreeWindingTransformer dispatches a fixed set of suffixed leg settings. These interfaces need consistent declarations and bounds behavior. |
+| Helper hierarchies       | Solvers, recorders, players, events, communications and optimizer interfaces derive from HelperObject rather than CoreObject. They do not share this description mechanism yet.                                                                               |
+| Optimization objects     | GridOptObject and its area/bus/generator/link/load/relay subclasses still lack their own tables, including indexed generator cost coefficients.                                                                                                               |
+| Command-backed data      | Describing a command does not save its values. Fractions, transfer-function coefficient arrays, relay zones, internal block settings and external-file configuration need underlying parameter/state bindings and restore coordination.                       |
+| Retained runtime history | Controller integrals, relay pending actions, file cursors and random-source state require a separate history audit.                                                                                                                                           |
+| Inherited restrictions   | Some models reject settings advertised by a parent table, such as REECB1 restrictions on REECA1 settings. Effective external descriptions must account for that.                                                                                              |
+| Overloaded command types | CoreObject accepts numeric IDs and also uses a string `id` as a rename operation. A command currently advertises one value type.                                                                                                                              |
+| External integrations    | FMI and HELICS remain deferred.                                                                                                                                                                                                                               |
 
 Do not declare computed outputs as retained memory merely to list their getters.
 Likewise, a command declaration must not be taken as evidence that the operation's

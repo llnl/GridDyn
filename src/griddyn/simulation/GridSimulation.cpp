@@ -229,7 +229,7 @@ void GridSimulation::saveRecorders()
 static constexpr char consoleprint[] = "consoleprintlevel";
 void GridSimulation::set(std::string_view param, std::string_view val)
 {
-    if (GridSimulation::getModelDescription().trySetLocal(*this, param, val)) {
+    if (isSetHandled(GridSimulation::getModelDescription().trySetLocal(*this, param, val))) {
         return;
     }
     std::string temp;
@@ -275,7 +275,8 @@ std::string GridSimulation::getString(std::string_view param) const
 
 void GridSimulation::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GridSimulation::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GridSimulation::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "printlevel") {

@@ -199,7 +199,8 @@ void DerivativeBlock::set(std::string_view param, std::string_view val)
 }
 void DerivativeBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if (DerivativeBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            DerivativeBlock::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     GridBlock::set(param, val, unitType);

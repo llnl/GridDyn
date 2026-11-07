@@ -103,7 +103,9 @@ const ModelDescription& GovernorHygov::getModelDescription() const
          state("filter", units::one, "Speed filter"),
          state("gate_position", units::one, "Gate position"),
          state("gate", units::one, "Gate servo"),
-         state("flow", units::one, "Water flow")});
+         state("flow", units::one, "Water flow"),
+         command({"gmax"}, units::puMW, "Upper gate limit alias"),
+         command({"gmin"}, units::puMW, "Lower gate limit alias")});
     return description;
 }
 
@@ -652,7 +654,8 @@ void GovernorHygov::set(std::string_view param, std::string_view val)
 
 void GovernorHygov::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GovernorHygov::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GovernorHygov::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "r" && !parameterValidators::positive(val)) {

@@ -728,7 +728,8 @@ void ExciterESAC6A::set(std::string_view param, double val, units::unit unitType
     if (param == "spdmlt" && val != 0.0 && val != 1.0) {
         throw InvalidParameterValue("ESAC6A SPDMLT must be zero or one");
     }
-    if (!ExciterESAC6A::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            ExciterESAC6A::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         Exciter::set(param, val, unitType);
     }
 }

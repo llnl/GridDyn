@@ -165,18 +165,12 @@ class ModelDescription {
      * Exact numeric Boolean commands dispatch through setFlag and return FLAG.
      * Other commands return COMMAND or INDEXED_COMMAND for the class to execute.
      */
-    [[nodiscard]] SetResult trySetLocalResult(CoreObject& object,
-                                              std::string_view name,
-                                              double value,
-                                              units::unit unitType = units::defunit) const;
+    [[nodiscard]] SetResult trySetLocal(CoreObject& object,
+                                        std::string_view name,
+                                        double value,
+                                        units::unit unitType = units::defunit) const;
     [[nodiscard]] SetResult
-        trySetLocalResult(CoreObject& object, std::string_view name, std::string_view value) const;
-    /** Boolean bridge for setters awaiting migration to result-based dispatch. */
-    bool trySetLocal(CoreObject& object,
-                     std::string_view name,
-                     double value,
-                     units::unit unitType = units::defunit) const;
-    bool trySetLocal(CoreObject& object, std::string_view name, std::string_view value) const;
+        trySetLocal(CoreObject& object, std::string_view name, std::string_view value) const;
     bool trySetFlagLocal(CoreObject& object, std::string_view name, bool value) const;
     [[nodiscard]] std::optional<bool> tryGetFlagLocal(const CoreObject& object,
                                                       std::string_view name) const;

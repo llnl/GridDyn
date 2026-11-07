@@ -218,11 +218,13 @@ std::string_view GridFormingConverter::sourceName(RenewableSignal signal) const
 
 void GridFormingConverter::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GridFormingConverter::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GridFormingConverter::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (GridFormingConverter::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (isSetHandled(
+            GridFormingConverter::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         return;
     }
     TerminalElectricalModel::set(param, val, unitType);
@@ -231,7 +233,7 @@ void GridFormingConverter::set(std::string_view param, double val, units::unit u
 void GridFormingConverter::set(std::string_view param, std::string_view val)
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (!GridFormingConverter::getModelDescription().trySetLocal(*this, key, val)) {
+    if (!isSetHandled(GridFormingConverter::getModelDescription().trySetLocal(*this, key, val))) {
         TerminalElectricalModel::set(param, val);
     }
 }

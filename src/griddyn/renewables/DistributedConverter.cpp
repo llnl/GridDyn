@@ -171,7 +171,8 @@ std::string_view DistributedConverter::sourceName(RenewableSignal signal) const
 
 void DistributedConverter::set(std::string_view param, double val, units::unit unitType)
 {
-    if (DistributedConverter::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            DistributedConverter::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         if (param == "pref" || param == "pref0") {
             prefConfigured = true;
         }
@@ -179,7 +180,8 @@ void DistributedConverter::set(std::string_view param, double val, units::unit u
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
     if (key != param &&
-        DistributedConverter::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+        isSetHandled(
+            DistributedConverter::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         if (key == "pref" || key == "pref0") {
             prefConfigured = true;
         }
@@ -198,11 +200,11 @@ void DistributedConverter::set(std::string_view param, double val, units::unit u
 
 void DistributedConverter::set(std::string_view param, std::string_view val)
 {
-    if (DistributedConverter::getModelDescription().trySetLocal(*this, param, val)) {
+    if (isSetHandled(DistributedConverter::getModelDescription().trySetLocal(*this, param, val))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (!DistributedConverter::getModelDescription().trySetLocal(*this, key, val)) {
+    if (!isSetHandled(DistributedConverter::getModelDescription().trySetLocal(*this, key, val))) {
         TerminalElectricalModel::set(param, val);
     }
 }

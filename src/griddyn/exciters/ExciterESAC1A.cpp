@@ -59,7 +59,8 @@ void ExciterESAC1A::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 
 void ExciterESAC1A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!ExciterESAC1A::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            ExciterESAC1A::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         ExciterEXAC1::set(param, val, unitType);
     }
 }
@@ -90,7 +91,7 @@ double ExciterESAC1A::regulatorLowerLimit() const
 
 void ExciterESAC1A::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterESAC1A::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterESAC1A::getModelDescription().trySetLocal(*this, param, val))) {
         ExciterEXAC1::set(param, val);
     }
 }

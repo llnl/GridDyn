@@ -725,14 +725,15 @@ index_t ExciterAC7B::findIndex(std::string_view field, const SolverMode& sMode) 
 
 void ExciterAC7B::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterAC7B::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterAC7B::getModelDescription().trySetLocal(*this, param, val))) {
         Exciter::set(param, val);
     }
 }
 
 void ExciterAC7B::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!ExciterAC7B::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            ExciterAC7B::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         Exciter::set(param, val, unitType);
     }
 }

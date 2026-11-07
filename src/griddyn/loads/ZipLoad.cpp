@@ -114,7 +114,11 @@ const ModelDescription& ZipLoad::getModelDescription() const
          command({"qratio"}, units::defunit, "Set qratio"),
          command({"vpqmin"}, units::defunit, "Set vpqmin"),
          command({"vpqmax"}, units::defunit, "Set vpqmax"),
-         command({"pqlowvlimit"}, units::defunit, "Set pqlowvlimit")});
+         command({"pqlowvlimit"}, units::defunit, "Set pqlowvlimit"),
+         command({"ip*", "ir*"}, units::one, "Scale the real constant-current load"),
+         command({"iq*"}, units::one, "Scale the reactive constant-current load"),
+         command({"yp*", "zr*"}, units::one, "Scale the real constant-impedance load"),
+         command({"yq*", "zq*"}, units::one, "Scale the reactive constant-impedance load")});
     return description;
 }
 
@@ -301,7 +305,7 @@ double ZipLoad::get(std::string_view param, unit unitType) const
 
 void ZipLoad::set(std::string_view param, double val, unit unitType)
 {
-    if (ZipLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(ZipLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param.empty()) {

@@ -542,14 +542,15 @@ ChangeCode ExciterESST1A::rootCheck(const IOdata& inputs,
 
 void ExciterESST1A::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterESST1A::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterESST1A::getModelDescription().trySetLocal(*this, param, val))) {
         Exciter::set(param, val);
     }
 }
 
 void ExciterESST1A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!ExciterESST1A::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            ExciterESST1A::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         Exciter::set(param, val, unitType);
     }
 }

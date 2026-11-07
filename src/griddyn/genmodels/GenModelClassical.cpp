@@ -435,10 +435,11 @@ void GenModelClassical::set(std::string_view param, double val, units::unit unit
 {
     if (param == "d") {
         const auto damping = units::convert(val, unitType, units::puHz, systemBaseFrequency);
-        GenModelClassical::getModelDescription().trySetLocal(*this, param, damping);
+        (void)GenModelClassical::getModelDescription().trySetLocal(*this, param, damping);
         return;
     }
-    if (GenModelClassical::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GenModelClassical::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "m") {

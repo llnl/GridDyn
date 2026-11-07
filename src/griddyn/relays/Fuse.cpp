@@ -102,7 +102,7 @@ void Fuse::set(std::string_view param, std::string_view val)
 
 void Fuse::set(std::string_view param, double val, units::unit unitType)
 {
-    if (Fuse::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(Fuse::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "limit") {

@@ -653,10 +653,11 @@ void GovernorIeeeG1::set(std::string_view param, double val, units::unit unitTyp
             throw InvalidParameterValue("IEEEG1 auxiliary reference must be finite");
         }
         const auto power = units::convert(val, unitType, units::puMW, systemBasePower);
-        GovernorIeeeG1::getModelDescription().trySetLocal(*this, param, power);
+        (void)GovernorIeeeG1::getModelDescription().trySetLocal(*this, param, power);
         return;
     }
-    if (GovernorIeeeG1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GovernorIeeeG1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "k" || param == "droop") && !parameterValidators::nonnegative(val)) {

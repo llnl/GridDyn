@@ -28,7 +28,11 @@ const ModelDescription& GenModel4::getModelDescription() const
          parameter({"s10", "s1"}, &GenModel4::S10, units::one, "Saturation at 1.0 per unit"),
          parameter({"s12"}, &GenModel4::S12, units::one, "Saturation at 1.2 per unit"),
          command({"top", "t0p"}, units::second, "Set both transient open-circuit times"),
-         state("edp", units::one, "Solver variable edp")});
+         state("edp", units::one, "Solver variable edp"),
+         command({"saturation_type"},
+                 units::defunit,
+                 "Select the saturation function",
+                 ModelFieldType::STRING)});
     return description;
 }
 
@@ -289,7 +293,7 @@ void GenModel4::set(std::string_view param, std::string_view val)
 
 void GenModel4::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GenModel4::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(GenModel4::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         if (param == "s1" || param == "s10" || param == "s12") {
             sat.setParam(S10, S12);
         }

@@ -59,10 +59,22 @@ const ModelDescription& CoreObject::getModelDescription() const
          localState("prevTime", &CoreObject::prevTime, "Previous model time", units::second),
          localState(
              "nextUpdateTime", &CoreObject::nextUpdateTime, "Next scheduled update", units::second),
-         localState("lastUpdateTime",
-                    &CoreObject::lastUpdateTime,
-                    "Previous update time",
-                    units::second)});
+         localState(
+             "lastUpdateTime", &CoreObject::lastUpdateTime, "Previous update time", units::second),
+         command({"name", "rename"}, units::defunit, "Rename the object", ModelFieldType::STRING),
+         command({"description"}, units::defunit, "Object description", ModelFieldType::STRING),
+         command({"id", "number", "renumber"}, units::defunit, "Set the numeric user ID"),
+         command({"updaterate", "rate"}, units::Hz, "Set the reciprocal update period"),
+         command({"nextupdatetime"}, units::second, "Reschedule the next update"),
+         command({"disabled"}, units::defunit, "Disable the object", ModelFieldType::BOOLEAN),
+         command({"searchable"},
+                 units::defunit,
+                 "Notify that the object is searchable",
+                 ModelFieldType::BOOLEAN),
+         command({"hasupdates"},
+                 units::defunit,
+                 "Notify that an update is required",
+                 ModelFieldType::BOOLEAN)});
     return description;
 }
 
@@ -338,9 +350,11 @@ double CoreObject::get(std::string_view param, units::unit unitType) const
 // NOLINTNEXTLINE(misc-no-recursion)
 void CoreObject::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "updateperiod") || (param == "period")) {
-        updatePeriod = units::convert(val, unitType, units::second);
-    } else if ((param == "updaterate") || (param == "rate")) {
+    const auto result = CoreObject::getModelDescription().trySetLocal(*this, param, val, unitType);
+    if (isSetHandled(result)) {
+        return;
+    }
+    if ((param == "updaterate") || (param == "rate")) {
         const double rateInHertz = units::convert(val, unitType, units::Hz);
         if (rateInHertz <= 0.0) {
             updatePeriod = kBigNum;
@@ -349,12 +363,8 @@ void CoreObject::set(std::string_view param, double val, units::unit unitType)
         }
     } else if (param == "nextupdatetime") {
         nextUpdateTime = units::convert(val, unitType, units::second);
-    } else if (CoreObject::getModelDescription().trySetLocal(*this, param, val, unitType)) {
-        return;
     } else if ((param == "number") || (param == "renumber") || (param == "id")) {
         setUserID(static_cast<index_t>(val));
-    } else if ((param.empty()) || (param.front() == '#')) {
-        // comment parameter meant to do nothing
     } else {
         try {
             setFlag(param, (val > 0.1));

@@ -256,7 +256,7 @@ void AcLine::set(std::string_view param, std::string_view val)
 
 void AcLine::set(std::string_view param, double val, unit unitType)
 {
-    if (AcLine::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(AcLine::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         if (param == "r" || param == "x") {
             setAdmit();
         }

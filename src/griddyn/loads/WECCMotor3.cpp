@@ -154,7 +154,7 @@ void WECCMotor3::set(std::string_view param, std::string_view val)
 
 void WECCMotor3::set(std::string_view param, double val, units::unit unitType)
 {
-    if (WECCMotor3::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(WECCMotor3::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "tmo") || (param == "Tmo")) {

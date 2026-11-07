@@ -49,7 +49,14 @@ const ModelDescription& CompositeLoad::getModelDescription() const
     static const auto description = ModelDescription::define<CompositeLoad>(
         "CompositeLoad",
         &GridLoad::getModelDescription(),
-        {command({"componentfraction", "fraction"}, units::defunit, "Set componentfraction")});
+        {command({"componentfraction", "fraction"}, units::defunit, "Set componentfraction"),
+         indexedCommand({"component"},
+                        units::defunit,
+                        "Append a component load at its one-based index",
+                        ModelFieldType::STRING),
+         indexedCommand({"componentfraction", "fraction"},
+                        units::defunit,
+                        "Set or read a component fraction by one-based index")});
     return description;
 }
 
@@ -210,7 +217,8 @@ void CompositeLoad::setComponentReactiveBase(index_t index, double reactivePower
 
 void CompositeLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (CompositeLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            CompositeLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     index_t componentIndex = 0;

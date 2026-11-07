@@ -117,14 +117,15 @@ void ExciterSEXS::dynObjectInitializeB(const IOdata& inputs,
 
 void ExciterSEXS::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterSEXS::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterSEXS::getModelDescription().trySetLocal(*this, param, val))) {
         Exciter::set(param, val);
     }
 }
 
 void ExciterSEXS::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!ExciterSEXS::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            ExciterSEXS::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         Exciter::set(param, val, unitType);
     }
 }

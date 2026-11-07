@@ -61,7 +61,14 @@ const ModelDescription& MotorLoad::getModelDescription() const
          command({"a"}, units::defunit, "Set a"),
          command({"b"}, units::defunit, "Set b"),
          command({"c"}, units::defunit, "Set c"),
-         localState("stalled", &MotorLoad::opFlags, STALLED, "Motor stalled latch")});
+         localState("stalled", &MotorLoad::opFlags, STALLED, "Motor stalled latch"),
+         command({"alpha"}, units::one, "Configure the motor torque polynomial constant"),
+         command({"beta"}, units::one, "Configure the motor torque polynomial linear term"),
+         command({"gamma"}, units::one, "Configure the motor torque polynomial quadratic term"),
+         command({"base", "mbase", "rating"}, units::MVAR, "Motor power base"),
+         command({"Vcontrol"},
+                 units::puV,
+                 "Voltage control multiplier; updates the operating slip")});
     return description;
 }
 
@@ -225,7 +232,7 @@ double MotorLoad::get(std::string_view param, units::unit unitType) const
 
 void MotorLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (MotorLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(MotorLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     bool slipCheck = false;

@@ -93,7 +93,7 @@ CoreObject* Source::clone(CoreObject* obj) const
 
 void Source::set(std::string_view param, std::string_view val)
 {
-    if (Source::getModelDescription().trySetLocal(*this, param, val)) {
+    if (isSetHandled(Source::getModelDescription().trySetLocal(*this, param, val))) {
         return;
     }
     if ((param == "units") || (param == "outputunits")) {
@@ -109,7 +109,7 @@ void Source::setLevel(double newLevel)
 }
 void Source::set(std::string_view param, double val, units::unit unitType)
 {
-    if (Source::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(Source::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "val") || (param == "setval") || (param == "level") || (param == "value") ||

@@ -124,7 +124,7 @@ TEST(ExciterDescriptionTests, DiscoversInheritedParametersSolverStatesAndLimiter
         EXPECT_FALSE(description.find(name)->editable());
     }
     EXPECT_FALSE(description.trySetFlagLocal(model, "limiter_active", true));
-    EXPECT_FALSE(description.trySetLocal(model, "limiter_high", 1.0));
+    EXPECT_FALSE(isSetHandled(description.trySetLocal(model, "limiter_high", 1.0)));
     EXPECT_EQ(model.localStateNames(), (stringVec{"ef", "x"}));
     EXPECT_EQ(description.find("operating_flags"), nullptr);
     EXPECT_EQ(description.find("m_state"), nullptr);
@@ -606,12 +606,19 @@ TEST(ExciterDescriptionTests, DispatchesValidatedFieldsAndInheritedAliases)
     EXPECT_THROW(exst1.set("ta", 0.0), InvalidParameterValue);
 
     exciters::ExciterSCRX scrx;
+    for (const auto* name : {"k", "emin", "efdmin", "emax", "efdmax"}) {
+        ASSERT_NE(scrx.getModelDescription().findLocal(name), nullptr);
+        EXPECT_EQ(scrx.getModelDescription().trySetLocal(scrx, name, 3.0), SetResult::COMMAND);
+    }
     scrx.set("k", 3.0);
     scrx.set("efdmax", 5.0);
     EXPECT_DOUBLE_EQ(scrx.get("ka"), 3.0);
     EXPECT_DOUBLE_EQ(scrx.get("emax"), 5.0);
 
     exciters::ExciterIEEEtype2 type2;
+    ASSERT_NE(type2.getModelDescription().findLocal("tf1"), nullptr);
+    EXPECT_EQ(type2.getModelDescription().trySetLocal(type2, "tf1", 500.0, units::ms),
+              SetResult::COMMAND);
     type2.set("tf1", 500.0, units::ms);
     EXPECT_NEAR(type2.get("tf1", units::ms), 500.0, 1e-4);
 }
@@ -621,17 +628,18 @@ TEST(ExciterDescriptionTests, ValidatesLocalFieldsThroughTheirDescriptions)
     exciters::ExciterESST3A esst3a;
     const auto& esst3aDescription = esst3a.getModelDescription();
     const auto originalGain = esst3a.get("kp");
-    EXPECT_THROW(esst3aDescription.trySetLocal(esst3a, "kp", 0.0), InvalidParameterValue);
+    EXPECT_THROW((void)esst3aDescription.trySetLocal(esst3a, "kp", 0.0), InvalidParameterValue);
     EXPECT_DOUBLE_EQ(esst3a.get("kp"), originalGain);
-    EXPECT_THROW(esst3aDescription.trySetLocal(esst3a,
-                                               "vimax",
-                                               std::numeric_limits<double>::infinity()),
+    EXPECT_THROW((void)esst3aDescription.trySetLocal(esst3a,
+                                                     "vimax",
+                                                     std::numeric_limits<double>::infinity()),
                  InvalidParameterValue);
     esst3a.set("theta_p", 0.2);
     EXPECT_NEAR(esst3a.get("thetap"), 0.2, 1e-6);
 
     exciters::ExciterEXST1 exst1;
-    EXPECT_THROW(exst1.getModelDescription().trySetLocal(exst1, "tb", 0.0), InvalidParameterValue);
+    EXPECT_THROW((void)exst1.getModelDescription().trySetLocal(exst1, "tb", 0.0),
+                 InvalidParameterValue);
     exciters::ExciterESST1A esst1a;
     EXPECT_THROW(esst1a.set("uel", 1.5), InvalidParameterValue);
 }

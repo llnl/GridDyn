@@ -576,7 +576,8 @@ index_t ExciterESAC2A::findIndex(std::string_view field, const SolverMode& sMode
 
 void ExciterESAC2A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (ExciterESAC2A::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            ExciterESAC2A::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     Exciter::set(param, val, unitType);
@@ -598,7 +599,7 @@ bool ExciterESAC2A::supportsLimiterSignal(ExciterLimiterSignal signal) const
 
 void ExciterESAC2A::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterESAC2A::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterESAC2A::getModelDescription().trySetLocal(*this, param, val))) {
         Exciter::set(param, val);
     }
 }

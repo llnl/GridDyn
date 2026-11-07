@@ -120,11 +120,12 @@ std::span<const RenewablePort> WT4G1::outputPorts() const
 
 void WT4G1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (WT4G1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(WT4G1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key != param && WT4G1::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (key != param &&
+        isSetHandled(WT4G1::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         return;
     }
     TerminalElectricalModel::set(param, val, unitType);

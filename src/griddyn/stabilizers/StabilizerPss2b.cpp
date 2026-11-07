@@ -171,7 +171,8 @@ void StabilizerPss2b::rootTrigger(CoreTime time,
 
 void StabilizerPss2b::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!StabilizerPss2b::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            StabilizerPss2b::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         StabilizerPss2a::set(param, val, unitType);
     }
 }

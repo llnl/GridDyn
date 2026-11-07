@@ -130,7 +130,10 @@ const ModelDescription& ExciterSCRX::getModelDescription() const
                     "Retained amplifier_limit_high mode"),
          state("efd", units::one, "Field voltage"),
          state("xll", units::one, "Lead-lag state"),
-         state("efdpre", units::one, "efdpre solver state")});
+         state("efdpre", units::one, "efdpre solver state"),
+         command({"k"}, units::one, "Regulator gain alias"),
+         command({"emin", "efdmin"}, units::one, "Lower regulator limit alias"),
+         command({"emax", "efdmax"}, units::one, "Upper regulator limit alias")});
     return description;
 }
 
@@ -573,7 +576,7 @@ void ExciterSCRX::set(std::string_view param, double val, units::unit unitType)
     if (param == "cswitch" && val != 0.0 && val != 1.0) {
         throw InvalidParameterValue("SCRX CSWITCH must be zero or one");
     }
-    if (ExciterSCRX::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(ExciterSCRX::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "k") {

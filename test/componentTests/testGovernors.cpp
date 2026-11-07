@@ -155,6 +155,7 @@ TEST(GovernorDescriptionTests, RejectsInvalidScalarValuesAtSet)
 TEST(GovernorDescriptionTests, UsesDeclaredUnitsAndPreservesSpecialSetterPaths)
 {
     Governor base;
+    EXPECT_EQ(base.getModelDescription().trySetLocal(base, "r", 0.05), SetResult::COMMAND);
     base.set("droop", 20.0);
     EXPECT_DOUBLE_EQ(base.get("k"), 20.0);
     EXPECT_DOUBLE_EQ(base.get("r"), 0.05);
@@ -175,6 +176,22 @@ TEST(GovernorDescriptionTests, UsesDeclaredUnitsAndPreservesSpecialSetterPaths)
     EXPECT_DOUBLE_EQ(tg2.get("deadband"), 1.0);
     tg2.set("deadband", 0.0);
     EXPECT_FALSE(tg2.getFlag("deadbandenabled"));
+}
+
+TEST(GovernorDescriptionTests, CustomFractionAndGateAliasesAreDeclared)
+{
+    governors::GovernorReheat reheat;
+    ASSERT_NE(reheat.getModelDescription().findLocal("k1"), nullptr);
+    EXPECT_EQ(reheat.getModelDescription().trySetLocal(reheat, "k1", 0.3), SetResult::COMMAND);
+    reheat.set("k1", 0.3);
+    EXPECT_NEAR(reheat.get("k1"), 0.3, 1e-6);
+    governors::GovernorHygov hydro;
+    for (const auto* name : {"gmax", "gmin"}) {
+        ASSERT_NE(hydro.getModelDescription().findLocal(name), nullptr);
+        EXPECT_EQ(hydro.getModelDescription().trySetLocal(hydro, name, 0.5), SetResult::COMMAND);
+        hydro.set(name, 0.5);
+        EXPECT_DOUBLE_EQ(hydro.get(name), 0.5);
+    }
 }
 
 TEST(GovernorDescriptionTests, ValveLimitAliasesUseInheritedLimits)

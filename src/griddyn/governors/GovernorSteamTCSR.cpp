@@ -259,7 +259,8 @@ void GovernorSteamTCSR::set(std::string_view param, std::string_view val)
 
 void GovernorSteamTCSR::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GovernorSteamTCSR::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GovernorSteamTCSR::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     GovernorSteamNR::set(param, val, unitType);

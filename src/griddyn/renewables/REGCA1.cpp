@@ -141,11 +141,12 @@ std::span<const RenewablePort> REGCA1::outputPorts() const
 
 void REGCA1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (REGCA1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(REGCA1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key != param && REGCA1::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (key != param &&
+        isSetHandled(REGCA1::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         return;
     }
     TerminalElectricalModel::set(param, val, unitType);

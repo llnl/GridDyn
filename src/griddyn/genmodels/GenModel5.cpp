@@ -360,7 +360,7 @@ void GenModel5::set(std::string_view param, std::string_view val)
 }
 void GenModel5::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GenModel5::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(GenModel5::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "xpp") {

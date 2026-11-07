@@ -84,6 +84,7 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
 
@@ -205,6 +206,8 @@ TEST(ComponentDescriptionTests, AliasLookupAndNumericGetAgreeWithDeclaredStorage
             for (const auto& alias : field.names()) {
                 if (field.kind() == ModelFieldKind::STATE) {
                     EXPECT_EQ(description.find(alias, ModelFieldKind::STATE), &field);
+                } else if (field.kind() == ModelFieldKind::INDEXED_COMMAND) {
+                    EXPECT_EQ(description.find(alias + "0", ModelFieldKind::INDEXED_COMMAND), &field);
                 } else {
                     EXPECT_EQ(description.findLocal(alias), &field);
                 }
@@ -431,4 +434,62 @@ TEST(ComponentDescriptionTests, RenewableSelectorsArraysAndDerivedHooks)
     forming.set("ra", 0.02);
     snapshot.restore(forming);
     EXPECT_DOUBLE_EQ(forming.get("rf"), 0.01);
+}
+
+TEST(ComponentDescriptionTests, IndexedOperationsAreDescribedAlongsideExactCommands)
+{
+    Subsystem subsystem;
+    loads::AggregateLoad aggregate;
+    loads::CompositeLoad composite;
+    loads::FileLoad file;
+    loads::GridLabDLoad gridlab;
+    const auto checkIndexed = [](const CoreObject& model, std::string_view name) {
+        SCOPED_TRACE(name);
+        const auto* field = model.getModelDescription().findLocal(name);
+        ASSERT_NE(field, nullptr);
+        EXPECT_EQ(field->kind(), ModelFieldKind::INDEXED_COMMAND);
+    };
+    for (const auto* name : {"bus2", "bus_2", "connection#3"}) {
+        checkIndexed(subsystem, name);
+    }
+    checkIndexed(aggregate, "subload_2");
+    checkIndexed(aggregate, "fraction#2");
+    checkIndexed(composite, "component2");
+    checkIndexed(composite, "fraction2");
+    checkIndexed(file, "column_2");
+    checkIndexed(gridlab, "file#2");
+    checkIndexed(gridlab, "workdir2");
+
+    EXPECT_EQ(file.getModelDescription().findLocal("column")->kind(), ModelFieldKind::COMMAND);
+    file.set("column_2", "p q");
+    composite.set("componentfraction2", 0.6);
+    EXPECT_DOUBLE_EQ(composite.get("fraction2"), 0.6);
+    EXPECT_THROW(composite.set("fraction2", -0.1), InvalidParameterValue);
+    EXPECT_EQ(composite.getModelDescription().findLocal("fraction2junk"), nullptr);
+    EXPECT_EQ(composite.getModelDescription().findLocal("fraction-2"), nullptr);
+}
+
+TEST(ComponentDescriptionTests, CustomAliasesAndInverseFlagsRemainClassHandled)
+{
+    loads::MotorLoad motor;
+    const auto& motorDescription = motor.getModelDescription();
+    EXPECT_EQ(motorDescription.trySetLocal(motor, "beta", 0.25), SetResult::COMMAND);
+    motor.set("beta", 0.25);
+    EXPECT_DOUBLE_EQ(motor.get("beta"), 0.25);
+    EXPECT_NE(motorDescription.findLocal("mbase"), nullptr);
+
+    loads::FileLoad file;
+    const auto& fileDescription = file.getModelDescription();
+    EXPECT_EQ(fileDescription.trySetLocal(file, "relative", 1.0), SetResult::FLAG);
+    EXPECT_FALSE(file.getFlag("absolute"));
+    file.set("relative", 0.0);
+    EXPECT_TRUE(file.getFlag("absolute"));
+    file.set("interpolate", 1.0);
+    EXPECT_FALSE(file.getFlag("step"));
+
+    loads::ThreePhaseLoad phase;
+    phase.set("ignore_phase", 1.0);
+    EXPECT_FALSE(phase.getFlag("use_abs_angle"));
+    phase.set("ignorevoltagephase", 0.0);
+    EXPECT_TRUE(phase.getFlag("use_abs_angle"));
 }

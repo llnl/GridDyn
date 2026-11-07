@@ -165,11 +165,12 @@ std::span<const RenewablePort> EPCGEN::outputPorts() const
 
 void EPCGEN::set(std::string_view param, double val, units::unit unitType)
 {
-    if (EPCGEN::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(EPCGEN::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key != param && EPCGEN::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (key != param &&
+        isSetHandled(EPCGEN::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         return;
     }
     TerminalElectricalModel::set(param, val, unitType);

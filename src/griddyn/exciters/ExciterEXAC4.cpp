@@ -332,13 +332,14 @@ ChangeCode ExciterEXAC4::rootCheck(const IOdata& inputs,
 }
 void ExciterEXAC4::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterEXAC4::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterEXAC4::getModelDescription().trySetLocal(*this, param, val))) {
         Exciter::set(param, val);
     }
 }
 void ExciterEXAC4::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!ExciterEXAC4::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            ExciterEXAC4::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         Exciter::set(param, val, unitType);
     }
 }

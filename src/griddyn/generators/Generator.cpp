@@ -190,7 +190,11 @@ const ModelDescription& Generator::getModelDescription() const
          command({"pmax"}, units::defunit, "Set pmax"),
          command({"pmin"}, units::defunit, "Set pmin"),
          command({"r"}, units::defunit, "Set r"),
-         command({"x"}, units::defunit, "Set x")});
+         command({"x"}, units::defunit, "Set x"),
+         command({"no_control"},
+                 units::defunit,
+                 "Disable local voltage and power control",
+                 ModelFieldType::BOOLEAN)});
     return description;
 }
 
@@ -678,7 +682,7 @@ void Generator::setFlag(std::string_view flag, bool val)
 
 void Generator::set(std::string_view param, double val, unit unitType)
 {
-    if (Generator::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(Generator::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param.length() == 1) {

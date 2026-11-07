@@ -132,11 +132,12 @@ std::span<const RenewablePort> WTPTA1::outputPorts() const
 
 void WTPTA1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (WTPTA1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(WTPTA1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key != param && WTPTA1::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (key != param &&
+        isSetHandled(WTPTA1::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         return;
     }
     if (key == "pset") {

@@ -63,7 +63,11 @@ const ModelDescription& ThreePhaseLoad::getModelDescription() const
          command({"imagc"}, units::defunit, "Set imagc"),
          command({"ianglea"}, units::defunit, "Set ianglea"),
          command({"iangleb"}, units::defunit, "Set iangleb"),
-         command({"ianglec"}, units::defunit, "Set ianglec")});
+         command({"ianglec"}, units::defunit, "Set ianglec"),
+         command({"ignore_phase", "ignorevoltagephase"},
+                 units::defunit,
+                 "Ignore the voltage phase",
+                 ModelFieldType::BOOLEAN)});
     return description;
 }
 
@@ -280,7 +284,8 @@ double ThreePhaseLoad::get(std::string_view param, unit unitType) const
 
 void ThreePhaseLoad::set(std::string_view param, double val, unit unitType)
 {
-    if (ThreePhaseLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            ThreePhaseLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param.length() == 2) {

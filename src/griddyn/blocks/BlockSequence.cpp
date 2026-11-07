@@ -330,7 +330,8 @@ void BlockSequence::set(std::string_view param, std::string_view val)
 
 void BlockSequence::set(std::string_view param, double val, units::unit unitType)
 {
-    if (BlockSequence::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            BlockSequence::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param.empty() || param[0] == '#') {

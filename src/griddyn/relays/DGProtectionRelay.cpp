@@ -89,7 +89,8 @@ DGProtectionRelay::DGProtectionRelay(bool useExternalVoltage, const std::string&
 void DGProtectionRelay::set(std::string_view param, double val, units::unit unitType)
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (DGProtectionRelay::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (isSetHandled(
+            DGProtectionRelay::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         return;
     }
     if (key == "external_voltage" || key == "v") {

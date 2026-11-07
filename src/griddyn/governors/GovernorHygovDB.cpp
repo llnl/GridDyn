@@ -63,7 +63,8 @@ void GovernorHygovDB::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 
 void GovernorHygovDB::set(std::string_view param, double value, units::unit unitType)
 {
-    if (GovernorHygovDB::getModelDescription().trySetLocal(*this, param, value, unitType)) {
+    if (isSetHandled(
+            GovernorHygovDB::getModelDescription().trySetLocal(*this, param, value, unitType))) {
         return;
     }
     GovernorHygov::set(param, value, unitType);

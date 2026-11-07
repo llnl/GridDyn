@@ -104,11 +104,12 @@ std::span<const RenewablePort> WTTQA1::outputPorts() const
 
 void WTTQA1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (WTTQA1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(WTTQA1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key != param && WTTQA1::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (key != param &&
+        isSetHandled(WTTQA1::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         return;
     }
     RenewableComponent::set(param, val, unitType);

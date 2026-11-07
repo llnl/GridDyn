@@ -603,7 +603,8 @@ void DeadbandBlock::set(std::string_view param, std::string_view val)
 
 void DeadbandBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if (DeadbandBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            DeadbandBlock::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "deadband") || (param == "db")) {

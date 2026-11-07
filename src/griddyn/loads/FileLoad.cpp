@@ -44,7 +44,19 @@ const ModelDescription& FileLoad::getModelDescription() const
          command(
              {"fileName", "file"}, units::defunit, "Configure fileName", ModelFieldType::STRING),
          command({"units"}, units::defunit, "Configure units", ModelFieldType::STRING),
-         command({"mode", "timemode"}, units::defunit, "Configure mode", ModelFieldType::STRING)});
+         command({"mode", "timemode"}, units::defunit, "Configure mode", ModelFieldType::STRING),
+         command(
+             {"relative"}, units::defunit, "Use relative schedule times", ModelFieldType::BOOLEAN),
+         command({"interpolate"},
+                 units::defunit,
+                 "Interpolate between scheduled values",
+                 ModelFieldType::BOOLEAN),
+         command(
+             {"column"}, units::defunit, "Append input column mappings", ModelFieldType::STRING),
+         indexedCommand({"column", "column_", "column#"},
+                        units::defunit,
+                        "Map columns starting at the specified index",
+                        ModelFieldType::STRING)});
     return description;
 }
 
@@ -292,7 +304,7 @@ void FileLoad::set(std::string_view param, std::string_view val)
 
 void FileLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (FileLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(FileLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     ZipLoad::set(param, val, unitType);  // NOLINT

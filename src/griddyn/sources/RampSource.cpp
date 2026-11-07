@@ -62,7 +62,7 @@ void RampSource::set(std::string_view param, std::string_view val)
 }
 void RampSource::set(std::string_view param, double val, units::unit unitType)
 {
-    if (RampSource::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(RampSource::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     Source::set(param, val, unitType);

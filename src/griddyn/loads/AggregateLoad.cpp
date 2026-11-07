@@ -63,7 +63,18 @@ const ModelDescription& AggregateLoad::getModelDescription() const
         {flag({"consume"},
               &AggregateLoad::consumeSimpleLoad,
               "Flag indicating consumption of existing loads"),
-         command({"fraction"}, units::defunit, "Configure fraction", ModelFieldType::STRING)});
+         command({"fraction"}, units::defunit, "Configure fraction", ModelFieldType::STRING),
+         command({"subload"},
+                 units::defunit,
+                 "Append a subload and its fraction",
+                 ModelFieldType::STRING),
+         indexedCommand({"subload", "subload_", "subload#"},
+                        units::defunit,
+                        "Configure an indexed subload",
+                        ModelFieldType::STRING),
+         indexedCommand({"fraction", "fraction_", "fraction#"},
+                        units::defunit,
+                        "Set a subload fraction")});
     return description;
 }
 
@@ -281,7 +292,8 @@ void AggregateLoad::set(std::string_view param, std::string_view val)
 }
 void AggregateLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (AggregateLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            AggregateLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     std::string iparam;

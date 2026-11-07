@@ -441,7 +441,8 @@ index_t ExciterESAC5A::findIndex(std::string_view field, const SolverMode& sMode
 
 void ExciterESAC5A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!ExciterESAC5A::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            ExciterESAC5A::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         Exciter::set(param, val, unitType);
     }
 }
@@ -457,7 +458,7 @@ double ExciterESAC5A::get(std::string_view param, units::unit unitType) const
 
 void ExciterESAC5A::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterESAC5A::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterESAC5A::getModelDescription().trySetLocal(*this, param, val))) {
         Exciter::set(param, val);
     }
 }

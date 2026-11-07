@@ -1094,7 +1094,8 @@ void DynamicGenerator::setFlag(std::string_view flag, bool val)
 
 void DynamicGenerator::set(std::string_view param, double val, unit unitType)
 {
-    if (DynamicGenerator::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            DynamicGenerator::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param.length() == 1) {

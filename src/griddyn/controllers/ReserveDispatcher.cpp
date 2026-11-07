@@ -267,7 +267,8 @@ void ReserveDispatcher::set(std::string_view param, std::string_view val)
 
 void ReserveDispatcher::set(std::string_view param, double val, units::unit unitType)
 {
-    if (ReserveDispatcher::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            ReserveDispatcher::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "threshold") || (param == "thresholdstart")) {

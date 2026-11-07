@@ -366,7 +366,8 @@ void StabilizerStab2a::set(std::string_view param, std::string_view val)
 
 void StabilizerStab2a::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!StabilizerStab2a::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            StabilizerStab2a::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         Stabilizer::set(param, val, unitType);
     }
 }

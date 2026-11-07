@@ -49,7 +49,16 @@ const ModelDescription& GridComponent::getModelDescription() const
          parameter({"basefrequency", "basefreq", "systembasefrequency"},
                    &GridComponent::systemBaseFrequency,
                    units::rad / units::s,
-                   "System frequency base")});
+                   "System frequency base"),
+         command({"flags"}, units::defunit, "Apply a list of flags", ModelFieldType::STRING),
+         command(
+             {"connected"}, units::defunit, "Change connection status", ModelFieldType::BOOLEAN),
+         command(
+             {"disconnected"}, units::defunit, "Invert connection status", ModelFieldType::BOOLEAN),
+         command({"SAMPLED_ONLY"},
+                 units::defunit,
+                 "Use sampled evaluations only",
+                 ModelFieldType::BOOLEAN)});
     return description;
 }
 

@@ -67,7 +67,8 @@ const ModelDescription& GovernorReheat::getModelDescription() const
          state("governor", units::one, "Governor output"),
          state("steamchest", units::one, "Steam-chest state"),
          state("reheater", units::one, "Reheater state"),
-         state("crossover", units::one, "Crossover state")});
+         state("crossover", units::one, "Crossover state"),
+         command({"k1"}, units::one, "Steam-chest fraction alias")});
     return description;
 }
 
@@ -243,7 +244,8 @@ void GovernorReheat::set(std::string_view param, std::string_view val)
 
 void GovernorReheat::set(std::string_view param, double val, unit unitType)
 {
-    if (GovernorReheat::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GovernorReheat::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "k1") {

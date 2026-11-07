@@ -93,7 +93,7 @@ units or calculated meanings before default dispatch.
 A direct parameter, such as an exponent, can use the common helper immediately:
 
 ```cpp
-if (ExponentialLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+if (isSetHandled(ExponentialLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
     return;
 }
 // Handle alpha/a, then delegate to GridLoad::set.
@@ -129,8 +129,7 @@ that would otherwise be delegated to a parent.
 
 ### Setter dispatch results
 
-The pilot setters in `ExponentialLoad`, `TransferFunctionBlock`, and `Sensor` use
-`trySetLocalResult()`. It returns the single `SetResult` enumeration:
+`trySetLocal()` returns the single `SetResult` enumeration in every model:
 
 | Result            | Value | Meaning                                              |
 | ----------------- | ----- | ---------------------------------------------------- |
@@ -142,9 +141,11 @@ The pilot setters in `ExponentialLoad`, `TransferFunctionBlock`, and `Sensor` us
 | `IGNORED`         | 10    | An empty/comment name, handled before value checks    |
 
 `isSetHandled()` recognizes the completed results. Exact numeric Boolean commands
-return `FLAG` after their existing virtual flag dispatch. The Boolean
-`trySetLocal()` helper delegates to this implementation while the remaining
-setters await migration. Invalid inputs continue to throw existing exceptions.
+return `FLAG` after their existing virtual flag dispatch. Setters that only need
+to distinguish completed operations use `isSetHandled(trySetLocal(...))`. Setters
+with custom operations can branch directly on `COMMAND` or `INDEXED_COMMAND`.
+A pending command must execute before returning; it is not a completed assignment.
+Invalid inputs continue to throw existing exceptions.
 
 `indexedCommand({"output"}, units::defunit, "Output mapping")` describes a
 command prefix followed by one or more decimal digits that fit `index_t`.
@@ -154,7 +155,7 @@ external consumers.
 An unsuffixed operation can have a separate exact declaration with the same name.
 The class extracts the index and checks its own bounds; the result carries no
 index or field object. Indexed commands are excluded from field snapshots.
-The pilot declarations include the existing underscore and hash separators as
+Declarations include supported underscore and hash separators as
 prefix aliases, for example `a`, `a_`, and `a#`.
 
 ## Flags
@@ -270,3 +271,47 @@ bounds, special setter precedence, inheritance, exact clocks and malformed
 restore. `ExponentialParameterTests` exercises the model's equations, power units,
 control targets, fault notifications, role-based restoration and state lookup
 through changing solver layouts.
+
+
+### Dispatch and declaration audit
+
+Both setter overloads now return `SetResult` throughout the library. There is one
+`trySetLocal` API; the temporary result helper and Boolean overloads are removed.
+The common helper still examines only the declaring class. `NO_MATCH` permits
+existing custom handling or parent dispatch; it does not justify skipping those
+paths unless all local operations are described.
+
+The source review covered 215 declaring tables and 690 explicit `set`, `get`,
+`setFlag`, and `getFlag` implementations, including helper hierarchies. Literal
+branch comparisons were checked against local and inherited declarations;
+indexed parsing and forwarding aliases were examined separately. This is an
+inventory, not proof of complete checkpoint coverage.
+
+Declarations now include previously omitted core identity/scheduling operations,
+connection notifications, governor and exciter forwarding aliases, saturation
+selection, inverse load flags, load scaling operations and motor torque settings.
+Indexed declarations cover Subsystem terminals, AggregateLoad subloads and
+fractions, CompositeLoad components and fractions, FileLoad column mappings and
+GridLabDLoad instance files and working directories, alongside Sensor and
+TransferFunctionBlock. Existing class parsers still determine model-specific
+index bases, bounds, structural changes and side effects.
+
+The following require further work before descriptions can claim complete
+external-interface and checkpoint coverage:
+
+| Area | Remaining issue |
+| --- | --- |
+| Computed getters | Counts, solver statistics, controller outputs and diagnostic values are often absent. They need a read-only description distinct from solver `state` and retained `localState`. |
+| Legacy suffix parsing | AcLine accepts redundant numeric suffixes; ZonalRelay parses only one digit and maps other suffixes to zone zero; ThreeWindingTransformer dispatches a fixed set of suffixed leg settings. These interfaces need consistent declarations and bounds behavior. |
+| Helper hierarchies | Solvers, recorders, players, events, communications and optimizer interfaces derive from HelperObject rather than CoreObject. They do not share this description mechanism yet. |
+| Optimization objects | GridOptObject and its area/bus/generator/link/load/relay subclasses still lack their own tables, including indexed generator cost coefficients. |
+| Command-backed data | Describing a command does not save its values. Fractions, transfer-function coefficient arrays, relay zones, internal block settings and external-file configuration need underlying parameter/state bindings and restore coordination. |
+| Retained runtime history | Controller integrals, relay pending actions, file cursors and random-source state require a separate history audit. |
+| Inherited restrictions | Some models reject settings advertised by a parent table, such as REECB1 restrictions on REECA1 settings. Effective external descriptions must account for that. |
+| Overloaded command types | CoreObject accepts numeric IDs and also uses a string `id` as a rename operation. A command currently advertises one value type. |
+| External integrations | FMI and HELICS remain deferred. |
+
+Do not declare computed outputs as retained memory merely to list their getters.
+Likewise, a command declaration must not be taken as evidence that the operation's
+configuration or runtime history is included in a field snapshot. Restore tests
+must verify the resulting model behavior as those bindings are added.

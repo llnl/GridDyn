@@ -433,14 +433,15 @@ ChangeCode ExciterEXST1::rootCheck(const IOdata& inputs,
 
 void ExciterEXST1::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterEXST1::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterEXST1::getModelDescription().trySetLocal(*this, param, val))) {
         Exciter::set(param, val);
     }
 }
 
 void ExciterEXST1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (ExciterEXST1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            ExciterEXST1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "ka" || param == "ta") && val <= 0.0) {

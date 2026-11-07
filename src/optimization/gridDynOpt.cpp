@@ -293,7 +293,8 @@ void GridDynOptimization::setFlags(size_t param, int val)
 
 void GridDynOptimization::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GridDynOptimization::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GridDynOptimization::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "optimtol") {

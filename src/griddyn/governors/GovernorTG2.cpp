@@ -224,7 +224,8 @@ index_t GovernorTG2::findIndex(std::string_view field, const SolverMode& mode) c
 }
 void GovernorTG2::set(std::string_view param, double value, units::unit unitType)
 {
-    if (GovernorTG2::getModelDescription().trySetLocal(*this, param, value, unitType)) {
+    if (isSetHandled(
+            GovernorTG2::getModelDescription().trySetLocal(*this, param, value, unitType))) {
         return;
     }
     Governor::set(param, value, unitType);

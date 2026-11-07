@@ -77,7 +77,7 @@ index_t RawDcLine::toReactiveOffset(const SolverMode& sMode) const
 
 void RawDcLine::set(std::string_view param, double val, unit unitType)
 {
-    if (RawDcLine::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(RawDcLine::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "from_q") {

@@ -145,14 +145,15 @@ void ExciterEXAC2::dynObjectInitializeB(const IOdata& inputs,
 
 void ExciterEXAC2::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterEXAC2::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterEXAC2::getModelDescription().trySetLocal(*this, param, val))) {
         ExciterEXAC1::set(param, val);
     }
 }
 
 void ExciterEXAC2::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!ExciterEXAC2::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            ExciterEXAC2::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         ExciterEXAC1::set(param, val, unitType);
     }
 }

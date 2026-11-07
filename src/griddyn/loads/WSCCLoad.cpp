@@ -194,7 +194,7 @@ void WSCCLoad::set(std::string_view param, std::string_view val)
 
 void WSCCLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (WSCCLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(WSCCLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         if (!param.empty() && param.front() != '#') {
             setWSCCParameters(parameters);
         }

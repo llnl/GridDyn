@@ -580,7 +580,8 @@ void ApproximatingLoad::set(std::string_view param, std::string_view val)
 
 void ApproximatingLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (ApproximatingLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            ApproximatingLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     // TODO(phlpt): Convert some of these to a setFlags function.

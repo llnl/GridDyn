@@ -74,11 +74,12 @@ CoreObject* REECC1::clone(CoreObject* obj) const
 
 void REECC1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (REECC1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(REECC1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key != param && REECC1::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (key != param &&
+        isSetHandled(REECC1::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         return;
     }
     if (key == "pflag") {

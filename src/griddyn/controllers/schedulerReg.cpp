@@ -297,7 +297,8 @@ void SchedulerReg::set(std::string_view param, std::string_view val)
 
 void SchedulerReg::set(std::string_view param, double val, units::unit unitType)
 {
-    if (SchedulerReg::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            SchedulerReg::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     double newBaseMW = m_Base;

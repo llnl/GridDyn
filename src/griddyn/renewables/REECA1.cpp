@@ -311,14 +311,15 @@ std::span<const RenewablePort> REECA1::outputPorts() const
 
 void REECA1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (REECA1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(REECA1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         if (param == "vflag" || param == "qflag" || param == "pflag") {
             updateInputSize();
         }
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key != param && REECA1::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (key != param &&
+        isSetHandled(REECA1::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         if (key == "vflag" || key == "qflag" || key == "pflag") {
             updateInputSize();
         }

@@ -262,7 +262,7 @@ void GenModel3::set(std::string_view param, std::string_view val)
 
 void GenModel3::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GenModel3::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(GenModel3::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     GenModelClassical::set(param, val, unitType);

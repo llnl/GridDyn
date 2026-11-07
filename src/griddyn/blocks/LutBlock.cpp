@@ -182,7 +182,7 @@ void LutBlock::set(std::string_view param, std::string_view val)
 
 void LutBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if (LutBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(LutBlock::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (!param.empty() && param[0] != '#') {

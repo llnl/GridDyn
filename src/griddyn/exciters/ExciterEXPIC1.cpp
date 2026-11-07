@@ -609,14 +609,15 @@ index_t ExciterEXPIC1::findIndex(std::string_view field, const SolverMode& sMode
 
 void ExciterEXPIC1::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterEXPIC1::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterEXPIC1::getModelDescription().trySetLocal(*this, param, val))) {
         Exciter::set(param, val);
     }
 }
 
 void ExciterEXPIC1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (ExciterEXPIC1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            ExciterEXPIC1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     Exciter::set(param, val, unitType);

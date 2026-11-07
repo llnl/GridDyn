@@ -676,14 +676,15 @@ index_t ExciterAC8B::findIndex(std::string_view field, const SolverMode& sMode) 
 
 void ExciterAC8B::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterAC8B::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterAC8B::getModelDescription().trySetLocal(*this, param, val))) {
         Exciter::set(param, val);
     }
 }
 
 void ExciterAC8B::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!ExciterAC8B::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            ExciterAC8B::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         Exciter::set(param, val, unitType);
     }
 }

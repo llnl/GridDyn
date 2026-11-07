@@ -191,11 +191,12 @@ std::span<const RenewablePort> WT3E1::outputPorts() const
 }
 void WT3E1::set(std::string_view param, double value, units::unit unitType)
 {
-    if (WT3E1::getModelDescription().trySetLocal(*this, param, value, unitType)) {
+    if (isSetHandled(WT3E1::getModelDescription().trySetLocal(*this, param, value, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key != param && WT3E1::getModelDescription().trySetLocal(*this, key, value, unitType)) {
+    if (key != param &&
+        isSetHandled(WT3E1::getModelDescription().trySetLocal(*this, key, value, unitType))) {
         return;
     }
     RenewableComponent::set(param, value, unitType);

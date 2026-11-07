@@ -177,7 +177,8 @@ void TimeOverCurrentRelay::setTimeCurrentCurve(std::span<const TimeCurrentPoint>
 void TimeOverCurrentRelay::set(std::string_view param, double val, units::unit unitType)
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (TimeOverCurrentRelay::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (isSetHandled(
+            TimeOverCurrentRelay::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         return;
     }
     if (key == "pickup" || key == "pickuplevel" || key == "ipickup" || key == "limit") {

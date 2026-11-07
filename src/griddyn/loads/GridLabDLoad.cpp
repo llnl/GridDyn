@@ -66,10 +66,21 @@ const ModelDescription& GridLabDLoad::getModelDescription() const
                  units::defunit,
                  "Configure mode",
                  ModelFieldType::STRING),
-         command({"pflow", "pflowcoupling"},
+         command(
+             {"pflow", "pflowcoupling"}, units::defunit, "Configure pflow", ModelFieldType::STRING),
+         command({"file"}, units::defunit, "Append a GridLAB-D input file", ModelFieldType::STRING),
+         indexedCommand({"file", "file_", "file#"},
+                        units::defunit,
+                        "Set a GridLAB-D instance input file",
+                        ModelFieldType::STRING),
+         command({"workdir"},
                  units::defunit,
-                 "Configure pflow",
-                 ModelFieldType::STRING)});
+                 "Set unspecified instance working directories",
+                 ModelFieldType::STRING),
+         indexedCommand({"workdir"},
+                        units::defunit,
+                        "Set an instance working directory",
+                        ModelFieldType::STRING)});
     return description;
 }
 
@@ -1005,7 +1016,8 @@ void GridLabDLoad::set(std::string_view param, std::string_view val)
 
 void GridLabDLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GridLabDLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GridLabDLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     // TODO(phlpt): Convert some of these to a setFlags function.

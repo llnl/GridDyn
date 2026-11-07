@@ -52,7 +52,7 @@ void ZBreaker::set(std::string_view param, std::string_view val)
 
 void ZBreaker::set(std::string_view param, double val, unit unitType)
 {
-    if (ZBreaker::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(ZBreaker::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     Link::set(param, val, unitType);

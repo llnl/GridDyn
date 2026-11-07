@@ -143,7 +143,8 @@ void GridSecondary::set(std::string_view param, std::string_view val)
 }
 void GridSecondary::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GridSecondary::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GridSecondary::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     GridComponent::set(param, val, unitType);

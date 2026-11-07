@@ -224,7 +224,8 @@ void GovernorSteamNR::set(std::string_view param, std::string_view val)
 
 void GovernorSteamNR::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GovernorSteamNR::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GovernorSteamNR::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     GovernorIeeeSimple::set(param, val, unitType);

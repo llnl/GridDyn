@@ -1158,7 +1158,7 @@ void GridArea::getParameterStrings(stringVec& pstr, ParamStringType pstype) cons
 
 void GridArea::set(std::string_view param, double val, unit unitType)
 {
-    if (GridArea::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(GridArea::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "basepower") {

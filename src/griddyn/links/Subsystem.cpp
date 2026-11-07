@@ -50,7 +50,20 @@ const ModelDescription& Subsystem::getModelDescription() const
         &Link::getModelDescription(),
         {command({"from"}, units::defunit, "Configure from", ModelFieldType::STRING),
          command({"to"}, units::defunit, "Configure to", ModelFieldType::STRING),
-         command({"terminals"}, units::defunit, "Set terminals")});
+         command({"terminals"}, units::defunit, "Set terminals"),
+         command({"bus"}, units::defunit, "Append a terminal bus", ModelFieldType::STRING),
+         indexedCommand({"bus", "bus_", "bus#"},
+                        units::defunit,
+                        "Assign a terminal bus",
+                        ModelFieldType::STRING),
+         command({"connection"},
+                 units::defunit,
+                 "Append a terminal connection",
+                 ModelFieldType::STRING),
+         indexedCommand({"connection", "connection_", "connection#"},
+                        units::defunit,
+                        "Assign a terminal connection",
+                        ModelFieldType::STRING)});
     return description;
 }
 
@@ -315,7 +328,7 @@ void Subsystem::set(std::string_view param, std::string_view val)
 
 void Subsystem::set(std::string_view param, double val, unit unitType)
 {
-    if (Subsystem::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(Subsystem::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "terminals") {

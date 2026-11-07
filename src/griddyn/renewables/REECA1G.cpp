@@ -91,11 +91,12 @@ std::string_view REECA1G::sourceName(RenewableSignal signal) const
 
 void REECA1G::set(std::string_view param, double val, units::unit unitType)
 {
-    if (REECA1G::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(REECA1G::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key != param && REECA1G::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (key != param &&
+        isSetHandled(REECA1G::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         return;
     }
     REECA1::set(param, val, unitType);

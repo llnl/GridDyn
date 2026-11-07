@@ -243,7 +243,8 @@ void ControlBlock::set(std::string_view param, std::string_view val)
 }
 void ControlBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if (ControlBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            ControlBlock::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     // param   = GridDynSimulation::toLower(param);

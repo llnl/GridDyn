@@ -193,7 +193,7 @@ void NullBlock::set(std::string_view param, std::string_view val)
 }
 void NullBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!NullBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(NullBlock::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         GridSubModel::set(param, val, unitType);
     }
 }

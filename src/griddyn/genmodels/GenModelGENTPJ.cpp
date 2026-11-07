@@ -246,7 +246,8 @@ void GenModelGENTPJ::dynObjectInitializeB(const IOdata& inputs,
 }
 void GenModelGENTPJ::set(std::string_view param, double value, units::unit unitType)
 {
-    if (!GenModelGENTPJ::getModelDescription().trySetLocal(*this, param, value, unitType)) {
+    if (!isSetHandled(
+            GenModelGENTPJ::getModelDescription().trySetLocal(*this, param, value, unitType))) {
         GenModel5::set(param, value, unitType);
     }
 }

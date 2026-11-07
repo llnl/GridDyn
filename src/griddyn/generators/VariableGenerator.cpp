@@ -132,7 +132,8 @@ void VariableGenerator::set(std::string_view param, std::string_view val)
 
 void VariableGenerator::set(std::string_view param, double val, unit unitType)
 {
-    if (VariableGenerator::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            VariableGenerator::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "vcutout") {

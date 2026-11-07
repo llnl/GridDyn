@@ -1303,7 +1303,7 @@ void AcBus::set(std::string_view param, std::string_view val)
 
 void AcBus::set(std::string_view param, double val, unit unitType)
 {
-    if (AcBus::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(AcBus::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "voltage") || (param == "vol") || (param == "v") || (param == "vmag") ||

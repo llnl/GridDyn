@@ -82,7 +82,8 @@ void GrabberSource::set(std::string_view param, std::string_view val)
 
 void GrabberSource::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GrabberSource::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GrabberSource::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "gain") || (param == "multiplier")) {

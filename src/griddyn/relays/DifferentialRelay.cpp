@@ -123,7 +123,8 @@ void DifferentialRelay::getParameterStrings(stringVec& pstr, ParamStringType pst
 
 void DifferentialRelay::set(std::string_view param, double val, units::unit unitType)
 {
-    if (DifferentialRelay::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            DifferentialRelay::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     Relay::set(param, val, unitType);

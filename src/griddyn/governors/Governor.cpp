@@ -105,7 +105,8 @@ const ModelDescription& Governor::getModelDescription() const
                     "Retained initial limit adjustment"),
          state("pm", units::puMW, "Mechanical power output"),
          state("dbo", units::one, "Deadband block output"),
-         state("w", units::one, "Filter block output")});
+         state("w", units::one, "Filter block output"),
+         command({"r"}, units::one, "Droop as the reciprocal of the gain")});
     return description;
 }
 
@@ -407,17 +408,15 @@ void Governor::set(std::string_view param, double val, unit unitType)
         if (val == 0.0) {
             throw InvalidParameterValue(param);
         }
-        Governor::getModelDescription().trySetLocal(*this, "k", 1.0 / val);
+        (void)Governor::getModelDescription().trySetLocal(*this, "k", 1.0 / val);
         dbb.set("k", -K);
     } else if (param == "pmax") {
-        Governor::getModelDescription().trySetLocal(*this,
-                                                    param,
-                                                    convert(val, unitType, puMW, systemBasePower));
+        (void)Governor::getModelDescription().trySetLocal(
+            *this, param, convert(val, unitType, puMW, systemBasePower));
         delay.set("max", Pmax);
     } else if (param == "pmin") {
-        Governor::getModelDescription().trySetLocal(*this,
-                                                    param,
-                                                    convert(val, unitType, puMW, systemBasePower));
+        (void)Governor::getModelDescription().trySetLocal(
+            *this, param, convert(val, unitType, puMW, systemBasePower));
         delay.set("min", Pmin);
     } else if (param == "deadband") {
         deadbandHigh = convert(val, unitType, puHz, systemBaseFrequency);
@@ -441,7 +440,8 @@ void Governor::set(std::string_view param, double val, unit unitType)
             deadbandLow = -deadbandLow;
         }
         dbb.set("deadbandlow", deadbandLow);
-    } else if (Governor::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    } else if (isSetHandled(
+                   Governor::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         // Synchronize the blocks only after the converted parameter has been accepted.
         if (param == "k" || param == "droop") {
             dbb.set("k", -K);

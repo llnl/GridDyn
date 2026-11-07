@@ -125,7 +125,7 @@ bool GridLoad::getFlag(std::string_view flag) const
 void GridLoad::set(std::string_view param, std::string_view val)
 {
     if (param.empty() || param[0] == '#') {
-    } else if (!GridLoad::getModelDescription().trySetLocal(*this, param, val)) {
+    } else if (!isSetHandled(GridLoad::getModelDescription().trySetLocal(*this, param, val))) {
         GridSecondary::set(param, val);
     }
 }
@@ -173,7 +173,7 @@ void GridLoad::set(std::string_view param, double val, unit unitType)
         }
         return;
     }
-    if (GridLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(GridLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         if (canonicalName == "qratio") {
             opFlags.set(USE_POWER_FACTOR_FLAG);
         }

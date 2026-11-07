@@ -144,7 +144,8 @@ void ControlRelay::set(std::string_view param, std::string_view val)
 
 void ControlRelay::set(std::string_view param, double val, units::unit unitType)
 {
-    if (ControlRelay::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            ControlRelay::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "terminal") {

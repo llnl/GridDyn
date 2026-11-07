@@ -266,7 +266,7 @@ void MotorLoad5::set(std::string_view param, std::string_view val)
 
 void MotorLoad5::set(std::string_view param, double val, units::unit unitType)
 {
-    if (MotorLoad5::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(MotorLoad5::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     MotorLoad3::set(param, val, unitType);

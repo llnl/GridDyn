@@ -241,7 +241,7 @@ CoreObject* PLL2Sensor::clone(CoreObject* obj) const
 void PLLSensor::set(std::string_view param, double value, units::unit unitType)
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (PLLSensor::getModelDescription().trySetLocal(*this, key, value, unitType)) {
+    if (isSetHandled(PLLSensor::getModelDescription().trySetLocal(*this, key, value, unitType))) {
         return;
     }
     BusMeasurementSensor::set(param, value, unitType);
@@ -498,7 +498,8 @@ CoreObject* BusROCOFSensor::clone(CoreObject* obj) const
 void BusROCOFSensor::set(std::string_view param, double value, units::unit unitType)
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (BusROCOFSensor::getModelDescription().trySetLocal(*this, key, value, unitType)) {
+    if (isSetHandled(
+            BusROCOFSensor::getModelDescription().trySetLocal(*this, key, value, unitType))) {
         return;
     }
     BusMeasurementSensor::set(param, value, unitType);

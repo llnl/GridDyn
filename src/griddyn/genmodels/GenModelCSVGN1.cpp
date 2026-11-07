@@ -135,7 +135,8 @@ void GenModelCSVGN1::set(std::string_view param, std::string_view val)
 
 void GenModelCSVGN1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!GenModelCSVGN1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            GenModelCSVGN1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         GenModel::set(param, val, unitType);
     }
 }

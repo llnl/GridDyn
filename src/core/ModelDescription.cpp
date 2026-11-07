@@ -243,10 +243,10 @@ const ModelField* ModelDescription::find(std::string_view name, ModelFieldKind k
     return nullptr;
 }
 
-SetResult ModelDescription::trySetLocalResult(CoreObject& object,
-                                              std::string_view name,
-                                              double value,
-                                              units::unit unitType) const
+SetResult ModelDescription::trySetLocal(CoreObject& object,
+                                        std::string_view name,
+                                        double value,
+                                        units::unit unitType) const
 {
     if (name.empty() || name.front() == '#') {
         return SetResult::IGNORED;
@@ -281,9 +281,9 @@ SetResult ModelDescription::trySetLocalResult(CoreObject& object,
     return SetResult::PARAMETER;
 }
 
-SetResult ModelDescription::trySetLocalResult(CoreObject& object,
-                                              std::string_view name,
-                                              std::string_view value) const
+SetResult ModelDescription::trySetLocal(CoreObject& object,
+                                        std::string_view name,
+                                        std::string_view value) const
 {
     if (name.empty() || name.front() == '#') {
         return SetResult::IGNORED;
@@ -303,21 +303,6 @@ SetResult ModelDescription::trySetLocalResult(CoreObject& object,
     }
     field->mWrite(object, std::string(value), name);
     return SetResult::PARAMETER;
-}
-
-bool ModelDescription::trySetLocal(CoreObject& object,
-                                   std::string_view name,
-                                   double value,
-                                   units::unit unitType) const
-{
-    return isSetHandled(trySetLocalResult(object, name, value, unitType));
-}
-
-bool ModelDescription::trySetLocal(CoreObject& object,
-                                   std::string_view name,
-                                   std::string_view value) const
-{
-    return isSetHandled(trySetLocalResult(object, name, value));
 }
 
 std::optional<double> ModelDescription::tryGetLocal(const CoreObject& object,

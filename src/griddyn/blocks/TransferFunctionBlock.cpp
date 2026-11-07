@@ -460,7 +460,7 @@ index_t TransferFunctionBlock::findIndex(std::string_view field, const SolverMod
 void TransferFunctionBlock::set(std::string_view param, std::string_view value)
 {
     const auto result =
-        TransferFunctionBlock::getModelDescription().trySetLocalResult(*this, param, value);
+        TransferFunctionBlock::getModelDescription().trySetLocal(*this, param, value);
     if (isSetHandled(result)) {
         return;
     }
@@ -489,10 +489,8 @@ void TransferFunctionBlock::set(std::string_view param, std::string_view value)
 
 void TransferFunctionBlock::set(std::string_view param, double value, units::unit unitType)
 {
-    const auto result = TransferFunctionBlock::getModelDescription().trySetLocalResult(*this,
-                                                                                       param,
-                                                                                       value,
-                                                                                       unitType);
+    const auto result =
+        TransferFunctionBlock::getModelDescription().trySetLocal(*this, param, value, unitType);
     if (isSetHandled(result)) {
         return;
     }

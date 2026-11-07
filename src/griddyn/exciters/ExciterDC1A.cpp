@@ -398,7 +398,7 @@ stringVec ExciterDC1A::localStateNames() const
 }
 void ExciterDC1A::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterDC1A::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterDC1A::getModelDescription().trySetLocal(*this, param, val))) {
         ExciterIEEEtype1::set(param, val);
     }
 }
@@ -406,7 +406,8 @@ void ExciterDC1A::set(std::string_view param, std::string_view val)
 // set parameters
 void ExciterDC1A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!ExciterDC1A::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            ExciterDC1A::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         ExciterIEEEtype1::set(param, val, unitType);
     }
 }

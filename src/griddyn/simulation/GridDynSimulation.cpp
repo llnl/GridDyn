@@ -1308,7 +1308,8 @@ bool GridDynSimulation::getFlag(std::string_view flag) const
 
 void GridDynSimulation::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GridDynSimulation::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GridDynSimulation::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "voltagetolerance") {

@@ -57,17 +57,6 @@ const ModelDescription& CIM5::getModelDescription() const
     return description;
 }
 
-void CIM5::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = CIM5::getModelDescription();
-    getParamString<CIM5, MotorLoad5>(this,
-                                     pstr,
-                                     description.numericNames(),
-                                     description.stringNames(),
-                                     description.flagNames(),
-                                     pstype);
-}
-
 CIM5::CIM5(const std::string& objName): MotorLoad5(objName)
 {
     saturation.setParam(saturationE1, saturationSE1, saturationE2, saturationSE2);
@@ -88,21 +77,13 @@ CoreObject* CIM5::clone(CoreObject* obj) const
 }
 void CIM5::set(std::string_view param, double val, units::unit unitType)
 {
-    if (CIM5::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(CIM5::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         if (param == "e1" || param == "se1" || param == "e2" || param == "se2") {
             saturation.setParam(saturationE1, saturationSE1, saturationE2, saturationSE2);
         }
         return;
     }
     MotorLoad5::set(param, val, unitType);
-}
-double CIM5::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = CIM5::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-
-    return MotorLoad5::get(param, unitType);
 }
 double CIM5::mechPower(double slip) const
 {
@@ -144,17 +125,6 @@ const ModelDescription& CIM6::getModelDescription() const
     return description;
 }
 
-void CIM6::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = CIM6::getModelDescription();
-    getParamString<CIM6, MotorLoad5>(this,
-                                     pstr,
-                                     description.numericNames(),
-                                     description.stringNames(),
-                                     description.flagNames(),
-                                     pstype);
-}
-
 CIM6::CIM6(const std::string& objName): MotorLoad5(objName)
 {
     saturation.setParam(saturationE1, saturationSE1, saturationE2, saturationSE2);
@@ -179,21 +149,13 @@ CoreObject* CIM6::clone(CoreObject* obj) const
 }
 void CIM6::set(std::string_view param, double val, units::unit unitType)
 {
-    if (CIM6::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(CIM6::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         if (param == "e1" || param == "se1" || param == "e2" || param == "se2") {
             saturation.setParam(saturationE1, saturationSE1, saturationE2, saturationSE2);
         }
         return;
     }
     MotorLoad5::set(param, val, unitType);
-}
-double CIM6::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = CIM6::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-
-    return MotorLoad5::get(param, unitType);
 }
 double CIM6::mechPower(double slip) const
 {

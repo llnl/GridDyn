@@ -52,17 +52,6 @@ const ModelDescription& ExcitationLimiterUEL1::getModelDescription() const
     return description;
 }
 
-void ExcitationLimiterUEL1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExcitationLimiterUEL1::getModelDescription();
-    getParamString<ExcitationLimiterUEL1, ExcitationLimiter>(this,
-                                                             pstr,
-                                                             description.numericNames(),
-                                                             description.stringNames(),
-                                                             description.flagNames(),
-                                                             pstype);
-}
-
 ExcitationLimiterUEL1::ExcitationLimiterUEL1(const std::string& objName): ExcitationLimiter(objName)
 {
     setRole(Role::UNDER);
@@ -97,19 +86,11 @@ CoreObject* ExcitationLimiterUEL1::clone(CoreObject* obj) const
 
 void ExcitationLimiterUEL1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (ExcitationLimiterUEL1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(ExcitationLimiterUEL1::getModelDescription().trySetLocal(
+            *this, param, val, unitType))) {
         return;
     }
     ExcitationLimiter::set(param, val, unitType);
-}
-
-double ExcitationLimiterUEL1::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExcitationLimiterUEL1::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return ExcitationLimiter::get(param, unitType);
 }
 
 void ExcitationLimiterUEL1::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)

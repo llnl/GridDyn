@@ -18,10 +18,7 @@ comparing to specific thresholds. This zonal relays runs off a single impedance 
 */
 class ZonalRelay: public Relay {
   public:
-    bool getFlag(std::string_view flag) const override;
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     enum ZonalRelayFlags {
         NONDIRECTIONAL_FLAG = OBJECT_FLAG10,
     };
@@ -38,7 +35,6 @@ class ZonalRelay: public Relay {
   public:
     explicit ZonalRelay(const std::string& objName = "zonalRelay_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
 
     virtual void

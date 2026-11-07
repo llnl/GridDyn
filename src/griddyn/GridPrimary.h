@@ -50,8 +50,6 @@ other classes also containing primary objects.
 **/
 class GridPrimary: public GridComponent {
   public:
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     int zone = 1;  //!< publicly accessible loss zone indicator not used internally
     index_t locIndex2 = kNullLocation;  //!< a second lookup index for the object to reference
@@ -79,9 +77,6 @@ class GridPrimary: public GridComponent {
 
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-
-    virtual double get(std::string_view param,
-                       units::unit unitType = units::defunit) const override;
 
     virtual void setState(CoreTime time,
                           const double state[],

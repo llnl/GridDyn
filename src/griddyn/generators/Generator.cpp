@@ -31,7 +31,6 @@
 #include "RenewableGenerator.h"
 #include "VariableGenerator.h"
 #include "core/CoreExceptions.h"
-#include "core/CoreObjectTemplates.hpp"
 #include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
@@ -122,14 +121,6 @@ using units::unit;
 std::atomic<count_t> Generator::genCount(0);
 // default bus object
 
-bool Generator::getFlag(std::string_view flag) const
-{
-    if (const auto value = Generator::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return GridSecondary::getFlag(flag);
-}
-
 const ModelDescription& Generator::getModelDescription() const
 {
     static const auto description = ModelDescription::define<Generator>(
@@ -190,19 +181,12 @@ const ModelDescription& Generator::getModelDescription() const
          command({"pmax"}, units::defunit, "Set pmax"),
          command({"pmin"}, units::defunit, "Set pmin"),
          command({"r"}, units::defunit, "Set r"),
-         command({"x"}, units::defunit, "Set x")});
+         command({"x"}, units::defunit, "Set x"),
+         command({"no_control"},
+                 units::defunit,
+                 "Disable local voltage and power control",
+                 ModelFieldType::BOOLEAN)});
     return description;
-}
-
-void Generator::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = Generator::getModelDescription();
-    getParamString<Generator, GridSecondary>(this,
-                                             pstr,
-                                             description.numericNames(),
-                                             description.stringNames(),
-                                             description.flagNames(),
-                                             pstype);
 }
 
 Generator::Generator(const std::string& objName): GridSecondary(objName)
@@ -535,7 +519,7 @@ void Generator::set(std::string_view param, std::string_view val)
 
 double Generator::get(std::string_view param, unit unitType) const
 {
-    if (const auto value = Generator::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = Generator::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     double ret = kNullVal;
@@ -671,14 +655,14 @@ void Generator::setFlag(std::string_view flag, bool val)
             offsets.stateUnload();
             alert(this, STATE_COUNT_CHANGE);
         }
-    } else if (!Generator::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+    } else if (!Generator::getModelDescription().trySetFlag(*this, flag, val)) {
         GridSecondary::setFlag(flag, val);
     }
 }
 
 void Generator::set(std::string_view param, double val, unit unitType)
 {
-    if (Generator::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(Generator::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param.length() == 1) {

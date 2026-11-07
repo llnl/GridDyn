@@ -18,7 +18,6 @@
 #include "DcBus.h"
 #include "InfiniteBus.h"
 #include "core/CoreExceptions.h"
-#include "core/CoreObjectTemplates.hpp"
 #include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
@@ -568,17 +567,6 @@ void GridBus::setAll(std::string_view objtype,
     }
 }
 
-void GridBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = GridBus::getModelDescription();
-    getParamString<GridBus, GridPrimary>(this,
-                                         pstr,
-                                         description.numericNames(),
-                                         description.stringNames(),
-                                         description.flagNames(),
-                                         pstype);
-}
-
 void GridBus::setFlag(std::string_view flag, bool val)
 {
     if (flag == "connected") {
@@ -605,7 +593,7 @@ void GridBus::set(std::string_view param, std::string_view val)
 
 void GridBus::set(std::string_view param, double val, unit unitType)
 {
-    if (GridBus::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(GridBus::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "angle" || param == "ang") {
@@ -1387,7 +1375,7 @@ void GridBus::removePowerControl(GridComponent* /*obj*/) {}
 
 double GridBus::get(std::string_view param, unit unitType) const
 {
-    if (const auto value = GridBus::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = GridBus::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     double val;

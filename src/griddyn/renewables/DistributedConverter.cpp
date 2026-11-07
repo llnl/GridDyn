@@ -44,33 +44,6 @@ namespace {
     }
 }  // namespace
 
-void DistributedConverter::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = DistributedConverter::getModelDescription();
-    getParamString<DistributedConverter, TerminalElectricalModel>(this,
-                                                                  pstr,
-                                                                  description.numericNames(),
-                                                                  description.stringNames(),
-                                                                  description.flagNames(),
-                                                                  pstype);
-}
-
-void DistributedConverter::setFlag(std::string_view flag, bool val)
-{
-    if (!DistributedConverter::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        TerminalElectricalModel::setFlag(flag, val);
-    }
-}
-
-bool DistributedConverter::getFlag(std::string_view flag) const
-{
-    if (const auto value =
-            DistributedConverter::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return TerminalElectricalModel::getFlag(flag);
-}
-
 const ModelDescription& DistributedConverter::getModelDescription() const
 {
     static const auto description = ModelDescription::define<DistributedConverter>(
@@ -171,7 +144,8 @@ std::string_view DistributedConverter::sourceName(RenewableSignal signal) const
 
 void DistributedConverter::set(std::string_view param, double val, units::unit unitType)
 {
-    if (DistributedConverter::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            DistributedConverter::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         if (param == "pref" || param == "pref0") {
             prefConfigured = true;
         }
@@ -179,7 +153,8 @@ void DistributedConverter::set(std::string_view param, double val, units::unit u
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
     if (key != param &&
-        DistributedConverter::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+        isSetHandled(
+            DistributedConverter::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         if (key == "pref" || key == "pref0") {
             prefConfigured = true;
         }
@@ -198,11 +173,11 @@ void DistributedConverter::set(std::string_view param, double val, units::unit u
 
 void DistributedConverter::set(std::string_view param, std::string_view val)
 {
-    if (DistributedConverter::getModelDescription().trySetLocal(*this, param, val)) {
+    if (isSetHandled(DistributedConverter::getModelDescription().trySetLocal(*this, param, val))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (!DistributedConverter::getModelDescription().trySetLocal(*this, key, val)) {
+    if (!isSetHandled(DistributedConverter::getModelDescription().trySetLocal(*this, key, val))) {
         TerminalElectricalModel::set(param, val);
     }
 }
@@ -211,7 +186,7 @@ double DistributedConverter::get(std::string_view param, units::unit unitType) c
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
     if (const auto value =
-            DistributedConverter::getModelDescription().tryGetLocal(*this, key, unitType)) {
+            DistributedConverter::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
 

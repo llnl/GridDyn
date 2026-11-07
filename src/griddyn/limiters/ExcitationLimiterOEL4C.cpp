@@ -44,17 +44,6 @@ const ModelDescription& ExcitationLimiterOEL4C::getModelDescription() const
     return description;
 }
 
-void ExcitationLimiterOEL4C::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExcitationLimiterOEL4C::getModelDescription();
-    getParamString<ExcitationLimiterOEL4C, ExcitationLimiter>(this,
-                                                              pstr,
-                                                              description.numericNames(),
-                                                              description.stringNames(),
-                                                              description.flagNames(),
-                                                              pstype);
-}
-
 ExcitationLimiterOEL4C::ExcitationLimiterOEL4C(const std::string& objName):
     ExcitationLimiter(objName)
 {
@@ -84,23 +73,14 @@ CoreObject* ExcitationLimiterOEL4C::clone(CoreObject* obj) const
 
 void ExcitationLimiterOEL4C::set(std::string_view param, double val, units::unit unitType)
 {
-    if (ExcitationLimiterOEL4C::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(ExcitationLimiterOEL4C::getModelDescription().trySetLocal(
+            *this, param, val, unitType))) {
         if (param == "qref" || param == "qrefpu" || param == "q_ref_pu") {
             qRefSet = true;
         }
         return;
     }
     ExcitationLimiter::set(param, val, unitType);
-}
-
-double ExcitationLimiterOEL4C::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExcitationLimiterOEL4C::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-
-    return ExcitationLimiter::get(param, unitType);
 }
 
 void ExcitationLimiterOEL4C::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)

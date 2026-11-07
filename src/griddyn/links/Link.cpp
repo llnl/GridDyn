@@ -14,7 +14,6 @@
 #include "DcLink.h"
 #include "VSCShunt.h"
 #include "core/CoreExceptions.h"
-#include "core/CoreObjectTemplates.hpp"
 #include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
@@ -209,17 +208,6 @@ void Link::timestep(const CoreTime time, const IOdata& /*inputs*/, const SolverM
     }*/
 }
 
-void Link::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = Link::getModelDescription();
-    getParamString<Link, GridPrimary>(this,
-                                      pstr,
-                                      description.numericNames(),
-                                      description.stringNames(),
-                                      description.flagNames(),
-                                      pstype);
-}
-
 // set properties
 void Link::set(std::string_view param, std::string_view val)
 {
@@ -366,7 +354,7 @@ void Link::reconnect()
 
 void Link::set(std::string_view param, double val, unit unitType)
 {
-    if (Link::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(Link::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "state") || (param == "switch") || (param == "switch1") || (param == "breaker") ||
@@ -413,7 +401,7 @@ CoreObject* Link::getSubObject(std::string_view typeName, index_t num) const
 
 double Link::get(std::string_view param, unit unitType) const
 {
-    if (const auto value = Link::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = Link::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     double val = kNullVal;

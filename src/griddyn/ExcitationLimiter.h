@@ -23,8 +23,6 @@ inline constexpr count_t excitationLimiterInputCount = 5;
 /** A generic, instantaneous limiter action; this is not a WECC OEL/UEL model. */
 class ExcitationLimiter: public GridSubModel {
   public:
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     enum class Role { UNDER, OVER };
 
@@ -35,7 +33,6 @@ class ExcitationLimiter: public GridSubModel {
     void setRole(Role role);
     void set(std::string_view param, std::string_view val) override;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,

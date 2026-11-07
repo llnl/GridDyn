@@ -30,19 +30,9 @@ const ModelDescription& ExciterIEEEtype2::getModelDescription() const
          state("ef", units::one, "Field voltage"),
          state("vr", units::one, "Regulator state"),
          state("x1", units::one, "x1 solver state"),
-         state("x2", units::one, "x2 solver state")});
+         state("x2", units::one, "x2 solver state"),
+         command({"tf1"}, units::second, "Feedback time constant alias")});
     return description;
-}
-
-void ExciterIEEEtype2::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterIEEEtype2::getModelDescription();
-    getParamString<ExciterIEEEtype2, ExciterIEEEtype1>(this,
-                                                       pstr,
-                                                       description.numericNames(),
-                                                       description.stringNames(),
-                                                       description.flagNames(),
-                                                       pstype);
 }
 
 ExciterIEEEtype2::ExciterIEEEtype2(const std::string& objName): ExciterIEEEtype1(objName) {}
@@ -272,7 +262,7 @@ ChangeCode ExciterIEEEtype2::rootCheck(const IOdata& inputs,
 
 void ExciterIEEEtype2::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterIEEEtype2::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterIEEEtype2::getModelDescription().trySetLocal(*this, param, val))) {
         ExciterIEEEtype1::set(param, val);
     }
 }
@@ -280,7 +270,8 @@ void ExciterIEEEtype2::set(std::string_view param, std::string_view val)
 // set parameters
 void ExciterIEEEtype2::set(std::string_view param, double val, units::unit unitType)
 {
-    if (ExciterIEEEtype2::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            ExciterIEEEtype2::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "tf1") {
@@ -295,8 +286,7 @@ double ExciterIEEEtype2::get(std::string_view param, units::unit unitType) const
     if (param == "tf1") {
         return ExciterIEEEtype1::get("tf", unitType);
     }
-    if (const auto value =
-            ExciterIEEEtype2::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = ExciterIEEEtype2::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     return ExciterIEEEtype1::get(param, unitType);

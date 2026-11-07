@@ -24,17 +24,6 @@ using units::unit;
 
 static TypeFactory<Hvdc> gHvdcFactory("link", std::to_array<std::string_view>({"hvdc"}));
 
-void Hvdc::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = Hvdc::getModelDescription();
-    getParamString<Hvdc, Subsystem>(this,
-                                    pstr,
-                                    description.numericNames(),
-                                    description.stringNames(),
-                                    description.flagNames(),
-                                    pstype);
-}
-
 const ModelDescription& Hvdc::getModelDescription() const
 {
     static const auto description = ModelDescription::define<Hvdc>(
@@ -115,7 +104,7 @@ void Hvdc::set(std::string_view param, std::string_view val)
 
 void Hvdc::set(std::string_view param, double val, unit unitType)
 {
-    if (Hvdc::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(Hvdc::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "r") {
@@ -145,7 +134,7 @@ void Hvdc::set(std::string_view param, double val, unit unitType)
 
 double Hvdc::get(std::string_view param, unit unitType) const
 {
-    if (const auto value = Hvdc::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = Hvdc::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     double val = kNullVal;

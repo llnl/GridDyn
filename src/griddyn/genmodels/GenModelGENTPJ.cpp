@@ -246,17 +246,10 @@ void GenModelGENTPJ::dynObjectInitializeB(const IOdata& inputs,
 }
 void GenModelGENTPJ::set(std::string_view param, double value, units::unit unitType)
 {
-    if (!GenModelGENTPJ::getModelDescription().trySetLocal(*this, param, value, unitType)) {
+    if (!isSetHandled(
+            GenModelGENTPJ::getModelDescription().trySetLocal(*this, param, value, unitType))) {
         GenModel5::set(param, value, unitType);
     }
-}
-double GenModelGENTPJ::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            GenModelGENTPJ::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GenModel5::get(param, unitType);
 }
 stringVec GenModelGENTPJ::localStateNames() const
 {

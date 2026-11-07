@@ -93,17 +93,6 @@ const ModelDescription& EPCGEN::getModelDescription() const
     return description;
 }
 
-void EPCGEN::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = EPCGEN::getModelDescription();
-    getParamString<EPCGEN, TerminalElectricalModel>(this,
-                                                    pstr,
-                                                    description.numericNames(),
-                                                    description.stringNames(),
-                                                    description.flagNames(),
-                                                    pstype);
-}
-
 EPCGEN::EPCGEN(const std::string& objName): TerminalElectricalModel(objName)
 {
     m_inputSize = 2;
@@ -165,11 +154,12 @@ std::span<const RenewablePort> EPCGEN::outputPorts() const
 
 void EPCGEN::set(std::string_view param, double val, units::unit unitType)
 {
-    if (EPCGEN::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(EPCGEN::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key != param && EPCGEN::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (key != param &&
+        isSetHandled(EPCGEN::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         return;
     }
     TerminalElectricalModel::set(param, val, unitType);
@@ -178,7 +168,7 @@ void EPCGEN::set(std::string_view param, double val, units::unit unitType)
 double EPCGEN::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (const auto value = EPCGEN::getModelDescription().tryGetLocal(*this, key, unitType)) {
+    if (const auto value = EPCGEN::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
 #define EPCGEN_GET(name, value)                                                                    \

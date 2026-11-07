@@ -47,17 +47,6 @@ const ModelDescription& ExciterSEXS::getModelDescription() const
     return description;
 }
 
-void ExciterSEXS::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterSEXS::getModelDescription();
-    getParamString<ExciterSEXS, Exciter>(this,
-                                         pstr,
-                                         description.numericNames(),
-                                         description.stringNames(),
-                                         description.flagNames(),
-                                         pstype);
-}
-
 CoreObject* ExciterSEXS::clone(CoreObject* obj) const
 {
     auto* gdE = cloneBase<ExciterSEXS, Exciter>(this, obj);
@@ -117,24 +106,17 @@ void ExciterSEXS::dynObjectInitializeB(const IOdata& inputs,
 
 void ExciterSEXS::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterSEXS::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterSEXS::getModelDescription().trySetLocal(*this, param, val))) {
         Exciter::set(param, val);
     }
 }
 
 void ExciterSEXS::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!ExciterSEXS::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            ExciterSEXS::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         Exciter::set(param, val, unitType);
     }
-}
-
-double ExciterSEXS::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = ExciterSEXS::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Exciter::get(param, unitType);
 }
 
 stringVec ExciterSEXS::localStateNames() const

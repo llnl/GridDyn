@@ -274,7 +274,7 @@ void GovernorIeeeSimple::set(std::string_view param, std::string_view val)
 void GovernorIeeeSimple::set(std::string_view param, double val, unit unitType)
 {
     if (param == "t3") {
-        Governor::getModelDescription().trySetLocal(*this, param, val, unitType);
+        (void)Governor::getModelDescription().trySetLocal(*this, param, val, unitType);
         return;
     }
     if (param != "pup" && param != "pdown" && param != "ramplimit") {
@@ -286,10 +286,10 @@ void GovernorIeeeSimple::set(std::string_view param, double val, unit unitType)
     }
     const auto limit = convert(val, unitType, puMW, systemBasePower);
     if (param != "pdown") {
-        GovernorIeeeSimple::getModelDescription().trySetLocal(*this, "pup", limit);
+        (void)GovernorIeeeSimple::getModelDescription().trySetLocal(*this, "pup", limit);
     }
     if (param != "pup") {
-        GovernorIeeeSimple::getModelDescription().trySetLocal(*this, "pdown", limit);
+        (void)GovernorIeeeSimple::getModelDescription().trySetLocal(*this, "pdown", limit);
     }
 }
 

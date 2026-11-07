@@ -17,6 +17,8 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <type_traits>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -136,14 +138,15 @@ namespace {
                 setHooked(converted);
                 return;
             }
-            if (!ParameterModel::getModelDescription().trySetLocal(
-                    *this, fieldName, value, unitType)) {
+            if (!isSetHandled(ParameterModel::getModelDescription().trySetLocal(
+                    *this, fieldName, value, unitType))) {
                 CoreObject::set(fieldName, value, unitType);
             }
         }
         void set(std::string_view fieldName, std::string_view value) override
         {
-            if (!ParameterModel::getModelDescription().trySetLocal(*this, fieldName, value)) {
+            if (!isSetHandled(
+                    ParameterModel::getModelDescription().trySetLocal(*this, fieldName, value))) {
                 CoreObject::set(fieldName, value);
             }
         }
@@ -194,8 +197,8 @@ namespace {
                  double value,
                  units::unit unitType = units::defunit) override
         {
-            if (!DerivedParameterModel::getModelDescription().trySetLocal(
-                    *this, fieldName, value, unitType)) {
+            if (!isSetHandled(DerivedParameterModel::getModelDescription().trySetLocal(
+                    *this, fieldName, value, unitType))) {
                 ParameterModel::set(fieldName, value, unitType);
             }
         }
@@ -210,6 +213,131 @@ namespace {
     };
 
     class UndescribedParameterModel: public ParameterModel {};
+    class ContextualGetterModel: public CoreObject {
+      public:
+        double mPower = 0.8;
+        double mGain = 2.0;
+        const ModelDescription& getModelDescription() const override
+        {
+            static const auto description = ModelDescription::define<ContextualGetterModel>(
+                "ContextualGetterModel",
+                &CoreObject::getModelDescription(),
+                {parameter({"power"}, &ContextualGetterModel::mPower, units::puMW, "Power"),
+                 parameter({"gain"}, &ContextualGetterModel::mGain, units::one, "Parent gain")});
+            return description;
+        }
+        double get(std::string_view fieldName, units::unit unitType = units::defunit) const override
+        {
+            if (fieldName == "power") {
+                return units::convert(mPower, units::puMW, unitType, 200.0);
+            }
+            if (const auto value = ContextualGetterModel::getModelDescription().tryGet(*this,
+                                                                                       fieldName,
+                                                                                       unitType)) {
+                return *value;
+            }
+            return CoreObject::get(fieldName, unitType);
+        }
+    };
+
+    class GetterBoundaryModel: public ContextualGetterModel {
+      public:
+        const ModelDescription& getModelDescription() const override
+        {
+            static const auto description = ModelDescription::define<GetterBoundaryModel>(
+                "GetterBoundaryModel", &ContextualGetterModel::getModelDescription(), {});
+            return description;
+        }
+        double get(std::string_view fieldName, units::unit unitType = units::defunit) const override
+        {
+            if (const auto value =
+                    GetterBoundaryModel::getModelDescription().tryGet(*this, fieldName, unitType)) {
+                return *value;
+            }
+            if (fieldName == "computed") {
+                return 10.0 * mPower;
+            }
+            return ContextualGetterModel::get(fieldName, unitType);
+        }
+    };
+
+    class DefaultGetterModel: public GetterBoundaryModel {
+      public:
+        double mDelay = 0.5;
+        double mOwnGain = 3.0;
+        bool mActive = true;
+        double mHistory = 4.0;
+        const ModelDescription& getModelDescription() const override
+        {
+            static const auto description = ModelDescription::define<DefaultGetterModel>(
+                "DefaultGetterModel",
+                &GetterBoundaryModel::getModelDescription(),
+                {parameter({"delay", "t"}, &DefaultGetterModel::mDelay, units::second, "Delay"),
+                 parameter({"gain", "k"}, &DefaultGetterModel::mOwnGain, units::one, "Child gain"),
+                 flag({"active"}, &DefaultGetterModel::mActive, "Active"),
+                 localState("history", &DefaultGetterModel::mHistory),
+                 state("solver_x", units::one)});
+            return description;
+        }
+    };
+    class FlagHandlerModel: public CoreObject {
+      public:
+        bool mMode = false;
+        bool mParentActive = true;
+        int mChanges = 0;
+        int mAlerts = 0;
+        const ModelDescription& getModelDescription() const override
+        {
+            static const auto description = ModelDescription::define<FlagHandlerModel>(
+                "FlagHandlerModel",
+                &CoreObject::getModelDescription(),
+                {flag({"mode", "tracked"}, &FlagHandlerModel::mMode, "Mode"),
+                 flag({"active"}, &FlagHandlerModel::mParentActive, "Parent active"),
+                 command(
+                     {"inverse_mode"}, units::defunit, "Invert mode", ModelFieldType::BOOLEAN)});
+            return description;
+        }
+        void setFlag(std::string_view flagName, bool value) override
+        {
+            if (flagName == "mode" || flagName == "tracked" || flagName == "inverse_mode") {
+                const bool next = flagName == "inverse_mode" ? !value : value;
+                mChanges += mMode != next ? 1 : 0;
+                mMode = next;
+            } else if (!FlagHandlerModel::getModelDescription().trySetFlag(*this,
+                                                                           flagName,
+                                                                           value)) {
+                CoreObject::setFlag(flagName, value);
+            }
+        }
+        bool getFlag(std::string_view flagName) const override
+        {
+            if (flagName == "inverse_mode") {
+                return !mMode;
+            }
+            if (const auto value =
+                    FlagHandlerModel::getModelDescription().tryGetFlag(*this, flagName)) {
+                return *value;
+            }
+            return CoreObject::getFlag(flagName);
+        }
+        void alert(CoreObject* /*object*/, int /*code*/) override { ++mAlerts; }
+    };
+
+    class DefaultFlagModel: public FlagHandlerModel {
+      public:
+        bool mActive = false;
+        std::bitset<64> mBits;
+        const ModelDescription& getModelDescription() const override
+        {
+            static const auto description = ModelDescription::define<DefaultFlagModel>(
+                "DefaultFlagModel",
+                &FlagHandlerModel::getModelDescription(),
+                {flag({"active", "child_active"}, &DefaultFlagModel::mActive, "Child active"),
+                 flag({"packed", "packed_alias"}, &DefaultFlagModel::mBits, 2, "Packed control"),
+                 localState("history_bit", &DefaultFlagModel::mBits, 3, "History bit")});
+            return description;
+        }
+    };
     // NOLINTEND(google-default-arguments)
 
     template<class Model>
@@ -291,7 +419,7 @@ TEST(ModelParameterTests, DistinguishesControlsSolverStateAndRetainedLocalMemory
               description.flagNames().end());
     EXPECT_FALSE(description.trySetFlagLocal(model, "gain", true));
     EXPECT_FALSE(description.tryGetFlagLocal(model, "gain"));
-    EXPECT_FALSE(description.trySetLocal(model, "remembered_time", 2.0));
+    EXPECT_FALSE(isSetHandled(description.trySetLocal(model, "remembered_time", 2.0)));
 
     const auto saved = ModelFieldSnapshot::capture(model);
     EXPECT_EQ(std::find_if(saved.mFields.begin(),
@@ -391,24 +519,24 @@ TEST(ModelParameterTests, AppliesNamedRangeValidatorsAfterUnitConversion)
                                                             "Nonnegative delay",
                                                             parameterValidators::nonnegative)});
 
-    EXPECT_THROW(description.trySetLocal(model, "positive", 0.0), InvalidParameterValue);
-    EXPECT_THROW(description.trySetLocal(model, "positive", -1.0), InvalidParameterValue);
-    EXPECT_THROW(description.trySetLocal(model,
-                                         "positive",
-                                         std::numeric_limits<double>::infinity()),
+    EXPECT_THROW((void)description.trySetLocal(model, "positive", 0.0), InvalidParameterValue);
+    EXPECT_THROW((void)description.trySetLocal(model, "positive", -1.0), InvalidParameterValue);
+    EXPECT_THROW((void)description.trySetLocal(model,
+                                               "positive",
+                                               std::numeric_limits<double>::infinity()),
                  InvalidParameterValue);
     EXPECT_DOUBLE_EQ(model.mGain, 1.0);
-    EXPECT_TRUE(description.trySetLocal(model, "positive", 50.0, units::percent));
+    EXPECT_TRUE(isSetHandled(description.trySetLocal(model, "positive", 50.0, units::percent)));
     EXPECT_NEAR(model.mGain, 0.5, 1e-7);
 
-    EXPECT_THROW(description.trySetLocal(model, "nonnegative", -1.0, units::ms),
+    EXPECT_THROW((void)description.trySetLocal(model, "nonnegative", -1.0, units::ms),
                  InvalidParameterValue);
     EXPECT_DOUBLE_EQ(model.mDelay, 0.5);
-    EXPECT_TRUE(description.trySetLocal(model, "nonnegative", 0.0, units::ms));
+    EXPECT_TRUE(isSetHandled(description.trySetLocal(model, "nonnegative", 0.0, units::ms)));
     EXPECT_DOUBLE_EQ(model.mDelay, 0.0);
-    EXPECT_THROW(description.trySetLocal(model,
-                                         "nonnegative",
-                                         std::numeric_limits<double>::infinity()),
+    EXPECT_THROW((void)description.trySetLocal(model,
+                                               "nonnegative",
+                                               std::numeric_limits<double>::infinity()),
                  InvalidParameterValue);
 }
 
@@ -423,8 +551,9 @@ TEST(ModelParameterTests, PreservesBaseFallbackAndDifferentUnknownValueErrors)
     EXPECT_THROW(model.set("gain", "wrong type"), InvalidParameterValue);
     EXPECT_THROW(model.set("label", 1.0), InvalidParameterValue);
     EXPECT_EQ(model.get("missing"), kNullVal);
-    EXPECT_FALSE(model.getModelDescription().trySetLocal(model, "missing", 2.0));
-    EXPECT_FALSE(model.getModelDescription().trySetLocal(model, "remembered_time", 2.0));
+    EXPECT_FALSE(isSetHandled(model.getModelDescription().trySetLocal(model, "missing", 2.0)));
+    EXPECT_FALSE(
+        isSetHandled(model.getModelDescription().trySetLocal(model, "remembered_time", 2.0)));
     EXPECT_EQ(model.mRememberedTime, timeZero);
 }
 
@@ -433,14 +562,16 @@ TEST(ModelParameterTests, ChecksNumericInputBeforeLookingUpAFieldExceptComments)
     ParameterModel model;
     const auto& description = model.getModelDescription();
     const auto nan = std::numeric_limits<double>::quiet_NaN();
-    EXPECT_THROW(description.trySetLocal(model, "missing", nan), InvalidParameterValue);
-    EXPECT_THROW(description.trySetLocal(model, "remembered_time", nan), InvalidParameterValue);
-    EXPECT_THROW(description.trySetLocal(model, "switch", nan), InvalidParameterValue);
+    EXPECT_THROW((void)description.trySetLocal(model, "missing", nan), InvalidParameterValue);
+    EXPECT_THROW((void)description.trySetLocal(model, "remembered_time", nan),
+                 InvalidParameterValue);
+    EXPECT_THROW((void)description.trySetLocal(model, "switch", nan), InvalidParameterValue);
     EXPECT_FALSE(model.mSwitch);
-    EXPECT_TRUE(description.trySetLocal(model, "", nan));
-    EXPECT_TRUE(description.trySetLocal(model, "# ignored", nan));
-    EXPECT_TRUE(description.trySetLocal(model, "", std::string_view{"ignored"}));
-    EXPECT_TRUE(description.trySetLocal(model, "# ignored", std::string_view{"ignored"}));
+    EXPECT_TRUE(isSetHandled(description.trySetLocal(model, "", nan)));
+    EXPECT_TRUE(isSetHandled(description.trySetLocal(model, "# ignored", nan)));
+    EXPECT_TRUE(isSetHandled(description.trySetLocal(model, "", std::string_view{"ignored"})));
+    EXPECT_TRUE(
+        isSetHandled(description.trySetLocal(model, "# ignored", std::string_view{"ignored"})));
     EXPECT_NO_THROW(model.set("", nan));
     EXPECT_NO_THROW(model.set("# ignored", nan));
     EXPECT_NO_THROW(model.set("", "ignored"));
@@ -463,7 +594,7 @@ TEST(ModelParameterTests, HandlesIntegerBooleanAndStringStorageWithoutNarrowing)
     model.setFlag("switch", true);
     EXPECT_TRUE(model.mSwitch);
     EXPECT_TRUE(model.getFlag("switch"));
-    EXPECT_TRUE(model.getModelDescription().trySetLocal(model, "switch", 0.2));
+    EXPECT_TRUE(isSetHandled(model.getModelDescription().trySetLocal(model, "switch", 0.2)));
     EXPECT_TRUE(model.mSwitch);
     EXPECT_DOUBLE_EQ(model.get("switch"), 1.0);
     model.set("switch", 0.0);
@@ -673,7 +804,7 @@ TEST(ModelParameterTests, ResolvesParameterBeforeSameNamedStateRegardlessOfDecla
     ASSERT_NE(description.find("gain", ModelFieldKind::STATE), nullptr);
     ASSERT_NE(description.findLocal("gain"), nullptr);
     EXPECT_EQ(description.findLocal("gain")->kind(), ModelFieldKind::PARAMETER);
-    EXPECT_TRUE(description.trySetLocal(model, "gain", 2.5));
+    EXPECT_TRUE(isSetHandled(description.trySetLocal(model, "gain", 2.5)));
     const auto gain = description.tryGetLocal(model, "gain");
     ASSERT_TRUE(gain.has_value());
     EXPECT_DOUBLE_EQ(*gain, 2.5);
@@ -728,8 +859,373 @@ TEST(ModelParameterTests, DiscoversStringCommandsWithoutInterceptingTheirImpleme
     EXPECT_EQ(description.stringNames().front(), "role");
     EXPECT_TRUE(description.numericNames().empty());
     ParameterModel model;
-    EXPECT_FALSE(description.trySetLocal(model, "role", "under"));
-    EXPECT_FALSE(description.trySetLocal(model, "role", 0.0));
+    EXPECT_FALSE(isSetHandled(description.trySetLocal(model, "role", "under")));
+    EXPECT_FALSE(isSetHandled(description.trySetLocal(model, "role", 0.0)));
+}
+
+TEST(ModelParameterTests, SetterResultsDistinguishAssignmentsCommandsAndIgnoredNames)
+{
+    static_assert(static_cast<int>(SetResult::IGNORED) == 10);
+    static_assert(std::is_same_v<decltype(ParameterModel{}.getModelDescription().trySetLocal(
+                                     std::declval<ParameterModel&>(), "gain", 1.0)),
+                                 SetResult>);
+    static_assert(std::is_same_v<decltype(ParameterModel{}.getModelDescription().trySetLocal(
+                                     std::declval<ParameterModel&>(), "label", "value")),
+                                 SetResult>);
+    ParameterModel model;
+    const auto& description = model.getModelDescription();
+    EXPECT_EQ(description.trySetLocal(model, "k", 250.0, units::percent), SetResult::PARAMETER);
+    EXPECT_NEAR(model.mGain, 2.5, 1e-6);
+    EXPECT_EQ(description.trySetLocal(model, "switch", -2.0), SetResult::FLAG);
+    EXPECT_TRUE(model.mSwitch);
+    EXPECT_EQ(description.trySetLocal(model, "label", "new label"), SetResult::PARAMETER);
+    EXPECT_EQ(model.mLabel, "new label");
+    EXPECT_EQ(description.trySetLocal(model, "missing", 1.0), SetResult::NO_MATCH);
+    EXPECT_EQ(description.trySetLocal(model, "remembered_time", 1.0), SetResult::NO_MATCH);
+    const auto nan = std::numeric_limits<double>::quiet_NaN();
+    EXPECT_EQ(description.trySetLocal(model, "", nan), SetResult::IGNORED);
+    EXPECT_EQ(description.trySetLocal(model, "# comment", nan), SetResult::IGNORED);
+    EXPECT_EQ(description.trySetLocal(model, "# comment", "anything"), SetResult::IGNORED);
+    EXPECT_THROW((void)description.trySetLocal(model, "missing", nan), InvalidParameterValue);
+
+    const auto commands = ModelDescription::define<ParameterModel>(
+        "Commands",
+        nullptr,
+        {command({"operation"}, units::one, "Class operation"),
+         command({"role"}, units::defunit, "Role", ModelFieldType::STRING),
+         command({"enabled"}, units::defunit, "Enable object", ModelFieldType::BOOLEAN)});
+    EXPECT_EQ(commands.trySetLocal(model, "operation", 2.0), SetResult::COMMAND);
+    EXPECT_EQ(commands.trySetLocal(model, "role", "under"), SetResult::COMMAND);
+    EXPECT_FALSE(isSetHandled(commands.trySetLocal(model, "operation", 2.0)));
+    EXPECT_FALSE(isSetHandled(commands.trySetLocal(model, "role", "under")));
+    EXPECT_EQ(commands.trySetLocal(model, "enabled", 0.0), SetResult::FLAG);
+    EXPECT_FALSE(model.isEnabled());
+    EXPECT_TRUE(isSetHandled(commands.trySetLocal(model, "enabled", 1.0)));
+    EXPECT_TRUE(model.isEnabled());
+    EXPECT_TRUE(isSetHandled(SetResult::PARAMETER));
+    EXPECT_TRUE(isSetHandled(SetResult::FLAG));
+    EXPECT_TRUE(isSetHandled(SetResult::IGNORED));
+    EXPECT_FALSE(isSetHandled(SetResult::NO_MATCH));
+    EXPECT_FALSE(isSetHandled(SetResult::COMMAND));
+    EXPECT_FALSE(isSetHandled(SetResult::INDEXED_COMMAND));
+}
+
+TEST(ModelParameterTests, IndexedCommandsCheckCompleteSuffixesAndPreserveExactNames)
+{
+    const auto description = ModelDescription::define<ParameterModel>(
+        "IndexedCommands",
+        nullptr,
+        {indexedCommand({"output", "route"}, units::defunit, "Output route"),
+         indexedCommand({"input"}, units::defunit, "Input", ModelFieldType::STRING),
+         command({"output"}, units::defunit, "All outputs", ModelFieldType::STRING),
+         command({"output2"}, units::one, "Exact override"),
+         parameter({"output3"}, &ParameterModel::mGain, units::one, "Exact parameter")});
+    ParameterModel model;
+    for (const auto* name : {"output0", "output001", "output12", "route4"}) {
+        SCOPED_TRACE(name);
+        const auto* field = description.findLocal(name);
+        ASSERT_NE(field, nullptr);
+        EXPECT_EQ(field->kind(), ModelFieldKind::INDEXED_COMMAND);
+        EXPECT_TRUE(field->editable());
+        EXPECT_EQ(description.find(name, ModelFieldKind::INDEXED_COMMAND), field);
+        EXPECT_EQ(description.trySetLocal(model, name, 1.0), SetResult::INDEXED_COMMAND);
+        EXPECT_FALSE(isSetHandled(description.trySetLocal(model, name, 1.0)));
+    }
+    const auto maximumIndex = "output" + std::to_string(std::numeric_limits<index_t>::max());
+    EXPECT_EQ(description.trySetLocal(model, maximumIndex, 1.0), SetResult::INDEXED_COMMAND);
+    EXPECT_EQ(description.trySetLocal(model, maximumIndex + "0", 1.0), SetResult::NO_MATCH);
+    for (const auto* name : {"route", "output-1", "output+1", "output 1", "output1x", "xoutput1"}) {
+        SCOPED_TRACE(name);
+        EXPECT_EQ(description.findLocal(name), nullptr);
+        EXPECT_EQ(description.trySetLocal(model, name, 1.0), SetResult::NO_MATCH);
+    }
+    EXPECT_EQ(description.trySetLocal(model, "input12", "voltage"), SetResult::INDEXED_COMMAND);
+    EXPECT_FALSE(isSetHandled(description.trySetLocal(model, "input12", "voltage")));
+    EXPECT_EQ(description.findLocal("output")->kind(), ModelFieldKind::COMMAND);
+    EXPECT_EQ(description.trySetLocal(model, "output", "input0"), SetResult::COMMAND);
+    EXPECT_EQ(description.find("output2", ModelFieldKind::COMMAND)->name(), "output2");
+    EXPECT_EQ(description.trySetLocal(model, "output2", 1.0), SetResult::COMMAND);
+    EXPECT_EQ(description.trySetLocal(model, "output3", 2.0), SetResult::PARAMETER);
+    EXPECT_DOUBLE_EQ(model.mGain, 2.0);
+    EXPECT_THROW((void)description.trySetLocal(model,
+                                               "output999999999999999999999",
+                                               std::numeric_limits<double>::infinity()),
+                 InvalidParameterValue);
+}
+
+TEST(ModelParameterTests, RejectsDuplicatePatternsAndRepeatedStateDeclarations)
+{
+    EXPECT_THROW((ModelDescription::define<ParameterModel>(
+                     "DuplicatePatterns",
+                     nullptr,
+                     {indexedCommand({"output"}, units::one, "First"),
+                      indexedCommand({"output"}, units::one, "Duplicate")})),
+                 std::invalid_argument);
+    EXPECT_THROW((ModelDescription::define<ParameterModel>(
+                     "RepeatedState",
+                     nullptr,
+                     {parameter({"gain"}, &ParameterModel::mGain, units::one, "Gain"),
+                      state("gain", units::one),
+                      state("gain", units::one)})),
+                 std::invalid_argument);
+}
+
+TEST(ModelParameterTests, CoreCommandsUseSharedInputChecksAndPreserveSideEffects)
+{
+    CoreObject object;
+    const auto& description = object.getModelDescription();
+    object.set("period", 125.0, units::ms);
+    EXPECT_NEAR(object.get("period", units::ms), 125.0, 1e-5);
+    object.set("rate", 4.0, units::Hz);
+    EXPECT_NEAR(object.get("period", units::second), 0.25, 1e-7);
+    EXPECT_EQ(description.trySetLocal(object, "rate", 2.0), SetResult::COMMAND);
+    EXPECT_NEAR(object.get("period", units::second), 0.25, 1e-7);
+    object.set("disabled", 1.0);
+    EXPECT_FALSE(object.isEnabled());
+    object.set("enabled", 1.0);
+    EXPECT_TRUE(object.isEnabled());
+    object.set("rename", "restored_object");
+    EXPECT_EQ(object.getName(), "restored_object");
+    object.set("number", 42.0);
+    EXPECT_EQ(object.getUserID(), 42);
+    const auto nan = std::numeric_limits<double>::quiet_NaN();
+    EXPECT_NO_THROW(object.set("", nan));
+    EXPECT_NO_THROW(object.set("# ignored", nan));
+    for (const auto* name : {"period", "rate", "number", "missing"}) {
+        EXPECT_THROW(object.set(name, nan), InvalidParameterValue);
+    }
+}
+
+TEST(ModelParameterTests, EnumeratesCategoriesAndAliasesInDeclarationHierarchyOrder)
+{
+    const auto parent = ModelDescription::define<ParameterModel>(
+        "EnumerationParent",
+        nullptr,
+        {parameter({"shared", "parent_alias"}, &ParameterModel::mGain, units::one, "Parent gain"),
+         parameter({"parent_label"}, &ParameterModel::mLabel, units::defunit, "Label"),
+         flag({"parent_flag", "pf"}, &ParameterModel::mSwitch, "Flag"),
+         command({"parent_operation"}, units::one, "Parent operation"),
+         command({"parent_text"}, units::defunit, "Parent text", ModelFieldType::STRING),
+         command({"parent_switch"}, units::defunit, "Parent switch", ModelFieldType::BOOLEAN),
+         state("solver_x", units::one),
+         localState("retained", &ParameterModel::mRememberedTime)});
+    const auto child = ModelDescription::define<DerivedParameterModel>(
+        "EnumerationChild",
+        &parent,
+        {parameter(
+             {"shared", "child_alias"}, &DerivedParameterModel::mOwnGain, units::one, "Child gain"),
+         parameter({"child_label"}, &ParameterModel::mLabel, units::defunit, "Label"),
+         flag({"child_flag"}, &ParameterModel::mSwitch, "Flag"),
+         command({"child_operation"}, units::one, "Child operation"),
+         indexedCommand({"output", "output_"}, units::one, "Output mapping"),
+         indexedCommand({"input"}, units::defunit, "Input mapping", ModelFieldType::STRING)});
+    const stringVec numeric{"shared",
+                            "child_alias",
+                            "child_operation",
+                            "output",
+                            "output_",
+                            "shared",
+                            "parent_alias",
+                            "parent_operation"};
+    const stringVec text{"child_label", "input", "parent_label", "parent_text"};
+    const stringVec flags{"child_flag", "parent_flag", "pf", "parent_switch"};
+    struct ExpectedNames {
+        ParamStringType type;
+        stringVec names;
+        bool local;
+    };
+    for (const auto& expected :
+         std::array{ExpectedNames{ParamStringType::LOCAL_NUM,
+                                  {"shared", "child_alias", "child_operation", "output", "output_"},
+                                  true},
+                    ExpectedNames{ParamStringType::LOCAL_STR, {"child_label", "input"}, true},
+                    ExpectedNames{ParamStringType::LOCAL_FLAGS, {"child_flag"}, true},
+                    ExpectedNames{ParamStringType::NUMERIC, numeric, false},
+                    ExpectedNames{ParamStringType::STR, text, false},
+                    ExpectedNames{ParamStringType::FLAGS, flags, false}}) {
+        SCOPED_TRACE(static_cast<int>(expected.type));
+        stringVec names{"existing"};
+        auto wanted = expected.names;
+        if (!expected.local) {
+            wanted.insert(wanted.begin(), "existing");
+        }
+        child.getParameterStrings(names, expected.type);
+        EXPECT_EQ(names, wanted);
+    }
+    auto expectedAll = numeric;
+    expectedAll.emplace_back("#");
+    expectedAll.insert(expectedAll.end(), text.begin(), text.end());
+    expectedAll.insert(expectedAll.begin(), "existing");
+    stringVec names{"existing"};
+    child.getParameterStrings(names);
+    EXPECT_EQ(names, expectedAll);
+}
+
+TEST(ModelParameterTests, EmptyDeclarationsReplaceLocalsAndStillEnumerateAncestors)
+{
+    const auto empty = ModelDescription::define<ParameterModel>("EmptyRoot", nullptr, {});
+    stringVec names{"existing"};
+    empty.getParameterStrings(names, ParamStringType::NUMERIC);
+    EXPECT_EQ(names, (stringVec{"existing"}));
+    empty.getParameterStrings(names);
+    EXPECT_EQ(names, (stringVec{"existing", "#"}));
+    for (const auto type :
+         {ParamStringType::LOCAL_NUM, ParamStringType::LOCAL_STR, ParamStringType::LOCAL_FLAGS}) {
+        names = {"existing"};
+        empty.getParameterStrings(names, type);
+        EXPECT_TRUE(names.empty());
+    }
+    const auto parent = ModelDescription::define<ParameterModel>(
+        "NonemptyParent",
+        &empty,
+        {parameter({"gain"}, &ParameterModel::mGain, units::one, "Parent gain")});
+    const auto child = ModelDescription::define<DerivedParameterModel>("EmptyChild", &parent, {});
+    names = {"existing"};
+    child.getParameterStrings(names, ParamStringType::LOCAL_NUM);
+    EXPECT_TRUE(names.empty());
+    child.getParameterStrings(names, ParamStringType::NUMERIC);
+    EXPECT_EQ(names, (stringVec{"gain"}));
+}
+
+TEST(ModelParameterTests, InheritedEnumerationUsesTheObjectsMostDerivedDescription)
+{
+    DerivedParameterModel model;
+    const CoreObject& base = model;
+    stringVec names{"existing"};
+    base.getParameterStrings(names, ParamStringType::LOCAL_NUM);
+    EXPECT_EQ(names, (stringVec{"gain"}));
+    names.clear();
+    model.getParameterStrings(names, ParamStringType::NUMERIC);
+    EXPECT_EQ(names.front(), "gain");
+    EXPECT_EQ(std::count(names.begin(), names.end(), "gain"), 2);
+    EXPECT_NE(std::find(names.begin(), names.end(), "period"), names.end());
+    EXPECT_EQ(std::find(names.begin(), names.end(), "remembered_time"), names.end());
+    EXPECT_EQ(std::find(names.begin(), names.end(), "switch"), names.end());
+    base.getParameterStrings(names, ParamStringType::LOCAL_FLAGS);
+    EXPECT_TRUE(names.empty());
+    base.getParameterStrings(names, ParamStringType::FLAGS);
+    EXPECT_NE(std::find(names.begin(), names.end(), "switch"), names.end());
+    EXPECT_NE(std::find(names.begin(), names.end(), "enabled"), names.end());
+}
+
+TEST(ModelParameterTests, DefaultNumericGetPreservesUnitsFlagsShadowingAndCustomParents)
+{
+    DefaultGetterModel model;
+    const CoreObject& base = model;
+    EXPECT_NEAR(base.get("t", units::ms), 500.0, 1e-4);
+    EXPECT_NEAR(base.get("gain", units::percent), 300.0, 1e-5);
+    EXPECT_DOUBLE_EQ(base.get("k"), 3.0);
+    EXPECT_DOUBLE_EQ(base.get("active"), 1.0);
+    model.mActive = false;
+    EXPECT_DOUBLE_EQ(base.get("active"), 0.0);
+    EXPECT_NEAR(base.get("power", units::MW), 160.0, 1e-5);
+    EXPECT_DOUBLE_EQ(base.get("computed"), 8.0);
+    EXPECT_DOUBLE_EQ(base.get("history"), kNullVal);
+    EXPECT_DOUBLE_EQ(base.get("solver_x"), kNullVal);
+    EXPECT_DOUBLE_EQ(base.get("missing"), kNullVal);
+    EXPECT_THROW(base.get("delay", units::MW), InvalidParameterValue);
+
+    const auto& boundary = model.GetterBoundaryModel::getModelDescription();
+    EXPECT_FALSE(boundary.tryGetLocal(model, "delay"));
+    EXPECT_NEAR(*boundary.tryGet(model, "delay", units::ms), 500.0, 1e-4);
+    // Default lookup stops before the parent whose getter supplies the power base.
+    EXPECT_FALSE(boundary.tryGet(model, "power", units::MW));
+    const auto& parent = model.ContextualGetterModel::getModelDescription();
+    EXPECT_DOUBLE_EQ(*parent.tryGetLocal(model, "gain"), 2.0);
+    EXPECT_DOUBLE_EQ(*parent.tryGet(model, "gain"), 3.0);
+}
+
+TEST(ModelParameterTests, StandaloneGetterTablesKeepLocalLookupAndTypeErrors)
+{
+    DefaultGetterModel model;
+    const auto view = ModelDescription::define<DefaultGetterModel>(
+        "StandaloneView",
+        nullptr,
+        {parameter({"custom_delay"}, &DefaultGetterModel::mDelay, units::second, "Delay")});
+    EXPECT_NEAR(*view.tryGet(model, "custom_delay", units::ms), 500.0, 1e-4);
+    EXPECT_FALSE(view.tryGet(model, "gain"));
+    CoreObject unrelated;
+    EXPECT_THROW((void)view.tryGet(unrelated, "custom_delay"), InvalidParameterValue);
+}
+
+TEST(ModelParameterTests, DefaultFlagsPreserveShadowingPackedStorageAndCustomHandlers)
+{
+    DefaultFlagModel model;
+    CoreObject& base = model;
+    EXPECT_FALSE(base.getFlag("active"));
+    EXPECT_TRUE(model.mParentActive);
+    base.setFlag("child_active", true);
+    EXPECT_TRUE(base.getFlag("active"));
+    base.setFlag("active", false);
+    EXPECT_FALSE(base.getFlag("child_active"));
+    EXPECT_TRUE(model.mParentActive);
+    model.mBits.set(7);
+    base.setFlag("packed_alias", true);
+    EXPECT_TRUE(base.getFlag("packed"));
+    base.setFlag("packed", false);
+    EXPECT_FALSE(base.getFlag("packed_alias"));
+    EXPECT_TRUE(model.mBits[7]);
+    EXPECT_FALSE(model.mBits[3]);
+    EXPECT_FALSE(base.getFlag("history_bit"));
+    EXPECT_THROW(base.setFlag("history_bit", true), UnrecognizedParameter);
+    EXPECT_THROW(base.setFlag("missing", true), UnrecognizedParameter);
+    EXPECT_NO_THROW(base.setFlag("", true));
+    EXPECT_NO_THROW(base.setFlag("# ignored", true));
+
+    base.setFlag("tracked", true);
+    EXPECT_TRUE(base.getFlag("mode"));
+    EXPECT_EQ(model.mChanges, 1);
+    base.setFlag("mode", true);
+    EXPECT_EQ(model.mChanges, 1);
+    base.setFlag("inverse_mode", true);
+    EXPECT_FALSE(base.getFlag("mode"));
+    EXPECT_TRUE(base.getFlag("inverse_mode"));
+    EXPECT_EQ(model.mChanges, 2);
+    base.setFlag("updates", true);
+    EXPECT_TRUE(base.getFlag("updates"));
+    EXPECT_EQ(model.mAlerts, 1);
+    EXPECT_EQ(model.getModelDescription().trySetLocal(model, "child_active", -2.0),
+              SetResult::FLAG);
+    EXPECT_TRUE(base.getFlag("active"));
+    EXPECT_EQ(model.mChanges, 2);
+    EXPECT_EQ(model.mAlerts, 1);
+}
+
+TEST(ModelParameterTests, FlagDefaultsRespectDeclaringBoundariesAndStandaloneTables)
+{
+    DefaultFlagModel model;
+    const auto& parent = model.FlagHandlerModel::getModelDescription();
+    ASSERT_TRUE(parent.tryGetFlagLocal(model, "active").has_value());
+    EXPECT_TRUE(*parent.tryGetFlagLocal(model, "active"));
+    ASSERT_TRUE(parent.tryGetFlag(model, "active").has_value());
+    EXPECT_FALSE(*parent.tryGetFlag(model, "active"));
+    EXPECT_FALSE(parent.tryGetFlag(model, "enabled").has_value());
+    EXPECT_FALSE(parent.trySetFlag(model, "updates", true));
+    EXPECT_FALSE(model.hasUpdates());
+    EXPECT_FALSE(parent.trySetFlag(model, "inverse_mode", true));
+    EXPECT_FALSE(parent.tryGetFlag(model, "inverse_mode").has_value());
+
+    const auto view = ModelDescription::define<DefaultFlagModel>(
+        "FlagView", nullptr, {flag({"view_active"}, &DefaultFlagModel::mActive, "Active")});
+    EXPECT_TRUE(view.trySetFlag(model, "view_active", true));
+    EXPECT_TRUE(*view.tryGetFlag(model, "view_active"));
+    EXPECT_FALSE(view.tryGetFlag(model, "active").has_value());
+    CoreObject unrelated;
+    EXPECT_THROW(view.trySetFlag(unrelated, "view_active", true), InvalidParameterValue);
+    EXPECT_THROW((void)view.tryGetFlag(unrelated, "view_active"), InvalidParameterValue);
+}
+
+TEST(ModelParameterTests, CoreFlagDefaultsRetainTheVirtualEnabledQuery)
+{
+    class DisabledView: public CoreObject {
+      public:
+        bool isEnabled() const override { return false; }
+    };
+    DisabledView model;
+    for (const auto* alias : {"enabled", "enable", "status"}) {
+        EXPECT_FALSE(model.getFlag(alias));
+    }
+    EXPECT_TRUE(*model.getModelDescription().tryGetFlagLocal(model, "enabled"));
 }
 
 }  // namespace griddyn

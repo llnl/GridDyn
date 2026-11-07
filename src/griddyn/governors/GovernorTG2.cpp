@@ -42,19 +42,6 @@ const ModelDescription& GovernorTG2::getModelDescription() const
          state("leadlag", units::one, "Lead-lag state")});
     return description;
 }
-void GovernorTG2::setFlag(std::string_view flagName, bool value)
-{
-    if (!GovernorTG2::getModelDescription().trySetFlagLocal(*this, flagName, value)) {
-        Governor::setFlag(flagName, value);
-    }
-}
-bool GovernorTG2::getFlag(std::string_view flagName) const
-{
-    if (const auto value = GovernorTG2::getModelDescription().tryGetFlagLocal(*this, flagName)) {
-        return *value;
-    }
-    return Governor::getFlag(flagName);
-}
 CoreObject* GovernorTG2::clone(CoreObject* obj) const
 {
     auto* out = cloneBase<GovernorTG2, Governor>(this, obj);
@@ -224,15 +211,15 @@ index_t GovernorTG2::findIndex(std::string_view field, const SolverMode& mode) c
 }
 void GovernorTG2::set(std::string_view param, double value, units::unit unitType)
 {
-    if (GovernorTG2::getModelDescription().trySetLocal(*this, param, value, unitType)) {
+    if (isSetHandled(
+            GovernorTG2::getModelDescription().trySetLocal(*this, param, value, unitType))) {
         return;
     }
     Governor::set(param, value, unitType);
 }
 double GovernorTG2::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto result =
-            GovernorTG2::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto result = GovernorTG2::getModelDescription().tryGet(*this, param, unitType)) {
         return *result;
     }
     return Governor::get(param, unitType);

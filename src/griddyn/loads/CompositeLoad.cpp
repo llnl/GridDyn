@@ -49,7 +49,14 @@ const ModelDescription& CompositeLoad::getModelDescription() const
     static const auto description = ModelDescription::define<CompositeLoad>(
         "CompositeLoad",
         &GridLoad::getModelDescription(),
-        {command({"componentfraction", "fraction"}, units::defunit, "Set componentfraction")});
+        {command({"componentfraction", "fraction"}, units::defunit, "Set componentfraction"),
+         indexedCommand({"component"},
+                        units::defunit,
+                        "Append a component load at its one-based index",
+                        ModelFieldType::STRING),
+         indexedCommand({"componentfraction", "fraction"},
+                        units::defunit,
+                        "Set or read a component fraction by one-based index")});
     return description;
 }
 
@@ -146,17 +153,6 @@ void CompositeLoad::remove(CoreObject* obj)
     GridLoad::remove(obj);
 }
 
-void CompositeLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = CompositeLoad::getModelDescription();
-    getParamString<CompositeLoad, GridLoad>(this,
-                                            pstr,
-                                            description.numericNames(),
-                                            description.stringNames(),
-                                            description.flagNames(),
-                                            pstype);
-}
-
 void CompositeLoad::set(std::string_view param, std::string_view val)
 {
     index_t componentIndex = 0;
@@ -210,7 +206,8 @@ void CompositeLoad::setComponentReactiveBase(index_t index, double reactivePower
 
 void CompositeLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (CompositeLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            CompositeLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     index_t componentIndex = 0;
@@ -224,8 +221,7 @@ void CompositeLoad::set(std::string_view param, double val, units::unit unitType
 
 double CompositeLoad::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value =
-            CompositeLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = CompositeLoad::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     index_t componentIndex = 0;

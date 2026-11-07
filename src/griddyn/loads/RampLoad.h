@@ -23,8 +23,6 @@ namespace loads {
         double dYpdt = 0.0;  //!< [pu] ramp in real impedance power
         double dYqdt = 0.0;  //!< [pu] ramp in imaginary constant impedance power
       public:
-        void getParameterStrings(stringVec& pstr,
-                                 ParamStringType pstype = ParamStringType::ALL) const override;
         const ModelDescription& getModelDescription() const override;
         explicit RampLoad(const std::string& objName = "rampLoad_$");
         RampLoad(double rP, double qP, const std::string& objName = "rampLoad_$");

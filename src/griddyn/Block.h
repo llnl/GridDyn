@@ -34,8 +34,6 @@ namespace blocks {
 class GridBlock: public GridSubModel {
   public:
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     /** @brief flags common for all control blocks
      */
     enum ControllerFlags {

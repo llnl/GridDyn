@@ -14,10 +14,7 @@ namespace griddyn::relays {
  */
 class Pmu: public Sensor {
   public:
-    bool getFlag(std::string_view flag) const override;
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     enum PmuFlags {
         TRANSMIT_ACTIVE = OBJECT_ARMED_FLAG,  //!< flag to indicate that the relay is transmitting
         THREE_PHASE_ACTIVE = THREE_PHASE_ONLY,  //!< flag indicating 3 phase values

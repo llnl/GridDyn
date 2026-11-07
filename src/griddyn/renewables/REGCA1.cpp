@@ -40,21 +40,6 @@ namespace {
     constexpr index_t filteredVoltage = 2;
 }  // namespace
 
-void REGCA1::setFlag(std::string_view flag, bool val)
-{
-    if (!REGCA1::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        TerminalElectricalModel::setFlag(flag, val);
-    }
-}
-
-bool REGCA1::getFlag(std::string_view flag) const
-{
-    if (const auto value = REGCA1::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return TerminalElectricalModel::getFlag(flag);
-}
-
 const ModelDescription& REGCA1::getModelDescription() const
 {
     static const auto description = ModelDescription::define<REGCA1>(
@@ -86,17 +71,6 @@ const ModelDescription& REGCA1::getModelDescription() const
          state("Iq", units::one, "Solver variable Iq when active"),
          state("Vf", units::one, "Solver variable Vf when active")});
     return description;
-}
-
-void REGCA1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = REGCA1::getModelDescription();
-    getParamString<REGCA1, TerminalElectricalModel>(this,
-                                                    pstr,
-                                                    description.numericNames(),
-                                                    description.stringNames(),
-                                                    description.flagNames(),
-                                                    pstype);
 }
 
 REGCA1::REGCA1(const std::string& objName): TerminalElectricalModel(objName)
@@ -141,11 +115,12 @@ std::span<const RenewablePort> REGCA1::outputPorts() const
 
 void REGCA1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (REGCA1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(REGCA1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key != param && REGCA1::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (key != param &&
+        isSetHandled(REGCA1::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         return;
     }
     TerminalElectricalModel::set(param, val, unitType);
@@ -154,7 +129,7 @@ void REGCA1::set(std::string_view param, double val, units::unit unitType)
 double REGCA1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (const auto value = REGCA1::getModelDescription().tryGetLocal(*this, key, unitType)) {
+    if (const auto value = REGCA1::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
 

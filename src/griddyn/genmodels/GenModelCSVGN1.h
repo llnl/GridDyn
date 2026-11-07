@@ -92,7 +92,6 @@ class GenModelCSVGN1: public GenModel {
      * @param unitType Units associated with val.
      */
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
     stringVec localStateNames() const override;
     void derivative(const IOdata& inputs,

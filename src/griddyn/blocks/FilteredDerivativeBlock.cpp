@@ -35,26 +35,6 @@ const ModelDescription& FilteredDerivativeBlock::getModelDescription() const
     return description;
 }
 
-double FilteredDerivativeBlock::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            FilteredDerivativeBlock::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GridBlock::get(param, unitType);
-}
-
-void FilteredDerivativeBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = FilteredDerivativeBlock::getModelDescription();
-    getParamString<FilteredDerivativeBlock, GridBlock>(this,
-                                                       pstr,
-                                                       description.numericNames(),
-                                                       description.stringNames(),
-                                                       description.flagNames(),
-                                                       pstype);
-}
-
 FilteredDerivativeBlock::FilteredDerivativeBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(USE_STATE);
@@ -200,7 +180,8 @@ void FilteredDerivativeBlock::set(std::string_view param, std::string_view val)
 }
 void FilteredDerivativeBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if (FilteredDerivativeBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(FilteredDerivativeBlock::getModelDescription().trySetLocal(
+            *this, param, val, unitType))) {
         return;
     }
     GridBlock::set(param, val, unitType);

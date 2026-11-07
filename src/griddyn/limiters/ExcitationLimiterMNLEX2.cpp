@@ -33,17 +33,6 @@ const ModelDescription& ExcitationLimiterMNLEX2::getModelDescription() const
     return description;
 }
 
-void ExcitationLimiterMNLEX2::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExcitationLimiterMNLEX2::getModelDescription();
-    getParamString<ExcitationLimiterMNLEX2, ExcitationLimiter>(this,
-                                                               pstr,
-                                                               description.numericNames(),
-                                                               description.stringNames(),
-                                                               description.flagNames(),
-                                                               pstype);
-}
-
 ExcitationLimiterMNLEX2::ExcitationLimiterMNLEX2(const std::string& objName):
     ExcitationLimiter(objName)
 {
@@ -70,19 +59,11 @@ CoreObject* ExcitationLimiterMNLEX2::clone(CoreObject* obj) const
 
 void ExcitationLimiterMNLEX2::set(std::string_view param, double val, units::unit unitType)
 {
-    if (ExcitationLimiterMNLEX2::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(ExcitationLimiterMNLEX2::getModelDescription().trySetLocal(
+            *this, param, val, unitType))) {
         return;
     }
     ExcitationLimiter::set(param, val, unitType);
-}
-
-double ExcitationLimiterMNLEX2::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExcitationLimiterMNLEX2::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return ExcitationLimiter::get(param, unitType);
 }
 
 void ExcitationLimiterMNLEX2::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)

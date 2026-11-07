@@ -37,7 +37,6 @@ class CompositeLoad: public GridLoad {
     void add(CoreObject* obj) override;
     void remove(CoreObject* obj) override;
 
-    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     void set(std::string_view param, std::string_view val) override;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;

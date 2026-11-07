@@ -26,10 +26,8 @@ class MotorDLoad: public GridLoad {
     explicit MotorDLoad(const std::string& objName = "motorD_$");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     void set(std::string_view param, std::string_view val) override;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
     void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;

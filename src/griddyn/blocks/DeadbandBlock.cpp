@@ -61,34 +61,6 @@ const ModelDescription& DeadbandBlock::getModelDescription() const
     return description;
 }
 
-double DeadbandBlock::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            DeadbandBlock::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GridBlock::get(param, unitType);
-}
-
-bool DeadbandBlock::getFlag(std::string_view flag) const
-{
-    if (const auto value = DeadbandBlock::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return GridBlock::getFlag(flag);
-}
-
-void DeadbandBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = DeadbandBlock::getModelDescription();
-    getParamString<DeadbandBlock, GridBlock>(this,
-                                             pstr,
-                                             description.numericNames(),
-                                             description.stringNames(),
-                                             description.flagNames(),
-                                             pstype);
-}
-
 DeadbandBlock::DeadbandBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(USE_STATE);
@@ -580,7 +552,7 @@ ChangeCode DeadbandBlock::rootCheck(const IOdata& inputs,
 
 void DeadbandBlock::setFlag(std::string_view flag, bool val)
 {
-    if (DeadbandBlock::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+    if (DeadbandBlock::getModelDescription().trySetFlag(*this, flag, val)) {
         return;
     }
     if (flag == "unshifted") {
@@ -603,7 +575,8 @@ void DeadbandBlock::set(std::string_view param, std::string_view val)
 
 void DeadbandBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if (DeadbandBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            DeadbandBlock::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "deadband") || (param == "db")) {

@@ -37,17 +37,6 @@ const ModelDescription& SchedulerReg::getModelDescription() const
     return description;
 }
 
-void SchedulerReg::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = SchedulerReg::getModelDescription();
-    getParamString<SchedulerReg, SchedulerRamp>(this,
-                                                pstr,
-                                                description.numericNames(),
-                                                description.stringNames(),
-                                                description.flagNames(),
-                                                pstype);
-}
-
 SchedulerReg::SchedulerReg(const std::string& objName):
     SchedulerRamp(objName), regMax(pMax), regMin(pMin), regRampUp(rampUp), regRampDown(rampDown)
 {
@@ -297,7 +286,8 @@ void SchedulerReg::set(std::string_view param, std::string_view val)
 
 void SchedulerReg::set(std::string_view param, double val, units::unit unitType)
 {
-    if (SchedulerReg::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            SchedulerReg::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     double newBaseMW = m_Base;

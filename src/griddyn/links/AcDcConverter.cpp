@@ -74,26 +74,6 @@ const ModelDescription& AcDcConverter::getModelDescription() const
     return description;
 }
 
-double AcDcConverter::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            AcDcConverter::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Link::get(param, unitType);
-}
-
-void AcDcConverter::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = AcDcConverter::getModelDescription();
-    getParamString<AcDcConverter, Link>(this,
-                                        pstr,
-                                        description.numericNames(),
-                                        description.stringNames(),
-                                        description.flagNames(),
-                                        pstype);
-}
-
 AcDcConverter::AcDcConverter(double resistanceParameter,
                              double reactanceParameter,
                              const std::string& objName):
@@ -227,7 +207,8 @@ void AcDcConverter::set(std::string_view param, std::string_view val)
 
 void AcDcConverter::set(std::string_view param, double val, unit unitType)
 {
-    if (AcDcConverter::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            AcDcConverter::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "p") || (param == "pset")) {

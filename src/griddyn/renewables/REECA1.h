@@ -15,8 +15,6 @@ namespace griddyn {
 /** REECA1/REECB1 electrical control with selectable reactive-control branches. */
 class REECA1: public RenewableComponent {
   public:
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     explicit REECA1(const std::string& name = "REECA1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;

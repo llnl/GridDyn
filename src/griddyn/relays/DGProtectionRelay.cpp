@@ -68,17 +68,6 @@ const ModelDescription& DGProtectionRelay::getModelDescription() const
     return description;
 }
 
-void DGProtectionRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = DGProtectionRelay::getModelDescription();
-    getParamString<DGProtectionRelay, Relay>(this,
-                                             pstr,
-                                             description.numericNames(),
-                                             description.stringNames(),
-                                             description.flagNames(),
-                                             pstype);
-}
-
 DGProtectionRelay::DGProtectionRelay(bool useExternalVoltage, const std::string& objName):
     Relay(objName), externalVoltage(useExternalVoltage)
 {
@@ -89,7 +78,8 @@ DGProtectionRelay::DGProtectionRelay(bool useExternalVoltage, const std::string&
 void DGProtectionRelay::set(std::string_view param, double val, units::unit unitType)
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (DGProtectionRelay::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (isSetHandled(
+            DGProtectionRelay::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         return;
     }
     if (key == "external_voltage" || key == "v") {
@@ -106,7 +96,7 @@ void DGProtectionRelay::set(std::string_view param, double val, units::unit unit
 void DGProtectionRelay::setFlag(std::string_view flag, bool val)
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{flag});
-    if (!DGProtectionRelay::getModelDescription().trySetFlagLocal(*this, key, val)) {
+    if (!DGProtectionRelay::getModelDescription().trySetFlag(*this, key, val)) {
         Relay::setFlag(flag, val);
     }
 }
@@ -114,7 +104,7 @@ void DGProtectionRelay::setFlag(std::string_view flag, bool val)
 bool DGProtectionRelay::getFlag(std::string_view flag) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{flag});
-    if (const auto value = DGProtectionRelay::getModelDescription().tryGetFlagLocal(*this, key)) {
+    if (const auto value = DGProtectionRelay::getModelDescription().tryGetFlag(*this, key)) {
         return *value;
     }
     return Relay::getFlag(flag);
@@ -123,8 +113,7 @@ bool DGProtectionRelay::getFlag(std::string_view flag) const
 double DGProtectionRelay::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (const auto value =
-            DGProtectionRelay::getModelDescription().tryGetLocal(*this, key, unitType)) {
+    if (const auto value = DGProtectionRelay::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
     if (key == "external_voltage" || key == "v") {

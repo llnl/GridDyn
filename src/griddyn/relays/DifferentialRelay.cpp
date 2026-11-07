@@ -52,7 +52,7 @@ const ModelDescription& DifferentialRelay::getModelDescription() const
 double DifferentialRelay::get(std::string_view param, units::unit unitType) const
 {
     if (const auto value =
-            DifferentialRelay::getModelDescription().tryGetLocal(*this, param, unitType)) {
+            DifferentialRelay::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     if (param == "absolute") {
@@ -81,7 +81,7 @@ CoreObject* DifferentialRelay::clone(CoreObject* obj) const
 
 void DifferentialRelay::setFlag(std::string_view flag, bool val)
 {
-    if (DifferentialRelay::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+    if (DifferentialRelay::getModelDescription().trySetFlag(*this, flag, val)) {
         return;
     }
     if (flag == "absolute") {
@@ -101,7 +101,7 @@ void DifferentialRelay::set(std::string_view param, std::string_view val)
 
 bool DifferentialRelay::getFlag(std::string_view flag) const
 {
-    if (const auto value = DifferentialRelay::getModelDescription().tryGetFlagLocal(*this, flag)) {
+    if (const auto value = DifferentialRelay::getModelDescription().tryGetFlag(*this, flag)) {
         return *value;
     }
     if (flag == "absolute") {
@@ -110,20 +110,10 @@ bool DifferentialRelay::getFlag(std::string_view flag) const
     return Relay::getFlag(flag);
 }
 
-void DifferentialRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = DifferentialRelay::getModelDescription();
-    getParamString<DifferentialRelay, Relay>(this,
-                                             pstr,
-                                             description.numericNames(),
-                                             description.stringNames(),
-                                             description.flagNames(),
-                                             pstype);
-}
-
 void DifferentialRelay::set(std::string_view param, double val, units::unit unitType)
 {
-    if (DifferentialRelay::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            DifferentialRelay::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     Relay::set(param, val, unitType);

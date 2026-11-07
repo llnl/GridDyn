@@ -78,7 +78,7 @@ void REGCP1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 
 void REGCP1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (REGCP1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(REGCP1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (gmlc::utilities::convertToLowerCase(std::string{param}) == "pll") {

@@ -46,33 +46,6 @@ const ModelDescription& CommSource::getModelDescription() const
     return description;
 }
 
-double CommSource::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = CommSource::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return RampSource::get(param, unitType);
-}
-
-bool CommSource::getFlag(std::string_view flag) const
-{
-    if (const auto value = CommSource::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return RampSource::getFlag(flag);
-}
-
-void CommSource::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = CommSource::getModelDescription();
-    getParamString<CommSource, RampSource>(this,
-                                           pstr,
-                                           description.numericNames(),
-                                           description.stringNames(),
-                                           description.flagNames(),
-                                           pstype);
-}
-
 CommSource::CommSource(const std::string& objName): RampSource(objName)
 {
     enableUpdates();
@@ -130,7 +103,7 @@ void CommSource::set(std::string_view param, std::string_view val)
 
 void CommSource::set(std::string_view param, double val, units::unit unitType)
 {
-    if (CommSource::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(CommSource::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "ramp") || (param == "maxramp")) {
@@ -144,7 +117,7 @@ void CommSource::set(std::string_view param, double val, units::unit unitType)
 
 void CommSource::setFlag(std::string_view flag, bool val)
 {
-    if (CommSource::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+    if (CommSource::getModelDescription().trySetFlag(*this, flag, val)) {
         return;
     }
     if (flag == "ramp") {

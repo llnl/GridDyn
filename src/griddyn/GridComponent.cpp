@@ -49,7 +49,16 @@ const ModelDescription& GridComponent::getModelDescription() const
          parameter({"basefrequency", "basefreq", "systembasefrequency"},
                    &GridComponent::systemBaseFrequency,
                    units::rad / units::s,
-                   "System frequency base")});
+                   "System frequency base"),
+         command({"flags"}, units::defunit, "Apply a list of flags", ModelFieldType::STRING),
+         command(
+             {"connected"}, units::defunit, "Change connection status", ModelFieldType::BOOLEAN),
+         command(
+             {"disconnected"}, units::defunit, "Invert connection status", ModelFieldType::BOOLEAN),
+         command({"SAMPLED_ONLY"},
+                 units::defunit,
+                 "Use sampled evaluations only",
+                 ModelFieldType::BOOLEAN)});
     return description;
 }
 
@@ -440,6 +449,9 @@ static const auto& userSettableFlags()
 // allowing them to be set by an external function might not be the best thing
 void GridComponent::setFlag(std::string_view flag, bool val)
 {
+    if (GridComponent::getModelDescription().trySetFlag(*this, flag, val)) {
+        return;
+    }
     const auto& flags = userSettableFlags();
     auto ffind = flags.find(flag);
     if (ffind != flags.end()) {
@@ -559,6 +571,9 @@ static const auto& flagMap()
 
 bool GridComponent::getFlag(std::string_view flag) const
 {
+    if (const auto value = GridComponent::getModelDescription().tryGetFlag(*this, flag)) {
+        return *value;
+    }
     const auto& flags = flagMap();
     auto flagfind = flags.find(flag);
     if (flagfind != flags.end()) {
@@ -595,19 +610,6 @@ void GridComponent::disconnect()
 {
     opFlags.set(DISCONNECTED);
 }
-static constexpr auto localNumericStrings =
-    std::array<std::string_view, 3>{"status", "basefrequency", "basepower"};
-
-static constexpr auto localStringStrings = std::array<std::string_view, 1>{"status"};
-
-static constexpr std::array<std::string_view, 0> localFlagStrings{};
-
-void GridComponent::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    getParamString<GridComponent, CoreObject>(
-        this, pstr, localNumericStrings, localStringStrings, localFlagStrings, pstype);
-}
-
 void GridComponent::set(std::string_view param, std::string_view val)
 {
     if (opFlags[NO_GRIDCOMPONENT_SET]) {
@@ -786,6 +788,9 @@ double GridComponent::get(std::string_view param, units::unit unitType) const
         out = units::convert(systemBaseFrequency, units::rad / units::s, unitType);
     } else if (param == "basevoltage") {
         out = units::convert(localBaseVoltage, units::V, unitType);
+    } else if (const auto value =
+                   GridComponent::getModelDescription().tryGet(*this, param, unitType)) {
+        out = *value;
     } else if (param == "jacsize") {
         if (opFlags[DYN_INITIALIZED]) {
             out = jacSize(cDaeSolverMode);

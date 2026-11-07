@@ -51,8 +51,6 @@ simulation objects
 class GridSimulation: public GridArea {
   public:
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     std::string sourceFile;  //!< main source file name
     /** @brief enumeration describing the state of the GridDyn simulation*/
     enum class GridState : int {

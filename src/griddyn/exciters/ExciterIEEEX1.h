@@ -52,7 +52,6 @@ namespace griddyn::exciters {
 class ExciterIEEEX1 final: public ExciterDC2A {
   public:
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     explicit ExciterIEEEX1(const std::string& objName = "exciterIEEEX1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 

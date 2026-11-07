@@ -24,17 +24,6 @@ const ModelDescription& NullBlock::getModelDescription() const
     return description;
 }
 
-void NullBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = NullBlock::getModelDescription();
-    getParamString<NullBlock, GridBlock>(this,
-                                         pstr,
-                                         description.numericNames(),
-                                         description.stringNames(),
-                                         description.flagNames(),
-                                         pstype);
-}
-
 NullBlock::NullBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags[USE_DIRECT] = true;
@@ -193,7 +182,7 @@ void NullBlock::set(std::string_view param, std::string_view val)
 }
 void NullBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!NullBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(NullBlock::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         GridSubModel::set(param, val, unitType);
     }
 }

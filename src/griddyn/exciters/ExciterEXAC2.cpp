@@ -62,17 +62,6 @@ const ModelDescription& ExciterEXAC2::getModelDescription() const
     return description;
 }
 
-void ExciterEXAC2::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterEXAC2::getModelDescription();
-    getParamString<ExciterEXAC2, ExciterEXAC1>(this,
-                                               pstr,
-                                               description.numericNames(),
-                                               description.stringNames(),
-                                               description.flagNames(),
-                                               pstype);
-}
-
 ExciterEXAC2::ExciterEXAC2(const std::string& objName): ExciterEXAC1(objName) {}
 
 CoreObject* ExciterEXAC2::clone(CoreObject* obj) const
@@ -145,25 +134,17 @@ void ExciterEXAC2::dynObjectInitializeB(const IOdata& inputs,
 
 void ExciterEXAC2::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterEXAC2::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterEXAC2::getModelDescription().trySetLocal(*this, param, val))) {
         ExciterEXAC1::set(param, val);
     }
 }
 
 void ExciterEXAC2::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!ExciterEXAC2::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            ExciterEXAC2::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         ExciterEXAC1::set(param, val, unitType);
     }
-}
-
-double ExciterEXAC2::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExciterEXAC2::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return ExciterEXAC1::get(param, unitType);
 }
 
 double ExciterEXAC2::regulatorTarget(const IOdata& inputs, const double state[]) const

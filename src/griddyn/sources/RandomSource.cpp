@@ -56,34 +56,6 @@ const ModelDescription& RandomSource::getModelDescription() const
     return description;
 }
 
-double RandomSource::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            RandomSource::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return RampSource::get(param, unitType);
-}
-
-bool RandomSource::getFlag(std::string_view flag) const
-{
-    if (const auto value = RandomSource::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return RampSource::getFlag(flag);
-}
-
-void RandomSource::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = RandomSource::getModelDescription();
-    getParamString<RandomSource, RampSource>(this,
-                                             pstr,
-                                             description.numericNames(),
-                                             description.stringNames(),
-                                             description.flagNames(),
-                                             pstype);
-}
-
 RandomSource::RandomSource(const std::string& objName, double startVal):
     RampSource(objName, startVal), param1_L(startVal)
 {
@@ -136,7 +108,7 @@ void RandomSource::set(std::string_view param, std::string_view val)
 
 void RandomSource::setFlag(std::string_view flag, bool val)
 {
-    if (RandomSource::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+    if (RandomSource::getModelDescription().trySetFlag(*this, flag, val)) {
         return;
     }
     /*
@@ -163,7 +135,8 @@ armedFlag=OBJECT_FLAG8,*/
 
 void RandomSource::set(std::string_view param, double val, units::unit unitType)
 {
-    if (RandomSource::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            RandomSource::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "min_t") {

@@ -653,10 +653,11 @@ void GovernorIeeeG1::set(std::string_view param, double val, units::unit unitTyp
             throw InvalidParameterValue("IEEEG1 auxiliary reference must be finite");
         }
         const auto power = units::convert(val, unitType, units::puMW, systemBasePower);
-        GovernorIeeeG1::getModelDescription().trySetLocal(*this, param, power);
+        (void)GovernorIeeeG1::getModelDescription().trySetLocal(*this, param, power);
         return;
     }
-    if (GovernorIeeeG1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GovernorIeeeG1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "k" || param == "droop") && !parameterValidators::nonnegative(val)) {
@@ -679,8 +680,7 @@ double GovernorIeeeG1::get(std::string_view param, units::unit unitType) const
     if (param == "paux") {
         return units::convert(auxiliaryPower, units::puMW, unitType, systemBasePower);
     }
-    if (const auto result =
-            GovernorIeeeG1::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto result = GovernorIeeeG1::getModelDescription().tryGet(*this, param, unitType)) {
         return *result;
     }
     if ((param.size() == 3) && (param[0] == 'k') && (param[1] >= '1') && (param[1] <= '8') &&

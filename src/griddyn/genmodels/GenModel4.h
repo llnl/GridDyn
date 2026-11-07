@@ -21,7 +21,6 @@ class GenModel4: public GenModel3 {
     explicit GenModel4(const std::string& objName = "genModel4_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     const ModelDescription& getModelDescription() const override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,

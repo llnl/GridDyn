@@ -275,7 +275,6 @@ class Link: public GridPrimary {
      */
     virtual double getMaxTransfer() const;
 
-    virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
     virtual void set(std::string_view param, std::string_view val) override;

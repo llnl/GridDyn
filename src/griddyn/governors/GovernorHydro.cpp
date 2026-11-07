@@ -270,22 +270,14 @@ void GovernorHydro::set(std::string_view param, std::string_view val)
 
 void GovernorHydro::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GovernorHydro::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GovernorHydro::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "t1" || param == "t3") && !parameterValidators::positive(val)) {
         throw InvalidParameterValue("hydro governor time constant must be positive");
     }
     Governor::set(param, val, unitType);
-}
-
-double GovernorHydro::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            GovernorHydro::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Governor::get(param, unitType);
 }
 
 stringVec GovernorHydro::localStateNames() const

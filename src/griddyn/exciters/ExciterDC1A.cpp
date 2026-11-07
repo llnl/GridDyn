@@ -9,7 +9,6 @@
 #include "../Generator.h"
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
-#include "core/CoreObjectTemplates.hpp"
 #include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -34,17 +33,6 @@ const ModelDescription& ExciterDC1A::getModelDescription() const
          state("rf", units::one, "rf solver state"),
          state("vmeas", units::one, "Measured terminal voltage")});
     return description;
-}
-
-void ExciterDC1A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterDC1A::getModelDescription();
-    getParamString<ExciterDC1A, ExciterIEEEtype1>(this,
-                                                  pstr,
-                                                  description.numericNames(),
-                                                  description.stringNames(),
-                                                  description.flagNames(),
-                                                  pstype);
 }
 
 ExciterDC1A::ExciterDC1A(const std::string& objName): ExciterIEEEtype1(objName)
@@ -398,7 +386,7 @@ stringVec ExciterDC1A::localStateNames() const
 }
 void ExciterDC1A::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterDC1A::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterDC1A::getModelDescription().trySetLocal(*this, param, val))) {
         ExciterIEEEtype1::set(param, val);
     }
 }
@@ -406,17 +394,10 @@ void ExciterDC1A::set(std::string_view param, std::string_view val)
 // set parameters
 void ExciterDC1A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!ExciterDC1A::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            ExciterDC1A::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         ExciterIEEEtype1::set(param, val, unitType);
     }
-}
-
-double ExciterDC1A::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = ExciterDC1A::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return ExciterIEEEtype1::get(param, unitType);
 }
 
 }  // namespace griddyn::exciters

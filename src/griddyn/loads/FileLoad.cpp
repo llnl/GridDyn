@@ -21,14 +21,6 @@ using gmlc::utilities::stringOps::splitline;
 using gmlc::utilities::stringOps::trailingStringInt;
 using gmlc::utilities::stringOps::trim;
 
-bool FileLoad::getFlag(std::string_view flag) const
-{
-    if (const auto value = FileLoad::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return RampLoad::getFlag(flag);
-}
-
 const ModelDescription& FileLoad::getModelDescription() const
 {
     static const auto description = ModelDescription::define<FileLoad>(
@@ -44,27 +36,20 @@ const ModelDescription& FileLoad::getModelDescription() const
          command(
              {"fileName", "file"}, units::defunit, "Configure fileName", ModelFieldType::STRING),
          command({"units"}, units::defunit, "Configure units", ModelFieldType::STRING),
-         command({"mode", "timemode"}, units::defunit, "Configure mode", ModelFieldType::STRING)});
+         command({"mode", "timemode"}, units::defunit, "Configure mode", ModelFieldType::STRING),
+         command(
+             {"relative"}, units::defunit, "Use relative schedule times", ModelFieldType::BOOLEAN),
+         command({"interpolate"},
+                 units::defunit,
+                 "Interpolate between scheduled values",
+                 ModelFieldType::BOOLEAN),
+         command(
+             {"column"}, units::defunit, "Append input column mappings", ModelFieldType::STRING),
+         indexedCommand({"column", "column_", "column#"},
+                        units::defunit,
+                        "Map columns starting at the specified index",
+                        ModelFieldType::STRING)});
     return description;
-}
-
-double FileLoad::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = FileLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return RampLoad::get(param, unitType);
-}
-
-void FileLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = FileLoad::getModelDescription();
-    getParamString<FileLoad, RampLoad>(this,
-                                       pstr,
-                                       description.numericNames(),
-                                       description.stringNames(),
-                                       description.flagNames(),
-                                       pstype);
 }
 
 FileLoad::FileLoad(const std::string& objName): RampLoad(objName) {}
@@ -214,7 +199,7 @@ void FileLoad::setFlag(std::string_view flag, bool val)
         opFlags.set(USE_ABSOLUTE_TIME_FLAG, !val);
     } else if (flag == "interpolate") {
         opFlags.set(USE_STEP_CHANGE_FLAG, !val);
-    } else if (!FileLoad::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+    } else if (!FileLoad::getModelDescription().trySetFlag(*this, flag, val)) {
         ZipLoad::setFlag(flag, val);
     }
 }
@@ -292,7 +277,7 @@ void FileLoad::set(std::string_view param, std::string_view val)
 
 void FileLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (FileLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(FileLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     ZipLoad::set(param, val, unitType);  // NOLINT

@@ -308,17 +308,10 @@ index_t GovernorTgov1Variant::findIndex(std::string_view field, const SolverMode
 }
 void GovernorTgov1Variant::set(std::string_view param, double value, units::unit unitType)
 {
-    if (GovernorTgov1Variant::getModelDescription().trySetLocal(*this, param, value, unitType)) {
+    if (isSetHandled(GovernorTgov1Variant::getModelDescription().trySetLocal(
+            *this, param, value, unitType))) {
         return;
     }
     Governor::set(param, value, unitType);
-}
-double GovernorTgov1Variant::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto result =
-            GovernorTgov1Variant::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *result;
-    }
-    return Governor::get(param, unitType);
 }
 }  // namespace griddyn::governors

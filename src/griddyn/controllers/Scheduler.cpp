@@ -89,17 +89,6 @@ const ModelDescription& Scheduler::getModelDescription() const
     return description;
 }
 
-void Scheduler::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = Scheduler::getModelDescription();
-    getParamString<Scheduler, Source>(this,
-                                      pstr,
-                                      description.numericNames(),
-                                      description.stringNames(),
-                                      description.flagNames(),
-                                      pstype);
-}
-
 Scheduler::Scheduler(const std::string& objName, double initialValue):
     Source(objName, initialValue), pCurr(initialValue)
 {
@@ -275,7 +264,7 @@ void Scheduler::set(std::string_view param, std::string_view val)
 
 void Scheduler::set(std::string_view param, double val, unit unitType)
 {
-    if (Scheduler::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(Scheduler::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "min") {

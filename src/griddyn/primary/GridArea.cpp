@@ -78,14 +78,6 @@ const ModelDescription& GridArea::getModelDescription() const
     return description;
 }
 
-bool GridArea::getFlag(std::string_view flag) const
-{
-    if (const auto value = GridArea::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return GridPrimary::getFlag(flag);
-}
-
 GridArea::GridArea(const std::string& objName): GridPrimary(objName)
 {
     // default values
@@ -1103,14 +1095,6 @@ void GridArea::converge(CoreTime time,
     }
 }
 
-void GridArea::setFlag(std::string_view flag, bool val)
-{
-    if (GridArea::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        return;
-    }
-    GridPrimary::setFlag(flag, val);
-}
-
 void GridArea::setResidualThreadCount(int threadCount)
 {
     opObjectLists->setResidualThreads(threadCount);
@@ -1145,20 +1129,9 @@ void GridArea::set(std::string_view param, std::string_view val)
     }
 }
 
-void GridArea::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = GridArea::getModelDescription();
-    getParamString<GridArea, GridPrimary>(this,
-                                          pstr,
-                                          description.numericNames(),
-                                          description.stringNames(),
-                                          description.flagNames(),
-                                          pstype);
-}
-
 void GridArea::set(std::string_view param, double val, unit unitType)
 {
-    if (GridArea::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(GridArea::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "basepower") {
@@ -1205,7 +1178,7 @@ void GridArea::set(std::string_view param, double val, unit unitType)
 
 double GridArea::get(std::string_view param, unit unitType) const
 {
-    if (const auto value = GridArea::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = GridArea::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     double val = 0.0;

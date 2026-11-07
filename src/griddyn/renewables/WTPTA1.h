@@ -13,10 +13,6 @@ namespace griddyn {
 /** Wind pitch controller with speed and power compensation PI paths. */
 class WTPTA1 final: public RenewableComponent {
   public:
-    bool getFlag(std::string_view flag) const override;
-    void setFlag(std::string_view flag, bool val = true) override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     explicit WTPTA1(const std::string& name = "WTPTA1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;

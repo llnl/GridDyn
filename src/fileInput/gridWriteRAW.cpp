@@ -436,7 +436,7 @@ namespace {
             return false;
         }
         output << std::setprecision(std::numeric_limits<double>::max_digits10);
-        double baseFrequency = parentObject->get("basefreq");
+        double baseFrequency = parentObject->get("basefrequency", units::Hz);
         if (!std::isfinite(baseFrequency) || baseFrequency <= 0.0) {
             warning("invalid system frequency; exported the PSS/E default of 60 Hz");
             baseFrequency = 60.0;

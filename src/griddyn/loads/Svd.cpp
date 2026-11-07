@@ -61,17 +61,6 @@ const ModelDescription& Svd::getModelDescription() const
     return description;
 }
 
-void Svd::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = Svd::getModelDescription();
-    getParamString<Svd, RampLoad>(this,
-                                  pstr,
-                                  description.numericNames(),
-                                  description.stringNames(),
-                                  description.flagNames(),
-                                  pstype);
-}
-
 Svd::Svd(const std::string& objName): RampLoad(objName) {}
 Svd::Svd(double realPower, double reactivePower, const std::string& objName):
     RampLoad(realPower, reactivePower, objName)
@@ -629,7 +618,7 @@ void Svd::set(std::string_view param, std::string_view val)
 }
 void Svd::set(std::string_view param, double val, unit unitType)
 {
-    if (Svd::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(Svd::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "qlow") {
@@ -691,7 +680,7 @@ void Svd::set(std::string_view param, double val, unit unitType)
 
 double Svd::get(std::string_view param, unit unitType) const
 {
-    if (const auto value = Svd::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = Svd::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
 

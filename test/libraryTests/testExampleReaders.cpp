@@ -72,13 +72,6 @@ void expectInternalLinksBelongToArea(griddyn::GridArea* area)
     }
 }
 
-void expectRawDefaultFrequencyWarning(const griddyn::stringVec& warnings)
-{
-    ASSERT_EQ(warnings.size(), 1);
-    EXPECT_NE(warnings.front().find("invalid system frequency"), std::string::npos)
-        << warnings.front();
-}
-
 }  // namespace
 
 TEST(ExampleReaderTests, LoadTopLevelExamples)
@@ -1220,7 +1213,7 @@ TEST(ExampleReaderTests, ExportPyPowerInputToRawRoundTrip)
     griddyn::stringVec warnings;
     ASSERT_TRUE(griddyn::saveNetworkCaseByExtension(original.get(), exported.string(), &warnings))
         << (warnings.empty() ? "RAW export failed" : warnings.front());
-    expectRawDefaultFrequencyWarning(warnings);
+    EXPECT_TRUE(warnings.empty());
 
     auto imported = std::make_unique<griddyn::GridDynSimulation>();
     griddyn::loadFile(imported, exported.string());
@@ -1277,12 +1270,13 @@ TEST(ExampleReaderTests, ExportRawRoundTripByExtension)
     const auto exported = std::filesystem::temp_directory_path() / "griddyn_raw_roundtrip.raw";
     auto original = std::make_unique<griddyn::GridDynSimulation>();
     griddyn::loadFile(original, source.string());
+    original->set("basefrequency", 50.0, units::Hz);
 
     ASSERT_TRUE(griddyn::isNetworkCaseOutputFile(exported.string()));
     griddyn::stringVec warnings;
     ASSERT_TRUE(griddyn::saveNetworkCaseByExtension(original.get(), exported.string(), &warnings))
         << (warnings.empty() ? "RAW export failed" : warnings.front());
-    expectRawDefaultFrequencyWarning(warnings);
+    EXPECT_TRUE(warnings.empty());
 
     auto imported = std::make_unique<griddyn::GridDynSimulation>();
     griddyn::loadFile(imported, exported.string());
@@ -1291,7 +1285,7 @@ TEST(ExampleReaderTests, ExportRawRoundTripByExtension)
     EXPECT_EQ(imported->getInt("gencount"), original->getInt("gencount"));
     EXPECT_EQ(imported->getInt("loadcount"), original->getInt("loadcount"));
     EXPECT_DOUBLE_EQ(imported->get("basepower"), original->get("basepower"));
-    EXPECT_DOUBLE_EQ(imported->get("basefrequency", units::Hz), 60.0);
+    EXPECT_DOUBLE_EQ(imported->get("basefrequency", units::Hz), 50.0);
 
     for (index_t busIndex = 1; busIndex <= original->getInt("totalbuscount"); ++busIndex) {
         auto* originalBus =

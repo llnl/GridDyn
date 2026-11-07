@@ -227,8 +227,10 @@ class CoreObject {
 
     /**
      * @brief get the parameters that can be used with the set/get functions
-     * @param[out] pstr a vector of strings to append to
-     * @param[in] pstype the type of parameters to get the strings for
+     * Names come from the most-derived model description and its ancestors.
+     * @param[out] pstr vector replaced for local queries and appended to otherwise
+     * @param[in] pstype requested category; ALL separates numeric and string names with '#'
+     * Flags are requested through FLAGS or LOCAL_FLAGS.
      */
     virtual void getParameterStrings(stringVec& pstr,
                                      ParamStringType pstype = ParamStringType::ALL) const;

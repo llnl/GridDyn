@@ -44,8 +44,6 @@ class AGControl: public GridSubModel {
 
   public:
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     explicit AGControl(const std::string& objName = "AGC_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     ~AGControl() override;

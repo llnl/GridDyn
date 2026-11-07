@@ -112,8 +112,6 @@ class GridDynSimulation: public GridSimulation {
   public:
     const ModelDescription& getModelDescription() const override;
     bool getFlag(std::string_view flag) const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     friend class powerFlowErrorRecovery;
     friend class dynamicInitialConditionRecovery;
     friend class faultResetRecovery;

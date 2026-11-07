@@ -14,8 +14,6 @@ namespace griddyn::loads {
 /** @brief a load with powers as a exponential function of voltage and frequency*/
 class FDepLoad: public ExponentialLoad {
   public:
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
 
   protected:

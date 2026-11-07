@@ -100,17 +100,6 @@ const ModelDescription& REPCA1::getModelDescription() const
     return description;
 }
 
-void REPCA1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = REPCA1::getModelDescription();
-    getParamString<REPCA1, RenewableComponent>(this,
-                                               pstr,
-                                               description.numericNames(),
-                                               description.stringNames(),
-                                               description.flagNames(),
-                                               pstype);
-}
-
 REPCA1::REPCA1(const std::string& objName): RenewableComponent(objName)
 {
     m_inputSize = 2;
@@ -189,14 +178,15 @@ index_t REPCA1::sourceBusID(RenewableSignal signal) const
 
 void REPCA1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (REPCA1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(REPCA1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         if (param == "fflag") {
             updateInputSize();
         }
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key != param && REPCA1::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (key != param &&
+        isSetHandled(REPCA1::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         if (key == "fflag") {
             updateInputSize();
         }
@@ -215,7 +205,7 @@ void REPCA1::set(std::string_view param, double val, units::unit unitType)
 double REPCA1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (const auto value = REPCA1::getModelDescription().tryGetLocal(*this, key, unitType)) {
+    if (const auto value = REPCA1::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
     if (key == "vbus") {

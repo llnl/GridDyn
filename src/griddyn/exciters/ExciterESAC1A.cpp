@@ -24,17 +24,6 @@ const ModelDescription& ExciterESAC1A::getModelDescription() const
     return description;
 }
 
-void ExciterESAC1A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterESAC1A::getModelDescription();
-    getParamString<ExciterESAC1A, ExciterEXAC1>(this,
-                                                pstr,
-                                                description.numericNames(),
-                                                description.stringNames(),
-                                                description.flagNames(),
-                                                pstype);
-}
-
 ExciterESAC1A::ExciterESAC1A(const std::string& objName): ExciterEXAC1(objName) {}
 
 CoreObject* ExciterESAC1A::clone(CoreObject* obj) const
@@ -59,18 +48,10 @@ void ExciterESAC1A::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 
 void ExciterESAC1A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!ExciterESAC1A::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            ExciterESAC1A::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         ExciterEXAC1::set(param, val, unitType);
     }
-}
-
-double ExciterESAC1A::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExciterESAC1A::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return ExciterEXAC1::get(param, unitType);
 }
 
 double ExciterESAC1A::regulatorUpperLimit() const
@@ -90,7 +71,7 @@ double ExciterESAC1A::regulatorLowerLimit() const
 
 void ExciterESAC1A::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterESAC1A::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterESAC1A::getModelDescription().trySetLocal(*this, param, val))) {
         ExciterEXAC1::set(param, val);
     }
 }

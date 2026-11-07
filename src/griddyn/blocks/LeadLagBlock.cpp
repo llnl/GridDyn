@@ -28,17 +28,6 @@ const ModelDescription& LeadLagBlock::getModelDescription() const
     return description;
 }
 
-void LeadLagBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = LeadLagBlock::getModelDescription();
-    getParamString<LeadLagBlock, GridBlock>(this,
-                                            pstr,
-                                            description.numericNames(),
-                                            description.stringNames(),
-                                            description.flagNames(),
-                                            pstype);
-}
-
 LeadLagBlock::LeadLagBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(USE_STATE);
@@ -197,7 +186,8 @@ void LeadLagBlock::set(std::string_view param, std::string_view val)
 
 void LeadLagBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if (LeadLagBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            LeadLagBlock::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "ta") {

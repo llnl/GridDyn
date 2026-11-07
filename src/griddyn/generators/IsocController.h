@@ -26,10 +26,7 @@ class IsocController: public GridSubModel {
     Generator* gen = nullptr;
 
   public:
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     explicit IsocController(const std::string& objName = "ISOC_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;

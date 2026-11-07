@@ -53,25 +53,6 @@ const ModelDescription& VSCShunt::getModelDescription() const
     return description;
 }
 
-double VSCShunt::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = VSCShunt::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return AcDcConverter::get(param, unitType);
-}
-
-void VSCShunt::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = VSCShunt::getModelDescription();
-    getParamString<VSCShunt, AcDcConverter>(this,
-                                            pstr,
-                                            description.numericNames(),
-                                            description.stringNames(),
-                                            description.flagNames(),
-                                            pstype);
-}
-
 VSCShunt::VSCShunt(const std::string& objName): AcDcConverter(objName) {}
 
 CoreObject* VSCShunt::clone(CoreObject* obj) const
@@ -172,7 +153,7 @@ void VSCShunt::set(std::string_view param, std::string_view val)
 
 void VSCShunt::set(std::string_view param, double val, unit unitType)
 {
-    if (VSCShunt::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(VSCShunt::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "control") {

@@ -328,7 +328,8 @@ void GovernorGast::set(std::string_view param, std::string_view val)
 
 void GovernorGast::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GovernorGast::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GovernorGast::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "t1" || param == "t2" || param == "t3") && val < 0.0) {
@@ -339,10 +340,10 @@ void GovernorGast::set(std::string_view param, double val, units::unit unitType)
 
 double GovernorGast::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value =
-            GovernorGast::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = GovernorGast::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     return Governor::get(canonicalValveLimitName(param), unitType);
 }
+
 }  // namespace griddyn::governors

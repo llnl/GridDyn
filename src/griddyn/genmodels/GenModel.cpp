@@ -104,14 +104,6 @@ const ModelDescription& GenModel::getModelDescription() const
     return description;
 }
 
-double GenModel::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = GenModel::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GridSubModel::get(param, unitType);
-}
-
 CoreObject* GenModel::clone(CoreObject* obj) const
 {
     auto* genModelClone = cloneBase<GenModel, GridSubModel>(this, obj);
@@ -281,7 +273,7 @@ void GenModel::set(std::string_view param, std::string_view val)
 }
 void GenModel::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!GenModel::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(GenModel::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         GridSubModel::set(param, val, unitType);
     }
 }

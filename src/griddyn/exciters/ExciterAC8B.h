@@ -51,7 +51,6 @@ namespace griddyn::exciters {
 class ExciterAC8B final: public Exciter {
   public:
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     enum AC8BFlags {
         PID_LIMITED = OBJECT_FLAG5,
         PID_LIMIT_HIGH = OBJECT_FLAG6,
@@ -102,7 +101,6 @@ class ExciterAC8B final: public Exciter {
     index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
     void set(std::string_view param, std::string_view val) override;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
   private:
     static constexpr index_t stateCount = 5;

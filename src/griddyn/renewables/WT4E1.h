@@ -14,8 +14,6 @@ namespace griddyn {
 /** PSS/E WT4E1 electrical controller for a full-converter wind turbine. */
 class WT4E1 final: public RenewableComponent {
   public:
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     explicit WT4E1(const std::string& name = "WT4E1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;

@@ -15,8 +15,6 @@ namespace griddyn {
 /** REECA1 with active-reference feedback from a named synchronous generator. */
 class REECA1G final: public REECA1 {
   public:
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     explicit REECA1G(const std::string& name = "REECA1G_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;

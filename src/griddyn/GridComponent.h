@@ -134,8 +134,6 @@ see GridComponent::dynInitializeA for more details
         dynObjectInitializeB(const IOdata& inputs, const IOdata& desiredOutput, IOdata& fieldSet);
 
   public:
-    virtual void getParameterStrings(stringVec& pstr,
-                                     ParamStringType pstype = ParamStringType::all) const override;
     virtual void set(std::string_view param, std::string_view val) override;
 
     virtual void

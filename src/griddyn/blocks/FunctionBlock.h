@@ -24,10 +24,7 @@ namespace griddyn::blocks {
  */
 class FunctionBlock: public GridBlock {
   public:
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     //!< flags for function block
     enum FunctionBlockFlags {
         USES_CONSTANT_ARG =

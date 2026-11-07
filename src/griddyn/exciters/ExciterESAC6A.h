@@ -17,9 +17,6 @@ namespace griddyn::exciters {
 class ExciterESAC6A final: public Exciter {
   public:
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
-    void setFlag(std::string_view param, bool value) override;
-    bool getFlag(std::string_view param) const override;
     explicit ExciterESAC6A(const std::string& objName = "exciterESAC6A_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
@@ -61,7 +58,6 @@ class ExciterESAC6A final: public Exciter {
     index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
     void set(std::string_view param, std::string_view val) override;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     bool supportsLimiterSignal(ExciterLimiterSignal signal) const override;
 
   private:

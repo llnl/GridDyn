@@ -292,17 +292,6 @@ const ModelDescription& GridDynSimulation::getModelDescription() const
     return description;
 }
 
-void GridDynSimulation::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = GridDynSimulation::getModelDescription();
-    getParamString<GridDynSimulation, GridSimulation>(this,
-                                                      pstr,
-                                                      description.numericNames(),
-                                                      description.stringNames(),
-                                                      description.flagNames(),
-                                                      pstype);
-}
-
 GridDynSimulation::GridDynSimulation(const std::string& objName):
     GridSimulation(objName), controlFlags(0LL)
 {
@@ -1276,7 +1265,7 @@ void GridDynSimulation::setDefaultMode(SolutionModes mode, const SolverMode& sMo
 
 void GridDynSimulation::setFlag(std::string_view flag, bool val)
 {
-    if (GridDynSimulation::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+    if (GridDynSimulation::getModelDescription().trySetFlag(*this, flag, val)) {
         return;
     }
     if (flag == "sparse") {
@@ -1293,7 +1282,7 @@ void GridDynSimulation::setFlag(std::string_view flag, bool val)
 
 bool GridDynSimulation::getFlag(std::string_view flag) const
 {
-    if (const auto value = GridDynSimulation::getModelDescription().tryGetFlagLocal(*this, flag)) {
+    if (const auto value = GridDynSimulation::getModelDescription().tryGetFlag(*this, flag)) {
         return *value;
     }
     if (flag == "sparse") {
@@ -1308,7 +1297,8 @@ bool GridDynSimulation::getFlag(std::string_view flag) const
 
 void GridDynSimulation::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GridDynSimulation::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GridDynSimulation::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "voltagetolerance") {
@@ -1350,7 +1340,7 @@ void GridDynSimulation::solverSet(std::string_view solverName,
 double GridDynSimulation::get(std::string_view param, units::unit unitType) const
 {
     if (const auto value =
-            GridDynSimulation::getModelDescription().tryGetLocal(*this, param, unitType)) {
+            GridDynSimulation::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     if (param == "sparse" || param == "threads") {

@@ -40,33 +40,6 @@ const ModelDescription& LoadRelay::getModelDescription() const
     return description;
 }
 
-double LoadRelay::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = LoadRelay::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Relay::get(param, unitType);
-}
-
-bool LoadRelay::getFlag(std::string_view flag) const
-{
-    if (const auto value = LoadRelay::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return Relay::getFlag(flag);
-}
-
-void LoadRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = LoadRelay::getModelDescription();
-    getParamString<LoadRelay, Relay>(this,
-                                     pstr,
-                                     description.numericNames(),
-                                     description.stringNames(),
-                                     description.flagNames(),
-                                     pstype);
-}
-
 LoadRelay::LoadRelay(const std::string& objName): Relay(objName)
 {
     // opFlags.set(CONTINUOUS_FLAG);
@@ -87,13 +60,6 @@ CoreObject* LoadRelay::clone(CoreObject* obj) const
     return nobj;
 }
 
-void LoadRelay::setFlag(std::string_view flag, bool val)
-{
-    if (LoadRelay::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        return;
-    }
-    Relay::setFlag(flag, val);
-}
 /*
 std::string commDestName;
 std::uint64_t commDestId=0;
@@ -109,7 +75,7 @@ void LoadRelay::set(std::string_view param, std::string_view val)
 
 void LoadRelay::set(std::string_view param, double val, units::unit unitType)
 {
-    if (LoadRelay::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(LoadRelay::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "cutoutvoltage") || (param == "voltagelimit")) {

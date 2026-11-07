@@ -28,21 +28,6 @@ using gmlc::utilities::convertToLowerCase;
 namespace griddyn::loads {
 #define CONJUGATE 1
 
-void ApproximatingLoad::setFlag(std::string_view flag, bool val)
-{
-    if (!ApproximatingLoad::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        RampLoad::setFlag(flag, val);
-    }
-}
-
-bool ApproximatingLoad::getFlag(std::string_view flag) const
-{
-    if (const auto value = ApproximatingLoad::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return RampLoad::getFlag(flag);
-}
-
 const ModelDescription& ApproximatingLoad::getModelDescription() const
 {
     static const auto description = ModelDescription::define<ApproximatingLoad>(
@@ -68,26 +53,6 @@ const ModelDescription& ApproximatingLoad::getModelDescription() const
                  "Configure pflow",
                  ModelFieldType::STRING)});
     return description;
-}
-
-double ApproximatingLoad::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ApproximatingLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return RampLoad::get(param, unitType);
-}
-
-void ApproximatingLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ApproximatingLoad::getModelDescription();
-    getParamString<ApproximatingLoad, RampLoad>(this,
-                                                pstr,
-                                                description.numericNames(),
-                                                description.stringNames(),
-                                                description.flagNames(),
-                                                pstype);
 }
 
 ApproximatingLoad::ApproximatingLoad(const std::string& objName): RampLoad(objName)
@@ -580,7 +545,8 @@ void ApproximatingLoad::set(std::string_view param, std::string_view val)
 
 void ApproximatingLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (ApproximatingLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            ApproximatingLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     // TODO(phlpt): Convert some of these to a setFlags function.

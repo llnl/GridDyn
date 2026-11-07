@@ -398,17 +398,10 @@ void StabilizerStab3::set(std::string_view param, std::string_view val)
 
 void StabilizerStab3::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!StabilizerStab3::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            StabilizerStab3::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         Stabilizer::set(param, val, unitType);
     }
 }
 
-double StabilizerStab3::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            StabilizerStab3::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Stabilizer::get(param, unitType);
-}
 }  // namespace griddyn::stabilizers

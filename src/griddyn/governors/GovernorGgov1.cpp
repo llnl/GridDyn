@@ -739,7 +739,8 @@ void GovernorGgov1::set(std::string_view param, std::string_view value)
 
 void GovernorGgov1::set(std::string_view param, double value, units::unit unitType)
 {
-    if (GovernorGgov1::getModelDescription().trySetLocal(*this, param, value, unitType)) {
+    if (isSetHandled(
+            GovernorGgov1::getModelDescription().trySetLocal(*this, param, value, unitType))) {
         return;
     }
     Governor::set(canonicalValveLimitName(param), value, unitType);
@@ -747,8 +748,7 @@ void GovernorGgov1::set(std::string_view param, double value, units::unit unitTy
 
 double GovernorGgov1::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto result =
-            GovernorGgov1::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto result = GovernorGgov1::getModelDescription().tryGet(*this, param, unitType)) {
         return *result;
     }
     return Governor::get(canonicalValveLimitName(param), unitType);

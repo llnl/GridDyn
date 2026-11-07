@@ -8,11 +8,13 @@
 
 #include "CoreExceptions.h"
 #include <algorithm>
+#include <charconv>
 #include <cmath>
 #include <cstddef>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <type_traits>
 #include <utility>
 #include <variant>
@@ -95,7 +97,22 @@ ModelField::ModelField(std::initializer_list<std::string_view> names,
 
 bool ModelField::matches(std::string_view name) const
 {
-    return std::find(mNames.begin(), mNames.end(), name) != mNames.end();
+    if (mKind != ModelFieldKind::INDEXED_COMMAND) {
+        return std::find(mNames.begin(), mNames.end(), name) != mNames.end();
+    }
+    return std::any_of(mNames.begin(), mNames.end(), [name](std::string_view prefix) {
+        if (!name.starts_with(prefix) || name.size() == prefix.size()) {
+            return false;
+        }
+        const auto suffix = name.substr(prefix.size());
+        if (suffix.front() < '0' || suffix.front() > '9') {
+            return false;
+        }
+        index_t index = 0;
+        const auto [end, error] =
+            std::from_chars(suffix.data(), suffix.data() + suffix.size(), index);
+        return error == std::errc{} && end == suffix.data() + suffix.size();
+    });
 }
 
 ModelFieldValue ModelField::value(const CoreObject& object) const
@@ -138,23 +155,26 @@ ModelDescription::ModelDescription(std::string_view name,
     std::vector<std::pair<std::string_view, ModelFieldKind>> declaredNames;
     for (const auto& field : mFields) {
         for (const auto& fieldName : field.names()) {
-            const auto duplicate =
-                std::find_if(declaredNames.begin(),
-                             declaredNames.end(),
-                             [fieldName](const auto& entry) { return entry.first == fieldName; });
-            const bool parameterAndState = duplicate != declaredNames.end() &&
-                ((duplicate->second == ModelFieldKind::PARAMETER &&
-                  field.kind() == ModelFieldKind::STATE) ||
-                 (duplicate->second == ModelFieldKind::STATE &&
-                  field.kind() == ModelFieldKind::PARAMETER));
-            if (duplicate != declaredNames.end() && !parameterAndState) {
-                throw std::invalid_argument("duplicate model field name: " +
-                                            std::string(fieldName));
+            for (const auto& [declaredName, declaredKind] : declaredNames) {
+                if (declaredName != fieldName ||
+                    (declaredKind == ModelFieldKind::INDEXED_COMMAND) !=
+                        (field.kind() == ModelFieldKind::INDEXED_COMMAND)) {
+                    continue;
+                }
+                const bool parameterAndState = (declaredKind == ModelFieldKind::PARAMETER &&
+                                                field.kind() == ModelFieldKind::STATE) ||
+                    (declaredKind == ModelFieldKind::STATE &&
+                     field.kind() == ModelFieldKind::PARAMETER);
+                if (!parameterAndState) {
+                    throw std::invalid_argument("duplicate model field name: " +
+                                                std::string(fieldName));
+                }
             }
             declaredNames.emplace_back(fieldName, field.kind());
             if (field.editable()) {
                 if (field.kind() == ModelFieldKind::FLAG ||
-                    (field.kind() == ModelFieldKind::COMMAND &&
+                    ((field.kind() == ModelFieldKind::COMMAND ||
+                      field.kind() == ModelFieldKind::INDEXED_COMMAND) &&
                      field.valueType() == ModelFieldType::BOOLEAN)) {
                     mFlagNames.push_back(fieldName);
                 } else if (field.valueType() == ModelFieldType::STRING) {
@@ -164,6 +184,42 @@ ModelDescription::ModelDescription(std::string_view name,
                 }
             }
         }
+    }
+}
+
+void ModelDescription::getParameterStrings(stringVec& names, ParamStringType type) const
+{
+    const auto appendNames = [this, &names](auto member) {
+        for (const auto* description = this; description != nullptr;
+             description = description->parent()) {
+            const auto& declaredNames = description->*member;
+            names.insert(names.end(), declaredNames.begin(), declaredNames.end());
+        }
+    };
+    switch (type) {
+        case ParamStringType::ALL:
+            appendNames(&ModelDescription::mNumericNames);
+            names.emplace_back("#");
+            appendNames(&ModelDescription::mStringNames);
+            break;
+        case ParamStringType::LOCAL_NUM:
+            names.assign(mNumericNames.begin(), mNumericNames.end());
+            break;
+        case ParamStringType::LOCAL_STR:
+            names.assign(mStringNames.begin(), mStringNames.end());
+            break;
+        case ParamStringType::LOCAL_FLAGS:
+            names.assign(mFlagNames.begin(), mFlagNames.end());
+            break;
+        case ParamStringType::NUMERIC:
+            appendNames(&ModelDescription::mNumericNames);
+            break;
+        case ParamStringType::STR:
+            appendNames(&ModelDescription::mStringNames);
+            break;
+        case ParamStringType::FLAGS:
+            appendNames(&ModelDescription::mFlagNames);
+            break;
     }
 }
 
@@ -178,10 +234,18 @@ const ModelField* ModelDescription::findLocal(std::string_view name) const
     if (parameterField != mFields.end()) {
         return &*parameterField;
     }
-    const auto field = std::find_if(mFields.begin(), mFields.end(), [name](const auto& candidate) {
-        return candidate.matches(name);
-    });
-    return field == mFields.end() ? nullptr : &*field;
+    const ModelField* indexedMatch = nullptr;
+    for (const auto& field : mFields) {
+        if (field.matches(name)) {
+            if (field.kind() != ModelFieldKind::INDEXED_COMMAND) {
+                return &field;
+            }
+            if (indexedMatch == nullptr) {
+                indexedMatch = &field;
+            }
+        }
+    }
+    return indexedMatch;
 }
 
 const ModelField* ModelDescription::find(std::string_view name) const
@@ -197,70 +261,109 @@ const ModelField* ModelDescription::find(std::string_view name) const
 const ModelField* ModelDescription::find(std::string_view name, ModelFieldKind kind) const
 {
     for (const auto* layer = this; layer != nullptr; layer = layer->parent()) {
-        const auto field =
-            std::find_if(layer->mFields.begin(),
-                         layer->mFields.end(),
-                         [name, kind](const auto& candidate) {
-                             return candidate.kind() == kind && candidate.matches(name);
-                         });
-        if (field != layer->mFields.end()) {
-            return &*field;
+        const ModelField* indexedMatch = nullptr;
+        for (const auto& field : layer->mFields) {
+            if (field.kind() == kind && field.matches(name)) {
+                if (field.kind() != ModelFieldKind::INDEXED_COMMAND) {
+                    return &field;
+                }
+                if (indexedMatch == nullptr) {
+                    indexedMatch = &field;
+                }
+            }
+        }
+        if (indexedMatch != nullptr) {
+            return indexedMatch;
         }
     }
     return nullptr;
 }
 
-bool ModelDescription::trySetLocal(CoreObject& object,
-                                   std::string_view name,
-                                   double value,
-                                   units::unit unitType) const
+SetResult ModelDescription::trySetLocal(CoreObject& object,
+                                        std::string_view name,
+                                        double value,
+                                        units::unit unitType) const
 {
     if (name.empty() || name.front() == '#') {
-        return true;
+        return SetResult::IGNORED;
     }
     if (!std::isfinite(value)) {
         throw InvalidParameterValue(name);
     }
     const auto* field = findLocal(name);
     if (field == nullptr) {
-        return false;
+        return SetResult::NO_MATCH;
+    }
+    if (field->kind() == ModelFieldKind::INDEXED_COMMAND) {
+        return SetResult::INDEXED_COMMAND;
     }
     if (field->kind() == ModelFieldKind::FLAG ||
         (field->kind() == ModelFieldKind::COMMAND &&
          field->valueType() == ModelFieldType::BOOLEAN)) {
         object.setFlag(name, value != 0.0);
-        return true;
+        return SetResult::FLAG;
+    }
+    if (field->kind() == ModelFieldKind::COMMAND) {
+        return SetResult::COMMAND;
     }
     if (field->kind() != ModelFieldKind::PARAMETER) {
-        return false;
+        return SetResult::NO_MATCH;
     }
     if (field->valueType() == ModelFieldType::STRING) {
         throw InvalidParameterValue(name);
     }
     const auto converted = field->convertValue(value, unitType, field->unitType());
     field->mWrite(object, converted, name);
-    return true;
+    return SetResult::PARAMETER;
 }
 
-bool ModelDescription::trySetLocal(CoreObject& object,
-                                   std::string_view name,
-                                   std::string_view value) const
+SetResult ModelDescription::trySetLocal(CoreObject& object,
+                                        std::string_view name,
+                                        std::string_view value) const
 {
     if (name.empty() || name.front() == '#') {
-        return true;
+        return SetResult::IGNORED;
     }
     const auto* field = findLocal(name);
     if (field == nullptr || !field->editable()) {
-        return false;
+        return SetResult::NO_MATCH;
     }
     if (field->valueType() != ModelFieldType::STRING) {
         throw InvalidParameterValue(name);
     }
-    if (!field->mWrite) {
-        return false;
+    if (field->kind() == ModelFieldKind::INDEXED_COMMAND) {
+        return SetResult::INDEXED_COMMAND;
+    }
+    if (field->kind() == ModelFieldKind::COMMAND) {
+        return SetResult::COMMAND;
     }
     field->mWrite(object, std::string(value), name);
-    return true;
+    return SetResult::PARAMETER;
+}
+
+const ModelDescription* ModelDescription::derivedDescription(const CoreObject& object) const
+{
+    const auto* derived = &object.getModelDescription();
+    for (const auto* description = derived; description != nullptr;
+         description = description->parent()) {
+        if (description == this) {
+            return derived;
+        }
+    }
+    return this;
+}
+
+std::optional<double> ModelDescription::tryGet(const CoreObject& object,
+                                               std::string_view name,
+                                               units::unit unitType) const
+{
+    for (const auto* description = derivedDescription(object); description != this;
+         description = description->parent()) {
+        if (const auto value = description->tryGetLocal(object, name, unitType)) {
+            return value;
+        }
+    }
+    return tryGetLocal(object, name, unitType);
 }
 
 std::optional<double> ModelDescription::tryGetLocal(const CoreObject& object,
@@ -300,9 +403,40 @@ ModelField command(std::initializer_list<std::string_view> names,
     return {names, unitType, description, ModelFieldKind::COMMAND, valueType};
 }
 
+ModelField indexedCommand(std::initializer_list<std::string_view> prefixes,
+                          units::unit unitType,
+                          std::string_view description,
+                          ModelFieldType valueType)
+{
+    return {prefixes, unitType, description, ModelFieldKind::INDEXED_COMMAND, valueType};
+}
+
 ModelField state(std::string_view name, units::unit unitType, std::string_view description)
 {
     return {{name}, unitType, description, ModelFieldKind::STATE, ModelFieldType::REAL};
+}
+
+bool ModelDescription::trySetFlag(CoreObject& object, std::string_view name, bool value) const
+{
+    for (const auto* description = derivedDescription(object); description != this;
+         description = description->parent()) {
+        if (description->trySetFlagLocal(object, name, value)) {
+            return true;
+        }
+    }
+    return trySetFlagLocal(object, name, value);
+}
+
+std::optional<bool> ModelDescription::tryGetFlag(const CoreObject& object,
+                                                 std::string_view name) const
+{
+    for (const auto* description = derivedDescription(object); description != this;
+         description = description->parent()) {
+        if (const auto value = description->tryGetFlagLocal(object, name)) {
+            return value;
+        }
+    }
+    return tryGetFlagLocal(object, name);
 }
 
 bool ModelDescription::trySetFlagLocal(CoreObject& object, std::string_view name, bool value) const

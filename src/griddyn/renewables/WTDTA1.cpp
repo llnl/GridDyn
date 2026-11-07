@@ -54,17 +54,6 @@ const ModelDescription& WTDTA1::getModelDescription() const
     return description;
 }
 
-void WTDTA1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = WTDTA1::getModelDescription();
-    getParamString<WTDTA1, RenewableComponent>(this,
-                                               pstr,
-                                               description.numericNames(),
-                                               description.stringNames(),
-                                               description.flagNames(),
-                                               pstype);
-}
-
 WTDTA1::WTDTA1(const std::string& objName): RenewableComponent(objName)
 {
     m_inputSize = 3;
@@ -98,11 +87,12 @@ std::span<const RenewablePort> WTDTA1::outputPorts() const
 
 void WTDTA1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (WTDTA1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(WTDTA1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key != param && WTDTA1::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (key != param &&
+        isSetHandled(WTDTA1::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         return;
     }
     RenewableComponent::set(param, val, unitType);
@@ -111,7 +101,7 @@ void WTDTA1::set(std::string_view param, double val, units::unit unitType)
 double WTDTA1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (const auto value = WTDTA1::getModelDescription().tryGetLocal(*this, key, unitType)) {
+    if (const auto value = WTDTA1::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
     return RenewableComponent::get(param, unitType);

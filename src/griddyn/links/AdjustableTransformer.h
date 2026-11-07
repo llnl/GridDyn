@@ -21,8 +21,6 @@ the only one that adjusts the angle.  available control include stepped and cont
 */
 class AdjustableTransformer: public AcLine {
   public:
-    bool getFlag(std::string_view flag) const override;
-    void setFlag(std::string_view flag, bool val = true) override;
     const ModelDescription& getModelDescription() const override;
     /** @brief  enumeration of the available control types
      */
@@ -102,7 +100,6 @@ class AdjustableTransformer: public AcLine {
     //!< @brief destructor
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     void set(std::string_view param, std::string_view val) override;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;

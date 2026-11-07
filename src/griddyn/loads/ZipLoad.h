@@ -16,7 +16,6 @@ Z-constant impedance, I-constant current, P- constant Power
 */
 class ZipLoad: public GridLoad {
   public:
-    bool getFlag(std::string_view flag) const override;
     const ModelDescription& getModelDescription() const override;
     enum LoadFlags {
         CONVERT_TO_CONSTANT_IMPEDANCE = OBJECT_FLAG2,
@@ -53,7 +52,6 @@ class ZipLoad: public GridLoad {
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void

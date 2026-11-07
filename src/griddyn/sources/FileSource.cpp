@@ -24,33 +24,6 @@ const ModelDescription& FileSource::getModelDescription() const
     return description;
 }
 
-double FileSource::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = FileSource::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return RampSource::get(param, unitType);
-}
-
-bool FileSource::getFlag(std::string_view flag) const
-{
-    if (const auto value = FileSource::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return RampSource::getFlag(flag);
-}
-
-void FileSource::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = FileSource::getModelDescription();
-    getParamString<FileSource, RampSource>(this,
-                                           pstr,
-                                           description.numericNames(),
-                                           description.stringNames(),
-                                           description.flagNames(),
-                                           pstype);
-}
-
 FileSource::FileSource(const std::string& fileName, int column): RampSource("filesource_#")
 {
     if (!fileName.empty()) {
@@ -146,7 +119,7 @@ void FileSource::timestep(CoreTime time, const IOdata& inputs, const SolverMode&
 
 void FileSource::setFlag(std::string_view flag, bool val)
 {
-    if (FileSource::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+    if (FileSource::getModelDescription().trySetFlag(*this, flag, val)) {
         return;
     }
     if (flag == "relative") {
@@ -168,7 +141,7 @@ void FileSource::set(std::string_view param, std::string_view val)
 
 void FileSource::set(std::string_view param, double val, units::unit unitType)
 {
-    if (FileSource::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(FileSource::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     {

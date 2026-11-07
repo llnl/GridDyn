@@ -82,17 +82,6 @@ namespace {
     constexpr double piConstant = 3.14159265358979323846;
 }  // namespace
 
-void GridFormingConverter::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = GridFormingConverter::getModelDescription();
-    getParamString<GridFormingConverter, TerminalElectricalModel>(this,
-                                                                  pstr,
-                                                                  description.numericNames(),
-                                                                  description.stringNames(),
-                                                                  description.flagNames(),
-                                                                  pstype);
-}
-
 const ModelDescription& GridFormingConverter::getModelDescription() const
 {
     static const auto description = ModelDescription::define<GridFormingConverter>(
@@ -218,11 +207,13 @@ std::string_view GridFormingConverter::sourceName(RenewableSignal signal) const
 
 void GridFormingConverter::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GridFormingConverter::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GridFormingConverter::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (GridFormingConverter::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (isSetHandled(
+            GridFormingConverter::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         return;
     }
     TerminalElectricalModel::set(param, val, unitType);
@@ -231,7 +222,7 @@ void GridFormingConverter::set(std::string_view param, double val, units::unit u
 void GridFormingConverter::set(std::string_view param, std::string_view val)
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (!GridFormingConverter::getModelDescription().trySetLocal(*this, key, val)) {
+    if (!isSetHandled(GridFormingConverter::getModelDescription().trySetLocal(*this, key, val))) {
         TerminalElectricalModel::set(param, val);
     }
 }
@@ -240,7 +231,7 @@ double GridFormingConverter::get(std::string_view param, units::unit unitType) c
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
     if (const auto value =
-            GridFormingConverter::getModelDescription().tryGetLocal(*this, key, unitType)) {
+            GridFormingConverter::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
     return TerminalElectricalModel::get(param, unitType);

@@ -193,8 +193,6 @@ class GridBus: public GridPrimary {
                         std::string_view param,
                         double val,
                         units::unit unitType = units::defunit) override;
-    virtual void getParameterStrings(stringVec& pstr,
-                                     ParamStringType pstype = ParamStringType::all) const override;
     /** @brief Set connected or an inherited flag; true means connected for that flag. */
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;

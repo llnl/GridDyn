@@ -90,8 +90,6 @@ class DcBus: public GridBus {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual void getParameterStrings(stringVec& pstr,
-                                     ParamStringType pstype = ParamStringType::all) const override;
 
     using GridBus::updateLocalCache;
     virtual void updateLocalCache(const IOdata& inputs,

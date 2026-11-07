@@ -29,11 +29,7 @@ namespace griddyn::blocks {
  */
 class DeadbandBlock: public GridBlock {
   public:
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
-    bool getFlag(std::string_view flag) const override;
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     /** @brief flags for the deadband block*/
     enum DeadbandBlockFlags {
         USES_DEADBAND = OBJECT_FLAG10,  //!< flag indicating the deadband is in use

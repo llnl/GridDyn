@@ -37,17 +37,6 @@ static TypeFactory<CIM5> gCim5Factory("load", std::to_array<std::string_view>({"
 static TypeFactory<CIM6> gCim6Factory("load", std::to_array<std::string_view>({"cim6"}));
 
 static constexpr double cSmallDiff = 1e-7;
-void MotorLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = MotorLoad::getModelDescription();
-    getParamString<MotorLoad, GridLoad>(this,
-                                        pstr,
-                                        description.numericNames(),
-                                        description.stringNames(),
-                                        description.flagNames(),
-                                        pstype);
-}
-
 const ModelDescription& MotorLoad::getModelDescription() const
 {
     static const auto description = ModelDescription::define<MotorLoad>(
@@ -61,7 +50,14 @@ const ModelDescription& MotorLoad::getModelDescription() const
          command({"a"}, units::defunit, "Set a"),
          command({"b"}, units::defunit, "Set b"),
          command({"c"}, units::defunit, "Set c"),
-         localState("stalled", &MotorLoad::opFlags, STALLED, "Motor stalled latch")});
+         localState("stalled", &MotorLoad::opFlags, STALLED, "Motor stalled latch"),
+         command({"alpha"}, units::one, "Configure the motor torque polynomial constant"),
+         command({"beta"}, units::one, "Configure the motor torque polynomial linear term"),
+         command({"gamma"}, units::one, "Configure the motor torque polynomial quadratic term"),
+         command({"base", "mbase", "rating"}, units::MVAR, "Motor power base"),
+         command({"Vcontrol"},
+                 units::puV,
+                 "Voltage control multiplier; updates the operating slip")});
     return description;
 }
 
@@ -177,7 +173,7 @@ void MotorLoad::set(std::string_view param, std::string_view val)
 
 double MotorLoad::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value = MotorLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = MotorLoad::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     if (param == "pmot") {
@@ -225,7 +221,7 @@ double MotorLoad::get(std::string_view param, units::unit unitType) const
 
 void MotorLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (MotorLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(MotorLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     bool slipCheck = false;

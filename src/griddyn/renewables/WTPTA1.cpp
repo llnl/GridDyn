@@ -38,21 +38,6 @@ namespace {
     constexpr index_t theta = 0, speedIntegral = 1, powerIntegral = 2;
 }  // namespace
 
-void WTPTA1::setFlag(std::string_view flag, bool val)
-{
-    if (!WTPTA1::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        RenewableComponent::setFlag(flag, val);
-    }
-}
-
-bool WTPTA1::getFlag(std::string_view flag) const
-{
-    if (const auto value = WTPTA1::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return RenewableComponent::getFlag(flag);
-}
-
 const ModelDescription& WTPTA1::getModelDescription() const
 {
     static const auto description = ModelDescription::define<WTPTA1>(
@@ -78,17 +63,6 @@ const ModelDescription& WTPTA1::getModelDescription() const
          state("speedIntegral", units::one, "Solver variable speedIntegral when active"),
          state("powerIntegral", units::one, "Solver variable powerIntegral when active")});
     return description;
-}
-
-void WTPTA1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = WTPTA1::getModelDescription();
-    getParamString<WTPTA1, RenewableComponent>(this,
-                                               pstr,
-                                               description.numericNames(),
-                                               description.stringNames(),
-                                               description.flagNames(),
-                                               pstype);
 }
 
 WTPTA1::WTPTA1(const std::string& objName): RenewableComponent(objName)
@@ -132,11 +106,12 @@ std::span<const RenewablePort> WTPTA1::outputPorts() const
 
 void WTPTA1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (WTPTA1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(WTPTA1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key != param && WTPTA1::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (key != param &&
+        isSetHandled(WTPTA1::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         return;
     }
     if (key == "pset") {
@@ -151,7 +126,7 @@ void WTPTA1::set(std::string_view param, double val, units::unit unitType)
 double WTPTA1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (const auto value = WTPTA1::getModelDescription().tryGetLocal(*this, key, unitType)) {
+    if (const auto value = WTPTA1::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
     if (key == "pset") {

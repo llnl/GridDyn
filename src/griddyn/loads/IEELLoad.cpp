@@ -161,17 +161,6 @@ double IEELLoad::frequencyCoefficient(bool reactive) const
     return parameters.coefficients[reactive ? 7U : 6U];
 }
 
-void IEELLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = IEELLoad::getModelDescription();
-    getParamString<IEELLoad, GridLoad>(this,
-                                       pstr,
-                                       description.numericNames(),
-                                       description.stringNames(),
-                                       description.flagNames(),
-                                       pstype);
-}
-
 void IEELLoad::set(std::string_view param, std::string_view val)
 {
     GridLoad::set(param, val);
@@ -179,22 +168,13 @@ void IEELLoad::set(std::string_view param, std::string_view val)
 
 void IEELLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (IEELLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(IEELLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         if (!param.empty() && param.front() != '#') {
             setIEELParameters(parameters);
         }
         return;
     }
     GridLoad::set(param, val, unitType);
-}
-
-double IEELLoad::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = IEELLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-
-    return GridLoad::get(param, unitType);
 }
 
 void IEELLoad::ioPartialDerivatives(const IOdata& inputs,

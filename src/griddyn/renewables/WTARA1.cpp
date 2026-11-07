@@ -41,17 +41,6 @@ const ModelDescription& WTARA1::getModelDescription() const
     return description;
 }
 
-void WTARA1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = WTARA1::getModelDescription();
-    getParamString<WTARA1, RenewableComponent>(this,
-                                               pstr,
-                                               description.numericNames(),
-                                               description.stringNames(),
-                                               description.flagNames(),
-                                               pstype);
-}
-
 WTARA1::WTARA1(const std::string& objName): RenewableComponent(objName)
 {
     m_inputSize = 1;
@@ -80,11 +69,12 @@ std::span<const RenewablePort> WTARA1::outputPorts() const
 
 void WTARA1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (WTARA1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(WTARA1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key != param && WTARA1::getModelDescription().trySetLocal(*this, key, val, unitType)) {
+    if (key != param &&
+        isSetHandled(WTARA1::getModelDescription().trySetLocal(*this, key, val, unitType))) {
         return;
     }
     RenewableComponent::set(param, val, unitType);
@@ -93,7 +83,7 @@ void WTARA1::set(std::string_view param, double val, units::unit unitType)
 double WTARA1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (const auto value = WTARA1::getModelDescription().tryGetLocal(*this, key, unitType)) {
+    if (const auto value = WTARA1::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
     return RenewableComponent::get(param, unitType);

@@ -182,17 +182,6 @@ const ModelDescription& PLLSensor::getModelDescription() const
     return description;
 }
 
-void PLLSensor::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = PLLSensor::getModelDescription();
-    getParamString<PLLSensor, BusMeasurementSensor>(this,
-                                                    pstr,
-                                                    description.numericNames(),
-                                                    description.stringNames(),
-                                                    description.flagNames(),
-                                                    pstype);
-}
-
 PLLSensor::PLLSensor(const std::string& objName, bool voltagePhase):
     BusMeasurementSensor(objName), phaseDetector(voltagePhase)
 {
@@ -241,7 +230,7 @@ CoreObject* PLL2Sensor::clone(CoreObject* obj) const
 void PLLSensor::set(std::string_view param, double value, units::unit unitType)
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (PLLSensor::getModelDescription().trySetLocal(*this, key, value, unitType)) {
+    if (isSetHandled(PLLSensor::getModelDescription().trySetLocal(*this, key, value, unitType))) {
         return;
     }
     BusMeasurementSensor::set(param, value, unitType);
@@ -250,7 +239,7 @@ void PLLSensor::set(std::string_view param, double value, units::unit unitType)
 double PLLSensor::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (const auto value = PLLSensor::getModelDescription().tryGetLocal(*this, key, unitType)) {
+    if (const auto value = PLLSensor::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
     return BusMeasurementSensor::get(param, unitType);
@@ -464,17 +453,6 @@ const ModelDescription& BusROCOFSensor::getModelDescription() const
     return description;
 }
 
-void BusROCOFSensor::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = BusROCOFSensor::getModelDescription();
-    getParamString<BusROCOFSensor, BusMeasurementSensor>(this,
-                                                         pstr,
-                                                         description.numericNames(),
-                                                         description.stringNames(),
-                                                         description.flagNames(),
-                                                         pstype);
-}
-
 BusROCOFSensor::BusROCOFSensor(const std::string& objName): BusMeasurementSensor(objName)
 {
     m_outputSize = 2;
@@ -498,7 +476,8 @@ CoreObject* BusROCOFSensor::clone(CoreObject* obj) const
 void BusROCOFSensor::set(std::string_view param, double value, units::unit unitType)
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (BusROCOFSensor::getModelDescription().trySetLocal(*this, key, value, unitType)) {
+    if (isSetHandled(
+            BusROCOFSensor::getModelDescription().trySetLocal(*this, key, value, unitType))) {
         return;
     }
     BusMeasurementSensor::set(param, value, unitType);
@@ -507,8 +486,7 @@ void BusROCOFSensor::set(std::string_view param, double value, units::unit unitT
 double BusROCOFSensor::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (const auto value =
-            BusROCOFSensor::getModelDescription().tryGetLocal(*this, key, unitType)) {
+    if (const auto value = BusROCOFSensor::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
     return BusMeasurementSensor::get(param, unitType);

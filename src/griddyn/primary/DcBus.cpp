@@ -258,21 +258,10 @@ void DcBus::set(std::string_view param, std::string_view val)
 
 void DcBus::set(std::string_view param, double val, unit unitType)
 {
-    if (DcBus::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(DcBus::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     GridBus::set(param, val, unitType);
-}
-
-void DcBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = DcBus::getModelDescription();
-    getParamString<DcBus, GridBus>(this,
-                                   pstr,
-                                   description.numericNames(),
-                                   description.stringNames(),
-                                   description.flagNames(),
-                                   pstype);
 }
 
 void DcBus::updateLocalCache(const IOdata& inputs,

@@ -14,7 +14,6 @@
 #include "../blocks/FilteredDerivativeBlock.h"
 #include "../simulation/Contingency.h"
 #include "core/CoreExceptions.h"
-#include "core/CoreObjectTemplates.hpp"
 #include "core/CoreOwningPtr.hpp"
 #include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
@@ -1187,17 +1186,6 @@ void AcBus::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& 
     prevTime = time;
 }
 
-void AcBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = AcBus::getModelDescription();
-    getParamString<AcBus, GridBus>(this,
-                                   pstr,
-                                   description.numericNames(),
-                                   description.stringNames(),
-                                   description.flagNames(),
-                                   pstype);
-}
-
 void AcBus::setFlag(std::string_view flag, bool val)
 {
     if (flag == "compute_frequency" || flag == "use_frequency") {
@@ -1232,14 +1220,14 @@ void AcBus::setFlag(std::string_view flag, bool val)
                 fblock->parentSetFlag(SEPARATE_PROCESSING, true, this);
             }
         }
-    } else if (!AcBus::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+    } else if (!AcBus::getModelDescription().trySetFlag(*this, flag, val)) {
         GridBus::setFlag(flag, val);
     }
 }
 
 bool AcBus::getFlag(std::string_view flag) const
 {
-    if (const auto value = AcBus::getModelDescription().tryGetFlagLocal(*this, flag)) {
+    if (const auto value = AcBus::getModelDescription().tryGetFlag(*this, flag)) {
         return *value;
     }
     if (flag == "compute_frequency" || flag == "use_frequency") {
@@ -1303,7 +1291,7 @@ void AcBus::set(std::string_view param, std::string_view val)
 
 void AcBus::set(std::string_view param, double val, unit unitType)
 {
-    if (AcBus::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(AcBus::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "voltage") || (param == "vol") || (param == "v") || (param == "vmag") ||
@@ -3126,7 +3114,7 @@ double AcBus::getSched() const
 
 double AcBus::get(std::string_view param, unit unitType) const
 {
-    if (const auto value = AcBus::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = AcBus::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     double val = kNullVal;

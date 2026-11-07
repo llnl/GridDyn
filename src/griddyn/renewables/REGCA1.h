@@ -14,10 +14,6 @@ namespace griddyn {
 /** REGCA1 converter current lag, voltage-dependent current limits and P/Q injection. */
 class REGCA1: public TerminalElectricalModel {
   public:
-    bool getFlag(std::string_view flag) const override;
-    void setFlag(std::string_view flag, bool val = true) override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     explicit REGCA1(const std::string& name = "REGCA1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;

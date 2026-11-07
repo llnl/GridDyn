@@ -27,25 +27,6 @@ const ModelDescription& MotorLoad3::getModelDescription() const
     return description;
 }
 
-double MotorLoad3::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = MotorLoad3::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return MotorLoad::get(param, unitType);
-}
-
-void MotorLoad3::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = MotorLoad3::getModelDescription();
-    getParamString<MotorLoad3, MotorLoad>(this,
-                                          pstr,
-                                          description.numericNames(),
-                                          description.stringNames(),
-                                          description.flagNames(),
-                                          pstype);
-}
-
 MotorLoad3::MotorLoad3(const std::string& objName): MotorLoad(objName) {}
 CoreObject* MotorLoad3::clone(CoreObject* obj) const
 {
@@ -195,7 +176,7 @@ void MotorLoad3::set(std::string_view param, std::string_view val)
 
 void MotorLoad3::set(std::string_view param, double val, units::unit unitType)
 {
-    if (MotorLoad3::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(MotorLoad3::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     MotorLoad::set(param, val, unitType);

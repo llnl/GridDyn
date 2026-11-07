@@ -18,17 +18,6 @@ using units::convert;
 using units::puV;
 using units::unit;
 
-void VariableGenerator::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = VariableGenerator::getModelDescription();
-    getParamString<VariableGenerator, DynamicGenerator>(this,
-                                                        pstr,
-                                                        description.numericNames(),
-                                                        description.stringNames(),
-                                                        description.flagNames(),
-                                                        pstype);
-}
-
 const ModelDescription& VariableGenerator::getModelDescription() const
 {
     static const auto description = ModelDescription::define<VariableGenerator>(
@@ -132,7 +121,8 @@ void VariableGenerator::set(std::string_view param, std::string_view val)
 
 void VariableGenerator::set(std::string_view param, double val, unit unitType)
 {
-    if (VariableGenerator::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            VariableGenerator::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "vcutout") {

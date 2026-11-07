@@ -20,41 +20,6 @@ static TypeFactory<AggregateLoad>
 using gmlc::utilities::stringOps::splitline;
 using gmlc::utilities::stringOps::trailingStringInt;
 using gmlc::utilities::stringOps::trim;
-double AggregateLoad::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            AggregateLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return ZipLoad::get(param, unitType);
-}
-
-void AggregateLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = AggregateLoad::getModelDescription();
-    getParamString<AggregateLoad, ZipLoad>(this,
-                                           pstr,
-                                           description.numericNames(),
-                                           description.stringNames(),
-                                           description.flagNames(),
-                                           pstype);
-}
-
-void AggregateLoad::setFlag(std::string_view flag, bool val)
-{
-    if (!AggregateLoad::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        ZipLoad::setFlag(flag, val);
-    }
-}
-
-bool AggregateLoad::getFlag(std::string_view flag) const
-{
-    if (const auto value = AggregateLoad::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return ZipLoad::getFlag(flag);
-}
-
 const ModelDescription& AggregateLoad::getModelDescription() const
 {
     static const auto description = ModelDescription::define<AggregateLoad>(
@@ -63,7 +28,18 @@ const ModelDescription& AggregateLoad::getModelDescription() const
         {flag({"consume"},
               &AggregateLoad::consumeSimpleLoad,
               "Flag indicating consumption of existing loads"),
-         command({"fraction"}, units::defunit, "Configure fraction", ModelFieldType::STRING)});
+         command({"fraction"}, units::defunit, "Configure fraction", ModelFieldType::STRING),
+         command({"subload"},
+                 units::defunit,
+                 "Append a subload and its fraction",
+                 ModelFieldType::STRING),
+         indexedCommand({"subload", "subload_", "subload#"},
+                        units::defunit,
+                        "Configure an indexed subload",
+                        ModelFieldType::STRING),
+         indexedCommand({"fraction", "fraction_", "fraction#"},
+                        units::defunit,
+                        "Set a subload fraction")});
     return description;
 }
 
@@ -281,7 +257,8 @@ void AggregateLoad::set(std::string_view param, std::string_view val)
 }
 void AggregateLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (AggregateLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            AggregateLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     std::string iparam;

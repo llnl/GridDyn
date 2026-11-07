@@ -28,8 +28,6 @@ class ThreeWindingTransformer: public Subsystem {
     AcLine* windingLeg(index_t winding) const;
 
   public:
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     /** @brief default constructor*/
     ThreeWindingTransformer(const std::string& objName = "ThreeWinding_$");

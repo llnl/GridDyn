@@ -22,6 +22,7 @@
 #include "griddyn/relays/ZonalRelay.h"
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
@@ -525,4 +526,34 @@ TEST(RelayDescriptionTests, ArrayBindingsAndLocalFlags)
     snapshot.restore(relay);
     EXPECT_DOUBLE_EQ(relay.get("fl1"), 57.0);
     EXPECT_TRUE(relay.getFlag("ven"));
+}
+
+TEST(RelayDescriptionTests, SensorIndexedDispatchPreservesRoutingAndParentCommands)
+{
+    class RoutingSensor: public Sensor {
+      public:
+        int outputRoute(std::size_t index) const { return outputs.at(index); }
+        int inputRoute(std::size_t index) const { return blockInputs.at(index); }
+    };
+    RoutingSensor sensor;
+    sensor.set("output", 0.0);
+    sensor.set("output_0", 3.0);
+    sensor.set("blockinput0", 2.0);
+    sensor.set("process#2", 5.0);
+    EXPECT_EQ(sensor.outputRoute(0), 3);
+    EXPECT_EQ(sensor.inputRoute(0), 2);
+    EXPECT_EQ(sensor.inputRoute(2), 5);
+    sensor.set("output1", "input0");
+    EXPECT_EQ(sensor.outputRoute(1), 0);
+    sensor.set("terminal", 2.0);
+    EXPECT_DOUBLE_EQ(sensor.get("terminal"), 2.0);
+    sensor.set("direct", 1.0);
+    EXPECT_TRUE(sensor.getFlag("direct_io"));
+    sensor.set("sampled", 1.0);
+    EXPECT_TRUE(sensor.getFlag("sampled"));
+    sensor.set("ts", 25.0, units::ms);
+    EXPECT_NEAR(sensor.get("period"), 0.025, 1e-8);
+    EXPECT_THROW(sensor.set("output-1", 1.0), UnrecognizedParameter);
+    EXPECT_NO_THROW(sensor.set("# comment", kNullVal));
+    EXPECT_EQ(sensor.outputRoute(0), 3);
 }

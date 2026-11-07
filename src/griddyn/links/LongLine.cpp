@@ -38,17 +38,6 @@ const ModelDescription& LongLine::getModelDescription() const
     return description;
 }
 
-void LongLine::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = LongLine::getModelDescription();
-    getParamString<LongLine, Subsystem>(this,
-                                        pstr,
-                                        description.numericNames(),
-                                        description.stringNames(),
-                                        description.flagNames(),
-                                        pstype);
-}
-
 LongLine::LongLine(const std::string& objName): Subsystem(objName) {}
 CoreObject* LongLine::clone(CoreObject* obj) const
 {
@@ -81,7 +70,7 @@ void LongLine::set(std::string_view param, std::string_view val)
 }
 void LongLine::set(std::string_view param, double val, units::unit unitType)
 {
-    if (LongLine::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(LongLine::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
 
@@ -124,7 +113,7 @@ void LongLine::set(std::string_view param, double val, units::unit unitType)
 
 double LongLine::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value = LongLine::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = LongLine::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     double val = kNullVal;

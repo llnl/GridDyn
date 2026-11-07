@@ -18,8 +18,6 @@ namespace griddyn {
  */
 class WTDTA1 final: public RenewableComponent {
   public:
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     explicit WTDTA1(const std::string& name = "WTDTA1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;

@@ -39,10 +39,6 @@ class RawDcLine final: public Link {
     index_t toReactiveOffset(const SolverMode& sMode) const;
 
   public:
-    bool getFlag(std::string_view flag) const override;
-    void setFlag(std::string_view flag, bool val = true) override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     explicit RawDcLine(const std::string& objName = "rawdcline_$");
 

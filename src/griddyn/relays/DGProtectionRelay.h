@@ -20,8 +20,6 @@ class DGProtectionRelay: public Relay {
     const ModelDescription& getModelDescription() const override;
     void setFlag(std::string_view flag, bool val) override;
     bool getFlag(std::string_view flag) const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     using Relay::set;
     DGProtectionRelay(bool externalVoltage, const std::string& name);
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;

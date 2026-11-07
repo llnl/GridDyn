@@ -55,17 +55,6 @@ const ModelDescription& ExcitationLimiter::getModelDescription() const
     return description;
 }
 
-void ExcitationLimiter::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExcitationLimiter::getModelDescription();
-    getParamString<ExcitationLimiter, GridSubModel>(this,
-                                                    pstr,
-                                                    description.numericNames(),
-                                                    description.stringNames(),
-                                                    description.flagNames(),
-                                                    pstype);
-}
-
 ExcitationLimiter::ExcitationLimiter(const std::string& objName): GridSubModel(objName)
 {
     m_inputSize = excitationLimiterInputCount;
@@ -117,23 +106,14 @@ void ExcitationLimiter::set(std::string_view param, std::string_view val)
 
 void ExcitationLimiter::set(std::string_view param, double val, units::unit unitType)
 {
-    if (ExcitationLimiter::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            ExcitationLimiter::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         if (param == "threshold") {
             thresholdSet = true;
         }
         return;
     }
     GridSubModel::set(param, val, unitType);
-}
-
-double ExcitationLimiter::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExcitationLimiter::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-
-    return GridSubModel::get(param, unitType);
 }
 
 void ExcitationLimiter::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)

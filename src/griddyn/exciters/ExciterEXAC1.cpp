@@ -114,17 +114,6 @@ const ModelDescription& ExciterEXAC1::getModelDescription() const
     return description;
 }
 
-void ExciterEXAC1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterEXAC1::getModelDescription();
-    getParamString<ExciterEXAC1, Exciter>(this,
-                                          pstr,
-                                          description.numericNames(),
-                                          description.stringNames(),
-                                          description.flagNames(),
-                                          pstype);
-}
-
 ExciterEXAC1::ExciterEXAC1(const std::string& objName): Exciter(objName)
 {
     m_inputSize = exciterInputCount;
@@ -985,25 +974,17 @@ ChangeCode ExciterEXAC1::rootCheck(const IOdata& inputs,
 
 void ExciterEXAC1::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterEXAC1::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterEXAC1::getModelDescription().trySetLocal(*this, param, val))) {
         Exciter::set(param, val);
     }
 }
 
 void ExciterEXAC1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (!ExciterEXAC1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (!isSetHandled(
+            ExciterEXAC1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         Exciter::set(param, val, unitType);
     }
-}
-
-double ExciterEXAC1::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExciterEXAC1::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Exciter::get(param, unitType);
 }
 
 stringVec ExciterEXAC1::localStateNames() const

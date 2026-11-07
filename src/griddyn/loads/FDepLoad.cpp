@@ -15,17 +15,6 @@
 #include <cmath>
 #include <string>
 namespace griddyn::loads {
-void FDepLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = FDepLoad::getModelDescription();
-    getParamString<FDepLoad, ExponentialLoad>(this,
-                                              pstr,
-                                              description.numericNames(),
-                                              description.stringNames(),
-                                              description.flagNames(),
-                                              pstype);
-}
-
 const ModelDescription& FDepLoad::getModelDescription() const
 {
     static const auto description = ModelDescription::define<FDepLoad>(
@@ -227,7 +216,7 @@ void FDepLoad::set(std::string_view param, std::string_view val)
 
 void FDepLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (FDepLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(FDepLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         if (!param.empty() && param.front() != '#' && ((betaP != 0.0) || (betaQ != 0.0))) {
             opFlags.set(USES_BUS_FREQUENCY);
         }
@@ -253,7 +242,7 @@ void FDepLoad::set(std::string_view param, double val, units::unit unitType)
 
 double FDepLoad::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value = FDepLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = FDepLoad::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     if (param == "kp") {

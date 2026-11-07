@@ -32,21 +32,6 @@ static const std::complex<double> rotn120(-0.5, -sqrt(3.0) / 2.0);
 
 #define CONJUGATE 1
 
-void GridLabDLoad::setFlag(std::string_view flag, bool val)
-{
-    if (!GridLabDLoad::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        RampLoad::setFlag(flag, val);
-    }
-}
-
-bool GridLabDLoad::getFlag(std::string_view flag) const
-{
-    if (const auto value = GridLabDLoad::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return RampLoad::getFlag(flag);
-}
-
 const ModelDescription& GridLabDLoad::getModelDescription() const
 {
     static const auto description = ModelDescription::define<GridLabDLoad>(
@@ -66,31 +51,22 @@ const ModelDescription& GridLabDLoad::getModelDescription() const
                  units::defunit,
                  "Configure mode",
                  ModelFieldType::STRING),
-         command({"pflow", "pflowcoupling"},
+         command(
+             {"pflow", "pflowcoupling"}, units::defunit, "Configure pflow", ModelFieldType::STRING),
+         command({"file"}, units::defunit, "Append a GridLAB-D input file", ModelFieldType::STRING),
+         indexedCommand({"file", "file_", "file#"},
+                        units::defunit,
+                        "Set a GridLAB-D instance input file",
+                        ModelFieldType::STRING),
+         command({"workdir"},
                  units::defunit,
-                 "Configure pflow",
-                 ModelFieldType::STRING)});
+                 "Set unspecified instance working directories",
+                 ModelFieldType::STRING),
+         indexedCommand({"workdir"},
+                        units::defunit,
+                        "Set an instance working directory",
+                        ModelFieldType::STRING)});
     return description;
-}
-
-double GridLabDLoad::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            GridLabDLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return RampLoad::get(param, unitType);
-}
-
-void GridLabDLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = GridLabDLoad::getModelDescription();
-    getParamString<GridLabDLoad, RampLoad>(this,
-                                           pstr,
-                                           description.numericNames(),
-                                           description.stringNames(),
-                                           description.flagNames(),
-                                           pstype);
 }
 
 GridLabDLoad::GridLabDLoad(const std::string& objName): RampLoad(objName)
@@ -1005,7 +981,8 @@ void GridLabDLoad::set(std::string_view param, std::string_view val)
 
 void GridLabDLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GridLabDLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GridLabDLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     // TODO(phlpt): Convert some of these to a setFlags function.

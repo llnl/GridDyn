@@ -31,26 +31,6 @@ const ModelDescription& IsocController::getModelDescription() const
     return description;
 }
 
-double IsocController::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            IsocController::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GridSubModel::get(param, unitType);
-}
-
-void IsocController::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = IsocController::getModelDescription();
-    getParamString<IsocController, GridSubModel>(this,
-                                                 pstr,
-                                                 description.numericNames(),
-                                                 description.stringNames(),
-                                                 description.flagNames(),
-                                                 pstype);
-}
-
 IsocController::IsocController(const std::string& objName): GridSubModel(objName) {}
 CoreObject* IsocController::clone(CoreObject* obj) const
 {
@@ -144,7 +124,8 @@ void IsocController::set(std::string_view param, std::string_view val)
 }
 void IsocController::set(std::string_view param, double val, units::unit unitType)
 {
-    if (IsocController::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            IsocController::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "m_output") {

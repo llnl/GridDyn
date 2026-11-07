@@ -41,21 +41,6 @@ const ModelDescription& ExponentialLoad::getModelDescription() const
     return description;
 }
 
-void ExponentialLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExponentialLoad::getModelDescription();
-    getParamString<ExponentialLoad, GridLoad>(
-        this, pstr, description.numericNames(), description.stringNames(), {}, pstype);
-}
-
-double ExponentialLoad::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExponentialLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GridLoad::get(param, unitType);
-}
 CoreObject* ExponentialLoad::clone(CoreObject* obj) const
 {
     auto* clonedLoad = cloneBase<ExponentialLoad, GridLoad>(this, obj);
@@ -71,22 +56,21 @@ CoreObject* ExponentialLoad::clone(CoreObject* obj) const
 // set properties
 void ExponentialLoad::set(std::string_view param, std::string_view val)
 {
-    if (!ExponentialLoad::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExponentialLoad::getModelDescription().trySetLocal(*this, param, val))) {
         GridLoad::set(param, val);
     }
 }
 void ExponentialLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (ExponentialLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
-        return;
-    }
-    if ((param == "alpha") || (param == "a")) {
+    const auto result =
+        ExponentialLoad::getModelDescription().trySetLocal(*this, param, val, unitType);
+    if (result == SetResult::COMMAND) {
         const auto converted = units::convert(val, unitType, units::one);
         if (!std::isfinite(converted)) {
             throw InvalidParameterValue(param);
         }
         alphaP = alphaQ = converted;
-    } else {
+    } else if (result == SetResult::NO_MATCH) {
         GridLoad::set(param, val, unitType);
     }
 }

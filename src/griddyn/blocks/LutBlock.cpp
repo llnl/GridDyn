@@ -31,17 +31,6 @@ const ModelDescription& LutBlock::getModelDescription() const
     return description;
 }
 
-void LutBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = LutBlock::getModelDescription();
-    getParamString<LutBlock, GridBlock>(this,
-                                        pstr,
-                                        description.numericNames(),
-                                        description.stringNames(),
-                                        description.flagNames(),
-                                        pstype);
-}
-
 LutBlock::LutBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(USE_STATE);
@@ -182,7 +171,7 @@ void LutBlock::set(std::string_view param, std::string_view val)
 
 void LutBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if (LutBlock::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(LutBlock::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (!param.empty() && param[0] != '#') {

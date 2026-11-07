@@ -92,17 +92,6 @@ const ModelDescription& GridSimulation::getModelDescription() const
     return description;
 }
 
-void GridSimulation::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = GridSimulation::getModelDescription();
-    getParamString<GridSimulation, GridArea>(this,
-                                             pstr,
-                                             description.numericNames(),
-                                             description.stringNames(),
-                                             description.flagNames(),
-                                             pstype);
-}
-
 GridSimulation::GridSimulation(const std::string& objName):
     GridArea(objName), simulationTime(timeZero)
 {
@@ -229,7 +218,7 @@ void GridSimulation::saveRecorders()
 static constexpr char consoleprint[] = "consoleprintlevel";
 void GridSimulation::set(std::string_view param, std::string_view val)
 {
-    if (GridSimulation::getModelDescription().trySetLocal(*this, param, val)) {
+    if (isSetHandled(GridSimulation::getModelDescription().trySetLocal(*this, param, val))) {
         return;
     }
     std::string temp;
@@ -275,7 +264,8 @@ std::string GridSimulation::getString(std::string_view param) const
 
 void GridSimulation::set(std::string_view param, double val, units::unit unitType)
 {
-    if (GridSimulation::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            GridSimulation::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if (param == "printlevel") {
@@ -454,8 +444,7 @@ void GridSimulation::alert(CoreObject* object, int code)
 
 double GridSimulation::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value =
-            GridSimulation::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = GridSimulation::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     count_t ival = kInvalidCount;

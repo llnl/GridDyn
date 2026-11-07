@@ -93,7 +93,7 @@ units or calculated meanings before default dispatch.
 A direct parameter, such as an exponent, can use the common helper immediately:
 
 ```cpp
-if (ExponentialLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+if (isSetHandled(ExponentialLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
     return;
 }
 // Handle alpha/a, then delegate to GridLoad::set.
@@ -127,6 +127,37 @@ Empty names and names beginning with `#` are accepted as no-op inputs by both
 Other numeric calls check finiteness before field-name lookup, including names
 that would otherwise be delegated to a parent.
 
+### Setter dispatch results
+
+`trySetLocal()` returns the single `SetResult` enumeration in every model:
+
+| Result            | Value | Meaning                                             |
+| ----------------- | ----- | --------------------------------------------------- |
+| `NO_MATCH`        | 0     | Continue class-specific handling or parent dispatch |
+| `PARAMETER`       | 1     | Conversion, validation, and assignment completed    |
+| `FLAG`            | 2     | Boolean dispatch through `setFlag()` completed      |
+| `COMMAND`         | 3     | A declared operation for the class to execute       |
+| `INDEXED_COMMAND` | 4     | An indexed operation for the class to execute       |
+| `IGNORED`         | 10    | An empty/comment name, handled before value checks  |
+
+`isSetHandled()` recognizes the completed results. Exact numeric Boolean commands
+return `FLAG` after their existing virtual flag dispatch. Setters that only need
+to distinguish completed operations use `isSetHandled(trySetLocal(...))`. Setters
+with custom operations can branch directly on `COMMAND` or `INDEXED_COMMAND`.
+A pending command must execute before returning; it is not a completed assignment.
+Invalid inputs continue to throw existing exceptions.
+
+`indexedCommand({"output"}, units::defunit, "Output mapping")` describes a
+command prefix followed by one or more decimal digits that fit `index_t`.
+Exact names within the same table take precedence. The prefix is exposed by
+`names()`, and the field kind `INDEXED_COMMAND` identifies the matching rule for
+external consumers.
+An unsuffixed operation can have a separate exact declaration with the same name.
+The class extracts the index and checks its own bounds; the result carries no
+index or field object. Indexed commands are excluded from field snapshots.
+Declarations include supported underscore and hash separators as
+prefix aliases, for example `a`, `a_`, and `a#`.
+
 ## Flags
 
 Flags are named Boolean controls and take no unit argument:
@@ -150,6 +181,74 @@ untouched.
 Flags have a separate `flagNames()` discovery list and `hasUnits()` is false.
 The flag declaration itself has neither numerical values nor units. Classes
 may keep special numeric flag validation, such as requiring exactly zero or one.
+
+## Default flag access
+
+Models with simple flag assignments inherit `setFlag` and `getFlag` rather than
+repeating local-table lookup and parent forwarding. Custom handlers use their
+qualified `Class::getModelDescription().trySetFlag` and `tryGetFlag` at the existing
+default-dispatch point. These helpers use the same derived-to-declaring-table
+boundary as numeric getters, leaving parent behavior to ordinary method dispatch.
+A stored false flag is a successful read, so it cannot fall through to a true
+parent flag with the same name.
+
+Only `flag` declarations use default flag access. Boolean commands, inverse
+aliases, notifications, linked controls and initialization-dependent changes
+continue through the class-specific handlers. Numeric setters still dispatch
+flags through virtual `setFlag`, preserving those handlers. Packed flags change
+only their declared bit; retained local bits are not settable flags. The local
+helpers remain available for explicitly local access and standalone views.
+
+## Default numeric getters
+
+Simple models inherit numeric `get` rather than overriding it just to read their
+declarations and delegate to a parent. A class with custom getter behavior uses
+its qualified `Class::getModelDescription().tryGet(object, name, units)` at its
+existing default-dispatch point. This helper reads from the object's most-derived
+table down through that declaring table, then stops. The class continues through
+its existing parent `get` when there is no declared numeric value.
+
+Stopping at the declaring table preserves parent-specific conversions and
+computed values. For example, a load's per-unit power still passes through its
+power-base conversion rather than a generic read of the parent's member. Direct
+parameters retain their declared units and flags return `1.0` or `0.0`. Local
+memory and solver-state declarations remain outside ordinary numeric reads.
+
+`tryGetLocal` continues to query only the receiving table. A standalone table
+outside the object's description chain also uses local behavior with `tryGet`.
+External clients continue to call the public `get`, so class-specific behavior
+runs. Custom branches that precede the default helper retain their precedence;
+GovernorGPWSCC and GovernorTG2 keep explicit getters because their `r` and
+`deadband` fields override different meanings in Governor's custom getter.
+GovernorGast and GovernorGgov1 also retain their valve-limit alias remapping.
+Base aliases now participate in default reads; callers that require physical
+units must request them. The RAW writer requests base frequency explicitly in Hz,
+so both 50 Hz and 60 Hz cases export without relying on a missing-alias fallback.
+
+## Parameter enumeration
+
+`CoreObject::getParameterStrings` uses the object's virtual `getModelDescription`
+and a shared `ModelDescription::getParameterStrings` implementation. Native
+models inherit this method; they do not maintain name arrays or enumeration
+overrides. Tools can also enumerate a particular declaring description directly.
+
+- `LOCAL_NUM`, `LOCAL_STR` and `LOCAL_FLAGS` replace the supplied vector with names
+  declared by that table, including aliases and command prefixes.
+- `NUMERIC`, `STR` and `FLAGS` append names from that table and then its ancestors.
+- `ALL` appends numeric names, one `#` separator, then string names. Flags remain a
+  separate category, matching the existing discovery convention.
+
+Ordering follows declarations within each category and the child-to-parent
+chain. Repeated names, including shadowed parent names, remain repeated as in the
+existing enumeration API. Solver state and retained local memory are excluded.
+An empty declaring table has empty local lists and still enumerates its parents
+for inherited queries.
+
+The declarations are now the source of names and categories throughout the native
+hierarchy, including CoreObject and GridComponent. Their former hand-maintained
+lists no longer omit aliases or list flags as ordinary numeric/string settings.
+Special set/get behavior continues in the class. FMI keeps its runtime-variable
+enumeration overrides and delegates native names to the inherited implementation.
 
 ## Solver state and retained local memory
 
@@ -240,3 +339,46 @@ bounds, special setter precedence, inheritance, exact clocks and malformed
 restore. `ExponentialParameterTests` exercises the model's equations, power units,
 control targets, fault notifications, role-based restoration and state lookup
 through changing solver layouts.
+
+### Dispatch and declaration audit
+
+Both setter overloads now return `SetResult` throughout the library. There is one
+`trySetLocal` API; the temporary result helper and Boolean overloads are removed.
+The common helper still examines only the declaring class. `NO_MATCH` permits
+existing custom handling or parent dispatch; it does not justify skipping those
+paths unless all local operations are described.
+
+The source review covered 215 declaring tables and 690 explicit `set`, `get`,
+`setFlag`, and `getFlag` implementations, including helper hierarchies. Literal
+branch comparisons were checked against local and inherited declarations;
+indexed parsing and forwarding aliases were examined separately. This is an
+inventory, not proof of complete checkpoint coverage.
+
+Declarations now include previously omitted core identity/scheduling operations,
+connection notifications, governor and exciter forwarding aliases, saturation
+selection, inverse load flags, load scaling operations and motor torque settings.
+Indexed declarations cover Subsystem terminals, AggregateLoad subloads and
+fractions, CompositeLoad components and fractions, FileLoad column mappings and
+GridLabDLoad instance files and working directories, alongside Sensor and
+TransferFunctionBlock. Existing class parsers still determine model-specific
+index bases, bounds, structural changes and side effects.
+
+The following require further work before descriptions can claim complete
+external-interface and checkpoint coverage:
+
+| Area                     | Remaining issue                                                                                                                                                                                                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Computed getters         | Counts, solver statistics, controller outputs and diagnostic values are often absent. They need a read-only description distinct from solver `state` and retained `localState`.                                                                               |
+| Legacy suffix parsing    | AcLine accepts redundant numeric suffixes; ZonalRelay parses only one digit and maps other suffixes to zone zero; ThreeWindingTransformer dispatches a fixed set of suffixed leg settings. These interfaces need consistent declarations and bounds behavior. |
+| Helper hierarchies       | Solvers, recorders, players, events, communications and optimizer interfaces derive from HelperObject rather than CoreObject. They do not share this description mechanism yet.                                                                               |
+| Optimization objects     | GridOptObject and its area/bus/generator/link/load/relay subclasses still lack their own tables, including indexed generator cost coefficients.                                                                                                               |
+| Command-backed data      | Describing a command does not save its values. Fractions, transfer-function coefficient arrays, relay zones, internal block settings and external-file configuration need underlying parameter/state bindings and restore coordination.                       |
+| Retained runtime history | Controller integrals, relay pending actions, file cursors and random-source state require a separate history audit.                                                                                                                                           |
+| Inherited restrictions   | Some models reject settings advertised by a parent table, such as REECB1 restrictions on REECA1 settings. Effective external descriptions must account for that.                                                                                              |
+| Overloaded command types | CoreObject accepts numeric IDs and also uses a string `id` as a rename operation. A command currently advertises one value type.                                                                                                                              |
+| External integrations    | FMI and HELICS remain deferred.                                                                                                                                                                                                                               |
+
+Do not declare computed outputs as retained memory merely to list their getters.
+Likewise, a command declaration must not be taken as evidence that the operation's
+configuration or runtime history is included in a field snapshot. Restore tests
+must verify the resulting model behavior as those bindings are added.

@@ -93,17 +93,6 @@ const ModelDescription& ExciterESST2A::getModelDescription() const
     return description;
 }
 
-void ExciterESST2A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterESST2A::getModelDescription();
-    getParamString<ExciterESST2A, Exciter>(this,
-                                           pstr,
-                                           description.numericNames(),
-                                           description.stringNames(),
-                                           description.flagNames(),
-                                           pstype);
-}
-
 ExciterESST2A::ExciterESST2A(const std::string& objName): Exciter(objName)
 {
     m_inputSize = exciterInputCount;
@@ -560,14 +549,15 @@ index_t ExciterESST2A::findIndex(std::string_view field, const SolverMode& sMode
 
 void ExciterESST2A::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterESST2A::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterESST2A::getModelDescription().trySetLocal(*this, param, val))) {
         Exciter::set(param, val);
     }
 }
 
 void ExciterESST2A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (ExciterESST2A::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            ExciterESST2A::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "ta" && val < 0.0) || (param == "ka" && val <= 0.0)) {
@@ -576,34 +566,10 @@ void ExciterESST2A::set(std::string_view param, double val, units::unit unitType
     Exciter::set(param, val, unitType);
 }
 
-double ExciterESST2A::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExciterESST2A::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Exciter::get(param, unitType);
-}
-
 bool ExciterESST2A::supportsLimiterSignal(ExciterLimiterSignal signal) const
 {
     return signal == ExciterLimiterSignal::OVER || underSelectorEnabled;
 }
 // NOLINTEND(readability-math-missing-parentheses)
-
-void ExciterESST2A::setFlag(std::string_view param, bool value)
-{
-    if (!ExciterESST2A::getModelDescription().trySetFlagLocal(*this, param, value)) {
-        Exciter::setFlag(param, value);
-    }
-}
-
-bool ExciterESST2A::getFlag(std::string_view param) const
-{
-    if (const auto value = ExciterESST2A::getModelDescription().tryGetFlagLocal(*this, param)) {
-        return *value;
-    }
-    return Exciter::getFlag(param);
-}
 
 }  // namespace griddyn::exciters

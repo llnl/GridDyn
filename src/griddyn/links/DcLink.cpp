@@ -23,21 +23,6 @@ namespace griddyn::links {
 using units::convert;
 using units::puMW;
 using units::unit;
-void DcLink::setFlag(std::string_view flag, bool val)
-{
-    if (!DcLink::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        Link::setFlag(flag, val);
-    }
-}
-
-bool DcLink::getFlag(std::string_view flag) const
-{
-    if (const auto value = DcLink::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return Link::getFlag(flag);
-}
-
 const ModelDescription& DcLink::getModelDescription() const
 {
     static const auto description = ModelDescription::define<DcLink>(
@@ -52,25 +37,6 @@ const ModelDescription& DcLink::getModelDescription() const
          command(
              {"model", "topology"}, units::defunit, "Configure model", ModelFieldType::STRING)});
     return description;
-}
-
-double DcLink::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = DcLink::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Link::get(param, unitType);
-}
-
-void DcLink::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = DcLink::getModelDescription();
-    getParamString<DcLink, Link>(this,
-                                 pstr,
-                                 description.numericNames(),
-                                 description.stringNames(),
-                                 description.flagNames(),
-                                 pstype);
 }
 
 DcLink::DcLink(const std::string& objName): Link(objName)
@@ -189,7 +155,7 @@ void DcLink::set(std::string_view param, std::string_view val)
 }
 void DcLink::set(std::string_view param, double val, unit unitType)
 {
-    if (DcLink::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(DcLink::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     Link::set(param, val, unitType);

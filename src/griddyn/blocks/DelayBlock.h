@@ -41,8 +41,6 @@ namespace griddyn::blocks {
 class DelayBlock: public GridBlock {
   public:
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
 
   protected:
     model_parameter mT1 = 0.1;  //!< Lag denominator time constant @f$T_1@f$.

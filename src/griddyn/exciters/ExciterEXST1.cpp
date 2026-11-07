@@ -76,17 +76,6 @@ const ModelDescription& ExciterEXST1::getModelDescription() const
     return description;
 }
 
-void ExciterEXST1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterEXST1::getModelDescription();
-    getParamString<ExciterEXST1, Exciter>(this,
-                                          pstr,
-                                          description.numericNames(),
-                                          description.stringNames(),
-                                          description.flagNames(),
-                                          pstype);
-}
-
 ExciterEXST1::ExciterEXST1(const std::string& objName): Exciter(objName)
 {
     m_inputSize = exciterInputCount;
@@ -433,14 +422,15 @@ ChangeCode ExciterEXST1::rootCheck(const IOdata& inputs,
 
 void ExciterEXST1::set(std::string_view param, std::string_view val)
 {
-    if (!ExciterEXST1::getModelDescription().trySetLocal(*this, param, val)) {
+    if (!isSetHandled(ExciterEXST1::getModelDescription().trySetLocal(*this, param, val))) {
         Exciter::set(param, val);
     }
 }
 
 void ExciterEXST1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (ExciterEXST1::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(
+            ExciterEXST1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "ka" || param == "ta") && val <= 0.0) {
@@ -448,15 +438,6 @@ void ExciterEXST1::set(std::string_view param, double val, units::unit unitType)
                                     " must be positive");
     }
     Exciter::set(param, val, unitType);
-}
-
-double ExciterEXST1::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExciterEXST1::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Exciter::get(param, unitType);
 }
 
 stringVec ExciterEXST1::localStateNames() const

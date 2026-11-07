@@ -23,10 +23,7 @@ namespace griddyn::blocks {
  */
 class PidBlock: public GridBlock {
   public:
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
 
   protected:
     double m_P = 1;  //!< proportional control constant

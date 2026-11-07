@@ -20,7 +20,6 @@ namespace griddyn::exciters {
 class ExciterESST3A: public Exciter {
   public:
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     enum ESST3AFlags {
         VR_LIMITED = OBJECT_FLAG5,
         VR_LIMIT_HIGH = OBJECT_FLAG6,
@@ -58,7 +57,6 @@ class ExciterESST3A: public Exciter {
 
     void set(std::string_view param, std::string_view val) override;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
     stringVec localStateNames() const override;
     index_t findIndex(std::string_view field, const SolverMode& sMode) const override;

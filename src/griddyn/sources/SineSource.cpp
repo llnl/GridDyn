@@ -41,25 +41,6 @@ const ModelDescription& SineSource::getModelDescription() const
     return description;
 }
 
-double SineSource::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = SineSource::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return PulseSource::get(param, unitType);
-}
-
-void SineSource::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = SineSource::getModelDescription();
-    getParamString<SineSource, PulseSource>(this,
-                                            pstr,
-                                            description.numericNames(),
-                                            description.stringNames(),
-                                            description.flagNames(),
-                                            pstype);
-}
-
 SineSource::SineSource(const std::string& objName, double startVal): PulseSource(objName, startVal)
 {
 }
@@ -152,7 +133,7 @@ void SineSource::set(std::string_view param, std::string_view val)
 }
 void SineSource::set(std::string_view param, double val, units::unit unitType)
 {
-    if (SineSource::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(SineSource::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         return;
     }
     if ((param == "a") || (param == "amplitude") || (param == "amp")) {

@@ -21,11 +21,6 @@ class AggregateLoad: public ZipLoad {
   private:
     // double sumFrac = 1.0;
   public:
-    bool getFlag(std::string_view flag) const override;
-    void setFlag(std::string_view flag, bool val = true) override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     const ModelDescription& getModelDescription() const override;
     //!< default constructor
     AggregateLoad(const std::string& objName = "compositeLoad_$");

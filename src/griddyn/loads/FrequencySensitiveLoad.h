@@ -35,7 +35,6 @@ class FrequencySensitiveLoad: public GridLoad {
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void

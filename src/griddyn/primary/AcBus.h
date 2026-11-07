@@ -156,8 +156,6 @@ class AcBus: public GridBus {
     using GridBus::reconnect;
     virtual void reconnect(GridBus* mapBus) override;
     // parameter set functions
-    virtual void getParameterStrings(stringVec& pstr,
-                                     ParamStringType pstype = ParamStringType::all) const override;
     /** @brief Set compute_frequency (alias use_frequency) or an inherited flag.
      * @details Enabling/disabling the estimator changes its owned subobject and must precede
      * dynamic initialization. Repeating the current setting is a no-op.

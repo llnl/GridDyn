@@ -21,7 +21,6 @@ conversions to positive sequence values.
 */
     class ThreePhaseLoad: public GridLoad {
       public:
-        bool getFlag(std::string_view flag) const override;
         const ModelDescription& getModelDescription() const override;
         enum ThreePhaseLoadFlags {
             USE_ABS_ANGLE = OBJECT_FLAG5,
@@ -46,8 +45,6 @@ conversions to positive sequence values.
         virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
         virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
-
-        virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
 
         virtual void set(std::string_view param, std::string_view val) override;
         virtual void

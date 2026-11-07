@@ -43,22 +43,6 @@ static void boundedIncrement(CountType& counter)
     }
 }
 
-void AdjustableTransformer::setFlag(std::string_view flag, bool val)
-{
-    if (!AdjustableTransformer::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        AcLine::setFlag(flag, val);
-    }
-}
-
-bool AdjustableTransformer::getFlag(std::string_view flag) const
-{
-    if (const auto value =
-            AdjustableTransformer::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return AcLine::getFlag(flag);
-}
-
 const ModelDescription& AdjustableTransformer::getModelDescription() const
 {
     static const auto description = ModelDescription::define<AdjustableTransformer>(
@@ -161,17 +145,6 @@ CoreObject* AdjustableTransformer::clone(CoreObject* obj) const
     return lnk;
 }
 
-void AdjustableTransformer::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = AdjustableTransformer::getModelDescription();
-    getParamString<AdjustableTransformer, AcLine>(this,
-                                                  pstr,
-                                                  description.numericNames(),
-                                                  description.stringNames(),
-                                                  description.flagNames(),
-                                                  pstype);
-}
-
 // set properties
 void AdjustableTransformer::set(std::string_view param, std::string_view val)
 {
@@ -223,7 +196,8 @@ void AdjustableTransformer::set(std::string_view param, std::string_view val)
 
 void AdjustableTransformer::set(std::string_view param, double val, unit unitType)
 {
-    if (AdjustableTransformer::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    if (isSetHandled(AdjustableTransformer::getModelDescription().trySetLocal(
+            *this, param, val, unitType))) {
         return;
     }
     if (param == "tap") {
@@ -369,7 +343,7 @@ void AdjustableTransformer::set(std::string_view param, double val, unit unitTyp
 double AdjustableTransformer::get(std::string_view param, units::unit unitType) const
 {
     if (const auto value =
-            AdjustableTransformer::getModelDescription().tryGetLocal(*this, param, unitType)) {
+            AdjustableTransformer::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     double val = kNullVal;

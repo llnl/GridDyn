@@ -226,17 +226,6 @@ const ModelDescription& SchedulerRamp::getModelDescription() const
     return description;
 }
 
-void SchedulerRamp::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = SchedulerRamp::getModelDescription();
-    getParamString<SchedulerRamp, Scheduler>(this,
-                                             pstr,
-                                             description.numericNames(),
-                                             description.stringNames(),
-                                             description.flagNames(),
-                                             pstype);
-}
-
 SchedulerRamp::SchedulerRamp(const std::string& objName): Scheduler(objName) {}
 
 SchedulerRamp::SchedulerRamp(double initialValue, const std::string& objName):
@@ -723,8 +712,7 @@ void SchedulerRamp::insertTarget(Tsched targetSchedule)
 
 double SchedulerRamp::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value =
-            SchedulerRamp::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = SchedulerRamp::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     if (param == "reserve") {

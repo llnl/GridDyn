@@ -13,8 +13,6 @@ namespace griddyn::links {
 /** @brief class defining a complete hvdc system including converters dc buses and dc line*/
 class Hvdc: public Subsystem {
   public:
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     /** hvdc helper flags*/
     enum HvdcFlags {

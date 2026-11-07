@@ -23,7 +23,6 @@ class GovernorTgov1Variant: public Governor {
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
     void set(std::string_view param, double value, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     void residual(const IOdata& inputs,
                   const StateData& stateData,
                   double resid[],

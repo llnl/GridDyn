@@ -13,17 +13,6 @@
 
 namespace griddyn {
 
-void REECB1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = REECB1::getModelDescription();
-    getParamString<REECB1, REECA1>(this,
-                                   pstr,
-                                   description.numericNames(),
-                                   description.stringNames(),
-                                   description.flagNames(),
-                                   pstype);
-}
-
 const ModelDescription& REECB1::getModelDescription() const
 {
     static const auto description =

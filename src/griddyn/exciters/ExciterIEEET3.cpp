@@ -68,17 +68,6 @@ const ModelDescription& ExciterIEEET3::getModelDescription() const
     return description;
 }
 
-void ExciterIEEET3::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterIEEET3::getModelDescription();
-    getParamString<ExciterIEEET3, Exciter>(this,
-                                           pstr,
-                                           description.numericNames(),
-                                           description.stringNames(),
-                                           description.flagNames(),
-                                           pstype);
-}
-
 ExciterIEEET3::ExciterIEEET3(const std::string& objName): Exciter(objName)
 {
     m_inputSize = exciterInputCount;
@@ -477,13 +466,5 @@ void ExciterIEEET3::set(std::string_view param, double val, units::unit unitType
     }
 }
 
-double ExciterIEEET3::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExciterIEEET3::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Exciter::get(param, unitType);
-}
 // NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::exciters

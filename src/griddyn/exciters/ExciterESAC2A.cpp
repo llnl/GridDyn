@@ -67,17 +67,6 @@ const ModelDescription& ExciterESAC2A::getModelDescription() const
     return description;
 }
 
-void ExciterESAC2A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterESAC2A::getModelDescription();
-    getParamString<ExciterESAC2A, Exciter>(this,
-                                           pstr,
-                                           description.numericNames(),
-                                           description.stringNames(),
-                                           description.flagNames(),
-                                           pstype);
-}
-
 ExciterESAC2A::ExciterESAC2A(const std::string& objName): Exciter(objName)
 {
     Ka = 400.0;
@@ -583,15 +572,6 @@ void ExciterESAC2A::set(std::string_view param, double val, units::unit unitType
     Exciter::set(param, val, unitType);
 }
 
-double ExciterESAC2A::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExciterESAC2A::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Exciter::get(param, unitType);
-}
-
 bool ExciterESAC2A::supportsLimiterSignal(ExciterLimiterSignal signal) const
 {
     return signal == ExciterLimiterSignal::UNDER ? underSelectorEnabled : overSelectorEnabled;
@@ -602,21 +582,6 @@ void ExciterESAC2A::set(std::string_view param, std::string_view val)
     if (!isSetHandled(ExciterESAC2A::getModelDescription().trySetLocal(*this, param, val))) {
         Exciter::set(param, val);
     }
-}
-
-void ExciterESAC2A::setFlag(std::string_view param, bool value)
-{
-    if (!ExciterESAC2A::getModelDescription().trySetFlagLocal(*this, param, value)) {
-        Exciter::setFlag(param, value);
-    }
-}
-
-bool ExciterESAC2A::getFlag(std::string_view param) const
-{
-    if (const auto value = ExciterESAC2A::getModelDescription().tryGetFlagLocal(*this, param)) {
-        return *value;
-    }
-    return Exciter::getFlag(param);
 }
 
 }  // namespace griddyn::exciters

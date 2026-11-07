@@ -98,17 +98,6 @@ const ModelDescription& ExciterAC8B::getModelDescription() const
     return description;
 }
 
-void ExciterAC8B::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterAC8B::getModelDescription();
-    getParamString<ExciterAC8B, Exciter>(this,
-                                         pstr,
-                                         description.numericNames(),
-                                         description.stringNames(),
-                                         description.flagNames(),
-                                         pstype);
-}
-
 ExciterAC8B::ExciterAC8B(const std::string& objName): Exciter(objName)
 {
     m_inputSize = exciterInputCount;
@@ -689,12 +678,5 @@ void ExciterAC8B::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-double ExciterAC8B::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = ExciterAC8B::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Exciter::get(param, unitType);
-}
 // NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::exciters

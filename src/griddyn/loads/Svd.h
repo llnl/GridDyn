@@ -15,8 +15,6 @@ namespace griddyn::loads {
 /** @brief defining the interface for a static var device*/
 class Svd: public RampLoad {
   public:
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     /** flags used for Svd operation*/
     enum SvdFlags {

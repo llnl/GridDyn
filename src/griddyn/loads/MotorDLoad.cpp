@@ -273,17 +273,6 @@ CoreObject* MotorDLoad::clone(CoreObject* obj) const
     return (copied == nullptr) ? obj : copied;
 }
 
-void MotorDLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = MotorDLoad::getModelDescription();
-    getParamString<MotorDLoad, GridLoad>(this,
-                                         pstr,
-                                         description.numericNames(),
-                                         description.stringNames(),
-                                         description.flagNames(),
-                                         pstype);
-}
-
 void MotorDLoad::set(std::string_view param, std::string_view val)
 {
     GridLoad::set(param, val);
@@ -295,15 +284,6 @@ void MotorDLoad::set(std::string_view param, double val, units::unit unitType)
         return;
     }
     GridLoad::set(param, val, unitType);
-}
-
-double MotorDLoad::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = MotorDLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-
-    return GridLoad::get(param, unitType);
 }
 
 void MotorDLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)

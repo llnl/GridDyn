@@ -314,12 +314,4 @@ void GovernorTgov1Variant::set(std::string_view param, double value, units::unit
     }
     Governor::set(param, value, unitType);
 }
-double GovernorTgov1Variant::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto result =
-            GovernorTgov1Variant::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *result;
-    }
-    return Governor::get(param, unitType);
-}
 }  // namespace griddyn::governors

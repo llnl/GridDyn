@@ -26,11 +26,7 @@ namespace griddyn::blocks {
  */
 class BlockSequence: public GridBlock {
   public:
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
-    bool getFlag(std::string_view flag) const override;
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
 
   protected:
     enum SequenceFlags {
@@ -61,7 +57,6 @@ class BlockSequence: public GridBlock {
     virtual void add(CoreObject* obj) override;
     virtual void add(GridBlock* blk);
 
-    virtual void setFlag(std::string_view flag, bool val) override;
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;

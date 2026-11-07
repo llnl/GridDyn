@@ -92,17 +92,6 @@ const ModelDescription& GridSimulation::getModelDescription() const
     return description;
 }
 
-void GridSimulation::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = GridSimulation::getModelDescription();
-    getParamString<GridSimulation, GridArea>(this,
-                                             pstr,
-                                             description.numericNames(),
-                                             description.stringNames(),
-                                             description.flagNames(),
-                                             pstype);
-}
-
 GridSimulation::GridSimulation(const std::string& objName):
     GridArea(objName), simulationTime(timeZero)
 {
@@ -455,8 +444,7 @@ void GridSimulation::alert(CoreObject* object, int code)
 
 double GridSimulation::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value =
-            GridSimulation::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = GridSimulation::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     count_t ival = kInvalidCount;

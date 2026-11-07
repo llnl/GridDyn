@@ -177,12 +177,4 @@ void StabilizerPss2b::set(std::string_view param, double val, units::unit unitTy
     }
 }
 
-double StabilizerPss2b::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            StabilizerPss2b::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return StabilizerPss2a::get(param, unitType);
-}
 }  // namespace griddyn::stabilizers

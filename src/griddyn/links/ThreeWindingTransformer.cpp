@@ -48,17 +48,6 @@ const ModelDescription& ThreeWindingTransformer::getModelDescription() const
     return description;
 }
 
-void ThreeWindingTransformer::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ThreeWindingTransformer::getModelDescription();
-    getParamString<ThreeWindingTransformer, Subsystem>(this,
-                                                       pstr,
-                                                       description.numericNames(),
-                                                       description.stringNames(),
-                                                       description.flagNames(),
-                                                       pstype);
-}
-
 ThreeWindingTransformer::ThreeWindingTransformer(const std::string& objName): Subsystem(objName)
 {
     // Subsystem defaults to two terminals.  Use its resize routine so the
@@ -293,7 +282,7 @@ void ThreeWindingTransformer::updateBus(GridBus* bus, index_t busnumber)
 double ThreeWindingTransformer::get(std::string_view param, units::unit unitType) const
 {
     if (const auto value =
-            ThreeWindingTransformer::getModelDescription().tryGetLocal(*this, param, unitType)) {
+            ThreeWindingTransformer::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     std::string baseParam;

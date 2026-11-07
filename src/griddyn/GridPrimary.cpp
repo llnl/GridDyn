@@ -27,17 +27,6 @@ const ModelDescription& GridPrimary::getModelDescription() const
     return description;
 }
 
-void GridPrimary::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = GridPrimary::getModelDescription();
-    getParamString<GridPrimary, GridComponent>(this,
-                                               pstr,
-                                               description.numericNames(),
-                                               description.stringNames(),
-                                               description.flagNames(),
-                                               pstype);
-}
-
 GridPrimary::GridPrimary(const std::string& objName): GridComponent(objName) {}
 CoreObject* GridPrimary::clone(CoreObject* obj) const
 {
@@ -83,15 +72,6 @@ void GridPrimary::set(std::string_view param, double val, units::unit unitType)
         return;
     }
     GridComponent::set(param, val, unitType);
-}
-
-double GridPrimary::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = GridPrimary::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-
-    return GridComponent::get(param, unitType);
 }
 
 void GridPrimary::converge(CoreTime /*time*/,

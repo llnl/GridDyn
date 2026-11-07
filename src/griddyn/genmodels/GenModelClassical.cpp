@@ -458,7 +458,7 @@ double GenModelClassical::get(std::string_view param, units::unit unitType) cons
         return units::convert(D, units::puHz, unitType, systemBaseFrequency);
     }
     if (const auto value =
-            GenModelClassical::getModelDescription().tryGetLocal(*this, param, unitType)) {
+            GenModelClassical::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     return GenModel::get(param, unitType);

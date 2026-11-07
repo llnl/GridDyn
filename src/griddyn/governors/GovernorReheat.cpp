@@ -260,8 +260,7 @@ double GovernorReheat::get(std::string_view param, unit unitType) const
     if (param == "k1") {
         return K;
     }
-    if (const auto value =
-            GovernorReheat::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = GovernorReheat::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     return Governor::get(param, unitType);

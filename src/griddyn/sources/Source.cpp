@@ -58,17 +58,6 @@ std::string Source::getString(std::string_view param) const
     return GridSubModel::getString(param);
 }
 
-void Source::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = Source::getModelDescription();
-    getParamString<Source, GridSubModel>(this,
-                                         pstr,
-                                         description.numericNames(),
-                                         description.stringNames(),
-                                         description.flagNames(),
-                                         pstype);
-}
-
 Source::Source(const std::string& objName, double startVal):
     GridSubModel(objName), m_tempOut(startVal)
 {

@@ -18,7 +18,6 @@
 #include "DcBus.h"
 #include "InfiniteBus.h"
 #include "core/CoreExceptions.h"
-#include "core/CoreObjectTemplates.hpp"
 #include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
@@ -566,17 +565,6 @@ void GridBus::setAll(std::string_view objtype,
     } else {
         GridPrimary::setAll(objtype, param, val, unitType);
     }
-}
-
-void GridBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = GridBus::getModelDescription();
-    getParamString<GridBus, GridPrimary>(this,
-                                         pstr,
-                                         description.numericNames(),
-                                         description.stringNames(),
-                                         description.flagNames(),
-                                         pstype);
 }
 
 void GridBus::setFlag(std::string_view flag, bool val)
@@ -1387,7 +1375,7 @@ void GridBus::removePowerControl(GridComponent* /*obj*/) {}
 
 double GridBus::get(std::string_view param, unit unitType) const
 {
-    if (const auto value = GridBus::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = GridBus::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     double val;

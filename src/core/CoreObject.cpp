@@ -149,56 +149,9 @@ void CoreObject::addOwningReference()
     m_refCount.fetch_add(1, std::memory_order_relaxed);
 }
 
-static constexpr std::array<std::string_view, 7> locNumStrings{"updateperiod",
-                                                               "updaterate",
-                                                               "nextupdatetime",
-                                                               "basepower",
-                                                               "enabled",
-                                                               "id",
-                                                               "updatedelay"};
-static constexpr std::array<std::string_view, 2> locStrStrings{"name", "description"};
-
 void CoreObject::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    switch (pstype) {
-        case ParamStringType::ALL:
-            pstr.reserve(pstr.size() + locNumStrings.size() + locStrStrings.size() + 1);
-            for (const auto paramName : locNumStrings) {
-                pstr.emplace_back(paramName);
-            }
-            pstr.emplace_back("#");
-            for (const auto paramName : locStrStrings) {
-                pstr.emplace_back(paramName);
-            }
-            break;
-        case ParamStringType::LOCAL_NUM:
-            pstr.assign(locNumStrings.begin(), locNumStrings.end());
-            break;
-        case ParamStringType::LOCAL_STR:
-            pstr.assign(locStrStrings.begin(), locStrStrings.end());
-            break;
-        case ParamStringType::NUMERIC:
-            pstr.reserve(pstr.size() + locNumStrings.size());
-            for (const auto paramName : locNumStrings) {
-                pstr.emplace_back(paramName);
-            }
-            break;
-        case ParamStringType::STR:
-            pstr.reserve(pstr.size() + locStrStrings.size());
-            for (const auto paramName : locStrStrings) {
-                pstr.emplace_back(paramName);
-            }
-            break;
-        case ParamStringType::LOCAL_FLAGS:
-            pstr.assign(CoreObject::getModelDescription().flagNames().begin(),
-                        CoreObject::getModelDescription().flagNames().end());
-            break;
-        case ParamStringType::FLAGS:
-            pstr.insert(pstr.end(),
-                        CoreObject::getModelDescription().flagNames().begin(),
-                        CoreObject::getModelDescription().flagNames().end());
-            break;
-    }
+    getModelDescription().getParameterStrings(pstr, pstype);
 }
 
 void CoreObject::set(std::string_view param, std::string_view val)  // NOLINT(misc-no-recursion)
@@ -299,6 +252,8 @@ void CoreObject::setFlag(std::string_view flag, bool val)  // NOLINT(misc-no-rec
         alert(this, OBJECT_IS_SEARCHABLE);
     } else if (flag == "hasupdates") {
         alert(this, UPDATE_REQUIRED);
+    } else if (CoreObject::getModelDescription().trySetFlag(*this, flag, val)) {
+        return;
     } else if ((flag.empty()) || (flag.front() == '#')) {
         // comment parameter meant to do nothing
     } else {
@@ -314,16 +269,11 @@ void CoreObject::setFlag(std::string_view flag, bool val)  // NOLINT(misc-no-rec
 
 bool CoreObject::getFlag(std::string_view flag) const
 {
-    if (const auto* declared = CoreObject::getModelDescription().findLocal(flag)) {
-        flag = declared->name();
+    if (const auto* field = CoreObject::getModelDescription().findLocal(flag);
+        field != nullptr && field->name() == "enabled") {
+        return isEnabled();
     }
-    bool ret = false;
-    if (flag == "enabled") {
-        ret = isEnabled();
-    } else if (flag == "updates") {
-        ret = hasUpdates();
-    }
-    return ret;
+    return CoreObject::getModelDescription().tryGetFlag(*this, flag).value_or(false);
 }
 
 double CoreObject::get(std::string_view param, units::unit unitType) const
@@ -340,7 +290,7 @@ double CoreObject::get(std::string_view param, units::unit unitType) const
     } else if (param == "lastupdate") {
         val = static_cast<double>(lastUpdateTime);
     } else if (const auto value =
-                   CoreObject::getModelDescription().tryGetLocal(*this, param, unitType)) {
+                   CoreObject::getModelDescription().tryGet(*this, param, unitType)) {
         val = *value;
     }
     return val;

@@ -25,25 +25,6 @@ const ModelDescription& RampSource::getModelDescription() const
     return description;
 }
 
-double RampSource::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = RampSource::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Source::get(param, unitType);
-}
-
-void RampSource::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = RampSource::getModelDescription();
-    getParamString<RampSource, Source>(this,
-                                       pstr,
-                                       description.numericNames(),
-                                       description.stringNames(),
-                                       description.flagNames(),
-                                       pstype);
-}
-
 RampSource::RampSource(const std::string& objName, double startVal): Source(objName, startVal) {}
 CoreObject* RampSource::clone(CoreObject* obj) const
 {

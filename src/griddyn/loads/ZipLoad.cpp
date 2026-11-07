@@ -17,7 +17,6 @@
 #include "SourceLoad.h"
 #include "ThreePhaseLoad.h"
 #include "core/CoreExceptions.h"
-#include "core/CoreObjectTemplates.hpp"
 #include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "utilities/MatrixData.hpp"
@@ -73,14 +72,6 @@ namespace loads {
         gApproximatingLoadFactory("load",
                                   std::to_array<std::string_view>({"approx", "approximating"}));
 }  // namespace loads
-
-bool ZipLoad::getFlag(std::string_view flag) const
-{
-    if (const auto value = ZipLoad::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return GridLoad::getFlag(flag);
-}
 
 const ModelDescription& ZipLoad::getModelDescription() const
 {
@@ -206,17 +197,6 @@ void ZipLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*
 #endif
 }
 
-void ZipLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ZipLoad::getModelDescription();
-    getParamString<ZipLoad, GridLoad>(this,
-                                      pstr,
-                                      description.numericNames(),
-                                      description.stringNames(),
-                                      description.flagNames(),
-                                      pstype);
-}
-
 void ZipLoad::setFlag(std::string_view flag, bool val)
 {
     if (flag == "usepowerfactor") {
@@ -234,7 +214,7 @@ void ZipLoad::setFlag(std::string_view flag, bool val)
             Vpqmax = 100;
             Vpqmin = -1.0;
         }
-    } else if (!ZipLoad::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+    } else if (!ZipLoad::getModelDescription().trySetFlag(*this, flag, val)) {
         GridLoad::setFlag(flag, val);
     }
 }
@@ -250,7 +230,7 @@ void ZipLoad::set(std::string_view param, std::string_view val)
 
 double ZipLoad::get(std::string_view param, unit unitType) const
 {
-    if (const auto value = ZipLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = ZipLoad::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     double val = kNullVal;

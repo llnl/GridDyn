@@ -37,17 +37,6 @@ const ModelDescription& SchedulerReg::getModelDescription() const
     return description;
 }
 
-void SchedulerReg::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = SchedulerReg::getModelDescription();
-    getParamString<SchedulerReg, SchedulerRamp>(this,
-                                                pstr,
-                                                description.numericNames(),
-                                                description.stringNames(),
-                                                description.flagNames(),
-                                                pstype);
-}
-
 SchedulerReg::SchedulerReg(const std::string& objName):
     SchedulerRamp(objName), regMax(pMax), regMin(pMin), regRampUp(rampUp), regRampDown(rampDown)
 {

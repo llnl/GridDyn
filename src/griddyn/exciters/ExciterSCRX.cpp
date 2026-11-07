@@ -137,17 +137,6 @@ const ModelDescription& ExciterSCRX::getModelDescription() const
     return description;
 }
 
-void ExciterSCRX::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterSCRX::getModelDescription();
-    getParamString<ExciterSCRX, Exciter>(this,
-                                         pstr,
-                                         description.numericNames(),
-                                         description.stringNames(),
-                                         description.flagNames(),
-                                         pstype);
-}
-
 ExciterSCRX::ExciterSCRX(const std::string& objName): Exciter(objName)
 {
     m_inputSize = exciterInputCount;
@@ -605,7 +594,7 @@ double ExciterSCRX::get(std::string_view param, units::unit unitType) const
     if ((param == "emax") || (param == "efdmax")) {
         return Exciter::get("vrmax", unitType);
     }
-    if (const auto value = ExciterSCRX::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = ExciterSCRX::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     return Exciter::get(param, unitType);
@@ -613,21 +602,6 @@ double ExciterSCRX::get(std::string_view param, units::unit unitType) const
 bool ExciterSCRX::supportsLimiterSignal(ExciterLimiterSignal /*signal*/) const
 {
     return true;
-}
-
-void ExciterSCRX::setFlag(std::string_view param, bool value)
-{
-    if (!ExciterSCRX::getModelDescription().trySetFlagLocal(*this, param, value)) {
-        Exciter::setFlag(param, value);
-    }
-}
-
-bool ExciterSCRX::getFlag(std::string_view param) const
-{
-    if (const auto value = ExciterSCRX::getModelDescription().tryGetFlagLocal(*this, param)) {
-        return *value;
-    }
-    return Exciter::getFlag(param);
 }
 
 }  // namespace griddyn::exciters

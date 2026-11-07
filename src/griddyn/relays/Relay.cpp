@@ -102,7 +102,7 @@ const ModelDescription& Relay::getModelDescription() const
 
 bool Relay::getFlag(std::string_view flag) const
 {
-    if (const auto value = Relay::getModelDescription().tryGetFlagLocal(*this, flag)) {
+    if (const auto value = Relay::getModelDescription().tryGetFlag(*this, flag)) {
         return *value;
     }
     if (flag == "continuous") {
@@ -112,17 +112,6 @@ bool Relay::getFlag(std::string_view flag) const
         return !opFlags[CONTINUOUS_FLAG];
     }
     return GridPrimary::getFlag(flag);
-}
-
-void Relay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = Relay::getModelDescription();
-    getParamString<Relay, GridPrimary>(this,
-                                       pstr,
-                                       description.numericNames(),
-                                       description.stringNames(),
-                                       description.flagNames(),
-                                       pstype);
 }
 
 Relay::Relay(const std::string& objName): GridPrimary(objName)
@@ -454,7 +443,7 @@ void Relay::set(std::string_view param, double val, units::unit unitType)
 
 double Relay::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value = Relay::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = Relay::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     auto fptr = getObjectFunction(this, param);
@@ -470,7 +459,7 @@ double Relay::get(std::string_view param, units::unit unitType) const
 
 void Relay::setFlag(std::string_view flag, bool val)
 {
-    if (Relay::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+    if (Relay::getModelDescription().trySetFlag(*this, flag, val)) {
         return;
     }
     if (flag == "continuous") {

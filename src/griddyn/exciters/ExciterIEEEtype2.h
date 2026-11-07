@@ -17,7 +17,6 @@ class ExciterIEEEtype2: public ExciterIEEEtype1 {
     double Tf2 = 1.0;  // [s]    stabilizer time constant
   public:
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     explicit ExciterIEEEtype2(const std::string& objName = "exciterIEEEtype2_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;

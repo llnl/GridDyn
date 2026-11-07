@@ -629,8 +629,7 @@ void GovernorGPWSCC::set(std::string_view param, double val, units::unit unitTyp
 
 double GovernorGPWSCC::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto result =
-            GovernorGPWSCC::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto result = GovernorGPWSCC::getModelDescription().tryGet(*this, param, unitType)) {
         return *result;
     }
     return Governor::get(param, unitType);

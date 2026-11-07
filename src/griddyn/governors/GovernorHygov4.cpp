@@ -313,12 +313,4 @@ void GovernorHygov4::set(std::string_view param, double value, units::unit unitT
     }
     Governor::set(param, value, unitType);
 }
-double GovernorHygov4::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto result =
-            GovernorHygov4::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *result;
-    }
-    return Governor::get(param, unitType);
-}
 }  // namespace griddyn::governors

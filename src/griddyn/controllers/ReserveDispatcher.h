@@ -19,10 +19,7 @@ class SchedulerRamp;
  */
 class ReserveDispatcher: public CoreObject {
   public:
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
 
   protected:
     double thresholdStart = kBigNum;

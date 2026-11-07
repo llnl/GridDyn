@@ -35,17 +35,6 @@ const ModelDescription& ExciterIEEEtype2::getModelDescription() const
     return description;
 }
 
-void ExciterIEEEtype2::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterIEEEtype2::getModelDescription();
-    getParamString<ExciterIEEEtype2, ExciterIEEEtype1>(this,
-                                                       pstr,
-                                                       description.numericNames(),
-                                                       description.stringNames(),
-                                                       description.flagNames(),
-                                                       pstype);
-}
-
 ExciterIEEEtype2::ExciterIEEEtype2(const std::string& objName): ExciterIEEEtype1(objName) {}
 
 // cloning function
@@ -297,8 +286,7 @@ double ExciterIEEEtype2::get(std::string_view param, units::unit unitType) const
     if (param == "tf1") {
         return ExciterIEEEtype1::get("tf", unitType);
     }
-    if (const auto value =
-            ExciterIEEEtype2::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = ExciterIEEEtype2::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     return ExciterIEEEtype1::get(param, unitType);

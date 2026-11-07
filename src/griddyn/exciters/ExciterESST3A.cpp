@@ -102,17 +102,6 @@ const ModelDescription& ExciterESST3A::getModelDescription() const
     return description;
 }
 
-void ExciterESST3A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterESST3A::getModelDescription();
-    getParamString<ExciterESST3A, Exciter>(this,
-                                           pstr,
-                                           description.numericNames(),
-                                           description.stringNames(),
-                                           description.flagNames(),
-                                           pstype);
-}
-
 ExciterESST3A::ExciterESST3A(const std::string& objName): Exciter(objName)
 {
     m_inputSize = exciterInputCount;
@@ -634,15 +623,6 @@ void ExciterESST3A::set(std::string_view param, double val, units::unit unitType
         throw InvalidParameterValue("ESST3A ta must be nonnegative");
     }
     Exciter::set(param, val, unitType);
-}
-
-double ExciterESST3A::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExciterESST3A::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Exciter::get(param, unitType);
 }
 
 stringVec ExciterESST3A::localStateNames() const

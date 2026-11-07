@@ -41,7 +41,7 @@ double GenModel5::get(std::string_view param, units::unit unitType) const
     if (param == "xpp") {
         return GenModel5::get("xdpp", unitType);
     }
-    if (const auto value = GenModel5::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = GenModel5::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     return GenModel4::get(param, unitType);

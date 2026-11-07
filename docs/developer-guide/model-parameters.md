@@ -182,6 +182,74 @@ Flags have a separate `flagNames()` discovery list and `hasUnits()` is false.
 The flag declaration itself has neither numerical values nor units. Classes
 may keep special numeric flag validation, such as requiring exactly zero or one.
 
+## Default flag access
+
+Models with simple flag assignments inherit `setFlag` and `getFlag` rather than
+repeating local-table lookup and parent forwarding. Custom handlers use their
+qualified `Class::getModelDescription().trySetFlag` and `tryGetFlag` at the existing
+default-dispatch point. These helpers use the same derived-to-declaring-table
+boundary as numeric getters, leaving parent behavior to ordinary method dispatch.
+A stored false flag is a successful read, so it cannot fall through to a true
+parent flag with the same name.
+
+Only `flag` declarations use default flag access. Boolean commands, inverse
+aliases, notifications, linked controls and initialization-dependent changes
+continue through the class-specific handlers. Numeric setters still dispatch
+flags through virtual `setFlag`, preserving those handlers. Packed flags change
+only their declared bit; retained local bits are not settable flags. The local
+helpers remain available for explicitly local access and standalone views.
+
+## Default numeric getters
+
+Simple models inherit numeric `get` rather than overriding it just to read their
+declarations and delegate to a parent. A class with custom getter behavior uses
+its qualified `Class::getModelDescription().tryGet(object, name, units)` at its
+existing default-dispatch point. This helper reads from the object's most-derived
+table down through that declaring table, then stops. The class continues through
+its existing parent `get` when there is no declared numeric value.
+
+Stopping at the declaring table preserves parent-specific conversions and
+computed values. For example, a load's per-unit power still passes through its
+power-base conversion rather than a generic read of the parent's member. Direct
+parameters retain their declared units and flags return `1.0` or `0.0`. Local
+memory and solver-state declarations remain outside ordinary numeric reads.
+
+`tryGetLocal` continues to query only the receiving table. A standalone table
+outside the object's description chain also uses local behavior with `tryGet`.
+External clients continue to call the public `get`, so class-specific behavior
+runs. Custom branches that precede the default helper retain their precedence;
+GovernorGPWSCC and GovernorTG2 keep explicit getters because their `r` and
+`deadband` fields override different meanings in Governor's custom getter.
+GovernorGast and GovernorGgov1 also retain their valve-limit alias remapping.
+Base aliases now participate in default reads; callers that require physical
+units must request them. The RAW writer requests base frequency explicitly in Hz,
+so both 50 Hz and 60 Hz cases export without relying on a missing-alias fallback.
+
+## Parameter enumeration
+
+`CoreObject::getParameterStrings` uses the object's virtual `getModelDescription`
+and a shared `ModelDescription::getParameterStrings` implementation. Native
+models inherit this method; they do not maintain name arrays or enumeration
+overrides. Tools can also enumerate a particular declaring description directly.
+
+- `LOCAL_NUM`, `LOCAL_STR` and `LOCAL_FLAGS` replace the supplied vector with names
+  declared by that table, including aliases and command prefixes.
+- `NUMERIC`, `STR` and `FLAGS` append names from that table and then its ancestors.
+- `ALL` appends numeric names, one `#` separator, then string names. Flags remain a
+  separate category, matching the existing discovery convention.
+
+Ordering follows declarations within each category and the child-to-parent
+chain. Repeated names, including shadowed parent names, remain repeated as in the
+existing enumeration API. Solver state and retained local memory are excluded.
+An empty declaring table has empty local lists and still enumerates its parents
+for inherited queries.
+
+The declarations are now the source of names and categories throughout the native
+hierarchy, including CoreObject and GridComponent. Their former hand-maintained
+lists no longer omit aliases or list flags as ordinary numeric/string settings.
+Special set/get behavior continues in the class. FMI keeps its runtime-variable
+enumeration overrides and delegates native names to the inherited implementation.
+
 ## Solver state and retained local memory
 
 Solver-state declarations identify logical variables, not fixed offsets:

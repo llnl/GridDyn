@@ -52,8 +52,6 @@ class BusMeasurementSensor: public Sensor {
 class PLLSensor: public BusMeasurementSensor {
   public:
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     explicit PLLSensor(const std::string& name = "PLL_#", bool voltagePhase = false);
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     using BusMeasurementSensor::set;
@@ -107,8 +105,6 @@ class PLL2Sensor final: public PLLSensor {
 class BusROCOFSensor final: public BusMeasurementSensor {
   public:
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     explicit BusROCOFSensor(const std::string& name = "BUSROCOF_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     using BusMeasurementSensor::set;

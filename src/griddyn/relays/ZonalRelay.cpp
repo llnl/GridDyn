@@ -52,25 +52,6 @@ const ModelDescription& ZonalRelay::getModelDescription() const
     return description;
 }
 
-bool ZonalRelay::getFlag(std::string_view flag) const
-{
-    if (const auto value = ZonalRelay::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return Relay::getFlag(flag);
-}
-
-void ZonalRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ZonalRelay::getModelDescription();
-    getParamString<ZonalRelay, Relay>(this,
-                                      pstr,
-                                      description.numericNames(),
-                                      description.stringNames(),
-                                      description.flagNames(),
-                                      pstype);
-}
-
 ZonalRelay::ZonalRelay(const std::string& objName): Relay(objName)
 {
     opFlags.set(CONTINUOUS_FLAG);
@@ -93,13 +74,6 @@ CoreObject* ZonalRelay::clone(CoreObject* obj) const
     return nobj;
 }
 
-void ZonalRelay::setFlag(std::string_view flag, bool val)
-{
-    if (ZonalRelay::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        return;
-    }
-    Relay::setFlag(flag, val);
-}
 /*
 std::string commDestName;
 std::uint64_t commDestId=0;
@@ -187,7 +161,7 @@ void ZonalRelay::set(std::string_view param, double val, units::unit unitType)
 
 double ZonalRelay::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value = ZonalRelay::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = ZonalRelay::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     double val;

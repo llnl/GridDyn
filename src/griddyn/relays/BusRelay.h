@@ -15,8 +15,6 @@ with a controllable delay time operates on undervoltage and underfrequency
 class BusRelay: public Relay {
   public:
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     enum BusRelayFlags {
         NONDIRECTIONAL_FLAG = OBJECT_FLAG10,  //!< specify that the relay is non directional
     };

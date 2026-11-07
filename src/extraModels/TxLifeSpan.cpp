@@ -44,25 +44,6 @@ const ModelDescription& TxLifeSpan::getModelDescription() const
     return description;
 }
 
-bool TxLifeSpan::getFlag(std::string_view flag) const
-{
-    if (const auto value = TxLifeSpan::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return Sensor::getFlag(flag);
-}
-
-void TxLifeSpan::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = TxLifeSpan::getModelDescription();
-    getParamString<TxLifeSpan, Sensor>(this,
-                                       pstr,
-                                       description.numericNames(),
-                                       description.stringNames(),
-                                       description.flagNames(),
-                                       pstype);
-}
-
 TxLifeSpan::TxLifeSpan(const std::string& objName): Sensor(objName)
 {
     opFlags.reset(CONTINUOUS_FLAG);  // this is a not a continuous model everything is slow so
@@ -87,7 +68,7 @@ CoreObject* TxLifeSpan::clone(CoreObject* obj) const
 
 void TxLifeSpan::setFlag(std::string_view flag, bool val)
 {
-    if (TxLifeSpan::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+    if (TxLifeSpan::getModelDescription().trySetFlag(*this, flag, val)) {
         return;
     }
     if ((flag == "useieee") || (flag == "ieee")) {
@@ -111,14 +92,6 @@ void TxLifeSpan::set(std::string_view param, double val, units::unit unitType)
         return;
     }
     Sensor::set(param, val, unitType);
-}
-
-double TxLifeSpan::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = TxLifeSpan::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Sensor::get(param, unitType);
 }
 
 void TxLifeSpan::add(CoreObject* /*obj*/)

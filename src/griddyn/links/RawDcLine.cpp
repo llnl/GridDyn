@@ -7,7 +7,6 @@
 #include "RawDcLine.h"
 
 #include "../GridBus.h"
-#include "core/CoreObjectTemplates.hpp"
 #include "core/ModelParameter.hpp"
 #include "utilities/MatrixDataCompact.hpp"
 #include <cmath>
@@ -17,21 +16,6 @@ namespace griddyn::links {
 using units::convert;
 using units::puMW;
 using units::unit;
-
-void RawDcLine::setFlag(std::string_view flag, bool val)
-{
-    if (!RawDcLine::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        Link::setFlag(flag, val);
-    }
-}
-
-bool RawDcLine::getFlag(std::string_view flag) const
-{
-    if (const auto value = RawDcLine::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return Link::getFlag(flag);
-}
 
 const ModelDescription& RawDcLine::getModelDescription() const
 {
@@ -46,17 +30,6 @@ const ModelDescription& RawDcLine::getModelDescription() const
          command({"from_q"}, units::defunit, "Set from q"),
          command({"to_q"}, units::defunit, "Set to q")});
     return description;
-}
-
-void RawDcLine::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = RawDcLine::getModelDescription();
-    getParamString<RawDcLine, Link>(this,
-                                    pstr,
-                                    description.numericNames(),
-                                    description.stringNames(),
-                                    description.flagNames(),
-                                    pstype);
 }
 
 RawDcLine::RawDcLine(const std::string& objName): Link(objName) {}
@@ -91,7 +64,7 @@ void RawDcLine::set(std::string_view param, double val, unit unitType)
 
 double RawDcLine::get(std::string_view param, unit unitType) const
 {
-    if (const auto value = RawDcLine::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = RawDcLine::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     if (param == "from_q") {

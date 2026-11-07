@@ -120,17 +120,6 @@ const ModelDescription& WT3E1::getModelDescription() const
     return description;
 }
 
-void WT3E1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = WT3E1::getModelDescription();
-    getParamString<WT3E1, RenewableComponent>(this,
-                                              pstr,
-                                              description.numericNames(),
-                                              description.stringNames(),
-                                              description.flagNames(),
-                                              pstype);
-}
-
 WT3E1::WT3E1(const std::string& objName): RenewableComponent(objName)
 {
     m_inputSize = 8;
@@ -204,7 +193,7 @@ void WT3E1::set(std::string_view param, double value, units::unit unitType)
 double WT3E1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (const auto value = WT3E1::getModelDescription().tryGetLocal(*this, key, unitType)) {
+    if (const auto value = WT3E1::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
     return RenewableComponent::get(param, unitType);

@@ -49,17 +49,6 @@ const ModelDescription& ExcitationLimiterOEL3C::getModelDescription() const
     return description;
 }
 
-void ExcitationLimiterOEL3C::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExcitationLimiterOEL3C::getModelDescription();
-    getParamString<ExcitationLimiterOEL3C, ExcitationLimiter>(this,
-                                                              pstr,
-                                                              description.numericNames(),
-                                                              description.stringNames(),
-                                                              description.flagNames(),
-                                                              pstype);
-}
-
 ExcitationLimiterOEL3C::ExcitationLimiterOEL3C(const std::string& objName):
     ExcitationLimiter(objName)
 {
@@ -108,7 +97,7 @@ void ExcitationLimiterOEL3C::set(std::string_view param, double val, units::unit
 double ExcitationLimiterOEL3C::get(std::string_view param, units::unit unitType) const
 {
     if (const auto value =
-            ExcitationLimiterOEL3C::getModelDescription().tryGetLocal(*this, param, unitType)) {
+            ExcitationLimiterOEL3C::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     if (param == "oelinput" || param == "oel_input") {

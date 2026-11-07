@@ -141,15 +141,6 @@ void GenModelCSVGN1::set(std::string_view param, double val, units::unit unitTyp
     }
 }
 
-double GenModelCSVGN1::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            GenModelCSVGN1::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GenModel::get(param, unitType);
-}
-
 stringVec GenModelCSVGN1::localStateNames() const
 {
     const auto stateLocs = stateLocations(0, (T4 == 0.0 ? 1 : 0) + (T5 == 0.0 ? 1 : 0));

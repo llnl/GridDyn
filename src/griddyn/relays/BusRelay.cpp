@@ -29,17 +29,6 @@ const ModelDescription& BusRelay::getModelDescription() const
     return description;
 }
 
-void BusRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = BusRelay::getModelDescription();
-    getParamString<BusRelay, Relay>(this,
-                                    pstr,
-                                    description.numericNames(),
-                                    description.stringNames(),
-                                    description.flagNames(),
-                                    pstype);
-}
-
 BusRelay::BusRelay(const std::string& objName): Relay(objName)
 {
     opFlags.set(CONTINUOUS_FLAG);

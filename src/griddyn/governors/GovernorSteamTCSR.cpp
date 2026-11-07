@@ -266,13 +266,4 @@ void GovernorSteamTCSR::set(std::string_view param, double val, units::unit unit
     GovernorSteamNR::set(param, val, unitType);
 }
 
-double GovernorSteamTCSR::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            GovernorSteamTCSR::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GovernorSteamNR::get(param, unitType);
-}
-
 }  // namespace griddyn::governors

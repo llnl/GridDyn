@@ -36,15 +36,6 @@ const ModelDescription& GenModelInverter::getModelDescription() const
     return description;
 }
 
-double GenModelInverter::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            GenModelInverter::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GenModel::get(param, unitType);
-}
-
 CoreObject* GenModelInverter::clone(CoreObject* obj) const
 {
     auto* genModelClone = cloneBase<GenModelInverter, GenModel>(this, obj);

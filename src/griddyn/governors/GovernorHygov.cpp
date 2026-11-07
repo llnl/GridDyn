@@ -672,8 +672,7 @@ void GovernorHygov::set(std::string_view param, double val, units::unit unitType
 
 double GovernorHygov::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto result =
-            GovernorHygov::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto result = GovernorHygov::getModelDescription().tryGet(*this, param, unitType)) {
         return *result;
     }
     if ((param == "gmax") || (param == "gmin")) {

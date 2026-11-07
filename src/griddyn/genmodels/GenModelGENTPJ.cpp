@@ -251,14 +251,6 @@ void GenModelGENTPJ::set(std::string_view param, double value, units::unit unitT
         GenModel5::set(param, value, unitType);
     }
 }
-double GenModelGENTPJ::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            GenModelGENTPJ::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GenModel5::get(param, unitType);
-}
 stringVec GenModelGENTPJ::localStateNames() const
 {
     return {"id", "iq", "delta", "freq", "epd", "epq", "psippd", "psippq"};

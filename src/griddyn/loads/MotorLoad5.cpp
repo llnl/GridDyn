@@ -46,25 +46,6 @@ const ModelDescription& MotorLoad5::getModelDescription() const
     return description;
 }
 
-double MotorLoad5::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = MotorLoad5::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return MotorLoad3::get(param, unitType);
-}
-
-void MotorLoad5::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = MotorLoad5::getModelDescription();
-    getParamString<MotorLoad5, MotorLoad3>(this,
-                                           pstr,
-                                           description.numericNames(),
-                                           description.stringNames(),
-                                           description.flagNames(),
-                                           pstype);
-}
-
 MotorLoad5::MotorLoad5(const std::string& objName): MotorLoad3(objName)
 {
     H = 4;

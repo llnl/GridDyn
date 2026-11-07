@@ -176,17 +176,6 @@ double WSCCLoad::powerFrequencyDerivative(bool reactive, double voltage) const
     return basePower * frequencyDerivative(reactive, voltage);
 }
 
-void WSCCLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = WSCCLoad::getModelDescription();
-    getParamString<WSCCLoad, GridLoad>(this,
-                                       pstr,
-                                       description.numericNames(),
-                                       description.stringNames(),
-                                       description.flagNames(),
-                                       pstype);
-}
-
 void WSCCLoad::set(std::string_view param, std::string_view val)
 {
     GridLoad::set(param, val);
@@ -201,15 +190,6 @@ void WSCCLoad::set(std::string_view param, double val, units::unit unitType)
         return;
     }
     GridLoad::set(param, val, unitType);
-}
-
-double WSCCLoad::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = WSCCLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-
-    return GridLoad::get(param, unitType);
 }
 
 void WSCCLoad::ioPartialDerivatives(const IOdata& inputs,

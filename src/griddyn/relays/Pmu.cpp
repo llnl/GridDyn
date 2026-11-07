@@ -65,25 +65,6 @@ const ModelDescription& Pmu::getModelDescription() const
     return description;
 }
 
-bool Pmu::getFlag(std::string_view flag) const
-{
-    if (const auto value = Pmu::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return Sensor::getFlag(flag);
-}
-
-void Pmu::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = Pmu::getModelDescription();
-    getParamString<Pmu, Sensor>(this,
-                                pstr,
-                                description.numericNames(),
-                                description.stringNames(),
-                                description.flagNames(),
-                                pstype);
-}
-
 Pmu::Pmu(const std::string& objName): Sensor(objName)
 {
     outputStrings = {{"voltage"}, {"angle"}, {"frequency"}, {"rocof"}};
@@ -107,7 +88,7 @@ CoreObject* Pmu::clone(CoreObject* obj) const
 
 void Pmu::setFlag(std::string_view flag, bool val)
 {
-    if (Pmu::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+    if (Pmu::getModelDescription().trySetFlag(*this, flag, val)) {
         return;
     }
     if ((flag == "three_phase") || (flag == "3phase") || (flag == "three_phase_active")) {
@@ -143,7 +124,7 @@ void Pmu::set(std::string_view param, double val, unit unitType)
 
 double Pmu::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value = Pmu::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = Pmu::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     if ((param == "transmitrate") || (param == "rate")) {

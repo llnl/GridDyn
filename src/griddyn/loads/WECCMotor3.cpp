@@ -136,17 +136,6 @@ CoreObject* WECCMotor3::clone(CoreObject* obj) const
     return (copied == nullptr) ? obj : copied;
 }
 
-void WECCMotor3::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = WECCMotor3::getModelDescription();
-    getParamString<WECCMotor3, CIM6>(this,
-                                     pstr,
-                                     description.numericNames(),
-                                     description.stringNames(),
-                                     description.flagNames(),
-                                     pstype);
-}
-
 void WECCMotor3::set(std::string_view param, std::string_view val)
 {
     CIM6::set(param, val);
@@ -187,7 +176,7 @@ void WECCMotor3::set(std::string_view param, double val, units::unit unitType)
 
 double WECCMotor3::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value = WECCMotor3::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = WECCMotor3::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     if (param == "tmo" || param == "Tmo") {

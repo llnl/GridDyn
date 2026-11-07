@@ -124,17 +124,6 @@ const ModelDescription& GridDynOptimization::getModelDescription() const
     return description;
 }
 
-void GridDynOptimization::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = GridDynOptimization::getModelDescription();
-    getParamString<GridDynOptimization, GridDynSimulation>(this,
-                                                           pstr,
-                                                           description.numericNames(),
-                                                           description.stringNames(),
-                                                           description.flagNames(),
-                                                           pstype);
-}
-
 GridDynOptimization::GridDynOptimization(const std::string& simName):
     GridDynSimulation(simName), mOptimizationMode(DEFAULT_OPTIMIZATION)
 {

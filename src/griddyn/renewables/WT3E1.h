@@ -14,8 +14,6 @@ namespace griddyn {
 /** PSS/E WT3E1 electrical controller for a WT3G DFIG interface. */
 class WT3E1 final: public RenewableComponent {
   public:
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     explicit WT3E1(const std::string& name = "WT3E1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;

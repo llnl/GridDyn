@@ -56,33 +56,6 @@ const ModelDescription& Breaker::getModelDescription() const
     return description;
 }
 
-double Breaker::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = Breaker::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Relay::get(param, unitType);
-}
-
-bool Breaker::getFlag(std::string_view flag) const
-{
-    if (const auto value = Breaker::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return Relay::getFlag(flag);
-}
-
-void Breaker::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = Breaker::getModelDescription();
-    getParamString<Breaker, Relay>(this,
-                                   pstr,
-                                   description.numericNames(),
-                                   description.stringNames(),
-                                   description.flagNames(),
-                                   pstype);
-}
-
 Breaker::Breaker(const std::string& objName): Relay(objName), mUseCti(extra_bool)
 {
     opFlags.set(CONTINUOUS_FLAG);
@@ -112,13 +85,6 @@ CoreObject* Breaker::clone(CoreObject* obj) const
     return nobj;
 }
 
-void Breaker::setFlag(std::string_view flag, bool val)
-{
-    if (Breaker::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        return;
-    }
-    Relay::setFlag(flag, val);
-}
 /*
 std::string commDestName;
 std::uint64_t commDestId=0;

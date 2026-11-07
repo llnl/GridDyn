@@ -70,15 +70,6 @@ void GovernorHygovDB::set(std::string_view param, double value, units::unit unit
     GovernorHygov::set(param, value, unitType);
 }
 
-double GovernorHygovDB::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto result =
-            GovernorHygovDB::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *result;
-    }
-    return GovernorHygov::get(param, unitType);
-}
-
 double GovernorHygovDB::governorSpeedDeviation(const IOdata& inputs) const
 {
     const double speedDeviation = inputs[govOmegaInLocation] - 1.0;

@@ -36,25 +36,6 @@ const ModelDescription& PidBlock::getModelDescription() const
     return description;
 }
 
-double PidBlock::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = PidBlock::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GridBlock::get(param, unitType);
-}
-
-void PidBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = PidBlock::getModelDescription();
-    getParamString<PidBlock, GridBlock>(this,
-                                        pstr,
-                                        description.numericNames(),
-                                        description.stringNames(),
-                                        description.flagNames(),
-                                        pstype);
-}
-
 PidBlock::PidBlock(const std::string& objName): GridBlock(objName), no_D(extra_bool)
 {
     opFlags.set(USE_STATE);

@@ -25,26 +25,6 @@ const ModelDescription& IntegralBlock::getModelDescription() const
     return description;
 }
 
-double IntegralBlock::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            IntegralBlock::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GridBlock::get(param, unitType);
-}
-
-void IntegralBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = IntegralBlock::getModelDescription();
-    getParamString<IntegralBlock, GridBlock>(this,
-                                             pstr,
-                                             description.numericNames(),
-                                             description.stringNames(),
-                                             description.flagNames(),
-                                             pstype);
-}
-
 IntegralBlock::IntegralBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(DIFFERENTIAL_OUTPUT);

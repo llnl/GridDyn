@@ -155,6 +155,11 @@ class ModelDescription {
     [[nodiscard]] std::span<const std::string_view> numericNames() const { return mNumericNames; }
     [[nodiscard]] std::span<const std::string_view> stringNames() const { return mStringNames; }
     [[nodiscard]] std::span<const std::string_view> flagNames() const { return mFlagNames; }
+    /** Enumerate declared setter names, including aliases, in child-to-parent order.
+     * Local queries replace the vector; inherited queries append. ALL appends numeric
+     * names, a '#' separator, then string names. Flags are requested separately.
+     */
+    void getParameterStrings(stringVec& names, ParamStringType type = ParamStringType::ALL) const;
     /** Search only this class, preserving the model's existing parent dispatch. */
     [[nodiscard]] const ModelField* findLocal(std::string_view name) const;
     /** Search this class and then its described ancestors. */
@@ -171,9 +176,22 @@ class ModelDescription {
                                         units::unit unitType = units::defunit) const;
     [[nodiscard]] SetResult
         trySetLocal(CoreObject& object, std::string_view name, std::string_view value) const;
+    /** Default flag access through the object's derived tables down to this declaring table.
+     * Commands and parent handlers remain the responsibility of the class's public methods.
+     */
+    bool trySetFlag(CoreObject& object, std::string_view name, bool value) const;
+    [[nodiscard]] std::optional<bool> tryGetFlag(const CoreObject& object,
+                                                 std::string_view name) const;
     bool trySetFlagLocal(CoreObject& object, std::string_view name, bool value) const;
     [[nodiscard]] std::optional<bool> tryGetFlagLocal(const CoreObject& object,
                                                       std::string_view name) const;
+    /** Default numeric getter for a declaring class. Search the object's derived tables
+     * through this table, leaving parent-specific getters to the caller's parent dispatch.
+     * A standalone table not in that hierarchy retains local lookup behavior.
+     */
+    [[nodiscard]] std::optional<double> tryGet(const CoreObject& object,
+                                               std::string_view name,
+                                               units::unit unitType = units::defunit) const;
     [[nodiscard]] std::optional<double> tryGetLocal(const CoreObject& object,
                                                     std::string_view name,
                                                     units::unit unitType = units::defunit) const;
@@ -185,6 +203,8 @@ class ModelDescription {
     }
 
   private:
+    /** Start a bounded lookup at the derived table, or this table for a standalone view. */
+    [[nodiscard]] const ModelDescription* derivedDescription(const CoreObject& object) const;
     ModelDescription(std::string_view name,
                      const ModelDescription* parent,
                      std::initializer_list<ModelField> fields,

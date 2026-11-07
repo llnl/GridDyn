@@ -70,17 +70,6 @@ const ModelDescription& ExcitationLimiterUEL2C::getModelDescription() const
     return description;
 }
 
-void ExcitationLimiterUEL2C::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExcitationLimiterUEL2C::getModelDescription();
-    getParamString<ExcitationLimiterUEL2C, ExcitationLimiter>(this,
-                                                              pstr,
-                                                              description.numericNames(),
-                                                              description.stringNames(),
-                                                              description.flagNames(),
-                                                              pstype);
-}
-
 ExcitationLimiterUEL2C::ExcitationLimiterUEL2C(const std::string& objName):
     ExcitationLimiter(objName)
 {
@@ -123,15 +112,6 @@ void ExcitationLimiterUEL2C::set(std::string_view param, double val, units::unit
         return;
     }
     ExcitationLimiter::set(param, val, unitType);
-}
-
-double ExcitationLimiterUEL2C::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExcitationLimiterUEL2C::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return ExcitationLimiter::get(param, unitType);
 }
 
 void ExcitationLimiterUEL2C::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)

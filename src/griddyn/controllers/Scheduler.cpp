@@ -89,17 +89,6 @@ const ModelDescription& Scheduler::getModelDescription() const
     return description;
 }
 
-void Scheduler::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = Scheduler::getModelDescription();
-    getParamString<Scheduler, Source>(this,
-                                      pstr,
-                                      description.numericNames(),
-                                      description.stringNames(),
-                                      description.flagNames(),
-                                      pstype);
-}
-
 Scheduler::Scheduler(const std::string& objName, double initialValue):
     Source(objName, initialValue), pCurr(initialValue)
 {

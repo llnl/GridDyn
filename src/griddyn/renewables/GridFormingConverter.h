@@ -16,8 +16,6 @@ namespace griddyn {
 /** Shared terminal equations for the ANDES voltage-controlled and grid-forming converters. */
 class GridFormingConverter: public TerminalElectricalModel {
   public:
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     enum class Variant { cv1, cv2, f1, f2, f3 };
     explicit GridFormingConverter(Variant variant = Variant::cv1,

@@ -13,11 +13,7 @@ namespace griddyn::relays {
  */
 class Breaker: public Relay {
   public:
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
-    bool getFlag(std::string_view flag) const override;
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     enum BreakerFlags {
         NONDIRECTIONAL_FLAG = OBJECT_FLAG8,  //!< flag indicating that the detection should not
                                              //!< be based on direction
@@ -51,7 +47,6 @@ class Breaker: public Relay {
     /** constructor with object name*/
     explicit Breaker(const std::string& objName = "breaker_$");
     virtual CoreObject* clone(CoreObject* obj) const override;
-    virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
 
     virtual void

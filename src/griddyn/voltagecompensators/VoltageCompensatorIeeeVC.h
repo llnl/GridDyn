@@ -17,8 +17,6 @@ class VoltageCompensatorIeeeVC: public VoltageCompensator {
     model_parameter XC = 0.0;
 
   public:
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     explicit VoltageCompensatorIeeeVC(const std::string& objName = "ieeevc_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
@@ -29,7 +27,6 @@ class VoltageCompensatorIeeeVC: public VoltageCompensator {
                               IOdata& fieldSet) override;
     void set(std::string_view param, std::string_view val) override;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     void residual(const IOdata& inputs,
                   const StateData& stateData,
                   double resid[],

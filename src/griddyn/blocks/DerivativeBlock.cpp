@@ -30,26 +30,6 @@ const ModelDescription& DerivativeBlock::getModelDescription() const
     return description;
 }
 
-double DerivativeBlock::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            DerivativeBlock::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GridBlock::get(param, unitType);
-}
-
-void DerivativeBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = DerivativeBlock::getModelDescription();
-    getParamString<DerivativeBlock, GridBlock>(this,
-                                               pstr,
-                                               description.numericNames(),
-                                               description.stringNames(),
-                                               description.flagNames(),
-                                               pstype);
-}
-
 DerivativeBlock::DerivativeBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(USE_STATE);

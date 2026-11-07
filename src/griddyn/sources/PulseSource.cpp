@@ -35,25 +35,6 @@ const ModelDescription& PulseSource::getModelDescription() const
     return description;
 }
 
-double PulseSource::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = PulseSource::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Source::get(param, unitType);
-}
-
-void PulseSource::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = PulseSource::getModelDescription();
-    getParamString<PulseSource, Source>(this,
-                                        pstr,
-                                        description.numericNames(),
-                                        description.stringNames(),
-                                        description.flagNames(),
-                                        pstype);
-}
-
 PulseSource::PulseSource(const std::string& objName, double startVal):
     Source(objName, startVal), baseValue(startVal)
 {

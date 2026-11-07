@@ -64,17 +64,6 @@ const ModelDescription& AGControl::getModelDescription() const
     return description;
 }
 
-void AGControl::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = AGControl::getModelDescription();
-    getParamString<AGControl, GridSubModel>(this,
-                                            pstr,
-                                            description.numericNames(),
-                                            description.stringNames(),
-                                            description.flagNames(),
-                                            pstype);
-}
-
 AGControl::AGControl(const std::string& objName): GridSubModel(objName)
 {
     updatePeriod = 4.0;
@@ -487,7 +476,7 @@ void AGControl::set(std::string_view param, double val, units::unit unitType)
 
 double AGControl::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value = AGControl::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = AGControl::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     if (param == "ace") {

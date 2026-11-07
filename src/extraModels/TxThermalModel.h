@@ -14,10 +14,7 @@ namespace griddyn::extra {
  */
 class TxThermalModel: public Sensor {
   public:
-    bool getFlag(std::string_view flag) const override;
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     enum ThermalModelFlags {
         AUTO_PARAMETER_LOAD = OBJECT_FLAG10,
         ENABLE_PARAMETER_UPDATES = OBJECT_FLAG11,
@@ -47,15 +44,12 @@ class TxThermalModel: public Sensor {
     /** @brief constructor*/
     TxThermalModel(const std::string& objName = "txThermal_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
 
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     using Sensor::add;
     virtual void add(CoreObject* obj) override final;
-    virtual double get(std::string_view param,
-                       units::unit unitType = units::defunit) const override;
 
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,

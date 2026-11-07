@@ -24,17 +24,6 @@ const ModelDescription& VoltageCompensatorIeeeVC::getModelDescription() const
     return description;
 }
 
-void VoltageCompensatorIeeeVC::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = VoltageCompensatorIeeeVC::getModelDescription();
-    getParamString<VoltageCompensatorIeeeVC, VoltageCompensator>(this,
-                                                                 pstr,
-                                                                 description.numericNames(),
-                                                                 description.stringNames(),
-                                                                 description.flagNames(),
-                                                                 pstype);
-}
-
 VoltageCompensatorIeeeVC::VoltageCompensatorIeeeVC(const std::string& objName):
     VoltageCompensator(objName)
 {
@@ -85,15 +74,6 @@ void VoltageCompensatorIeeeVC::set(std::string_view param, double val, units::un
         return;
     }
     GridSubModel::set(param, val, unitType);
-}
-
-double VoltageCompensatorIeeeVC::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            VoltageCompensatorIeeeVC::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GridSubModel::get(param, unitType);
 }
 
 double VoltageCompensatorIeeeVC::compensatedVoltage(const IOdata& inputs) const

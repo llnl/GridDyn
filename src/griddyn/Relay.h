@@ -34,8 +34,6 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
   public:
     bool getFlag(std::string_view flag) const override;
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     static std::atomic<count_t>
         relayCount;  //!< static counter for the number of relays to generate an id number
     /** @brief enumeration of the relay condition states*/

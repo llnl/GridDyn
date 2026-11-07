@@ -19,17 +19,6 @@ using units::puHz;
 using units::puV;
 using units::unit;
 
-void infiniteBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = infiniteBus::getModelDescription();
-    getParamString<infiniteBus, GridBus>(this,
-                                         pstr,
-                                         description.numericNames(),
-                                         description.stringNames(),
-                                         description.flagNames(),
-                                         pstype);
-}
-
 const ModelDescription& infiniteBus::getModelDescription() const
 {
     static const auto description = ModelDescription::define<infiniteBus>(

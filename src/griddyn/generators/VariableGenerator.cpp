@@ -18,17 +18,6 @@ using units::convert;
 using units::puV;
 using units::unit;
 
-void VariableGenerator::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = VariableGenerator::getModelDescription();
-    getParamString<VariableGenerator, DynamicGenerator>(this,
-                                                        pstr,
-                                                        description.numericNames(),
-                                                        description.stringNames(),
-                                                        description.flagNames(),
-                                                        pstype);
-}
-
 const ModelDescription& VariableGenerator::getModelDescription() const
 {
     static const auto description = ModelDescription::define<VariableGenerator>(

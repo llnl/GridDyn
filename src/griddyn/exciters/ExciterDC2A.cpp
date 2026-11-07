@@ -33,17 +33,6 @@ const ModelDescription& ExciterDC2A::getModelDescription() const
     return description;
 }
 
-void ExciterDC2A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterDC2A::getModelDescription();
-    getParamString<ExciterDC2A, ExciterDC1A>(this,
-                                             pstr,
-                                             description.numericNames(),
-                                             description.stringNames(),
-                                             description.flagNames(),
-                                             pstype);
-}
-
 ExciterDC2A::ExciterDC2A(const std::string& objName): ExciterDC1A(objName)
 {
     // default values

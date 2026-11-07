@@ -45,17 +45,6 @@ const ModelDescription& WTDS::getModelDescription() const
     return description;
 }
 
-void WTDS::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = WTDS::getModelDescription();
-    getParamString<WTDS, RenewableComponent>(this,
-                                             pstr,
-                                             description.numericNames(),
-                                             description.stringNames(),
-                                             description.flagNames(),
-                                             pstype);
-}
-
 WTDS::WTDS(const std::string& objName): RenewableComponent(objName)
 {
     m_inputSize = 3;
@@ -101,7 +90,7 @@ void WTDS::set(std::string_view param, double val, units::unit unitType)
 double WTDS::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (const auto value = WTDS::getModelDescription().tryGetLocal(*this, key, unitType)) {
+    if (const auto value = WTDS::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
     return RenewableComponent::get(param, unitType);

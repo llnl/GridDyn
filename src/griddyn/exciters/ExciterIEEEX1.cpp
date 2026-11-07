@@ -27,17 +27,6 @@ const ModelDescription& ExciterIEEEX1::getModelDescription() const
     return description;
 }
 
-void ExciterIEEEX1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterIEEEX1::getModelDescription();
-    getParamString<ExciterIEEEX1, ExciterDC2A>(this,
-                                               pstr,
-                                               description.numericNames(),
-                                               description.stringNames(),
-                                               description.flagNames(),
-                                               pstype);
-}
-
 ExciterIEEEX1::ExciterIEEEX1(const std::string& objName): ExciterDC2A(objName) {}
 
 CoreObject* ExciterIEEEX1::clone(CoreObject* obj) const

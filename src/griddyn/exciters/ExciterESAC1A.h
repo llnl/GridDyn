@@ -34,14 +34,12 @@ namespace griddyn::exciters {
 class ExciterESAC1A final: public ExciterEXAC1 {
   public:
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     void set(std::string_view param, std::string_view val) override;
     explicit ExciterESAC1A(const std::string& objName = "exciterESAC1A_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     using ExciterEXAC1::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
   protected:
     bool adjustRegulatorInitialUpperLimit(double initialValue) override;

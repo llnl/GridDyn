@@ -200,17 +200,6 @@ void ElectronicLoad::timestep(CoreTime time, const IOdata& inputs, const SolverM
     }
 }
 
-void ElectronicLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ElectronicLoad::getModelDescription();
-    getParamString<ElectronicLoad, GridLoad>(this,
-                                             pstr,
-                                             description.numericNames(),
-                                             description.stringNames(),
-                                             description.flagNames(),
-                                             pstype);
-}
-
 void ElectronicLoad::set(std::string_view param, std::string_view val)
 {
     GridLoad::set(param, val);
@@ -239,8 +228,7 @@ void ElectronicLoad::set(std::string_view param, double val, units::unit unitTyp
 
 double ElectronicLoad::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value =
-            ElectronicLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = ElectronicLoad::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     if (param == "pfel") {

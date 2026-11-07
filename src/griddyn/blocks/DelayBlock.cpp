@@ -22,17 +22,6 @@ const ModelDescription& DelayBlock::getModelDescription() const
     return description;
 }
 
-void DelayBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = DelayBlock::getModelDescription();
-    getParamString<DelayBlock, GridBlock>(this,
-                                          pstr,
-                                          description.numericNames(),
-                                          description.stringNames(),
-                                          description.flagNames(),
-                                          pstype);
-}
-
 DelayBlock::DelayBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(DIFFERENTIAL_OUTPUT);

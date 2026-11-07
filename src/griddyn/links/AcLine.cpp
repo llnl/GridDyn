@@ -11,7 +11,6 @@
 #include "../GridBus.h"
 #include "../simulation/Contingency.h"
 #include "core/CoreExceptions.h"
-#include "core/CoreObjectTemplates.hpp"
 #include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
@@ -186,17 +185,6 @@ void AcLine::timestep(const CoreTime time, const IOdata& /*inputs*/, const Solve
 
 void AcLine::checkMerge() {}
 
-void AcLine::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = AcLine::getModelDescription();
-    getParamString<AcLine, Link>(this,
-                                 pstr,
-                                 description.numericNames(),
-                                 description.stringNames(),
-                                 description.flagNames(),
-                                 pstype);
-}
-
 // set properties
 void AcLine::set(std::string_view param, std::string_view val)
 {
@@ -323,7 +311,7 @@ void AcLine::set(std::string_view param, double val, unit unitType)
 
 double AcLine::get(std::string_view param, unit unitType) const
 {
-    if (const auto value = AcLine::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = AcLine::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     double val = kNullVal;

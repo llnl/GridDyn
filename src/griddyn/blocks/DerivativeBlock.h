@@ -24,10 +24,7 @@ class DerivativeBlock: public GridBlock {
   protected:
     model_parameter mT1 = 0.1;  //!< delay time constant for the derivative filtering operation
   public:
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     //!< default constructor
     explicit DerivativeBlock(const std::string& objName = "derivBlock_#");
     /** alternate constructor to add in the time constant

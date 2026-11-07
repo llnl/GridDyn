@@ -65,17 +65,6 @@ const ModelDescription& ExciterEXAC4::getModelDescription() const
     return description;
 }
 
-void ExciterEXAC4::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterEXAC4::getModelDescription();
-    getParamString<ExciterEXAC4, Exciter>(this,
-                                          pstr,
-                                          description.numericNames(),
-                                          description.stringNames(),
-                                          description.flagNames(),
-                                          pstype);
-}
-
 ExciterEXAC4::ExciterEXAC4(const std::string& objName): Exciter(objName)
 {
     m_inputSize = exciterInputCount;
@@ -342,14 +331,6 @@ void ExciterEXAC4::set(std::string_view param, double val, units::unit unitType)
             ExciterEXAC4::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         Exciter::set(param, val, unitType);
     }
-}
-double ExciterEXAC4::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExciterEXAC4::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Exciter::get(param, unitType);
 }
 stringVec ExciterEXAC4::localStateNames() const
 {

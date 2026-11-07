@@ -40,14 +40,6 @@ const ModelDescription& GenModel3::getModelDescription() const
     return description;
 }
 
-double GenModel3::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = GenModel3::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GenModelClassical::get(param, unitType);
-}
-
 CoreObject* GenModel3::clone(CoreObject* obj) const
 {
     auto* gd = cloneBase<GenModel3, GenModelClassical>(this, obj);

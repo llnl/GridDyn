@@ -20,17 +20,6 @@ using units::puA;
 using units::puMW;
 using units::puOhm;
 using units::unit;
-void RampLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = RampLoad::getModelDescription();
-    getParamString<RampLoad, ZipLoad>(this,
-                                      pstr,
-                                      description.numericNames(),
-                                      description.stringNames(),
-                                      description.flagNames(),
-                                      pstype);
-}
-
 const ModelDescription& RampLoad::getModelDescription() const
 {
     static const auto description = ModelDescription::define<RampLoad>(

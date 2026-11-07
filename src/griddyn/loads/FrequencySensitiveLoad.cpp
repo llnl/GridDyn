@@ -91,17 +91,6 @@ void FrequencySensitiveLoad::updateOutputs(double frequency)
     Qout += Qout * (frequency - 1.0) * M;
 }
 
-void FrequencySensitiveLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = FrequencySensitiveLoad::getModelDescription();
-    getParamString<FrequencySensitiveLoad, GridLoad>(this,
-                                                     pstr,
-                                                     description.numericNames(),
-                                                     description.stringNames(),
-                                                     description.flagNames(),
-                                                     pstype);
-}
-
 void FrequencySensitiveLoad::setFlag(std::string_view flag, bool val)
 {
     if (subLoad != nullptr) {
@@ -127,7 +116,7 @@ void FrequencySensitiveLoad::set(std::string_view param, std::string_view val)
 double FrequencySensitiveLoad::get(std::string_view param, unit unitType) const
 {
     if (const auto value =
-            FrequencySensitiveLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+            FrequencySensitiveLoad::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     return (subLoad != nullptr) ? subLoad->get(param, unitType) : GridLoad::get(param, unitType);

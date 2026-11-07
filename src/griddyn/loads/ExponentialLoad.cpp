@@ -41,21 +41,6 @@ const ModelDescription& ExponentialLoad::getModelDescription() const
     return description;
 }
 
-void ExponentialLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExponentialLoad::getModelDescription();
-    getParamString<ExponentialLoad, GridLoad>(
-        this, pstr, description.numericNames(), description.stringNames(), {}, pstype);
-}
-
-double ExponentialLoad::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExponentialLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GridLoad::get(param, unitType);
-}
 CoreObject* ExponentialLoad::clone(CoreObject* obj) const
 {
     auto* clonedLoad = cloneBase<ExponentialLoad, GridLoad>(this, obj);

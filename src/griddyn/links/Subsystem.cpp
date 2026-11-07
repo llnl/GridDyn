@@ -32,17 +32,6 @@ using units::unit;
 static TypeFactory<Subsystem>
     gSubsystemFactory("link", std::to_array<std::string_view>({"subsystem", "simple"}));
 
-void Subsystem::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = Subsystem::getModelDescription();
-    getParamString<Subsystem, Link>(this,
-                                    pstr,
-                                    description.numericNames(),
-                                    description.stringNames(),
-                                    description.flagNames(),
-                                    pstype);
-}
-
 const ModelDescription& Subsystem::getModelDescription() const
 {
     static const auto description = ModelDescription::define<Subsystem>(
@@ -345,7 +334,7 @@ void Subsystem::set(std::string_view param, double val, unit unitType)
 
 double Subsystem::get(std::string_view param, unit unitType) const
 {
-    if (const auto value = Subsystem::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = Subsystem::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     double val = subarea.get(param, unitType);

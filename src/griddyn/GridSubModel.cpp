@@ -82,8 +82,7 @@ bool GridSubModel::setOutputInitializationTarget(index_t /*outputIndex*/, double
 
 double GridSubModel::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value =
-            GridSubModel::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = GridSubModel::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     auto fptr = getObjectFunction(this, param);

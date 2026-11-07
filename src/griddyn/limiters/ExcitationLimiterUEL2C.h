@@ -16,15 +16,12 @@ namespace griddyn::limiters {
  */
 class ExcitationLimiterUEL2C final: public ExcitationLimiter {
   public:
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     explicit ExcitationLimiterUEL2C(const std::string& objName = "uel2c_#");
     using ExcitationLimiter::set;
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     bool supportsRole(Role role) const override { return role == Role::UNDER; }
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,

@@ -280,15 +280,6 @@ void GovernorHydro::set(std::string_view param, double val, units::unit unitType
     Governor::set(param, val, unitType);
 }
 
-double GovernorHydro::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            GovernorHydro::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Governor::get(param, unitType);
-}
-
 stringVec GovernorHydro::localStateNames() const
 {
     return {"pmech", "leadlag", "gate_lag", "waterway"};

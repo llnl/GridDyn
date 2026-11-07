@@ -153,17 +153,6 @@ void CompositeLoad::remove(CoreObject* obj)
     GridLoad::remove(obj);
 }
 
-void CompositeLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = CompositeLoad::getModelDescription();
-    getParamString<CompositeLoad, GridLoad>(this,
-                                            pstr,
-                                            description.numericNames(),
-                                            description.stringNames(),
-                                            description.flagNames(),
-                                            pstype);
-}
-
 void CompositeLoad::set(std::string_view param, std::string_view val)
 {
     index_t componentIndex = 0;
@@ -232,8 +221,7 @@ void CompositeLoad::set(std::string_view param, double val, units::unit unitType
 
 double CompositeLoad::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value =
-            CompositeLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = CompositeLoad::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     index_t componentIndex = 0;

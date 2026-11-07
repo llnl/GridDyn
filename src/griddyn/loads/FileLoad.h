@@ -15,11 +15,7 @@ namespace griddyn::loads {
 /** @brief a load that generates its value from files*/
 class FileLoad: public RampLoad {
   public:
-    bool getFlag(std::string_view flag) const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     enum FileLoadFlags {
         USE_ABSOLUTE_TIME_FLAG = OBJECT_FLAG7,
         USE_STEP_CHANGE_FLAG = OBJECT_FLAG8,

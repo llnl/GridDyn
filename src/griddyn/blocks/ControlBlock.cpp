@@ -25,26 +25,6 @@ const ModelDescription& ControlBlock::getModelDescription() const
     return description;
 }
 
-double ControlBlock::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ControlBlock::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GridBlock::get(param, unitType);
-}
-
-void ControlBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ControlBlock::getModelDescription();
-    getParamString<ControlBlock, GridBlock>(this,
-                                            pstr,
-                                            description.numericNames(),
-                                            description.stringNames(),
-                                            description.flagNames(),
-                                            pstype);
-}
-
 ControlBlock::ControlBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(USE_STATE);

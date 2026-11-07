@@ -20,8 +20,6 @@ namespace griddyn {
  */
 class WT3G1 final: public TerminalElectricalModel {
   public:
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     explicit WT3G1(const std::string& name = "WT3G1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;

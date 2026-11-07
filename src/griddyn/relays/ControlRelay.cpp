@@ -40,34 +40,6 @@ const ModelDescription& ControlRelay::getModelDescription() const
     return description;
 }
 
-double ControlRelay::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ControlRelay::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Relay::get(param, unitType);
-}
-
-bool ControlRelay::getFlag(std::string_view flag) const
-{
-    if (const auto value = ControlRelay::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return Relay::getFlag(flag);
-}
-
-void ControlRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ControlRelay::getModelDescription();
-    getParamString<ControlRelay, Relay>(this,
-                                        pstr,
-                                        description.numericNames(),
-                                        description.stringNames(),
-                                        description.flagNames(),
-                                        pstype);
-}
-
 ControlRelay::ControlRelay(const std::string& objName): Relay(objName) {}
 
 CoreObject* ControlRelay::clone(CoreObject* obj) const
@@ -82,14 +54,6 @@ CoreObject* ControlRelay::clone(CoreObject* obj) const
     nobj->measureDelay = measureDelay;
     nobj->m_terminal = m_terminal;
     return nobj;
-}
-
-void ControlRelay::setFlag(std::string_view flag, bool val)
-{
-    if (ControlRelay::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        return;
-    }
-    Relay::setFlag(flag, val);
 }
 
 void ControlRelay::addMeasurement(std::string_view measure)

@@ -18,7 +18,6 @@
 #include "../voltagecompensators/VoltageCompensatorIeeeVC.h"
 #include "IsocController.h"
 #include "core/CoreExceptions.h"
-#include "core/CoreObjectTemplates.hpp"
 #include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
@@ -69,14 +68,6 @@ using units::unit;
 
 // default bus object
 
-bool DynamicGenerator::getFlag(std::string_view flag) const
-{
-    if (const auto value = DynamicGenerator::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return Generator::getFlag(flag);
-}
-
 const ModelDescription& DynamicGenerator::getModelDescription() const
 {
     static const auto description = ModelDescription::define<DynamicGenerator>(
@@ -106,26 +97,6 @@ const ModelDescription& DynamicGenerator::getModelDescription() const
          command({"pmax"}, units::defunit, "Set pmax"),
          command({"pmin"}, units::defunit, "Set pmin")});
     return description;
-}
-
-double DynamicGenerator::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            DynamicGenerator::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Generator::get(param, unitType);
-}
-
-void DynamicGenerator::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = DynamicGenerator::getModelDescription();
-    getParamString<DynamicGenerator, Generator>(this,
-                                                pstr,
-                                                description.numericNames(),
-                                                description.stringNames(),
-                                                description.flagNames(),
-                                                pstype);
 }
 
 DynamicGenerator::DynamicGenerator(const std::string& objName): Generator(objName) {}
@@ -1087,7 +1058,7 @@ void DynamicGenerator::setFlag(std::string_view flag, bool val)
                 isoc->deactivate();
             }
         }
-    } else if (!DynamicGenerator::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+    } else if (!DynamicGenerator::getModelDescription().trySetFlag(*this, flag, val)) {
         Generator::setFlag(flag, val);
     }
 }

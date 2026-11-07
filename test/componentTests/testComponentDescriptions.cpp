@@ -493,3 +493,25 @@ TEST(ComponentDescriptionTests, CustomAliasesAndInverseFlagsRemainClassHandled)
     phase.set("ignorevoltagephase", 0.0);
     EXPECT_TRUE(phase.getFlag("use_abs_angle"));
 }
+
+TEST(ComponentDescriptionTests, InheritedEnumerationUsesEachNativeDescription)
+{
+    for (const auto& model : componentModels()) {
+        const auto& description = model->getModelDescription();
+        SCOPED_TRACE(description.name());
+        for (const auto type : {ParamStringType::LOCAL_NUM, ParamStringType::LOCAL_STR,
+                                ParamStringType::LOCAL_FLAGS}) {
+            stringVec names{"existing"};
+            model->getParameterStrings(names, type);
+            const auto declared = type == ParamStringType::LOCAL_NUM ? description.numericNames() :
+                type == ParamStringType::LOCAL_STR ? description.stringNames() : description.flagNames();
+            EXPECT_EQ(names, (stringVec{declared.begin(), declared.end()}));
+        }
+        stringVec names;
+        model->getParameterStrings(names, ParamStringType::NUMERIC);
+        EXPECT_NE(std::find(names.begin(), names.end(), "basevoltage"), names.end());
+        EXPECT_NE(std::find(names.begin(), names.end(), "vbase"), names.end());
+        model->getParameterStrings(names, ParamStringType::LOCAL_FLAGS);
+        EXPECT_EQ(std::find(names.begin(), names.end(), "enabled"), names.end());
+    }
+}

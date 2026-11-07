@@ -74,17 +74,6 @@ const ModelDescription& GridBlock::getModelDescription() const
     return description;
 }
 
-void GridBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = GridBlock::getModelDescription();
-    getParamString<GridBlock, GridSubModel>(this,
-                                            pstr,
-                                            description.numericNames(),
-                                            description.stringNames(),
-                                            description.flagNames(),
-                                            pstype);
-}
-
 GridBlock::GridBlock(const std::string& objName): GridSubModel(objName)
 {
     m_inputSize = 1;
@@ -758,6 +747,9 @@ void GridBlock::rootTrigger(CoreTime /*time*/,
 
 void GridBlock::setFlag(std::string_view flag, bool val)
 {
+    if (GridBlock::getModelDescription().trySetFlag(*this, flag, val)) {
+        return;
+    }
     if (flag == "use_limits") {
         if (!opFlags[DYN_INITIALIZED]) {
             opFlags[HAS_LIMITS] = val;
@@ -843,7 +835,7 @@ void GridBlock::set(std::string_view param, double val, units::unit unitType)
 
 double GridBlock::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value = GridBlock::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = GridBlock::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     if (param == "maxstepsize") {

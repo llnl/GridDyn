@@ -51,7 +51,6 @@ class GovernorHygovDB final: public GovernorHygov {
                          const SolverMode& sMode,
                          CheckLevel level) override;
     void set(std::string_view param, double value, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
   private:
     double dbL = 0.0;

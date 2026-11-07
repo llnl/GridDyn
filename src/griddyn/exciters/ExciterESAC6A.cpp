@@ -199,17 +199,6 @@ const ModelDescription& ExciterESAC6A::getModelDescription() const
     return description;
 }
 
-void ExciterESAC6A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterESAC6A::getModelDescription();
-    getParamString<ExciterESAC6A, Exciter>(this,
-                                           pstr,
-                                           description.numericNames(),
-                                           description.stringNames(),
-                                           description.flagNames(),
-                                           pstype);
-}
-
 ExciterESAC6A::ExciterESAC6A(const std::string& objName): Exciter(objName)
 {
     m_inputSize = exciterInputCount;
@@ -734,33 +723,10 @@ void ExciterESAC6A::set(std::string_view param, double val, units::unit unitType
     }
 }
 
-double ExciterESAC6A::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExciterESAC6A::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Exciter::get(param, unitType);
-}
 // NOLINTEND(readability-math-missing-parentheses)
 bool ExciterESAC6A::supportsLimiterSignal(ExciterLimiterSignal signal) const
 {
     return signal == ExciterLimiterSignal::UNDER;
-}
-
-void ExciterESAC6A::setFlag(std::string_view param, bool value)
-{
-    if (!ExciterESAC6A::getModelDescription().trySetFlagLocal(*this, param, value)) {
-        Exciter::setFlag(param, value);
-    }
-}
-
-bool ExciterESAC6A::getFlag(std::string_view param) const
-{
-    if (const auto value = ExciterESAC6A::getModelDescription().tryGetFlagLocal(*this, param)) {
-        return *value;
-    }
-    return Exciter::getFlag(param);
 }
 
 }  // namespace griddyn::exciters

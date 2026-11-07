@@ -84,25 +84,6 @@ const ModelDescription& Sensor::getModelDescription() const
     return description;
 }
 
-bool Sensor::getFlag(std::string_view flag) const
-{
-    if (const auto value = Sensor::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return Relay::getFlag(flag);
-}
-
-void Sensor::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = Sensor::getModelDescription();
-    getParamString<Sensor, Relay>(this,
-                                  pstr,
-                                  description.numericNames(),
-                                  description.stringNames(),
-                                  description.flagNames(),
-                                  pstype);
-}
-
 Sensor::Sensor(const std::string& objName): Relay(objName)
 {
     opFlags.set(CONTINUOUS_FLAG);
@@ -219,7 +200,7 @@ std::shared_ptr<GrabberSet> Sensor::getGrabberSet(index_t grabberNum)
 
 void Sensor::setFlag(std::string_view flag, bool val)
 {
-    if (Sensor::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+    if (Sensor::getModelDescription().trySetFlag(*this, flag, val)) {
         return;
     }
     if (flag == "sampled") {
@@ -422,7 +403,7 @@ void Sensor::set(std::string_view param, double val, units::unit unitType)
 
 double Sensor::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value = Sensor::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = Sensor::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     const index_t ind = lookupOutputIndex(param);

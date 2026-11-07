@@ -14,12 +14,7 @@ namespace griddyn::links {
  */
 class DcLink: public Link {
   public:
-    bool getFlag(std::string_view flag) const override;
-    void setFlag(std::string_view flag, bool val = true) override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     /** DC branch topologies compatible with the ANDES dc.rlc models. */
     enum class Topology { RL, C, RC_PARALLEL, RLC_PARALLEL, RC_SERIES, RLC_SERIES };
     /*  enum DcLinkFlags

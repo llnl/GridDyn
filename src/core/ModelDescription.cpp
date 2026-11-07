@@ -187,6 +187,42 @@ ModelDescription::ModelDescription(std::string_view name,
     }
 }
 
+void ModelDescription::getParameterStrings(stringVec& names, ParamStringType type) const
+{
+    const auto appendNames = [this, &names](auto member) {
+        for (const auto* description = this; description != nullptr;
+             description = description->parent()) {
+            const auto& declaredNames = description->*member;
+            names.insert(names.end(), declaredNames.begin(), declaredNames.end());
+        }
+    };
+    switch (type) {
+        case ParamStringType::ALL:
+            appendNames(&ModelDescription::mNumericNames);
+            names.emplace_back("#");
+            appendNames(&ModelDescription::mStringNames);
+            break;
+        case ParamStringType::LOCAL_NUM:
+            names.assign(mNumericNames.begin(), mNumericNames.end());
+            break;
+        case ParamStringType::LOCAL_STR:
+            names.assign(mStringNames.begin(), mStringNames.end());
+            break;
+        case ParamStringType::LOCAL_FLAGS:
+            names.assign(mFlagNames.begin(), mFlagNames.end());
+            break;
+        case ParamStringType::NUMERIC:
+            appendNames(&ModelDescription::mNumericNames);
+            break;
+        case ParamStringType::STR:
+            appendNames(&ModelDescription::mStringNames);
+            break;
+        case ParamStringType::FLAGS:
+            appendNames(&ModelDescription::mFlagNames);
+            break;
+    }
+}
+
 const ModelField* ModelDescription::findLocal(std::string_view name) const
 {
     // A parameter can share a name with a solver state. Keep ordinary set/get
@@ -305,6 +341,31 @@ SetResult ModelDescription::trySetLocal(CoreObject& object,
     return SetResult::PARAMETER;
 }
 
+const ModelDescription* ModelDescription::derivedDescription(const CoreObject& object) const
+{
+    const auto* derived = &object.getModelDescription();
+    for (const auto* description = derived; description != nullptr;
+         description = description->parent()) {
+        if (description == this) {
+            return derived;
+        }
+    }
+    return this;
+}
+
+std::optional<double> ModelDescription::tryGet(const CoreObject& object,
+                                               std::string_view name,
+                                               units::unit unitType) const
+{
+    for (const auto* description = derivedDescription(object); description != this;
+         description = description->parent()) {
+        if (const auto value = description->tryGetLocal(object, name, unitType)) {
+            return value;
+        }
+    }
+    return tryGetLocal(object, name, unitType);
+}
+
 std::optional<double> ModelDescription::tryGetLocal(const CoreObject& object,
                                                     std::string_view name,
                                                     units::unit unitType) const
@@ -353,6 +414,29 @@ ModelField indexedCommand(std::initializer_list<std::string_view> prefixes,
 ModelField state(std::string_view name, units::unit unitType, std::string_view description)
 {
     return {{name}, unitType, description, ModelFieldKind::STATE, ModelFieldType::REAL};
+}
+
+bool ModelDescription::trySetFlag(CoreObject& object, std::string_view name, bool value) const
+{
+    for (const auto* description = derivedDescription(object); description != this;
+         description = description->parent()) {
+        if (description->trySetFlagLocal(object, name, value)) {
+            return true;
+        }
+    }
+    return trySetFlagLocal(object, name, value);
+}
+
+std::optional<bool> ModelDescription::tryGetFlag(const CoreObject& object,
+                                                 std::string_view name) const
+{
+    for (const auto* description = derivedDescription(object); description != this;
+         description = description->parent()) {
+        if (const auto value = description->tryGetFlagLocal(object, name)) {
+            return value;
+        }
+    }
+    return tryGetFlagLocal(object, name);
 }
 
 bool ModelDescription::trySetFlagLocal(CoreObject& object, std::string_view name, bool value) const

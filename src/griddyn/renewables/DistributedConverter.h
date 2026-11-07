@@ -18,10 +18,6 @@ namespace griddyn {
 /** Distributed PV, storage, and vehicle current-source converter equations. */
 class DistributedConverter: public TerminalElectricalModel {
   public:
-    bool getFlag(std::string_view flag) const override;
-    void setFlag(std::string_view flag, bool val = true) override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     enum class Variant { pv, storage, ev1, ev2 };
 

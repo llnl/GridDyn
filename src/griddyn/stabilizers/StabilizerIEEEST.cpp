@@ -656,12 +656,4 @@ void StabilizerIEEEST::set(std::string_view param, double val, units::unit unitT
     }
 }
 
-double StabilizerIEEEST::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            StabilizerIEEEST::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Stabilizer::get(param, unitType);
-}
 }  // namespace griddyn::stabilizers

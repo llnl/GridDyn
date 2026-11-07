@@ -16,7 +16,6 @@ namespace griddyn::exciters {
 class ExciterESAC5A final: public Exciter {
   public:
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     void set(std::string_view param, std::string_view val) override;
     explicit ExciterESAC5A(const std::string& objName = "exciterESAC5A_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
@@ -59,7 +58,6 @@ class ExciterESAC5A final: public Exciter {
     index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
     using Exciter::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
   private:
     static constexpr index_t maximumStates = 5;

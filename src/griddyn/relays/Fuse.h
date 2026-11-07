@@ -15,10 +15,7 @@ namespace griddyn::relays {
  */
 class Fuse: public Relay {
   public:
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     /** flags for fuses*/
     enum FuseFlags {
         OVERLIMIT_FLAG = OBJECT_FLAG10,  //!< flag indicating the current is over the limit

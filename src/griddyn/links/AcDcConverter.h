@@ -22,10 +22,7 @@ namespace links {
      */
     class AcDcConverter: public Link {
       public:
-        void getParameterStrings(stringVec& pstr,
-                                 ParamStringType pstype = ParamStringType::ALL) const override;
         const ModelDescription& getModelDescription() const override;
-        double get(std::string_view param, units::unit unitType = units::defunit) const override;
         enum InverterFlags {
             FIXED_POWER_CONTROL = OBJECT_FLAG6,
         };

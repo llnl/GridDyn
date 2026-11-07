@@ -44,33 +44,6 @@ namespace {
     }
 }  // namespace
 
-void DistributedConverter::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = DistributedConverter::getModelDescription();
-    getParamString<DistributedConverter, TerminalElectricalModel>(this,
-                                                                  pstr,
-                                                                  description.numericNames(),
-                                                                  description.stringNames(),
-                                                                  description.flagNames(),
-                                                                  pstype);
-}
-
-void DistributedConverter::setFlag(std::string_view flag, bool val)
-{
-    if (!DistributedConverter::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        TerminalElectricalModel::setFlag(flag, val);
-    }
-}
-
-bool DistributedConverter::getFlag(std::string_view flag) const
-{
-    if (const auto value =
-            DistributedConverter::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return TerminalElectricalModel::getFlag(flag);
-}
-
 const ModelDescription& DistributedConverter::getModelDescription() const
 {
     static const auto description = ModelDescription::define<DistributedConverter>(
@@ -213,7 +186,7 @@ double DistributedConverter::get(std::string_view param, units::unit unitType) c
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
     if (const auto value =
-            DistributedConverter::getModelDescription().tryGetLocal(*this, key, unitType)) {
+            DistributedConverter::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
 

@@ -42,17 +42,6 @@ const ModelDescription& ExciterESAC5A::getModelDescription() const
     return description;
 }
 
-void ExciterESAC5A::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterESAC5A::getModelDescription();
-    getParamString<ExciterESAC5A, Exciter>(this,
-                                           pstr,
-                                           description.numericNames(),
-                                           description.stringNames(),
-                                           description.flagNames(),
-                                           pstype);
-}
-
 ExciterESAC5A::ExciterESAC5A(const std::string& objName): Exciter(objName)
 {
     m_inputSize = exciterInputCount;
@@ -445,15 +434,6 @@ void ExciterESAC5A::set(std::string_view param, double val, units::unit unitType
             ExciterESAC5A::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         Exciter::set(param, val, unitType);
     }
-}
-
-double ExciterESAC5A::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExciterESAC5A::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Exciter::get(param, unitType);
 }
 
 void ExciterESAC5A::set(std::string_view param, std::string_view val)

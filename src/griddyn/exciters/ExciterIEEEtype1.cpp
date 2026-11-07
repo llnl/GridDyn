@@ -51,17 +51,6 @@ const ModelDescription& ExciterIEEEtype1::getModelDescription() const
     return description;
 }
 
-void ExciterIEEEtype1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ExciterIEEEtype1::getModelDescription();
-    getParamString<ExciterIEEEtype1, Exciter>(this,
-                                              pstr,
-                                              description.numericNames(),
-                                              description.stringNames(),
-                                              description.flagNames(),
-                                              pstype);
-}
-
 ExciterIEEEtype1::ExciterIEEEtype1(const std::string& objName): Exciter(objName)
 {
     // default values that are different from inherited default values
@@ -364,15 +353,6 @@ void ExciterIEEEtype1::set(std::string_view param, double val, units::unit unitT
                    *this, param, val, unitType))) {
         Exciter::set(param, val, unitType);
     }
-}
-
-double ExciterIEEEtype1::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ExciterIEEEtype1::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Exciter::get(param, unitType);
 }
 
 void ExciterIEEEtype1::configureSaturation()

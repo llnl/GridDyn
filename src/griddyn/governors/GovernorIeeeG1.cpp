@@ -680,8 +680,7 @@ double GovernorIeeeG1::get(std::string_view param, units::unit unitType) const
     if (param == "paux") {
         return units::convert(auxiliaryPower, units::puMW, unitType, systemBasePower);
     }
-    if (const auto result =
-            GovernorIeeeG1::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto result = GovernorIeeeG1::getModelDescription().tryGet(*this, param, unitType)) {
         return *result;
     }
     if ((param.size() == 3) && (param[0] == 'k') && (param[1] >= '1') && (param[1] <= '8') &&

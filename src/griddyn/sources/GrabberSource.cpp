@@ -25,17 +25,6 @@ const ModelDescription& GrabberSource::getModelDescription() const
     return description;
 }
 
-void GrabberSource::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = GrabberSource::getModelDescription();
-    getParamString<GrabberSource, RampSource>(this,
-                                              pstr,
-                                              description.numericNames(),
-                                              description.stringNames(),
-                                              description.flagNames(),
-                                              pstype);
-}
-
 GrabberSource::GrabberSource(const std::string& objName): RampSource(objName) {}
 GrabberSource::~GrabberSource() = default;
 

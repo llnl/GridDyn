@@ -34,17 +34,6 @@ const ModelDescription& TransferFunctionBlock::getModelDescription() const
     return description;
 }
 
-void TransferFunctionBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = TransferFunctionBlock::getModelDescription();
-    getParamString<TransferFunctionBlock, GridBlock>(this,
-                                                     pstr,
-                                                     description.numericNames(),
-                                                     description.stringNames(),
-                                                     description.flagNames(),
-                                                     pstype);
-}
-
 TransferFunctionBlock::TransferFunctionBlock(const std::string& objName):
     GridBlock(objName), a{1.0, 1.0}, b{1.0, 0.0}
 {

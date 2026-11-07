@@ -30,34 +30,6 @@ const ModelDescription& BlockSequence::getModelDescription() const
     return description;
 }
 
-double BlockSequence::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            BlockSequence::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GridBlock::get(param, unitType);
-}
-
-bool BlockSequence::getFlag(std::string_view flag) const
-{
-    if (const auto value = BlockSequence::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return GridBlock::getFlag(flag);
-}
-
-void BlockSequence::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = BlockSequence::getModelDescription();
-    getParamString<BlockSequence, GridBlock>(this,
-                                             pstr,
-                                             description.numericNames(),
-                                             description.stringNames(),
-                                             description.flagNames(),
-                                             pstype);
-}
-
 BlockSequence::BlockSequence(const std::string& objName): GridBlock(objName)
 {
     opFlags[USE_DIRECT] = true;
@@ -312,13 +284,6 @@ ChangeCode BlockSequence::rootCheck(const IOdata& inputs,
     return ret;
 }
 
-void BlockSequence::setFlag(std::string_view flag, bool val)
-{
-    if (BlockSequence::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        return;
-    }
-    GridBlock::setFlag(flag, val);
-}
 // set parameters
 void BlockSequence::set(std::string_view param, std::string_view val)
 {

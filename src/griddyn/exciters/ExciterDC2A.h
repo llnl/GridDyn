@@ -27,7 +27,6 @@ class ExciterDC2A: public ExciterDC1A {
   protected:
   public:
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     explicit ExciterDC2A(const std::string& objName = "exciterDC2A_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 

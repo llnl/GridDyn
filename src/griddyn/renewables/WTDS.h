@@ -13,8 +13,6 @@ namespace griddyn {
 /** One-mass wind drivetrain with a shared generator and turbine speed. */
 class WTDS final: public RenewableComponent {
   public:
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     explicit WTDS(const std::string& name = "WTDS_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;

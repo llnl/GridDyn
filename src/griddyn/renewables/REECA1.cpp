@@ -200,17 +200,6 @@ const ModelDescription& REECA1::getModelDescription() const
     return description;
 }
 
-void REECA1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = REECA1::getModelDescription();
-    getParamString<REECA1, RenewableComponent>(this,
-                                               pstr,
-                                               description.numericNames(),
-                                               description.stringNames(),
-                                               description.flagNames(),
-                                               pstype);
-}
-
 REECA1::REECA1(const std::string& objName): RenewableComponent(objName)
 {
     // Base flags start disabled; derived models update their input size after
@@ -341,7 +330,7 @@ void REECA1::set(std::string_view param, double val, units::unit unitType)
 double REECA1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (const auto value = REECA1::getModelDescription().tryGetLocal(*this, key, unitType)) {
+    if (const auto value = REECA1::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
 

@@ -31,17 +31,6 @@ const ModelDescription& LutBlock::getModelDescription() const
     return description;
 }
 
-void LutBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = LutBlock::getModelDescription();
-    getParamString<LutBlock, GridBlock>(this,
-                                        pstr,
-                                        description.numericNames(),
-                                        description.stringNames(),
-                                        description.flagNames(),
-                                        pstype);
-}
-
 LutBlock::LutBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(USE_STATE);

@@ -198,7 +198,7 @@ double TimeOverCurrentRelay::get(std::string_view param, units::unit unitType) c
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
     if (const auto value =
-            TimeOverCurrentRelay::getModelDescription().tryGetLocal(*this, key, unitType)) {
+            TimeOverCurrentRelay::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
     if (key == "pickup" || key == "pickuplevel" || key == "ipickup" || key == "limit") {
@@ -226,17 +226,6 @@ std::string TimeOverCurrentRelay::getString(std::string_view param) const
         return curveToString(mCurve);
     }
     return Relay::getString(param);
-}
-
-void TimeOverCurrentRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = TimeOverCurrentRelay::getModelDescription();
-    getParamString<TimeOverCurrentRelay, Relay>(this,
-                                                pstr,
-                                                description.numericNames(),
-                                                description.stringNames(),
-                                                description.flagNames(),
-                                                pstype);
 }
 
 TimeOverCurrentRelay::Curve TimeOverCurrentRelay::curveFromString(std::string_view curveName)

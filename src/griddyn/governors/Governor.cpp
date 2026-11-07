@@ -470,8 +470,7 @@ double Governor::get(std::string_view param, units::unit unitType) const
         out = convert(deadbandHigh, puHz, unitType, systemBaseFrequency);
     } else if (param == "deadbandlow") {
         out = convert(deadbandLow, puHz, unitType, systemBaseFrequency);
-    } else if (const auto value =
-                   Governor::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    } else if (const auto value = Governor::getModelDescription().tryGet(*this, param, unitType)) {
         out = *value;
     } else {
         out = GridSubModel::get(param, unitType);

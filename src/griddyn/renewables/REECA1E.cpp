@@ -55,17 +55,6 @@ const ModelDescription& REECA1E::getModelDescription() const
     return description;
 }
 
-void REECA1E::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = REECA1E::getModelDescription();
-    getParamString<REECA1E, REECA1>(this,
-                                    pstr,
-                                    description.numericNames(),
-                                    description.stringNames(),
-                                    description.flagNames(),
-                                    pstype);
-}
-
 REECA1E::REECA1E(const std::string& objName): REECA1(objName)
 {
     m_inputSize = 7;
@@ -125,7 +114,7 @@ void REECA1E::set(std::string_view param, std::string_view val)
 double REECA1E::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (const auto value = REECA1E::getModelDescription().tryGetLocal(*this, key, unitType)) {
+    if (const auto value = REECA1E::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
     return REECA1::get(param, unitType);

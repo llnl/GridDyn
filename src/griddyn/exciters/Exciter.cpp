@@ -120,17 +120,6 @@ const ModelDescription& Exciter::getModelDescription() const
     return description;
 }
 
-void Exciter::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = Exciter::getModelDescription();
-    getParamString<Exciter, GridSubModel>(this,
-                                          pstr,
-                                          description.numericNames(),
-                                          description.stringNames(),
-                                          description.flagNames(),
-                                          pstype);
-}
-
 CoreObject* Exciter::clone(CoreObject* obj) const
 {
     auto* gdE = cloneBase<Exciter, GridSubModel>(this, obj);
@@ -384,14 +373,6 @@ void Exciter::set(std::string_view param, double val, units::unit unitType)
     if (!isSetHandled(Exciter::getModelDescription().trySetLocal(*this, param, val, unitType))) {
         GridSubModel::set(param, val, unitType);
     }
-}
-
-double Exciter::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = Exciter::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GridSubModel::get(param, unitType);
 }
 
 const std::vector<stringVec>& Exciter::inputNames() const

@@ -32,21 +32,6 @@ static const std::complex<double> rotn120(-0.5, -sqrt(3.0) / 2.0);
 
 #define CONJUGATE 1
 
-void GridLabDLoad::setFlag(std::string_view flag, bool val)
-{
-    if (!GridLabDLoad::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        RampLoad::setFlag(flag, val);
-    }
-}
-
-bool GridLabDLoad::getFlag(std::string_view flag) const
-{
-    if (const auto value = GridLabDLoad::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return RampLoad::getFlag(flag);
-}
-
 const ModelDescription& GridLabDLoad::getModelDescription() const
 {
     static const auto description = ModelDescription::define<GridLabDLoad>(
@@ -82,26 +67,6 @@ const ModelDescription& GridLabDLoad::getModelDescription() const
                         "Set an instance working directory",
                         ModelFieldType::STRING)});
     return description;
-}
-
-double GridLabDLoad::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            GridLabDLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return RampLoad::get(param, unitType);
-}
-
-void GridLabDLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = GridLabDLoad::getModelDescription();
-    getParamString<GridLabDLoad, RampLoad>(this,
-                                           pstr,
-                                           description.numericNames(),
-                                           description.stringNames(),
-                                           description.flagNames(),
-                                           pstype);
 }
 
 GridLabDLoad::GridLabDLoad(const std::string& objName): RampLoad(objName)

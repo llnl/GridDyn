@@ -13,8 +13,6 @@ namespace griddyn {
 /** REEC_C battery electrical control with state-of-charge limits. */
 class REECC1 final: public REECA1 {
   public:
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     const ModelDescription& getModelDescription() const override;
     explicit REECC1(const std::string& name = "REECC1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;

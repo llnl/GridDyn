@@ -74,25 +74,6 @@ const ModelDescription& TxThermalModel::getModelDescription() const
     return description;
 }
 
-bool TxThermalModel::getFlag(std::string_view flag) const
-{
-    if (const auto value = TxThermalModel::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return Sensor::getFlag(flag);
-}
-
-void TxThermalModel::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = TxThermalModel::getModelDescription();
-    getParamString<TxThermalModel, Sensor>(this,
-                                           pstr,
-                                           description.numericNames(),
-                                           description.stringNames(),
-                                           description.flagNames(),
-                                           pstype);
-}
-
 TxThermalModel::TxThermalModel(const std::string& objName): Sensor(objName)
 {
     opFlags.reset(CONTINUOUS_FLAG);  // this is a not a continuous model
@@ -127,14 +108,6 @@ CoreObject* TxThermalModel::clone(CoreObject* obj) const
     nobj->mCutoutTemp = mCutoutTemp;
     nobj->mAlarmDelay = mAlarmDelay;
     return nobj;
-}
-
-void TxThermalModel::setFlag(std::string_view flag, bool val)
-{
-    if (TxThermalModel::getModelDescription().trySetFlagLocal(*this, flag, val)) {
-        return;
-    }
-    Sensor::setFlag(flag, val);
 }
 
 void TxThermalModel::set(std::string_view param, std::string_view val)
@@ -230,15 +203,6 @@ void TxThermalModel::set(std::string_view param, double val, units::unit unitTyp
     } else {
         Sensor::set(param, val, unitType);
     }
-}
-
-double TxThermalModel::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            TxThermalModel::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Sensor::get(param, unitType);
 }
 
 void TxThermalModel::add(CoreObject* /*obj*/)

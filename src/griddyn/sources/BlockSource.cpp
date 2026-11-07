@@ -26,17 +26,6 @@ const ModelDescription& BlockSource::getModelDescription() const
     return description;
 }
 
-void BlockSource::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = BlockSource::getModelDescription();
-    getParamString<BlockSource, Source>(this,
-                                        pstr,
-                                        description.numericNames(),
-                                        description.stringNames(),
-                                        description.flagNames(),
-                                        pstype);
-}
-
 BlockSource::BlockSource(const std::string& objName): Source(objName) {}
 CoreObject* BlockSource::clone(CoreObject* obj) const
 {
@@ -163,7 +152,7 @@ void BlockSource::set(std::string_view param, double val, units::unit unitType)
 }
 double BlockSource::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value = BlockSource::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = BlockSource::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     double rval = Source::get(param, unitType);

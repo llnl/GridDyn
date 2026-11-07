@@ -14,7 +14,6 @@
 #include "DcLink.h"
 #include "VSCShunt.h"
 #include "core/CoreExceptions.h"
-#include "core/CoreObjectTemplates.hpp"
 #include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
@@ -207,17 +206,6 @@ void Link::timestep(const CoreTime time, const IOdata& /*inputs*/, const SolverM
     {
     Psched=sched->timestepP(time);
     }*/
-}
-
-void Link::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = Link::getModelDescription();
-    getParamString<Link, GridPrimary>(this,
-                                      pstr,
-                                      description.numericNames(),
-                                      description.stringNames(),
-                                      description.flagNames(),
-                                      pstype);
 }
 
 // set properties
@@ -413,7 +401,7 @@ CoreObject* Link::getSubObject(std::string_view typeName, index_t num) const
 
 double Link::get(std::string_view param, unit unitType) const
 {
-    if (const auto value = Link::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = Link::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     double val = kNullVal;

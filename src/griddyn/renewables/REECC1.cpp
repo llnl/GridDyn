@@ -33,17 +33,6 @@ const ModelDescription& REECC1::getModelDescription() const
     return description;
 }
 
-void REECC1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = REECC1::getModelDescription();
-    getParamString<REECC1, REECA1>(this,
-                                   pstr,
-                                   description.numericNames(),
-                                   description.stringNames(),
-                                   description.flagNames(),
-                                   pstype);
-}
-
 REECC1::REECC1(const std::string& objName): REECA1(objName)
 {
     // REEC_C uses a fixed current limit unless its PSS/E V-I curves are supplied.
@@ -103,7 +92,7 @@ void REECC1::set(std::string_view param, double val, units::unit unitType)
 double REECC1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (const auto value = REECC1::getModelDescription().tryGetLocal(*this, key, unitType)) {
+    if (const auto value = REECC1::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
     return REECA1::get(param, unitType);

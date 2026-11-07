@@ -86,17 +86,6 @@ void GridLoad::setLoad(double plevel, double qlevel, unit unitType)
     setQ(convert(qlevel, unitType, puMW, systemBasePower));
 }
 
-void GridLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = GridLoad::getModelDescription();
-    getParamString<GridLoad, GridComponent>(this,
-                                            pstr,
-                                            description.numericNames(),
-                                            description.stringNames(),
-                                            description.flagNames(),
-                                            pstype);
-}
-
 void GridLoad::setFlag(std::string_view flag, bool val)
 {
     if (flag == "usepowerfactor") {
@@ -108,17 +97,9 @@ void GridLoad::setFlag(std::string_view flag, bool val)
         } else {
             opFlags.reset(USE_POWER_FACTOR_FLAG);
         }
-    } else if (!GridLoad::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+    } else if (!GridLoad::getModelDescription().trySetFlag(*this, flag, val)) {
         GridSecondary::setFlag(flag, val);
     }
-}
-
-bool GridLoad::getFlag(std::string_view flag) const
-{
-    if (const auto value = GridLoad::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return GridSecondary::getFlag(flag);
 }
 
 // set properties
@@ -137,7 +118,7 @@ double GridLoad::get(std::string_view param, unit unitType) const
     if (canonicalName == "p" || canonicalName == "q") {
         return convertPower(canonicalName == "p" ? P : Q, puMW, unitType);
     }
-    if (const auto value = GridLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = GridLoad::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     double val = kNullVal;

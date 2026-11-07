@@ -22,10 +22,7 @@ namespace griddyn::blocks {
  */
 class IntegralBlock: public GridBlock {
   public:
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
 
   protected:
     double iv = 0.0;  //!< the initial value(current value) of the integral

@@ -30,26 +30,6 @@ const ModelDescription& FunctionBlock::getModelDescription() const
     return description;
 }
 
-double FunctionBlock::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            FunctionBlock::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return GridBlock::get(param, unitType);
-}
-
-void FunctionBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = FunctionBlock::getModelDescription();
-    getParamString<FunctionBlock, GridBlock>(this,
-                                             pstr,
-                                             description.numericNames(),
-                                             description.stringNames(),
-                                             description.flagNames(),
-                                             pstype);
-}
-
 FunctionBlock::FunctionBlock(): GridBlock("functionBlock_#")
 {
     offsets.local().local.algSize = 2;

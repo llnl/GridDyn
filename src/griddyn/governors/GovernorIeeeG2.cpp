@@ -136,15 +136,6 @@ void GovernorIeeeG2::set(std::string_view param, double val, units::unit unitTyp
     Governor::set(param, val, unitType);
 }
 
-double GovernorIeeeG2::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            GovernorIeeeG2::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Governor::get(param, unitType);
-}
-
 double GovernorIeeeG2::leadLagOutput(const IOdata& inputs, const double state[]) const
 {
     const double speedDeviation = 1.0 - inputs[govOmegaInLocation];

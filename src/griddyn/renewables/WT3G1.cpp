@@ -69,17 +69,6 @@ const ModelDescription& WT3G1::getModelDescription() const
     return description;
 }
 
-void WT3G1::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = WT3G1::getModelDescription();
-    getParamString<WT3G1, TerminalElectricalModel>(this,
-                                                   pstr,
-                                                   description.numericNames(),
-                                                   description.stringNames(),
-                                                   description.flagNames(),
-                                                   pstype);
-}
-
 WT3G1::WT3G1(const std::string& objName): TerminalElectricalModel(objName)
 {
     m_inputSize = 4;
@@ -123,7 +112,7 @@ void WT3G1::set(std::string_view param, double val, units::unit unitType)
 double WT3G1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (const auto value = WT3G1::getModelDescription().tryGetLocal(*this, key, unitType)) {
+    if (const auto value = WT3G1::getModelDescription().tryGet(*this, key, unitType)) {
         return *value;
     }
     return TerminalElectricalModel::get(param, unitType);

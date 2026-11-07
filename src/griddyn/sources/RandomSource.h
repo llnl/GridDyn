@@ -17,11 +17,7 @@ namespace griddyn::sources {
 /** @brief a source generating a random output*/
 class RandomSource: public RampSource {
   public:
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
-    bool getFlag(std::string_view flag) const override;
     const ModelDescription& getModelDescription() const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::ALL) const override;
     /** random source flags*/
     enum RandomSourceFlags {
         INTERPOLATE_FLAG = OBJECT_FLAG5,  //!< indicator that the output should be interpolated

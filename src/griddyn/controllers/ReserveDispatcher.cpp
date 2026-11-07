@@ -11,7 +11,6 @@
 #include "AGControl.h"
 #include "Scheduler.h"
 #include "core/CoreExceptions.h"
-#include "core/CoreObjectTemplates.hpp"
 #include "core/ModelParameter.hpp"
 #include <algorithm>
 #include <string>
@@ -78,26 +77,6 @@ const ModelDescription& ReserveDispatcher::getModelDescription() const
                    units::defunit,
                    "Dispatch interval")});
     return description;
-}
-
-double ReserveDispatcher::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            ReserveDispatcher::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return CoreObject::get(param, unitType);
-}
-
-void ReserveDispatcher::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ReserveDispatcher::getModelDescription();
-    getParamString<ReserveDispatcher, CoreObject>(this,
-                                                  pstr,
-                                                  description.numericNames(),
-                                                  description.stringNames(),
-                                                  description.flagNames(),
-                                                  pstype);
 }
 
 ReserveDispatcher::ReserveDispatcher(const std::string& objName): CoreObject(objName) {}

@@ -39,13 +39,11 @@ class GridLoad: public GridSecondary {
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     const ModelDescription& getModelDescription() const override;
 
-    virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
-    bool getFlag(std::string_view flag) const override;
 
     /** Mark this load as a fixed shunt, which is not part of an IEELAL load template. */
     void setFixedShunt(bool val = true) { fixedShunt = val; }

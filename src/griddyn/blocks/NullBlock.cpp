@@ -24,17 +24,6 @@ const ModelDescription& NullBlock::getModelDescription() const
     return description;
 }
 
-void NullBlock::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = NullBlock::getModelDescription();
-    getParamString<NullBlock, GridBlock>(this,
-                                         pstr,
-                                         description.numericNames(),
-                                         description.stringNames(),
-                                         description.flagNames(),
-                                         pstype);
-}
-
 NullBlock::NullBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags[USE_DIRECT] = true;

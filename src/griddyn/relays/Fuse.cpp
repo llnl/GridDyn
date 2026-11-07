@@ -45,25 +45,6 @@ const ModelDescription& Fuse::getModelDescription() const
     return description;
 }
 
-double Fuse::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value = Fuse::getModelDescription().tryGetLocal(*this, param, unitType)) {
-        return *value;
-    }
-    return Relay::get(param, unitType);
-}
-
-void Fuse::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = Fuse::getModelDescription();
-    getParamString<Fuse, Relay>(this,
-                                pstr,
-                                description.numericNames(),
-                                description.stringNames(),
-                                description.flagNames(),
-                                pstype);
-}
-
 Fuse::Fuse(const std::string& objName): Relay(objName), useI2T(extra_bool)
 {
     opFlags.set(CONTINUOUS_FLAG);

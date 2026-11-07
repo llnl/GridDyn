@@ -26,14 +26,6 @@ using units::puV;
 using units::rad;
 using units::unit;
 
-bool ThreePhaseLoad::getFlag(std::string_view flag) const
-{
-    if (const auto value = ThreePhaseLoad::getModelDescription().tryGetFlagLocal(*this, flag)) {
-        return *value;
-    }
-    return GridLoad::getFlag(flag);
-}
-
 const ModelDescription& ThreePhaseLoad::getModelDescription() const
 {
     static const auto description = ModelDescription::define<ThreePhaseLoad>(
@@ -119,17 +111,6 @@ void ThreePhaseLoad::setLoad(double plevel, double qlevel, unit unitType)
     Qa = Qb = Qc = getQ() / 3.0;
 }
 
-void ThreePhaseLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = ThreePhaseLoad::getModelDescription();
-    getParamString<ThreePhaseLoad, GridLoad>(this,
-                                             pstr,
-                                             description.numericNames(),
-                                             description.stringNames(),
-                                             description.flagNames(),
-                                             pstype);
-}
-
 void ThreePhaseLoad::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "ignore_phase") || (flag == "ignorevoltagephase")) {
@@ -140,7 +121,7 @@ void ThreePhaseLoad::setFlag(std::string_view flag, bool val)
     } else if ((flag == "three_phase_outputs") || (flag == "three_phase_output")) {
         opFlags.set(THREE_PHASE_OUTPUT, val);
         m_outputSize = val ? 6 : 3;
-    } else if (!ThreePhaseLoad::getModelDescription().trySetFlagLocal(*this, flag, val)) {
+    } else if (!ThreePhaseLoad::getModelDescription().trySetFlag(*this, flag, val)) {
         GridLoad::setFlag(flag, val);
     }
 }
@@ -160,8 +141,7 @@ double ThreePhaseLoad::getBaseAngle() const
 
 double ThreePhaseLoad::get(std::string_view param, unit unitType) const
 {
-    if (const auto value =
-            ThreePhaseLoad::getModelDescription().tryGetLocal(*this, param, unitType)) {
+    if (const auto value = ThreePhaseLoad::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
     if (param.length() == 2) {

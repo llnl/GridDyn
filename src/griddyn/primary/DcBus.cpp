@@ -264,17 +264,6 @@ void DcBus::set(std::string_view param, double val, unit unitType)
     GridBus::set(param, val, unitType);
 }
 
-void DcBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    const auto& description = DcBus::getModelDescription();
-    getParamString<DcBus, GridBus>(this,
-                                   pstr,
-                                   description.numericNames(),
-                                   description.stringNames(),
-                                   description.flagNames(),
-                                   pstype);
-}
-
 void DcBus::updateLocalCache(const IOdata& inputs,
                              const StateData& stateDataValue,
                              const SolverMode& sMode)

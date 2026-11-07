@@ -127,6 +127,36 @@ Empty names and names beginning with `#` are accepted as no-op inputs by both
 Other numeric calls check finiteness before field-name lookup, including names
 that would otherwise be delegated to a parent.
 
+### Setter dispatch results
+
+The pilot setters in `ExponentialLoad`, `TransferFunctionBlock`, and `Sensor` use
+`trySetLocalResult()`. It returns the single `SetResult` enumeration:
+
+| Result            | Value | Meaning                                              |
+| ----------------- | ----- | ---------------------------------------------------- |
+| `NO_MATCH`        | 0     | Continue class-specific handling or parent dispatch   |
+| `PARAMETER`       | 1     | Conversion, validation, and assignment completed      |
+| `FLAG`            | 2     | Boolean dispatch through `setFlag()` completed        |
+| `COMMAND`         | 3     | A declared operation for the class to execute         |
+| `INDEXED_COMMAND` | 4     | An indexed operation for the class to execute         |
+| `IGNORED`         | 10    | An empty/comment name, handled before value checks    |
+
+`isSetHandled()` recognizes the completed results. Exact numeric Boolean commands
+return `FLAG` after their existing virtual flag dispatch. The Boolean
+`trySetLocal()` helper delegates to this implementation while the remaining
+setters await migration. Invalid inputs continue to throw existing exceptions.
+
+`indexedCommand({"output"}, units::defunit, "Output mapping")` describes a
+command prefix followed by one or more decimal digits that fit `index_t`.
+Exact names within the same table take precedence. The prefix is exposed by
+`names()`, and the field kind `INDEXED_COMMAND` identifies the matching rule for
+external consumers.
+An unsuffixed operation can have a separate exact declaration with the same name.
+The class extracts the index and checks its own bounds; the result carries no
+index or field object. Indexed commands are excluded from field snapshots.
+The pilot declarations include the existing underscore and hash separators as
+prefix aliases, for example `a`, `a_`, and `a#`.
+
 ## Flags
 
 Flags are named Boolean controls and take no unit argument:

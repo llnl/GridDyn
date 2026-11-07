@@ -22,7 +22,14 @@
 namespace griddyn {
 
 /** Meaning of a declared member, independently of its storage type. */
-enum class ModelFieldKind : std::uint8_t { PARAMETER, FLAG, STATE, LOCAL_STATE, COMMAND };
+enum class ModelFieldKind : std::uint8_t {
+    PARAMETER,
+    FLAG,
+    STATE,
+    LOCAL_STATE,
+    COMMAND,
+    INDEXED_COMMAND
+};
 
 enum class ModelFieldType : std::uint8_t {
     REAL,
@@ -47,11 +54,28 @@ using ModelFieldValue = std::variant<double,
 
 enum class FieldSnapshotLevel : std::uint8_t { STATE, PARAMETERS };
 
+/** Outcome of local setter dispatch. Commands still require class-specific handling. */
+enum class SetResult : std::uint8_t {
+    NO_MATCH = 0,
+    PARAMETER = 1,
+    FLAG = 2,
+    COMMAND = 3,
+    INDEXED_COMMAND = 4,
+    IGNORED = 10
+};
+
+/** True when dispatch completed the operation, including ignored comment names. */
+[[nodiscard]] constexpr bool isSetHandled(SetResult result)
+{
+    return result == SetResult::PARAMETER || result == SetResult::FLAG ||
+        result == SetResult::IGNORED;
+}
+
 /** Metadata and typed access to one existing member; no member value is stored here.
  *
  * parameter() and flag() describe controls. state() identifies solver variables;
  * localState() binds retained model memory. command() describes operations implemented by the
- * class. A Boolean command dispatches to setFlag(). Normal clients continue to use
+ * class. An exact Boolean command dispatches to setFlag(). Normal clients continue to use
  * CoreObject::set/get. The local dispatch helpers perform direct member access for model
  * implementations. Handle special cases in the class before calling them; they do not dispatch to
  * parent tables.
@@ -87,7 +111,7 @@ class ModelField {
     [[nodiscard]] bool editable() const
     {
         return mKind == ModelFieldKind::PARAMETER || mKind == ModelFieldKind::FLAG ||
-            mKind == ModelFieldKind::COMMAND;
+            mKind == ModelFieldKind::COMMAND || mKind == ModelFieldKind::INDEXED_COMMAND;
     }
     [[nodiscard]] bool matches(std::string_view name) const;
     /** Read the existing member in its declared/native units. */
@@ -137,7 +161,17 @@ class ModelDescription {
     [[nodiscard]] const ModelField* find(std::string_view name) const;
     /** Resolve a name that is shared by a parameter and solver state. */
     [[nodiscard]] const ModelField* find(std::string_view name, ModelFieldKind kind) const;
-    /** Empty and comment names are handled; otherwise reject nonfinite input before lookup. */
+    /** Classify local dispatch; empty/comment names are ignored before checking the value.
+     * Exact numeric Boolean commands dispatch through setFlag and return FLAG.
+     * Other commands return COMMAND or INDEXED_COMMAND for the class to execute.
+     */
+    [[nodiscard]] SetResult trySetLocalResult(CoreObject& object,
+                                              std::string_view name,
+                                              double value,
+                                              units::unit unitType = units::defunit) const;
+    [[nodiscard]] SetResult
+        trySetLocalResult(CoreObject& object, std::string_view name, std::string_view value) const;
+    /** Boolean bridge for setters awaiting migration to result-based dispatch. */
     bool trySetLocal(CoreObject& object,
                      std::string_view name,
                      double value,
@@ -199,6 +233,14 @@ ModelField command(std::initializer_list<std::string_view> names,
                    units::unit unitType,
                    std::string_view description,
                    ModelFieldType valueType = ModelFieldType::REAL);
+
+/** A command family such as output0, output1, ...; exact names take precedence.
+ * The suffix must contain decimal digits and fit index_t. The class checks its own bounds.
+ */
+ModelField indexedCommand(std::initializer_list<std::string_view> prefixes,
+                          units::unit unitType,
+                          std::string_view description,
+                          ModelFieldType valueType = ModelFieldType::REAL);
 
 /** Solver-managed variable; use GridComponent::findIndex with the active mode to resolve it.
  * Its values belong to the shared solver-state payload, not object-field snapshots.

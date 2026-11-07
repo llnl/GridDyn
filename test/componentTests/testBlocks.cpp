@@ -257,6 +257,29 @@ TEST_F(BlockTests, TransferFunctionOutputLimitAndParameterValidation)
     EXPECT_THROW(invalidBlock.dynInitializeA(0.0, 0U), InvalidParameterValue);
 }
 
+TEST_F(BlockTests, TransferFunctionIndexedCommandsPreserveBoundsAndInheritedSettings)
+{
+    TransferFunctionBlock block;
+    block.set("a_2", 1.0);
+    block.set("b0", 2.0);
+    block.set("gain", 2.0);
+    EXPECT_THROW(block.set("b3", 1.0), InvalidParameterValue);
+    EXPECT_THROW(block.set("a2extra", 1.0), UnrecognizedParameter);
+    EXPECT_THROW(block.set("a-1", 1.0), UnrecognizedParameter);
+    EXPECT_NO_THROW(block.set("# comment", kNullVal));
+    block.dynInitializeA(0.0, 0U);
+    EXPECT_EQ(block.diffSize(cLocalSolverMode), 2);
+    IOdata fieldSet;
+    block.dynInitializeB({3.0}, {}, fieldSet);
+    EXPECT_NEAR(block.getBlockOutput(), 12.0, 1e-12);
+
+    const auto* indexed = block.getModelDescription().find("a2");
+    ASSERT_NE(indexed, nullptr);
+    EXPECT_EQ(indexed->kind(), ModelFieldKind::INDEXED_COMMAND);
+    EXPECT_EQ(indexed->name(), "a");
+    EXPECT_EQ(block.getModelDescription().find("a")->kind(), ModelFieldKind::COMMAND);
+}
+
 TEST_F(BlockTests, LeadLagKernelAndBlock)
 {
     // G(s) = 2(1 + 0.5s)/(1 + 2s).  The equilibrium state equals the input.

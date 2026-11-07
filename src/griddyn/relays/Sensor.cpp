@@ -22,8 +22,11 @@
 #include "utilities/MatrixDataSparse.hpp"
 #include "utilities/MatrixDataTranslate.hpp"
 #include <algorithm>
+#include <charconv>
+#include <cstddef>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -55,6 +58,27 @@ const ModelDescription& Sensor::getModelDescription() const
                  units::defunit,
                  "Filter input routing",
                  ModelFieldType::STRING),
+         indexedCommand({"input", "input_", "input#"},
+                        units::defunit,
+                        "Input signal specification by index",
+                        ModelFieldType::STRING),
+         indexedCommand({"filter", "filter_", "filter#"},
+                        units::defunit,
+                        "Filter block specification by index",
+                        ModelFieldType::STRING),
+         indexedCommand({"outputname", "outputname_", "outputname#"},
+                        units::defunit,
+                        "Output names by index",
+                        ModelFieldType::STRING),
+         indexedCommand({"output", "output_", "output#"},
+                        units::defunit,
+                        "Output signal or index by output index",
+                        ModelFieldType::STRING),
+         indexedCommand(
+             {"blockinput", "blockinput_", "blockinput#", "process", "process_", "process#"},
+             units::defunit,
+             "Filter input routing by index",
+             ModelFieldType::STRING),
          command({"sampled"}, units::defunit, "Sampled", ModelFieldType::BOOLEAN),
          command({"continuous"}, units::defunit, "Continuous", ModelFieldType::BOOLEAN)});
     return description;
@@ -349,23 +373,43 @@ void Sensor::setupOutput(index_t num, const std::string& outputString)
 
 void Sensor::set(std::string_view param, double val, units::unit unitType)
 {
-    if (Sensor::getModelDescription().trySetLocal(*this, param, val, unitType)) {
+    const auto result =
+        Sensor::getModelDescription().trySetLocalResult(*this, param, val, unitType);
+    if (isSetHandled(result)) {
         return;
     }
-    std::string iparam;
-    const int num = gmlc::utilities::stringOps::trailingStringInt(param, iparam, -1);
+    if (result == SetResult::NO_MATCH) {
+        Relay::set(param, val, unitType);
+        return;
+    }
+    std::string_view iparam = param;
+    index_t num = 0;
+    const bool indexed = result == SetResult::INDEXED_COMMAND;
+    if (indexed) {
+        const auto suffixStart = param.find_first_of("0123456789");
+        iparam = param.substr(0, suffixStart);
+        if (iparam.back() == '_' || iparam.back() == '#') {
+            iparam.remove_suffix(1);
+        }
+        const auto suffix = param.substr(suffixStart);
+        std::from_chars(suffix.data(), suffix.data() + suffix.size(), num);
+    }
     if ((iparam == "blockinput") || (iparam == "process")) {
-        if (num < 0) {
+        if (!indexed) {
             blockInputs.push_back(static_cast<int>(val));
         } else {
-            ensureSizeAtLeast(blockInputs, num + 1, -1);
-            blockInputs[num] = static_cast<int>(val);
+            const auto routeIndex = static_cast<std::size_t>(num);
+            if (routeIndex >= blockInputs.max_size()) {
+                throw InvalidParameterValue(param);
+            }
+            ensureSizeAtLeast(blockInputs, routeIndex + 1, -1);
+            blockInputs[routeIndex] = static_cast<int>(val);
         }
     } else if (iparam == "output") {
         if (static_cast<int>(val) < 0) {
             throw(InvalidParameterValue(param));
         }
-        if (num < 0) {
+        if (!indexed) {
             outputs.push_back(static_cast<int>(val));
         } else {
             if (std::cmp_less(num, outputs.size())) {

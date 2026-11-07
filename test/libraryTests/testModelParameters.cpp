@@ -732,4 +732,107 @@ TEST(ModelParameterTests, DiscoversStringCommandsWithoutInterceptingTheirImpleme
     EXPECT_FALSE(description.trySetLocal(model, "role", 0.0));
 }
 
+TEST(ModelParameterTests, SetterResultsDistinguishAssignmentsCommandsAndIgnoredNames)
+{
+    static_assert(static_cast<int>(SetResult::IGNORED) == 10);
+    ParameterModel model;
+    const auto& description = model.getModelDescription();
+    EXPECT_EQ(description.trySetLocalResult(model, "k", 250.0, units::percent),
+              SetResult::PARAMETER);
+    EXPECT_NEAR(model.mGain, 2.5, 1e-6);
+    EXPECT_EQ(description.trySetLocalResult(model, "switch", -2.0), SetResult::FLAG);
+    EXPECT_TRUE(model.mSwitch);
+    EXPECT_EQ(description.trySetLocalResult(model, "label", "new label"), SetResult::PARAMETER);
+    EXPECT_EQ(model.mLabel, "new label");
+    EXPECT_EQ(description.trySetLocalResult(model, "missing", 1.0), SetResult::NO_MATCH);
+    EXPECT_EQ(description.trySetLocalResult(model, "remembered_time", 1.0), SetResult::NO_MATCH);
+    const auto nan = std::numeric_limits<double>::quiet_NaN();
+    EXPECT_EQ(description.trySetLocalResult(model, "", nan), SetResult::IGNORED);
+    EXPECT_EQ(description.trySetLocalResult(model, "# comment", nan), SetResult::IGNORED);
+    EXPECT_EQ(description.trySetLocalResult(model, "# comment", "anything"), SetResult::IGNORED);
+    EXPECT_THROW((void)description.trySetLocalResult(model, "missing", nan), InvalidParameterValue);
+
+    const auto commands = ModelDescription::define<ParameterModel>(
+        "Commands",
+        nullptr,
+        {command({"operation"}, units::one, "Class operation"),
+         command({"role"}, units::defunit, "Role", ModelFieldType::STRING),
+         command({"enabled"}, units::defunit, "Enable object", ModelFieldType::BOOLEAN)});
+    EXPECT_EQ(commands.trySetLocalResult(model, "operation", 2.0), SetResult::COMMAND);
+    EXPECT_EQ(commands.trySetLocalResult(model, "role", "under"), SetResult::COMMAND);
+    EXPECT_FALSE(commands.trySetLocal(model, "operation", 2.0));
+    EXPECT_FALSE(commands.trySetLocal(model, "role", "under"));
+    EXPECT_EQ(commands.trySetLocalResult(model, "enabled", 0.0), SetResult::FLAG);
+    EXPECT_FALSE(model.isEnabled());
+    EXPECT_TRUE(commands.trySetLocal(model, "enabled", 1.0));
+    EXPECT_TRUE(model.isEnabled());
+    EXPECT_TRUE(isSetHandled(SetResult::PARAMETER));
+    EXPECT_TRUE(isSetHandled(SetResult::FLAG));
+    EXPECT_TRUE(isSetHandled(SetResult::IGNORED));
+    EXPECT_FALSE(isSetHandled(SetResult::NO_MATCH));
+    EXPECT_FALSE(isSetHandled(SetResult::COMMAND));
+    EXPECT_FALSE(isSetHandled(SetResult::INDEXED_COMMAND));
+}
+
+TEST(ModelParameterTests, IndexedCommandsCheckCompleteSuffixesAndPreserveExactNames)
+{
+    const auto description = ModelDescription::define<ParameterModel>(
+        "IndexedCommands",
+        nullptr,
+        {indexedCommand({"output", "route"}, units::defunit, "Output route"),
+         indexedCommand({"input"}, units::defunit, "Input", ModelFieldType::STRING),
+         command({"output"}, units::defunit, "All outputs", ModelFieldType::STRING),
+         command({"output2"}, units::one, "Exact override"),
+         parameter({"output3"}, &ParameterModel::mGain, units::one, "Exact parameter")});
+    ParameterModel model;
+    for (const auto* name : {"output0", "output001", "output12", "route4"}) {
+        SCOPED_TRACE(name);
+        const auto* field = description.findLocal(name);
+        ASSERT_NE(field, nullptr);
+        EXPECT_EQ(field->kind(), ModelFieldKind::INDEXED_COMMAND);
+        EXPECT_TRUE(field->editable());
+        EXPECT_EQ(description.find(name, ModelFieldKind::INDEXED_COMMAND), field);
+        EXPECT_EQ(description.trySetLocalResult(model, name, 1.0), SetResult::INDEXED_COMMAND);
+        EXPECT_FALSE(description.trySetLocal(model, name, 1.0));
+    }
+    const auto maximumIndex = "output" + std::to_string(std::numeric_limits<index_t>::max());
+    EXPECT_EQ(description.trySetLocalResult(model, maximumIndex, 1.0), SetResult::INDEXED_COMMAND);
+    EXPECT_EQ(description.trySetLocalResult(model, maximumIndex + "0", 1.0), SetResult::NO_MATCH);
+    for (const auto* name : {"route", "output-1", "output+1", "output 1", "output1x", "xoutput1"}) {
+        SCOPED_TRACE(name);
+        EXPECT_EQ(description.findLocal(name), nullptr);
+        EXPECT_EQ(description.trySetLocalResult(model, name, 1.0), SetResult::NO_MATCH);
+    }
+    EXPECT_EQ(description.trySetLocalResult(model, "input12", "voltage"),
+              SetResult::INDEXED_COMMAND);
+    EXPECT_FALSE(description.trySetLocal(model, "input12", "voltage"));
+    EXPECT_EQ(description.findLocal("output")->kind(), ModelFieldKind::COMMAND);
+    EXPECT_EQ(description.trySetLocalResult(model, "output", "input0"), SetResult::COMMAND);
+    EXPECT_EQ(description.find("output2", ModelFieldKind::COMMAND)->name(), "output2");
+    EXPECT_EQ(description.trySetLocalResult(model, "output2", 1.0), SetResult::COMMAND);
+    EXPECT_EQ(description.trySetLocalResult(model, "output3", 2.0), SetResult::PARAMETER);
+    EXPECT_DOUBLE_EQ(model.mGain, 2.0);
+    EXPECT_THROW((void)description.trySetLocalResult(model,
+                                                     "output999999999999999999999",
+                                                     std::numeric_limits<double>::infinity()),
+                 InvalidParameterValue);
+}
+
+TEST(ModelParameterTests, RejectsDuplicatePatternsAndRepeatedStateDeclarations)
+{
+    EXPECT_THROW((ModelDescription::define<ParameterModel>(
+                     "DuplicatePatterns",
+                     nullptr,
+                     {indexedCommand({"output"}, units::one, "First"),
+                      indexedCommand({"output"}, units::one, "Duplicate")})),
+                 std::invalid_argument);
+    EXPECT_THROW((ModelDescription::define<ParameterModel>(
+                     "RepeatedState",
+                     nullptr,
+                     {parameter({"gain"}, &ParameterModel::mGain, units::one, "Gain"),
+                      state("gain", units::one),
+                      state("gain", units::one)})),
+                 std::invalid_argument);
+}
+
 }  // namespace griddyn

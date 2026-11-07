@@ -77,16 +77,15 @@ void ExponentialLoad::set(std::string_view param, std::string_view val)
 }
 void ExponentialLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (ExponentialLoad::getModelDescription().trySetLocal(*this, param, val, unitType)) {
-        return;
-    }
-    if ((param == "alpha") || (param == "a")) {
+    const auto result =
+        ExponentialLoad::getModelDescription().trySetLocalResult(*this, param, val, unitType);
+    if (result == SetResult::COMMAND) {
         const auto converted = units::convert(val, unitType, units::one);
         if (!std::isfinite(converted)) {
             throw InvalidParameterValue(param);
         }
         alphaP = alphaQ = converted;
-    } else {
+    } else if (result == SetResult::NO_MATCH) {
         GridLoad::set(param, val, unitType);
     }
 }

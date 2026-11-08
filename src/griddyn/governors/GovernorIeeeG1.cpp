@@ -641,11 +641,6 @@ ChangeCode GovernorIeeeG1::rootCheck(const IOdata& inputs,
     return ChangeCode::NO_CHANGE;
 }
 
-void GovernorIeeeG1::set(std::string_view param, std::string_view val)
-{
-    Governor::set(param, val);
-}
-
 void GovernorIeeeG1::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "paux") {
@@ -656,8 +651,7 @@ void GovernorIeeeG1::set(std::string_view param, double val, units::unit unitTyp
         (void)GovernorIeeeG1::getModelDescription().trySetLocal(*this, param, power);
         return;
     }
-    if (isSetHandled(
-            GovernorIeeeG1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(GovernorIeeeG1::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if ((param == "k" || param == "droop") && !parameterValidators::nonnegative(val)) {

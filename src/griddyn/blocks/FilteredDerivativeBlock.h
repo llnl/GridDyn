@@ -44,9 +44,6 @@ class FilteredDerivativeBlock: public GridBlock {
                                       IOdata& fieldSet) override;
 
   public:
-    virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     // virtual index_t findIndex(const std::string &field, const SolverMode &sMode) const;
 
     virtual void blockDerivative(double input,

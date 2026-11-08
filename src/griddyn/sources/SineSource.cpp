@@ -127,13 +127,9 @@ void SineSource::updateOutput(CoreTime time)
     prevTime = time;
 }
 
-void SineSource::set(std::string_view param, std::string_view val)
-{
-    PulseSource::set(param, val);
-}
 void SineSource::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(SineSource::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(SineSource::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if ((param == "a") || (param == "amplitude") || (param == "amp")) {

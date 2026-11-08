@@ -28,7 +28,7 @@ class IEELLoad: public GridLoad {
     void setIEELParameters(const IEELParameters& newParameters);
     const IEELParameters& getIEELParameters() const { return parameters; }
 
-    void set(std::string_view param, std::string_view val) override;
+    using GridLoad::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     void ioPartialDerivatives(const IOdata& inputs,

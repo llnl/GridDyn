@@ -178,7 +178,7 @@ index_t REPCA1::sourceBusID(RenewableSignal signal) const
 
 void REPCA1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(REPCA1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(REPCA1::getModelDescription().trySet(*this, param, val, unitType))) {
         if (param == "fflag") {
             updateInputSize();
         }

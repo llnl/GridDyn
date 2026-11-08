@@ -247,14 +247,9 @@ stringVec GenModel3::localStateNames() const
     return genModel3Names;
 }
 // set parameters
-void GenModel3::set(std::string_view param, std::string_view val)
-{
-    return GenModelClassical::set(param, val);
-}
-
 void GenModel3::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(GenModel3::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(GenModel3::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     GenModelClassical::set(param, val, unitType);

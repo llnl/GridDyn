@@ -86,8 +86,8 @@ CoreObject* ExcitationLimiterUEL1::clone(CoreObject* obj) const
 
 void ExcitationLimiterUEL1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(ExcitationLimiterUEL1::getModelDescription().trySetLocal(
-            *this, param, val, unitType))) {
+    if (isSetHandled(
+            ExcitationLimiterUEL1::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     ExcitationLimiter::set(param, val, unitType);

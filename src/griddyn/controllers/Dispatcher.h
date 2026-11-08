@@ -44,7 +44,7 @@ class Dispatcher: public CoreObject {
     virtual void remove(CoreObject* obj) override;
     virtual void remove(Scheduler* sched);
 
-    virtual void set(std::string_view param, std::string_view val) override;
+    using CoreObject::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 

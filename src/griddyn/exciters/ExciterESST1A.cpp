@@ -536,14 +536,6 @@ void ExciterESST1A::set(std::string_view param, std::string_view val)
     }
 }
 
-void ExciterESST1A::set(std::string_view param, double val, units::unit unitType)
-{
-    if (!isSetHandled(
-            ExciterESST1A::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        Exciter::set(param, val, unitType);
-    }
-}
-
 stringVec ExciterESST1A::localStateNames() const
 {
     return {"efd", "vmeas", "ll1", "ll2", "va", "rf"};

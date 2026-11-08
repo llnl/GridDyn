@@ -610,15 +610,9 @@ void GovernorGPWSCC::timestep(CoreTime time, const IOdata& inputs, const SolverM
     prevTime = time;
 }
 
-void GovernorGPWSCC::set(std::string_view param, std::string_view val)
-{
-    Governor::set(param, val);
-}
-
 void GovernorGPWSCC::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(
-            GovernorGPWSCC::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(GovernorGPWSCC::getModelDescription().trySet(*this, param, val, unitType))) {
         if (!param.empty() && param.front() != '#') {
             updateOutputLimits();
         }

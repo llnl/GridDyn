@@ -237,15 +237,9 @@ index_t GovernorReheat::findIndex(std::string_view field, const SolverMode& sMod
 }
 
 // set parameters
-void GovernorReheat::set(std::string_view param, std::string_view val)
-{
-    Governor::set(param, val);
-}
-
 void GovernorReheat::set(std::string_view param, double val, unit unitType)
 {
-    if (isSetHandled(
-            GovernorReheat::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(GovernorReheat::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param == "k1") {

@@ -76,7 +76,7 @@ class GovernorIeeeG1: public Governor {
                               IOdata& fieldSet) override;
     bool setOutputInitializationTarget(index_t outputIndex, double target) override;
 
-    void set(std::string_view param, std::string_view val) override;
+    using Governor::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
 

@@ -52,10 +52,6 @@ void Dispatcher::add(Scheduler* /*sched*/)
 void Dispatcher::remove(CoreObject* /*obj*/) {}
 void Dispatcher::remove(Scheduler* /*sched*/) {}
 
-void Dispatcher::set(std::string_view param, std::string_view val)
-{
-    CoreObject::set(param, val);
-}
 void Dispatcher::set(std::string_view param, double val, units::unit unitType)
 {
     CoreObject::set(param, val, unitType);

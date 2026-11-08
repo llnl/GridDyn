@@ -307,8 +307,7 @@ index_t GovernorHygov4::findIndex(std::string_view field, const SolverMode& mode
 }
 void GovernorHygov4::set(std::string_view param, double value, units::unit unitType)
 {
-    if (isSetHandled(
-            GovernorHygov4::getModelDescription().trySetLocal(*this, param, value, unitType))) {
+    if (isSetHandled(GovernorHygov4::getModelDescription().trySet(*this, param, value, unitType))) {
         return;
     }
     Governor::set(param, value, unitType);

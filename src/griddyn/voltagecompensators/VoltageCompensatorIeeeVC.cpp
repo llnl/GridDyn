@@ -69,8 +69,8 @@ void VoltageCompensatorIeeeVC::set(std::string_view param, std::string_view val)
 
 void VoltageCompensatorIeeeVC::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(VoltageCompensatorIeeeVC::getModelDescription().trySetLocal(
-            *this, param, val, unitType))) {
+    if (isSetHandled(
+            VoltageCompensatorIeeeVC::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     GridSubModel::set(param, val, unitType);

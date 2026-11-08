@@ -217,21 +217,6 @@ index_t ControlBlock::findIndex(std::string_view field, const SolverMode& sMode)
 }
 
 // set parameters
-void ControlBlock::set(std::string_view param, std::string_view val)
-{
-    GridBlock::set(param, val);
-}
-void ControlBlock::set(std::string_view param, double val, units::unit unitType)
-{
-    if (isSetHandled(
-            ControlBlock::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        return;
-    }
-    // param   = GridDynSimulation::toLower(param);
-
-    GridBlock::set(param, val, unitType);
-}
-
 stringVec ControlBlock::localStateNames() const
 {
     stringVec out(stateSize(cLocalSolverMode));

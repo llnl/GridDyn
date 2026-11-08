@@ -154,7 +154,7 @@ std::span<const RenewablePort> EPCGEN::outputPorts() const
 
 void EPCGEN::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(EPCGEN::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(EPCGEN::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});

@@ -154,7 +154,7 @@ void GridLoad::set(std::string_view param, double val, unit unitType)
         }
         return;
     }
-    if (isSetHandled(GridLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(GridLoad::getModelDescription().trySet(*this, param, val, unitType))) {
         if (canonicalName == "qratio") {
             opFlags.set(USE_POWER_FACTOR_FLAG);
         }

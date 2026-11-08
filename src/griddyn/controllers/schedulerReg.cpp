@@ -279,15 +279,9 @@ void SchedulerReg::regSettings(bool active, double upFrac, double downFrac)
     }
 }
 
-void SchedulerReg::set(std::string_view param, std::string_view val)
-{
-    SchedulerRamp::set(param, val);
-}
-
 void SchedulerReg::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(
-            SchedulerReg::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(SchedulerReg::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     double newBaseMW = m_Base;

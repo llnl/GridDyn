@@ -105,12 +105,10 @@ class GenModelGENTPJ final: public GenModel5 {
     explicit GenModelGENTPJ(const std::string& objName = "gentpj_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     const ModelDescription& getModelDescription() const override;
-    using GenModel5::set;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
-    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     stringVec localStateNames() const override;
     void residual(const IOdata& inputs,
                   const StateData& sD,

@@ -77,7 +77,7 @@ CoreObject* CIM5::clone(CoreObject* obj) const
 }
 void CIM5::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(CIM5::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(CIM5::getModelDescription().trySet(*this, param, val, unitType))) {
         if (param == "e1" || param == "se1" || param == "e2" || param == "se2") {
             saturation.setParam(saturationE1, saturationSE1, saturationE2, saturationSE2);
         }
@@ -149,7 +149,7 @@ CoreObject* CIM6::clone(CoreObject* obj) const
 }
 void CIM6::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(CIM6::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(CIM6::getModelDescription().trySet(*this, param, val, unitType))) {
         if (param == "e1" || param == "se1" || param == "e2" || param == "se2") {
             saturation.setParam(saturationE1, saturationSE1, saturationE2, saturationSE2);
         }

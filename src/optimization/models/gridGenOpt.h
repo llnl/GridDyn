@@ -22,6 +22,8 @@ class Generator;
 
 class GridGenOpt: public GridOptObject {
   public:
+    const ModelDescription& getModelDescription() const override;
+    using GridOptObject::set;
     enum OptGenFlags {
         PIECEWISE_LINEAR_COST = 1,
     };
@@ -94,12 +96,8 @@ class GridGenOpt: public GridOptObject {
                                    const std::string& prefix = "") override;
 
     // parameter set functions
-    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    // parameter get functions
-    virtual double get(std::string_view param,
-                       units::unit unitType = units::defunit) const override;
 
     /** Store a MATPOWER/PYPOWER cost curve in the optimizer's per-unit variables.
         The source format expresses power in MW/MVAr; the adapter obtains the
@@ -121,6 +119,8 @@ class GridGenOpt: public GridOptObject {
     virtual GridOptObject* getArea(index_t index) const override;
 
   protected:
+    double powerBase() const;
+    double convertCostCoefficient(double value, units::unit unitType, int order) const;
     bool usesActivePiecewiseCost(const OptimizationMode& oMode) const;
     bool hasNonconvexActiveCost() const;
 };

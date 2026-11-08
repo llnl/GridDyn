@@ -176,14 +176,9 @@ double WSCCLoad::powerFrequencyDerivative(bool reactive, double voltage) const
     return basePower * frequencyDerivative(reactive, voltage);
 }
 
-void WSCCLoad::set(std::string_view param, std::string_view val)
-{
-    GridLoad::set(param, val);
-}
-
 void WSCCLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(WSCCLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(WSCCLoad::getModelDescription().trySet(*this, param, val, unitType))) {
         if (!param.empty() && param.front() != '#') {
             setWSCCParameters(parameters);
         }

@@ -300,7 +300,7 @@ std::span<const RenewablePort> REECA1::outputPorts() const
 
 void REECA1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(REECA1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(REECA1::getModelDescription().trySet(*this, param, val, unitType))) {
         if (param == "vflag" || param == "qflag" || param == "pflag") {
             updateInputSize();
         }

@@ -128,19 +128,6 @@ void GenModelCSVGN1::dynObjectInitializeB(const IOdata& inputs,
     fieldSet[genModelEftInLocation] = 0.0;
 }
 
-void GenModelCSVGN1::set(std::string_view param, std::string_view val)
-{
-    GenModel::set(param, val);
-}
-
-void GenModelCSVGN1::set(std::string_view param, double val, units::unit unitType)
-{
-    if (!isSetHandled(
-            GenModelCSVGN1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        GenModel::set(param, val, unitType);
-    }
-}
-
 stringVec GenModelCSVGN1::localStateNames() const
 {
     const auto stateLocs = stateLocations(0, (T4 == 0.0 ? 1 : 0) + (T5 == 0.0 ? 1 : 0));

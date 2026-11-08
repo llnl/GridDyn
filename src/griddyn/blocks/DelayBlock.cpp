@@ -160,13 +160,9 @@ void DelayBlock::blockJacobianElements(double input,
 }
 
 // set parameters
-void DelayBlock::set(std::string_view param, std::string_view val)
-{
-    GridBlock::set(param, val);
-}
 void DelayBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(DelayBlock::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(DelayBlock::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     // param = GridDynSimulation::toLower(param);

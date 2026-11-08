@@ -647,15 +647,9 @@ ChangeCode GovernorHygov::rootCheck(const IOdata& inputs,
     return ChangeCode::NO_CHANGE;
 }
 
-void GovernorHygov::set(std::string_view param, std::string_view val)
-{
-    Governor::set(param, val);
-}
-
 void GovernorHygov::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(
-            GovernorHygov::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(GovernorHygov::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param == "r" && !parameterValidators::positive(val)) {

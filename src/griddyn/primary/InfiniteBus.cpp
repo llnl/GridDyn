@@ -93,7 +93,7 @@ void infiniteBus::set(std::string_view param, std::string_view val)
 
 void infiniteBus::set(std::string_view param, double val, unit unitType)
 {
-    if (isSetHandled(infiniteBus::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(infiniteBus::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param == "dvdt") {

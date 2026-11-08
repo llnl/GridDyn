@@ -308,8 +308,8 @@ index_t GovernorTgov1Variant::findIndex(std::string_view field, const SolverMode
 }
 void GovernorTgov1Variant::set(std::string_view param, double value, units::unit unitType)
 {
-    if (isSetHandled(GovernorTgov1Variant::getModelDescription().trySetLocal(
-            *this, param, value, unitType))) {
+    if (isSetHandled(
+            GovernorTgov1Variant::getModelDescription().trySet(*this, param, value, unitType))) {
         return;
     }
     Governor::set(param, value, unitType);

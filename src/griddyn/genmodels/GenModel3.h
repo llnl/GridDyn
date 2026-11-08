@@ -28,7 +28,7 @@ class GenModel3: public GenModelClassical {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void set(std::string_view param, std::string_view val) override;
+    using GenModelClassical::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 

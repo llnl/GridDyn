@@ -789,13 +789,9 @@ void GridBlock::setFlag(std::string_view flag, bool val)
 }
 
 // set parameters
-void GridBlock::set(std::string_view param, std::string_view val)
-{
-    GridSubModel::set(param, val);
-}
 void GridBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(GridBlock::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(GridBlock::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     // param   = GridDynSimulation::toLower(param);

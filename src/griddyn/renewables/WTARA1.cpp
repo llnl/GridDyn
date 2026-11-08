@@ -69,7 +69,7 @@ std::span<const RenewablePort> WTARA1::outputPorts() const
 
 void WTARA1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(WTARA1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(WTARA1::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});

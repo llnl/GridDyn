@@ -439,7 +439,7 @@ void GenModelClassical::set(std::string_view param, double val, units::unit unit
         return;
     }
     if (isSetHandled(
-            GenModelClassical::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+            GenModelClassical::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param == "m") {

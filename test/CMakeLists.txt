@@ -141,7 +141,9 @@ set(dynamic_system_gtest_sources
 )
 
 if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
-    set(optimization_gtest_sources gtestHelperFunctions.cpp optimizationTests/testDcFormulation.cpp)
+    set(optimization_gtest_sources gtestHelperFunctions.cpp optimizationTests/testDcFormulation.cpp
+                                   optimizationTests/testOptimizationDescription.cpp
+    )
 endif()
 
 add_library(griddyn_gtest_base INTERFACE)

@@ -103,8 +103,8 @@ CoreObject* ExcitationLimiterUEL2C::clone(CoreObject* obj) const
 
 void ExcitationLimiterUEL2C::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(ExcitationLimiterUEL2C::getModelDescription().trySetLocal(
-            *this, param, val, unitType))) {
+    if (isSetHandled(
+            ExcitationLimiterUEL2C::getModelDescription().trySet(*this, param, val, unitType))) {
         if (param.size() == 2 && (param.front() == 'p' || param.front() == 'q') &&
             param[1] >= '0' && param[1] <= '6') {
             pointCount = std::max(pointCount, static_cast<std::size_t>(param[1] - '0' + 1));

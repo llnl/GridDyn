@@ -153,15 +153,6 @@ void FunctionBlock::set(std::string_view param, std::string_view val)
     }
 }
 
-void FunctionBlock::set(std::string_view param, double val, units::unit unitType)
-{
-    if (isSetHandled(
-            FunctionBlock::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        return;
-    }
-    GridBlock::set(param, val, unitType);
-}
-
 void FunctionBlock::setFunction(const std::string& functionName)
 {
     if (auto unaryFunctionPtr = get1ArgFunction(functionName)) {

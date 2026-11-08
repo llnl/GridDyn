@@ -979,14 +979,6 @@ void ExciterEXAC1::set(std::string_view param, std::string_view val)
     }
 }
 
-void ExciterEXAC1::set(std::string_view param, double val, units::unit unitType)
-{
-    if (!isSetHandled(
-            ExciterEXAC1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        Exciter::set(param, val, unitType);
-    }
-}
-
 stringVec ExciterEXAC1::localStateNames() const
 {
     stringVec names{"efd"};

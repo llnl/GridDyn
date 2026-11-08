@@ -25,6 +25,7 @@ namespace griddyn::blocks {
 class FunctionBlock: public GridBlock {
   public:
     const ModelDescription& getModelDescription() const override;
+    using GridBlock::set;
     //!< flags for function block
     enum FunctionBlockFlags {
         USES_CONSTANT_ARG =
@@ -53,8 +54,6 @@ class FunctionBlock: public GridBlock {
                                       IOdata& fieldSet) override;
 
     virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     // virtual index_t findIndex(const std::string &field, const SolverMode &sMode) const;
 
     // virtual void blockDerivative(double input, double didt, const StateData&sD, double

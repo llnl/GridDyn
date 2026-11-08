@@ -30,6 +30,8 @@ class consData;
  **/
 class GridOptObject: public CoreObject {
   public:
+    const ModelDescription& getModelDescription() const override;
+    using CoreObject::set;
     std::bitset<32> optFlags;  //!< operational flags these flags are designed to be normal false
     count_t numParams = 0;  //!< the number of parameters to store in an archive
     OptimizationOffsetTable offsets;  //!< a table of offsets for the different solver modes
@@ -41,8 +43,6 @@ class GridOptObject: public CoreObject {
     virtual CoreObject* sourceObject() const { return nullptr; }
     virtual void set(std::string_view param, std::string_view val) override;
 
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     /** set the offsets of an object for a particular optimization mode.
     @param newOffsets the offset set to use.
     @param oMode the optimization mode to use.

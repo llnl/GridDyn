@@ -349,8 +349,8 @@ void ExciterIEEEtype1::set(std::string_view param, double val, units::unit unitT
             opFlags.reset(TRIGGER_HIGH);
             opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
         }
-    } else if (!isSetHandled(ExciterIEEEtype1::getModelDescription().trySetLocal(
-                   *this, param, val, unitType))) {
+    } else if (!isSetHandled(
+                   ExciterIEEEtype1::getModelDescription().trySet(*this, param, val, unitType))) {
         Exciter::set(param, val, unitType);
     }
 }

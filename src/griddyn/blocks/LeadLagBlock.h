@@ -68,7 +68,7 @@ class LeadLagBlock: public GridBlock {
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
-    void set(std::string_view param, std::string_view val) override;
+    using GridBlock::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     void blockDerivative(double input,
                          double didt,

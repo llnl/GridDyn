@@ -53,10 +53,6 @@ class GenModel: public GridSubModel {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-
     virtual IOdata getOutputs(const IOdata& inputs,
                               const StateData& stateDataValue,
                               const SolverMode& sMode) const override;

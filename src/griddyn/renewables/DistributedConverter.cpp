@@ -145,7 +145,7 @@ std::string_view DistributedConverter::sourceName(RenewableSignal signal) const
 void DistributedConverter::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(
-            DistributedConverter::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+            DistributedConverter::getModelDescription().trySet(*this, param, val, unitType))) {
         if (param == "pref" || param == "pref0") {
             prefConfigured = true;
         }

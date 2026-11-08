@@ -87,18 +87,7 @@ index_t Stabilizer::findIndex(std::string_view /*field*/, const SolverMode& /*sM
     return kInvalidLocation;
 }
 
-void Stabilizer::set(std::string_view param, std::string_view val)
-{
-    GridSubModel::set(param, val);
-}
 // set parameters
-void Stabilizer::set(std::string_view param, double val, units::unit unitType)
-{
-    if (!isSetHandled(Stabilizer::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        GridSubModel::set(param, val, unitType);
-    }
-}
-
 void Stabilizer::jacobianElements(const IOdata& /*inputs*/,
                                   const StateData& /*sD*/,
                                   MatrixData<double>& /*md*/,

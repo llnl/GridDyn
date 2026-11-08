@@ -173,19 +173,6 @@ void DerivativeBlock::blockJacobianElements(double input,
 }
 
 // set parameters
-void DerivativeBlock::set(std::string_view param, std::string_view val)
-{
-    GridBlock::set(param, val);
-}
-void DerivativeBlock::set(std::string_view param, double val, units::unit unitType)
-{
-    if (isSetHandled(
-            DerivativeBlock::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        return;
-    }
-    GridBlock::set(param, val, unitType);
-}
-
 stringVec DerivativeBlock::localStateNames() const
 {
     auto bbstates = GridBlock::localStateNames();

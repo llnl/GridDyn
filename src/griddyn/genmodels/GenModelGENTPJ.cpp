@@ -244,13 +244,6 @@ void GenModelGENTPJ::dynObjectInitializeB(const IOdata& inputs,
     Vd = directVoltage;
     Vq = quadratureVoltage;
 }
-void GenModelGENTPJ::set(std::string_view param, double value, units::unit unitType)
-{
-    if (!isSetHandled(
-            GenModelGENTPJ::getModelDescription().trySetLocal(*this, param, value, unitType))) {
-        GenModel5::set(param, value, unitType);
-    }
-}
 stringVec GenModelGENTPJ::localStateNames() const
 {
     return {"id", "iq", "delta", "freq", "epd", "epq", "psippd", "psippq"};

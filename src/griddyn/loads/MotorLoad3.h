@@ -24,6 +24,7 @@ class MotorLoad3: public MotorLoad {
     // double theta=0;
   public:
     const ModelDescription& getModelDescription() const override;
+    using MotorLoad::set;
     /** @brief constructor
 @param[in] objName  the name of the object
 */
@@ -38,8 +39,6 @@ class MotorLoad3: public MotorLoad {
                                       IOdata& fieldSet) override;
 
     virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual void setState(CoreTime time,
                           const double state[],

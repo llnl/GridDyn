@@ -69,14 +69,13 @@ class Exciter: public GridSubModel {
     explicit Exciter(const std::string& objName = "exciter_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     const ModelDescription& getModelDescription() const override;
+    using GridSubModel::set;
 
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
     virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual stringVec localStateNames() const override;
 

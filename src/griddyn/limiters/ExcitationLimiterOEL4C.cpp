@@ -73,8 +73,8 @@ CoreObject* ExcitationLimiterOEL4C::clone(CoreObject* obj) const
 
 void ExcitationLimiterOEL4C::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(ExcitationLimiterOEL4C::getModelDescription().trySetLocal(
-            *this, param, val, unitType))) {
+    if (isSetHandled(
+            ExcitationLimiterOEL4C::getModelDescription().trySet(*this, param, val, unitType))) {
         if (param == "qref" || param == "qrefpu" || param == "q_ref_pu") {
             qRefSet = true;
         }

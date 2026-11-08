@@ -79,20 +79,6 @@ class GenModelCSVGN1: public GenModel {
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
 
-    /**
-     * @brief Set a CSVGN1 parameter from its textual form.
-     * @param param Parameter name.
-     * @param val Text representation of the parameter value.
-     */
-    void set(std::string_view param, std::string_view val) override;
-    /**
-     * @brief Set a CSVGN1 parameter from a numeric value.
-     * @param param Parameter name.
-     * @param val Numeric parameter value.
-     * @param unitType Units associated with val.
-     */
-    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-
     stringVec localStateNames() const override;
     void derivative(const IOdata& inputs,
                     const StateData& stateDataValue,

@@ -19,6 +19,8 @@ class GridBus;
 
 class GridBusOpt: public GridOptObject {
   public:
+    const ModelDescription& getModelDescription() const override;
+    using GridOptObject::set;
     enum BusFlags {
 
     };
@@ -110,7 +112,6 @@ class GridBusOpt: public GridOptObject {
                 const std::string& param,
                 double val,
                 units::unit unitType = units::defunit);
-    void set(std::string_view param, std::string_view val) override;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     // parameter get functions
     virtual double get(std::string_view param,

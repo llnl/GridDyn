@@ -182,6 +182,29 @@ Flags have a separate `flagNames()` discovery list and `hasUnits()` is false.
 The flag declaration itself has neither numerical values nor units. Classes
 may keep special numeric flag validation, such as requiring exactly zero or one.
 
+## Default numeric setters
+
+Simple numeric setters inherit dispatch instead of repeating the same table lookup
+and parent call. `Class::getModelDescription().trySet(object, name, value, units)`
+uses the same derived-to-declaring-table boundary as getters. It retains the
+`SetResult` enumeration: parameters and flags are applied, ignored inputs complete,
+and only commands declared in the receiving table are returned for that class to
+execute. Commands in derived tables fall through as their removed forwarding
+setters did; they must not be mistaken for a parent's own command.
+
+`GridPrimary`, `GridSecondary` and `GridSubModel` provide shared dispatch above
+GridComponent's base-setting propagation and assignment restrictions. Setters with
+custom conversions, validation, limit updates, synchronization or deliberately
+skipped base classes keep those behaviors. In particular, internal writes with
+normalized names, values or units continue to use `trySetLocal`, so they cannot
+accidentally target a shadowing derived field or apply conversion twice.
+
+Empty/comment names are ignored and nonfinite values rejected before even looking
+up the object's derived table. Field validators and conversion remain in the
+existing local assignment mechanism. String setters are preserved; numeric
+inheritance uses `using Parent::set` where needed to keep both overloads visible.
+Pure string forwarders are removed only when the inherited method is equivalent.
+
 ## Default flag access
 
 Models with simple flag assignments inherit `setFlag` and `getFlag` rather than
@@ -371,7 +394,6 @@ external-interface and checkpoint coverage:
 | Computed getters         | Counts, solver statistics, controller outputs and diagnostic values are often absent. They need a read-only description distinct from solver `state` and retained `localState`.                                                                               |
 | Legacy suffix parsing    | AcLine accepts redundant numeric suffixes; ZonalRelay parses only one digit and maps other suffixes to zone zero; ThreeWindingTransformer dispatches a fixed set of suffixed leg settings. These interfaces need consistent declarations and bounds behavior. |
 | Helper hierarchies       | Solvers, recorders, players, events, communications and optimizer interfaces derive from HelperObject rather than CoreObject. They do not share this description mechanism yet.                                                                               |
-| Optimization objects     | GridOptObject and its area/bus/generator/link/load/relay subclasses still lack their own tables, including indexed generator cost coefficients.                                                                                                               |
 | Command-backed data      | Describing a command does not save its values. Fractions, transfer-function coefficient arrays, relay zones, internal block settings and external-file configuration need underlying parameter/state bindings and restore coordination.                       |
 | Retained runtime history | Controller integrals, relay pending actions, file cursors and random-source state require a separate history audit.                                                                                                                                           |
 | Inherited restrictions   | Some models reject settings advertised by a parent table, such as REECB1 restrictions on REECA1 settings. Effective external descriptions must account for that.                                                                                              |
@@ -382,3 +404,30 @@ Do not declare computed outputs as retained memory merely to list their getters.
 Likewise, a command declaration must not be taken as evidence that the operation's
 configuration or runtime history is included in a field snapshot. Restore tests
 must verify the resulting model behavior as those bindings are added.
+
+## Optimization model objects
+
+GridOptObject and its area, bus, generator, link, load and relay adapters use the
+same description hierarchy and inherited dispatch as the simulation models.
+Even adapters without local settings declare their exact type so object-field
+snapshots can distinguish them. The physical model returned by `sourceObject()`
+is a separate object; its settings are not copied into the adapter's table.
+
+Generator heat rate and fuel cost are ordinary parameters with shared set/get,
+alias enumeration and field capture. Indexed `pN`/`qN` cost edits, named cost
+coefficients, forecast, penalty cost and forwarded generation limits remain
+commands. Their conversions use the attached generator's system power base
+(or a base of one for an unattached adapter). Physical cost coefficients are
+scaled by the power base raised to the polynomial order, matching MATPOWER
+imports. Explicit native per-unit coefficients retain their existing scale.
+These commands describe the existing interface; they do not capture cost curves
+or their backing arrays.
+Restoring cost curves needs bindings for the source-format curve and coordination
+with the converted coefficients. Neither these commands nor the adapter tables
+claim a complete optimization checkpoint or an optimizer warm restart.
+
+The reserved voltage/angle tolerance commands on area, bus, link and relay
+adapters remain explicitly documented as ignored. Computed object counts remain
+in the classes. Offsets, object relationships, optimizer-owned decision vectors,
+multipliers and backend history need their own restore coordination;
+OptimizerInterface still uses the separate HelperObject hierarchy.

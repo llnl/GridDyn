@@ -46,14 +46,6 @@ void ExciterESAC1A::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     ExciterEXAC1::dynObjectInitializeA(time0, flags);
 }
 
-void ExciterESAC1A::set(std::string_view param, double val, units::unit unitType)
-{
-    if (!isSetHandled(
-            ExciterESAC1A::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        ExciterEXAC1::set(param, val, unitType);
-    }
-}
-
 double ExciterESAC1A::regulatorUpperLimit() const
 {
     return Vamax;

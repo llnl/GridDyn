@@ -321,15 +321,9 @@ index_t GovernorGast::findIndex(std::string_view field, const SolverMode& sMode)
     return kInvalidLocation;
 }
 
-void GovernorGast::set(std::string_view param, std::string_view val)
-{
-    Governor::set(param, val);
-}
-
 void GovernorGast::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(
-            GovernorGast::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(GovernorGast::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if ((param == "t1" || param == "t2" || param == "t3") && val < 0.0) {

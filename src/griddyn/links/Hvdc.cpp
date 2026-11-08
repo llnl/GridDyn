@@ -104,7 +104,7 @@ void Hvdc::set(std::string_view param, std::string_view val)
 
 void Hvdc::set(std::string_view param, double val, unit unitType)
 {
-    if (isSetHandled(Hvdc::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(Hvdc::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param == "r") {

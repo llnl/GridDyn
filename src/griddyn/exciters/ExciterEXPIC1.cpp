@@ -603,14 +603,5 @@ void ExciterEXPIC1::set(std::string_view param, std::string_view val)
     }
 }
 
-void ExciterEXPIC1::set(std::string_view param, double val, units::unit unitType)
-{
-    if (isSetHandled(
-            ExciterEXPIC1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        return;
-    }
-    Exciter::set(param, val, unitType);
-}
-
 // NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::exciters

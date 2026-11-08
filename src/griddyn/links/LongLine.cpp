@@ -70,7 +70,7 @@ void LongLine::set(std::string_view param, std::string_view val)
 }
 void LongLine::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(LongLine::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(LongLine::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
 

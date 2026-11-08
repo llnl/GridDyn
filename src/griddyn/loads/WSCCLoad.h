@@ -46,7 +46,7 @@ class WSCCLoad: public GridLoad {
     void setWSCCParameters(const WSCCParameters& newParameters);
     const WSCCParameters& getWSCCParameters() const { return parameters; }
 
-    void set(std::string_view param, std::string_view val) override;
+    using GridLoad::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     void ioPartialDerivatives(const IOdata& inputs,

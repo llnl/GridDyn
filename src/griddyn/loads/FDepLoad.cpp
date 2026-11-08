@@ -216,7 +216,7 @@ void FDepLoad::set(std::string_view param, std::string_view val)
 
 void FDepLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(FDepLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(FDepLoad::getModelDescription().trySet(*this, param, val, unitType))) {
         if (!param.empty() && param.front() != '#' && ((betaP != 0.0) || (betaQ != 0.0))) {
             opFlags.set(USES_BUS_FREQUENCY);
         }

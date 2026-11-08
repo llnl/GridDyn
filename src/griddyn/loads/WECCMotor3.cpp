@@ -136,14 +136,9 @@ CoreObject* WECCMotor3::clone(CoreObject* obj) const
     return (copied == nullptr) ? obj : copied;
 }
 
-void WECCMotor3::set(std::string_view param, std::string_view val)
-{
-    CIM6::set(param, val);
-}
-
 void WECCMotor3::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(WECCMotor3::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(WECCMotor3::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if ((param == "tmo") || (param == "Tmo")) {

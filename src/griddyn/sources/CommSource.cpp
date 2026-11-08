@@ -103,7 +103,7 @@ void CommSource::set(std::string_view param, std::string_view val)
 
 void CommSource::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(CommSource::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(CommSource::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if ((param == "ramp") || (param == "maxramp")) {

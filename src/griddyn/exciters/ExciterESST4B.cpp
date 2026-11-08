@@ -450,14 +450,6 @@ void ExciterESST4B::set(std::string_view param, std::string_view val)
     }
 }
 
-void ExciterESST4B::set(std::string_view param, double val, units::unit unitType)
-{
-    if (!isSetHandled(
-            ExciterESST4B::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        Exciter::set(param, val, unitType);
-    }
-}
-
 stringVec ExciterESST4B::localStateNames() const
 {
     stringVec names{"efd"};

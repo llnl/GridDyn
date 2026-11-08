@@ -10,6 +10,7 @@
 #include "../optObjectFactory.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "gridBusOpt.h"
 #include "griddyn/Generator.h"
@@ -18,6 +19,7 @@
 #include <algorithm>
 #include <charconv>
 #include <cmath>
+#include <cstddef>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -25,17 +27,6 @@
 
 namespace griddyn {
 namespace {
-    bool parseIndexSuffix(std::string_view text, std::size_t& index)
-    {
-        if (text.empty()) {
-            return false;
-        }
-        const auto* begin = text.data();
-        const auto* end = begin + text.size();
-        const auto result = std::from_chars(begin, end, index);
-        return (result.ec == std::errc{}) && (result.ptr == end);
-    }
-
     int getPolynomialOrderLimit(const OptimizationMode& optimizationMode)
     {
         switch (optimizationMode.linMode) {
@@ -136,6 +127,33 @@ namespace {
 }  // namespace
 
 static OptObjectFactory<GridGenOpt, Generator> gOpgen("basic", "gen", 0, true);
+
+const ModelDescription& GridGenOpt::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridGenOpt>(
+        "GridGenOpt",
+        &GridOptObject::getModelDescription(),
+        {parameter({"heatrate"}, &GridGenOpt::m_heatRate, units::defunit, "Generator heat rate"),
+         parameter({"fuel", "fuelcost"}, &GridGenOpt::m_fuelCost, units::defunit, "Fuel cost"),
+         command({"penalty_cost", "penalty"},
+                 units::currency / units::puMW / units::hr,
+                 "Power penalty cost per hour"),
+         command({"forecast"}, units::puMW, "Forecast real power on the attached system base"),
+         indexedCommand({"p", "q"},
+                        units::defunit,
+                        "Cost coefficient in native per-unit variables"),
+         command({"constantp", "constant", "constantq"},
+                 units::defunit,
+                 "Constant cost coefficient"),
+         command({"linearp", "linear", "linearq"},
+                 units::currency / units::puMW / units::hr,
+                 "Linear cost coefficient"),
+         command({"quadraticp", "quadp", "quadratic", "quad", "quadraticq", "quadq"},
+                 units::currency / units::puMW.pow(2) / units::hr,
+                 "Quadratic cost coefficient"),
+         command({"pmax", "pmin"}, units::puMW, "Set the attached generator's real power limit")});
+    return description;
+}
 
 GridGenOpt::GridGenOpt(const std::string& objName): GridOptObject(objName), bus(nullptr) {}
 
@@ -639,107 +657,94 @@ void GridGenOpt::getObjectiveNames(stringVec& objectiveNames,
 }
 
 // set properties
-void GridGenOpt::set(std::string_view param, std::string_view val)
-{
-    if (param == "#") {
-    } else {
-        GridOptObject::set(param, val);
-    }
-}
-
 void GridGenOpt::set(std::string_view param, double val, units::unit unitType)
 {
     using units::convert;
-    using units::currency;
-    using units::hr;
     using units::puMW;
-    if (param.empty()) {
+    const auto result = GridGenOpt::getModelDescription().trySet(*this, param, val, unitType);
+    if (isSetHandled(result)) {
         return;
     }
-    if (param[0] == 'p') {
-        std::size_t num;
-        if (parseIndexSuffix(param.substr(1), num)) {
-            if (num > Pcoeff.size()) {
-                Pcoeff.resize(num + 1);
-            }
-            Pcoeff[num] = val;
-            return;
+    if (result == SetResult::INDEXED_COMMAND) {
+        std::size_t num = 0;
+        // trySet has already checked the complete decimal suffix and its range.
+        std::from_chars(param.data() + 1, param.data() + param.size(), num);
+        auto& coefficients = (param.front() == 'p') ? Pcoeff : Qcoeff;
+        if (num >= coefficients.size()) {
+            coefficients.resize(num + 1);
         }
-    } else if (param[0] == 'q') {
-        std::size_t num;
-        if (parseIndexSuffix(param.substr(1), num)) {
-            if (num > Qcoeff.size()) {
-                Qcoeff.resize(num + 1);
-            }
-            Qcoeff[num] = val;
-            return;
-        }
+        coefficients[num] = val;
+        return;
     }
-
-    if (param == "heatrate") {
-        m_heatRate = val;
-    } else if ((param == "fuel") || (param == "fuelcost")) {
-        m_fuelCost = val;
-    } else if ((param == "constantp") || (param == "constant")) {
+    if ((param == "constantp") || (param == "constant")) {
         if (Pcoeff.empty()) {
             Pcoeff.resize(1);
         }
         Pcoeff[0] = val;
     } else if ((param == "linearp") || (param == "linear")) {
+        const auto coefficient = convertCostCoefficient(val, unitType, 1);
         if (Pcoeff.size() < 2) {
             Pcoeff.resize(2);
         }
-        Pcoeff[1] = convert(val, unitType, currency / puMW / hr, gen->getRoot()->get("basepower"));
+        Pcoeff[1] = coefficient;
     } else if ((param == "quadraticp") || (param == "quadp") || (param == "quadratic") ||
                (param == "quad")) {
+        const auto coefficient = convertCostCoefficient(val, unitType, 2);
         if (Pcoeff.size() < 3) {
             Pcoeff.resize(3);
         }
-        Pcoeff[2] =
-            convert(val, unitType, currency / (puMW.pow(2)) / hr, gen->getRoot()->get("basepower"));
+        Pcoeff[2] = coefficient;
     } else if (param == "constantq") {
         if (Qcoeff.empty()) {
             Qcoeff.resize(1);
         }
         Qcoeff[0] = val;
     } else if (param == "linearq") {
+        const auto coefficient = convertCostCoefficient(val, unitType, 1);
         if (Qcoeff.size() < 2) {
             Qcoeff.resize(2);
         }
-        Qcoeff[1] = convert(val, unitType, currency / puMW / hr, gen->getRoot()->get("basepower"));
+        Qcoeff[1] = coefficient;
     } else if ((param == "quadraticq") || (param == "quadq")) {
+        const auto coefficient = convertCostCoefficient(val, unitType, 2);
         if (Qcoeff.size() < 3) {
             Qcoeff.resize(3);
         }
-        Qcoeff[2] =
-            convert(val, unitType, currency / (puMW.pow(2)) / hr, gen->getRoot()->get("basepower"));
+        Qcoeff[2] = coefficient;
     } else if ((param == "penalty_cost") || (param == "penalty")) {
-        m_penaltyCost =
-            convert(val, unitType, currency / puMW / hr, gen->getRoot()->get("basepower"));
+        m_penaltyCost = convertCostCoefficient(val, unitType, 1);
     } else if ((param == "pmax") || (param == "pmin")) {
         if (gen != nullptr) {
             gen->set(param, val, unitType);
         }
     } else if (param == "forecast") {
-        m_forecast = convert(val, unitType, puMW, gen->getRoot()->get("basepower"));
+        m_forecast = convert(val, unitType, puMW, powerBase());
     } else {
         GridOptObject::set(param, val, unitType);
     }
 }
 
-double GridGenOpt::get(std::string_view param, units::unit unitType) const
+double GridGenOpt::powerBase() const
 {
-    double val = kNullVal;
-    if (param == "#") {
-    } else {
-        val = GridOptObject::get(param, unitType);
+    return (gen != nullptr) ? gen->getRoot()->get("basepower") : 1.0;
+}
+
+double GridGenOpt::convertCostCoefficient(double value, units::unit unitType, int order) const
+{
+    const auto nativeUnits = units::currency / units::puMW.pow(order) / units::hr;
+    const auto converted = (units::is_default(unitType) || unitType.is_per_unit()) ?
+        units::convert(value, unitType, nativeUnits) :
+        units::convert(value, unitType, units::currency / units::MW.pow(order) / units::hr) *
+            std::pow(powerBase(), order);
+    if (!std::isfinite(converted)) {
+        throw InvalidParameterValue("invalid generator cost coefficient units or value");
     }
-    return val;
+    return converted;
 }
 
 void GridGenOpt::loadMatPowerCostCoeff(std::vector<double> coeff, int powerMode, int costModel)
 {
-    const auto basePower = (gen != nullptr) ? gen->getRoot()->get("basepower") : 1.0;
+    const auto basePower = powerBase();
     if (costModel == 2) {
         // MATPOWER lists polynomial terms highest-to-lowest in MW/MVAr.  The
         // optimizer uses per-unit injections and constant-first coefficients.

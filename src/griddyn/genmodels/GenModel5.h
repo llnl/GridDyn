@@ -29,7 +29,7 @@ class GenModel5: public GenModel4 {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void set(std::string_view param, std::string_view val) override;
+    using GenModel4::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 

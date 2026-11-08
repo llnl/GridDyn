@@ -9,6 +9,7 @@
 
 #include "../optObjectFactory.h"
 #include "core/CoreExceptions.h"
+#include "core/ModelDescription.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "gridAreaOpt.h"
@@ -41,6 +42,20 @@ namespace {
              (bus->getType() == GridBus::BusType::AFIX));
     }
 }  // namespace
+
+const ModelDescription& GridBusOpt::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridBusOpt>(
+        "GridBusOpt",
+        &GridOptObject::getModelDescription(),
+        {command({"voltagetolerance", "vtol"},
+                 units::defunit,
+                 "Reserved voltage tolerance; currently ignored"),
+         command({"angletolerance", "atol"},
+                 units::defunit,
+                 "Reserved angle tolerance; currently ignored")});
+    return description;
+}
 
 GridBusOpt::GridBusOpt(const std::string& objName): GridOptObject(objName) {}
 
@@ -612,20 +627,13 @@ void GridBusOpt::setAll(const std::string& type,
 }
 
 // set properties
-void GridBusOpt::set(std::string_view param, std::string_view val)
-{
-    if (param[0] != '#') {
-        GridOptObject::set(param, val);
-    }
-}
-
 void GridBusOpt::set(std::string_view param, double val, unit unitType)
 {
-    if ((param == "voltagetolerance") || (param == "vtol")) {
-    } else if ((param == "angletolerance") || (param == "atol")) {
-    } else {
-        GridOptObject::set(param, val, unitType);
+    const auto result = GridBusOpt::getModelDescription().trySet(*this, param, val, unitType);
+    if (isSetHandled(result) || result == SetResult::COMMAND) {
+        return;
     }
+    GridOptObject::set(param, val, unitType);
 }
 
 CoreObject* GridBusOpt::find(std::string_view objName) const
@@ -709,7 +717,7 @@ double GridBusOpt::get(std::string_view param, units::unit unitType) const
     } else if (param == "loadcount") {
         ival = static_cast<count_t>(loadList.size());
     } else {
-        fval = CoreObject::get(param, unitType);
+        fval = GridOptObject::get(param, unitType);
     }
     return (ival != kInvalidCount) ? static_cast<double>(ival) : fval;
 }

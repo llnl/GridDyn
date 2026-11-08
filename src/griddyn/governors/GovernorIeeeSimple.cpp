@@ -266,11 +266,6 @@ void GovernorIeeeSimple::rootTrigger(CoreTime /*time*/,
 }
 
 // set parameters
-void GovernorIeeeSimple::set(std::string_view param, std::string_view val)
-{
-    Governor::set(param, val);
-}
-
 void GovernorIeeeSimple::set(std::string_view param, double val, unit unitType)
 {
     if (param == "t3") {

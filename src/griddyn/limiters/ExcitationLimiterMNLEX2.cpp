@@ -59,8 +59,8 @@ CoreObject* ExcitationLimiterMNLEX2::clone(CoreObject* obj) const
 
 void ExcitationLimiterMNLEX2::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(ExcitationLimiterMNLEX2::getModelDescription().trySetLocal(
-            *this, param, val, unitType))) {
+    if (isSetHandled(
+            ExcitationLimiterMNLEX2::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     ExcitationLimiter::set(param, val, unitType);

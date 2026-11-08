@@ -462,8 +462,7 @@ void SchedulerRamp::reserveDispatcherLink()
 
 void SchedulerRamp::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(
-            SchedulerRamp::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(SchedulerRamp::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param == "ramp") {

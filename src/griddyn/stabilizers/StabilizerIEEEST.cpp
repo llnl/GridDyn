@@ -603,11 +603,6 @@ index_t StabilizerIEEEST::findIndex(std::string_view field, const SolverMode& sM
     return kInvalidLocation;
 }
 
-void StabilizerIEEEST::set(std::string_view param, std::string_view val)
-{
-    Stabilizer::set(param, val);
-}
-
 void StabilizerIEEEST::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "lsmax" || param == "vmax") {
@@ -651,7 +646,7 @@ void StabilizerIEEEST::set(std::string_view param, double val, units::unit unitT
         return;
     }
     if (!isSetHandled(
-            StabilizerIEEEST::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+            StabilizerIEEEST::getModelDescription().trySet(*this, param, val, unitType))) {
         Stabilizer::set(param, val, unitType);
     }
 }

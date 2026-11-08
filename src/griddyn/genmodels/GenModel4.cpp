@@ -285,7 +285,7 @@ void GenModel4::set(std::string_view param, std::string_view val)
 
 void GenModel4::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(GenModel4::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(GenModel4::getModelDescription().trySet(*this, param, val, unitType))) {
         if (param == "s1" || param == "s10" || param == "s12") {
             sat.setParam(S10, S12);
         }

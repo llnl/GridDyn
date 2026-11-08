@@ -43,6 +43,7 @@ namespace griddyn::exciters {
 class ExciterIEEET3 final: public Exciter {
   public:
     const ModelDescription& getModelDescription() const override;
+    using Exciter::set;
     enum IEEET3Flags {
         REGULATOR_LIMITED = OBJECT_FLAG5,
         REGULATOR_LIMIT_HIGH = OBJECT_FLAG6,
@@ -88,7 +89,6 @@ class ExciterIEEET3 final: public Exciter {
     stringVec localStateNames() const override;
     index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
     void set(std::string_view param, std::string_view val) override;
-    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
   private:
     static constexpr index_t stateCount = 4;

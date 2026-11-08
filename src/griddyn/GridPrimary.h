@@ -73,7 +73,7 @@ class GridPrimary: public GridComponent {
                                 IOdata& fieldSet) override final;
 
   public:
-    virtual void set(std::string_view param, std::string_view val) override;
+    using GridComponent::set;
 
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;

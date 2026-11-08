@@ -138,7 +138,7 @@ void BlockSource::set(std::string_view param, double val, units::unit unitType)
     if (subObjectSet(param, val, unitType)) {
         return;
     }
-    if (isSetHandled(BlockSource::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(BlockSource::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     try {

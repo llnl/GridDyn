@@ -264,8 +264,7 @@ double ThreePhaseLoad::get(std::string_view param, unit unitType) const
 
 void ThreePhaseLoad::set(std::string_view param, double val, unit unitType)
 {
-    if (isSetHandled(
-            ThreePhaseLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(ThreePhaseLoad::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param.length() == 2) {

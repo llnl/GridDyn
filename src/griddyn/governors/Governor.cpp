@@ -440,8 +440,7 @@ void Governor::set(std::string_view param, double val, unit unitType)
             deadbandLow = -deadbandLow;
         }
         dbb.set("deadbandlow", deadbandLow);
-    } else if (isSetHandled(
-                   Governor::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    } else if (isSetHandled(Governor::getModelDescription().trySet(*this, param, val, unitType))) {
         // Synchronize the blocks only after the converted parameter has been accepted.
         if (param == "k" || param == "droop") {
             dbb.set("k", -K);

@@ -30,7 +30,7 @@ class WECCMotor3: public CIM6 {
     explicit WECCMotor3(const std::string& objName = "weccMotor3_$");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    void set(std::string_view param, std::string_view val) override;
+    using CIM6::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
 

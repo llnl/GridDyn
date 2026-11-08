@@ -221,7 +221,7 @@ double MotorLoad::get(std::string_view param, units::unit unitType) const
 
 void MotorLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(MotorLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(MotorLoad::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     bool slipCheck = false;

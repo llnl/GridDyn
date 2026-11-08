@@ -374,8 +374,7 @@ void GenModelInverter::set(std::string_view param, std::string_view val)
 
 void GenModelInverter::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(
-            GenModelInverter::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(GenModelInverter::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     GenModel::set(param, val, unitType);

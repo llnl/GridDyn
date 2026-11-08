@@ -285,7 +285,7 @@ double ZipLoad::get(std::string_view param, unit unitType) const
 
 void ZipLoad::set(std::string_view param, double val, unit unitType)
 {
-    if (isSetHandled(ZipLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(ZipLoad::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param.empty()) {

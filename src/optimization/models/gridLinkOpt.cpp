@@ -9,6 +9,7 @@
 
 #include "../optObjectFactory.h"
 #include "core/CoreExceptions.h"
+#include "core/ModelDescription.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "gridAreaOpt.h"
 #include "gridBusOpt.h"
@@ -27,6 +28,20 @@ static OptObjectFactory<GridLinkOpt, Link> gOpLink("basic", "link");
 // NOLINTBEGIN(bugprone-branch-clone)
 
 using units::unit;
+
+const ModelDescription& GridLinkOpt::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridLinkOpt>(
+        "GridLinkOpt",
+        &GridOptObject::getModelDescription(),
+        {command({"voltagetolerance", "vtol"},
+                 units::defunit,
+                 "Reserved voltage tolerance; currently ignored"),
+         command({"angletolerance", "atol"},
+                 units::defunit,
+                 "Reserved angle tolerance; currently ignored")});
+    return description;
+}
 
 GridLinkOpt::GridLinkOpt(const std::string& objName):
     GridOptObject(objName), B1(nullptr), B2(nullptr), rampUpLimit(0.0), rampDownLimit(0.0)
@@ -353,21 +368,13 @@ void GridLinkOpt::setOffsets(const OptimizationOffsets& newOffsets, const Optimi
 GridLinkOpt::~GridLinkOpt() = default;
 
 // set properties
-void GridLinkOpt::set(std::string_view param, std::string_view val)
-{
-    if (param == "#") {
-    } else {
-        GridOptObject::set(param, val);
-    }
-}
-
 void GridLinkOpt::set(std::string_view param, double val, unit unitType)
 {
-    if ((param == "voltagetolerance") || (param == "vtol")) {
-    } else if ((param == "angletolerance") || (param == "atol")) {
-    } else {
-        GridOptObject::set(param, val, unitType);
+    const auto result = GridLinkOpt::getModelDescription().trySet(*this, param, val, unitType);
+    if (isSetHandled(result) || result == SetResult::COMMAND) {
+        return;
     }
+    GridOptObject::set(param, val, unitType);
 }
 
 CoreObject* GridLinkOpt::find(std::string_view objName) const
@@ -551,15 +558,6 @@ void GridLinkOpt::dcPowerFlowJacobian(const GridBusOpt* sourceBus,
     const double coefficient = dcFlowCoefficient();
     matrixDataRef.assign(constraintRow, sourceBus->offsets.getOffsets(oMode).aOffset, -coefficient);
     matrixDataRef.assign(constraintRow, otherBus->offsets.getOffsets(oMode).aOffset, coefficient);
-}
-
-double GridLinkOpt::get(std::string_view param, units::unit unitType) const
-{
-    double val = kNullVal;
-    if (param[0] != '#') {
-        val = GridOptObject::get(param, unitType);
-    }
-    return val;
 }
 
 }  // namespace griddyn

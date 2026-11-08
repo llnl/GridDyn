@@ -108,3 +108,17 @@ TEST(MachineDescriptionTests, StabilizerSelectorsLimitsAndSubclassValidation)
     EXPECT_DOUBLE_EQ(ieeest.get("vcu"), 999.0);
     EXPECT_NO_THROW(ieeest.set("", std::numeric_limits<double>::quiet_NaN()));
 }
+
+TEST(MachineDescriptionTests, DefaultSetKeepsSubmodelFieldsAboveComponentAssignmentGuard)
+{
+    stabilizers::StabilizerStab2a model;
+    model.set("description", "inherited string setter");
+    EXPECT_EQ(model.getString("description"), "inherited string setter");
+    model.setFlag("no_gridcomponent_set", true);
+    model.set("hlim", 2.0);
+    EXPECT_DOUBLE_EQ(model.get("h_lim"), 2.0);
+    EXPECT_THROW(model.set("basepower", 200.0, units::MW), UnrecognizedParameter);
+    EXPECT_NO_THROW(model.set("", std::numeric_limits<double>::quiet_NaN()));
+    EXPECT_THROW(model.set("missing", std::numeric_limits<double>::quiet_NaN()),
+                 InvalidParameterValue);
+}

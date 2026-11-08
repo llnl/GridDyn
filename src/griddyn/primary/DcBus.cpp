@@ -256,14 +256,6 @@ void DcBus::set(std::string_view param, std::string_view val)
     }
 }
 
-void DcBus::set(std::string_view param, double val, unit unitType)
-{
-    if (isSetHandled(DcBus::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        return;
-    }
-    GridBus::set(param, val, unitType);
-}
-
 void DcBus::updateLocalCache(const IOdata& inputs,
                              const StateData& stateDataValue,
                              const SolverMode& sMode)

@@ -153,14 +153,6 @@ void DcLink::set(std::string_view param, std::string_view val)
         Link::set(param, val);
     }
 }
-void DcLink::set(std::string_view param, double val, unit unitType)
-{
-    if (isSetHandled(DcLink::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        return;
-    }
-    Link::set(param, val, unitType);
-}
-
 void DcLink::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     Link::pFlowObjectInitializeA(time0, flags);

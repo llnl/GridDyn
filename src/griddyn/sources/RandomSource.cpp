@@ -135,8 +135,7 @@ armedFlag=OBJECT_FLAG8,*/
 
 void RandomSource::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(
-            RandomSource::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(RandomSource::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param == "min_t") {

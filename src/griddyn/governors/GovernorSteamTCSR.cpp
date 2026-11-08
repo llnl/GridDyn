@@ -252,18 +252,4 @@ index_t GovernorSteamTCSR::findIndex(std::string_view field, const SolverMode& s
     return kInvalidLocation;
 }
 
-void GovernorSteamTCSR::set(std::string_view param, std::string_view val)
-{
-    GovernorSteamNR::set(param, val);
-}
-
-void GovernorSteamTCSR::set(std::string_view param, double val, units::unit unitType)
-{
-    if (isSetHandled(
-            GovernorSteamTCSR::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        return;
-    }
-    GovernorSteamNR::set(param, val, unitType);
-}
-
 }  // namespace griddyn::governors

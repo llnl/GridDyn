@@ -115,7 +115,7 @@ std::span<const RenewablePort> REGCA1::outputPorts() const
 
 void REGCA1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(REGCA1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(REGCA1::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});

@@ -593,7 +593,7 @@ void GridBus::set(std::string_view param, std::string_view val)
 
 void GridBus::set(std::string_view param, double val, unit unitType)
 {
-    if (isSetHandled(GridBus::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(GridBus::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param == "angle" || param == "ang") {

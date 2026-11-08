@@ -317,7 +317,7 @@ void Subsystem::set(std::string_view param, std::string_view val)
 
 void Subsystem::set(std::string_view param, double val, unit unitType)
 {
-    if (isSetHandled(Subsystem::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(Subsystem::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param == "terminals") {

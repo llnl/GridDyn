@@ -61,15 +61,6 @@ void GovernorHygovDB::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     offsets.local().local.jacSize = 20;
 }
 
-void GovernorHygovDB::set(std::string_view param, double value, units::unit unitType)
-{
-    if (isSetHandled(
-            GovernorHygovDB::getModelDescription().trySetLocal(*this, param, value, unitType))) {
-        return;
-    }
-    GovernorHygov::set(param, value, unitType);
-}
-
 double GovernorHygovDB::governorSpeedDeviation(const IOdata& inputs) const
 {
     const double speedDeviation = inputs[govOmegaInLocation] - 1.0;

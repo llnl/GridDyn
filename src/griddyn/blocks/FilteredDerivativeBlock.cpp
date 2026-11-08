@@ -174,19 +174,6 @@ void FilteredDerivativeBlock::blockJacobianElements(double input,
 }
 
 // set parameters
-void FilteredDerivativeBlock::set(std::string_view param, std::string_view val)
-{
-    GridBlock::set(param, val);
-}
-void FilteredDerivativeBlock::set(std::string_view param, double val, units::unit unitType)
-{
-    if (isSetHandled(FilteredDerivativeBlock::getModelDescription().trySetLocal(
-            *this, param, val, unitType))) {
-        return;
-    }
-    GridBlock::set(param, val, unitType);
-}
-
 stringVec FilteredDerivativeBlock::localStateNames() const
 {
     switch (limiter_diff) {

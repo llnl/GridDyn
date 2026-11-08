@@ -110,15 +110,6 @@ bool DifferentialRelay::getFlag(std::string_view flag) const
     return Relay::getFlag(flag);
 }
 
-void DifferentialRelay::set(std::string_view param, double val, units::unit unitType)
-{
-    if (isSetHandled(
-            DifferentialRelay::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        return;
-    }
-    Relay::set(param, val, unitType);
-}
-
 void DifferentialRelay::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     // if the target object is a link of some kind

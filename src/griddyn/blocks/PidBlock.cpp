@@ -258,7 +258,7 @@ void PidBlock::set(std::string_view param, std::string_view val)
 }
 void PidBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(PidBlock::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(PidBlock::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if ((param == "d") || (param == "derivative")) {

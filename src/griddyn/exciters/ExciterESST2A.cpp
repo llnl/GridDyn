@@ -556,8 +556,7 @@ void ExciterESST2A::set(std::string_view param, std::string_view val)
 
 void ExciterESST2A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(
-            ExciterESST2A::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(ExciterESST2A::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if ((param == "ta" && val < 0.0) || (param == "ka" && val <= 0.0)) {

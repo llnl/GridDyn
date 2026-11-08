@@ -354,7 +354,7 @@ void Sensor::setupOutput(index_t num, const std::string& outputString)
 
 void Sensor::set(std::string_view param, double val, units::unit unitType)
 {
-    const auto result = Sensor::getModelDescription().trySetLocal(*this, param, val, unitType);
+    const auto result = Sensor::getModelDescription().trySet(*this, param, val, unitType);
     if (isSetHandled(result)) {
         return;
     }

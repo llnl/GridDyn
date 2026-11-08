@@ -151,7 +151,7 @@ void PulseSource::setLevel(double val)
 
 void PulseSource::set(std::string_view param, double val, unit unitType)
 {
-    if (isSetHandled(PulseSource::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(PulseSource::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if ((param == "a") || (param == "amplitude") || (param == "amp")) {

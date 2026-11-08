@@ -111,14 +111,6 @@ void ExciterSEXS::set(std::string_view param, std::string_view val)
     }
 }
 
-void ExciterSEXS::set(std::string_view param, double val, units::unit unitType)
-{
-    if (!isSetHandled(
-            ExciterSEXS::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        Exciter::set(param, val, unitType);
-    }
-}
-
 stringVec ExciterSEXS::localStateNames() const
 {
     stringVec names;

@@ -293,18 +293,6 @@ void BlockSequence::set(std::string_view param, std::string_view val)
     }
 }
 
-void BlockSequence::set(std::string_view param, double val, units::unit unitType)
-{
-    if (isSetHandled(
-            BlockSequence::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        return;
-    }
-    if (param.empty() || param[0] == '#') {
-    } else {
-        GridBlock::set(param, val, unitType);
-    }
-}
-
 double BlockSequence::subBlockOutput(index_t blockNum) const
 {
     if (std::cmp_less(blockNum, blocks.size())) {

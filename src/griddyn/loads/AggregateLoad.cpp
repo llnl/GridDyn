@@ -257,8 +257,7 @@ void AggregateLoad::set(std::string_view param, std::string_view val)
 }
 void AggregateLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(
-            AggregateLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(AggregateLoad::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     std::string iparam;

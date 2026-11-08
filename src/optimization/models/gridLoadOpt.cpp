@@ -9,6 +9,7 @@
 
 #include "../optObjectFactory.h"
 #include "core/CoreExceptions.h"
+#include "core/ModelDescription.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "gridBusOpt.h"
 #include "griddyn/loads/ZipLoad.h"
@@ -21,6 +22,15 @@ namespace griddyn {
 using units::unit;
 
 static OptObjectFactory<GridLoadOpt, ZipLoad> gOpLoad("basic", "load");
+
+const ModelDescription& GridLoadOpt::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<GridLoadOpt>("GridLoadOpt",
+                                              &GridOptObject::getModelDescription(),
+                                              {});
+    return description;
+}
 
 GridLoadOpt::GridLoadOpt(const std::string& objName): GridOptObject(objName) {}
 
@@ -184,32 +194,6 @@ void GridLoadOpt::getObjectiveNames(stringVec& /*objectiveNames*/,
 GridLoadOpt::~GridLoadOpt() = default;
 
 // set properties
-void GridLoadOpt::set(std::string_view param, std::string_view val)
-{
-    if (param[0] == '#') {
-    } else {
-        GridOptObject::set(param, val);
-    }
-}
-
-void GridLoadOpt::set(std::string_view param, double val, unit unitType)
-{
-    if (param[0] == '#') {
-    } else {
-        GridOptObject::set(param, val, unitType);
-    }
-}
-
-double GridLoadOpt::get(std::string_view param, units::unit unitType) const
-{
-    double val = kNullVal;
-    if (param == "#") {
-    } else {
-        val = GridOptObject::get(param, unitType);
-    }
-    return val;
-}
-
 GridOptObject* GridLoadOpt::getBus(index_t /*index*/) const
 {
     return bus;

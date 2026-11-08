@@ -207,8 +207,7 @@ void ElectronicLoad::set(std::string_view param, std::string_view val)
 
 void ElectronicLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(
-            ElectronicLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(ElectronicLoad::getModelDescription().trySet(*this, param, val, unitType))) {
         if (!param.empty() && param.front() != '#') {
             setIEELParameters(parameters);
         }

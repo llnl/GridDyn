@@ -39,7 +39,6 @@ class ExciterESAC1A final: public ExciterEXAC1 {
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     using ExciterEXAC1::set;
-    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
   protected:
     bool adjustRegulatorInitialUpperLimit(double initialValue) override;

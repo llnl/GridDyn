@@ -124,8 +124,8 @@ double FrequencySensitiveLoad::get(std::string_view param, unit unitType) const
 
 void FrequencySensitiveLoad::set(std::string_view param, double val, unit unitType)
 {
-    if (isSetHandled(FrequencySensitiveLoad::getModelDescription().trySetLocal(
-            *this, param, val, unitType))) {
+    if (isSetHandled(
+            FrequencySensitiveLoad::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (subLoad != nullptr) {

@@ -107,7 +107,7 @@ void ExcitationLimiter::set(std::string_view param, std::string_view val)
 void ExcitationLimiter::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(
-            ExcitationLimiter::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+            ExcitationLimiter::getModelDescription().trySet(*this, param, val, unitType))) {
         if (param == "threshold") {
             thresholdSet = true;
         }

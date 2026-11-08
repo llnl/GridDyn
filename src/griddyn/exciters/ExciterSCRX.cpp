@@ -565,7 +565,7 @@ void ExciterSCRX::set(std::string_view param, double val, units::unit unitType)
     if (param == "cswitch" && val != 0.0 && val != 1.0) {
         throw InvalidParameterValue("SCRX CSWITCH must be zero or one");
     }
-    if (isSetHandled(ExciterSCRX::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(ExciterSCRX::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param == "k") {

@@ -20,6 +20,9 @@ class Relay;
 
 class GridRelayOpt: public GridOptObject {
   public:
+    const ModelDescription& getModelDescription() const override;
+    using GridOptObject::set;
+
   protected:
     Relay* relay = nullptr;
 
@@ -89,12 +92,8 @@ class GridRelayOpt: public GridOptObject {
     virtual void setOffsets(const OptimizationOffsets& newOffsets,
                             const OptimizationMode& oMode) override;
 
-    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    // parameter get functions
-    virtual double get(std::string_view param,
-                       units::unit unitType = units::defunit) const override;
 
     // find components
     virtual CoreObject* find(std::string_view objName) const override;

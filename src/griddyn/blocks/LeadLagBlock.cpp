@@ -186,8 +186,7 @@ void LeadLagBlock::set(std::string_view param, std::string_view val)
 
 void LeadLagBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(
-            LeadLagBlock::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(LeadLagBlock::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param == "ta") {

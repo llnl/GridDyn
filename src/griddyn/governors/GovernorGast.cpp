@@ -328,8 +328,7 @@ void GovernorGast::set(std::string_view param, std::string_view val)
 
 void GovernorGast::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(
-            GovernorGast::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(GovernorGast::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if ((param == "t1" || param == "t2" || param == "t3") && val < 0.0) {

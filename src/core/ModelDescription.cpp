@@ -279,6 +279,25 @@ const ModelField* ModelDescription::find(std::string_view name, ModelFieldKind k
     return nullptr;
 }
 
+SetResult ModelDescription::trySet(CoreObject& object,
+                                   std::string_view name,
+                                   double value,
+                                   units::unit unitType) const
+{
+    // Preserve the input gate before looking up even the derived description.
+    if (name.empty() || name.front() == '#' || !std::isfinite(value)) {
+        return trySetLocal(object, name, value, unitType);
+    }
+    for (const auto* description = derivedDescription(object); description != this;
+         description = description->parent()) {
+        const auto result = description->trySetLocal(object, name, value, unitType);
+        if (isSetHandled(result)) {
+            return result;
+        }
+    }
+    return trySetLocal(object, name, value, unitType);
+}
+
 SetResult ModelDescription::trySetLocal(CoreObject& object,
                                         std::string_view name,
                                         double value,

@@ -80,8 +80,8 @@ CoreObject* ExcitationLimiterOEL3C::clone(CoreObject* obj) const
 
 void ExcitationLimiterOEL3C::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(ExcitationLimiterOEL3C::getModelDescription().trySetLocal(
-            *this, param, val, unitType))) {
+    if (isSetHandled(
+            ExcitationLimiterOEL3C::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param == "oelinput" || param == "oel_input") {

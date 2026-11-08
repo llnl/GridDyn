@@ -217,14 +217,43 @@ namespace {
       public:
         double mPower = 0.8;
         double mGain = 2.0;
+        int mPowerWrites = 0;
+        int mOperations = 0;
+        using CoreObject::set;
         const ModelDescription& getModelDescription() const override
         {
             static const auto description = ModelDescription::define<ContextualGetterModel>(
                 "ContextualGetterModel",
                 &CoreObject::getModelDescription(),
                 {parameter({"power"}, &ContextualGetterModel::mPower, units::puMW, "Power"),
-                 parameter({"gain"}, &ContextualGetterModel::mGain, units::one, "Parent gain")});
+                 parameter({"gain"}, &ContextualGetterModel::mGain, units::one, "Parent gain"),
+                 command({"operation"}, units::one, "Parent operation")});
             return description;
+        }
+        void set(std::string_view fieldName,
+                 double value,
+                 units::unit unitType = units::defunit) override
+        {
+            if (fieldName == "power") {
+                mPower = units::convert(value, unitType, units::puMW, 200.0);
+                ++mPowerWrites;
+                return;
+            }
+            const auto result = ContextualGetterModel::getModelDescription().trySet(*this,
+                                                                                    fieldName,
+                                                                                    value,
+                                                                                    unitType);
+            if (isSetHandled(result)) {
+                return;
+            }
+            if (result == SetResult::COMMAND) {
+                ++mOperations;
+                (void)ContextualGetterModel::getModelDescription().trySetLocal(*this,
+                                                                               "gain",
+                                                                               value * 2.0);
+            } else {
+                CoreObject::set(fieldName, value, unitType);
+            }
         }
         double get(std::string_view fieldName, units::unit unitType = units::defunit) const override
         {
@@ -242,11 +271,32 @@ namespace {
 
     class GetterBoundaryModel: public ContextualGetterModel {
       public:
+        int mBoundaryOperations = 0;
+        using ContextualGetterModel::set;
         const ModelDescription& getModelDescription() const override
         {
             static const auto description = ModelDescription::define<GetterBoundaryModel>(
-                "GetterBoundaryModel", &ContextualGetterModel::getModelDescription(), {});
+                "GetterBoundaryModel",
+                &ContextualGetterModel::getModelDescription(),
+                {command({"boundary_operation"}, units::one, "Boundary operation")});
             return description;
+        }
+        void set(std::string_view fieldName,
+                 double value,
+                 units::unit unitType = units::defunit) override
+        {
+            const auto result = GetterBoundaryModel::getModelDescription().trySet(*this,
+                                                                                  fieldName,
+                                                                                  value,
+                                                                                  unitType);
+            if (isSetHandled(result)) {
+                return;
+            }
+            if (result == SetResult::COMMAND) {
+                ++mBoundaryOperations;
+            } else {
+                ContextualGetterModel::set(fieldName, value, unitType);
+            }
         }
         double get(std::string_view fieldName, units::unit unitType = units::defunit) const override
         {
@@ -267,14 +317,35 @@ namespace {
         double mOwnGain = 3.0;
         bool mActive = true;
         double mHistory = 4.0;
+        std::string mLabel;
+        using GetterBoundaryModel::set;
+        void set(std::string_view fieldName, std::string_view value) override
+        {
+            if (fieldName == "label") {
+                mLabel = value;
+            } else {
+                GetterBoundaryModel::set(fieldName, value);
+            }
+        }
         const ModelDescription& getModelDescription() const override
         {
             static const auto description = ModelDescription::define<DefaultGetterModel>(
                 "DefaultGetterModel",
                 &GetterBoundaryModel::getModelDescription(),
-                {parameter({"delay", "t"}, &DefaultGetterModel::mDelay, units::second, "Delay"),
-                 parameter({"gain", "k"}, &DefaultGetterModel::mOwnGain, units::one, "Child gain"),
+                {parameter({"delay", "t"},
+                           &DefaultGetterModel::mDelay,
+                           units::second,
+                           "Delay",
+                           parameterValidators::positive),
+                 parameter({"gain", "k"},
+                           &DefaultGetterModel::mOwnGain,
+                           units::one,
+                           "Child gain",
+                           parameterValidators::positive),
                  flag({"active"}, &DefaultGetterModel::mActive, "Active"),
+                 parameter({"label"}, &DefaultGetterModel::mLabel, units::defunit, "Label"),
+                 command({"child_operation"}, units::one, "Unhandled child operation"),
+                 indexedCommand({"child_index"}, units::one, "Unhandled indexed child operation"),
                  localState("history", &DefaultGetterModel::mHistory),
                  state("solver_x", units::one)});
             return description;
@@ -1226,6 +1297,93 @@ TEST(ModelParameterTests, CoreFlagDefaultsRetainTheVirtualEnabledQuery)
         EXPECT_FALSE(model.getFlag(alias));
     }
     EXPECT_TRUE(*model.getModelDescription().tryGetFlagLocal(model, "enabled"));
+}
+
+TEST(ModelParameterTests, DefaultNumericSetRetainsValidatorsUnitsAndParentSideEffects)
+{
+    DefaultGetterModel model;
+    model.set("t", 500.0, units::ms);
+    EXPECT_NEAR(model.mDelay, 0.5, 1e-7);
+    model.set("k", 250.0, units::percent);
+    EXPECT_NEAR(model.mOwnGain, 2.5, 1e-6);
+    EXPECT_DOUBLE_EQ(model.mGain, 2.0);
+    EXPECT_THROW(model.set("gain", 0.0), InvalidParameterValue);
+    EXPECT_THROW(model.set("delay", 1.0, units::MW), InvalidParameterValue);
+    EXPECT_NEAR(model.mOwnGain, 2.5, 1e-6);
+    EXPECT_NEAR(model.mDelay, 0.5, 1e-7);
+    model.set("label", "still available");
+    EXPECT_EQ(model.mLabel, "still available");
+    EXPECT_THROW(model.set("label", 1.0), InvalidParameterValue);
+
+    const auto& boundary = model.GetterBoundaryModel::getModelDescription();
+    EXPECT_EQ(boundary.trySet(model, "power", 50.0, units::MW), SetResult::NO_MATCH);
+    EXPECT_EQ(model.mPowerWrites, 0);
+    model.set("power", 50.0, units::MW);
+    EXPECT_NEAR(model.mPower, 0.25, 1e-7);
+    EXPECT_EQ(model.mPowerWrites, 1);
+    model.set("operation", 3.0);
+    EXPECT_EQ(model.mOperations, 1);
+    EXPECT_EQ(model.mBoundaryOperations, 0);
+    EXPECT_DOUBLE_EQ(model.mGain, 6.0);
+    EXPECT_NEAR(model.mOwnGain, 2.5, 1e-6);
+}
+
+TEST(ModelParameterTests, DefaultSetDoesNotExecuteDerivedCommandsAsParentCommands)
+{
+    DefaultGetterModel model;
+    const auto& boundary = model.GetterBoundaryModel::getModelDescription();
+    for (const auto* name : {"child_operation", "child_index2"}) {
+        EXPECT_EQ(boundary.trySet(model, name, 1.0), SetResult::NO_MATCH);
+        EXPECT_THROW(model.set(name, 1.0), UnrecognizedParameter);
+    }
+    EXPECT_EQ(model.mBoundaryOperations, 0);
+    EXPECT_EQ(model.mOperations, 0);
+    EXPECT_EQ(boundary.trySet(model, "boundary_operation", 1.0), SetResult::COMMAND);
+    model.set("boundary_operation", 1.0);
+    EXPECT_EQ(model.mBoundaryOperations, 1);
+    EXPECT_THROW(model.set("history", 1.0), UnrecognizedParameter);
+    EXPECT_THROW(model.set("missing", 1.0), UnrecognizedParameter);
+    DefaultFlagModel flags;
+    flags.set("tracked", -2.0);
+    EXPECT_TRUE(flags.getFlag("mode"));
+    EXPECT_EQ(flags.mChanges, 1);
+    flags.set("inverse_mode", 1.0);
+    EXPECT_FALSE(flags.getFlag("mode"));
+    EXPECT_EQ(flags.mChanges, 2);
+}
+
+TEST(ModelParameterTests, DefaultSetChecksInputBeforeDerivedLookupAndSupportsLocalViews)
+{
+    class LookupGuard: public CoreObject {
+      public:
+        const ModelDescription& getModelDescription() const override
+        {
+            throw std::logic_error("description lookup reached");
+        }
+    };
+    CoreObject object;
+    const auto& table = object.getModelDescription();
+    LookupGuard guard;
+    const auto nan = std::numeric_limits<double>::quiet_NaN();
+    EXPECT_EQ(table.trySet(guard, "", nan), SetResult::IGNORED);
+    EXPECT_EQ(table.trySet(guard, "# ignored", nan), SetResult::IGNORED);
+    EXPECT_THROW((void)table.trySet(guard, "missing", nan), InvalidParameterValue);
+    EXPECT_THROW((void)table.trySet(guard, "missing", 1.0), std::logic_error);
+
+    DefaultGetterModel model;
+    const auto view =
+        ModelDescription::define<DefaultGetterModel>("SetterView",
+                                                     nullptr,
+                                                     {parameter({"view_gain"},
+                                                                &DefaultGetterModel::mOwnGain,
+                                                                units::one,
+                                                                "Gain",
+                                                                parameterValidators::positive)});
+    EXPECT_EQ(view.trySet(model, "view_gain", 4.0), SetResult::PARAMETER);
+    EXPECT_DOUBLE_EQ(model.mOwnGain, 4.0);
+    EXPECT_EQ(view.trySet(model, "gain", 2.0), SetResult::NO_MATCH);
+    EXPECT_THROW((void)view.trySet(model, "view_gain", 0.0), InvalidParameterValue);
+    EXPECT_THROW((void)view.trySet(object, "view_gain", 1.0), InvalidParameterValue);
 }
 
 }  // namespace griddyn

@@ -137,8 +137,7 @@ void IntegralBlock::set(std::string_view param, std::string_view val)
 }
 void IntegralBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(
-            IntegralBlock::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(IntegralBlock::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param == "t") {

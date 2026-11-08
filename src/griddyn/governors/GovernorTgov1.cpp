@@ -342,8 +342,7 @@ void GovernorTgov1::set(std::string_view param, std::string_view val)
 
 void GovernorTgov1::set(std::string_view param, double val, unit unitType)
 {
-    if (isSetHandled(
-            GovernorTgov1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(GovernorTgov1::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if ((param == "k" || param == "droop") && !parameterValidators::positive(val)) {

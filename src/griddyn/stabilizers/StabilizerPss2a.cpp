@@ -909,8 +909,7 @@ void StabilizerPss2a::set(std::string_view param, double val, units::unit unitTy
         Vstmin = proposed;
         return;
     }
-    if (!isSetHandled(
-            StabilizerPss2a::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (!isSetHandled(StabilizerPss2a::getModelDescription().trySet(*this, param, val, unitType))) {
         Stabilizer::set(param, val, unitType);
     }
 }

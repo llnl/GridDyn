@@ -354,7 +354,7 @@ void Link::reconnect()
 
 void Link::set(std::string_view param, double val, unit unitType)
 {
-    if (isSetHandled(Link::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(Link::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if ((param == "state") || (param == "switch") || (param == "switch1") || (param == "breaker") ||

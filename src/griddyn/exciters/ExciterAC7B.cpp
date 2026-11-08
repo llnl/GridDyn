@@ -719,13 +719,5 @@ void ExciterAC7B::set(std::string_view param, std::string_view val)
     }
 }
 
-void ExciterAC7B::set(std::string_view param, double val, units::unit unitType)
-{
-    if (!isSetHandled(
-            ExciterAC7B::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        Exciter::set(param, val, unitType);
-    }
-}
-
 // NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::exciters

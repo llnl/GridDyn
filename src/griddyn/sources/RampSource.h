@@ -20,9 +20,6 @@ class RampSource: public Source {
     RampSource(const std::string& objName = "rampSource_#", double startVal = 0.0);
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual double computeOutput(CoreTime time) const override;
     virtual double getDoutdt(const IOdata& inputs,

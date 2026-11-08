@@ -15,6 +15,7 @@ namespace griddyn::extra {
 class TxLifeSpan: public Sensor {
   public:
     const ModelDescription& getModelDescription() const override;
+    using Sensor::set;
     enum LifespanModelFlags {
         USE_IE_CMETHOD = OBJECT_FLAG11,
         NO_DISCONNECT = OBJECT_FLAG12,  //!< flag indicating that the object should create a short
@@ -38,8 +39,6 @@ class TxLifeSpan: public Sensor {
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
 
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     using Sensor::add;
     virtual void add(CoreObject* obj) override final;
 

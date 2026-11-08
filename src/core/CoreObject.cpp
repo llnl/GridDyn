@@ -300,7 +300,7 @@ double CoreObject::get(std::string_view param, units::unit unitType) const
 // NOLINTNEXTLINE(misc-no-recursion)
 void CoreObject::set(std::string_view param, double val, units::unit unitType)
 {
-    const auto result = CoreObject::getModelDescription().trySetLocal(*this, param, val, unitType);
+    const auto result = CoreObject::getModelDescription().trySet(*this, param, val, unitType);
     if (isSetHandled(result)) {
         return;
     }

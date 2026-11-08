@@ -651,7 +651,7 @@ void StabilizerIEEEST::set(std::string_view param, double val, units::unit unitT
         return;
     }
     if (!isSetHandled(
-            StabilizerIEEEST::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+            StabilizerIEEEST::getModelDescription().trySet(*this, param, val, unitType))) {
         Stabilizer::set(param, val, unitType);
     }
 }

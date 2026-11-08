@@ -479,7 +479,7 @@ void TransferFunctionBlock::set(std::string_view param, std::string_view value)
 void TransferFunctionBlock::set(std::string_view param, double value, units::unit unitType)
 {
     const auto result =
-        TransferFunctionBlock::getModelDescription().trySetLocal(*this, param, value, unitType);
+        TransferFunctionBlock::getModelDescription().trySet(*this, param, value, unitType);
     if (isSetHandled(result)) {
         return;
     }

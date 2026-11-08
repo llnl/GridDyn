@@ -580,7 +580,7 @@ void StabilizerST2CUT::set(std::string_view param, double val, units::unit unitT
         return;
     }
     if (!isSetHandled(
-            StabilizerST2CUT::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+            StabilizerST2CUT::getModelDescription().trySet(*this, param, val, unitType))) {
         Stabilizer::set(param, val, unitType);
     }
 }

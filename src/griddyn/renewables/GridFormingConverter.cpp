@@ -208,7 +208,7 @@ std::string_view GridFormingConverter::sourceName(RenewableSignal signal) const
 void GridFormingConverter::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(
-            GridFormingConverter::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+            GridFormingConverter::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});

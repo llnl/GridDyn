@@ -161,7 +161,7 @@ std::span<const RenewablePort> WT4E1::outputPorts() const
 
 void WT4E1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(WT4E1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(WT4E1::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});

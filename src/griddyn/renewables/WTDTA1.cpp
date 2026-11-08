@@ -87,7 +87,7 @@ std::span<const RenewablePort> WTDTA1::outputPorts() const
 
 void WTDTA1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(WTDTA1::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(WTDTA1::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});

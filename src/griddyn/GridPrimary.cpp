@@ -68,7 +68,7 @@ void GridPrimary::set(std::string_view param, std::string_view val)
 }
 void GridPrimary::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(GridPrimary::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(GridPrimary::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     GridComponent::set(param, val, unitType);

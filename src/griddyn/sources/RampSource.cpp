@@ -37,18 +37,6 @@ CoreObject* RampSource::clone(CoreObject* obj) const
 }
 
 // set properties
-void RampSource::set(std::string_view param, std::string_view val)
-{
-    Source::set(param, val);
-}
-void RampSource::set(std::string_view param, double val, units::unit unitType)
-{
-    if (isSetHandled(RampSource::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        return;
-    }
-    Source::set(param, val, unitType);
-}
-
 double RampSource::computeOutput(CoreTime time) const
 {
     auto tdiff = time - prevTime;

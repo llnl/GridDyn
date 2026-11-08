@@ -63,7 +63,7 @@ void RampLoad::set(std::string_view param, std::string_view val)
 }
 void RampLoad::set(std::string_view param, double val, unit unitType)
 {
-    if (isSetHandled(RampLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(RampLoad::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param.length() == 4) {

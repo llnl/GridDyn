@@ -98,7 +98,7 @@ void Source::setLevel(double newLevel)
 }
 void Source::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(Source::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(Source::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if ((param == "val") || (param == "setval") || (param == "level") || (param == "value") ||

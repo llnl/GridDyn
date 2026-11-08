@@ -166,6 +166,14 @@ class ModelDescription {
     [[nodiscard]] const ModelField* find(std::string_view name) const;
     /** Resolve a name that is shared by a parameter and solver state. */
     [[nodiscard]] const ModelField* find(std::string_view name, ModelFieldKind kind) const;
+    /** Default numeric setter through this declaring table, retaining parent dispatch.
+     * Derived assignments and flags are applied; only this table's commands are returned
+     * for the declaring class to execute. Normalized/internal writes use trySetLocal.
+     */
+    [[nodiscard]] SetResult trySet(CoreObject& object,
+                                   std::string_view name,
+                                   double value,
+                                   units::unit unitType = units::defunit) const;
     /** Classify local dispatch; empty/comment names are ignored before checking the value.
      * Exact numeric Boolean commands dispatch through setFlag and return FLAG.
      * Other commands return COMMAND or INDEXED_COMMAND for the class to execute.

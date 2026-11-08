@@ -1131,7 +1131,7 @@ void GridArea::set(std::string_view param, std::string_view val)
 
 void GridArea::set(std::string_view param, double val, unit unitType)
 {
-    if (isSetHandled(GridArea::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(GridArea::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param == "basepower") {

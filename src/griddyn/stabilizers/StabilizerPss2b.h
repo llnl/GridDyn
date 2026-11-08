@@ -55,8 +55,6 @@ class StabilizerPss2b final: public StabilizerPss2a {
                          double update[],
                          const SolverMode& sMode,
                          double alpha) override;
-    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    using StabilizerPss2a::set;
     MachineControllerSignal electricalPowerSignal() const override
     {
         return MachineControllerSignal::ELECTRICAL_POWER;

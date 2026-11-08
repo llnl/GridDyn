@@ -391,17 +391,4 @@ index_t StabilizerStab3::findIndex(std::string_view field, const SolverMode& sMo
     return kInvalidLocation;
 }
 
-void StabilizerStab3::set(std::string_view param, std::string_view val)
-{
-    Stabilizer::set(param, val);
-}
-
-void StabilizerStab3::set(std::string_view param, double val, units::unit unitType)
-{
-    if (!isSetHandled(
-            StabilizerStab3::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        Stabilizer::set(param, val, unitType);
-    }
-}
-
 }  // namespace griddyn::stabilizers

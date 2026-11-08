@@ -270,8 +270,7 @@ void ExciterIEEEtype2::set(std::string_view param, std::string_view val)
 // set parameters
 void ExciterIEEEtype2::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(
-            ExciterIEEEtype2::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(ExciterIEEEtype2::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param == "tf1") {

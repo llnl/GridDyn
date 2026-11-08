@@ -34,6 +34,7 @@ class MotorLoad5: public MotorLoad3 {
 
   public:
     const ModelDescription& getModelDescription() const override;
+    using MotorLoad3::set;
     /** @brief constructor
 @param[in] objName  the name of the object
 */
@@ -50,8 +51,6 @@ class MotorLoad5: public MotorLoad3 {
 
   public:
     virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual StateSizes localStateSizes(const SolverMode& sMode) const override;
 

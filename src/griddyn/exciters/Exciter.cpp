@@ -368,13 +368,6 @@ void Exciter::set(std::string_view param, std::string_view val)
     }
 }
 
-void Exciter::set(std::string_view param, double val, units::unit unitType)
-{
-    if (!isSetHandled(Exciter::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        GridSubModel::set(param, val, unitType);
-    }
-}
-
 const std::vector<stringVec>& Exciter::inputNames() const
 {
     static const std::vector<stringVec> inputNamesStr{

@@ -206,8 +206,7 @@ void CompositeLoad::setComponentReactiveBase(index_t index, double reactivePower
 
 void CompositeLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(
-            CompositeLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(CompositeLoad::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     index_t componentIndex = 0;

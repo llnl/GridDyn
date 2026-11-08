@@ -760,7 +760,7 @@ void StabilizerIee2st::set(std::string_view param, double val, units::unit unitT
         return;
     }
     if (!isSetHandled(
-            StabilizerIee2st::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+            StabilizerIee2st::getModelDescription().trySet(*this, param, val, unitType))) {
         Stabilizer::set(param, val, unitType);
     }
 }

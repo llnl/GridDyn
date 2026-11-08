@@ -112,7 +112,7 @@ using units::unit;
 
 void Pmu::set(std::string_view param, double val, unit unitType)
 {
-    if (isSetHandled(Pmu::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(Pmu::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if ((param == "transmitrate") || (param == "rate")) {

@@ -9,6 +9,7 @@
 
 #include "../optObjectFactory.h"
 #include "core/CoreExceptions.h"
+#include "core/ModelDescription.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "gridAreaOpt.h"
 #include "griddyn/Relay.h"
@@ -21,6 +22,20 @@ namespace griddyn {
 static OptObjectFactory<GridRelayOpt, Relay> gOpRelay("basic", "relay");
 
 using units::unit;
+
+const ModelDescription& GridRelayOpt::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridRelayOpt>(
+        "GridRelayOpt",
+        &GridOptObject::getModelDescription(),
+        {command({"voltagetolerance", "vtol"},
+                 units::defunit,
+                 "Reserved voltage tolerance; currently ignored"),
+         command({"angletolerance", "atol", "angleetolerance"},
+                 units::defunit,
+                 "Reserved angle tolerance; currently ignored")});
+    return description;
+}
 
 GridRelayOpt::GridRelayOpt(const std::string& objName): GridOptObject(objName) {}
 
@@ -196,20 +211,13 @@ void GridRelayOpt::setOffsets(const OptimizationOffsets& /*newOffset*/,
 GridRelayOpt::~GridRelayOpt() = default;
 
 // set properties
-void GridRelayOpt::set(std::string_view param, std::string_view val)
-{
-    if (param == "#") {
-    } else {
-        GridOptObject::set(param, val);
-    }
-}
-
 void GridRelayOpt::set(std::string_view param, double val, unit unitType)
 {
-    if (!((param == "voltagetolerance") || (param == "vtol") || (param == "angleetolerance") ||
-          (param == "atol"))) {
-        GridOptObject::set(param, val, unitType);
+    const auto result = GridRelayOpt::getModelDescription().trySet(*this, param, val, unitType);
+    if (isSetHandled(result) || result == SetResult::COMMAND) {
+        return;
     }
+    GridOptObject::set(param, val, unitType);
 }
 
 CoreObject* GridRelayOpt::find(std::string_view objName) const
@@ -247,16 +255,6 @@ CoreObject* GridRelayOpt::findByUserID(std::string_view typeName, index_t search
         }
     }
     return nullptr;
-}
-
-double GridRelayOpt::get(std::string_view param, units::unit unitType) const
-{
-    double val = kNullVal;
-    if (param[0] == '#') {
-    } else {
-        val = GridOptObject::get(param, unitType);
-    }
-    return val;
 }
 
 }  // namespace griddyn

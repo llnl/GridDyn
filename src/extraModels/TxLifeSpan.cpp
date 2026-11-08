@@ -86,14 +86,6 @@ void TxLifeSpan::set(std::string_view param, std::string_view val)
     }
 }
 
-void TxLifeSpan::set(std::string_view param, double val, units::unit unitType)
-{
-    if (isSetHandled(TxLifeSpan::getModelDescription().trySetLocal(*this, param, val, unitType))) {
-        return;
-    }
-    Sensor::set(param, val, unitType);
-}
-
 void TxLifeSpan::add(CoreObject* /*obj*/)
 {
     throw(UnrecognizedObjectException(this));

@@ -153,7 +153,7 @@ void VSCShunt::set(std::string_view param, std::string_view val)
 
 void VSCShunt::set(std::string_view param, double val, unit unitType)
 {
-    if (isSetHandled(VSCShunt::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(VSCShunt::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     if (param == "control") {

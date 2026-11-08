@@ -76,7 +76,7 @@ std::span<const RenewablePort> WTDS::outputPorts() const
 
 void WTDS::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(WTDS::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(WTDS::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});

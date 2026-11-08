@@ -62,8 +62,7 @@ void ExponentialLoad::set(std::string_view param, std::string_view val)
 }
 void ExponentialLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    const auto result =
-        ExponentialLoad::getModelDescription().trySetLocal(*this, param, val, unitType);
+    const auto result = ExponentialLoad::getModelDescription().trySet(*this, param, val, unitType);
     if (result == SetResult::COMMAND) {
         const auto converted = units::convert(val, unitType, units::one);
         if (!std::isfinite(converted)) {

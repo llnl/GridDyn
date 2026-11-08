@@ -277,7 +277,7 @@ void FileLoad::set(std::string_view param, std::string_view val)
 
 void FileLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(FileLoad::getModelDescription().trySetLocal(*this, param, val, unitType))) {
+    if (isSetHandled(FileLoad::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
     ZipLoad::set(param, val, unitType);  // NOLINT

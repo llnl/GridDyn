@@ -17,6 +17,8 @@ class ZipLoad;
 
 class GridLoadOpt: public GridOptObject {
   public:
+    const ModelDescription& getModelDescription() const override;
+
   protected:
     GridBusOpt* bus = nullptr;
     ZipLoad* load = nullptr;
@@ -79,12 +81,6 @@ class GridLoadOpt: public GridOptObject {
                                    const OptimizationMode& oMode,
                                    const std::string& prefix = "") override;
 
-    virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    // parameter get functions
-    virtual double get(std::string_view param,
-                       units::unit unitType = units::defunit) const override;
 
     virtual GridOptObject* getBus(index_t index) const override;
     virtual GridOptObject* getArea(index_t index) const override;

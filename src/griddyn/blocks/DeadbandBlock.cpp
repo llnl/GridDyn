@@ -51,7 +51,7 @@ const ModelDescription& DeadbandBlock::getModelDescription() const
                    &DeadbandBlock::mResetLow,
                    units::defunit,
                    "The reset level to go back in the deadband on the low side"),
-         command({"unshifted"}, units::defunit, "Unshifted", ModelFieldType::BOOLEAN),
+         inverseFlag({"unshifted"}, &DeadbandBlock::opFlags, USES_SHIFTED_OUTPUT, "Unshifted"),
          command({"no_down_deadband"}, units::defunit, "No down deadband", ModelFieldType::BOOLEAN),
          localState("deadband_mode", &DeadbandBlock::mDeadbandState, "Active deadband region"),
          localState("trigger_high",
@@ -555,9 +555,7 @@ void DeadbandBlock::setFlag(std::string_view flag, bool val)
     if (DeadbandBlock::getModelDescription().trySetFlag(*this, flag, val)) {
         return;
     }
-    if (flag == "unshifted") {
-        opFlags.set(USES_SHIFTED_OUTPUT, !val);
-    } else if (flag == "no_down_deadband") {
+    if (flag == "no_down_deadband") {
         mResetLow = mDeadbandLevel;
         mResetHigh = mDeadbandLevel;
     } else {

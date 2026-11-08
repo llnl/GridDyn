@@ -105,8 +105,7 @@ void GridLoad::setFlag(std::string_view flag, bool val)
 // set properties
 void GridLoad::set(std::string_view param, std::string_view val)
 {
-    if (param.empty() || param[0] == '#') {
-    } else if (!isSetHandled(GridLoad::getModelDescription().trySetLocal(*this, param, val))) {
+    if (!isSetHandled(GridLoad::getModelDescription().trySet(*this, param, val))) {
         GridSecondary::set(param, val);
     }
 }

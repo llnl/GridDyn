@@ -45,20 +45,9 @@ const ModelDescription& DifferentialRelay::getModelDescription() const
               &DifferentialRelay::opFlags,
               RELATIVE_DIFFERENTIAL_FLAG,
               "Use relative differential current"),
-         command({"absolute"}, units::defunit, "Absolute", ModelFieldType::BOOLEAN)});
+         inverseFlag(
+             {"absolute"}, &DifferentialRelay::opFlags, RELATIVE_DIFFERENTIAL_FLAG, "Absolute")});
     return description;
-}
-
-double DifferentialRelay::get(std::string_view param, units::unit unitType) const
-{
-    if (const auto value =
-            DifferentialRelay::getModelDescription().tryGet(*this, param, unitType)) {
-        return *value;
-    }
-    if (param == "absolute") {
-        return getFlag(param) ? 1.0 : 0.0;
-    }
-    return Relay::get(param, unitType);
 }
 
 DifferentialRelay::DifferentialRelay(const std::string& objName): Relay(objName)
@@ -79,35 +68,12 @@ CoreObject* DifferentialRelay::clone(CoreObject* obj) const
     return nobj;
 }
 
-void DifferentialRelay::setFlag(std::string_view flag, bool val)
-{
-    if (DifferentialRelay::getModelDescription().trySetFlag(*this, flag, val)) {
-        return;
-    }
-    if (flag == "absolute") {
-        opFlags.set(RELATIVE_DIFFERENTIAL_FLAG, !val);
-    } else {
-        Relay::setFlag(flag, val);
-    }
-}
-
 void DifferentialRelay::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
         Relay::set(param, val);
     }
-}
-
-bool DifferentialRelay::getFlag(std::string_view flag) const
-{
-    if (const auto value = DifferentialRelay::getModelDescription().tryGetFlag(*this, flag)) {
-        return *value;
-    }
-    if (flag == "absolute") {
-        return !opFlags[RELATIVE_DIFFERENTIAL_FLAG];
-    }
-    return Relay::getFlag(flag);
 }
 
 void DifferentialRelay::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)

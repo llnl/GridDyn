@@ -451,12 +451,5 @@ index_t ExciterIEEET3::findIndex(std::string_view field, const SolverMode& sMode
     return kInvalidLocation;
 }
 
-void ExciterIEEET3::set(std::string_view param, std::string_view val)
-{
-    if (!isSetHandled(ExciterIEEET3::getModelDescription().trySetLocal(*this, param, val))) {
-        Exciter::set(param, val);
-    }
-}
-
 // NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::exciters

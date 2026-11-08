@@ -104,13 +104,6 @@ void ExciterSEXS::dynObjectInitializeB(const IOdata& inputs,
     m_dstate_dt[1] = 0.0;
 }
 
-void ExciterSEXS::set(std::string_view param, std::string_view val)
-{
-    if (!isSetHandled(ExciterSEXS::getModelDescription().trySetLocal(*this, param, val))) {
-        Exciter::set(param, val);
-    }
-}
-
 stringVec ExciterSEXS::localStateNames() const
 {
     stringVec names;

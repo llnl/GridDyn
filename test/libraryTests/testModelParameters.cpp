@@ -213,12 +213,31 @@ namespace {
     };
 
     class UndescribedParameterModel: public ParameterModel {};
+
+    class InverseFlagModel: public CoreObject {
+      public:
+        std::bitset<32> mBits;
+        const ModelDescription& getModelDescription() const override
+        {
+            static const auto description = ModelDescription::define<InverseFlagModel>(
+                "InverseFlagModel",
+                &CoreObject::getModelDescription(),
+                {flag({"direct"}, &InverseFlagModel::mBits, 2, "Direct bit"),
+                 inverseFlag({"inverse", "opposite"}, &InverseFlagModel::mBits, 2, "Inverse bit"),
+                 inverseFlag({"high_clear"}, &InverseFlagModel::mBits, 31, "High bit clear"),
+                 localState("history", &InverseFlagModel::mBits, 5, "Retained bit")});
+            return description;
+        }
+    };
     class ContextualGetterModel: public CoreObject {
       public:
         double mPower = 0.8;
         double mGain = 2.0;
         int mPowerWrites = 0;
         int mOperations = 0;
+        std::string mParentText;
+        int mTextWrites = 0;
+        int mTextOperations = 0;
         using CoreObject::set;
         const ModelDescription& getModelDescription() const override
         {
@@ -227,8 +246,34 @@ namespace {
                 &CoreObject::getModelDescription(),
                 {parameter({"power"}, &ContextualGetterModel::mPower, units::puMW, "Power"),
                  parameter({"gain"}, &ContextualGetterModel::mGain, units::one, "Parent gain"),
-                 command({"operation"}, units::one, "Parent operation")});
+                 command({"operation"}, units::one, "Parent operation"),
+                 parameter({"parent_text", "label"},
+                           &ContextualGetterModel::mParentText,
+                           units::defunit,
+                           "Parent-managed text"),
+                 command({"text_operation", "overloaded"},
+                         units::defunit,
+                         "Parent text operation",
+                         ModelFieldType::STRING)});
             return description;
+        }
+        void set(std::string_view fieldName, std::string_view value) override
+        {
+            if (fieldName == "parent_text") {
+                mParentText = "parent:" + std::string(value);
+                ++mTextWrites;
+                return;
+            }
+            const auto result =
+                ContextualGetterModel::getModelDescription().trySet(*this, fieldName, value);
+            if (isSetHandled(result)) {
+                return;
+            }
+            if (result == SetResult::COMMAND) {
+                ++mTextOperations;
+            } else {
+                CoreObject::set(fieldName, value);
+            }
         }
         void set(std::string_view fieldName,
                  double value,
@@ -272,14 +317,36 @@ namespace {
     class GetterBoundaryModel: public ContextualGetterModel {
       public:
         int mBoundaryOperations = 0;
+        int mBoundaryTextOperations = 0;
         using ContextualGetterModel::set;
         const ModelDescription& getModelDescription() const override
         {
             static const auto description = ModelDescription::define<GetterBoundaryModel>(
                 "GetterBoundaryModel",
                 &ContextualGetterModel::getModelDescription(),
-                {command({"boundary_operation"}, units::one, "Boundary operation")});
+                {command({"boundary_operation"}, units::one, "Boundary operation"),
+                 command({"boundary_text"},
+                         units::defunit,
+                         "Boundary text operation",
+                         ModelFieldType::STRING),
+                 indexedCommand({"boundary_input"},
+                                units::defunit,
+                                "Boundary text input",
+                                ModelFieldType::STRING)});
             return description;
+        }
+        void set(std::string_view fieldName, std::string_view value) override
+        {
+            const auto result =
+                GetterBoundaryModel::getModelDescription().trySet(*this, fieldName, value);
+            if (isSetHandled(result)) {
+                return;
+            }
+            if (result == SetResult::COMMAND || result == SetResult::INDEXED_COMMAND) {
+                ++mBoundaryTextOperations;
+            } else {
+                ContextualGetterModel::set(fieldName, value);
+            }
         }
         void set(std::string_view fieldName,
                  double value,
@@ -319,14 +386,6 @@ namespace {
         double mHistory = 4.0;
         std::string mLabel;
         using GetterBoundaryModel::set;
-        void set(std::string_view fieldName, std::string_view value) override
-        {
-            if (fieldName == "label") {
-                mLabel = value;
-            } else {
-                GetterBoundaryModel::set(fieldName, value);
-            }
-        }
         const ModelDescription& getModelDescription() const override
         {
             static const auto description = ModelDescription::define<DefaultGetterModel>(
@@ -343,9 +402,22 @@ namespace {
                            "Child gain",
                            parameterValidators::positive),
                  flag({"active"}, &DefaultGetterModel::mActive, "Active"),
-                 parameter({"label"}, &DefaultGetterModel::mLabel, units::defunit, "Label"),
+                 parameter({"label", "text"},
+                           &DefaultGetterModel::mLabel,
+                           units::defunit,
+                           "Label",
+                           [](const std::string& value) { return !value.empty(); }),
                  command({"child_operation"}, units::one, "Unhandled child operation"),
                  indexedCommand({"child_index"}, units::one, "Unhandled indexed child operation"),
+                 command({"child_text"},
+                         units::defunit,
+                         "Unhandled child text operation",
+                         ModelFieldType::STRING),
+                 indexedCommand({"child_input"},
+                                units::defunit,
+                                "Unhandled child text input",
+                                ModelFieldType::STRING),
+                 command({"overloaded"}, units::one, "Numeric child operation"),
                  localState("history", &DefaultGetterModel::mHistory),
                  state("solver_x", units::one)});
             return description;
@@ -1384,6 +1456,146 @@ TEST(ModelParameterTests, DefaultSetChecksInputBeforeDerivedLookupAndSupportsLoc
     EXPECT_EQ(view.trySet(model, "gain", 2.0), SetResult::NO_MATCH);
     EXPECT_THROW((void)view.trySet(model, "view_gain", 0.0), InvalidParameterValue);
     EXPECT_THROW((void)view.trySet(object, "view_gain", 1.0), InvalidParameterValue);
+}
+
+TEST(ModelParameterTests, DefaultStringSetPreservesParentHandlersAliasesAndValidation)
+{
+    DefaultGetterModel model;
+    CoreObject& base = model;
+    base.set("text", "child");
+    EXPECT_EQ(model.mLabel, "child");
+    // Boolean words are also valid contents of a string parameter.
+    model.set("label", "true");
+    EXPECT_EQ(model.mLabel, "true");
+    EXPECT_THROW(model.set("label", ""), InvalidParameterValue);
+    EXPECT_EQ(model.mLabel, "true");
+    EXPECT_THROW(model.set("gain", "invalid"), InvalidParameterValue);
+    EXPECT_DOUBLE_EQ(model.mOwnGain, 3.0);
+    model.set("parent_text", "input");
+    EXPECT_EQ(model.mParentText, "parent:input");
+    EXPECT_EQ(model.mTextWrites, 1);
+    const auto& boundary = model.GetterBoundaryModel::getModelDescription();
+    EXPECT_EQ(boundary.trySet(model, "parent_text", "raw"), SetResult::NO_MATCH);
+    EXPECT_EQ(model.mParentText, "parent:input");
+    const auto& parent = model.ContextualGetterModel::getModelDescription();
+    EXPECT_EQ(parent.trySet(model, "label", "derived"), SetResult::PARAMETER);
+    EXPECT_EQ(model.mLabel, "derived");
+    EXPECT_EQ(model.mParentText, "parent:input");
+    EXPECT_EQ(parent.trySetLocal(model, "label", "local"), SetResult::PARAMETER);
+    EXPECT_EQ(model.mLabel, "derived");
+    EXPECT_EQ(model.mParentText, "local");
+
+    model.set("active", "false");
+    EXPECT_FALSE(model.mActive);
+    model.set("active", "true");
+    EXPECT_TRUE(model.mActive);
+    model.set("enabled", "false");
+    EXPECT_FALSE(model.isEnabled());
+    model.set("id", "renamed");
+    EXPECT_EQ(model.getName(), "renamed");
+}
+
+TEST(ModelParameterTests, DefaultStringSetReturnsOnlyDeclaringCommands)
+{
+    DefaultGetterModel model;
+    const auto& boundary = model.GetterBoundaryModel::getModelDescription();
+    EXPECT_EQ(boundary.trySet(model, "boundary_text", "value"), SetResult::COMMAND);
+    EXPECT_EQ(boundary.trySet(model, "boundary_input3", "value"), SetResult::INDEXED_COMMAND);
+    EXPECT_EQ(boundary.trySet(model, "child_text", "value"), SetResult::NO_MATCH);
+    EXPECT_EQ(boundary.trySet(model, "child_input3", "value"), SetResult::NO_MATCH);
+    EXPECT_THROW(model.set("child_text", "value"), UnrecognizedParameter);
+    EXPECT_THROW(model.set("child_input3", "value"), UnrecognizedParameter);
+    EXPECT_EQ(model.mTextOperations, 0);
+    EXPECT_EQ(model.mBoundaryTextOperations, 0);
+    model.set("boundary_text", "value");
+    model.set("boundary_input3", "value");
+    EXPECT_EQ(model.mBoundaryTextOperations, 2);
+    model.set("text_operation", "value");
+    // A declared numeric command rejects text before any parent action occurs.
+    EXPECT_THROW(model.set("overloaded", "value"), InvalidParameterValue);
+    EXPECT_EQ(model.mTextOperations, 1);
+    EXPECT_EQ(model.mBoundaryTextOperations, 2);
+}
+
+TEST(ModelParameterTests, DefaultStringSetIgnoresBeforeLookupAndSupportsStandaloneViews)
+{
+    class LookupGuard: public CoreObject {
+      public:
+        const ModelDescription& getModelDescription() const override
+        {
+            throw std::logic_error("description lookup reached");
+        }
+    };
+    CoreObject object;
+    LookupGuard guard;
+    EXPECT_EQ(object.getModelDescription().trySet(guard, "", "value"), SetResult::IGNORED);
+    EXPECT_EQ(object.getModelDescription().trySet(guard, "# comment", "value"), SetResult::IGNORED);
+    EXPECT_THROW((void)object.getModelDescription().trySet(guard, "missing", "value"),
+                 std::logic_error);
+
+    DefaultGetterModel model;
+    const auto view = ModelDescription::define<DefaultGetterModel>(
+        "TextView",
+        nullptr,
+        {parameter({"view_label"}, &DefaultGetterModel::mLabel, units::defunit, "Label")});
+    EXPECT_EQ(view.trySet(model, "view_label", "value"), SetResult::PARAMETER);
+    EXPECT_EQ(model.mLabel, "value");
+    EXPECT_EQ(view.trySet(model, "label", "ignored"), SetResult::NO_MATCH);
+    EXPECT_THROW((void)view.trySet(object, "view_label", "wrong model"), InvalidParameterValue);
+}
+
+TEST(ModelParameterTests, InverseFlagsUseLogicalValuesThroughAllPublicAccessors)
+{
+    InverseFlagModel model;
+    const auto* field = model.getModelDescription().find("inverse");
+    ASSERT_NE(field, nullptr);
+    EXPECT_EQ(field->kind(), ModelFieldKind::FLAG);
+    EXPECT_EQ(field->valueType(), ModelFieldType::BOOLEAN);
+    EXPECT_FALSE(field->hasUnits());
+    EXPECT_TRUE(std::get<bool>(field->value(model)));
+    EXPECT_TRUE(model.getFlag("inverse"));
+    EXPECT_DOUBLE_EQ(model.get("opposite"), 1.0);
+    model.setFlag("inverse", false);
+    EXPECT_TRUE(model.mBits[2]);
+    EXPECT_TRUE(model.getFlag("direct"));
+    EXPECT_DOUBLE_EQ(model.get("inverse"), 0.0);
+    model.set("opposite", -2.0);
+    EXPECT_FALSE(model.mBits[2]);
+    EXPECT_DOUBLE_EQ(model.get("direct"), 0.0);
+    model.set("inverse", "false");
+    EXPECT_TRUE(model.mBits[2]);
+    model.set("direct", 0.0);
+    EXPECT_TRUE(model.getFlag("inverse"));
+    EXPECT_THROW(model.set("inverse", std::numeric_limits<double>::infinity()),
+                 InvalidParameterValue);
+    EXPECT_FALSE(model.mBits[2]);
+    EXPECT_THROW(inverseFlag({"outside"}, &InverseFlagModel::mBits, 32, "Invalid"),
+                 std::invalid_argument);
+}
+
+TEST(ModelParameterTests, InverseFlagSnapshotsRestoreLogicalValuesAndPreserveOtherBits)
+{
+    for (const auto level : {FieldSnapshotLevel::STATE, FieldSnapshotLevel::PARAMETERS}) {
+        for (const bool stored : {false, true}) {
+            InverseFlagModel model;
+            model.mBits[2] = stored;
+            model.mBits[31] = stored;
+            model.mBits[5] = true;
+            auto saved = ModelFieldSnapshot::capture(model, level);
+            EXPECT_EQ(std::get<bool>(entry(saved, "InverseFlagModel", "inverse").mValue), !stored);
+            EXPECT_EQ(std::get<bool>(entry(saved, "InverseFlagModel", "high_clear").mValue),
+                      !stored);
+            model.mBits.flip();
+            model.mBits[9] = true;
+            saved.restore(model);
+            EXPECT_EQ(model.mBits[2], stored);
+            EXPECT_EQ(model.mBits[31], stored);
+            EXPECT_TRUE(model.mBits[5]);
+            EXPECT_TRUE(model.mBits[9]);
+            EXPECT_EQ(model.getFlag("inverse"), !stored);
+            EXPECT_EQ(model.getFlag("high_clear"), !stored);
+        }
+    }
 }
 
 }  // namespace griddyn

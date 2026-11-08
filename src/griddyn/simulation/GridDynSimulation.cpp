@@ -284,7 +284,8 @@ const ModelDescription& GridDynSimulation::getModelDescription() const
               &GridDynSimulation::controlFlags,
               DROOP_POWER_FLOW,
               "Droop power flow"),
-         command({"sparse"}, units::defunit, "Use a sparse solver", ModelFieldType::BOOLEAN),
+         inverseFlag(
+             {"sparse"}, &GridDynSimulation::controlFlags, DENSE_SOLVER, "Use a sparse solver"),
          command({"threads"},
                  units::defunit,
                  "Set parallel residual, Jacobian, and contingency execution",
@@ -1268,9 +1269,7 @@ void GridDynSimulation::setFlag(std::string_view flag, bool val)
     if (GridDynSimulation::getModelDescription().trySetFlag(*this, flag, val)) {
         return;
     }
-    if (flag == "sparse") {
-        controlFlags.set(DENSE_SOLVER, !val);
-    } else if (flag == "threads") {
+    if (flag == "threads") {
         controlFlags.set(PARALLEL_RESIDUAL_ENABLED, val);
         controlFlags.set(PARALLEL_CONTINGENCY_ENABLED, val);
         controlFlags.set(PARALLEL_JACOBIAN_ENABLED, val);
@@ -1284,9 +1283,6 @@ bool GridDynSimulation::getFlag(std::string_view flag) const
 {
     if (const auto value = GridDynSimulation::getModelDescription().tryGetFlag(*this, flag)) {
         return *value;
-    }
-    if (flag == "sparse") {
-        return !controlFlags[DENSE_SOLVER];
     }
     if (flag == "threads") {
         return controlFlags[PARALLEL_RESIDUAL_ENABLED] &&
@@ -1343,7 +1339,7 @@ double GridDynSimulation::get(std::string_view param, units::unit unitType) cons
             GridDynSimulation::getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
-    if (param == "sparse" || param == "threads") {
+    if (param == "threads") {
         return getFlag(param) ? 1.0 : 0.0;
     }
     count_t val = kInvalidCount;

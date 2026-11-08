@@ -178,8 +178,9 @@ double WSCCLoad::powerFrequencyDerivative(bool reactive, double voltage) const
 
 void WSCCLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(WSCCLoad::getModelDescription().trySet(*this, param, val, unitType))) {
-        if (!param.empty() && param.front() != '#') {
+    const auto result = WSCCLoad::getModelDescription().trySet(*this, param, val, unitType);
+    if (isSetHandled(result)) {
+        if (result != SetResult::IGNORED) {
             setWSCCParameters(parameters);
         }
         return;

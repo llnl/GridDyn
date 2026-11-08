@@ -56,10 +56,10 @@ const ModelDescription& ThreePhaseLoad::getModelDescription() const
          command({"ianglea"}, units::defunit, "Set ianglea"),
          command({"iangleb"}, units::defunit, "Set iangleb"),
          command({"ianglec"}, units::defunit, "Set ianglec"),
-         command({"ignore_phase", "ignorevoltagephase"},
-                 units::defunit,
-                 "Ignore the voltage phase",
-                 ModelFieldType::BOOLEAN)});
+         inverseFlag({"ignore_phase", "ignorevoltagephase"},
+                     &ThreePhaseLoad::opFlags,
+                     USE_ABS_ANGLE,
+                     "Ignore the voltage phase")});
     return description;
 }
 
@@ -113,9 +113,7 @@ void ThreePhaseLoad::setLoad(double plevel, double qlevel, unit unitType)
 
 void ThreePhaseLoad::setFlag(std::string_view flag, bool val)
 {
-    if ((flag == "ignore_phase") || (flag == "ignorevoltagephase")) {
-        opFlags.set(USE_ABS_ANGLE, !val);
-    } else if ((flag == "three_phase_inputs") || (flag == "three_phase_input")) {
+    if ((flag == "three_phase_inputs") || (flag == "three_phase_input")) {
         opFlags.set(THREE_PHASE_INPUT, val);
         m_inputSize = val ? 7 : 3;
     } else if ((flag == "three_phase_outputs") || (flag == "three_phase_output")) {

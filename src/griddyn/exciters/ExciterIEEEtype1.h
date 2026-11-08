@@ -43,7 +43,7 @@ class ExciterIEEEtype1: public Exciter {
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
-    virtual void set(std::string_view param, std::string_view val) override;
+    using Exciter::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 

@@ -596,12 +596,5 @@ index_t ExciterEXPIC1::findIndex(std::string_view field, const SolverMode& sMode
                                               offsets.getDiffOffset(sMode) + localIndex;
 }
 
-void ExciterEXPIC1::set(std::string_view param, std::string_view val)
-{
-    if (!isSetHandled(ExciterEXPIC1::getModelDescription().trySetLocal(*this, param, val))) {
-        Exciter::set(param, val);
-    }
-}
-
 // NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::exciters

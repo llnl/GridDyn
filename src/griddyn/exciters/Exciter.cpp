@@ -361,13 +361,6 @@ stringVec Exciter::localStateNames() const
     return {"ef"};
 }
 
-void Exciter::set(std::string_view param, std::string_view val)
-{
-    if (!isSetHandled(Exciter::getModelDescription().trySetLocal(*this, param, val))) {
-        GridSubModel::set(param, val);
-    }
-}
-
 const std::vector<stringVec>& Exciter::inputNames() const
 {
     static const std::vector<stringVec> inputNamesStr{

@@ -201,9 +201,35 @@ accidentally target a shadowing derived field or apply conversion twice.
 
 Empty/comment names are ignored and nonfinite values rejected before even looking
 up the object's derived table. Field validators and conversion remain in the
-existing local assignment mechanism. String setters are preserved; numeric
+existing local assignment mechanism. Custom string setters are preserved;
 inheritance uses `using Parent::set` where needed to keep both overloads visible.
 Pure string forwarders are removed only when the inherited method is equivalent.
+
+Cache or limit updates following dispatch use `SetResult::IGNORED` to exclude
+ignored input; they do not repeat empty-name or comment-prefix checks. Keep name
+comparisons that select which cache to refresh, and keep input gates before
+class-specific conversions that must run before ordinary member assignment.
+Where the same update applies to local assignments and parent forwarding, keep
+that work in one place, with ignored input returning first. Commands and indexed
+commands continue through the class handler; they are not completed assignments.
+
+## Default string setters
+
+The string overload of `Class::getModelDescription().trySet(object, name, value)`
+uses the same derived-to-declaring-table boundary as numeric dispatch. Declared
+string parameters, including aliases and validators, are assigned through their
+bindings. Only string commands declared in the receiving table are returned as
+`COMMAND` or `INDEXED_COMMAND`; pending commands from derived tables are left for
+the class that implements them. Parent handlers retain custom assignments and
+side effects because the lookup stops before their tables.
+
+GridSubModel and GridLoad provide the common string dispatch for the exciter and
+load hierarchies. Empty/comment names are ignored before description lookup.
+Flags and exact Boolean commands fall through to existing public string handlers,
+preserving Boolean words and status changes. Declared numeric parameters and
+commands reject string values. The strict local `trySetLocal` string overload is
+unchanged. `using Parent::set` exposes inherited
+overloads when a class retains a custom numeric setter.
 
 ## Default flag access
 
@@ -215,12 +241,29 @@ boundary as numeric getters, leaving parent behavior to ordinary method dispatch
 A stored false flag is a successful read, so it cannot fall through to a true
 parent flag with the same name.
 
-Only `flag` declarations use default flag access. Boolean commands, inverse
-aliases, notifications, linked controls and initialization-dependent changes
+Both `flag` and `inverseFlag` declarations use default flag access. Boolean
+commands, notifications, linked controls and initialization-dependent changes
 continue through the class-specific handlers. Numeric setters still dispatch
 flags through virtual `setFlag`, preserving those handlers. Packed flags change
 only their declared bit; retained local bits are not settable flags. The local
 helpers remain available for explicitly local access and standalone views.
+
+## Inverse flag bindings
+
+`inverseFlag(names, bitsetMember, bit, description)` has the same arguments as the
+packed-bit `flag` overload. For example, `absolute` uses `flag`, while `relative`
+uses `inverseFlag` on the same `USE_ABSOLUTE_TIME_FLAG` bit. Existing `flag`
+declarations stay unchanged; both helpers produce ordinary Boolean `FLAG` fields.
+The private bit binding selects its polarity at compile time. Readers return the
+logical value, and writers and snapshot restorers convert that value back to the
+stored bit. Ordinary bindings and retained local bits use the normal specialization.
+
+Inverse controls support flag access, numeric get/set, Boolean string setters and
+flag-name enumeration. Snapshots store their logical values; normal and inverse
+views of the same bit restore consistently. Each binding changes only its own bit.
+Custom actions remain in the models, including three-phase input/output sizing,
+relay/sensor sampling changes and random-source derivative updates. Helpers based
+on HelperObject and the deferred FMI/HELICS integrations are outside this migration.
 
 ## Default numeric getters
 

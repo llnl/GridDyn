@@ -24,7 +24,7 @@ class ExciterIEEEtype2: public ExciterIEEEtype1 {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void set(std::string_view param, std::string_view val) override;
+    using ExciterIEEEtype1::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     virtual double get(std::string_view param,

@@ -428,11 +428,4 @@ index_t ExciterESAC5A::findIndex(std::string_view field, const SolverMode& sMode
                                             offsets.getDiffOffset(sMode) + location;
 }
 
-void ExciterESAC5A::set(std::string_view param, std::string_view val)
-{
-    if (!isSetHandled(ExciterESAC5A::getModelDescription().trySetLocal(*this, param, val))) {
-        Exciter::set(param, val);
-    }
-}
-
 }  // namespace griddyn::exciters

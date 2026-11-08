@@ -298,6 +298,32 @@ SetResult ModelDescription::trySet(CoreObject& object,
     return trySetLocal(object, name, value, unitType);
 }
 
+SetResult ModelDescription::trySet(CoreObject& object,
+                                   std::string_view name,
+                                   std::string_view value) const
+{
+    if (name.empty() || name.front() == '#') {
+        return SetResult::IGNORED;
+    }
+    for (const auto* description = derivedDescription(object);;
+         description = description->parent()) {
+        const auto* field = description->findLocal(name);
+        // Leave textual flags and Boolean commands to the public string handlers.
+        // Other controls retain trySetLocal's type checks, including numeric commands.
+        if (field != nullptr && field->kind() != ModelFieldKind::FLAG &&
+            (field->kind() != ModelFieldKind::COMMAND ||
+             field->valueType() != ModelFieldType::BOOLEAN)) {
+            const auto result = description->trySetLocal(object, name, value);
+            if (isSetHandled(result) || description == this) {
+                return result;
+            }
+        }
+        if (description == this) {
+            return SetResult::NO_MATCH;
+        }
+    }
+}
+
 SetResult ModelDescription::trySetLocal(CoreObject& object,
                                         std::string_view name,
                                         double value,

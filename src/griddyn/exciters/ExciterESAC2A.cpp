@@ -568,11 +568,4 @@ bool ExciterESAC2A::supportsLimiterSignal(ExciterLimiterSignal signal) const
     return signal == ExciterLimiterSignal::UNDER ? underSelectorEnabled : overSelectorEnabled;
 }
 
-void ExciterESAC2A::set(std::string_view param, std::string_view val)
-{
-    if (!isSetHandled(ExciterESAC2A::getModelDescription().trySetLocal(*this, param, val))) {
-        Exciter::set(param, val);
-    }
-}
-
 }  // namespace griddyn::exciters

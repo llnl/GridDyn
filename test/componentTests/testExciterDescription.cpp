@@ -545,6 +545,25 @@ TEST(ExciterDescriptionTests, DistinguishesExpic1ParameterAndStateWithTheSameNam
     EXPECT_EQ(description.find("vr1", ModelFieldKind::STATE)->kind(), ModelFieldKind::STATE);
 }
 
+TEST(ExciterDescriptionTests, InheritedStringDispatchKeepsFlagsStatusAndBaseRestrictions)
+{
+    ExciterSEXS model;
+    model.set("status", "off");
+    EXPECT_FALSE(model.isEnabled());
+    model.set("status", "on");
+    EXPECT_TRUE(model.isEnabled());
+    model.set("enabled", "false");
+    EXPECT_FALSE(model.isEnabled());
+    model.set("name", "inherited text");
+    EXPECT_EQ(model.getName(), "inherited text");
+    EXPECT_THROW(model.set("ka", "invalid"), InvalidParameterValue);
+    model.setFlag("no_gridcomponent_set", true);
+    EXPECT_NO_THROW(model.set("", "ignored"));
+    EXPECT_NO_THROW(model.set("# comment", "ignored"));
+    EXPECT_THROW(model.set("name", "blocked"), UnrecognizedParameter);
+    EXPECT_EQ(model.getName(), "inherited text");
+}
+
 TEST(ExciterDescriptionTests, UsesMemberDispatchAndPreservesSpecialValidation)
 {
     exciters::ExciterAC7B simple;

@@ -216,24 +216,24 @@ void FDepLoad::set(std::string_view param, std::string_view val)
 
 void FDepLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(FDepLoad::getModelDescription().trySet(*this, param, val, unitType))) {
-        if (!param.empty() && param.front() != '#' && ((betaP != 0.0) || (betaQ != 0.0))) {
-            opFlags.set(USES_BUS_FREQUENCY);
-        }
+    const auto result = FDepLoad::getModelDescription().trySet(*this, param, val, unitType);
+    if (result == SetResult::IGNORED) {
         return;
     }
-    if (param == "beta") {
-        betaP = betaQ = val;
-    } else if (param == "kp") {
-        powerScaleP = val / 100.0;
-    } else if (param == "kq") {
-        powerScaleQ = val / 100.0;
-    } else if ((param == "vref") || (param == "v0")) {
-        if (val > 0.0) {
-            voltageReference = val;
+    if (!isSetHandled(result)) {
+        if (param == "beta") {
+            betaP = betaQ = val;
+        } else if (param == "kp") {
+            powerScaleP = val / 100.0;
+        } else if (param == "kq") {
+            powerScaleQ = val / 100.0;
+        } else if ((param == "vref") || (param == "v0")) {
+            if (val > 0.0) {
+                voltageReference = val;
+            }
+        } else {
+            ExponentialLoad::set(param, val, unitType);
         }
-    } else {
-        ExponentialLoad::set(param, val, unitType);
     }
     if ((betaP != 0.0) || (betaQ != 0.0)) {
         opFlags.set(USES_BUS_FREQUENCY);

@@ -80,6 +80,13 @@ bool GridSubModel::setOutputInitializationTarget(index_t /*outputIndex*/, double
     return false;
 }
 
+void GridSubModel::set(std::string_view param, std::string_view val)
+{
+    if (!isSetHandled(GridSubModel::getModelDescription().trySet(*this, param, val))) {
+        GridComponent::set(param, val);
+    }
+}
+
 void GridSubModel::set(std::string_view param, double val, units::unit unitType)
 {
     if (!isSetHandled(GridSubModel::getModelDescription().trySet(*this, param, val, unitType))) {

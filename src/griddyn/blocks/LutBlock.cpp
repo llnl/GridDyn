@@ -169,16 +169,6 @@ void LutBlock::set(std::string_view param, std::string_view val)
     }
 }
 
-void LutBlock::set(std::string_view param, double val, units::unit unitType)
-{
-    if (isSetHandled(LutBlock::getModelDescription().trySet(*this, param, val, unitType))) {
-        return;
-    }
-    if (!param.empty() && param[0] != '#') {
-        GridBlock::set(param, val, unitType);
-    }
-}
-
 double LutBlock::step(CoreTime time, double input)
 {
     const double output = K * evaluate(input + bias).value;

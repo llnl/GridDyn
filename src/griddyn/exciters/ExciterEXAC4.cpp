@@ -319,12 +319,6 @@ ChangeCode ExciterEXAC4::rootCheck(const IOdata& inputs,
     }
     return ChangeCode::NO_CHANGE;
 }
-void ExciterEXAC4::set(std::string_view param, std::string_view val)
-{
-    if (!isSetHandled(ExciterEXAC4::getModelDescription().trySetLocal(*this, param, val))) {
-        Exciter::set(param, val);
-    }
-}
 stringVec ExciterEXAC4::localStateNames() const
 {
     return {"efd", "vmeas", "ll", "vr"};

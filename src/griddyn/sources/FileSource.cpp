@@ -19,8 +19,8 @@ const ModelDescription& FileSource::getModelDescription() const
         {flag({"absolute"}, &FileSource::opFlags, USE_ABSOLUTE_TIME_FLAG, "Absolute"),
          flag({"step"}, &FileSource::opFlags, USE_STEP_CHANGE_FLAG, "Step"),
          command({"fileName", "file"}, units::defunit, "Filename", ModelFieldType::STRING),
-         command({"relative"}, units::defunit, "Relative", ModelFieldType::BOOLEAN),
-         command({"interpolate"}, units::defunit, "Interpolate", ModelFieldType::BOOLEAN)});
+         inverseFlag({"relative"}, &FileSource::opFlags, USE_ABSOLUTE_TIME_FLAG, "Relative"),
+         inverseFlag({"interpolate"}, &FileSource::opFlags, USE_STEP_CHANGE_FLAG, "Interpolate")});
     return description;
 }
 
@@ -117,19 +117,6 @@ void FileSource::timestep(CoreTime time, const IOdata& inputs, const SolverMode&
     RampSource::timestep(time, inputs, sMode);
 }
 
-void FileSource::setFlag(std::string_view flag, bool val)
-{
-    if (FileSource::getModelDescription().trySetFlag(*this, flag, val)) {
-        return;
-    }
-    if (flag == "relative") {
-        opFlags.set(USE_ABSOLUTE_TIME_FLAG, !val);
-    } else if (flag == "interpolate") {
-        opFlags.set(USE_STEP_CHANGE_FLAG, !val);
-    } else {
-        RampSource::setFlag(flag, val);
-    }
-}
 void FileSource::set(std::string_view param, std::string_view val)
 {
     if ((param == "fileName") || (param == "file")) {

@@ -40,7 +40,7 @@ const ModelDescription& TxLifeSpan::getModelDescription() const
                    &TxLifeSpan::mAgingConstant,
                    units::defunit,
                    "Aging constant default value of 14594 based on"),
-         command({"useieee", "ieee"}, units::defunit, "Useieee", ModelFieldType::BOOLEAN)});
+         inverseFlag({"useieee", "ieee"}, &TxLifeSpan::opFlags, USE_IE_CMETHOD, "Useieee")});
     return description;
 }
 
@@ -64,18 +64,6 @@ CoreObject* TxLifeSpan::clone(CoreObject* obj) const
     nobj->mBaseTemp = mBaseTemp;
     nobj->mAgingFactor = mAgingFactor;
     return nobj;
-}
-
-void TxLifeSpan::setFlag(std::string_view flag, bool val)
-{
-    if (TxLifeSpan::getModelDescription().trySetFlag(*this, flag, val)) {
-        return;
-    }
-    if ((flag == "useieee") || (flag == "ieee")) {
-        opFlags.set(USE_IE_CMETHOD, !val);
-    } else {
-        Sensor::setFlag(flag, val);
-    }
 }
 
 void TxLifeSpan::set(std::string_view param, std::string_view val)

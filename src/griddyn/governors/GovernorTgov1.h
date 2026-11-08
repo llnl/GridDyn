@@ -45,7 +45,7 @@ class GovernorTgov1: public GovernorIeeeSimple {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void set(std::string_view param, std::string_view val) override;
+    using GovernorIeeeSimple::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;

@@ -137,10 +137,6 @@ void GridSecondary::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
     prevTime = time0;
 }
 
-void GridSecondary::set(std::string_view param, std::string_view val)
-{
-    GridComponent::set(param, val);
-}
 void GridSecondary::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(GridSecondary::getModelDescription().trySet(*this, param, val, unitType))) {

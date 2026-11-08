@@ -29,7 +29,7 @@ namespace loads {
 
         virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-        virtual void set(std::string_view param, std::string_view val) override;
+        using ZipLoad::set;
         virtual void
             set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 

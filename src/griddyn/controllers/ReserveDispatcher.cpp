@@ -239,11 +239,6 @@ void ReserveDispatcher::remove(CoreObject* obj)
     }
 }
 
-void ReserveDispatcher::set(std::string_view param, std::string_view val)
-{
-    CoreObject::set(param, val);
-}
-
 void ReserveDispatcher::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(

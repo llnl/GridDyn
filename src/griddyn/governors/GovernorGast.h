@@ -51,7 +51,7 @@ class GovernorGast final: public Governor {
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
-    void set(std::string_view param, std::string_view val) override;
+    using Governor::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     void residual(const IOdata& inputs,
                   const StateData& stateData,

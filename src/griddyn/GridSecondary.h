@@ -43,7 +43,7 @@ class GridSecondary: public GridComponent {
     virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
   public:
-    virtual void set(std::string_view param, std::string_view val) override;
+    using GridComponent::set;
 
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;

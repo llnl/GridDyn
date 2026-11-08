@@ -712,11 +712,6 @@ index_t StabilizerIee2st::findIndex(std::string_view field, const SolverMode& sM
     return kInvalidLocation;
 }
 
-void StabilizerIee2st::set(std::string_view param, std::string_view val)
-{
-    Stabilizer::set(param, val);
-}
-
 void StabilizerIee2st::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "lsmax" || param == "vmax") {

@@ -200,11 +200,6 @@ void ElectronicLoad::timestep(CoreTime time, const IOdata& inputs, const SolverM
     }
 }
 
-void ElectronicLoad::set(std::string_view param, std::string_view val)
-{
-    GridLoad::set(param, val);
-}
-
 void ElectronicLoad::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(ElectronicLoad::getModelDescription().trySet(*this, param, val, unitType))) {

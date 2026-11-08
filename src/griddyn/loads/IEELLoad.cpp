@@ -161,11 +161,6 @@ double IEELLoad::frequencyCoefficient(bool reactive) const
     return parameters.coefficients[reactive ? 7U : 6U];
 }
 
-void IEELLoad::set(std::string_view param, std::string_view val)
-{
-    GridLoad::set(param, val);
-}
-
 void IEELLoad::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(IEELLoad::getModelDescription().trySet(*this, param, val, unitType))) {

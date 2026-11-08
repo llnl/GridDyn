@@ -69,7 +69,7 @@ class GovernorHygov: public Governor {
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
 
-    void set(std::string_view param, std::string_view val) override;
+    using Governor::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
 

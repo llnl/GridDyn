@@ -118,10 +118,6 @@ void IsocController::timestep(CoreTime time, const IOdata& inputs, const SolverM
     }
 }
 
-void IsocController::set(std::string_view param, std::string_view val)
-{
-    GridSubModel::set(param, val);
-}
 void IsocController::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(IsocController::getModelDescription().trySet(*this, param, val, unitType))) {

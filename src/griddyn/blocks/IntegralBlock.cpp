@@ -131,10 +131,6 @@ double IntegralBlock::step(CoreTime time, double inputA)
 }
 
 // set parameters
-void IntegralBlock::set(std::string_view param, std::string_view val)
-{
-    GridBlock::set(param, val);
-}
 void IntegralBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(IntegralBlock::getModelDescription().trySet(*this, param, val, unitType))) {

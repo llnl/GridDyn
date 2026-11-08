@@ -229,7 +229,7 @@ class SchedulerReg: public SchedulerRamp {
 
     void regSettings(bool active, double upFrac = -1.0, double downFrac = -1.0);
 
-    virtual void set(std::string_view param, std::string_view val) override;
+    using SchedulerRamp::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 

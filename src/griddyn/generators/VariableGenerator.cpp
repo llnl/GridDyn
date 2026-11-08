@@ -114,11 +114,6 @@ void VariableGenerator::add(GridSubModel* obj)
 }
 
 // set properties
-void VariableGenerator::set(std::string_view param, std::string_view val)
-{
-    DynamicGenerator::set(param, val);
-}
-
 void VariableGenerator::set(std::string_view param, double val, unit unitType)
 {
     if (isSetHandled(

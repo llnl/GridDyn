@@ -29,7 +29,7 @@ class SineSource: public PulseSource {
     SineSource(const std::string& objName = "sineSource_#", double startVal = 0.0);
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual void set(std::string_view param, std::string_view val) override;
+    using PulseSource::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 

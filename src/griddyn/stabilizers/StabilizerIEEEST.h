@@ -121,7 +121,7 @@ class StabilizerIEEEST: public Stabilizer {
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
-    void set(std::string_view param, std::string_view val) override;
+    using Stabilizer::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     stringVec localStateNames() const override;
     index_t findIndex(std::string_view field, const SolverMode& sMode) const override;

@@ -886,11 +886,6 @@ index_t StabilizerPss2a::findIndex(std::string_view field, const SolverMode& sMo
     return kInvalidLocation;
 }
 
-void StabilizerPss2a::set(std::string_view param, std::string_view val)
-{
-    Stabilizer::set(param, val);
-}
-
 void StabilizerPss2a::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "vstmax" || param == "vmax") {

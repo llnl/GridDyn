@@ -57,10 +57,6 @@ CoreObject* RampLoad::clone(CoreObject* obj) const
 }
 
 // set properties
-void RampLoad::set(std::string_view param, std::string_view val)
-{
-    ZipLoad::set(param, val);
-}
 void RampLoad::set(std::string_view param, double val, unit unitType)
 {
     if (isSetHandled(RampLoad::getModelDescription().trySet(*this, param, val, unitType))) {

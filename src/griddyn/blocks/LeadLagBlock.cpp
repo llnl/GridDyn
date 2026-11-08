@@ -179,11 +179,6 @@ double LeadLagBlock::step(CoreTime time, double inputValue)
     return m_output;
 }
 
-void LeadLagBlock::set(std::string_view param, std::string_view val)
-{
-    GridBlock::set(param, val);
-}
-
 void LeadLagBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(LeadLagBlock::getModelDescription().trySet(*this, param, val, unitType))) {

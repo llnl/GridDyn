@@ -217,11 +217,6 @@ index_t GovernorSteamNR::findIndex(std::string_view field, const SolverMode& sMo
     return kInvalidLocation;
 }
 
-void GovernorSteamNR::set(std::string_view param, std::string_view val)
-{
-    GovernorIeeeSimple::set(param, val);
-}
-
 void GovernorSteamNR::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(GovernorSteamNR::getModelDescription().trySet(*this, param, val, unitType))) {

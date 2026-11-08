@@ -641,11 +641,6 @@ ChangeCode GovernorIeeeG1::rootCheck(const IOdata& inputs,
     return ChangeCode::NO_CHANGE;
 }
 
-void GovernorIeeeG1::set(std::string_view param, std::string_view val)
-{
-    Governor::set(param, val);
-}
-
 void GovernorIeeeG1::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "paux") {

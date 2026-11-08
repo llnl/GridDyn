@@ -252,10 +252,6 @@ index_t PidBlock::findIndex(std::string_view field, const SolverMode& sMode) con
 }
 
 // set parameters
-void PidBlock::set(std::string_view param, std::string_view val)
-{
-    GridBlock::set(param, val);
-}
 void PidBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(PidBlock::getModelDescription().trySet(*this, param, val, unitType))) {

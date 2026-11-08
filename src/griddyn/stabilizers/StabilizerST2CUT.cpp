@@ -532,11 +532,6 @@ index_t StabilizerST2CUT::findIndex(std::string_view field, const SolverMode& sM
     return kInvalidLocation;
 }
 
-void StabilizerST2CUT::set(std::string_view param, std::string_view val)
-{
-    Stabilizer::set(param, val);
-}
-
 void StabilizerST2CUT::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "lsmax" || param == "vmax") {

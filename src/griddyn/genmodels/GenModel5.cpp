@@ -354,10 +354,6 @@ double GenModel5::getAngle(const StateData& stateDataValue,
 }
 
 // set parameters
-void GenModel5::set(std::string_view param, std::string_view val)
-{
-    GenModel4::set(param, val);
-}
 void GenModel5::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(GenModel5::getModelDescription().trySet(*this, param, val, unitType))) {

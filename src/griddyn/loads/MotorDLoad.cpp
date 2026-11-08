@@ -273,11 +273,6 @@ CoreObject* MotorDLoad::clone(CoreObject* obj) const
     return (copied == nullptr) ? obj : copied;
 }
 
-void MotorDLoad::set(std::string_view param, std::string_view val)
-{
-    GridLoad::set(param, val);
-}
-
 void MotorDLoad::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(MotorDLoad::getModelDescription().trySet(*this, param, val, unitType))) {

@@ -40,7 +40,7 @@ class VariableGenerator: public DynamicGenerator {
                                       IOdata& fieldSet) override;
 
   public:
-    virtual void set(std::string_view param, std::string_view val) override;
+    using DynamicGenerator::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 

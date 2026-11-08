@@ -263,11 +263,6 @@ index_t GovernorHydro::findIndex(std::string_view field, const SolverMode& sMode
     return kInvalidLocation;
 }
 
-void GovernorHydro::set(std::string_view param, std::string_view val)
-{
-    Governor::set(param, val);
-}
-
 void GovernorHydro::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(GovernorHydro::getModelDescription().trySet(*this, param, val, unitType))) {

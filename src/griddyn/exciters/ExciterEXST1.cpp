@@ -420,13 +420,6 @@ ChangeCode ExciterEXST1::rootCheck(const IOdata& inputs,
     return ChangeCode::NO_CHANGE;
 }
 
-void ExciterEXST1::set(std::string_view param, std::string_view val)
-{
-    if (!isSetHandled(ExciterEXST1::getModelDescription().trySetLocal(*this, param, val))) {
-        Exciter::set(param, val);
-    }
-}
-
 void ExciterEXST1::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(ExciterEXST1::getModelDescription().trySet(*this, param, val, unitType))) {

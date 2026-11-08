@@ -163,8 +163,9 @@ double IEELLoad::frequencyCoefficient(bool reactive) const
 
 void IEELLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(IEELLoad::getModelDescription().trySet(*this, param, val, unitType))) {
-        if (!param.empty() && param.front() != '#') {
+    const auto result = IEELLoad::getModelDescription().trySet(*this, param, val, unitType);
+    if (isSetHandled(result)) {
+        if (result != SetResult::IGNORED) {
             setIEELParameters(parameters);
         }
         return;

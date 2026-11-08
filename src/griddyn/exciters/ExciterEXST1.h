@@ -70,7 +70,7 @@ class ExciterEXST1: public Exciter {
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
 
-    void set(std::string_view param, std::string_view val) override;
+    using Exciter::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     stringVec localStateNames() const override;

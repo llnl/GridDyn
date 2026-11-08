@@ -104,7 +104,7 @@ class ExciterESST2A final: public Exciter {
                          CheckLevel level) override;
     stringVec localStateNames() const override;
     index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
-    void set(std::string_view param, std::string_view val) override;
+    using Exciter::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     bool supportsLimiterSignal(ExciterLimiterSignal signal) const override;
 

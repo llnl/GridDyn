@@ -547,13 +547,6 @@ index_t ExciterESST2A::findIndex(std::string_view field, const SolverMode& sMode
     return kInvalidLocation;
 }
 
-void ExciterESST2A::set(std::string_view param, std::string_view val)
-{
-    if (!isSetHandled(ExciterESST2A::getModelDescription().trySetLocal(*this, param, val))) {
-        Exciter::set(param, val);
-    }
-}
-
 void ExciterESST2A::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(ExciterESST2A::getModelDescription().trySet(*this, param, val, unitType))) {

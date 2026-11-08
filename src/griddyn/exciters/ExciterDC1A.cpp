@@ -384,13 +384,6 @@ stringVec ExciterDC1A::localStateNames() const
 {
     return (Tr > 0.0) ? stringVec{"ef", "vr", "x", "rf", "vmeas"} : DC1A_FIELDS;
 }
-void ExciterDC1A::set(std::string_view param, std::string_view val)
-{
-    if (!isSetHandled(ExciterDC1A::getModelDescription().trySetLocal(*this, param, val))) {
-        ExciterIEEEtype1::set(param, val);
-    }
-}
-
 // set parameters
 void ExciterDC1A::set(std::string_view param, double val, units::unit unitType)
 {

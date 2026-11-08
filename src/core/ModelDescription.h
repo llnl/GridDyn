@@ -174,6 +174,12 @@ class ModelDescription {
                                    std::string_view name,
                                    double value,
                                    units::unit unitType = units::defunit) const;
+    /** Default string setter with the same derived-to-declaring-table boundary.
+     * String parameters are assigned; only this table's string commands are returned.
+     * Flags and Boolean commands remain with the class's existing string handlers.
+     */
+    [[nodiscard]] SetResult
+        trySet(CoreObject& object, std::string_view name, std::string_view value) const;
     /** Classify local dispatch; empty/comment names are ignored before checking the value.
      * Exact numeric Boolean commands dispatch through setFlag and return FLAG.
      * Other commands return COMMAND or INDEXED_COMMAND for the class to execute.

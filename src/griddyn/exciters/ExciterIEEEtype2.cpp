@@ -260,13 +260,6 @@ ChangeCode ExciterIEEEtype2::rootCheck(const IOdata& inputs,
     return ret;
 }
 
-void ExciterIEEEtype2::set(std::string_view param, std::string_view val)
-{
-    if (!isSetHandled(ExciterIEEEtype2::getModelDescription().trySetLocal(*this, param, val))) {
-        ExciterIEEEtype1::set(param, val);
-    }
-}
-
 // set parameters
 void ExciterIEEEtype2::set(std::string_view param, double val, units::unit unitType)
 {

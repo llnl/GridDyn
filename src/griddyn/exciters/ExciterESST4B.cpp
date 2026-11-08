@@ -443,13 +443,6 @@ void ExciterESST4B::timestep(CoreTime time, const IOdata& inputs, const SolverMo
     prevTime = time;
 }
 
-void ExciterESST4B::set(std::string_view param, std::string_view val)
-{
-    if (!isSetHandled(ExciterESST4B::getModelDescription().trySetLocal(*this, param, val))) {
-        Exciter::set(param, val);
-    }
-}
-
 stringVec ExciterESST4B::localStateNames() const
 {
     stringVec names{"efd"};

@@ -29,14 +29,12 @@ class ExciterSEXS: public Exciter {
     explicit ExciterSEXS(const std::string& objName = "exciterSEXS_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     const ModelDescription& getModelDescription() const override;
-    using Exciter::set;
 
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
 
-    void set(std::string_view param, std::string_view val) override;
 
     stringVec localStateNames() const override;
 

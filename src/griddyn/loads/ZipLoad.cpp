@@ -288,9 +288,6 @@ void ZipLoad::set(std::string_view param, double val, unit unitType)
     if (isSetHandled(ZipLoad::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
-    if (param.empty()) {
-        return;
-    }
     if (param.length() == 1) {
         switch (param[0]) {
             case 'p':

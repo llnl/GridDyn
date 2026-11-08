@@ -58,8 +58,7 @@ class LutBlock: public GridBlock {
                                       IOdata& fieldSet) override;
 
     virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+    using GridBlock::set;
 
     virtual void blockAlgebraicUpdate(double input,
                                       const StateData& stateDataValue,

@@ -202,8 +202,9 @@ void ElectronicLoad::timestep(CoreTime time, const IOdata& inputs, const SolverM
 
 void ElectronicLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(ElectronicLoad::getModelDescription().trySet(*this, param, val, unitType))) {
-        if (!param.empty() && param.front() != '#') {
+    const auto result = ElectronicLoad::getModelDescription().trySet(*this, param, val, unitType);
+    if (isSetHandled(result)) {
+        if (result != SetResult::IGNORED) {
             setIEELParameters(parameters);
         }
         return;

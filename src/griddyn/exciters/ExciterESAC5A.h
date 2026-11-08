@@ -16,7 +16,6 @@ namespace griddyn::exciters {
 class ExciterESAC5A final: public Exciter {
   public:
     const ModelDescription& getModelDescription() const override;
-    void set(std::string_view param, std::string_view val) override;
     explicit ExciterESAC5A(const std::string& objName = "exciterESAC5A_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
@@ -56,7 +55,6 @@ class ExciterESAC5A final: public Exciter {
                          CheckLevel level) override;
     stringVec localStateNames() const override;
     index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
-    using Exciter::set;
 
   private:
     static constexpr index_t maximumStates = 5;

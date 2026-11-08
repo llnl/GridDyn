@@ -133,6 +133,22 @@ TEST(GovernorDescriptionTests, FlagsAndIndexedParametersUseSharedGetAndSet)
     EXPECT_THROW(ggov1.set("rselect", 1.5), InvalidParameterValue);
 }
 
+TEST(GovernorDescriptionTests, IgnoredInputsSkipOutputLimitUpdates)
+{
+    governors::GovernorGPWSCC governor;
+    governor.set("mwcap", 100.0);
+    governor.set("mvabase", 100.0);
+    governor.set("pmax", 0.37);
+    EXPECT_NO_THROW(governor.set("", std::numeric_limits<double>::quiet_NaN()));
+    EXPECT_NO_THROW(governor.set("# ignored", std::numeric_limits<double>::infinity()));
+    EXPECT_NO_THROW(governor.set("# ignored", 1.0));
+    EXPECT_DOUBLE_EQ(governor.get("pmax"), 0.37);
+    EXPECT_THROW(governor.set("mwcap", -1.0), InvalidParameterValue);
+    EXPECT_DOUBLE_EQ(governor.get("pmax"), 0.37);
+    governor.set("mwcap", 125.0);
+    EXPECT_DOUBLE_EQ(governor.get("pmax"), 1.25);
+}
+
 TEST(GovernorDescriptionTests, RejectsInvalidScalarValuesAtSet)
 {
     governors::GovernorGPWSCC gpwscc;

@@ -36,7 +36,6 @@ class TxLifeSpan: public Sensor {
   public:
     TxLifeSpan(const std::string& objName = "txlifeSpan_$");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
 
     using Sensor::add;

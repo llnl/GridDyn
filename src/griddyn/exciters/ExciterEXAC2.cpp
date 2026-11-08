@@ -132,13 +132,6 @@ void ExciterEXAC2::dynObjectInitializeB(const IOdata& inputs,
     ExciterEXAC1::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
 }
 
-void ExciterEXAC2::set(std::string_view param, std::string_view val)
-{
-    if (!isSetHandled(ExciterEXAC2::getModelDescription().trySetLocal(*this, param, val))) {
-        ExciterEXAC1::set(param, val);
-    }
-}
-
 double ExciterEXAC2::regulatorTarget(const IOdata& inputs, const double state[]) const
 {
     const double feedback = vfe(inputs, state);

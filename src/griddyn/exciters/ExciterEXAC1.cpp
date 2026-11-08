@@ -972,13 +972,6 @@ ChangeCode ExciterEXAC1::rootCheck(const IOdata& inputs,
     return ChangeCode::NO_CHANGE;
 }
 
-void ExciterEXAC1::set(std::string_view param, std::string_view val)
-{
-    if (!isSetHandled(ExciterEXAC1::getModelDescription().trySetLocal(*this, param, val))) {
-        Exciter::set(param, val);
-    }
-}
-
 stringVec ExciterEXAC1::localStateNames() const
 {
     stringVec names{"efd"};

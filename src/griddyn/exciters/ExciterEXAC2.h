@@ -35,14 +35,12 @@ class ExciterEXAC2 final: public ExciterEXAC1 {
 
   public:
     const ModelDescription& getModelDescription() const override;
-    using ExciterEXAC1::set;
     explicit ExciterEXAC2(const std::string& objName = "exciterEXAC2_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
-    void set(std::string_view param, std::string_view val) override;
 
   protected:
     double regulatorTarget(const IOdata& inputs, const double state[]) const override;

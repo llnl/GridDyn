@@ -37,12 +37,14 @@ const ModelDescription& FileLoad::getModelDescription() const
              {"fileName", "file"}, units::defunit, "Configure fileName", ModelFieldType::STRING),
          command({"units"}, units::defunit, "Configure units", ModelFieldType::STRING),
          command({"mode", "timemode"}, units::defunit, "Configure mode", ModelFieldType::STRING),
-         command(
-             {"relative"}, units::defunit, "Use relative schedule times", ModelFieldType::BOOLEAN),
-         command({"interpolate"},
-                 units::defunit,
-                 "Interpolate between scheduled values",
-                 ModelFieldType::BOOLEAN),
+         inverseFlag({"relative"},
+                     &FileLoad::opFlags,
+                     USE_ABSOLUTE_TIME_FLAG,
+                     "Use relative schedule times"),
+         inverseFlag({"interpolate"},
+                     &FileLoad::opFlags,
+                     USE_STEP_CHANGE_FLAG,
+                     "Interpolate between scheduled values"),
          command(
              {"column"}, units::defunit, "Append input column mappings", ModelFieldType::STRING),
          indexedCommand({"column", "column_", "column#"},
@@ -191,17 +193,6 @@ void FileLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& s
     }
 
     RampLoad::timestep(time, inputs, sMode);
-}
-
-void FileLoad::setFlag(std::string_view flag, bool val)
-{
-    if (flag == "relative") {
-        opFlags.set(USE_ABSOLUTE_TIME_FLAG, !val);
-    } else if (flag == "interpolate") {
-        opFlags.set(USE_STEP_CHANGE_FLAG, !val);
-    } else if (!FileLoad::getModelDescription().trySetFlag(*this, flag, val)) {
-        ZipLoad::setFlag(flag, val);
-    }
 }
 
 static int columnCode(const std::string& ldc)

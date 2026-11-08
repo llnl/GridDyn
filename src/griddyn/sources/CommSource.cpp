@@ -42,7 +42,7 @@ const ModelDescription& CommSource::getModelDescription() const
         &RampSource::getModelDescription(),
         {flag({"no_reply_message"}, &CommSource::opFlags, NO_MESSAGE_REPLY, "No reply message"),
          command({"ramp", "maxramp"}, units::defunit, "Ramp"),
-         command({"reply_message"}, units::defunit, "Reply message", ModelFieldType::BOOLEAN)});
+         inverseFlag({"reply_message"}, &CommSource::opFlags, NO_MESSAGE_REPLY, "Reply message")});
     return description;
 }
 
@@ -122,8 +122,6 @@ void CommSource::setFlag(std::string_view flag, bool val)
     }
     if (flag == "ramp") {
         opFlags.set(USE_RAMP, val);
-    } else if (flag == "reply_message") {
-        opFlags.set(NO_MESSAGE_REPLY, !val);
     } else {
         if (!(cManager.setFlag(flag, val))) {
             Source::setFlag(flag, val);

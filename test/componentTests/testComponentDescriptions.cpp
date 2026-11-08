@@ -6,12 +6,18 @@
 
 #include "core/CoreExceptions.h"
 #include "core/ModelDescription.h"
+#include "griddyn/griddyn-config.h"
+#ifdef GRIDDYN_ENABLE_EXTRA_MODELS
+#    include "extraModels/TxLifeSpan.h"
+#endif
 #include "griddyn/ExcitationLimiter.h"
 #include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/GridDynSimulation.h"
 #include "griddyn/Link.h"
 #include "griddyn/Load.h"
 #include "griddyn/VoltageCompensator.h"
+#include "griddyn/blocks/DeadbandBlock.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/generators/RenewableGenerator.h"
 #include "griddyn/generators/VariableGenerator.h"
@@ -57,6 +63,7 @@
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/primary/DcBus.h"
 #include "griddyn/primary/InfiniteBus.h"
+#include "griddyn/relays/DifferentialRelay.h"
 #include "griddyn/renewables/DistributedConverter.h"
 #include "griddyn/renewables/EPCGEN.h"
 #include "griddyn/renewables/GridFormingConverter.h"
@@ -77,6 +84,8 @@
 #include "griddyn/renewables/WTDTA1.h"
 #include "griddyn/renewables/WTPTA1.h"
 #include "griddyn/renewables/WTTQA1.h"
+#include "griddyn/sources/CommSource.h"
+#include "griddyn/sources/FileSource.h"
 #include "griddyn/voltagecompensators/VoltageCompensatorIeeeVC.h"
 #include <algorithm>
 #include <cmath>
@@ -91,6 +100,34 @@
 using namespace griddyn;
 
 namespace {
+template<class Load>
+class FrequencyFlagProbe: public Load {
+  public:
+    void clearFrequencyFlag() { this->opFlags.reset(USES_BUS_FREQUENCY); }
+};
+
+template<class Load>
+void checkIgnoredFrequencyUpdates(std::string_view frequencyName, std::string_view updateName)
+{
+    FrequencyFlagProbe<Load> load;
+    SCOPED_TRACE(load.getModelDescription().name());
+    load.set(updateName, 0.75);
+    load.set(frequencyName, 0.5);
+    ASSERT_TRUE(load.checkFlag(USES_BUS_FREQUENCY));
+    // Clearing the derived bit makes an unwanted refresh observable.
+    load.clearFrequencyFlag();
+    EXPECT_NO_THROW(load.set("", std::numeric_limits<double>::quiet_NaN()));
+    EXPECT_NO_THROW(load.set("# ignored", std::numeric_limits<double>::infinity()));
+    EXPECT_NO_THROW(load.set("# ignored", 1.0));
+    EXPECT_FALSE(load.checkFlag(USES_BUS_FREQUENCY));
+    EXPECT_DOUBLE_EQ(load.get(frequencyName), 0.5);
+    EXPECT_THROW(load.set(frequencyName, std::numeric_limits<double>::infinity()),
+                 InvalidParameterValue);
+    EXPECT_FALSE(load.checkFlag(USES_BUS_FREQUENCY));
+    load.set(updateName, 0.75);
+    EXPECT_TRUE(load.checkFlag(USES_BUS_FREQUENCY));
+}
+
 std::vector<std::unique_ptr<CoreObject>> componentModels()
 {
     std::vector<std::unique_ptr<CoreObject>> models;
@@ -470,7 +507,7 @@ TEST(ComponentDescriptionTests, IndexedOperationsAreDescribedAlongsideExactComma
     EXPECT_EQ(composite.getModelDescription().findLocal("fraction-2"), nullptr);
 }
 
-TEST(ComponentDescriptionTests, CustomAliasesAndInverseFlagsRemainClassHandled)
+TEST(ComponentDescriptionTests, CustomAliasesAndDeclaredInverseFlagsKeepTheirBehavior)
 {
     loads::MotorLoad motor;
     const auto& motorDescription = motor.getModelDescription();
@@ -493,6 +530,75 @@ TEST(ComponentDescriptionTests, CustomAliasesAndInverseFlagsRemainClassHandled)
     EXPECT_FALSE(phase.getFlag("use_abs_angle"));
     phase.set("ignorevoltagephase", 0.0);
     EXPECT_TRUE(phase.getFlag("use_abs_angle"));
+}
+
+TEST(ComponentDescriptionTests, InverseFlagBindingsAgreeAcrossModelsAndRestoreTheirValues)
+{
+    struct FlagPair {
+        std::unique_ptr<CoreObject> model;
+        std::string_view direct;
+        std::string_view inverse;
+    };
+    std::vector<FlagPair> pairs;
+    pairs.push_back({std::make_unique<loads::FileLoad>(), "absolute", "relative"});
+    pairs.push_back({std::make_unique<loads::FileLoad>(), "step", "interpolate"});
+    pairs.push_back({std::make_unique<sources::FileSource>(), "absolute", "relative"});
+    pairs.push_back({std::make_unique<sources::FileSource>(), "step", "interpolate"});
+    pairs.push_back({std::make_unique<blocks::DeadbandBlock>(), "shifted", "unshifted"});
+    pairs.push_back({std::make_unique<loads::ThreePhaseLoad>(), "use_abs_angle", "ignore_phase"});
+    pairs.push_back({std::make_unique<relays::DifferentialRelay>(), "relative", "absolute"});
+    pairs.push_back({std::make_unique<sources::CommSource>(), "no_reply_message", "reply_message"});
+    pairs.push_back({std::make_unique<GridDynSimulation>(), "dense", "sparse"});
+#ifdef GRIDDYN_ENABLE_EXTRA_MODELS
+    pairs.push_back({std::make_unique<extra::TxLifeSpan>(), "iec", "ieee"});
+#endif
+    for (auto& pair : pairs) {
+        auto& model = *pair.model;
+        SCOPED_TRACE(model.getModelDescription().name());
+        SCOPED_TRACE(pair.inverse);
+        const auto* field = model.getModelDescription().find(pair.inverse);
+        ASSERT_NE(field, nullptr);
+        EXPECT_EQ(field->kind(), ModelFieldKind::FLAG);
+        for (const bool value : {false, true}) {
+            model.setFlag(pair.inverse, value);
+            EXPECT_EQ(model.getFlag(pair.inverse), value);
+            EXPECT_EQ(model.getFlag(pair.direct), !value);
+            EXPECT_DOUBLE_EQ(model.get(pair.inverse), value ? 1.0 : 0.0);
+            const auto saved = ModelFieldSnapshot::capture(model);
+            model.set(pair.inverse, value ? 0.0 : 1.0);
+            EXPECT_EQ(model.getFlag(pair.inverse), !value);
+            saved.restore(model);
+            EXPECT_EQ(model.getFlag(pair.inverse), value);
+            EXPECT_EQ(model.getFlag(pair.direct), !value);
+            model.set(pair.inverse, value ? "false" : "true");
+            EXPECT_EQ(model.getFlag(pair.inverse), !value);
+        }
+    }
+}
+
+TEST(ComponentDescriptionTests, InversePhaseFlagKeepsPhaseSizingActionsIntact)
+{
+    loads::ThreePhaseLoad phase;
+    phase.setFlag("three_phase_inputs", true);
+    phase.setFlag("three_phase_outputs", true);
+    EXPECT_EQ(phase.numInputs(), 7);
+    EXPECT_EQ(phase.numOutputs(), 6);
+    phase.setFlag("ignore_phase", true);
+    EXPECT_FALSE(phase.getFlag("use_abs_angle"));
+    EXPECT_EQ(phase.numInputs(), 7);
+    EXPECT_EQ(phase.numOutputs(), 6);
+    phase.setFlag("three_phase_inputs", false);
+    phase.setFlag("three_phase_outputs", false);
+    EXPECT_EQ(phase.numInputs(), 3);
+    EXPECT_EQ(phase.numOutputs(), 3);
+}
+
+TEST(ComponentDescriptionTests, IgnoredInputsSkipDerivedFrequencyUpdates)
+{
+    checkIgnoredFrequencyUpdates<loads::IEELLoad>("a7", "a1");
+    checkIgnoredFrequencyUpdates<loads::ElectronicLoad>("a7", "a1");
+    checkIgnoredFrequencyUpdates<loads::WSCCLoad>("lpd", "p1");
+    checkIgnoredFrequencyUpdates<loads::FDepLoad>("betap", "alpha");
 }
 
 TEST(ComponentDescriptionTests, InheritedEnumerationUsesEachNativeDescription)

@@ -27,6 +27,12 @@
 
 namespace griddyn {
 namespace {
+    void setCoefficient(std::vector<double>& coefficients, std::size_t index, double value)
+    {
+        gmlc::utilities::ensureSizeAtLeast(coefficients, index + 1);
+        coefficients[index] = value;
+    }
+
     int getPolynomialOrderLimit(const OptimizationMode& optimizationMode)
     {
         switch (optimizationMode.linMode) {
@@ -670,47 +676,22 @@ void GridGenOpt::set(std::string_view param, double val, units::unit unitType)
         // trySet has already checked the complete decimal suffix and its range.
         std::from_chars(param.data() + 1, param.data() + param.size(), num);
         auto& coefficients = (param.front() == 'p') ? Pcoeff : Qcoeff;
-        if (num >= coefficients.size()) {
-            coefficients.resize(num + 1);
-        }
-        coefficients[num] = val;
+        setCoefficient(coefficients, num, val);
         return;
     }
     if ((param == "constantp") || (param == "constant")) {
-        if (Pcoeff.empty()) {
-            Pcoeff.resize(1);
-        }
-        Pcoeff[0] = val;
+        setCoefficient(Pcoeff, 0, val);
     } else if ((param == "linearp") || (param == "linear")) {
-        const auto coefficient = convertCostCoefficient(val, unitType, 1);
-        if (Pcoeff.size() < 2) {
-            Pcoeff.resize(2);
-        }
-        Pcoeff[1] = coefficient;
+        setCoefficient(Pcoeff, 1, convertCostCoefficient(val, unitType, 1));
     } else if ((param == "quadraticp") || (param == "quadp") || (param == "quadratic") ||
                (param == "quad")) {
-        const auto coefficient = convertCostCoefficient(val, unitType, 2);
-        if (Pcoeff.size() < 3) {
-            Pcoeff.resize(3);
-        }
-        Pcoeff[2] = coefficient;
+        setCoefficient(Pcoeff, 2, convertCostCoefficient(val, unitType, 2));
     } else if (param == "constantq") {
-        if (Qcoeff.empty()) {
-            Qcoeff.resize(1);
-        }
-        Qcoeff[0] = val;
+        setCoefficient(Qcoeff, 0, val);
     } else if (param == "linearq") {
-        const auto coefficient = convertCostCoefficient(val, unitType, 1);
-        if (Qcoeff.size() < 2) {
-            Qcoeff.resize(2);
-        }
-        Qcoeff[1] = coefficient;
+        setCoefficient(Qcoeff, 1, convertCostCoefficient(val, unitType, 1));
     } else if ((param == "quadraticq") || (param == "quadq")) {
-        const auto coefficient = convertCostCoefficient(val, unitType, 2);
-        if (Qcoeff.size() < 3) {
-            Qcoeff.resize(3);
-        }
-        Qcoeff[2] = coefficient;
+        setCoefficient(Qcoeff, 2, convertCostCoefficient(val, unitType, 2));
     } else if ((param == "penalty_cost") || (param == "penalty")) {
         m_penaltyCost = convertCostCoefficient(val, unitType, 1);
     } else if ((param == "pmax") || (param == "pmin")) {

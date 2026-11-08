@@ -51,7 +51,6 @@ namespace griddyn::exciters {
 class ExciterAC8B final: public Exciter {
   public:
     const ModelDescription& getModelDescription() const override;
-    using Exciter::set;
     enum AC8BFlags {
         PID_LIMITED = OBJECT_FLAG5,
         PID_LIMIT_HIGH = OBJECT_FLAG6,
@@ -100,7 +99,6 @@ class ExciterAC8B final: public Exciter {
                          CheckLevel level) override;
     stringVec localStateNames() const override;
     index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
-    void set(std::string_view param, std::string_view val) override;
 
   private:
     static constexpr index_t stateCount = 5;

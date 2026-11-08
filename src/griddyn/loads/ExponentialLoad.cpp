@@ -54,12 +54,6 @@ CoreObject* ExponentialLoad::clone(CoreObject* obj) const
 }
 
 // set properties
-void ExponentialLoad::set(std::string_view param, std::string_view val)
-{
-    if (!isSetHandled(ExponentialLoad::getModelDescription().trySetLocal(*this, param, val))) {
-        GridLoad::set(param, val);
-    }
-}
 void ExponentialLoad::set(std::string_view param, double val, units::unit unitType)
 {
     const auto result = ExponentialLoad::getModelDescription().trySet(*this, param, val, unitType);

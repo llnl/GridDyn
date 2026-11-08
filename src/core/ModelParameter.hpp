@@ -211,7 +211,7 @@ namespace detail {
         };
         return bindModelMember(names, member, unitType, description, kind, std::move(write));
     }
-    template<class Model, std::size_t Size>
+    template<bool Inverted = false, class Model, std::size_t Size>
     ModelField bindModelBit(std::initializer_list<std::string_view> names,
                             std::bitset<Size> Model::* member,
                             std::size_t bit,
@@ -222,13 +222,13 @@ namespace detail {
             throw std::invalid_argument("flag bit is outside its storage");
         }
         ModelField::Reader read = [member, bit](const CoreObject& object) -> ModelFieldValue {
-            return static_cast<bool>((fieldOwner<Model>(object).*member)[bit]);
+            return static_cast<bool>((fieldOwner<Model>(object).*member)[bit]) != Inverted;
         };
         ModelField::Restorer restore =
             [member, bit](CoreObject& object,
                           const ModelFieldValue& value) -> ModelField::Assignment {
             auto& bits = fieldOwner<Model>(object).*member;
-            const auto copy = restoreValue<bool>(value);
+            const auto copy = restoreValue<bool>(value) != Inverted;
             return [&bits, bit, copy]() noexcept { bits[bit] = copy; };
         };
         ModelField::Writer write;
@@ -236,7 +236,7 @@ namespace detail {
             write = [member, bit](CoreObject& object,
                                   const ModelFieldValue& value,
                                   std::string_view /*name*/) {
-                (fieldOwner<Model>(object).*member)[bit] = std::get<bool>(value);
+                (fieldOwner<Model>(object).*member)[bit] = std::get<bool>(value) != Inverted;
             };
         }
         return {names,
@@ -409,6 +409,16 @@ ModelField flag(std::initializer_list<std::string_view> names,
                 std::string_view description)
 {
     return detail::bindModelBit(names, member, bit, description, ModelFieldKind::FLAG);
+}
+
+/** Boolean control whose logical value is the inverse of a packed storage bit. */
+template<class Model, std::size_t Size>
+ModelField inverseFlag(std::initializer_list<std::string_view> names,
+                       std::bitset<Size> Model::* member,
+                       std::size_t bit,
+                       std::string_view description)
+{
+    return detail::bindModelBit<true>(names, member, bit, description, ModelFieldKind::FLAG);
 }
 
 /** Retained model-owned memory which cannot be reconstructed from restored inputs. */

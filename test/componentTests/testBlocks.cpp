@@ -18,6 +18,7 @@
 #include <cstdio>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <string>
 #include <utility>
@@ -306,6 +307,16 @@ TEST_F(BlockTests, LeadLagKernelAndBlock)
 
 TEST_F(BlockTests, LutBlockInterpolationInitializationAndLimits)
 {
+    LutBlock inherited;
+    inherited.set("gain", 2.0);
+    inherited.set("name", "inherited LUT");
+    EXPECT_DOUBLE_EQ(inherited.get("gain"), 2.0);
+    EXPECT_EQ(inherited.getName(), "inherited LUT");
+    EXPECT_NO_THROW(inherited.set("", std::numeric_limits<double>::quiet_NaN()));
+    EXPECT_NO_THROW(inherited.set("# ignored", std::numeric_limits<double>::infinity()));
+    EXPECT_THROW(inherited.set("unknown", std::numeric_limits<double>::quiet_NaN()),
+                 InvalidParameterValue);
+
     LutBlock block;
     block.set("lut", "0,0;1,2;2,2");
     EXPECT_NEAR(block.computeValue(-1.0), 0.0, 1e-12);

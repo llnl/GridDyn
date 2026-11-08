@@ -36,7 +36,6 @@ class FileSource: public RampSource {
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void setFlag(std::string_view flag, bool val) override;
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;

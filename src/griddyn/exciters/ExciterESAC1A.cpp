@@ -61,11 +61,4 @@ double ExciterESAC1A::regulatorLowerLimit() const
     return Vamin;
 }
 
-void ExciterESAC1A::set(std::string_view param, std::string_view val)
-{
-    if (!isSetHandled(ExciterESAC1A::getModelDescription().trySetLocal(*this, param, val))) {
-        ExciterEXAC1::set(param, val);
-    }
-}
-
 }  // namespace griddyn::exciters

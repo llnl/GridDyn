@@ -197,6 +197,36 @@ TEST(OptimizationDescriptionTests, GeneratorCostConversionsAndPhysicalLimitForwa
     EXPECT_DOUBLE_EQ(unattached.coefficients()[1], 3.0);
 }
 
+TEST(OptimizationDescriptionTests, NamedCostAliasesPreserveHigherOrderCoefficients)
+{
+    InspectableGenOpt model;
+    model.set("p4", 40.0);
+    model.set("q4", 50.0);
+    struct Alias {
+        std::string_view name;
+        std::size_t index;
+        bool reactive;
+    };
+    for (const auto& alias : std::array{Alias{"constantp", 0, false},
+                                        Alias{"constant", 0, false},
+                                        Alias{"linearp", 1, false},
+                                        Alias{"linear", 1, false},
+                                        Alias{"quadraticp", 2, false},
+                                        Alias{"quadp", 2, false},
+                                        Alias{"quadratic", 2, false},
+                                        Alias{"quad", 2, false},
+                                        Alias{"constantq", 0, true},
+                                        Alias{"linearq", 1, true},
+                                        Alias{"quadraticq", 2, true},
+                                        Alias{"quadq", 2, true}}) {
+        SCOPED_TRACE(alias.name);
+        model.set(alias.name, 7.0);
+        EXPECT_DOUBLE_EQ(model.coefficients(alias.reactive)[alias.index], 7.0);
+        EXPECT_DOUBLE_EQ(model.coefficients()[4], 40.0);
+        EXPECT_DOUBLE_EQ(model.coefficients(true)[4], 50.0);
+    }
+}
+
 TEST(OptimizationDescriptionTests, ReservedTolerancesAreExplicitAndUseCommonInputGate)
 {
     GridAreaOpt area;

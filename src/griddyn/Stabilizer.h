@@ -38,7 +38,6 @@ class Stabilizer: public GridSubModel {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-
     virtual void residual(const IOdata& inputs,
                           const StateData& sD,
                           double resid[],

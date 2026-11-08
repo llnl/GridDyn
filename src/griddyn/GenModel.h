@@ -53,7 +53,6 @@ class GenModel: public GridSubModel {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-
     virtual IOdata getOutputs(const IOdata& inputs,
                               const StateData& stateDataValue,
                               const SolverMode& sMode) const override;

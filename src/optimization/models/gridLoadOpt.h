@@ -81,7 +81,6 @@ class GridLoadOpt: public GridOptObject {
                                    const OptimizationMode& oMode,
                                    const std::string& prefix = "") override;
 
-
     virtual GridOptObject* getBus(index_t index) const override;
     virtual GridOptObject* getArea(index_t index) const override;
 

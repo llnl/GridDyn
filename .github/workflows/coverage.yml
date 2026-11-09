@@ -80,7 +80,7 @@ jobs:
             '*/examples/*' \
             '*/interfaces/*' \
             --output-file coverage.info
-          lcov --list coverage.info
+          lcov --ignore-errors inconsistent --list coverage.info
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v7

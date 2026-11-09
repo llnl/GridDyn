@@ -33,7 +33,6 @@ class GenModel5: public GenModel4 {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual stringVec localStateNames() const override;
     // dynamics
     virtual void residual(const IOdata& inputs,
                           const StateData& stateData,

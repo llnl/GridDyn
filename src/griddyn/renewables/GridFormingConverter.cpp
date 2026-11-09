@@ -84,81 +84,101 @@ namespace {
 
 const ModelDescription& GridFormingConverter::getModelDescription() const
 {
-    static const auto description = ModelDescription::define<GridFormingConverter>(
+    using Model = GridFormingConverter;
+    constexpr auto inactive = kInvalidLocation;
+    const auto variantState = [](std::string_view fieldName,
+                                 index_t cv1,
+                                 index_t cv2,
+                                 index_t forming,
+                                 std::string_view descriptionText) {
+        return state<Model>(
+            {fieldName},
+            units::one,
+            [cv1, cv2, forming](const auto& model) {
+                if (model.variant == Variant::cv1) {
+                    return cv1;
+                }
+                if (model.variant == Variant::cv2) {
+                    return cv2;
+                }
+                return forming;
+            },
+            descriptionText);
+    };
+    static const auto description = ModelDescription::define<Model>(
         "GridFormingConverter",
         &TerminalElectricalModel::getModelDescription(),
-        {parameter({"fn"}, &GridFormingConverter::parameters, 0, units::Hz, "Converter fn"),
-         parameter({"tc"}, &GridFormingConverter::parameters, 1, units::second, "Converter tc"),
-         parameter({"kw"}, &GridFormingConverter::parameters, 2, units::one, "Converter kw"),
-         parameter({"kv"}, &GridFormingConverter::parameters, 3, units::one, "Converter kv"),
-         parameter({"m"}, &GridFormingConverter::parameters, 4, units::one, "Converter m"),
-         parameter({"d"}, &GridFormingConverter::parameters, 5, units::one, "Converter d"),
-         parameter({"ra", "rf"}, &GridFormingConverter::parameters, 6, units::one, "Converter ra"),
-         parameter({"xs", "xf"}, &GridFormingConverter::parameters, 7, units::one, "Converter xs"),
-         parameter({"kpvd"}, &GridFormingConverter::parameters, 8, units::one, "Converter kpvd"),
-         parameter({"kivd"}, &GridFormingConverter::parameters, 9, units::one, "Converter kivd"),
-         parameter({"kpvq"}, &GridFormingConverter::parameters, 10, units::one, "Converter kpvq"),
-         parameter({"kivq"}, &GridFormingConverter::parameters, 11, units::one, "Converter kivq"),
-         parameter({"kpid"}, &GridFormingConverter::parameters, 12, units::one, "Converter kpid"),
-         parameter({"kiid"}, &GridFormingConverter::parameters, 13, units::one, "Converter kiid"),
-         parameter({"kpiq"}, &GridFormingConverter::parameters, 14, units::one, "Converter kpiq"),
-         parameter({"kiiq"}, &GridFormingConverter::parameters, 15, units::one, "Converter kiiq"),
-         parameter({"tid"}, &GridFormingConverter::parameters, 16, units::second, "Converter tid"),
-         parameter({"tiq"}, &GridFormingConverter::parameters, 17, units::second, "Converter tiq"),
-         parameter({"wdrp"}, &GridFormingConverter::parameters, 18, units::one, "Converter wdrp"),
-         parameter({"qdrp"}, &GridFormingConverter::parameters, 19, units::one, "Converter qdrp"),
-         parameter({"tr"}, &GridFormingConverter::parameters, 20, units::second, "Converter tr"),
-         parameter({"te"}, &GridFormingConverter::parameters, 21, units::second, "Converter te"),
-         parameter({"kpi"}, &GridFormingConverter::parameters, 22, units::one, "Converter kpi"),
-         parameter({"kii"}, &GridFormingConverter::parameters, 23, units::one, "Converter kii"),
-         parameter({"kpv"}, &GridFormingConverter::parameters, 24, units::one, "Converter kpv"),
-         parameter({"kiv"}, &GridFormingConverter::parameters, 25, units::one, "Converter kiv"),
-         parameter({"pmax"}, &GridFormingConverter::parameters, 26, units::one, "Converter pmax"),
-         parameter({"pmin"}, &GridFormingConverter::parameters, 27, units::one, "Converter pmin"),
-         parameter(
-             {"kpplim"}, &GridFormingConverter::parameters, 28, units::one, "Converter kpplim"),
-         parameter(
-             {"kiplim"}, &GridFormingConverter::parameters, 29, units::one, "Converter kiplim"),
-         parameter({"qmax"}, &GridFormingConverter::parameters, 30, units::one, "Converter qmax"),
-         parameter({"qmin"}, &GridFormingConverter::parameters, 31, units::one, "Converter qmin"),
-         parameter(
-             {"kpqlim"}, &GridFormingConverter::parameters, 32, units::one, "Converter kpqlim"),
-         parameter(
-             {"kiqlim"}, &GridFormingConverter::parameters, 33, units::one, "Converter kiqlim"),
-         parameter({"tpm"}, &GridFormingConverter::parameters, 34, units::second, "Converter tpm"),
-         parameter({"dwmax"}, &GridFormingConverter::parameters, 35, units::one, "Converter dwmax"),
-         parameter({"dwmin"}, &GridFormingConverter::parameters, 36, units::one, "Converter dwmin"),
-         parameter({"mf"}, &GridFormingConverter::parameters, 37, units::one, "Converter mf"),
-         parameter({"dd"}, &GridFormingConverter::parameters, 38, units::one, "Converter dd"),
-         parameter(
-             {"pll"}, &GridFormingConverter::pllName, units::defunit, "PLL measurement source"),
-         localState("initialActivePower",
-                    &GridFormingConverter::initialActivePower,
-                    "Initial active power"),
-         localState("initialReactivePower",
-                    &GridFormingConverter::initialReactivePower,
-                    "Initial reactive power"),
-         localState("initialVoltage", &GridFormingConverter::initialVoltage, "Initial voltage"),
-         state("Pe", units::one, "Solver variable Pe when active"),
-         state("Qe", units::one, "Solver variable Qe when active"),
-         state("dw", units::one, "Solver variable dw when active"),
-         state("delta", units::one, "Solver variable delta when active"),
-         state("PIvd", units::one, "Solver variable PIvd when active"),
-         state("PIvq", units::one, "Solver variable PIvq when active"),
-         state("PIId", units::one, "Solver variable PIId when active"),
-         state("PIIq", units::one, "Solver variable PIIq when active"),
-         state("ud", units::one, "Solver variable ud when active"),
-         state("uq", units::one, "Solver variable uq when active"),
-         state("Id", units::one, "Solver variable Id when active"),
-         state("Iq", units::one, "Solver variable Iq when active"),
-         state("Psen", units::one, "Solver variable Psen when active"),
-         state("Qsen", units::one, "Solver variable Qsen when active"),
-         state("Psig", units::one, "Solver variable Psig when active"),
-         state("Qsig", units::one, "Solver variable Qsig when active"),
-         state("PIplim", units::one, "Solver variable PIplim when active"),
-         state("PIqlim", units::one, "Solver variable PIqlim when active"),
-         state("INTw", units::one, "Solver variable INTw when active"),
-         state("vref2", units::one, "Solver variable vref2 when active")});
+        {parameter({"fn"}, &Model::parameters, 0, units::Hz, "Converter fn"),
+         parameter({"tc"}, &Model::parameters, 1, units::second, "Converter tc"),
+         parameter({"kw"}, &Model::parameters, 2, units::one, "Converter kw"),
+         parameter({"kv"}, &Model::parameters, 3, units::one, "Converter kv"),
+         parameter({"m"}, &Model::parameters, 4, units::one, "Converter m"),
+         parameter({"d"}, &Model::parameters, 5, units::one, "Converter d"),
+         parameter({"ra", "rf"}, &Model::parameters, 6, units::one, "Converter ra"),
+         parameter({"xs", "xf"}, &Model::parameters, 7, units::one, "Converter xs"),
+         parameter({"kpvd"}, &Model::parameters, 8, units::one, "Converter kpvd"),
+         parameter({"kivd"}, &Model::parameters, 9, units::one, "Converter kivd"),
+         parameter({"kpvq"}, &Model::parameters, 10, units::one, "Converter kpvq"),
+         parameter({"kivq"}, &Model::parameters, 11, units::one, "Converter kivq"),
+         parameter({"kpid"}, &Model::parameters, 12, units::one, "Converter kpid"),
+         parameter({"kiid"}, &Model::parameters, 13, units::one, "Converter kiid"),
+         parameter({"kpiq"}, &Model::parameters, 14, units::one, "Converter kpiq"),
+         parameter({"kiiq"}, &Model::parameters, 15, units::one, "Converter kiiq"),
+         parameter({"tid"}, &Model::parameters, 16, units::second, "Converter tid"),
+         parameter({"tiq"}, &Model::parameters, 17, units::second, "Converter tiq"),
+         parameter({"wdrp"}, &Model::parameters, 18, units::one, "Converter wdrp"),
+         parameter({"qdrp"}, &Model::parameters, 19, units::one, "Converter qdrp"),
+         parameter({"tr"}, &Model::parameters, 20, units::second, "Converter tr"),
+         parameter({"te"}, &Model::parameters, 21, units::second, "Converter te"),
+         parameter({"kpi"}, &Model::parameters, 22, units::one, "Converter kpi"),
+         parameter({"kii"}, &Model::parameters, 23, units::one, "Converter kii"),
+         parameter({"kpv"}, &Model::parameters, 24, units::one, "Converter kpv"),
+         parameter({"kiv"}, &Model::parameters, 25, units::one, "Converter kiv"),
+         parameter({"pmax"}, &Model::parameters, 26, units::one, "Converter pmax"),
+         parameter({"pmin"}, &Model::parameters, 27, units::one, "Converter pmin"),
+         parameter({"kpplim"}, &Model::parameters, 28, units::one, "Converter kpplim"),
+         parameter({"kiplim"}, &Model::parameters, 29, units::one, "Converter kiplim"),
+         parameter({"qmax"}, &Model::parameters, 30, units::one, "Converter qmax"),
+         parameter({"qmin"}, &Model::parameters, 31, units::one, "Converter qmin"),
+         parameter({"kpqlim"}, &Model::parameters, 32, units::one, "Converter kpqlim"),
+         parameter({"kiqlim"}, &Model::parameters, 33, units::one, "Converter kiqlim"),
+         parameter({"tpm"}, &Model::parameters, 34, units::second, "Converter tpm"),
+         parameter({"dwmax"}, &Model::parameters, 35, units::one, "Converter dwmax"),
+         parameter({"dwmin"}, &Model::parameters, 36, units::one, "Converter dwmin"),
+         parameter({"mf"}, &Model::parameters, 37, units::one, "Converter mf"),
+         parameter({"dd"}, &Model::parameters, 38, units::one, "Converter dd"),
+         parameter({"pll"}, &Model::pllName, units::defunit, "PLL measurement source"),
+         localState("initialActivePower", &Model::initialActivePower, "Initial active power"),
+         localState("initialReactivePower", &Model::initialReactivePower, "Initial reactive power"),
+         localState("initialVoltage", &Model::initialVoltage, "Initial voltage"),
+         state({"Pe"}, units::one, 0, "Electrical active power"),
+         state({"Qe"}, units::one, 1, "Electrical reactive power"),
+         variantState("dw", 2, 2, inactive, "Frequency deviation"),
+         variantState("delta", 3, 3, 2, "Internal voltage angle"),
+         variantState("PIvd", 4, 4, 9, "D-axis voltage integral"),
+         variantState("PIvq", 5, 5, 10, "Q-axis voltage integral"),
+         variantState("PIId", 6, inactive, 11, "D-axis current integral"),
+         variantState("PIIq", 7, inactive, 12, "Q-axis current integral"),
+         variantState("ud", 8, inactive, 13, "D-axis converter voltage"),
+         variantState("uq", 9, inactive, 14, "Q-axis converter voltage"),
+         variantState("Id", inactive, 6, inactive, "D-axis current"),
+         variantState("Iq", inactive, 7, inactive, "Q-axis current"),
+         variantState("Psen", inactive, inactive, 3, "Measured active power"),
+         variantState("Qsen", inactive, inactive, 4, "Measured reactive power"),
+         variantState("Psig", inactive, inactive, 5, "Active power control signal"),
+         variantState("Qsig", inactive, inactive, 6, "Reactive power control signal"),
+         variantState("PIplim", inactive, inactive, 7, "Active power limit integral"),
+         variantState("PIqlim", inactive, inactive, 8, "Reactive power limit integral"),
+         state<Model>(
+             {"INTw"},
+             units::one,
+             [](const auto& model) { return model.variant == Variant::f2 ? 15 : kInvalidLocation; },
+             "Frequency control integral"),
+         state<Model>(
+             {"vref2"},
+             units::one,
+             [](const auto& model) { return model.variant == Variant::f3 ? 15 : kInvalidLocation; },
+             "Voltage reference state")});
     return description;
 }
 
@@ -613,38 +633,6 @@ void GridFormingConverter::outputPartialDerivatives(const IOdata& /*inputs*/,
     const auto alg = offsets.getAlgOffset(sMode);
     matrixData.assign(0, alg, 1.0);
     matrixData.assign(1, alg + 1, 1.0);
-}
-
-stringVec GridFormingConverter::localStateNames() const
-{
-    if (variant == Variant::cv1) {
-        return {"Pe", "Qe", "dw", "delta", "PIvd", "PIvq", "PIId", "PIIq", "ud", "uq"};
-    }
-    if (variant == Variant::cv2) {
-        return {"Pe", "Qe", "dw", "delta", "PIvd", "PIvq", "Id", "Iq"};
-    }
-    stringVec result{"Pe",
-                     "Qe",
-                     "delta",
-                     "Psen",
-                     "Qsen",
-                     "Psig",
-                     "Qsig",
-                     "PIplim",
-                     "PIqlim",
-                     "PIvd",
-                     "PIvq",
-                     "PIId",
-                     "PIIq",
-                     "ud",
-                     "uq"};
-    if (variant == Variant::f2) {
-        result.emplace_back("INTw");
-    }
-    if (variant == Variant::f3) {
-        result.emplace_back("vref2");
-    }
-    return result;
 }
 
 #define GRID_FORMING_MODEL_IMPL(Model, kind)                                                       \

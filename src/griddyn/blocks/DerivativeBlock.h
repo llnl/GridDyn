@@ -60,7 +60,6 @@ class DerivativeBlock: public GridBlock {
                                        const SolverMode& sMode) override;
     virtual double step(CoreTime time, double inputA) override;
 
-    virtual stringVec localStateNames() const override;
     // virtual void setTime(CoreTime time){prevTime=time;};
 };
 }  // namespace griddyn::blocks

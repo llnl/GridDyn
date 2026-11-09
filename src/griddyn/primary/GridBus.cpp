@@ -59,9 +59,27 @@ const ModelDescription& GridBus::getModelDescription() const
     static const auto description = ModelDescription::define<GridBus>(
         "GridBus",
         &GridPrimary::getModelDescription(),
-        {state("angle", units::rad, "Bus voltage angle"),
-         state("voltage", units::puV, "Bus voltage magnitude"),
-         state("frequency", units::puHz, "Bus frequency"),
+        {stateReference<GridBus>(
+             {"angle"},
+             units::rad,
+             [](const auto& model, const auto& mode) {
+                 return model.getOutputLoc(mode, ANGLE_IN_LOCATION);
+             },
+             "Bus voltage angle"),
+         stateReference<GridBus>(
+             {"voltage"},
+             units::puV,
+             [](const auto& model, const auto& mode) {
+                 return model.getOutputLoc(mode, VOLTAGE_IN_LOCATION);
+             },
+             "Bus voltage magnitude"),
+         stateReference<GridBus>(
+             {"frequency"},
+             units::puHz,
+             [](const auto& model, const auto& mode) {
+                 return model.getOutputLoc(mode, FREQUENCY_IN_LOCATION);
+             },
+             "Bus frequency"),
          command({"ang"}, units::rad, "Set voltage angle"),
          command({"vol"}, units::puV, "Set voltage"),
          command({"freq", "dadt"}, units::puHz, "Set frequency"),

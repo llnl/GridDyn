@@ -185,7 +185,16 @@ const ModelDescription& Generator::getModelDescription() const
          command({"no_control"},
                  units::defunit,
                  "Disable local voltage and power control",
-                 ModelFieldType::BOOLEAN)});
+                 ModelFieldType::BOOLEAN),
+         state<Generator>(
+             {"Q"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return !isDynamic(mode) && model.stateSize(mode) > 0 ?
+                     model.offsets.getAlgOffset(mode) :
+                     kInvalidLocation;
+             },
+             "Solver variable Q")});
     return description;
 }
 
@@ -949,17 +958,6 @@ void Generator::jacobianElements(const IOdata& /*inputs*/,
             matrixDataValue.assignCheck(offset, offset, 1.0);
             matrixDataValue.assignCheck(offset, voltageOffset, -vRegFraction * remoteVoltageGain);
         }
-    }
-}
-
-void Generator::getStateName(stringVec& stNames,
-                             const SolverMode& sMode,
-                             const std::string& prefix) const
-{
-    const std::string prefix2 = prefix + getName();
-    if ((!isDynamic(sMode)) && (stateSize(sMode) > 0)) {
-        auto offset = offsets.getAlgOffset(sMode);
-        stNames[offset] = prefix2 + ":Q";
     }
 }
 

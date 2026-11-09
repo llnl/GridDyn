@@ -1393,16 +1393,6 @@ void DynamicGenerator::jacobianElements(const IOdata& inputs,
     }
 }
 
-void DynamicGenerator::getStateName(stringVec& stNames,
-                                    const SolverMode& sMode,
-                                    const std::string& prefix) const
-{
-    if ((!isDynamic(sMode)) && (stateSize(sMode) > 0)) {
-        Generator::getStateName(stNames, sMode, prefix);
-    }
-    GridComponent::getStateName(stNames, sMode, prefix);  // NOLINT
-}
-
 void DynamicGenerator::rootTest(const IOdata& inputs,
                                 const StateData& stateDataValue,
                                 double roots[],
@@ -1445,18 +1435,6 @@ void DynamicGenerator::rootTrigger(CoreTime time,
             sub->rootTrigger(time, subInputs.inputs[sub->locIndex], rootMask, sMode);
         }
     }
-}
-
-index_t DynamicGenerator::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    index_t ret = kInvalidLocation;
-    for (auto* subobj : getSubObjects()) {
-        ret = subobj->findIndex(field, sMode);
-        if (ret != kInvalidLocation) {
-            break;
-        }
-    }
-    return ret;
 }
 
 CoreObject* DynamicGenerator::find(std::string_view object) const

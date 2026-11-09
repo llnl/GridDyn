@@ -33,12 +33,32 @@ const ModelDescription& ExciterESAC5A::getModelDescription() const
          parameter({"se1"}, &ExciterESAC5A::Se1, units::one, "Se1 model setting"),
          parameter({"e2"}, &ExciterESAC5A::E2, units::one, "E2 model setting"),
          parameter({"se2"}, &ExciterESAC5A::Se2, units::one, "Se2 model setting"),
-         state("efd", units::one, "Field voltage"),
-         state("vc", units::one, "Sensed terminal voltage"),
-         state("vr", units::one, "Regulator state"),
-         state("xll", units::one, "Lead-lag state"),
-         state("xwf", units::one, "Washout state"),
-         state("ve", units::one, "Exciter voltage")});
+         state({"efd", "field"}, units::one, 0, "Field voltage"),
+         state<ExciterESAC5A>(
+             {"vc", "vmeas"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().sensed, 1); },
+             "Sensed terminal voltage"),
+         state<ExciterESAC5A>(
+             {"vr", "regulator"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().regulator, 1); },
+             "Regulator state"),
+         state<ExciterESAC5A>(
+             {"xll", "leadlag"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().leadLag, 1); },
+             "Lead-lag state"),
+         state<ExciterESAC5A>(
+             {"xwf", "washout"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().washout, 1); },
+             "Washout state"),
+         state<ExciterESAC5A>(
+             {"ve", "exciter"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().field, 1); },
+             "Exciter voltage")});
     return description;
 }
 
@@ -384,48 +404,6 @@ ChangeCode ExciterESAC5A::rootCheck(const IOdata& inputs,
         return ChangeCode::JACOBIAN_CHANGE;
     }
     return ChangeCode::NO_CHANGE;
-}
-
-stringVec ExciterESAC5A::localStateNames() const
-{
-    const auto indices = layout();
-    stringVec names{"efd"};
-    for (index_t index = 0; index < indices.count; ++index) {
-        if (index == indices.sensed) {
-            names.emplace_back("vc");
-        } else if (index == indices.regulator) {
-            names.emplace_back("vr");
-        } else if (index == indices.leadLag) {
-            names.emplace_back("xll");
-        } else if (index == indices.washout) {
-            names.emplace_back("xwf");
-        } else {
-            names.emplace_back("ve");
-        }
-    }
-    return names;
-}
-
-index_t ExciterESAC5A::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "efd") || (field == "field")) {
-        return offsets.getAlgOffset(sMode);
-    }
-    const auto indices = layout();
-    index_t location = kInvalidLocation;
-    if ((field == "vc") || (field == "vmeas")) {
-        location = indices.sensed;
-    } else if ((field == "vr") || (field == "regulator")) {
-        location = indices.regulator;
-    } else if ((field == "xll") || (field == "leadlag")) {
-        location = indices.leadLag;
-    } else if ((field == "xwf") || (field == "washout")) {
-        location = indices.washout;
-    } else if ((field == "ve") || (field == "exciter")) {
-        location = indices.field;
-    }
-    return (location == kInvalidLocation) ? kInvalidLocation :
-                                            offsets.getDiffOffset(sMode) + location;
 }
 
 }  // namespace griddyn::exciters

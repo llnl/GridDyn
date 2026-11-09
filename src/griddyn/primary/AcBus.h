@@ -260,7 +260,6 @@ class AcBus: public GridBus {
     // mode
     virtual void getTols(double tols[], const SolverMode& sMode) override;
     // dynamic simulation
-    virtual stringVec localStateNames() const override;
 
     /** @brief Propagate the local real/reactive balance to adjustable components or a link.
     @param[in] makeSlack  flag indicating that the bus should be made a slack bus after propagating

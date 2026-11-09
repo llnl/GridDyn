@@ -46,9 +46,9 @@ const ModelDescription& WTDTA1::getModelDescription() const
          parameter({"freq1"}, &WTDTA1::Freq1, units::Hz, "Freq1"),
          parameter({"dshaft"}, &WTDTA1::Dshaft, units::one, "Dshaft"),
          parameter({"w0"}, &WTDTA1::w0, units::one, "W0"),
-         state("wg", units::one, "Solver variable wg when active"),
-         state("wt", units::one, "Solver variable wt when active"),
-         state("Tshaft", units::one, "Solver variable Tshaft when active"),
+         state({"wg"}, units::one, 0, "Solver variable wg when active"),
+         state({"wt"}, units::one, 1, "Solver variable wt when active"),
+         state({"Tshaft"}, units::one, 2, "Solver variable Tshaft when active"),
          localState("initialPower", &WTDTA1::initialPower, "Initial power"),
          localState("operatingSpeed", &WTDTA1::operatingSpeed, "Operating speed")});
     return description;
@@ -242,11 +242,6 @@ void WTDTA1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*s
         m_state[index] += deltaTime * rate[index];
     }
     prevTime = time;
-}
-
-stringVec WTDTA1::localStateNames() const
-{
-    return {"wg", "wt", "Tshaft"};
 }
 
 }  // namespace griddyn

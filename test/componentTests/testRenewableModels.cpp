@@ -639,7 +639,7 @@ TEST(RenewableModels, GridFormingVariantsInitializeAndRespond)
         IOdata fields;
         model->dynInitializeB(inputs, {0.6, 0.1}, fields);
         const auto states = model->getStates();
-        EXPECT_EQ(states.size(), model->localStateNames().size()) << name;
+        EXPECT_EQ(states.size(), model->solverStateNames().size()) << name;
         std::vector<double> residual(states.size());
         model->residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
         for (double value : residual) {

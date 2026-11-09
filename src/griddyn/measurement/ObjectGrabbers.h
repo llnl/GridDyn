@@ -226,7 +226,7 @@ class ObjectOffsetGrabber: public GridGrabber {
         if (mTypedObject) {
             if (mOffset >= 0 &&
                 (std::cmp_less(mOffset, mTypedObject->stateSize(cLocalSolverMode)) ||
-                 std::cmp_less(mOffset, mTypedObject->localStateNames().size()))) {
+                 std::cmp_less(mOffset, mTypedObject->solverStateNames().size()))) {
                 loaded = true;
                 if (!customDesc) {
                     mDescription = mTypedObject->getName() + ':' + std::to_string(nOffset);

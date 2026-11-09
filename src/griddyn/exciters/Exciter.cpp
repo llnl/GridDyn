@@ -108,6 +108,7 @@ const ModelDescription& Exciter::getModelDescription() const
                    &Exciter::initialBias,
                    units::one,
                    "Initial bias when no desired field output is supplied"),
+         state({"ef"}, units::one, 0, "Per-unit field voltage"),
          localState("operating_bias", &Exciter::vBias, "Retained operating bias", units::one),
          localState("limiter_active",
                     &Exciter::opFlags,
@@ -354,11 +355,6 @@ ChangeCode Exciter::rootCheck(const IOdata& inputs,
         }
     }
     return ret;
-}
-
-stringVec Exciter::localStateNames() const
-{
-    return {"ef"};
 }
 
 const std::vector<stringVec>& Exciter::inputNames() const

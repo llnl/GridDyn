@@ -57,7 +57,8 @@ const ModelDescription& MotorLoad::getModelDescription() const
          command({"base", "mbase", "rating"}, units::MVAR, "Motor power base"),
          command({"Vcontrol"},
                  units::puV,
-                 "Voltage control multiplier; updates the operating slip")});
+                 "Voltage control multiplier; updates the operating slip"),
+         state({"slip"}, units::one, 0, "Solver variable slip")});
     return description;
 }
 
@@ -349,24 +350,6 @@ void MotorLoad::residual(const IOdata& inputs,
     }
 }
 
-void MotorLoad::getStateName(stringVec& stNames,
-                             const SolverMode& sMode,
-                             const std::string& prefix) const
-{
-    if (isDynamic(sMode)) {
-        if (isAlgebraicOnly(sMode)) {
-            return;
-        }
-
-        auto offset = offsets.getDiffOffset(sMode);
-        stNames[offset] = prefix + getName() + ":slip";
-    } else if (!opFlags[INIT_TRANSIENT]) {
-        auto offset = offsets.getAlgOffset(sMode);
-        stNames[offset] = prefix + getName() + ":slip";
-    } else {
-        return;
-    }
-}
 void MotorLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     const double timeDelta = time - prevTime;
@@ -506,15 +489,6 @@ void MotorLoad::ioPartialDerivatives(const IOdata& inputs,
                                inputLocs[VOLTAGE_IN_LOCATION],
                                scale * ((2 * voltage / xm) + (2 * slip * (x + x1) * temp)));
     }
-}
-
-index_t MotorLoad::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    index_t ret = kInvalidLocation;
-    if (field == "slip") {
-        ret = offsets.getDiffOffset(sMode);
-    }
-    return ret;
 }
 
 void MotorLoad::rootTest(const IOdata& inputs,
@@ -686,4 +660,17 @@ double MotorLoad::qPower(double vin, double slip) const
         vin * vin * ((1.0 / xm) + (xs2 / ((r1 * r1) + (xs2 * (x + x1)))));
     return reactivePowerOutput;
 }
+index_t MotorLoad::solverIndex(index_t localIndex, const SolverMode& sMode) const
+{
+    if (localIndex != 0) {
+        return kInvalidLocation;
+    }
+    const auto& active = offsets.getOffsets(sMode);
+    if (isDynamic(sMode)) {
+        return hasDifferential(sMode) && active.local.diffSize > 0 ? active.diffOffset :
+                                                                     kNullLocation;
+    }
+    return hasAlgebraic(sMode) && active.local.algSize > 0 ? active.algOffset : kNullLocation;
+}
+
 }  // namespace griddyn::loads

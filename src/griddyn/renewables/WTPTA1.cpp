@@ -59,9 +59,9 @@ const ModelDescription& WTPTA1::getModelDescription() const
          localState("hasFixedPset", &WTPTA1::hasFixedPset, "Has fixed pset"),
          localState("initialSpeed", &WTPTA1::initialSpeed, "Initial speed"),
          command({"pset"}, units::defunit, "Set pset"),
-         state("theta", units::one, "Solver variable theta when active"),
-         state("speedIntegral", units::one, "Solver variable speedIntegral when active"),
-         state("powerIntegral", units::one, "Solver variable powerIntegral when active")});
+         state({"theta"}, units::one, 0, "Solver variable theta when active"),
+         state({"speedIntegral"}, units::one, 1, "Solver variable speedIntegral when active"),
+         state({"powerIntegral"}, units::one, 2, "Solver variable powerIntegral when active")});
     return description;
 }
 
@@ -295,11 +295,6 @@ void WTPTA1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*s
     }
     m_state[theta] = std::clamp(m_state[theta], thetaMin, thetaMax);
     prevTime = time;
-}
-
-stringVec WTPTA1::localStateNames() const
-{
-    return {"theta", "speedIntegral", "powerIntegral"};
 }
 
 }  // namespace griddyn

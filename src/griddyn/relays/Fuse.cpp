@@ -41,7 +41,16 @@ const ModelDescription& Fuse::getModelDescription() const
                                                   &Fuse::m_terminal,
                                                   units::defunit,
                                                   "Line terminal  (typically 1 or 2)"),
-                                        command({"minblowtime"}, units::defunit, "Minblowtime")});
+                                        command({"minblowtime"}, units::defunit, "Minblowtime"),
+                                        state<Fuse>(
+                                            {"I2T"},
+                                            units::one,
+                                            [](const auto& model, const auto& mode) {
+                                                return model.stateSize(mode) > 0 ?
+                                                    model.offsets.getDiffOffset(mode) :
+                                                    kInvalidLocation;
+                                            },
+                                            "Solver variable I2T")});
     return description;
 }
 
@@ -382,20 +391,4 @@ void Fuse::guessState(const CoreTime /*time*/,
     }
 }
 
-void Fuse::getStateName(stringVec& stNames,
-                        const SolverMode& sMode,
-                        const std::string& prefix) const
-{
-    if (stateSize(sMode) > 0) {
-        auto offset = offsets.getDiffOffset(sMode);
-        if (offset >= static_cast<index_t>(stNames.size())) {
-            stNames.resize(offset + 1);
-        }
-        if (prefix.empty()) {
-            stNames[offset] = getName() + ":I2T";
-        } else {
-            stNames[offset] = prefix + "::" + getName() + ":I2T";
-        }
-    }
-}
 }  // namespace griddyn::relays

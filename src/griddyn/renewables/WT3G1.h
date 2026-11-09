@@ -64,7 +64,6 @@ class WT3G1 final: public TerminalElectricalModel {
                                   const StateData& stateData,
                                   MatrixData<double>& matrixData,
                                   const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   private:
     double Xeq = 0.1, Kpll = 30.0, Kipll = 0.0, Pllmax = 0.1, Prated = 100.0;

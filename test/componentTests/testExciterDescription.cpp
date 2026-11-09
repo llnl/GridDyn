@@ -125,7 +125,7 @@ TEST(ExciterDescriptionTests, DiscoversInheritedParametersSolverStatesAndLimiter
     }
     EXPECT_FALSE(description.trySetFlagLocal(model, "limiter_active", true));
     EXPECT_FALSE(isSetHandled(description.trySetLocal(model, "limiter_high", 1.0)));
-    EXPECT_EQ(model.localStateNames(), (stringVec{"ef", "x"}));
+    EXPECT_EQ(model.solverStateNames(), (stringVec{"ef", "x"}));
     EXPECT_EQ(description.find("operating_flags"), nullptr);
     EXPECT_EQ(description.find("m_state"), nullptr);
     EXPECT_EQ(description.find("regulator_output"), nullptr);
@@ -519,7 +519,7 @@ TEST(ExciterDescriptionTests, CoversEveryConcreteExciterAndItsActiveStateNames)
         EXPECT_NO_THROW(saved.restore(*model));
         const auto stateOnly = ModelFieldSnapshot::capture(*model, FieldSnapshotLevel::STATE);
         EXPECT_NO_THROW(stateOnly.restore(*model));
-        for (const auto& name : model->localStateNames()) {
+        for (const auto& name : model->solverStateNames()) {
             EXPECT_NE(description.find(name, ModelFieldKind::STATE), nullptr) << name;
         }
         for (const auto& field : description.fields()) {

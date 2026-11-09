@@ -54,13 +54,43 @@ const ModelDescription& StabilizerStab2a::getModelDescription() const
                     &StabilizerStab2a::opFlags,
                     OUTPUT_LIMIT_HIGH,
                     "Upper output limit active"),
-         state("washout1", units::one, "Stabilizer solver variable washout1"),
-         state("washout2", units::one, "Stabilizer solver variable washout2"),
-         state("washout3", units::one, "Stabilizer solver variable washout3"),
-         state("lowpass", units::one, "Stabilizer solver variable lowpass"),
-         state("outputlag1", units::one, "Stabilizer solver variable outputlag1"),
-         state("outputlag2", units::one, "Stabilizer solver variable outputlag2"),
-         state("vs", units::one, "Stabilizer solver variable vs")});
+         state({"washout1"},
+               units::one,
+               &StabilizerStab2a::filterStates,
+               0,
+               1,
+               "Stabilizer solver variable washout1"),
+         state({"washout2"},
+               units::one,
+               &StabilizerStab2a::filterStates,
+               1,
+               1,
+               "Stabilizer solver variable washout2"),
+         state({"washout3"},
+               units::one,
+               &StabilizerStab2a::filterStates,
+               2,
+               1,
+               "Stabilizer solver variable washout3"),
+         state({"lowpass"},
+               units::one,
+               &StabilizerStab2a::filterStates,
+               3,
+               1,
+               "Stabilizer solver variable lowpass"),
+         state({"outputlag1"},
+               units::one,
+               &StabilizerStab2a::filterStates,
+               4,
+               1,
+               "Stabilizer solver variable outputlag1"),
+         state({"outputlag2"},
+               units::one,
+               &StabilizerStab2a::filterStates,
+               5,
+               1,
+               "Stabilizer solver variable outputlag2"),
+         state({"vs", "vss"}, units::one, 0, "Stabilizer solver variable vs")});
     return description;
 }
 
@@ -331,32 +361,6 @@ ChangeCode StabilizerStab2a::rootCheck(const IOdata& inputs,
         return ChangeCode::JACOBIAN_CHANGE;
     }
     return ChangeCode::NO_CHANGE;
-}
-
-stringVec StabilizerStab2a::localStateNames() const
-{
-    constexpr std::array<std::string_view, 6> names{
-        "washout1", "washout2", "washout3", "lowpass", "outputlag1", "outputlag2"};
-    stringVec result{"vs"};
-    for (std::size_t ii = 0; ii < filterStates.size(); ++ii) {
-        if (filterStates[ii] != kNullLocation) {
-            result.emplace_back(names[ii]);
-        }
-    }
-    return result;
-}
-
-index_t StabilizerStab2a::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if (field == "vss" || field == "vs") {
-        return getOutputLoc(sMode, 0);
-    }
-    const auto names = localStateNames();
-    const auto match = std::find(names.begin() + 1, names.end(), field);
-    if (match != names.end() && hasDifferential(sMode)) {
-        return offsets.getDiffOffset(sMode) + std::distance(names.begin() + 1, match);
-    }
-    return kInvalidLocation;
 }
 
 }  // namespace griddyn::stabilizers

@@ -86,7 +86,6 @@ class LeadLagBlock: public GridBlock {
                                index_t argLoc,
                                const SolverMode& solverModeValue) override;
     double step(CoreTime time, double input) override;
-    stringVec localStateNames() const override;
 
   private:
     LeadLagKernel section;

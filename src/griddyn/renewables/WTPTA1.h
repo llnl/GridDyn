@@ -40,7 +40,6 @@ class WTPTA1 final: public RenewableComponent {
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   private:
     double Kiw = 0.1, Kpw = 0.0, Kic = 0.1, Kpc = 0.0, Kcc = 0.0, Tp = 0.3;

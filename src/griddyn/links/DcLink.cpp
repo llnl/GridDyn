@@ -34,8 +34,42 @@ const ModelDescription& DcLink::getModelDescription() const
          flag({"andes_current_balance", "current_balance"},
               &DcLink::currentBalance,
               "Use ANDES' nodal-current convention"),
-         command(
-             {"model", "topology"}, units::defunit, "Configure model", ModelFieldType::STRING)});
+         command({"model", "topology"}, units::defunit, "Configure model", ModelFieldType::STRING),
+         state<DcLink>(
+             {"idc"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return model.stateSize(mode) > 0 ?
+                     ((model.hasCapacitor() && isDynamic(mode)) || !isDynamic(mode) ?
+                          model.offsets.getAlgOffset(mode) :
+                          model.offsets.getDiffOffset(mode)) :
+                     kInvalidLocation;
+             },
+             "Solver variable idc"),
+         state<DcLink>(
+             {"il"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return model.hasCapacitor() && isDynamic(mode) &&
+                         (model.topology == Topology::RLC_PARALLEL ||
+                          model.topology == Topology::RLC_SERIES) ?
+                     model.offsets.getDiffOffset(mode) :
+                     kInvalidLocation;
+             },
+             "Solver variable il"),
+         state<DcLink>(
+             {"vc"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return model.hasCapacitor() && isDynamic(mode) ?
+                     stateSlot(model.offsets.getDiffOffset(mode),
+                               model.topology == Topology::RLC_PARALLEL ||
+                                       model.topology == Topology::RLC_SERIES ?
+                                   1 :
+                                   0) :
+                     kInvalidLocation;
+             },
+             "Solver variable vc")});
     return description;
 }
 
@@ -495,28 +529,6 @@ void DcLink::guessState(const CoreTime /*time*/,
             auto offset = offsets.getAlgOffset(sMode);
             state[offset] = Idc;
         }
-    }
-}
-
-void DcLink::getStateName(stringVec& stNames,
-                          const SolverMode& sMode,
-                          const std::string& prefix) const
-{
-    if (hasCapacitor() && isDynamic(sMode)) {
-        const std::string prefix2 = prefix + getName() + ':';
-        const auto firstDiffOffset = offsets.getDiffOffset(sMode);
-        if (topology == Topology::RLC_PARALLEL || topology == Topology::RLC_SERIES) {
-            stNames[firstDiffOffset] = prefix2 + "il";
-            stNames[firstDiffOffset + 1] = prefix2 + "vc";
-        } else {
-            stNames[firstDiffOffset] = prefix2 + "vc";
-        }
-        stNames[offsets.getAlgOffset(sMode)] = prefix2 + "idc";
-    } else if (stateSize(sMode) > 0) {
-        const std::string prefix2 = prefix + getName() + ':';
-        auto offset =
-            (isDynamic(sMode)) ? offsets.getDiffOffset(sMode) : offsets.getAlgOffset(sMode);
-        stNames[offset] = prefix2 + "idc";
     }
 }
 

@@ -20,7 +20,8 @@ const ModelDescription& VoltageCompensatorIeeeVC::getModelDescription() const
         "VoltageCompensatorIeeeVC",
         &VoltageCompensator::getModelDescription(),
         {parameter({"rc"}, &VoltageCompensatorIeeeVC::RC, units::one, "Rc"),
-         parameter({"xc"}, &VoltageCompensatorIeeeVC::XC, units::one, "Xc")});
+         parameter({"xc"}, &VoltageCompensatorIeeeVC::XC, units::one, "Xc"),
+         state({"vct", "voltage_compensated", "output"}, units::one, 0, "Solver variable vct")});
     return description;
 }
 
@@ -148,11 +149,4 @@ void VoltageCompensatorIeeeVC::jacobianElements(const IOdata& inputs,
                               -imaginaryPart * inverseMagnitude);
 }
 
-index_t VoltageCompensatorIeeeVC::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "vct") || (field == "voltage_compensated") || (field == "output")) {
-        return getOutputLoc(sMode, 0);
-    }
-    return kInvalidLocation;
-}
 }  // namespace griddyn::voltagecompensators

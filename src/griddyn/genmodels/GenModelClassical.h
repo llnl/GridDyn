@@ -67,7 +67,6 @@ class GenModelClassical: public GenModel {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
-    virtual stringVec localStateNames() const override;
     // dynamics
 
     virtual void residual(const IOdata& inputs,

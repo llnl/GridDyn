@@ -66,8 +66,12 @@ const ModelDescription& GovernorSteamTCSR::getModelDescription() const
                    units::one,
                    "Low-pressure power fraction",
                    parameterValidators::nonnegative),
-         state("reheater", units::one, "Reheater state"),
-         state("crossover", units::one, "Crossover state")});
+         state({"reheater", "reheat"}, units::one, 4, "Reheater state"),
+         state({"crossover", "crossover_pipe"}, units::one, 5, "Crossover state"),
+         state({"pmech", "pm"}, units::one, 0, "Solver variable pmech"),
+         state({"valve", "integrator"}, units::one, 1, "Solver variable valve"),
+         state({"filter", "x"}, units::one, 2, "Solver variable filter"),
+         state({"steamchest", "chest"}, units::one, 3, "Solver variable steamchest")});
     return description;
 }
 
@@ -227,29 +231,6 @@ void GovernorSteamTCSR::jacobianElements(const IOdata& inputs,
     matrixData.assign(diff + reheatState, diff + reheatState, (-1.0 / Trh) - stateData.cj);
     matrixData.assign(diff + crossoverState, diff + reheatState, 1.0 / Tco);
     matrixData.assign(diff + crossoverState, diff + crossoverState, (-1.0 / Tco) - stateData.cj);
-}
-
-index_t GovernorSteamTCSR::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "pm") || (field == "pmech")) {
-        return offsets.getAlgOffset(sMode) + outputState;
-    }
-    if ((field == "valve") || (field == "integrator")) {
-        return offsets.getDiffOffset(sMode) + valveState;
-    }
-    if ((field == "filter") || (field == "x")) {
-        return offsets.getDiffOffset(sMode) + filterState;
-    }
-    if ((field == "steamchest") || (field == "chest")) {
-        return offsets.getDiffOffset(sMode) + chestState;
-    }
-    if ((field == "reheater") || (field == "reheat")) {
-        return offsets.getDiffOffset(sMode) + reheatState;
-    }
-    if ((field == "crossover") || (field == "crossover_pipe")) {
-        return offsets.getDiffOffset(sMode) + crossoverState;
-    }
-    return kInvalidLocation;
 }
 
 }  // namespace griddyn::governors

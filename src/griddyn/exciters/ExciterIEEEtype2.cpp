@@ -27,10 +27,8 @@ const ModelDescription& ExciterIEEEtype2::getModelDescription() const
         "ExciterIEEEtype2",
         &ExciterIEEEtype1::getModelDescription(),
         {parameter({"tf2"}, &ExciterIEEEtype2::Tf2, units::second, "Tf2 time constant"),
-         state("ef", units::one, "Field voltage"),
-         state("vr", units::one, "Regulator state"),
-         state("x1", units::one, "x1 solver state"),
-         state("x2", units::one, "x2 solver state"),
+         state({"x1"}, units::one, 2, "x1 solver state"),
+         state({"x2"}, units::one, 3, "x2 solver state"),
          command({"tf1"}, units::second, "Feedback time constant alias")});
     return description;
 }
@@ -191,12 +189,6 @@ void ExciterIEEEtype2::jacobianElements(const IOdata& /*inputs*/,
     // printf("%f\n",sD.cj);
 }
 
-const stringVec K_IEEE_TYPE2_FIELDS{"ef", "vr", "x1", "x2"};
-
-stringVec ExciterIEEEtype2::localStateNames() const
-{
-    return K_IEEE_TYPE2_FIELDS;
-}
 void ExciterIEEEtype2::rootTest(const IOdata& inputs,
                                 const StateData& stateData,
                                 double roots[],

@@ -58,7 +58,6 @@ class WT4G1 final: public TerminalElectricalModel {
                                   const StateData& stateData,
                                   MatrixData<double>& matrixData,
                                   const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   private:
     double TIqcmd = 0.02, TIpCmd = 0.02;

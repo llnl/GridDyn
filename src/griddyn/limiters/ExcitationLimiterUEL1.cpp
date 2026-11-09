@@ -44,10 +44,10 @@ const ModelDescription& ExcitationLimiterUEL1::getModelDescription() const
                    units::one,
                    "Vul min"),
          parameter({"kuf", "ku_f"}, &ExcitationLimiterUEL1::kuf, units::one, "Kuf"),
-         state("vuel", units::one, "Solver variable vuel when active"),
-         state("integral", units::one, "Solver variable integral when active"),
-         state("lead_lag_1", units::one, "Solver variable lead_lag_1 when active"),
-         state("lead_lag_2", units::one, "Solver variable lead_lag_2 when active"),
+         state({"vuel"}, units::one, 0, "Solver variable vuel when active"),
+         state({"integral"}, units::one, 1, "Solver variable integral when active"),
+         state({"lead_lag_1"}, units::one, 2, "Solver variable lead_lag_1 when active"),
+         state({"lead_lag_2"}, units::one, 3, "Solver variable lead_lag_2 when active"),
          localState("prevTime", &ExcitationLimiterUEL1::prevTime, "Prev time")});
     return description;
 }
@@ -352,8 +352,4 @@ void ExcitationLimiterUEL1::timestep(CoreTime time,
     prevTime = time;
 }
 
-stringVec ExcitationLimiterUEL1::localStateNames() const
-{
-    return {"vuel", "integral", "lead_lag_1", "lead_lag_2"};
-}
 }  // namespace griddyn::limiters

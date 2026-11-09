@@ -47,9 +47,33 @@ const ModelDescription& GenModelCSVGN1::getModelDescription() const
          parameter({"vmin"}, &GenModelCSVGN1::VMIN, units::one, "Minimum regulator output"),
          parameter({"cbase"}, &GenModelCSVGN1::CBASE, units::MVAR, "Parallel capacitor rating"),
          localState("voltageReference", &GenModelCSVGN1::m_voltageReference),
-         state("regulator1", units::one, "Solver variable regulator1"),
-         state("regulator2", units::one, "Solver variable regulator2"),
-         state("thyristor", units::one, "Solver variable thyristor")});
+         state<GenModelCSVGN1>(
+             {"regulator1"},
+             units::one,
+             [](const auto& model) {
+                 return model.stateLocations(0,
+                                             (model.T4 == 0.0 ? 1 : 0) +
+                                                 (model.T5 == 0.0 ? 1 : 0))[0];
+             },
+             "Solver variable regulator1"),
+         state<GenModelCSVGN1>(
+             {"regulator2"},
+             units::one,
+             [](const auto& model) {
+                 return model.stateLocations(0,
+                                             (model.T4 == 0.0 ? 1 : 0) +
+                                                 (model.T5 == 0.0 ? 1 : 0))[1];
+             },
+             "Solver variable regulator2"),
+         state<GenModelCSVGN1>(
+             {"thyristor"},
+             units::one,
+             [](const auto& model) {
+                 return model.stateLocations(0,
+                                             (model.T4 == 0.0 ? 1 : 0) +
+                                                 (model.T5 == 0.0 ? 1 : 0))[2];
+             },
+             "Solver variable thyristor")});
     return description;
 }
 
@@ -126,16 +150,6 @@ void GenModelCSVGN1::dynObjectInitializeB(const IOdata& inputs,
     // the shunt reactive power represented by its machine record.
     fieldSet[genModelPmechInLocation] = 0.0;
     fieldSet[genModelEftInLocation] = 0.0;
-}
-
-stringVec GenModelCSVGN1::localStateNames() const
-{
-    const auto stateLocs = stateLocations(0, (T4 == 0.0 ? 1 : 0) + (T5 == 0.0 ? 1 : 0));
-    stringVec names(3);
-    names[stateLocs[0]] = "regulator1";
-    names[stateLocs[1]] = "regulator2";
-    names[stateLocs[2]] = "thyristor";
-    return names;
 }
 
 std::array<double, 3> GenModelCSVGN1::stateValues(const double alg[], const double diff[]) const

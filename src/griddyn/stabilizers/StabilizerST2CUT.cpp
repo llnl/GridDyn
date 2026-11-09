@@ -126,13 +126,13 @@ const ModelDescription& StabilizerST2CUT::getModelDescription() const
                     "Upper output limit active"),
          localState(
              "voltage_gated", &StabilizerST2CUT::opFlags, VOLTAGE_GATED, "Voltage gating history"),
-         state("vs", units::one, "Stabilizer solver variable vs"),
-         state("l1", units::one, "Stabilizer solver variable l1"),
-         state("l2", units::one, "Stabilizer solver variable l2"),
-         state("wo", units::one, "Stabilizer solver variable wo"),
-         state("ll1", units::one, "Stabilizer solver variable ll1"),
-         state("ll2", units::one, "Stabilizer solver variable ll2"),
-         state("ll3", units::one, "Stabilizer solver variable ll3")});
+         state({"vs", "vss"}, units::one, 0, "Stabilizer solver variable vs"),
+         state({"l1"}, units::one, 1, "Stabilizer solver variable l1"),
+         state({"l2"}, units::one, 2, "Stabilizer solver variable l2"),
+         state({"wo"}, units::one, 3, "Stabilizer solver variable wo"),
+         state({"ll1"}, units::one, 4, "Stabilizer solver variable ll1"),
+         state({"ll2"}, units::one, 5, "Stabilizer solver variable ll2"),
+         state({"ll3"}, units::one, 6, "Stabilizer solver variable ll3")});
     return description;
 }
 
@@ -517,19 +517,6 @@ ChangeCode StabilizerST2CUT::rootCheck(const IOdata& inputs,
         return ChangeCode::JACOBIAN_CHANGE;
     }
     return ChangeCode::NO_CHANGE;
-}
-
-stringVec StabilizerST2CUT::localStateNames() const
-{
-    return {"vs", "l1", "l2", "wo", "ll1", "ll2", "ll3"};
-}
-
-index_t StabilizerST2CUT::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "vss") || (field == "vs")) {
-        return getOutputLoc(sMode, 0);
-    }
-    return kInvalidLocation;
 }
 
 void StabilizerST2CUT::set(std::string_view param, double val, units::unit unitType)

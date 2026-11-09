@@ -82,11 +82,6 @@ void Stabilizer::residual(const IOdata& /*inputs*/,
 {
 }
 
-index_t Stabilizer::findIndex(std::string_view /*field*/, const SolverMode& /*sMode*/) const
-{
-    return kInvalidLocation;
-}
-
 // set parameters
 void Stabilizer::jacobianElements(const IOdata& /*inputs*/,
                                   const StateData& /*sD*/,

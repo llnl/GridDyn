@@ -50,10 +50,10 @@ const ModelDescription& GovernorSteamNR::getModelDescription() const
                    units::second,
                    "Steam-chest time constant",
                    parameterValidators::positive),
-         state("pmech", units::puMW, "Mechanical power"),
-         state("valve", units::one, "Valve state"),
-         state("filter", units::one, "Speed filter"),
-         state("steamchest", units::one, "Steam-chest state")});
+         state({"pmech", "pm"}, units::puMW, 0, "Mechanical power"),
+         state({"valve", "integrator"}, units::one, 1, "Valve state"),
+         state({"filter", "x"}, units::one, 2, "Speed filter"),
+         state({"steamchest", "chest"}, units::one, 3, "Steam-chest state")});
     return description;
 }
 
@@ -198,23 +198,6 @@ void GovernorSteamNR::jacobianElements(const IOdata& inputs,
                               (T1 - T2) / (T1 * T1));
     matrixData.assign(diff + chestState, diff + valveState, 1.0 / Tch);
     matrixData.assign(diff + chestState, diff + chestState, (-1.0 / Tch) - stateData.cj);
-}
-
-index_t GovernorSteamNR::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "pm") || (field == "pmech")) {
-        return offsets.getAlgOffset(sMode) + outputState;
-    }
-    if ((field == "valve") || (field == "integrator")) {
-        return offsets.getDiffOffset(sMode) + valveState;
-    }
-    if ((field == "filter") || (field == "x")) {
-        return offsets.getDiffOffset(sMode) + filterState;
-    }
-    if ((field == "steamchest") || (field == "chest")) {
-        return offsets.getDiffOffset(sMode) + chestState;
-    }
-    return kInvalidLocation;
 }
 
 void GovernorSteamNR::set(std::string_view param, double val, units::unit unitType)

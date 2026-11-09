@@ -11,6 +11,7 @@
 #include <charconv>
 #include <cmath>
 #include <cstddef>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -22,6 +23,28 @@
 
 namespace griddyn {
 namespace {
+    bool indexed(ModelFieldKind kind)
+    {
+        return kind == ModelFieldKind::INDEXED_COMMAND || kind == ModelFieldKind::INDEXED_STATE;
+    }
+
+    std::optional<index_t> indexedElement(std::string_view name, std::string_view prefix)
+    {
+        if (!name.starts_with(prefix) || name.size() == prefix.size()) {
+            return std::nullopt;
+        }
+        const auto suffix = name.substr(prefix.size());
+        if (suffix.front() < '0' || suffix.front() > '9') {
+            return std::nullopt;
+        }
+        index_t element = 0;
+        const auto [end, error] =
+            std::from_chars(suffix.data(), suffix.data() + suffix.size(), element);
+        return error == std::errc{} && end == suffix.data() + suffix.size() ?
+            std::optional<index_t>{element} :
+            std::nullopt;
+    }
+
     bool selected(const ModelField& field, FieldSnapshotLevel level)
     {
         return field.kind() == ModelFieldKind::FLAG ||
@@ -95,23 +118,142 @@ ModelField::ModelField(std::initializer_list<std::string_view> names,
     }
 }
 
+ModelField::ModelField(std::initializer_list<std::string_view> names,
+                       units::unit unitType,
+                       std::string_view description,
+                       StateBinding binding,
+                       ModelFieldKind kind):
+    ModelField(names, unitType, description, kind, ModelFieldType::REAL)
+{
+    mState = std::make_shared<StateBinding>(std::move(binding));
+}
+
+std::optional<index_t> ModelField::stateIndex(const CoreObject& object, index_t element) const
+{
+    if (!mState || !mState->mLocalIndex) {
+        return std::nullopt;
+    }
+    if (element < 0 || element >= stateCount(object)) {
+        return kInvalidLocation;
+    }
+    return mState->mLocalIndex(object, element);
+}
+
+count_t ModelField::stateCount(const CoreObject& object) const
+{
+    return mState && mState->mCount ? mState->mCount(object) : 1;
+}
+
+std::string ModelField::stateName(const CoreObject& object, index_t element) const
+{
+    if (mState && mState->mName) {
+        auto configured = mState->mName(object, element);
+        if (!configured.empty()) {
+            return configured;
+        }
+    }
+    return mKind == ModelFieldKind::INDEXED_STATE ? std::string(name()) + std::to_string(element) :
+                                                    std::string(name());
+}
+
+std::optional<index_t> ModelField::solverStateIndex(const CoreObject& object,
+                                                    const SolverMode& mode) const
+{
+    return mState && mState->mSolverIndex ?
+        std::optional<index_t>{mState->mSolverIndex(object, mode)} :
+        std::nullopt;
+}
+
+std::optional<index_t> ModelField::stateElement(const CoreObject& object,
+                                                std::string_view name) const
+{
+    if (!isState()) {
+        return std::nullopt;
+    }
+    for (const auto& alias : names()) {
+        if (mKind != ModelFieldKind::INDEXED_STATE) {
+            if (name == alias) {
+                return 0;
+            }
+            continue;
+        }
+        if (const auto element = indexedElement(name, alias)) {
+            return element;
+        }
+    }
+    if (mKind == ModelFieldKind::STATE && mState && mState->mName && name == stateName(object)) {
+        return 0;
+    }
+    return std::nullopt;
+}
+
+const ModelField* ModelDescription::findState(const CoreObject& object,
+                                              std::string_view name,
+                                              index_t& element) const
+{
+    for (const auto* table = this; table != nullptr; table = table->parent()) {
+        const ModelField* indexedMatch = nullptr;
+        for (const auto& field : table->fields()) {
+            if (const auto match = field.stateElement(object, name)) {
+                if (field.kind() != ModelFieldKind::INDEXED_STATE) {
+                    element = *match;
+                    return table == this ? &field : find(field.name(), ModelFieldKind::STATE);
+                }
+                if (indexedMatch == nullptr) {
+                    indexedMatch = &field;
+                    element = *match;
+                }
+            }
+        }
+        if (indexedMatch != nullptr) {
+            return table == this ? indexedMatch :
+                                   find(indexedMatch->name(), ModelFieldKind::INDEXED_STATE);
+        }
+    }
+    return nullptr;
+}
+
+std::optional<index_t> ModelDescription::stateIndex(const CoreObject& object,
+                                                    std::string_view name) const
+{
+    index_t element = 0;
+    const auto* field = findState(object, name, element);
+    return field != nullptr ? field->stateIndex(object, element) : std::nullopt;
+}
+
+stringVec ModelDescription::solverStateNames(const CoreObject& object) const
+{
+    stringVec names;
+    for (const auto* field : mStates) {
+        for (index_t element = 0; element < field->stateCount(object); ++element) {
+            const auto index = field->stateIndex(object, element);
+            if (!index || std::cmp_less(*index, 0) || *index >= kInvalidLocation) {
+                continue;
+            }
+            const auto slot = static_cast<std::size_t>(*index);
+            if (names.size() <= slot) {
+                names.resize(slot + 1);
+            }
+            if (names[slot].empty()) {
+                names[slot] = field->stateName(object, element);
+            }
+        }
+    }
+    return names;
+}
+
 bool ModelField::matches(std::string_view name) const
 {
-    if (mKind != ModelFieldKind::INDEXED_COMMAND) {
-        return std::find(mNames.begin(), mNames.end(), name) != mNames.end();
+    if (!indexed(mKind) || mKind == ModelFieldKind::INDEXED_STATE) {
+        if (std::find(mNames.begin(), mNames.end(), name) != mNames.end()) {
+            return true;
+        }
+        if (!indexed(mKind)) {
+            return false;
+        }
     }
     return std::any_of(mNames.begin(), mNames.end(), [name](std::string_view prefix) {
-        if (!name.starts_with(prefix) || name.size() == prefix.size()) {
-            return false;
-        }
-        const auto suffix = name.substr(prefix.size());
-        if (suffix.front() < '0' || suffix.front() > '9') {
-            return false;
-        }
-        index_t index = 0;
-        const auto [end, error] =
-            std::from_chars(suffix.data(), suffix.data() + suffix.size(), index);
-        return error == std::errc{} && end == suffix.data() + suffix.size();
+        return indexedElement(name, prefix).has_value();
     });
 }
 
@@ -161,11 +303,15 @@ ModelDescription::ModelDescription(std::string_view name,
                         (field.kind() == ModelFieldKind::INDEXED_COMMAND)) {
                     continue;
                 }
-                const bool parameterAndState = (declaredKind == ModelFieldKind::PARAMETER &&
-                                                field.kind() == ModelFieldKind::STATE) ||
-                    (declaredKind == ModelFieldKind::STATE &&
-                     field.kind() == ModelFieldKind::PARAMETER);
-                if (!parameterAndState) {
+                const bool controlAndState = ((declaredKind == ModelFieldKind::PARAMETER ||
+                                               declaredKind == ModelFieldKind::COMMAND ||
+                                               declaredKind == ModelFieldKind::FLAG) &&
+                                              field.isState()) ||
+                    ((declaredKind == ModelFieldKind::STATE ||
+                      declaredKind == ModelFieldKind::INDEXED_STATE ||
+                      declaredKind == ModelFieldKind::STATE_REFERENCE) &&
+                     field.editable());
+                if (!controlAndState) {
                     throw std::invalid_argument("duplicate model field name: " +
                                                 std::string(fieldName));
                 }
@@ -182,6 +328,13 @@ ModelDescription::ModelDescription(std::string_view name,
                 } else {
                     mNumericNames.push_back(fieldName);
                 }
+            }
+        }
+    }
+    for (const auto* table = this; table != nullptr; table = table->parent()) {
+        for (const auto& field : table->fields()) {
+            if (field.isState() && find(field.name(), ModelFieldKind::STATE) == &field) {
+                mStates.push_back(&field);
             }
         }
     }
@@ -237,7 +390,7 @@ const ModelField* ModelDescription::findLocal(std::string_view name) const
     const ModelField* indexedMatch = nullptr;
     for (const auto& field : mFields) {
         if (field.matches(name)) {
-            if (field.kind() != ModelFieldKind::INDEXED_COMMAND) {
+            if (!indexed(field.kind())) {
                 return &field;
             }
             if (indexedMatch == nullptr) {
@@ -263,8 +416,9 @@ const ModelField* ModelDescription::find(std::string_view name, ModelFieldKind k
     for (const auto* layer = this; layer != nullptr; layer = layer->parent()) {
         const ModelField* indexedMatch = nullptr;
         for (const auto& field : layer->mFields) {
-            if (field.kind() == kind && field.matches(name)) {
-                if (field.kind() != ModelFieldKind::INDEXED_COMMAND) {
+            if ((field.kind() == kind || (kind == ModelFieldKind::STATE && field.isState())) &&
+                field.matches(name)) {
+                if (!indexed(field.kind())) {
                     return &field;
                 }
                 if (indexedMatch == nullptr) {
@@ -547,6 +701,16 @@ void ModelFieldSnapshot::restore(CoreObject& object) const
     for (auto& assignment : assignments) {
         assignment();
     }
+}
+
+ModelField state(std::initializer_list<std::string_view> names,
+                 units::unit unitType,
+                 index_t index,
+                 std::string_view description)
+{
+    return {names, unitType, description, {.mLocalIndex = [index](const CoreObject&, index_t) {
+                return index;
+            }}};
 }
 
 }  // namespace griddyn

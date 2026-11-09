@@ -173,9 +173,6 @@ which cases the parent of the link is searched for the bus*/
                      const std::vector<int>& rootMask,
                      const SolverMode& sMode) override;
     virtual void followNetwork(int network, std::queue<GridBus*>& stk) override;
-    virtual void getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix = "") const override;
 
   protected:
     /** @brief compute the Jacobian elements based on the MW control

@@ -26,8 +26,8 @@ const ModelDescription& COISensor::getModelDescription() const
     static const auto description = ModelDescription::define<COISensor>(
         "COISensor",
         &Sensor::getModelDescription(),
-        {state("frequency", units::puHz, "Center-of-inertia frequency"),
-         state("angle", units::rad, "Center-of-inertia angle")});
+        {state({"frequency"}, units::puHz, 0, "Center-of-inertia frequency"),
+         state({"angle"}, units::rad, 1, "Center-of-inertia angle")});
     return description;
 }
 
@@ -238,11 +238,6 @@ void COISensor::jacobianElements(const IOdata& /*inputs*/,
         matrixData.assignCheckCol(firstRow, frequencyColumn, -machine.weight);
         matrixData.assignCheckCol(firstRow + 1, angleColumn, -machine.weight);
     }
-}
-
-stringVec COISensor::localStateNames() const
-{
-    return {"frequency", "angle"};
 }
 
 }  // namespace griddyn

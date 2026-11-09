@@ -50,7 +50,6 @@ CoreObject* BusMeasurementSensor::clone(CoreObject* obj) const
     auto* result =
         obj == nullptr ? nullptr : dynamic_cast<BusMeasurementSensor*>(Sensor::clone(obj));
     if (result != nullptr) {
-        result->stateNames = stateNames;
     }
     return result == nullptr ? obj : result;
 }
@@ -74,13 +73,12 @@ double BusMeasurementSensor::voltage(const StateData& stateData, const SolverMod
     return bus()->getVoltage(stateData, sMode);
 }
 
-void BusMeasurementSensor::defineStates(count_t alg, count_t diff, stringVec names)
+void BusMeasurementSensor::defineStates(count_t alg, count_t diff)
 {
     auto& local = offsets.local().local;
     local.algSize = alg;
     local.diffSize = diff;
     local.jacSize = (alg + diff) * 6;
-    stateNames = std::move(names);
     m_state.assign(alg + diff, 0.0);
     m_dstate_dt.assign(alg + diff, 0.0);
 }
@@ -164,11 +162,6 @@ void BusMeasurementSensor::outputPartialDerivatives(const IOdata& /*inputs*/,
     }
 }
 
-stringVec BusMeasurementSensor::localStateNames() const
-{
-    return stateNames;
-}
-
 const ModelDescription& PLLSensor::getModelDescription() const
 {
     static const auto description = ModelDescription::define<PLLSensor>(
@@ -178,7 +171,28 @@ const ModelDescription& PLLSensor::getModelDescription() const
          parameter({"ki"}, &PLLSensor::Ki, units::defunit, "Ki"),
          parameter({"tf"}, &PLLSensor::Tf, units::s, "Tf"),
          parameter({"tp"}, &PLLSensor::Tp, units::s, "Tp"),
-         parameter({"fn"}, &PLLSensor::fn, units::Hz, "Fn")});
+         parameter({"fn"}, &PLLSensor::fn, units::Hz, "Fn"),
+         state({"df"}, units::one, 0, "Solver variable df"),
+         state<PLLSensor>(
+             {"filtered_angle"},
+             units::one,
+             [](const auto& model) { return model.phaseDetector ? kInvalidLocation : 1; },
+             "Solver variable filtered_angle"),
+         state<PLLSensor>(
+             {"pi_integral"},
+             units::one,
+             [](const auto& model) { return model.phaseDetector ? 1 : 2; },
+             "Solver variable pi_integral"),
+         state<PLLSensor>(
+             {"ae"},
+             units::one,
+             [](const auto& model) { return model.phaseDetector ? kInvalidLocation : 3; },
+             "Solver variable ae"),
+         state<PLLSensor>(
+             {"am"},
+             units::one,
+             [](const auto& model) { return model.phaseDetector ? 2 : 4; },
+             "Solver variable am")});
     return description;
 }
 
@@ -256,10 +270,7 @@ void PLLSensor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
         requirePositive(Tp, "PLL1 Tp");
     }
     BusMeasurementSensor::dynObjectInitializeA(time0, flags);
-    defineStates(1,
-                 phaseDetector ? 2 : 4,
-                 phaseDetector ? stringVec{"df", "pi_integral", "am"} :
-                                 stringVec{"df", "filtered_angle", "pi_integral", "ae", "am"});
+    defineStates(1, phaseDetector ? 2 : 4);
 }
 
 void PLLSensor::dynObjectInitializeB(const IOdata& inputs,
@@ -449,7 +460,12 @@ const ModelDescription& BusROCOFSensor::getModelDescription() const
         {parameter({"tf"}, &BusROCOFSensor::Tf, units::s, "Tf"),
          parameter({"tw"}, &BusROCOFSensor::Tw, units::s, "Tw"),
          parameter({"tr"}, &BusROCOFSensor::Tr, units::s, "Tr"),
-         parameter({"fn"}, &BusROCOFSensor::fn, units::Hz, "Fn")});
+         parameter({"fn"}, &BusROCOFSensor::fn, units::Hz, "Fn"),
+         state({"df"}, units::one, 0, "Solver variable df"),
+         state({"dfdt"}, units::one, 1, "Solver variable dfdt"),
+         state({"angle_lag"}, units::one, 2, "Solver variable angle_lag"),
+         state({"angle_washout"}, units::one, 3, "Solver variable angle_washout"),
+         state({"frequency_washout"}, units::one, 4, "Solver variable frequency_washout")});
     return description;
 }
 
@@ -499,7 +515,7 @@ void BusROCOFSensor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     requirePositive(Tr, "BUSROCOF Tr");
     requirePositive(fn, "BUSROCOF fn");
     BusMeasurementSensor::dynObjectInitializeA(time0, flags);
-    defineStates(2, 3, {"df", "dfdt", "angle_lag", "angle_washout", "frequency_washout"});
+    defineStates(2, 3);
 }
 
 void BusROCOFSensor::dynObjectInitializeB(const IOdata& inputs,
@@ -641,10 +657,10 @@ void BusROCOFSensor::timestep(CoreTime time, const IOdata& /*inputs*/, const Sol
 
 const ModelDescription& FreqDivSensor::getModelDescription() const
 {
-    static const auto description =
-        ModelDescription::define<FreqDivSensor>("FreqDivSensor",
-                                                &BusMeasurementSensor::getModelDescription(),
-                                                {});
+    static const auto description = ModelDescription::define<FreqDivSensor>(
+        "FreqDivSensor",
+        &BusMeasurementSensor::getModelDescription(),
+        {state({"frequency"}, units::one, 0, "Solver variable frequency")});
     return description;
 }
 
@@ -669,7 +685,7 @@ CoreObject* FreqDivSensor::clone(CoreObject* obj) const
 void FreqDivSensor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     BusMeasurementSensor::dynObjectInitializeA(time0, flags);
-    defineStates(1, 0, {"frequency"});
+    defineStates(1, 0);
     diagonal = 0.0;
     neighbors.clear();
     machines.clear();

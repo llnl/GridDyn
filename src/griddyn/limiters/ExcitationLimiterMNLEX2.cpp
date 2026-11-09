@@ -27,9 +27,9 @@ const ModelDescription& ExcitationLimiterMNLEX2::getModelDescription() const
          parameter({"melmax", "mel_max"}, &ExcitationLimiterMNLEX2::melMax, units::one, "Mel max"),
          parameter({"q0", "q_0"}, &ExcitationLimiterMNLEX2::q0, units::one, "Q0"),
          parameter({"radius"}, &ExcitationLimiterMNLEX2::radius, units::one, "Radius"),
-         state("vuel", units::one, "Solver variable vuel when active"),
-         state("mel", units::one, "Solver variable mel when active"),
-         state("feedback", units::one, "Solver variable feedback when active")});
+         state({"vuel"}, units::one, 0, "Solver variable vuel when active"),
+         state({"mel"}, units::one, 1, "Solver variable mel when active"),
+         state({"feedback"}, units::one, 2, "Solver variable feedback when active")});
     return description;
 }
 
@@ -244,8 +244,4 @@ void ExcitationLimiterMNLEX2::timestep(CoreTime time,
     prevTime = time;
 }
 
-stringVec ExcitationLimiterMNLEX2::localStateNames() const
-{
-    return {"vuel", "mel", "feedback"};
-}
 }  // namespace griddyn::limiters

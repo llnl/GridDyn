@@ -40,7 +40,6 @@ class WTARA1 final: public RenewableComponent {
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   private:
     double Ka = 1.0, theta0 = 0.0, initialPower = 0.0;

@@ -70,7 +70,6 @@ class DistributedConverter: public TerminalElectricalModel {
                          const StateData& stateData,
                          const SolverMode& sMode,
                          CheckLevel level) override;
-    stringVec localStateNames() const override;
 
   protected:
     void copyParametersTo(DistributedConverter* target) const;

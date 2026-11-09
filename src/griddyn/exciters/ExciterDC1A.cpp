@@ -27,11 +27,13 @@ const ModelDescription& ExciterDC1A::getModelDescription() const
         &ExciterIEEEtype1::getModelDescription(),
         {parameter({"tb"}, &ExciterDC1A::Tb, units::second, "Lead-lag denominator time constant"),
          parameter({"tc"}, &ExciterDC1A::Tc, units::second, "Lead-lag numerator time constant"),
-         state("ef", units::one, "Field voltage"),
-         state("vr", units::one, "Regulator state"),
-         state("x", units::one, "x solver state"),
-         state("rf", units::one, "rf solver state"),
-         state("vmeas", units::one, "Measured terminal voltage")});
+         state({"x"}, units::one, 2, "x solver state"),
+         state({"rf"}, units::one, 3, "rf solver state"),
+         state<ExciterDC1A>(
+             {"vmeas"},
+             units::one,
+             [](const auto& model) { return model.Tr > 0.0 ? 4 : kInvalidLocation; },
+             "Measured terminal voltage")});
     return description;
 }
 
@@ -378,12 +380,6 @@ double ExciterDC1A::measuredVoltage(const IOdata& inputs, const double state[]) 
     return (Tr > 0.0) ? state[4] : inputs[VOLTAGE_IN_LOCATION];
 }
 
-static const stringVec DC1A_FIELDS{"ef", "vr", "x", "rf"};
-
-stringVec ExciterDC1A::localStateNames() const
-{
-    return (Tr > 0.0) ? stringVec{"ef", "vr", "x", "rf", "vmeas"} : DC1A_FIELDS;
-}
 // set parameters
 void ExciterDC1A::set(std::string_view param, double val, units::unit unitType)
 {

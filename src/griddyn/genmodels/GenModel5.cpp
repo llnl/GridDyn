@@ -32,7 +32,7 @@ const ModelDescription& GenModel5::getModelDescription() const
          parameter({"xdpp"}, &GenModel5::Xdpp, units::one, "D-axis subtransient reactance"),
          parameter({"xqpp"}, &GenModel5::Xqpp, units::one, "Q-axis subtransient reactance"),
          command({"xpp"}, units::one, "Set both subtransient reactances"),
-         state("edpp", units::one, "Solver variable edpp")});
+         state({"edpp"}, units::one, 6, "Solver variable edpp")});
     return description;
 }
 
@@ -292,13 +292,6 @@ void GenModel5::jacobianElements(const IOdata& inputs,
         matrixData.assign(refDiff + 4, refDiff + 2, 1 / Tqopp);
         matrixData.assign(refDiff + 4, refDiff + 4, -(1 / Tqopp) - stateData.cj);
     }
-}
-
-static const stringVec GEN_MODEL_5_NAMES{"id", "iq", "delta", "freq", "edp", "eqp", "edpp"};
-
-stringVec GenModel5::localStateNames() const
-{
-    return GEN_MODEL_5_NAMES;
 }
 
 double GenModel5::getFreq(const StateData& stateDataValue,

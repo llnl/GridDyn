@@ -97,8 +97,6 @@ class ExciterAC8B final: public Exciter {
                          const StateData& stateData,
                          const SolverMode& sMode,
                          CheckLevel level) override;
-    stringVec localStateNames() const override;
-    index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
   private:
     static constexpr index_t stateCount = 5;

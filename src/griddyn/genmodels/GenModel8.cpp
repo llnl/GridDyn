@@ -18,11 +18,11 @@ namespace griddyn::genmodels {
 GenModel8::GenModel8(const std::string& objName): GenModel6(objName) {}
 const ModelDescription& GenModel8::getModelDescription() const
 {
-    static const auto description =
-        ModelDescription::define<GenModel8>("GenModel8",
-                                            &GenModel6::getModelDescription(),
-                                            {state("psid", units::one, "Solver variable psid"),
-                                             state("psiq", units::one, "Solver variable psiq")});
+    static const auto description = ModelDescription::define<GenModel8>(
+        "GenModel8",
+        &GenModel6::getModelDescription(),
+        {state({"psid"}, units::one, 8, "Solver variable psid"),
+         state({"psiq"}, units::one, 9, "Solver variable psiq")});
     return description;
 }
 
@@ -319,11 +319,4 @@ rv[9] = systemBaseFrequency*(Vq + Rs*gm[1] - gm[3] / systemBaseFrequency*gm[8]) 
     }
 }
 
-static const stringVec
-    GEN_MODEL_8_NAMES{"id", "iq", "delta", "freq", "edp", "eqp", "edpp", "eqpp", "psid", "psiq"};
-
-stringVec GenModel8::localStateNames() const
-{
-    return GEN_MODEL_8_NAMES;
-}
 }  // namespace griddyn::genmodels

@@ -167,9 +167,6 @@ class Generator: public GridSecondary {
                                   MatrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
-    virtual void getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix) const override;
 
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 

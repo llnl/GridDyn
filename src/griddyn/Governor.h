@@ -87,7 +87,7 @@ class Governor: public GridSubModel {
     virtual void setFlag(std::string_view flag, bool val) override;
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
-    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
+
     virtual void residual(const IOdata& inputs,
                           const StateData& stateData,
                           double resid[],

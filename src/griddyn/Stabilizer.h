@@ -63,8 +63,6 @@ class Stabilizer: public GridSubModel {
     {
         return MachineControllerSignal::ELECTRICAL_TORQUE;
     }
-
-    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 };
 
 }  // namespace griddyn

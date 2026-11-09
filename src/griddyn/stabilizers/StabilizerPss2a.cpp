@@ -34,119 +34,143 @@ StabilizerPss2a::StabilizerPss2a(const std::string& objName): Stabilizer(objName
 
 const ModelDescription& StabilizerPss2a::getModelDescription() const
 {
-    static const auto description = ModelDescription::define<StabilizerPss2a>(
+    using Model = StabilizerPss2a;
+    static const auto description = ModelDescription::define<Model>(
         "StabilizerPss2a",
         &Stabilizer::getModelDescription(),
-        {parameter({"mode", "mode1"},
-                   &StabilizerPss2a::mode1,
-                   units::one,
-                   "Input signal selector",
-                   supportedMode),
-         parameter({"mode2"},
-                   &StabilizerPss2a::mode2,
-                   units::one,
-                   "Input signal selector",
-                   supportedMode),
+        {parameter(
+             {"mode", "mode1"}, &Model::mode1, units::one, "Input signal selector", supportedMode),
+         parameter({"mode2"}, &Model::mode2, units::one, "Input signal selector", supportedMode),
          parameter({"busr", "busr1"},
-                   &StabilizerPss2a::remoteBus1,
+                   &Model::remoteBus1,
                    units::one,
                    "Remote bus selector",
                    [](int value) { return value == 0; }),
          parameter({"busr2"},
-                   &StabilizerPss2a::remoteBus2,
+                   &Model::remoteBus2,
                    units::one,
                    "Remote bus selector",
                    [](int value) { return value == 0; }),
          parameter({"tw1"},
-                   &StabilizerPss2a::Tw1,
+                   &Model::Tw1,
                    units::second,
                    "Tw1 time constant",
                    parameterValidators::nonnegative),
          parameter({"tw2"},
-                   &StabilizerPss2a::Tw2,
+                   &Model::Tw2,
                    units::second,
                    "Tw2 time constant",
                    parameterValidators::nonnegative),
          parameter({"t6"},
-                   &StabilizerPss2a::T6,
+                   &Model::T6,
                    units::second,
                    "T6 time constant",
                    parameterValidators::nonnegative),
          parameter({"tw3"},
-                   &StabilizerPss2a::Tw3,
+                   &Model::Tw3,
                    units::second,
                    "Tw3 time constant",
                    parameterValidators::nonnegative),
          parameter({"tw4"},
-                   &StabilizerPss2a::Tw4,
+                   &Model::Tw4,
                    units::second,
                    "Tw4 time constant",
                    parameterValidators::nonnegative),
          parameter({"t7"},
-                   &StabilizerPss2a::T7,
+                   &Model::T7,
                    units::second,
                    "T7 time constant",
                    parameterValidators::nonnegative),
-         parameter({"ks1"}, &StabilizerPss2a::Ks1, units::one, "Ks1 gain"),
-         parameter({"ks2"}, &StabilizerPss2a::Ks2, units::one, "Ks2 gain"),
-         parameter({"ks3"}, &StabilizerPss2a::Ks3, units::one, "Ks3 gain"),
+         parameter({"ks1"}, &Model::Ks1, units::one, "Ks1 gain"),
+         parameter({"ks2"}, &Model::Ks2, units::one, "Ks2 gain"),
+         parameter({"ks3"}, &Model::Ks3, units::one, "Ks3 gain"),
          parameter({"t8"},
-                   &StabilizerPss2a::T8,
+                   &Model::T8,
                    units::second,
                    "T8 time constant",
                    parameterValidators::nonnegative),
-         parameter({"t9"},
-                   &StabilizerPss2a::T9,
-                   units::second,
-                   "T9 time constant",
-                   parameterValidators::positive),
+         parameter(
+             {"t9"}, &Model::T9, units::second, "T9 time constant", parameterValidators::positive),
          parameter({"t1"},
-                   &StabilizerPss2a::T1,
+                   &Model::T1,
                    units::second,
                    "T1 time constant",
                    parameterValidators::nonnegative),
          parameter({"t2"},
-                   &StabilizerPss2a::T2,
+                   &Model::T2,
                    units::second,
                    "T2 time constant",
                    parameterValidators::nonnegative),
          parameter({"t3"},
-                   &StabilizerPss2a::T3,
+                   &Model::T3,
                    units::second,
                    "T3 time constant",
                    parameterValidators::nonnegative),
          parameter({"t4"},
-                   &StabilizerPss2a::T4,
+                   &Model::T4,
                    units::second,
                    "T4 time constant",
                    parameterValidators::nonnegative),
-         parameter({"vstmax", "vmax"}, &StabilizerPss2a::Vstmax, units::one, "Vstmax signal limit"),
-         parameter({"vstmin", "vmin"}, &StabilizerPss2a::Vstmin, units::one, "Vstmin signal limit"),
-         localState("initialPmech", &StabilizerPss2a::initialPmech, "Initialized reference"),
+         parameter({"vstmax", "vmax"}, &Model::Vstmax, units::one, "Vstmax signal limit"),
+         parameter({"vstmin", "vmin"}, &Model::Vstmin, units::one, "Vstmin signal limit"),
+         localState("initialPmech", &Model::initialPmech, "Initialized reference"),
+         localState("output_limited", &Model::opFlags, OUTPUT_LIMITED, "Output limiter active"),
          localState(
-             "output_limited", &StabilizerPss2a::opFlags, OUTPUT_LIMITED, "Output limiter active"),
-         localState("output_limit_high",
-                    &StabilizerPss2a::opFlags,
-                    OUTPUT_LIMIT_HIGH,
-                    "Upper output limit active"),
-         state("vs", units::one, "Stabilizer solver variable vs"),
-         state("w1a", units::one, "Stabilizer solver variable w1a"),
-         state("w1b", units::one, "Stabilizer solver variable w1b"),
-         state("l1", units::one, "Stabilizer solver variable l1"),
-         state("w2a", units::one, "Stabilizer solver variable w2a"),
-         state("w2b", units::one, "Stabilizer solver variable w2b"),
-         state("l2", units::one, "Stabilizer solver variable l2"),
-         state("rtf", units::one, "Stabilizer solver variable rtf"),
-         state("ll1", units::one, "Stabilizer solver variable ll1"),
-         state("ll2", units::one, "Stabilizer solver variable ll2"),
-         state("ll3", units::one, "Stabilizer solver variable ll3"),
-         state("rtf1", units::one, "Stabilizer solver variable rtf1"),
-         state("rtf2", units::one, "Stabilizer solver variable rtf2"),
-         state("rtf3", units::one, "Stabilizer solver variable rtf3"),
-         state("rtf4", units::one, "Stabilizer solver variable rtf4"),
-         state("rtf5", units::one, "Stabilizer solver variable rtf5"),
-         state("rtf6", units::one, "Stabilizer solver variable rtf6"),
-         state("rtf7", units::one, "Stabilizer solver variable rtf7")});
+             "output_limit_high", &Model::opFlags, OUTPUT_LIMIT_HIGH, "Upper output limit active"),
+         state({"vs", "vss"}, units::one, 0, "Stabilizer solver variable vs"),
+         state<Model>(
+             {"w1a"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.branch1Derivative1State, 1); },
+             "Stabilizer solver variable w1a"),
+         state<Model>(
+             {"w1b"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.branch1Derivative2State, 1); },
+             "Stabilizer solver variable w1b"),
+         state<Model>(
+             {"l1"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.branch1LagState, 1); },
+             "Stabilizer solver variable l1"),
+         state<Model>(
+             {"w2a"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.branch2Derivative1State, 1); },
+             "Stabilizer solver variable w2a"),
+         state<Model>(
+             {"w2b"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.branch2Derivative2State, 1); },
+             "Stabilizer solver variable w2b"),
+         state<Model>(
+             {"l2"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.branch2LagState, 1); },
+             "Stabilizer solver variable l2"),
+         state({"rtf"}, units::one, &Model::rampFilterState, 0, 1, "Ramp filter stage"),
+         state<Model>(
+             {"ll1"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.leadLag1State, 1); },
+             "Stabilizer solver variable ll1"),
+         state<Model>(
+             {"ll2"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.leadLag2State, 1); },
+             "Stabilizer solver variable ll2"),
+         state<Model>(
+             {"ll3"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.leadLag3State, 1); },
+             "Stabilizer solver variable ll3"),
+         state({"rtf1"}, units::one, &Model::rampFilterState, 1, 1, "Ramp filter stage"),
+         state({"rtf2"}, units::one, &Model::rampFilterState, 2, 1, "Ramp filter stage"),
+         state({"rtf3"}, units::one, &Model::rampFilterState, 3, 1, "Ramp filter stage"),
+         state({"rtf4"}, units::one, &Model::rampFilterState, 4, 1, "Ramp filter stage"),
+         state({"rtf5"}, units::one, &Model::rampFilterState, 5, 1, "Ramp filter stage"),
+         state({"rtf6"}, units::one, &Model::rampFilterState, 6, 1, "Ramp filter stage"),
+         state({"rtf7"}, units::one, &Model::rampFilterState, 7, 1, "Ramp filter stage")});
     return description;
 }
 
@@ -840,50 +864,6 @@ ChangeCode StabilizerPss2a::rootCheck(const IOdata& inputs,
         return ChangeCode::JACOBIAN_CHANGE;
     }
     return ChangeCode::NO_CHANGE;
-}
-
-stringVec StabilizerPss2a::localStateNames() const
-{
-    stringVec names{"vs"};
-    if (branch1Derivative1State != kNullLocation) {
-        names.emplace_back("w1a");
-    }
-    if (branch1Derivative2State != kNullLocation) {
-        names.emplace_back("w1b");
-    }
-    if (branch1LagState != kNullLocation) {
-        names.emplace_back("l1");
-    }
-    if (branch2Derivative1State != kNullLocation) {
-        names.emplace_back("w2a");
-    }
-    if (branch2Derivative2State != kNullLocation) {
-        names.emplace_back("w2b");
-    }
-    if (branch2LagState != kNullLocation) {
-        names.emplace_back("l2");
-    }
-    for (index_t stage = 0; stage < rampStateCount(); ++stage) {
-        names.emplace_back(stage == 0 ? "rtf" : "rtf" + std::to_string(stage));
-    }
-    if (leadLag1State != kNullLocation) {
-        names.emplace_back("ll1");
-    }
-    if (leadLag2State != kNullLocation) {
-        names.emplace_back("ll2");
-    }
-    if (leadLag3State != kNullLocation) {
-        names.emplace_back("ll3");
-    }
-    return names;
-}
-
-index_t StabilizerPss2a::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "vss") || (field == "vs")) {
-        return getOutputLoc(sMode, 0);
-    }
-    return kInvalidLocation;
 }
 
 void StabilizerPss2a::set(std::string_view param, double val, units::unit unitType)

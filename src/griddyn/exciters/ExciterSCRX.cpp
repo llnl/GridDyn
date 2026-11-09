@@ -128,9 +128,17 @@ const ModelDescription& ExciterSCRX::getModelDescription() const
                     &ExciterSCRX::opFlags,
                     ExciterSCRX::AMPLIFIER_LIMIT_HIGH,
                     "Retained amplifier_limit_high mode"),
-         state("efd", units::one, "Field voltage"),
-         state("xll", units::one, "Lead-lag state"),
-         state("efdpre", units::one, "efdpre solver state"),
+         state({"efd", "field"}, units::one, 0, "Field voltage"),
+         state<ExciterSCRX>(
+             {"xll", "leadlag"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.stateLayout().leadLag, 1); },
+             "Lead-lag state"),
+         state<ExciterSCRX>(
+             {"efdpre", "amplifier"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.stateLayout().amplifier, 1); },
+             "efdpre solver state"),
          command({"k"}, units::one, "Regulator gain alias"),
          command({"emin", "efdmin"}, units::one, "Lower regulator limit alias"),
          command({"emax", "efdmax"}, units::one, "Upper regulator limit alias")});
@@ -511,37 +519,6 @@ ChangeCode ExciterSCRX::rootCheck(const IOdata& inputs,
         return ChangeCode::JACOBIAN_CHANGE;
     }
     return ChangeCode::NO_CHANGE;
-}
-
-stringVec ExciterSCRX::localStateNames() const
-{
-    const auto layout = stateLayout();
-    stringVec names{"efd"};
-    if (layout.leadLag != kInvalidLocation) {
-        names.emplace_back("xll");
-    }
-    if (layout.amplifier != kInvalidLocation) {
-        names.emplace_back("efdpre");
-    }
-    return names;
-}
-
-index_t ExciterSCRX::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "efd") || (field == "field")) {
-        return offsets.getAlgOffset(sMode);
-    }
-    const auto layout = stateLayout();
-    if ((field == "xll") || (field == "leadlag")) {
-        return (layout.leadLag == kInvalidLocation) ? kInvalidLocation :
-                                                      offsets.getDiffOffset(sMode) + layout.leadLag;
-    }
-    if ((field == "efdpre") || (field == "amplifier")) {
-        return (layout.amplifier == kInvalidLocation) ?
-            kInvalidLocation :
-            offsets.getDiffOffset(sMode) + layout.amplifier;
-    }
-    return kInvalidLocation;
 }
 
 void ExciterSCRX::set(std::string_view param, std::string_view val)

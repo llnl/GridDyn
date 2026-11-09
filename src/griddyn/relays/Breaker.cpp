@@ -52,7 +52,15 @@ const ModelDescription& Breaker::getModelDescription() const
          parameter({"recloserresettime", "resettime"},
                    &Breaker::mRecloserResetTime,
                    units::defunit,
-                   "Time the breaker has to be on before the recloser count resets")});
+                   "Time the breaker has to be on before the recloser count resets"),
+         state<Breaker>(
+             {"trigger_proximity"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return model.mUseCti && hasDifferential(mode) ? model.offsets.getDiffOffset(mode) :
+                                                                 kInvalidLocation;
+             },
+             "Solver variable trigger_proximity")});
     return description;
 }
 
@@ -387,23 +395,6 @@ void Breaker::guessState(const CoreTime /*time*/,
         auto offset = offsets.getDiffOffset(sMode);
         state[offset] = 0;
         dstateDt[offset] = 0;
-    }
-}
-
-void Breaker::getStateName(stringVec& stNames,
-                           const SolverMode& sMode,
-                           const std::string& prefix) const
-{
-    if (stateSize(sMode) > 0) {
-        auto offset = offsets.getDiffOffset(sMode);
-        if (static_cast<size_t>(offset) >= stNames.size()) {
-            stNames.resize(static_cast<size_t>(offset) + 1);
-        }
-        if (prefix.empty()) {
-            stNames[offset] = getName() + ":trigger_proximity";
-        } else {
-            stNames[offset] = prefix + "::" + getName() + ":trigger_proximity";
-        }
     }
 }
 

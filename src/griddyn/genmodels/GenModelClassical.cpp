@@ -38,8 +38,10 @@ const ModelDescription& GenModelClassical::getModelDescription() const
          parameter({"xd1", "xdp"}, &GenModelClassical::Xd, units::one, "Transient reactance"),
          parameter({"ra"}, &GenModelClassical::Rs, units::one, "Armature resistance"),
          command({"m"}, units::second, "Set twice the inertia constant"),
-         state("delta", units::rad, "Solver variable delta"),
-         state("freq", units::one, "Solver variable freq")});
+         state({"delta"}, units::rad, 2, "Solver variable delta"),
+         state({"freq"}, units::one, 3, "Solver variable freq"),
+         state({"id"}, units::one, 0, "Solver variable id"),
+         state({"iq"}, units::one, 1, "Solver variable iq")});
     return description;
 }
 
@@ -420,12 +422,6 @@ count_t GenModelClassical::outputDependencyCount(index_t /*num*/, const SolverMo
     return 3;
 }
 
-static const stringVec GEN_MODEL_CLASSIC_STATE_NAMES{"id", "iq", "delta", "freq"};
-
-stringVec GenModelClassical::localStateNames() const
-{
-    return GEN_MODEL_CLASSIC_STATE_NAMES;
-}
 // set parameters
 void GenModelClassical::set(std::string_view param, std::string_view val)
 {

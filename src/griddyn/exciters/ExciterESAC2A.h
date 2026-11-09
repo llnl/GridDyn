@@ -98,8 +98,7 @@ class ExciterESAC2A final: public Exciter {
                          const StateData& stateData,
                          const SolverMode& sMode,
                          CheckLevel level) override;
-    stringVec localStateNames() const override;
-    index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
+
     bool supportsLimiterSignal(ExciterLimiterSignal signal) const override;
 
   private:

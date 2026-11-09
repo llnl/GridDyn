@@ -20,10 +20,15 @@ namespace griddyn::loads {
 
 const ModelDescription& MotorLoad3::getModelDescription() const
 {
-    static const auto description =
-        ModelDescription::define<MotorLoad3>("MotorLoad3",
-                                             &MotorLoad::getModelDescription(),
-                                             {parameter({"rs"}, &MotorLoad3::r, units::one, "R")});
+    static const auto description = ModelDescription::define<MotorLoad3>(
+        "MotorLoad3",
+        &MotorLoad::getModelDescription(),
+        {parameter({"rs"}, &MotorLoad3::r, units::one, "R"),
+         state({"ir"}, units::one, 0, "Solver variable ir"),
+         state({"im"}, units::one, 1, "Solver variable im"),
+         state({"slip"}, units::one, 2, "Solver variable slip"),
+         state({"erp"}, units::one, 3, "Solver variable erp"),
+         state({"emp"}, units::one, 4, "Solver variable emp")});
     return description;
 }
 
@@ -296,32 +301,6 @@ void MotorLoad3::algebraicUpdate(const IOdata& inputs,
                               loc.destLoc[1]);
 }
 
-void MotorLoad3::getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix) const
-{
-    std::string const prefix2 = prefix + getName();
-    if (isDynamic(sMode)) {
-        if (isAlgebraicOnly(sMode)) {
-            return;
-        }
-        auto offsetA = offsets.getAlgOffset(sMode);
-        auto offsetD = offsets.getDiffOffset(sMode);
-        stNames[offsetA] = prefix2 + ":ir";
-        stNames[offsetA + 1] = prefix2 + ":im";
-        stNames[offsetD] = prefix2 + ":slip";
-        stNames[offsetD + 1] = prefix2 + ":erp";
-        stNames[offsetD + 2] = prefix2 + ":emp";
-    } else {
-        auto offset = offsets.getAlgOffset(sMode);
-        stNames[offset] = prefix2 + ":ir";
-        stNames[offset + 1] = prefix2 + ":im";
-        stNames[offset + 2] = prefix2 + ":slip";
-        stNames[offset + 3] = prefix2 + ":erp";
-        stNames[offset + 4] = prefix2 + ":emp";
-    }
-}
-
 void MotorLoad3::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     StateData const stateData(time, m_state.data());
@@ -570,47 +549,6 @@ void MotorLoad3::ioPartialDerivatives(const IOdata& inputs,
                                   (voltageReal * currentImaginary / voltage));
 }
 
-index_t MotorLoad3::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    index_t ret = kInvalidLocation;
-    if (field == "slip") {
-        if (isLocal(sMode)) {
-            ret = 2;
-        } else if (isDynamic(sMode)) {
-            ret = offsets.getDiffOffset(sMode);
-        } else {
-            ret = offsets.getAlgOffset(sMode);
-            ret = (ret != kNullLocation) ? ret + 2 : ret;
-        }
-    } else if (field == "erp") {
-        if (isLocal(sMode)) {
-            ret = 3;
-        } else if (isDynamic(sMode)) {
-            ret = offsets.getDiffOffset(sMode);
-            ret = (ret != kNullLocation) ? ret + 1 : ret;
-        } else {
-            ret = offsets.getAlgOffset(sMode);
-            ret = (ret != kNullLocation) ? ret + 3 : ret;
-        }
-    } else if (field == "emp") {
-        if (isLocal(sMode)) {
-            ret = 4;
-        } else if (isDynamic(sMode)) {
-            ret = offsets.getDiffOffset(sMode);
-            ret = (ret != kNullLocation) ? ret + 2 : ret;
-        } else {
-            ret = offsets.getAlgOffset(sMode);
-            ret = (ret != kNullLocation) ? ret + 4 : ret;
-        }
-    } else if (field == "ir") {
-        ret = offsets.getAlgOffset(sMode);
-    } else if (field == "im") {
-        ret = offsets.getAlgOffset(sMode);
-        ret = (ret != kNullLocation) ? ret + 1 : ret;
-    }
-    return ret;
-}
-
 void MotorLoad3::rootTest(const IOdata& /*inputs*/,
                           const StateData& stateData,
                           double roots[],
@@ -750,4 +688,24 @@ double MotorLoad3::getReactivePower(double voltage) const
 
     return reactivePower * scale * motorOutputFraction();
 }
+index_t MotorLoad3::solverIndex(index_t localIndex, const SolverMode& sMode) const
+{
+    const auto local = localStateSizes(cLocalSolverMode);
+    if (localIndex < 0 || localIndex >= local.algSize + local.diffSize) {
+        return kInvalidLocation;
+    }
+    const auto& active = offsets.getOffsets(sMode);
+    if (isDynamic(sMode) && localIndex >= 2) {
+        localIndex -= 2;
+        return hasDifferential(sMode) && localIndex < active.local.diffSize &&
+                active.diffOffset != kNullLocation ?
+            active.diffOffset + localIndex :
+            kNullLocation;
+    }
+    return hasAlgebraic(sMode) && localIndex < active.local.algSize &&
+            active.algOffset != kNullLocation ?
+        active.algOffset + localIndex :
+        kNullLocation;
+}
+
 }  // namespace griddyn::loads

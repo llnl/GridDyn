@@ -45,9 +45,9 @@ const ModelDescription& GovernorTgov1Variant::getModelDescription() const
          parameter({"dt"}, &GovernorTgov1Variant::Dt, units::one, "Turbine damping"),
          parameter({"paux"}, &GovernorTgov1Variant::paux, units::puMW, "Auxiliary power"),
          localState("reference_offset", &GovernorTgov1Variant::referenceOffset),
-         state("pmech", units::puMW, "Mechanical power"),
-         state("valve", units::one, "Valve state"),
-         state("turbine", units::one, "Turbine state")});
+         state({"pmech", "pm"}, units::puMW, 0, "Mechanical power"),
+         state({"valve"}, units::one, 1, "Valve state"),
+         state({"turbine"}, units::one, 2, "Turbine state")});
     return description;
 }
 const ModelDescription& GovernorTgov1DB::getModelDescription() const
@@ -292,19 +292,6 @@ void GovernorTgov1Variant::timestep(CoreTime time,
     m_state[diffOffset + 1] += timeStep * m_dstate_dt[diffOffset + 1];
     m_state[offsets.getAlgOffset(cLocalSolverMode)] = output(inputs, m_state.data() + diffOffset);
     prevTime = time;
-}
-index_t GovernorTgov1Variant::findIndex(std::string_view field, const SolverMode& mode) const
-{
-    if (field == "pm" || field == "pmech") {
-        return offsets.getAlgOffset(mode);
-    }
-    if (field == "valve") {
-        return offsets.getDiffOffset(mode);
-    }
-    if (field == "turbine") {
-        return offsets.getDiffOffset(mode) + 1;
-    }
-    return kInvalidLocation;
 }
 void GovernorTgov1Variant::set(std::string_view param, double value, units::unit unitType)
 {

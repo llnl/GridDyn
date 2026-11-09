@@ -73,145 +73,255 @@ namespace {
 
 const ModelDescription& MotorDLoad::getModelDescription() const
 {
-    static const auto description = ModelDescription::define<MotorDLoad>(
+    using Model = MotorDLoad;
+    static const auto
+        description = ModelDescription::define<Model>(
         "MotorDLoad",
-        &GridLoad::getModelDescription(),
-        {parameter({"lfm", "LFm"},
-                   &MotorDLoad::loadFactor,
-                   units::one,
-                   "LFm: load MW / motor MVA rating",
-                   parameterValidators::positive),
-         parameter({"comppf", "CompPF"},
-                   &MotorDLoad::compPF,
-                   units::one,
-                   "Comp pf",
-                   [](double value) { return value > 0.0 && value <= 1.0; }),
-         parameter({"vstall", "Vstall"},
-                   &MotorDLoad::stallVoltage,
-                   units::one,
-                   "Stall voltage",
-                   [](double value) { return value > 0.0 && value < 2.0; }),
-         parameter({"rstall", "Rstall"},
-                   &MotorDLoad::stallResistance,
-                   units::one,
-                   "Stall resistance",
-                   parameterValidators::positive),
-         parameter({"xstall", "Xstall"},
-                   &MotorDLoad::stallReactance,
-                   units::one,
-                   "Stall reactance",
-                   parameterValidators::positive),
-         parameter({"tstall", "Tstall"}, &MotorDLoad::stallDelay, units::second, "Stall delay"),
-         parameter({"vrst", "Vrst"},
-                   &MotorDLoad::restartVoltage,
-                   units::one,
-                   "Restart voltage",
-                   [](double value) { return value > 0.0 && value < 2.0; }),
-         parameter({"trst", "Trst"},
-                   &MotorDLoad::restartDelay,
-                   units::second,
-                   "Restart delay",
-                   parameterValidators::nonnegative),
-         parameter({"vtr1", "Vtr1"},
-                   &MotorDLoad::tripVoltage1,
-                   units::one,
-                   "Trip voltage1",
-                   parameterValidators::nonnegative),
-         parameter({"ttr1", "Ttr1"},
-                   &MotorDLoad::tripDelay1,
-                   units::second,
-                   "Trip delay1",
-                   parameterValidators::nonnegative),
-         parameter({"vtr2", "Vtr2"},
-                   &MotorDLoad::tripVoltage2,
-                   units::one,
-                   "Trip voltage2",
-                   parameterValidators::nonnegative),
-         parameter({"ttr2", "Ttr2"},
-                   &MotorDLoad::tripDelay2,
-                   units::second,
-                   "Trip delay2",
-                   parameterValidators::nonnegative),
-         parameter({"vc1off", "Vc1off"},
-                   &MotorDLoad::contactorVoltageOff1,
-                   units::one,
-                   "Contactor voltage off1",
-                   [](double value) { return value >= 0.0 && value < 2.0; }),
-         parameter({"vc2off", "Vc2off"},
-                   &MotorDLoad::contactorVoltageOff2,
-                   units::one,
-                   "Contactor voltage off2",
-                   [](double value) { return value >= 0.0 && value < 2.0; }),
-         parameter({"vc1on", "Vc1on"},
-                   &MotorDLoad::contactorVoltageOn1,
-                   units::one,
-                   "Contactor voltage on1",
-                   [](double value) { return value >= 0.0 && value < 2.0; }),
-         parameter({"vc2on", "Vc2on"},
-                   &MotorDLoad::contactorVoltageOn2,
-                   units::one,
-                   "Contactor voltage on2",
-                   [](double value) { return value >= 0.0 && value < 2.0; }),
-         parameter({"tth", "Tth"},
-                   &MotorDLoad::thermalTimeConstant,
-                   units::second,
-                   "Thermal time constant",
-                   parameterValidators::nonnegative),
-         parameter({"th1t", "Th1t"},
-                   &MotorDLoad::thermalTripStart,
-                   units::one,
-                   "Thermal trip start",
-                   parameterValidators::nonnegative),
-         parameter({"th2t", "Th2t"},
-                   &MotorDLoad::thermalTripComplete,
-                   units::one,
-                   "Thermal trip complete",
-                   parameterValidators::nonnegative),
-         parameter({"tv", "Tv"},
-                   &MotorDLoad::voltageMeasurementLag,
-                   units::second,
-                   "Voltage measurement lag",
-                   parameterValidators::nonnegative),
-         parameter({"frst", "Frst"},
-                   &MotorDLoad::restartableFraction,
-                   units::one,
-                   "Restartable fraction",
-                   parameterValidators::unitInterval),
-         parameter({"fuvr", "Fuvr"},
-                   &MotorDLoad::undervoltageFraction,
-                   units::one,
-                   "Undervoltage fraction",
-                   parameterValidators::unitInterval),
-         localState("hasStalled", &MotorDLoad::hasStalled, "Has stalled"),
-         localState("restartablePartStalled",
-                    &MotorDLoad::restartablePartStalled,
-                    "Restartable part stalled"),
-         localState("undervoltageTripped",
-                    &MotorDLoad::undervoltageTripped,
-                    "Undervoltage tripped"),
-         localState("stallTimerActive", &MotorDLoad::stallTimerActive, "Stall timer active"),
-         localState("restartTimerActive", &MotorDLoad::restartTimerActive, "Restart timer active"),
-         localState("tripTimerActive1", &MotorDLoad::tripTimerActive1, "Trip timer active1"),
-         localState("tripTimerActive2", &MotorDLoad::tripTimerActive2, "Trip timer active2"),
-         localState("stallStart", &MotorDLoad::stallStart, "Stall start"),
-         localState("restartStart", &MotorDLoad::restartStart, "Restart start"),
-         localState("tripStart1", &MotorDLoad::tripStart1, "Trip start1"),
-         localState("tripStart2", &MotorDLoad::tripStart2, "Trip start2"),
-         localState("contactorFraction", &MotorDLoad::contactorFraction, "Contactor fraction"),
-         localState("previousContactorVoltage",
-                    &MotorDLoad::previousContactorVoltage,
-                    "Previous contactor voltage"),
-         localState("inverseTimeActive", &MotorDLoad::inverseTimeActive, "Inverse time active"),
-         localState("inverseTimeStart", &MotorDLoad::inverseTimeStart, "Inverse time start"),
-         localState("inverseTimeCycles", &MotorDLoad::inverseTimeCycles, "Inverse time cycles"),
-         localState("inverseTimeAccumulation",
-                    &MotorDLoad::inverseTimeAccumulation,
-                    "Inverse time accumulation"),
-         state("voltage_measurement",
-               units::one,
-               "Solver variable voltage_measurement when active"),
-         state("thermal_a", units::one, "Solver variable thermal_a when active"),
-         state("thermal_b", units::one, "Solver variable thermal_b when active")});
+                                                           &GridLoad::getModelDescription(),
+                                                           {parameter(
+                                                                {"lfm", "LFm"},
+                                                                &Model::loadFactor,
+                                                                units::one,
+                                                                "LFm: load MW / motor MVA rating",
+                                                                parameterValidators::positive),
+                                                            parameter({"comppf", "CompPF"},
+                                                                      &Model::compPF,
+                                                                      units::one,
+                                                                      "Comp pf",
+                                                                      [](double value) {
+                                                                          return value > 0.0 &&
+                                                                              value <= 1.0;
+                                                                      }),
+                                                            parameter({"vstall", "Vstall"},
+                                                                      &Model::stallVoltage,
+                                                                      units::one,
+                                                                      "Stall voltage",
+                                                                      [](double value) {
+                                                                          return value > 0.0 &&
+                                                                              value < 2.0;
+                                                                      }),
+                                                            parameter(
+                                                                {"rstall", "Rstall"},
+                                                                &Model::stallResistance,
+                                                                units::one,
+                                                                "Stall resistance",
+                                                                parameterValidators::positive),
+                                                            parameter(
+                                                                {"xstall", "Xstall"},
+                                                                &Model::stallReactance,
+                                                                units::one,
+                                                                "Stall reactance",
+                                                                parameterValidators::positive),
+                                                            parameter({"tstall", "Tstall"},
+                                                                      &Model::stallDelay,
+                                                                      units::second,
+                                                                      "Stall delay"),
+                                                            parameter({"vrst", "Vrst"},
+                                                                      &Model::restartVoltage,
+                                                                      units::one,
+                                                                      "Restart voltage",
+                                                                      [](double value) {
+                                                                          return value > 0.0 &&
+                                                                              value < 2.0;
+                                                                      }),
+                                                            parameter(
+                                                                {"trst", "Trst"},
+                                                                &Model::restartDelay,
+                                                                units::second,
+                                                                "Restart delay",
+                                                                parameterValidators::nonnegative),
+                                                            parameter(
+                                                                {"vtr1", "Vtr1"},
+                                                                &Model::tripVoltage1,
+                                                                units::one,
+                                                                "Trip voltage1",
+                                                                parameterValidators::nonnegative),
+                                                            parameter(
+                                                                {"ttr1", "Ttr1"},
+                                                                &Model::tripDelay1,
+                                                                units::second,
+                                                                "Trip delay1",
+                                                                parameterValidators::nonnegative),
+                                                            parameter(
+                                                                {"vtr2", "Vtr2"},
+                                                                &Model::tripVoltage2,
+                                                                units::one,
+                                                                "Trip voltage2",
+                                                                parameterValidators::nonnegative),
+                                                            parameter(
+                                                                {"ttr2", "Ttr2"},
+                                                                &Model::tripDelay2,
+                                                                units::second,
+                                                                "Trip delay2",
+                                                                parameterValidators::nonnegative),
+                                                            parameter(
+                                                                {"vc1off", "Vc1off"},
+                                                                &Model::contactorVoltageOff1,
+                                                                units::one,
+                                                                "Contactor voltage off1",
+                                                                [](double value) {
+                                                                    return value >= 0.0 &&
+                                                                        value < 2.0;
+                                                                }),
+                                                            parameter(
+                                                                {"vc2off", "Vc2off"},
+                                                                &Model::contactorVoltageOff2,
+                                                                units::one,
+                                                                "Contactor voltage off2",
+                                                                [](double value) {
+                                                                    return value >= 0.0 &&
+                                                                        value < 2.0;
+                                                                }),
+                                                            parameter(
+                                                                {"vc1on", "Vc1on"},
+                                                                &Model::contactorVoltageOn1,
+                                                                units::one,
+                                                                "Contactor voltage on1",
+                                                                [](double value) {
+                                                                    return value >= 0.0 &&
+                                                                        value < 2.0;
+                                                                }),
+                                                            parameter(
+                                                                {"vc2on", "Vc2on"},
+                                                                &Model::contactorVoltageOn2,
+                                                                units::one,
+                                                                "Contactor voltage on2",
+                                                                [](double value) {
+                                                                    return value >= 0.0 &&
+                                                                        value < 2.0;
+                                                                }),
+                                                            parameter(
+                                                                {"tth", "Tth"},
+                                                                &Model::thermalTimeConstant,
+                                                                units::second,
+                                                                "Thermal time constant",
+                                                                parameterValidators::nonnegative),
+                                                            parameter(
+                                                                {"th1t", "Th1t"},
+                                                                &Model::thermalTripStart,
+                                                                units::one,
+                                                                "Thermal trip start",
+                                                                parameterValidators::nonnegative),
+                                                            parameter(
+                                                                {"th2t", "Th2t"},
+                                                                &Model::thermalTripComplete,
+                                                                units::one,
+                                                                "Thermal trip complete",
+                                                                parameterValidators::nonnegative),
+                                                            parameter({"tv", "Tv"},
+                                                                      &Model::
+                                                                          voltageMeasurementLag,
+                                                                      units::second,
+                                                                      "Voltage measurement lag",
+                                                                      parameterValidators::
+                                                                          nonnegative),
+                                                            parameter(
+                                                                {"frst", "Frst"},
+                                                                &Model::restartableFraction,
+                                                                units::one,
+                                                                "Restartable fraction",
+                                                                parameterValidators::unitInterval),
+                                                            parameter(
+                                                                {"fuvr", "Fuvr"},
+                                                                &Model::undervoltageFraction,
+                                                                units::one,
+                                                                "Undervoltage fraction",
+                                                                parameterValidators::unitInterval),
+                                                            localState(
+                                                                "hasStalled", &Model::hasStalled, "Has stalled"),
+                                                            localState(
+                                                                "restartablePartStalled",
+                                                                &Model::restartablePartStalled,
+                                                                "Restartable part stalled"),
+                                                            localState(
+                                                                "undervoltageTripped",
+                                                                &Model::undervoltageTripped,
+                                                                "Undervoltage tripped"),
+                                                            localState("stallTimerActive",
+                                                                       &Model::
+                                                                           stallTimerActive,
+                                                                       "Stall timer active"),
+                                                            localState(
+                                                                "restartTimerActive",
+                                                                &Model::restartTimerActive,
+                                                                "Restart timer active"),
+                                                            localState("tripTimerActive1",
+                                                                       &Model::
+                                                                           tripTimerActive1,
+                                                                       "Trip timer active1"),
+                                                            localState("tripTimerActive2",
+                                                                       &Model::
+                                                                           tripTimerActive2,
+                                                                       "Trip timer active2"),
+                                                            localState(
+                                                                "stallStart", &Model::stallStart, "Stall start"),
+                                                            localState("restartStart",
+                                                                       &Model::restartStart,
+                                                                       "Restart start"),
+                                                            localState(
+                                                                "tripStart1", &Model::tripStart1, "Trip start1"),
+                                                            localState(
+                                                                "tripStart2", &Model::tripStart2, "Trip start2"),
+                                                            localState(
+                                                                "contactorFraction",
+                                                                &Model::contactorFraction,
+                                                                "Contactor fraction"),
+                                                            localState("previousContactorVoltage",
+                                                                       &Model::
+                                                                           previousContactorVoltage,
+                                                                       "Previous contactor voltage"),
+                                                            localState(
+                                                                "inverseTimeActive",
+                                                                &Model::inverseTimeActive,
+                                                                "Inverse time active"),
+                                                            localState("inverseTimeStart",
+                                                                       &Model::
+                                                                           inverseTimeStart,
+                                                                       "Inverse time start"),
+                                                            localState(
+                                                                "inverseTimeCycles",
+                                                                &Model::inverseTimeCycles,
+                                                                "Inverse time cycles"),
+                                                            localState("inverseTimeAccumulation",
+                                                                       &Model::
+                                                                           inverseTimeAccumulation,
+                                                                       "Inverse time accumulation"),
+                                                            state<Model>(
+                                                                {"voltage_measurement"},
+                                                                units::one,
+                                                                [](const auto& model) {
+                                                                    return model.voltageMeasurementLag >
+                                                                            0.0 ?
+                                                                        0 :
+                                                                        kInvalidLocation;
+                                                                },
+                                                                "Solver variable voltage_measurement when active"),
+                                                            state<Model>(
+                                                                {"thermal_a"},
+                                                                units::one,
+                                                                [](const auto& model) {
+                                                                    return model
+                                                                               .thermalProtectionEnabled() ?
+                                                                        (model.voltageMeasurementLag >
+                                                                                 0.0 ?
+                                                                             1 :
+                                                                             0) :
+                                                                        kInvalidLocation;
+                                                                },
+                                                                "Solver variable thermal_a when active"),
+                                                            state<Model>(
+                                                                {"thermal_b"},
+                                                                units::one,
+                                                                [](const auto& model) {
+                                                                    return model
+                                                                               .thermalProtectionEnabled() ?
+                                                                        (model.voltageMeasurementLag >
+                                                                                 0.0 ?
+                                                                             2 :
+                                                                             1) :
+                                                                        kInvalidLocation;
+                                                                },
+                                                                "Solver variable thermal_b when active")});
     return description;
 }
 
@@ -387,19 +497,6 @@ count_t MotorDLoad::localJacobianCount(const SolverMode& sMode) const
     const count_t stateCount = localStateSizes(sMode).diffSize;
     return stateCount + (voltageMeasurementLag > 0.0 ? 1 : 0) +
         (thermalProtectionEnabled() ? 4 : 0);
-}
-
-stringVec MotorDLoad::localStateNames() const
-{
-    stringVec names;
-    if (voltageMeasurementLag > 0.0) {
-        names.emplace_back("voltage_measurement");
-    }
-    if (thermalProtectionEnabled()) {
-        names.emplace_back("thermal_a");
-        names.emplace_back("thermal_b");
-    }
-    return names;
 }
 
 index_t MotorDLoad::voltageStateIndex() const

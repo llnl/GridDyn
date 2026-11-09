@@ -59,7 +59,6 @@ class GridFormingConverter: public TerminalElectricalModel {
                                   const StateData& stateData,
                                   MatrixData<double>& matrixData,
                                   const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   protected:
     Variant variant;

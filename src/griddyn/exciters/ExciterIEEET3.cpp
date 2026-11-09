@@ -60,11 +60,11 @@ const ModelDescription& ExciterIEEET3::getModelDescription() const
                     &ExciterIEEET3::opFlags,
                     ExciterIEEET3::REGULATOR_LIMIT_HIGH,
                     "Retained regulator_limit_high mode"),
-         state("efd", units::one, "Field voltage"),
-         state("vmeas", units::one, "Measured terminal voltage"),
-         state("vr", units::one, "Regulator state"),
-         state("wf", units::one, "Washout state"),
-         state("efstate", units::one, "efstate solver state")});
+         state({"efd", "field"}, units::one, 0, "Field voltage"),
+         state({"vmeas", "vc"}, units::one, 1, "Measured terminal voltage"),
+         state({"vr", "regulator"}, units::one, 2, "Regulator state"),
+         state({"wf", "feedback"}, units::one, 3, "Washout state"),
+         state({"efstate"}, units::one, 4, "efstate solver state")});
     return description;
 }
 
@@ -423,32 +423,6 @@ ChangeCode ExciterIEEET3::rootCheck(const IOdata& inputs,
         return ChangeCode::JACOBIAN_CHANGE;
     }
     return ChangeCode::NO_CHANGE;
-}
-
-stringVec ExciterIEEET3::localStateNames() const
-{
-    return {"efd", "vmeas", "vr", "wf", "efstate"};
-}
-
-index_t ExciterIEEET3::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "efd") || (field == "field")) {
-        return offsets.getAlgOffset(sMode);
-    }
-    const auto offset = offsets.getDiffOffset(sMode);
-    if ((field == "vmeas") || (field == "vc")) {
-        return offset + voltageMeasurementState;
-    }
-    if ((field == "vr") || (field == "regulator")) {
-        return offset + regulatorState;
-    }
-    if ((field == "wf") || (field == "feedback")) {
-        return offset + feedbackState;
-    }
-    if (field == "efstate") {
-        return offset + fieldState;
-    }
-    return kInvalidLocation;
 }
 
 // NOLINTEND(readability-math-missing-parentheses)

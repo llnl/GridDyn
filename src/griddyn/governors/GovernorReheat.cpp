@@ -62,12 +62,12 @@ const ModelDescription& GovernorReheat::getModelDescription() const
                    units::second,
                    "Crossover delay",
                    parameterValidators::positive),
-         state("pmech", units::puMW, "Mechanical power"),
-         state("filter", units::one, "Speed filter"),
-         state("governor", units::one, "Governor output"),
-         state("steamchest", units::one, "Steam-chest state"),
-         state("reheater", units::one, "Reheater state"),
-         state("crossover", units::one, "Crossover state"),
+         state({"pmech", "pm"}, units::puMW, 0, "Mechanical power"),
+         state({"filter"}, units::one, 1, "Speed filter"),
+         state({"governor"}, units::one, 2, "Governor output"),
+         state({"steamchest"}, units::one, 3, "Steam-chest state"),
+         state({"reheater"}, units::one, 4, "Reheater state"),
+         state({"crossover"}, units::one, 5, "Crossover state"),
          command({"k1"}, units::one, "Steam-chest fraction alias")});
     return description;
 }
@@ -210,30 +210,6 @@ void GovernorReheat::jacobianElements(const IOdata& /*inputs*/,
     matrixData.assign(diff + 3, diff + 3, (-1.0 / T5) - stateData.cj);
     matrixData.assign(diff + 4, diff + 3, K3 / T6);
     matrixData.assign(diff + 4, diff + 4, (-1.0 / T6) - stateData.cj);
-}
-
-index_t GovernorReheat::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "pm") || (field == "pmech")) {
-        return offsets.getAlgOffset(sMode);
-    }
-    const index_t differentialOffset = offsets.getDiffOffset(sMode);
-    if (field == "filter") {
-        return differentialOffset;
-    }
-    if (field == "governor") {
-        return differentialOffset + 1;
-    }
-    if (field == "steamchest") {
-        return differentialOffset + 2;
-    }
-    if (field == "reheater") {
-        return differentialOffset + 3;
-    }
-    if (field == "crossover") {
-        return differentialOffset + 4;
-    }
-    return kInvalidLocation;
 }
 
 // set parameters

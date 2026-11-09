@@ -76,9 +76,11 @@ normalization, and empty/comment names remain no-ops.
 
 ## Snapshot boundaries and follow-up review
 
-The tables distinguish solver variables from retained local history. Conditional
-solver-state declarations list possible names; `localStateNames()` and
-`findIndex(name, activeMode)` remain authoritative for the active layout and order.
+The tables distinguish solver variables from retained local history. Bound
+solver-state declarations supply the names and locations used by
+`solverStateNames()` and `findIndex(name, activeMode)`. Native solver states bind
+to a local slot or resolve through the active solver mode. References to child
+states use separate declarations and reuse the child's labels.
 Held renewable commands, limiter timers, motor protection latches, and configured
 reference bookkeeping are examples of retained model history.
 

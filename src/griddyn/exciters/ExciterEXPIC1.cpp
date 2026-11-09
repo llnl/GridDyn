@@ -141,13 +141,53 @@ const ModelDescription& ExciterEXPIC1::getModelDescription() const
          parameter({"kp"}, &ExciterEXPIC1::Kp, units::one, "Kp gain or coefficient"),
          parameter({"ki"}, &ExciterEXPIC1::Ki, units::one, "Ki gain or coefficient"),
          parameter({"kc"}, &ExciterEXPIC1::Kc, units::one, "Kc gain or coefficient"),
-         state("efd", units::one, "Field voltage"),
-         state("et", units::one, "et solver state"),
-         state("xa", units::one, "xa solver state"),
-         state("vr1", units::one, "vr1 solver state"),
-         state("vr", units::one, "Regulator state"),
-         state("vf1", units::one, "vf1 solver state"),
-         state("vf", units::one, "Feedback state")});
+         state<ExciterEXPIC1>(
+             {"efd", "field"},
+             units::one,
+             [](const auto& model) { return model.Te == 0.0 ? 0 : model.stateLayout().efd; },
+             "Field voltage"),
+         state<ExciterEXPIC1>(
+             {"et", "vmeas"},
+             units::one,
+             [](const auto& model) {
+                 return stateSlot(model.stateLayout().sensedVoltage, model.Te == 0.0 ? 1 : 0);
+             },
+             "et solver state"),
+         state<ExciterEXPIC1>(
+             {"xa", "va", "pi"},
+             units::one,
+             [](const auto& model) {
+                 return stateSlot(model.stateLayout().piIntegrator, model.Te == 0.0 ? 1 : 0);
+             },
+             "xa solver state"),
+         state<ExciterEXPIC1>(
+             {"vr1"},
+             units::one,
+             [](const auto& model) {
+                 return stateSlot(model.stateLayout().regulatorOne, model.Te == 0.0 ? 1 : 0);
+             },
+             "vr1 solver state"),
+         state<ExciterEXPIC1>(
+             {"vr", "regulator"},
+             units::one,
+             [](const auto& model) {
+                 return stateSlot(model.stateLayout().regulator, model.Te == 0.0 ? 1 : 0);
+             },
+             "Regulator state"),
+         state<ExciterEXPIC1>(
+             {"vf1"},
+             units::one,
+             [](const auto& model) {
+                 return stateSlot(model.stateLayout().feedbackOne, model.Te == 0.0 ? 1 : 0);
+             },
+             "vf1 solver state"),
+         state<ExciterEXPIC1>(
+             {"vf", "feedback"},
+             units::one,
+             [](const auto& model) {
+                 return stateSlot(model.stateLayout().feedback, model.Te == 0.0 ? 1 : 0);
+             },
+             "Feedback state")});
     return description;
 }
 
@@ -541,59 +581,6 @@ void ExciterEXPIC1::timestep(CoreTime time, const IOdata& inputs, const SolverMo
         m_state[0] = evaluateModel(inputs, m_state.data() + 1).fieldOutput;
     }
     prevTime = time;
-}
-
-stringVec ExciterEXPIC1::localStateNames() const
-{
-    const auto layout = stateLayout();
-    stringVec names;
-    names.reserve(static_cast<std::size_t>(layout.count) + ((Te == 0.0) ? 1U : 0U));
-    if (Te == 0.0) {
-        names.emplace_back("efd");
-    }
-    for (index_t index = 0; index < layout.count; ++index) {
-        if (index == layout.efd) {
-            names.emplace_back("efd");
-        } else if (index == layout.sensedVoltage) {
-            names.emplace_back("et");
-        } else if (index == layout.piIntegrator) {
-            names.emplace_back("xa");
-        } else if (index == layout.regulatorOne) {
-            names.emplace_back("vr1");
-        } else if (index == layout.regulator) {
-            names.emplace_back("vr");
-        } else if (index == layout.feedbackOne) {
-            names.emplace_back("vf1");
-        } else if (index == layout.feedback) {
-            names.emplace_back("vf");
-        }
-    }
-    return names;
-}
-
-index_t ExciterEXPIC1::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    const auto layout = stateLayout();
-    if ((field == "efd") || (field == "field")) {
-        return (Te == 0.0) ? offsets.getAlgOffset(sMode) :
-                             offsets.getDiffOffset(sMode) + layout.efd;
-    }
-    index_t localIndex = kInvalidLocation;
-    if ((field == "et") || (field == "vmeas")) {
-        localIndex = layout.sensedVoltage;
-    } else if ((field == "xa") || (field == "va") || (field == "pi")) {
-        localIndex = layout.piIntegrator;
-    } else if (field == "vr1") {
-        localIndex = layout.regulatorOne;
-    } else if ((field == "vr") || (field == "regulator")) {
-        localIndex = layout.regulator;
-    } else if (field == "vf1") {
-        localIndex = layout.feedbackOne;
-    } else if ((field == "vf") || (field == "feedback")) {
-        localIndex = layout.feedback;
-    }
-    return (localIndex == kInvalidLocation) ? localIndex :
-                                              offsets.getDiffOffset(sMode) + localIndex;
 }
 
 // NOLINTEND(readability-math-missing-parentheses)

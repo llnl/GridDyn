@@ -75,8 +75,6 @@ class Exciter: public GridSubModel {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual stringVec localStateNames() const override;
-
     virtual void residual(const IOdata& inputs,
                           const StateData& stateData,
                           double resid[],

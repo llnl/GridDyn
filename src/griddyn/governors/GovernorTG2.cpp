@@ -38,8 +38,8 @@ const ModelDescription& GovernorTG2::getModelDescription() const
               &GovernorTG2::deadbandEnabled,
               "Enable speed deadband"),
          flag({"hardlimit"}, &GovernorTG2::hardLimitEnabled, "Enable hard output limit"),
-         state("pmech", units::puMW, "Mechanical power"),
-         state("leadlag", units::one, "Lead-lag state")});
+         state({"pmech", "pm"}, units::puMW, 0, "Mechanical power"),
+         state({"leadlag", "ll"}, units::one, 1, "Lead-lag state")});
     return description;
 }
 CoreObject* GovernorTG2::clone(CoreObject* obj) const
@@ -198,16 +198,6 @@ void GovernorTG2::timestep(CoreTime time,
     m_state[diffOffset] += (time - prevTime) * m_dstate_dt[diffOffset];
     m_state[offsets.getAlgOffset(cLocalSolverMode)] = output(inputs, m_state[diffOffset]);
     prevTime = time;
-}
-index_t GovernorTG2::findIndex(std::string_view field, const SolverMode& mode) const
-{
-    if (field == "pm" || field == "pmech") {
-        return offsets.getAlgOffset(mode);
-    }
-    if (field == "ll" || field == "leadlag") {
-        return offsets.getDiffOffset(mode);
-    }
-    return kInvalidLocation;
 }
 void GovernorTG2::set(std::string_view param, double value, units::unit unitType)
 {

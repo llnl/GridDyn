@@ -47,7 +47,6 @@ class GovernorSteamNR: public GovernorIeeeSimple {
     using GovernorIeeeSimple::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
     virtual void residual(const IOdata& inputs,
                           const StateData& stateData,

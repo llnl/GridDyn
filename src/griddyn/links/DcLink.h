@@ -96,9 +96,7 @@ class DcLink: public Link {
                             double dstateDt[],
                             const SolverMode& sMode) override;
     // for computing all the Jacobian elements at once
-    virtual void getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix = "") const override;
+
     virtual int fixRealPower(double power,
                              id_type_t measureTerminal,
                              id_type_t fixedTerminal = 0,

@@ -59,7 +59,6 @@ class WT4E1 final: public RenewableComponent {
                                   const StateData& stateData,
                                   MatrixData<double>& matrixData,
                                   const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   private:
     int pfFast = 0, windVar = 0, pqPriority = 1, psseMatch = 0;

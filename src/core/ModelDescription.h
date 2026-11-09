@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <functional>
 #include <initializer_list>
+#include <memory>
 #include <optional>
 #include <span>
 #include <string>
@@ -20,6 +21,7 @@
 #include <vector>
 
 namespace griddyn {
+class SolverMode;
 
 /** Meaning of a declared member, independently of its storage type. */
 enum class ModelFieldKind : std::uint8_t {
@@ -28,7 +30,9 @@ enum class ModelFieldKind : std::uint8_t {
     STATE,
     LOCAL_STATE,
     COMMAND,
-    INDEXED_COMMAND
+    INDEXED_COMMAND,
+    INDEXED_STATE,
+    STATE_REFERENCE
 };
 
 enum class ModelFieldType : std::uint8_t {
@@ -73,7 +77,8 @@ enum class SetResult : std::uint8_t {
 
 /** Metadata and typed access to one existing member; no member value is stored here.
  *
- * parameter() and flag() describe controls. state() identifies solver variables;
+ * parameter() and flag() describe controls. state() identifies owned solver variables;
+ * stateReference() identifies borrowed solver outputs. indexedState() names a state family;
  * localState() binds retained model memory. command() describes operations implemented by the
  * class. An exact Boolean command dispatches to setFlag(). Normal clients continue to use
  * CoreObject::set/get. The local dispatch helpers perform direct member access for model
@@ -83,9 +88,21 @@ enum class SetResult : std::uint8_t {
 class ModelField {
   public:
     using Assignment = std::function<void()>;
+    /** Index in the object's local state vector; kInvalidLocation means inactive. */
+    using StateIndex = std::function<index_t(const CoreObject&, index_t)>;
+    using StateCount = std::function<count_t(const CoreObject&)>;
+    using StateName = std::function<std::string(const CoreObject&, index_t)>;
+    using SolverIndex = std::function<index_t(const CoreObject&, const SolverMode&)>;
     using Reader = std::function<ModelFieldValue(const CoreObject&)>;
     using Writer = std::function<void(CoreObject&, const ModelFieldValue&, std::string_view)>;
     using Restorer = std::function<Assignment(CoreObject&, const ModelFieldValue&)>;
+
+    struct StateBinding {
+        StateIndex mLocalIndex{};
+        SolverIndex mSolverIndex{};
+        StateCount mCount{};
+        StateName mName{};
+    };
 
     /** Low-level constructor used by the member-binding templates. */
     ModelField(std::initializer_list<std::string_view> names,
@@ -96,6 +113,11 @@ class ModelField {
                Reader reader = {},
                Writer writer = {},
                Restorer restorer = {});
+    ModelField(std::initializer_list<std::string_view> names,
+               units::unit unitType,
+               std::string_view description,
+               StateBinding binding,
+               ModelFieldKind kind = ModelFieldKind::STATE);
 
     [[nodiscard]] std::string_view name() const { return mNames.front(); }
     [[nodiscard]] std::span<const std::string> names() const { return mNames; }
@@ -114,6 +136,24 @@ class ModelField {
             mKind == ModelFieldKind::COMMAND || mKind == ModelFieldKind::INDEXED_COMMAND;
     }
     [[nodiscard]] bool matches(std::string_view name) const;
+    /** No value means metadata only; a bound inactive state returns kInvalidLocation. */
+    [[nodiscard]] std::optional<index_t> stateIndex(const CoreObject& object,
+                                                    index_t element = 0) const;
+    [[nodiscard]] bool hasStateBinding() const
+    {
+        return mState && (mState->mLocalIndex || mState->mSolverIndex);
+    }
+    [[nodiscard]] bool isState() const
+    {
+        return mKind == ModelFieldKind::STATE || mKind == ModelFieldKind::INDEXED_STATE ||
+            mKind == ModelFieldKind::STATE_REFERENCE;
+    }
+    [[nodiscard]] count_t stateCount(const CoreObject& object) const;
+    [[nodiscard]] std::string stateName(const CoreObject& object, index_t element = 0) const;
+    [[nodiscard]] std::optional<index_t> stateElement(const CoreObject& object,
+                                                      std::string_view name) const;
+    [[nodiscard]] std::optional<index_t> solverStateIndex(const CoreObject& object,
+                                                          const SolverMode& mode) const;
     /** Read the existing member in its declared/native units. */
     [[nodiscard]] ModelFieldValue value(const CoreObject& object) const;
 
@@ -130,6 +170,7 @@ class ModelField {
     Reader mRead;
     Writer mWrite;
     Restorer mRestore;
+    std::shared_ptr<const StateBinding> mState;
 };
 
 /** Shared immutable table for one declaring class and its parent description. */
@@ -152,6 +193,36 @@ class ModelDescription {
     [[nodiscard]] std::string_view name() const { return mName; }
     [[nodiscard]] const ModelDescription* parent() const { return mParent; }
     [[nodiscard]] std::span<const ModelField> fields() const { return mFields; }
+    /** Effective state declarations, including inherited references. Derived names replace
+     * ancestors. */
+    [[nodiscard]] std::span<const ModelField* const> stateFields() const { return mStates; }
+    /** Bound canonical state names in local vector order. Derived declarations override
+     * inherited names and occupied slots. Inactive states are omitted; unnamed slots are empty.
+     */
+    [[nodiscard]] stringVec solverStateNames(const CoreObject& object) const;
+    /** Resolve a declared state name or alias to its local vector index, without allocating.
+     * No value means no bound declaration; kInvalidLocation means a declared inactive state.
+     */
+    [[nodiscard]] std::optional<index_t> stateIndex(const CoreObject& object,
+                                                    std::string_view name) const;
+    /** Resolve once, then translate local slots through the caller's active solver layout. */
+    template<class LocalMapper>
+    [[nodiscard]] std::optional<index_t> solverStateIndex(const CoreObject& object,
+                                                          std::string_view name,
+                                                          const SolverMode& mode,
+                                                          LocalMapper mapLocal) const
+    {
+        index_t element = 0;
+        const auto* field = findState(object, name, element);
+        if (field == nullptr) {
+            return std::nullopt;
+        }
+        if (const auto index = field->solverStateIndex(object, mode)) {
+            return index;
+        }
+        const auto local = field->stateIndex(object, element);
+        return local ? std::optional<index_t>{mapLocal(*local)} : std::nullopt;
+    }
     [[nodiscard]] std::span<const std::string_view> numericNames() const { return mNumericNames; }
     [[nodiscard]] std::span<const std::string_view> stringNames() const { return mStringNames; }
     [[nodiscard]] std::span<const std::string_view> flagNames() const { return mFlagNames; }
@@ -217,6 +288,8 @@ class ModelDescription {
     }
 
   private:
+    const ModelField*
+        findState(const CoreObject& object, std::string_view name, index_t& element) const;
     /** Start a bounded lookup at the derived table, or this table for a standalone view. */
     [[nodiscard]] const ModelDescription* derivedDescription(const CoreObject& object) const;
     ModelDescription(std::string_view name,
@@ -226,6 +299,7 @@ class ModelDescription {
     std::string mName;
     const ModelDescription* mParent;
     std::vector<ModelField> mFields;
+    std::vector<const ModelField*> mStates;
     std::vector<std::string_view> mNumericNames;
     std::vector<std::string_view> mStringNames;
     std::vector<std::string_view> mFlagNames;
@@ -274,5 +348,19 @@ ModelField indexedCommand(std::initializer_list<std::string_view> prefixes,
  * Its values belong to the shared solver-state payload, not object-field snapshots.
  */
 ModelField state(std::string_view name, units::unit unitType, std::string_view description = {});
+
+/** Offset an optional local state index without overflowing its inactive sentinel. */
+constexpr index_t stateSlot(index_t index, index_t offset)
+{
+    return index < kInvalidLocation && index >= 0 ? index + offset : kInvalidLocation;
+}
+
+/** Bind a fixed slot in the object's local vector (voltage, angle, algebraic, differential).
+ * The binding supplies location metadata only; solver values are not object-field snapshots.
+ */
+ModelField state(std::initializer_list<std::string_view> names,
+                 units::unit unitType,
+                 index_t index,
+                 std::string_view description = {});
 
 }  // namespace griddyn

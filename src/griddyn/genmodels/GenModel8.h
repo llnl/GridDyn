@@ -23,7 +23,6 @@ class GenModel8: public GenModel6 {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual stringVec localStateNames() const override;
     // dynamics
     virtual void algebraicUpdate(const IOdata& inputs,
                                  const StateData& stateData,

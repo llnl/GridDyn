@@ -28,11 +28,12 @@ const ModelDescription& GenModel4::getModelDescription() const
          parameter({"s10", "s1"}, &GenModel4::S10, units::one, "Saturation at 1.0 per unit"),
          parameter({"s12"}, &GenModel4::S12, units::one, "Saturation at 1.2 per unit"),
          command({"top", "t0p"}, units::second, "Set both transient open-circuit times"),
-         state("edp", units::one, "Solver variable edp"),
+         state({"edp"}, units::one, 4, "Solver variable edp"),
          command({"saturation_type"},
                  units::defunit,
                  "Select the saturation function",
-                 ModelFieldType::STRING)});
+                 ModelFieldType::STRING),
+         state({"eqp"}, units::one, 5, "Solver variable eqp")});
     return description;
 }
 
@@ -267,12 +268,6 @@ void GenModel4::jacobianElements(const IOdata& inputs,
     }
 }
 
-static const stringVec genModel4Names{"id", "iq", "delta", "freq", "edp", "eqp"};
-
-stringVec GenModel4::localStateNames() const
-{
-    return genModel4Names;
-}
 // set parameters
 void GenModel4::set(std::string_view param, std::string_view val)
 {

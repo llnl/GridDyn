@@ -203,9 +203,6 @@ class DynamicGenerator: public Generator {
                                   MatrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
-    virtual void getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix) const override;
 
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
@@ -231,7 +228,6 @@ class DynamicGenerator: public Generator {
                                     const StateData& stateDataValue,
                                     const SolverMode& sMode) const override;
 
-    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
     virtual CoreObject* find(std::string_view object) const override;
     virtual CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
     virtual double getFreq(const StateData& stateDataValue,

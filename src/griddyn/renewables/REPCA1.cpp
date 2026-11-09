@@ -85,15 +85,27 @@ const ModelDescription& REPCA1::getModelDescription() const
          parameter({"fflag"}, &REPCA1::Fflag, units::one, "Fflag", parameterValidators::binary),
          parameter({"plflag"}, &REPCA1::PLflag, units::one, "Plflag", parameterValidators::binary),
          command({"vbus"}, units::defunit, "Set vbus"),
-         state("Pext", units::one, "Solver variable Pext when active"),
-         state("Qext", units::one, "Solver variable Qext when active"),
-         state("Vf", units::one, "Solver variable Vf when active"),
-         state("Qf", units::one, "Solver variable Qf when active"),
-         state("Qi", units::one, "Solver variable Qi when active"),
-         state("Qlag", units::one, "Solver variable Qlag when active"),
-         state("PbranchFilter", units::one, "Solver variable PbranchFilter when active"),
-         state("Pintegral", units::one, "Solver variable Pintegral when active"),
-         state("Plag", units::one, "Solver variable Plag when active"),
+         state({"Pext"}, units::one, 0, "Solver variable Pext when active"),
+         state({"Qext"}, units::one, 1, "Solver variable Qext when active"),
+         state({"Vf"}, units::one, 2, "Solver variable Vf when active"),
+         state({"Qf"}, units::one, 3, "Solver variable Qf when active"),
+         state({"Qi"}, units::one, 4, "Solver variable Qi when active"),
+         state({"Qlag"}, units::one, 5, "Solver variable Qlag when active"),
+         state<REPCA1>(
+             {"PbranchFilter"},
+             units::one,
+             [](const auto& model) { return model.Fflag == 1 ? 6 : kInvalidLocation; },
+             "Solver variable PbranchFilter when active"),
+         state<REPCA1>(
+             {"Pintegral"},
+             units::one,
+             [](const auto& model) { return model.Fflag == 1 ? 7 : kInvalidLocation; },
+             "Solver variable Pintegral when active"),
+         state<REPCA1>(
+             {"Plag"},
+             units::one,
+             [](const auto& model) { return model.Fflag == 1 ? 8 : kInvalidLocation; },
+             "Solver variable Plag when active"),
          localState("initialActiveReference",
                     &REPCA1::initialActiveReference,
                     "Initial active reference")});
@@ -532,12 +544,4 @@ void REPCA1::outputPartialDerivatives(const IOdata& /*inputs*/,
     matrixData.assign(qext, alg + qext, 1.0);
 }
 
-stringVec REPCA1::localStateNames() const
-{
-    stringVec names{"Pext", "Qext", "Vf", "Qf", "Qi", "Qlag"};
-    if (Fflag == 1) {
-        names.insert(names.end(), {"PbranchFilter", "Pintegral", "Plag"});
-    }
-    return names;
-}
 }  // namespace griddyn

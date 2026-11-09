@@ -66,10 +66,22 @@ const ModelDescription& StabilizerStab3::getModelDescription() const
                     &StabilizerStab3::opFlags,
                     OUTPUT_LIMIT_HIGH,
                     "Upper output limit active"),
-         state("vs", units::one, "Stabilizer solver variable vs"),
-         state("transducer", units::one, "Stabilizer solver variable transducer"),
-         state("lowpass", units::one, "Stabilizer solver variable lowpass"),
-         state("washout", units::one, "Stabilizer solver variable washout")});
+         state({"vs", "vss"}, units::one, 0, "Stabilizer solver variable vs"),
+         state({"transducer"},
+               units::one,
+               &StabilizerStab3::transducerState,
+               1,
+               "Stabilizer solver variable transducer"),
+         state({"lowpass"},
+               units::one,
+               &StabilizerStab3::lowPassState,
+               1,
+               "Stabilizer solver variable lowpass"),
+         state({"washout"},
+               units::one,
+               &StabilizerStab3::derivativeState,
+               1,
+               "Stabilizer solver variable washout")});
     return description;
 }
 
@@ -368,27 +380,6 @@ ChangeCode StabilizerStab3::rootCheck(const IOdata& inputs,
         return ChangeCode::JACOBIAN_CHANGE;
     }
     return ChangeCode::NO_CHANGE;
-}
-
-stringVec StabilizerStab3::localStateNames() const
-{
-    stringVec names{"vs"};
-    if (transducerState != kNullLocation) {
-        names.emplace_back("transducer");
-    }
-    if (lowPassState != kNullLocation) {
-        names.emplace_back("lowpass");
-    }
-    names.emplace_back("washout");
-    return names;
-}
-
-index_t StabilizerStab3::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "vss") || (field == "vs")) {
-        return getOutputLoc(sMode, 0);
-    }
-    return kInvalidLocation;
 }
 
 }  // namespace griddyn::stabilizers

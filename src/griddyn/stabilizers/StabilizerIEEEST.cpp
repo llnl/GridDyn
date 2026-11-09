@@ -109,14 +109,24 @@ const ModelDescription& StabilizerIEEEST::getModelDescription() const
                     "Upper output limit active"),
          localState(
              "voltage_gated", &StabilizerIEEEST::opFlags, VOLTAGE_GATED, "Voltage gating history"),
-         state("vs", units::one, "Stabilizer solver variable vs"),
-         state("f1x", units::one, "Stabilizer solver variable f1x"),
-         state("f1y", units::one, "Stabilizer solver variable f1y"),
-         state("f2x", units::one, "Stabilizer solver variable f2x"),
-         state("f2y", units::one, "Stabilizer solver variable f2y"),
-         state("ll1", units::one, "Stabilizer solver variable ll1"),
-         state("ll2", units::one, "Stabilizer solver variable ll2"),
-         state("wo", units::one, "Stabilizer solver variable wo")});
+         state({"vs", "vss"}, units::one, 0, "Stabilizer solver variable vs"),
+         state(
+             {"f1x"}, units::one, &StabilizerIEEEST::f1xState, 1, "Stabilizer solver variable f1x"),
+         state(
+             {"f1y"}, units::one, &StabilizerIEEEST::f1yState, 1, "Stabilizer solver variable f1y"),
+         state(
+             {"f2x"}, units::one, &StabilizerIEEEST::f2xState, 1, "Stabilizer solver variable f2x"),
+         state(
+             {"f2y"}, units::one, &StabilizerIEEEST::f2yState, 1, "Stabilizer solver variable f2y"),
+         state(
+             {"ll1"}, units::one, &StabilizerIEEEST::ll1State, 1, "Stabilizer solver variable ll1"),
+         state(
+             {"ll2"}, units::one, &StabilizerIEEEST::ll2State, 1, "Stabilizer solver variable ll2"),
+         state({"wo"},
+               units::one,
+               &StabilizerIEEEST::washoutState,
+               1,
+               "Stabilizer solver variable wo")});
     return description;
 }
 
@@ -570,37 +580,6 @@ ChangeCode StabilizerIEEEST::rootCheck(const IOdata& inputs,
         return ChangeCode::JACOBIAN_CHANGE;
     }
     return ChangeCode::NO_CHANGE;
-}
-
-stringVec StabilizerIEEEST::localStateNames() const
-{
-    stringVec names{"vs"};
-    if (f1xState != kNullLocation) {
-        names.emplace_back("f1x");
-    }
-    if (f1yState != kNullLocation) {
-        names.emplace_back("f1y");
-    }
-    if (f2xState != kNullLocation) {
-        names.emplace_back("f2x");
-        names.emplace_back("f2y");
-    }
-    if (ll1State != kNullLocation) {
-        names.emplace_back("ll1");
-    }
-    if (ll2State != kNullLocation) {
-        names.emplace_back("ll2");
-    }
-    names.emplace_back("wo");
-    return names;
-}
-
-index_t StabilizerIEEEST::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "vss") || (field == "vs")) {
-        return getOutputLoc(sMode, 0);
-    }
-    return kInvalidLocation;
 }
 
 void StabilizerIEEEST::set(std::string_view param, double val, units::unit unitType)

@@ -33,7 +33,7 @@ class MotorDLoad: public GridLoad {
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     StateSizes localStateSizes(const SolverMode& sMode) const override;
     count_t localJacobianCount(const SolverMode& sMode) const override;
-    stringVec localStateNames() const override;
+
     std::pair<count_t, count_t> LocalRootCount(const SolverMode& sMode) const override;
     void rootTest(const IOdata& inputs,
                   const StateData& stateData,

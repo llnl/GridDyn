@@ -80,7 +80,6 @@ class EPCGEN final: public TerminalElectricalModel {
                          const StateData& stateData,
                          const SolverMode& sMode,
                          CheckLevel level) override;
-    stringVec localStateNames() const override;
 
   private:
     enum State : index_t {

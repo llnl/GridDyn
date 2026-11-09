@@ -113,8 +113,6 @@ class GovernorIeeeG1: public Governor {
                          const SolverMode& sMode,
                          CheckLevel level) override;
 
-    stringVec localStateNames() const override;
-    index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
     const std::vector<stringVec>& outputNames() const override;
 
   private:

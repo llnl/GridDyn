@@ -318,19 +318,95 @@ enumeration overrides and delegates native names to the inherited implementation
 
 ## Solver state and retained local memory
 
-Solver-state declarations identify logical variables, not fixed offsets:
+Solver-state declarations own canonical names, aliases, units and descriptions.
+A bound declaration can identify a slot in the object's local state vector.
 
 ```cpp
-state("voltage", units::puV, "Bus voltage magnitude")
-state("angle", units::rad, "Bus voltage angle")
+state({"pmech", "pm"}, units::puMW, 0, "Mechanical power")
+state({"valve", "v"}, units::one, 1, "Valve position")
 ```
 
-Resolve them with `component.findIndex(declaration.name(), activeSolverMode)`.
-The index depends on mode, partition, offsets and initialization. Fixed or
-inactive variables can be unavailable. Values belong to the shared solver/HDF5
-payload, not object-field records; there is no raw member reader or default
-ordinary setter. The legacy `localStateNames()` method names a model's portion
-of the solver vector and is separate from `localState` declarations.
+These indices follow local storage order, with voltage, angle, algebraic, and
+differential groups in that sequence. GridComponent translates them through the
+initialized layout for the selected solver mode. A recognized state absent from
+that mode returns `kNullLocation`. An inactive declaration returns `kInvalidLocation`.
+Before layout initialization, a bound active state can also return `kNullLocation`.
+
+For configuration-dependent layouts, the same declaration accepts a typed index
+resolver. It receives the model and returns a local slot, or `kInvalidLocation`
+when the state is inactive.
+
+```cpp
+state<MyModel>({"vmeas"}, units::one,
+    [](const auto& model) {
+        return model.Tr > 0.0 ? model.measurementSlot() : kInvalidLocation;
+    }, "Measured voltage")
+```
+
+The resolver handles numerical layout. The declaration supplies the names.
+Resolvers can call existing layout methods, as EXAC1 does for its optional
+transducer, lead-lag and algebraic/differential regulator configurations. If a
+model already stores the assigned index, `state` can bind its member (or an
+array element) directly with a local group prefix. Inactive indices are omitted.
+
+`component.solverStateNames()` uses these bindings to enumerate canonical names
+in local vector order, excluding child objects. `findIndex(name, activeMode)`
+uses the same bindings for names and aliases, without constructing that vector.
+Diagnostic `getStateName` applies the active solver offsets and object prefixes.
+If a solver state shares a name with an editable field, use
+`find(name, ModelFieldKind::STATE)` to select the solver declaration.
+
+Inherited declarations remain available. A derived canonical declaration replaces
+its ancestor, and inherited aliases follow that replacement. The most-derived
+name wins when two declarations describe the same slot. An inactive replacement
+hides its ancestor. Gaps retain empty entries to preserve later indices.
+Diagnostics supply generic labels for unnamed slots.
+
+Native GridDyn models share the `solverStateNames()` implementation and reuse
+inherited declarations. Machine formulations
+that replace an inherited variable explicitly bind that variable to
+`kInvalidLocation`, so it cannot become an alias for a different state sharing
+its old slot.
+
+Some primary models use different numerical layouts in power flow and dynamics,
+or keep cached values in ordinary members rather than the object's local vector.
+They use a mode-aware `state<Model>` resolver with `(model, mode)` arguments,
+returning a global solver index. These owned states are named by the shared
+`getStateName(names, mode)` diagnostic traversal. `solverStateNames()` enumerates
+the bindings that have local vector slots.
+
+References to another object's solver output use `stateReference<Model>`.
+For example, Governor declares `pm`, `dbo`, and `w` against its internal blocks.
+These references participate in `findIndex` and use the child's diagnostic label.
+Object-field snapshots cover parameters, flags, and retained local memory.
+
+`indexedState<Model>({"x"}, units, countResolver, indexResolver, description)`
+describes variable-order families such as `x0` and `x1` in transfer functions.
+The index resolver receives the model and zero-based element. Lookup checks the
+complete decimal suffix, integer range and current family length. The descriptor
+supplies the prefix for both name generation and parsing.
+`namedState<Model>` binds an instance-provided label, such as a block's
+`outputName`, and its index. Both the configured name and declared canonical
+aliases resolve through the same field.
+
+Effective state declarations are cached once per immutable description. Named
+lookup resolves a declaration once and translates its local index through the
+selected layout without constructing a name vector. Modes with unusual numerical
+partitioning, such as the motor models, retain small overrides for numeric mapping.
+Limit-state labels follow the allocated layout counts.
+
+The migration corrects PID output/derivative/integral labels, ControlBlock's
+`m1` alias in differential-output mode, and motor diagnostic labels in the
+algebraic-only partition. Diagnostic prefixes now follow the same traversal for
+links, buses, protection relays, generators and submodels. The FMI adapter remains
+outside this native-model migration, consistent with its deferred integration.
+
+The metadata-only `state(name, units, description)` overload remains available
+for external descriptions. Callers of `localStateNames()` should use
+`solverStateNames()`.
+
+Solver values belong to the shared solver/HDF5 payload. The state bindings
+supply names and locations for diagnostics and future checkpoint coordination.
 
 Local state is memory needed to continue, such as a latch, hysteresis branch,
 previous sample or scheduling history:

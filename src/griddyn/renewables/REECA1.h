@@ -72,7 +72,6 @@ class REECA1: public RenewableComponent {
                          const StateData& stateData,
                          const SolverMode& sMode,
                          CheckLevel level) override;
-    stringVec localStateNames() const override;
 
   protected:
     virtual bool useVoltageInjection(double voltage) const { return dipMode(voltage); }

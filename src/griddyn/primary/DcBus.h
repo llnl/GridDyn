@@ -155,10 +155,6 @@ class DcBus: public GridBus {
     virtual int getMode(const SolverMode& sMode) const;
     virtual int propogatePower(bool makeSlack = false) override;
 
-    virtual void getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix) const override;
-
   protected:
     void computePowerAdjustments();
 };

@@ -20,8 +20,8 @@ const ModelDescription& GenModel5type3::getModelDescription() const
     static const auto description = ModelDescription::define<GenModel5type3>(
         "GenModel5type3",
         &GenModel3::getModelDescription(),
-        {state("psid", units::one, "Solver variable psid"),
-         state("psiq", units::one, "Solver variable psiq")});
+        {state({"psid"}, units::one, 5, "Solver variable psid"),
+         state({"psiq"}, units::one, 6, "Solver variable psiq")});
     return description;
 }
 
@@ -227,10 +227,4 @@ void GenModel5type3::jacobianElements(const IOdata& inputs,
     }
 }
 
-static const stringVec genModel5type3Names{"id", "iq", "delta", "freq", "eqp", "psid", "psiq"};
-
-stringVec GenModel5type3::localStateNames() const
-{
-    return genModel5type3Names;
-}
 }  // namespace griddyn::genmodels

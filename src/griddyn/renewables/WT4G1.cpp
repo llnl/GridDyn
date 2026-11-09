@@ -64,11 +64,11 @@ const ModelDescription& WT4G1::getModelDescription() const
          parameter({"curhvrcr"}, &WT4G1::Curhvrcr, units::one, "Curhvrcr"),
          parameter({"riplvpl"}, &WT4G1::RIpLvpl, units::one, "Rip lvpl"),
          parameter({"tlvpl"}, &WT4G1::TLvpl, units::second, "Tlvpl"),
-         state("Pe", units::one, "Solver variable Pe when active"),
-         state("Qe", units::one, "Solver variable Qe when active"),
-         state("Ip", units::one, "Solver variable Ip when active"),
-         state("Iq", units::one, "Solver variable Iq when active"),
-         state("Vf", units::one, "Solver variable Vf when active"),
+         state({"Pe"}, units::one, 0, "Solver variable Pe when active"),
+         state({"Qe"}, units::one, 1, "Solver variable Qe when active"),
+         state({"Ip"}, units::one, 2, "Solver variable Ip when active"),
+         state({"Iq"}, units::one, 3, "Solver variable Iq when active"),
+         state({"Vf"}, units::one, 4, "Solver variable Vf when active"),
          localState("heldIp", &WT4G1::heldIp, "Held ip"),
          localState("heldIq", &WT4G1::heldIq, "Held iq")});
     return description;
@@ -363,8 +363,4 @@ void WT4G1::outputPartialDerivatives(const IOdata& inputs,
     (void)stateData;
 }
 
-stringVec WT4G1::localStateNames() const
-{
-    return {"Pe", "Qe", "Ip", "Iq", "Vf"};
-}
 }  // namespace griddyn

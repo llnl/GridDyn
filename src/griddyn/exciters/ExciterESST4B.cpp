@@ -63,11 +63,34 @@ const ModelDescription& ExciterESST4B::getModelDescription() const
          parameter({"xl"}, &ExciterESST4B::Xl, units::one, "Xl model setting"),
          parameter(
              {"thetap", "theta_p"}, &ExciterESST4B::ThetaP, units::rad, "ThetaP model setting"),
-         state("efd", units::one, "Field voltage"),
-         state("vmeas", units::one, "Measured terminal voltage"),
-         state("vrint", units::one, "Regulator integral state"),
-         state("va", units::one, "Amplifier state"),
-         state("vmint", units::one, "Voltage regulator integral state")});
+         state({"efd", "field"}, units::one, 0, "Field voltage"),
+         state<ExciterESST4B>(
+             {"vmeas"},
+             units::one,
+             [](const auto& model) { return model.Tr > 0.0 ? 1 : kInvalidLocation; },
+             "Measured terminal voltage"),
+         state<ExciterESST4B>(
+             {"vrint"},
+             units::one,
+             [](const auto& model) {
+                 return 1 + stateIndex(outerIntegralState, model.Tr > 0.0, model.Ta > 0.0);
+             },
+             "Regulator integral state"),
+         state<ExciterESST4B>(
+             {"va"},
+             units::one,
+             [](const auto& model) {
+                 return model.Ta > 0.0 ? 1 + stateIndex(regulatorLagState, model.Tr > 0.0, true) :
+                                         kInvalidLocation;
+             },
+             "Amplifier state"),
+         state<ExciterESST4B>(
+             {"vmint"},
+             units::one,
+             [](const auto& model) {
+                 return 1 + stateIndex(innerIntegralState, model.Tr > 0.0, model.Ta > 0.0);
+             },
+             "Voltage regulator integral state")});
     return description;
 }
 
@@ -443,43 +466,5 @@ void ExciterESST4B::timestep(CoreTime time, const IOdata& inputs, const SolverMo
     prevTime = time;
 }
 
-stringVec ExciterESST4B::localStateNames() const
-{
-    stringVec names{"efd"};
-    if (Tr > 0.0) {
-        names.emplace_back("vmeas");
-    }
-    names.emplace_back("vrint");
-    if (Ta > 0.0) {
-        names.emplace_back("va");
-    }
-    names.emplace_back("vmint");
-    return names;
-}
-
-index_t ExciterESST4B::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "efd") || (field == "field")) {
-        return offsets.getAlgOffset(sMode);
-    }
-    const auto offset = offsets.getDiffOffset(sMode);
-    const bool hasVoltageMeasurement = (Tr > 0.0);
-    const bool hasRegulatorLag = (Ta > 0.0);
-    if (field == "vmeas") {
-        return hasVoltageMeasurement ? offset + voltageMeasurementState : kInvalidLocation;
-    }
-    if (field == "vrint") {
-        return offset + stateIndex(outerIntegralState, hasVoltageMeasurement, hasRegulatorLag);
-    }
-    if (field == "va") {
-        return hasRegulatorLag ?
-            offset + stateIndex(regulatorLagState, hasVoltageMeasurement, hasRegulatorLag) :
-            kInvalidLocation;
-    }
-    if (field == "vmint") {
-        return offset + stateIndex(innerIntegralState, hasVoltageMeasurement, hasRegulatorLag);
-    }
-    return kInvalidLocation;
-}
 // NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::exciters

@@ -46,10 +46,14 @@ const ModelDescription& GovernorIeeeG2::getModelDescription() const
                    units::second,
                    "Water starting time",
                    parameterValidators::nonnegative),
-         state("pmech", units::puMW, "Mechanical power"),
-         state("lead_lag", units::one, "Speed lead-lag state"),
-         state("simple_lag", units::one, "Speed lag state"),
-         state("water_lag", units::one, "Waterway state")});
+         stateReference<GovernorIeeeG2>(
+             {"pmech", "pm", "output"},
+             units::puMW,
+             [](const auto& model, const auto& mode) { return model.getOutputLoc(mode, 0); },
+             "Mechanical power"),
+         state({"lead_lag"}, units::one, &GovernorIeeeG2::leadLagState, 0, "Speed lead-lag state"),
+         state({"simple_lag"}, units::one, &GovernorIeeeG2::simpleLagState, 0, "Speed lag state"),
+         state({"water_lag"}, units::one, &GovernorIeeeG2::waterState, 0, "Waterway state")});
     return description;
 }
 
@@ -320,29 +324,6 @@ void GovernorIeeeG2::jacobianElements(const IOdata& inputs,
                                   inputLocs[govpSetInLocation],
                                   limitGain / waterTime);
     }
-}
-
-stringVec GovernorIeeeG2::localStateNames() const
-{
-    stringVec names;
-    if (leadLagState != kInvalidLocation) {
-        names.emplace_back("lead_lag");
-    }
-    if (simpleLagState != kInvalidLocation) {
-        names.emplace_back("simple_lag");
-    }
-    if (waterState != kInvalidLocation) {
-        names.emplace_back("water_lag");
-    }
-    return names;
-}
-
-index_t GovernorIeeeG2::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "pm") || (field == "pmech") || (field == "output")) {
-        return getOutputLoc(sMode, 0);
-    }
-    return Governor::findIndex(field, sMode);
 }
 
 const std::vector<stringVec>& GovernorIeeeG2::outputNames() const

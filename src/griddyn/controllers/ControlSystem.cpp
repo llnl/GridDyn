@@ -80,11 +80,6 @@ void ControlSystem::set(std::string_view param, double val, units::unit unitType
     }
 }
 
-index_t ControlSystem::findIndex(std::string_view /*field*/, const SolverMode& /*sMode*/) const
-{
-    return kInvalidLocation;
-}
-
 void ControlSystem::residual(const IOdata& /*inputs*/,
                              const StateData& /*sD*/,
                              double /*resid*/[],

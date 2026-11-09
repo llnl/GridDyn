@@ -99,9 +99,6 @@ class RenewableGenerator: public Generator {
                          const SolverMode& sMode,
                          CheckLevel level) override;
     count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
-    void getStateName(stringVec& stNames,
-                      const SolverMode& sMode,
-                      const std::string& prefix) const override;
 
   private:
     static constexpr std::size_t roleCount = static_cast<std::size_t>(RenewableRole::count);

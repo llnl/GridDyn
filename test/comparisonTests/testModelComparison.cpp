@@ -558,7 +558,7 @@ TEST(DyrReaderComparisonTests, InitializesGenroeAndIeeex1WithConsistentEquations
     auto* exciter = dynamic_cast<griddyn::exciters::ExciterIEEEX1*>(generator->find("exciter"));
     ASSERT_NE(machine, nullptr);
     ASSERT_NE(exciter, nullptr);
-    EXPECT_EQ(exciter->localStateNames(), (griddyn::stringVec{"ef", "vr", "rf", "vmeas"}));
+    EXPECT_EQ(exciter->solverStateNames(), (griddyn::stringVec{"ef", "vr", "rf", "vmeas"}));
     ASSERT_EQ(simulation->dynInitialize(), 0);
     EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
@@ -881,7 +881,7 @@ TEST(DyrReaderComparisonTests, MapsCmpldwType1MotorABCAndChecksCompositeDaeJacob
         EXPECT_DOUBLE_EQ(motor->get("th2t"), 1.9);
         EXPECT_DOUBLE_EQ(motor->get("tv"), 0.025);
         EXPECT_TRUE(motor->checkFlag(griddyn::USES_BUS_FREQUENCY));
-        EXPECT_EQ(motor->localStateNames(),
+        EXPECT_EQ(motor->solverStateNames(),
                   (griddyn::stringVec{"voltage_measurement", "thermal_a", "thermal_b"}));
     }
 
@@ -2485,7 +2485,7 @@ TEST(NewControlReaderTests, PssUsesTerminalPowerWithStatorLosses)
     const auto torque =
         signals[static_cast<index_t>(griddyn::MachineControllerSignal::ELECTRICAL_TORQUE)];
     EXPECT_GT(std::abs(torque - power), 1e-5);
-    const auto names = pss->localStateNames();
+    const auto names = pss->solverStateNames();
     const auto washout = std::find(names.begin(), names.end(), "w2a");
     ASSERT_NE(washout, names.end());
     EXPECT_NEAR(pss->getStates()[std::distance(names.begin(), washout)], power, 1e-10);

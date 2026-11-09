@@ -35,7 +35,6 @@ class ExciterSEXS: public Exciter {
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
 
-    stringVec localStateNames() const override;
 
     void residual(const IOdata& inputs,
                   const StateData& stateData,

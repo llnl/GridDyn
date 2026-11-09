@@ -23,7 +23,6 @@ class GenModel5type3: public GenModel3 {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual stringVec localStateNames() const override;
     // dynamics
     virtual void residual(const IOdata& inputs,
                           const StateData& sD,

@@ -75,11 +75,11 @@ const ModelDescription& GovernorHygov4::getModelDescription() const
          parameter({"qnl"}, &GovernorHygov4::qNL, units::one, "No-load flow"),
          parameter({"paux"}, &GovernorHygov4::paux, units::puMW, "Auxiliary power"),
          localState("reference_offset", &GovernorHygov4::referenceOffset),
-         state("pmech", units::puMW, "Mechanical power"),
-         state("gate", units::one, "Gate state"),
-         state("washout", units::one, "Washout state"),
-         state("pilot", units::one, "Pilot state"),
-         state("flow", units::one, "Water flow")});
+         state({"pmech", "pm"}, units::puMW, 0, "Mechanical power"),
+         state({"gate"}, units::one, 1, "Gate state"),
+         state({"washout"}, units::one, 2, "Washout state"),
+         state({"pilot"}, units::one, 3, "Pilot state"),
+         state({"flow"}, units::one, 4, "Water flow")});
     return description;
 }
 CoreObject* GovernorHygov4::clone(CoreObject* obj) const
@@ -285,25 +285,6 @@ void GovernorHygov4::timestep(CoreTime time,
     m_state[offsets.getAlgOffset(cLocalSolverMode)] =
         mechanicalPower(inputs, m_state.data() + diffOffset);
     prevTime = time;
-}
-index_t GovernorHygov4::findIndex(std::string_view field, const SolverMode& mode) const
-{
-    if (field == "pm" || field == "pmech") {
-        return offsets.getAlgOffset(mode);
-    }
-    if (field == "gate") {
-        return offsets.getDiffOffset(mode);
-    }
-    if (field == "washout") {
-        return offsets.getDiffOffset(mode) + 1;
-    }
-    if (field == "pilot") {
-        return offsets.getDiffOffset(mode) + 2;
-    }
-    if (field == "flow") {
-        return offsets.getDiffOffset(mode) + 3;
-    }
-    return kInvalidLocation;
 }
 void GovernorHygov4::set(std::string_view param, double value, units::unit unitType)
 {

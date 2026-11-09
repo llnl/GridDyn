@@ -64,8 +64,8 @@ const ModelDescription& ExcitationLimiterUEL2C::getModelDescription() const
          parameter({"q5"}, &ExcitationLimiterUEL2C::qPoints, 5, units::one, "Q points"),
          parameter({"q6"}, &ExcitationLimiterUEL2C::qPoints, 6, units::one, "Q points"),
          localState("pointCount", &ExcitationLimiterUEL2C::pointCount, "Point count"),
-         state("vuel", units::one, "Solver variable vuel when active"),
-         state("integral", units::one, "Solver variable integral when active"),
+         state({"vuel"}, units::one, 0, "Solver variable vuel when active"),
+         state({"integral"}, units::one, 1, "Solver variable integral when active"),
          localState("prevTime", &ExcitationLimiterUEL2C::prevTime, "Prev time")});
     return description;
 }
@@ -330,8 +330,4 @@ void ExcitationLimiterUEL2C::timestep(CoreTime time,
     prevTime = time;
 }
 
-stringVec ExcitationLimiterUEL2C::localStateNames() const
-{
-    return {"vuel", "integral"};
-}
 }  // namespace griddyn::limiters

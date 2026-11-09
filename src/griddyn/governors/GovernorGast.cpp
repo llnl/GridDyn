@@ -59,10 +59,10 @@ const ModelDescription& GovernorGast::getModelDescription() const
                    units::one,
                    "Turbine damping",
                    parameterValidators::nonnegative),
-         state("pmech", units::puMW, "Mechanical power"),
-         state("valve", units::one, "Valve position"),
-         state("turbine", units::one, "Turbine output"),
-         state("temperature", units::one, "Temperature state")});
+         state({"pmech", "pm"}, units::puMW, 0, "Mechanical power"),
+         state({"valve", "v"}, units::one, 1, "Valve position"),
+         state({"turbine", "pm_turb"}, units::one, 2, "Turbine output"),
+         state({"temperature", "temp"}, units::one, 3, "Temperature state")});
     return description;
 }
 
@@ -296,29 +296,6 @@ void GovernorGast::timestep(CoreTime time, const IOdata& inputs, const SolverMod
         (timeStep * m_dstate_dt[diffOffset + temperatureState]);
     m_state[0] = mechanicalPower(inputs, m_state.data() + 1);
     prevTime = time;
-}
-
-stringVec GovernorGast::localStateNames() const
-{
-    return {"pmech", "valve", "turbine", "temperature"};
-}
-
-index_t GovernorGast::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "pm") || (field == "pmech")) {
-        return offsets.getAlgOffset(sMode);
-    }
-    const index_t diff = offsets.getDiffOffset(sMode);
-    if ((field == "valve") || (field == "v")) {
-        return diff;
-    }
-    if ((field == "turbine") || (field == "pm_turb")) {
-        return (diff == kNullLocation) ? diff : diff + 1;
-    }
-    if ((field == "temperature") || (field == "temp")) {
-        return (diff == kNullLocation) ? diff : diff + 2;
-    }
-    return kInvalidLocation;
 }
 
 void GovernorGast::set(std::string_view param, double val, units::unit unitType)

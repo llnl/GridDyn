@@ -58,12 +58,32 @@ const ModelDescription& ExciterESAC2A::getModelDescription() const
          parameter({"se2"}, &ExciterESAC2A::Se2, units::one, "Se2 model setting"),
          flag({"uel_enabled"}, &ExciterESAC2A::underSelectorEnabled, "underSelectorEnabled option"),
          flag({"oel_enabled"}, &ExciterESAC2A::overSelectorEnabled, "overSelectorEnabled option"),
-         state("efd", units::one, "Field voltage"),
-         state("vc", units::one, "Sensed terminal voltage"),
-         state("xll", units::one, "Lead-lag state"),
-         state("va", units::one, "Amplifier state"),
-         state("ve", units::one, "Exciter voltage"),
-         state("vf", units::one, "Feedback state")});
+         state({"efd", "field"}, units::one, 0, "Field voltage"),
+         state<ExciterESAC2A>(
+             {"vc"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().voltage, 1); },
+             "Sensed terminal voltage"),
+         state<ExciterESAC2A>(
+             {"xll"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().lead, 1); },
+             "Lead-lag state"),
+         state<ExciterESAC2A>(
+             {"va"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().regulator, 1); },
+             "Amplifier state"),
+         state<ExciterESAC2A>(
+             {"ve"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().exciter, 1); },
+             "Exciter voltage"),
+         state<ExciterESAC2A>(
+             {"vf"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().feedback, 1); },
+             "Feedback state")});
     return description;
 }
 
@@ -523,44 +543,6 @@ ChangeCode ExciterESAC2A::rootCheck(const IOdata& inputs,
         return ChangeCode::JACOBIAN_CHANGE;
     }
     return ChangeCode::NO_CHANGE;
-}
-
-stringVec ExciterESAC2A::localStateNames() const
-{
-    stringVec names{"efd"};
-    if (Tr > 0.0) {
-        names.emplace_back("vc");
-    }
-    if (Tb > 0.0) {
-        names.emplace_back("xll");
-    }
-    if (Ta > 0.0) {
-        names.emplace_back("va");
-    }
-    names.emplace_back("ve");
-    names.emplace_back("vf");
-    return names;
-}
-
-index_t ExciterESAC2A::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if (field == "efd" || field == "field") {
-        return offsets.getAlgOffset(sMode);
-    }
-    const auto loc = layout();
-    index_t index = kNullLocation;
-    if (field == "vc") {
-        index = loc.voltage;
-    } else if (field == "xll") {
-        index = loc.lead;
-    } else if (field == "va") {
-        index = loc.regulator;
-    } else if (field == "ve") {
-        index = loc.exciter;
-    } else if (field == "vf") {
-        index = loc.feedback;
-    }
-    return index == kNullLocation ? kInvalidLocation : offsets.getDiffOffset(sMode) + index;
 }
 
 bool ExciterESAC2A::supportsLimiterSignal(ExciterLimiterSignal signal) const

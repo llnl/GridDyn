@@ -88,11 +88,7 @@ class MotorLoad5: public MotorLoad3 {
                                   MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
-    virtual void getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix) const override;
 
-    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     // TODO(phlpt): Change to algebraic update.

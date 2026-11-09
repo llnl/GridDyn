@@ -39,7 +39,7 @@ const ModelDescription& WTDS::getModelDescription() const
         {parameter({"h"}, &WTDS::H, units::second, "H"),
          parameter({"d"}, &WTDS::D, units::one, "D"),
          parameter({"w0"}, &WTDS::w0, units::one, "W0"),
-         state("w", units::one, "Solver variable w when active"),
+         state({"w"}, units::one, 0, "Solver variable w when active"),
          localState("initialPower", &WTDS::initialPower, "Initial power"),
          localState("operatingSpeed", &WTDS::operatingSpeed, "Operating speed")});
     return description;
@@ -214,11 +214,6 @@ double WTDS::getOutput(const IOdata& /*inputs*/,
 index_t WTDS::getOutputLoc(const SolverMode& sMode, index_t outputNum) const
 {
     return outputNum >= 0 && outputNum <= 1 ? offsets.getDiffOffset(sMode) : kNullLocation;
-}
-
-stringVec WTDS::localStateNames() const
-{
-    return {"w"};
 }
 
 }  // namespace griddyn

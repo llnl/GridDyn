@@ -70,7 +70,38 @@ const ModelDescription& GridBlock::getModelDescription() const
          command({"use_ramp_limits"}, units::defunit, "Use ramp limits", ModelFieldType::BOOLEAN),
          localState("previous_input",
                     &GridBlock::prevInput,
-                    "Previous input for step interpolation")});
+                    "Previous input for step interpolation"),
+         namedState<GridBlock>(
+             {"output"},
+             units::defunit,
+             [](const auto& model) { return model.outputName; },
+             [](const auto& model) {
+                 return model.offsets.local().local.algSize + model.offsets.local().local.diffSize >
+                         0 ?
+                     0 :
+                     kInvalidLocation;
+             },
+             "Block output"),
+         state<GridBlock>(
+             {"ramp_limits"},
+             units::defunit,
+             [](const auto& model) {
+                 return model.limiter_alg + model.limiter_diff > 1 ? 1 : kInvalidLocation;
+             },
+             "Ramp-limited output"),
+         state<GridBlock>(
+             {"unlimited_output", "test"},
+             units::defunit,
+             [](const auto& model) {
+                 const auto count = model.limiter_alg + model.limiter_diff;
+                 return count > 0 &&
+                         model.offsets.local().local.algSize +
+                                 model.offsets.local().local.diffSize >
+                             count ?
+                     count :
+                     kInvalidLocation;
+             },
+             "Output before limiting")});
     return description;
 }
 
@@ -860,24 +891,6 @@ void GridBlock::rampLimiterUpdate()
             rLimiter->setLimits(rampMin, rampMax);
         }
     }
-}
-
-stringVec GridBlock::localStateNames() const
-{
-    stringVec stNames;
-    if (opFlags[USE_BLOCK_LIMITS]) {
-        stNames.emplace_back("block_limits");
-    }
-    if (opFlags[USE_RAMP_LIMITS]) {
-        stNames.emplace_back("ramp_limits");
-    }
-    if (hasValueState()) {
-        stNames.emplace_back("test");
-    }
-    if (!stNames.empty()) {
-        stNames[0] = outputName;
-    }
-    return stNames;
 }
 
 std::unique_ptr<GridBlock> make_block(const std::string& blockstr)

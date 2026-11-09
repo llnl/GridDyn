@@ -47,10 +47,10 @@ const ModelDescription& GovernorHydro::getModelDescription() const
                    units::second,
                    "Water starting time",
                    parameterValidators::positive),
-         state("pmech", units::puMW, "Mechanical power"),
-         state("leadlag", units::one, "Speed lead-lag state"),
-         state("gate_lag", units::one, "Gate actuator state"),
-         state("waterway", units::one, "Waterway state")});
+         state({"pmech", "pm"}, units::puMW, 0, "Mechanical power"),
+         state({"leadlag", "x"}, units::one, 1, "Speed lead-lag state"),
+         state({"gate_lag", "gate"}, units::one, 2, "Gate actuator state"),
+         state({"waterway", "water"}, units::one, 3, "Waterway state")});
     return description;
 }
 
@@ -246,23 +246,6 @@ void GovernorHydro::timestep(CoreTime time, const IOdata& inputs, const SolverMo
     prevTime = time;
 }
 
-index_t GovernorHydro::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "pm") || (field == "pmech")) {
-        return offsets.getAlgOffset(sMode) + outputState;
-    }
-    if ((field == "leadlag") || (field == "x")) {
-        return offsets.getDiffOffset(sMode) + leadLagState;
-    }
-    if ((field == "gate") || (field == "gate_lag")) {
-        return offsets.getDiffOffset(sMode) + gateLagState;
-    }
-    if ((field == "waterway") || (field == "water")) {
-        return offsets.getDiffOffset(sMode) + waterwayState;
-    }
-    return kInvalidLocation;
-}
-
 void GovernorHydro::set(std::string_view param, double val, units::unit unitType)
 {
     if (isSetHandled(GovernorHydro::getModelDescription().trySet(*this, param, val, unitType))) {
@@ -272,11 +255,6 @@ void GovernorHydro::set(std::string_view param, double val, units::unit unitType
         throw InvalidParameterValue("hydro governor time constant must be positive");
     }
     Governor::set(param, val, unitType);
-}
-
-stringVec GovernorHydro::localStateNames() const
-{
-    return {"pmech", "leadlag", "gate_lag", "waterway"};
 }
 
 }  // namespace griddyn::governors

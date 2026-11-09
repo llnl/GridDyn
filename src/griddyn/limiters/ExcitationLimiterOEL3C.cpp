@@ -40,11 +40,12 @@ const ModelDescription& ExcitationLimiterOEL3C::getModelDescription() const
          parameter(
              {"voelmin2", "voel_min2"}, &ExcitationLimiterOEL3C::voelMin2, units::one, "Voel min2"),
          command({"oelinput", "oel_input"}, units::defunit, "Set oelinput"),
-         state("voel", units::one, "Solver variable voel when active"),
-         state("field_current_filter",
+         state({"voel"}, units::one, 0, "Solver variable voel when active"),
+         state({"field_current_filter"},
                units::one,
+               1,
                "Solver variable field_current_filter when active"),
-         state("integral", units::one, "Solver variable integral when active"),
+         state({"integral"}, units::one, 2, "Solver variable integral when active"),
          localState("prevTime", &ExcitationLimiterOEL3C::prevTime, "Prev time")});
     return description;
 }
@@ -294,8 +295,4 @@ void ExcitationLimiterOEL3C::timestep(CoreTime time,
     prevTime = time;
 }
 
-stringVec ExcitationLimiterOEL3C::localStateNames() const
-{
-    return {"voel", "field_current_filter", "integral"};
-}
 }  // namespace griddyn::limiters

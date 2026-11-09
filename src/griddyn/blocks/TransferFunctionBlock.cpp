@@ -30,7 +30,22 @@ const ModelDescription& TransferFunctionBlock::getModelDescription() const
         {command({"b"}, units::defunit, "Numerator coefficients", ModelFieldType::STRING),
          command({"a"}, units::defunit, "Denominator coefficients", ModelFieldType::STRING),
          indexedCommand({"a", "a_", "a#"}, units::defunit, "Denominator coefficient by index"),
-         indexedCommand({"b", "b_", "b#"}, units::defunit, "Numerator coefficient by index")});
+         indexedCommand({"b", "b_", "b#"}, units::defunit, "Numerator coefficient by index"),
+         state<TransferFunctionBlock>(
+             {"transfer_output"},
+             units::defunit,
+             [](const auto& model) {
+                 return model.limiter_alg > 0 ? model.limiter_alg : kInvalidLocation;
+             },
+             "Transfer-function output before limiting"),
+         indexedState<TransferFunctionBlock>(
+             {"x"},
+             units::defunit,
+             [](const auto& model) { return model.order(); },
+             [](const auto& model, index_t element) {
+                 return model.offsets.local().local.algSize + element;
+             },
+             "Transfer-function realization state")});
     return description;
 }
 
@@ -431,21 +446,6 @@ double TransferFunctionBlock::step(CoreTime time, double inputValue)
     return m_output;
 }
 
-index_t TransferFunctionBlock::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if (field == "output") {
-        return offsets.getAlgOffset(sMode);
-    }
-    std::string prefix;
-    const int index = gmlc::utilities::stringOps::trailingStringInt(field, prefix, -1);
-    if ((index >= 0) && (prefix == "x")) {
-        if ((index >= 0) && (static_cast<index_t>(index) < order())) {
-            return offsets.getDiffOffset(sMode) + static_cast<index_t>(index);
-        }
-    }
-    return GridBlock::findIndex(field, sMode);
-}
-
 void TransferFunctionBlock::set(std::string_view param, std::string_view value)
 {
     const auto result =
@@ -508,17 +508,4 @@ void TransferFunctionBlock::set(std::string_view param, double value, units::uni
     }
 }
 
-stringVec TransferFunctionBlock::localStateNames() const
-{
-    auto names = GridBlock::localStateNames();
-    if (names.empty()) {
-        names.emplace_back("output");
-    } else {
-        names.emplace_back("transfer_output");
-    }
-    for (index_t index = 0; index < order(); ++index) {
-        names.emplace_back("x" + std::to_string(index));
-    }
-    return names;
-}
 }  // namespace griddyn::blocks

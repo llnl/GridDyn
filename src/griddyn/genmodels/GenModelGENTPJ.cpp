@@ -146,10 +146,14 @@ const ModelDescription& GenModelGENTPJ::getModelDescription() const
         &GenModel5::getModelDescription(),
         {parameter(
              {"kis"}, &GenModelGENTPJ::Kis, units::one, "Saturation armature-current correction"),
-         state("epd", units::one, "Solver variable epd"),
-         state("epq", units::one, "Solver variable epq"),
-         state("psippd", units::one, "Solver variable psippd"),
-         state("psippq", units::one, "Solver variable psippq")});
+         state({"epd"}, units::one, 4, "Solver variable epd"),
+         state({"epq"}, units::one, 5, "Solver variable epq"),
+         state({"psippd"}, units::one, 6, "Solver variable psippd"),
+         state({"psippq"}, units::one, 7, "Solver variable psippq"),
+         state({"edp"}, units::one, kInvalidLocation, "Not allocated by this machine formulation"),
+         state({"eqp"}, units::one, kInvalidLocation, "Not allocated by this machine formulation"),
+         state(
+             {"edpp"}, units::one, kInvalidLocation, "Not allocated by this machine formulation")});
     return description;
 }
 
@@ -243,10 +247,6 @@ void GenModelGENTPJ::dynObjectInitializeB(const IOdata& inputs,
         (quadratureVoltage + Rs * quadratureCurrent) * quadratureCurrent;
     Vd = directVoltage;
     Vq = quadratureVoltage;
-}
-stringVec GenModelGENTPJ::localStateNames() const
-{
-    return {"id", "iq", "delta", "freq", "epd", "epq", "psippd", "psippq"};
 }
 void GenModelGENTPJ::algebraicUpdate(const IOdata& inputs,
                                      const StateData& stateData,

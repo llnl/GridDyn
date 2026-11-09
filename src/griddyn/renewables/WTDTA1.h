@@ -45,7 +45,6 @@ class WTDTA1 final: public RenewableComponent {
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   private:
     double H = 3.0, DAMP = 0.0, Htfrac = 0.5, Freq1 = 1.0, Dshaft = 1.0, w0 = 1.0;

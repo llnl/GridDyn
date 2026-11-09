@@ -79,7 +79,6 @@ class GenModelCSVGN1: public GenModel {
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
 
-    stringVec localStateNames() const override;
     void derivative(const IOdata& inputs,
                     const StateData& stateDataValue,
                     double deriv[],

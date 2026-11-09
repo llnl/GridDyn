@@ -98,9 +98,8 @@ const ModelDescription& GenModel::getModelDescription() const
         &GridSubModel::getModelDescription(),
         {parameter({"x", "xd", "xs"}, &GenModel::Xd, units::one, "D-axis reactance"),
          parameter({"r", "rs"}, &GenModel::Rs, units::one, "Stator resistance"),
-         parameter({"base", "mbase"}, &GenModel::machineBasePower, units::MW, "Machine power base"),
-         state("id", units::one, "Solver variable id"),
-         state("iq", units::one, "Solver variable iq")});
+         parameter(
+             {"base", "mbase"}, &GenModel::machineBasePower, units::MW, "Machine power base")});
     return description;
 }
 

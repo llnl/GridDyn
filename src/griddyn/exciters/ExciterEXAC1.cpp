@@ -105,12 +105,32 @@ const ModelDescription& ExciterEXAC1::getModelDescription() const
                     &ExciterEXAC1::opFlags,
                     ExciterEXAC1::REGULATOR_LIMIT_HIGH,
                     "Retained regulator_limit_high mode"),
-         state("efd", units::one, "Field voltage"),
-         state("va", units::one, "Amplifier state"),
-         state("vmeas", units::one, "Measured terminal voltage"),
-         state("ll", units::one, "Lead-lag state"),
-         state("ve", units::one, "Exciter voltage"),
-         state("wf", units::one, "Washout state")});
+         state({"efd", "field"}, units::one, 0, "Field voltage"),
+         state<ExciterEXAC1>(
+             {"va", "regulator"},
+             units::one,
+             [](const auto& model) { return model.localStateIndex(regulatorState); },
+             "Amplifier state"),
+         state<ExciterEXAC1>(
+             {"vmeas"},
+             units::one,
+             [](const auto& model) { return model.localStateIndex(voltageMeasurementState); },
+             "Measured terminal voltage"),
+         state<ExciterEXAC1>(
+             {"ll", "leadlag"},
+             units::one,
+             [](const auto& model) { return model.localStateIndex(leadLagState); },
+             "Lead-lag state"),
+         state<ExciterEXAC1>(
+             {"ve", "exciter"},
+             units::one,
+             [](const auto& model) { return model.localStateIndex(exciterState); },
+             "Exciter voltage"),
+         state<ExciterEXAC1>(
+             {"wf", "washout"},
+             units::one,
+             [](const auto& model) { return model.localStateIndex(washoutState); },
+             "Washout state")});
     return description;
 }
 
@@ -972,54 +992,18 @@ ChangeCode ExciterEXAC1::rootCheck(const IOdata& inputs,
     return ChangeCode::NO_CHANGE;
 }
 
-stringVec ExciterEXAC1::localStateNames() const
+index_t ExciterEXAC1::localStateIndex(index_t fullIndex) const
 {
-    stringVec names{"efd"};
-    if (!hasDynamicRegulator()) {
-        names.emplace_back("va");
+    if ((fullIndex == voltageMeasurementState && Tr <= 0.0) ||
+        (fullIndex == leadLagState && !hasLeadLag())) {
+        return kInvalidLocation;
     }
-    if (Tr > 0.0) {
-        names.emplace_back("vmeas");
+    if (fullIndex == regulatorState && !hasDynamicRegulator()) {
+        return 1;
     }
-    if (hasLeadLag()) {
-        names.emplace_back("ll");
-    }
-    if (hasDynamicRegulator()) {
-        names.emplace_back("va");
-    }
-    names.emplace_back("ve");
-    names.emplace_back("wf");
-    return names;
+    return (hasDynamicRegulator() ? 1 : 2) +
+        stateIndex(fullIndex, Tr > 0.0, hasLeadLag(), hasDynamicRegulator());
 }
 
-index_t ExciterEXAC1::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "efd") || (field == "field")) {
-        return offsets.getAlgOffset(sMode);
-    }
-    if ((field == "va") || (field == "regulator")) {
-        if (!hasDynamicRegulator()) {
-            return offsets.getAlgOffset(sMode) + 1;
-        }
-    }
-    const index_t offset = offsets.getDiffOffset(sMode);
-    if (field == "vmeas") {
-        return (Tr > 0.0) ? offset + voltageMeasurementState : kInvalidLocation;
-    }
-    if ((field == "ll") || (field == "leadlag")) {
-        return hasLeadLag() ? offset + stateIndex(leadLagState, Tr > 0.0, true, true) :
-                              kInvalidLocation;
-    }
-    if ((field == "va") || (field == "regulator")) {
-        return offset + stateIndex(regulatorState, Tr > 0.0, hasLeadLag(), true);
-    }
-    if ((field == "ve") || (field == "exciter")) {
-        return offset + stateIndex(exciterState, Tr > 0.0, hasLeadLag(), hasDynamicRegulator());
-    }
-    if ((field == "wf") || (field == "washout")) {
-        return offset + stateIndex(washoutState, Tr > 0.0, hasLeadLag(), hasDynamicRegulator());
-    }
-    return kInvalidLocation;
-}
 // NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::exciters

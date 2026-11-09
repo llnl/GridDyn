@@ -96,13 +96,13 @@ const ModelDescription& ExciterAC7B::getModelDescription() const
                     &ExciterAC7B::opFlags,
                     ExciterAC7B::EXCITER_LIMIT_HIGH,
                     "Retained exciter_limit_high mode"),
-         state("efd", units::one, "Field voltage"),
-         state("vmeas", units::one, "Measured terminal voltage"),
-         state("pidint", units::one, "PID integral state"),
-         state("pidder", units::one, "PID derivative state"),
-         state("piint", units::one, "PI integral state"),
-         state("xf3", units::one, "xf3 solver state"),
-         state("ve", units::one, "Exciter voltage")});
+         state({"efd", "field"}, units::one, 0, "Field voltage"),
+         state({"vmeas", "vc"}, units::one, 1, "Measured terminal voltage"),
+         state({"pidint"}, units::one, 2, "PID integral state"),
+         state({"pidder"}, units::one, 3, "PID derivative state"),
+         state({"piint"}, units::one, 4, "PI integral state"),
+         state({"xf3"}, units::one, 5, "xf3 solver state"),
+         state({"ve", "exciter"}, units::one, 6, "Exciter voltage")});
     return description;
 }
 
@@ -678,38 +678,6 @@ ChangeCode ExciterAC7B::rootCheck(const IOdata& inputs,
         return ChangeCode::JACOBIAN_CHANGE;
     }
     return ChangeCode::NO_CHANGE;
-}
-
-stringVec ExciterAC7B::localStateNames() const
-{
-    return {"efd", "vmeas", "pidint", "pidder", "piint", "xf3", "ve"};
-}
-
-index_t ExciterAC7B::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "efd") || (field == "field")) {
-        return offsets.getAlgOffset(sMode);
-    }
-    const auto offset = offsets.getDiffOffset(sMode);
-    if ((field == "vmeas") || (field == "vc")) {
-        return offset + voltageMeasurementState;
-    }
-    if (field == "pidint") {
-        return offset + pidIntegralState;
-    }
-    if (field == "pidder") {
-        return offset + pidDerivativeState;
-    }
-    if (field == "piint") {
-        return offset + piIntegralState;
-    }
-    if (field == "xf3") {
-        return offset + feedbackState;
-    }
-    if ((field == "ve") || (field == "exciter")) {
-        return offset + exciterVoltageState;
-    }
-    return kInvalidLocation;
 }
 
 // NOLINTEND(readability-math-missing-parentheses)

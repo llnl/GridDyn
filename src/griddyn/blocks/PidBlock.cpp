@@ -32,7 +32,16 @@ const ModelDescription& PidBlock::getModelDescription() const
                    &PidBlock::iv,
                    units::defunit,
                    "Intermediate value for calculations"),
-         state("deriv_delay", units::defunit, "Filtered derivative state")});
+         state<PidBlock>(
+             {"deriv_delay", "derivative"},
+             units::defunit,
+             [](const auto& model) { return model.limiter_diff + 1; },
+             "Filtered derivative state"),
+         state<PidBlock>(
+             {"integral"},
+             units::one,
+             [](const auto& model) { return model.limiter_diff + 2; },
+             "Solver variable integral")});
     return description;
 }
 
@@ -237,20 +246,6 @@ double PidBlock::step(CoreTime time, double inputA)
     return m_output;
 }
 
-index_t PidBlock::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    index_t ret = kInvalidLocation;
-    if (field == "integral") {
-        ret = offsets.getDiffOffset(sMode);
-        ret = (ret != kNullLocation) ? ret + 1 : ret;
-    } else if (field == "derivative") {
-        ret = offsets.getDiffOffset(sMode);
-    } else {
-        ret = GridBlock::findIndex(field, sMode);
-    }
-    return ret;
-}
-
 // set parameters
 void PidBlock::set(std::string_view param, double val, units::unit unitType)
 {
@@ -265,12 +260,4 @@ void PidBlock::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-stringVec PidBlock::localStateNames() const
-{
-    stringVec out = GridBlock::localStateNames();
-
-    out.emplace_back("deriv_delay");
-    out.emplace_back("integral");
-    return out;
-}
 }  // namespace griddyn::blocks

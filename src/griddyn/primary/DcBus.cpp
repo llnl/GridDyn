@@ -36,7 +36,14 @@ const ModelDescription& DcBus::getModelDescription() const
                  units::defunit,
                  "Configure type",
                  ModelFieldType::STRING),
-         command({"dyntype"}, units::defunit, "Configure dyntype", ModelFieldType::STRING)});
+         command({"dyntype"}, units::defunit, "Configure dyntype", ModelFieldType::STRING),
+         state<DcBus>(
+             {"voltage"},
+             units::puV,
+             [](const auto& model, const auto& mode) {
+                 return hasAlgebraic(mode) ? model.offsets.getVOffset(mode) : kNullLocation;
+             },
+             "Solver variable voltage")});
     return description;
 }
 
@@ -262,29 +269,6 @@ void DcBus::updateLocalCache(const IOdata& inputs,
 {
     outLocs = getOutputLocs(sMode);
     GridBus::updateLocalCache(inputs, stateDataValue, sMode);
-}
-
-void DcBus::getStateName(stringVec& stNames,
-                         const SolverMode& sMode,
-                         const std::string& prefix) const
-{
-    if (hasAlgebraic(sMode)) {
-        auto voffset = offsets.getVOffset(sMode);
-
-        count_t bst = 0;
-        if (voffset != kNullLocation) {
-            if (std::cmp_less_equal(stNames.size(), static_cast<stringVec::size_type>(voffset))) {
-                stNames.resize(static_cast<stringVec::size_type>(voffset) + 1U);
-            }
-            stNames[voffset] = prefix + getName() + ":voltage";
-            ++bst;
-        }
-
-        if (stateSize(sMode) == bst) {
-            return;
-        }
-    }
-    GridBus::getStateName(stNames, sMode, prefix);
 }
 
 // pass the solution

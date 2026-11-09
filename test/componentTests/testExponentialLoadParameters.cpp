@@ -19,19 +19,6 @@
 
 namespace griddyn {
 namespace {
-    class DescribedAcBus: public AcBus {
-      public:
-        [[nodiscard]] const ModelDescription& getModelDescription() const override
-        {
-            static const auto description = ModelDescription::define<DescribedAcBus>(
-                "DescribedAcBus",
-                &AcBus::getModelDescription(),
-                {state("voltage", units::puV, "Bus voltage magnitude"),
-                 state("angle", units::rad, "Bus voltage angle")});
-            return description;
-        }
-    };
-
     class FaultObservingLoad: public loads::ExponentialLoad {
       public:
         explicit FaultObservingLoad(GridBus& connectedBus)
@@ -174,14 +161,15 @@ TEST(ExponentialParameterTests, EnumeratesLocalAndInheritedDeclarations)
 
 TEST(ExponentialParameterTests, SolverDeclarationsResolveThroughTheActiveLayout)
 {
-    DescribedAcBus bus;
+    AcBus bus;
     bus.set("type", "pq");
     bus.pFlowInitializeA(timeZero, 0);
     ASSERT_GT(bus.stateSize(cPflowSolverMode), 0);
     bus.setOffset(2, cPflowSolverMode);
-    const auto* voltage = bus.getModelDescription().find("voltage");
+    const auto& description = bus.getModelDescription();
+    const auto* voltage = description.find("voltage", ModelFieldKind::STATE);
     ASSERT_NE(voltage, nullptr);
-    EXPECT_EQ(voltage->kind(), ModelFieldKind::STATE);
+    EXPECT_NE(description.find("voltage", ModelFieldKind::COMMAND), nullptr);
     const auto firstIndex = bus.findIndex(voltage->name(), cPflowSolverMode);
     ASSERT_NE(firstIndex, kNullLocation);
     ASSERT_NE(firstIndex, kInvalidLocation);

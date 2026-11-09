@@ -137,14 +137,18 @@ const ModelDescription& GovernorIeeeG1::getModelDescription() const
                    units::one,
                    "Power fraction 8",
                    parameterValidators::nonnegative),
-         state("php", units::puMW, "High-pressure mechanical power"),
-         state("plp", units::puMW, "Low-pressure mechanical power"),
-         state("leadlag", units::one, "Speed lead-lag state"),
-         state("valve", units::one, "Valve position"),
-         state("p4", units::one, "Turbine stage 4 output"),
-         state("p5", units::one, "Turbine stage 5 output"),
-         state("p6", units::one, "Turbine stage 6 output"),
-         state("p7", units::one, "Turbine stage 7 output")});
+         state({"php", "hp", "pm", "pmech"}, units::puMW, 0, "High-pressure mechanical power"),
+         state({"plp", "lp"}, units::puMW, 1, "Low-pressure mechanical power"),
+         state({"leadlag", "ll"},
+               units::one,
+               &GovernorIeeeG1::leadLagState,
+               2,
+               "Speed lead-lag state"),
+         state({"valve", "pv"}, units::one, &GovernorIeeeG1::valveState, 2, "Valve position"),
+         state({"p4"}, units::one, &GovernorIeeeG1::turbineState, 0, 2, "Turbine stage 4 output"),
+         state({"p5"}, units::one, &GovernorIeeeG1::turbineState, 1, 2, "Turbine stage 5 output"),
+         state({"p6"}, units::one, &GovernorIeeeG1::turbineState, 2, 2, "Turbine stage 6 output"),
+         state({"p7"}, units::one, &GovernorIeeeG1::turbineState, 3, 2, "Turbine stage 7 output")});
     return description;
 }
 
@@ -682,45 +686,6 @@ double GovernorIeeeG1::get(std::string_view param, units::unit unitType) const
         return normalizedFractions()[static_cast<std::size_t>(param[1] - '1')];
     }
     return Governor::get(param, unitType);
-}
-
-stringVec GovernorIeeeG1::localStateNames() const
-{
-    stringVec names{"php", "plp"};
-    if (leadLagState != kInvalidLocation) {
-        names.emplace_back("leadlag");
-    }
-    names.emplace_back("valve");
-    for (index_t stage = 0; stage < 4; ++stage) {
-        if (turbineState[stage] != kInvalidLocation) {
-            names.emplace_back("p" + std::to_string(stage + 4));
-        }
-    }
-    return names;
-}
-
-index_t GovernorIeeeG1::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "php") || (field == "hp") || (field == "pm") || (field == "pmech")) {
-        return offsets.getAlgOffset(sMode) + hpOutput;
-    }
-    if ((field == "plp") || (field == "lp")) {
-        return offsets.getAlgOffset(sMode) + lpOutput;
-    }
-    if ((field == "leadlag") || (field == "ll")) {
-        return (leadLagState != kInvalidLocation) ? offsets.getDiffOffset(sMode) + leadLagState :
-                                                    kInvalidLocation;
-    }
-    if ((field == "valve") || (field == "pv")) {
-        return offsets.getDiffOffset(sMode) + valveState;
-    }
-    if ((field.size() == 2) && (field[0] == 'p') && (field[1] >= '4') && (field[1] <= '7')) {
-        const index_t stage = field[1] - '4';
-        return (turbineState[stage] != kInvalidLocation) ?
-            offsets.getDiffOffset(sMode) + turbineState[stage] :
-            kInvalidLocation;
-    }
-    return kInvalidLocation;
 }
 
 const std::vector<stringVec>& GovernorIeeeG1::outputNames() const

@@ -28,7 +28,17 @@ const ModelDescription& RawDcLine::getModelDescription() const
          flag({"from_voltage_control"}, &RawDcLine::controlFromVoltage, "Control from voltage"),
          flag({"to_voltage_control"}, &RawDcLine::controlToVoltage, "Control to voltage"),
          command({"from_q"}, units::defunit, "Set from q"),
-         command({"to_q"}, units::defunit, "Set to q")});
+         command({"to_q"}, units::defunit, "Set to q"),
+         state<RawDcLine>(
+             {"q_from"},
+             units::one,
+             [](const auto& model, const auto& mode) { return model.fromReactiveOffset(mode); },
+             "Solver variable q_from"),
+         state<RawDcLine>(
+             {"q_to"},
+             units::one,
+             [](const auto& model, const auto& mode) { return model.toReactiveOffset(mode); },
+             "Solver variable q_to")});
     return description;
 }
 
@@ -227,21 +237,6 @@ void RawDcLine::guessState(CoreTime /*time*/,
     }
     if (toOffset != kNullLocation) {
         state[toOffset] = toReactivePower;
-    }
-}
-
-void RawDcLine::getStateName(stringVec& stNames,
-                             const SolverMode& sMode,
-                             const std::string& prefix) const
-{
-    const auto fromOffset = fromReactiveOffset(sMode);
-    const auto toOffset = toReactiveOffset(sMode);
-    const std::string statePrefix = prefix + getName() + ':';
-    if (fromOffset != kNullLocation) {
-        stNames[fromOffset] = statePrefix + "q_from";
-    }
-    if (toOffset != kNullLocation) {
-        stNames[toOffset] = statePrefix + "q_to";
     }
 }
 

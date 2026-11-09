@@ -135,14 +135,14 @@ const ModelDescription& GovernorGPWSCC::getModelDescription() const
          parameter({"gv6"}, &GovernorGPWSCC::curveGate, 5, units::one, "Gate curve point 6"),
          parameter({"pgv6"}, &GovernorGPWSCC::curvePower, 5, units::one, "Power curve point 6"),
          localState("initialized_input_reference", &GovernorGPWSCC::initializedInputReference),
-         state("pmech", units::puMW, "Mechanical power"),
-         state("td_filter", units::one, "Speed filter"),
-         state("pid_integral", units::one, "PID integral"),
-         state("derivative_filter", units::one, "Derivative filter"),
-         state("pelec_filter", units::one, "Electrical power filter"),
-         state("valve", units::one, "Valve state"),
-         state("gate", units::one, "Gate position"),
-         state("turbine", units::one, "Turbine state")});
+         state({"pmech", "pm"}, units::puMW, 0, "Mechanical power"),
+         state({"td_filter", "filter"}, units::one, 1, "Speed filter"),
+         state({"pid_integral", "integral"}, units::one, 2, "PID integral"),
+         state({"derivative_filter", "derivative"}, units::one, 3, "Derivative filter"),
+         state({"pelec_filter", "pelec"}, units::one, 4, "Electrical power filter"),
+         state({"valve"}, units::one, 5, "Valve state"),
+         state({"gate"}, units::one, 6, "Gate position"),
+         state({"turbine"}, units::one, 7, "Turbine state")});
     return description;
 }
 
@@ -630,45 +630,4 @@ double GovernorGPWSCC::get(std::string_view param, units::unit unitType) const
     return Governor::get(param, unitType);
 }
 
-stringVec GovernorGPWSCC::localStateNames() const
-{
-    return {"pmech",
-            "td_filter",
-            "pid_integral",
-            "derivative_filter",
-            "pelec_filter",
-            "valve",
-            "gate",
-            "turbine"};
-}
-
-index_t GovernorGPWSCC::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "pm") || (field == "pmech")) {
-        return offsets.getAlgOffset(sMode);
-    }
-    const auto diff = offsets.getDiffOffset(sMode);
-    if ((field == "filter") || (field == "td_filter")) {
-        return diff;
-    }
-    if ((field == "integral") || (field == "pid_integral")) {
-        return (diff == kNullLocation) ? diff : diff + integratorState;
-    }
-    if ((field == "derivative") || (field == "derivative_filter")) {
-        return (diff == kNullLocation) ? diff : diff + derivativeState;
-    }
-    if ((field == "pelec") || (field == "pelec_filter")) {
-        return (diff == kNullLocation) ? diff : diff + electricalPowerState;
-    }
-    if (field == "valve") {
-        return (diff == kNullLocation) ? diff : diff + valveState;
-    }
-    if (field == "gate") {
-        return (diff == kNullLocation) ? diff : diff + gateState;
-    }
-    if (field == "turbine") {
-        return (diff == kNullLocation) ? diff : diff + turbineState;
-    }
-    return kInvalidLocation;
-}
 }  // namespace griddyn::governors

@@ -208,7 +208,7 @@ class GridBlock: public GridSubModel {
                                  const SolverMode& solverModeValue,
                                  CheckLevel level) override;
     // virtual void setTime(CoreTime time){prevTime=time;};
-    virtual stringVec localStateNames() const override;
+
     /** get the single output for the block
     @param[in] stateDataValue the state data to use in computing the output
     @param[in] solverModeValue the SolverMode associated with the StateData*/

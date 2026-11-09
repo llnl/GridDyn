@@ -20,10 +20,26 @@ namespace griddyn::exciters {
 
 const ModelDescription& ExciterIEEEX1::getModelDescription() const
 {
-    static const auto description =
-        ModelDescription::define<ExciterIEEEX1>("ExciterIEEEX1",
-                                                &ExciterDC2A::getModelDescription(),
-                                                {});
+    static const auto description = ModelDescription::define<ExciterIEEEX1>(
+        "ExciterIEEEX1",
+        &ExciterDC2A::getModelDescription(),
+        {state<ExciterIEEEX1>(
+             {"x"},
+             units::one,
+             [](const auto& model) { return model.hasLeadLag() ? 2 : kInvalidLocation; },
+             "Solver variable x"),
+         state<ExciterIEEEX1>(
+             {"rf"},
+             units::one,
+             [](const auto& model) { return model.hasLeadLag() ? 3 : 2; },
+             "Solver variable rf"),
+         state<ExciterIEEEX1>(
+             {"vmeas"},
+             units::one,
+             [](const auto& model) {
+                 return model.Tr > 0.0 ? (model.hasLeadLag() ? 4 : 3) : kInvalidLocation;
+             },
+             "Solver variable vmeas")});
     return description;
 }
 
@@ -270,11 +286,6 @@ double ExciterIEEEX1::get(std::string_view param, units::unit unitType) const
         return 0.0;
     }
     return ExciterDC2A::get(param, unitType);
-}
-
-stringVec ExciterIEEEX1::localStateNames() const
-{
-    return hasLeadLag() ? ExciterDC2A::localStateNames() : ExciterIEEEtype1::localStateNames();
 }
 
 }  // namespace griddyn::exciters

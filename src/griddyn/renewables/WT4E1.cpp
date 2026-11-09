@@ -91,14 +91,14 @@ const ModelDescription& WT4E1::getModelDescription() const
                    units::one,
                    "Psse match",
                    parameterValidators::binary),
-         state("Ipcmd", units::one, "Solver variable Ipcmd when active"),
-         state("Iqcmd", units::one, "Solver variable Iqcmd when active"),
-         state("Pord", units::one, "Solver variable Pord when active"),
-         state("Vf", units::one, "Solver variable Vf when active"),
-         state("Pf", units::one, "Solver variable Pf when active"),
-         state("Pint", units::one, "Solver variable Pint when active"),
-         state("Qint", units::one, "Solver variable Qint when active"),
-         state("Iqfilter", units::one, "Solver variable Iqfilter when active"),
+         state({"Ipcmd"}, units::one, 0, "Solver variable Ipcmd when active"),
+         state({"Iqcmd"}, units::one, 1, "Solver variable Iqcmd when active"),
+         state({"Pord"}, units::one, 2, "Solver variable Pord when active"),
+         state({"Vf"}, units::one, 3, "Solver variable Vf when active"),
+         state({"Pf"}, units::one, 4, "Solver variable Pf when active"),
+         state({"Pint"}, units::one, 5, "Solver variable Pint when active"),
+         state({"Qint"}, units::one, 6, "Solver variable Qint when active"),
+         state({"Iqfilter"}, units::one, 7, "Solver variable Iqfilter when active"),
          localState("initialP", &WT4E1::initialP, "Initial p"),
          localState("initialQ", &WT4E1::initialQ, "Initial q"),
          localState("vref", &WT4E1::vref, "Vref")});
@@ -476,9 +476,5 @@ void WT4E1::outputPartialDerivatives(const IOdata& inputs,
     }
     (void)inputs;
     (void)stateData;
-}
-stringVec WT4E1::localStateNames() const
-{
-    return {"Ipcmd", "Iqcmd", "Pord", "Vf", "Pf", "Pint", "Qint", "Iqfilter"};
 }
 }  // namespace griddyn

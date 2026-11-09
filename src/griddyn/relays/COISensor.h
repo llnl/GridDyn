@@ -47,7 +47,6 @@ class COISensor final: public Sensor {
                           MatrixData<double>& matrixData,
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   private:
     struct Machine {

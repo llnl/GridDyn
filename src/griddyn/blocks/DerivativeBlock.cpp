@@ -25,8 +25,16 @@ const ModelDescription& DerivativeBlock::getModelDescription() const
                    units::defunit,
                    "Delay time constant for the derivative filtering operation",
                    [](double value) { return !(std::abs(value) < kMin_Res); }),
-         state("deriv", units::defunit, "Derivative output"),
-         state("delayI", units::defunit, "Derivative filter state")});
+         state<DerivativeBlock>(
+             {"deriv"},
+             units::defunit,
+             [](const auto& model) { return model.limiter_alg; },
+             "Derivative output"),
+         state<DerivativeBlock>(
+             {"delayI"},
+             units::defunit,
+             [](const auto& model) { return model.limiter_alg + 1; },
+             "Derivative filter state")});
     return description;
 }
 
@@ -173,11 +181,4 @@ void DerivativeBlock::blockJacobianElements(double input,
 }
 
 // set parameters
-stringVec DerivativeBlock::localStateNames() const
-{
-    auto bbstates = GridBlock::localStateNames();
-    bbstates.emplace_back("deriv");
-    bbstates.emplace_back("delayI");
-    return bbstates;
-}
 }  // namespace griddyn::blocks

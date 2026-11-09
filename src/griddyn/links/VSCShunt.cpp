@@ -49,7 +49,47 @@ const ModelDescription& VSCShunt::getModelDescription() const
          command({"control"}, units::defunit, "Configure control", ModelFieldType::STRING),
          command({"andes_current_balance", "current_balance"},
                  units::defunit,
-                 "Set andes current balance")});
+                 "Set andes current balance"),
+         state<VSCShunt>(
+             {"ash"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return stateSlot(model.offsets.getAlgOffset(mode), 0);
+             },
+             "Solver variable ash"),
+         state<VSCShunt>(
+             {"vsh"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return stateSlot(model.offsets.getAlgOffset(mode), 1);
+             },
+             "Solver variable vsh"),
+         state<VSCShunt>(
+             {"psh"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return stateSlot(model.offsets.getAlgOffset(mode), 2);
+             },
+             "Solver variable psh"),
+         state<VSCShunt>(
+             {"qsh"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return stateSlot(model.offsets.getAlgOffset(mode), 3);
+             },
+             "Solver variable qsh"),
+         state<VSCShunt>(
+             {"pdc"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return stateSlot(model.offsets.getAlgOffset(mode), 4);
+             },
+             "Solver variable pdc"),
+         state({"Idc"}, units::one, kInvalidLocation, "Solver variable Idc"),
+         state({"cos(firing_angle)"},
+               units::one,
+               kInvalidLocation,
+               "Solver variable cos(firing_angle)")});
     return description;
 }
 
@@ -457,19 +497,6 @@ void VSCShunt::guessState(CoreTime /*time*/,
     state[offset + pshIndex] = psh;
     state[offset + qshIndex] = qsh;
     state[offset + pdcIndex] = pdc;
-}
-
-void VSCShunt::getStateName(stringVec& stNames,
-                            const SolverMode& sMode,
-                            const std::string& prefix) const
-{
-    const auto offset = offsets.getAlgOffset(sMode);
-    const std::string statePrefix = prefix + getName() + ':';
-    stNames[offset + ashIndex] = statePrefix + "ash";
-    stNames[offset + vshIndex] = statePrefix + "vsh";
-    stNames[offset + pshIndex] = statePrefix + "psh";
-    stNames[offset + qshIndex] = statePrefix + "qsh";
-    stNames[offset + pdcIndex] = statePrefix + "pdc";
 }
 
 double VSCShunt::getRealPower(id_type_t busId) const

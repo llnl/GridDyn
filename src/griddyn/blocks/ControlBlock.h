@@ -53,7 +53,6 @@ class ControlBlock: public GridBlock {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
     virtual void blockDerivative(double input,
                                  double didt,
@@ -73,7 +72,6 @@ class ControlBlock: public GridBlock {
                                        const SolverMode& sMode) override;
     virtual double step(CoreTime time, double input) override;
     // virtual void setTime(CoreTime time){prevTime=time;};
-    virtual stringVec localStateNames() const override;
 };
 
 }  // namespace griddyn::blocks

@@ -35,8 +35,8 @@ const ModelDescription& WTARA1::getModelDescription() const
         &RenewableComponent::getModelDescription(),
         {parameter({"ka"}, &WTARA1::Ka, units::one, "Ka"),
          parameter({"theta0"}, &WTARA1::theta0, units::one, "Theta0"),
-         state("Pm", units::one, "Solver variable Pm when active"),
-         state("theta0", units::one, "Solver variable theta0 when active"),
+         state({"Pm"}, units::one, 0, "Solver variable Pm when active"),
+         state({"theta0"}, units::one, 1, "Solver variable theta0 when active"),
          localState("initialPower", &WTARA1::initialPower, "Initial power")});
     return description;
 }
@@ -170,11 +170,6 @@ void WTARA1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*s
     }
     m_state[0] = mechanicalPower(inputs);
     prevTime = time;
-}
-
-stringVec WTARA1::localStateNames() const
-{
-    return {"Pm", "theta0"};
 }
 
 }  // namespace griddyn

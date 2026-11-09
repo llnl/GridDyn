@@ -57,7 +57,17 @@ const ModelDescription& Svd::getModelDescription() const
          command({"step"}, units::defunit, "Set step"),
          command({"min_iter"}, units::defunit, "Set min iter"),
          command({"err_tol"}, units::defunit, "Set err tol"),
-         command({"count"}, units::defunit, "Set count")});
+         command({"count"}, units::defunit, "Set count"),
+         state<Svd>(
+             {"susceptance"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return !isDynamic(mode) && model.opFlags[CONTINUOUS_FLAG] &&
+                         !model.opFlags[LOCKED_FLAG] ?
+                     model.offsets.getAlgOffset(mode) :
+                     kInvalidLocation;
+             },
+             "Solver variable susceptance")});
     return description;
 }
 
@@ -1024,16 +1034,6 @@ void Svd::derivative(const IOdata& /*inputs*/,
                      double /*deriv*/[],
                      const SolverMode& /*sMode*/)
 {
-}
-
-void Svd::getStateName(stringVec& stNames, const SolverMode& sMode, const std::string& prefix) const
-{
-    if ((!isDynamic(sMode)) && opFlags[CONTINUOUS_FLAG] && !opFlags[LOCKED_FLAG]) {
-        const auto offset = offsets.getAlgOffset(sMode);
-        if (offset != kNullLocation) {
-            stNames[offset] = prefix + getName() + ":susceptance";
-        }
-    }
 }
 
 void Svd::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)

@@ -58,12 +58,12 @@ const ModelDescription& WT3G1::getModelDescription() const
          parameter({"kipll"}, &WT3G1::Kipll, units::one, "Kipll"),
          parameter({"pllmax"}, &WT3G1::Pllmax, units::one, "Pllmax"),
          parameter({"prated"}, &WT3G1::Prated, units::one, "Prated"),
-         state("Pe", units::one, "Solver variable Pe when active"),
-         state("Qe", units::one, "Solver variable Qe when active"),
-         state("Ip", units::one, "Solver variable Ip when active"),
-         state("Eq", units::one, "Solver variable Eq when active"),
-         state("PLLint", units::one, "Solver variable PLLint when active"),
-         state("delta", units::one, "Solver variable delta when active"),
+         state({"Pe"}, units::one, 0, "Solver variable Pe when active"),
+         state({"Qe"}, units::one, 1, "Solver variable Qe when active"),
+         state({"Ip"}, units::one, 2, "Solver variable Ip when active"),
+         state({"Eq"}, units::one, 3, "Solver variable Eq when active"),
+         state({"PLLint"}, units::one, 4, "Solver variable PLLint when active"),
+         state({"delta"}, units::one, 5, "Solver variable delta when active"),
          localState("heldIp", &WT3G1::heldIp, "Held ip"),
          localState("heldEq", &WT3G1::heldEq, "Held eq")});
     return description;
@@ -362,9 +362,5 @@ void WT3G1::outputPartialDerivatives(const IOdata& inputs,
     matrixData.assign(electricalReactivePower, alg + electricalReactivePower, 1.0);
     (void)inputs;
     (void)stateData;
-}
-stringVec WT3G1::localStateNames() const
-{
-    return {"Pe", "Qe", "Ip", "Eq", "PLLint", "delta"};
 }
 }  // namespace griddyn

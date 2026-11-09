@@ -23,7 +23,10 @@ const ModelDescription& GenModel5type2::getModelDescription() const
     static const auto description = ModelDescription::define<GenModel5type2>(
         "GenModel5type2",
         &GenModel5::getModelDescription(),
-        {state("eqpp", units::one, "Solver variable eqpp")});
+        {state({"eqpp"}, units::one, 6, "Solver variable eqpp"),
+         state({"edpp"}, units::one, 4, "Solver variable edpp"),
+         state(
+             {"edp"}, units::one, kInvalidLocation, "Not allocated by this machine formulation")});
     return description;
 }
 
@@ -262,10 +265,4 @@ void GenModel5type2::jacobianElements(const IOdata& inputs,
     matrixData.assign(refDiff + 4, refDiff + 4, (-1.0 / Tdopp) - stateData.cj);
 }
 
-static const stringVec GEN_MODEL5_TYPE2_NAMES{"id", "iq", "delta", "freq", "edpp", "eqp", "eqpp"};
-
-stringVec GenModel5type2::localStateNames() const
-{
-    return GEN_MODEL5_TYPE2_NAMES;
-}
 }  // namespace griddyn::genmodels

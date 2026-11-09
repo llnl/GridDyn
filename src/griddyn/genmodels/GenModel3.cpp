@@ -36,7 +36,7 @@ const ModelDescription& GenModel3::getModelDescription() const
                    "D-axis transient open-circuit time"),
          localState("constant_field", &GenModel3::E),
          command({"x"}, units::one, "Set both d-axis and q-axis reactances"),
-         state("eqp", units::one, "Solver variable eqp")});
+         state({"eqp"}, units::one, 4, "Solver variable eqp")});
     return description;
 }
 
@@ -240,12 +240,6 @@ void GenModel3::jacobianElements(const IOdata& inputs,
     }
 }
 
-static const stringVec genModel3Names{"id", "iq", "delta", "freq", "eqp"};
-
-stringVec GenModel3::localStateNames() const
-{
-    return genModel3Names;
-}
 // set parameters
 void GenModel3::set(std::string_view param, double val, units::unit unitType)
 {

@@ -58,10 +58,10 @@ const ModelDescription& ExciterEXAC4::getModelDescription() const
                     &ExciterEXAC4::opFlags,
                     ExciterEXAC4::OUTPUT_LIMIT_HIGH,
                     "Retained output_limit_high mode"),
-         state("efd", units::one, "Field voltage"),
-         state("vmeas", units::one, "Measured terminal voltage"),
-         state("ll", units::one, "Lead-lag state"),
-         state("vr", units::one, "Regulator state")});
+         state({"efd", "field"}, units::one, 0, "Field voltage"),
+         state({"vmeas"}, units::one, 1, "Measured terminal voltage"),
+         state({"ll", "leadlag"}, units::one, 2, "Lead-lag state"),
+         state({"vr", "regulator"}, units::one, 3, "Regulator state")});
     return description;
 }
 
@@ -318,27 +318,6 @@ ChangeCode ExciterEXAC4::rootCheck(const IOdata& inputs,
         return ChangeCode::JACOBIAN_CHANGE;
     }
     return ChangeCode::NO_CHANGE;
-}
-stringVec ExciterEXAC4::localStateNames() const
-{
-    return {"efd", "vmeas", "ll", "vr"};
-}
-index_t ExciterEXAC4::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "efd") || (field == "field")) {
-        return offsets.getAlgOffset(sMode);
-    }
-    const index_t offset = offsets.getDiffOffset(sMode);
-    if (field == "vmeas") {
-        return offset + voltageMeasurementState;
-    }
-    if ((field == "ll") || (field == "leadlag")) {
-        return offset + leadLagState;
-    }
-    if ((field == "vr") || (field == "regulator")) {
-        return offset + regulatorState;
-    }
-    return kInvalidLocation;
 }
 // NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::exciters

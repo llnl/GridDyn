@@ -54,7 +54,6 @@ class ExcitationLimiterOEL4C final: public ExcitationLimiter {
                          const SolverMode& sMode,
                          CheckLevel level) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   private:
     struct ReactivePower {

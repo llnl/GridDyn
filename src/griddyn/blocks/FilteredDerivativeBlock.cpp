@@ -30,8 +30,31 @@ const ModelDescription& FilteredDerivativeBlock::getModelDescription() const
                    units::defunit,
                    "Filter on the derivative of block 1",
                    [](double value) { return !(std::abs(value) < kMin_Res); }),
-         state("deriv", units::defunit, "Derivative output"),
-         state("filter", units::defunit, "Derivative filter state")});
+         state<FilteredDerivativeBlock>(
+             {"deriv"},
+             units::defunit,
+             [](const auto& model) { return model.limiter_diff; },
+             "Derivative output"),
+         state<FilteredDerivativeBlock>(
+             {"filter"},
+             units::defunit,
+             [](const auto& model) { return model.limiter_diff + 1; },
+             "Derivative filter state"),
+         state<FilteredDerivativeBlock>(
+             {"limited"},
+             units::one,
+             [](const auto& model) {
+                 return model.opFlags[USE_BLOCK_LIMITS] ? 0 : kInvalidLocation;
+             },
+             "Solver variable limited"),
+         state<FilteredDerivativeBlock>(
+             {"ramp_limited"},
+             units::one,
+             [](const auto& model) {
+                 return model.opFlags[USE_RAMP_LIMITS] ? (model.opFlags[USE_BLOCK_LIMITS] ? 1 : 0) :
+                                                         kInvalidLocation;
+             },
+             "Solver variable ramp_limited")});
     return description;
 }
 
@@ -174,19 +197,4 @@ void FilteredDerivativeBlock::blockJacobianElements(double input,
 }
 
 // set parameters
-stringVec FilteredDerivativeBlock::localStateNames() const
-{
-    switch (limiter_diff) {
-        case 0:
-            return {"deriv", "filter"};
-        case 1:
-            if (opFlags[USE_BLOCK_LIMITS]) {
-                return {"limited", "deriv", "filter"};
-            } else {
-                return {"ramp_limited", "deriv", "filter"};
-            }
-        default:  // should be 0, 1 or 2 so this should run with 2
-            return {"limited", "ramp_limited", "deriv", "filter"};
-    }
-}
 }  // namespace griddyn::blocks

@@ -57,8 +57,7 @@ class ExciterEXAC4 final: public Exciter {
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
-    stringVec localStateNames() const override;
-    index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
+
     void residual(const IOdata& inputs,
                   const StateData& stateData,
                   double resid[],

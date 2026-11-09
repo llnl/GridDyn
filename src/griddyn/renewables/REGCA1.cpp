@@ -65,11 +65,11 @@ const ModelDescription& REGCA1::getModelDescription() const
                     "Initial reactive power"),
          localState("heldIpCommand", &REGCA1::heldIpCommand, "Held ip command"),
          localState("heldIqCommand", &REGCA1::heldIqCommand, "Held iq command"),
-         state("Pe", units::one, "Solver variable Pe when active"),
-         state("Qe", units::one, "Solver variable Qe when active"),
-         state("Ip", units::one, "Solver variable Ip when active"),
-         state("Iq", units::one, "Solver variable Iq when active"),
-         state("Vf", units::one, "Solver variable Vf when active")});
+         state({"Pe"}, units::one, 0, "Solver variable Pe when active"),
+         state({"Qe"}, units::one, 1, "Solver variable Qe when active"),
+         state({"Ip"}, units::one, 2, "Solver variable Ip when active"),
+         state({"Iq"}, units::one, 3, "Solver variable Iq when active"),
+         state({"Vf"}, units::one, 4, "Solver variable Vf when active")});
     return description;
 }
 
@@ -414,11 +414,6 @@ void REGCA1::outputPartialDerivatives(const IOdata& /*inputs*/,
     const auto alg = offsets.getAlgOffset(sMode);
     matrixData.assign(activePower, alg + activePower, 1.0);
     matrixData.assign(reactivePower, alg + reactivePower, 1.0);
-}
-
-stringVec REGCA1::localStateNames() const
-{
-    return {"Pe", "Qe", "Ip", "Iq", "Vf"};
 }
 
 }  // namespace griddyn

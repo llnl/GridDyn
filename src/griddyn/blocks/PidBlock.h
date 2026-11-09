@@ -54,7 +54,6 @@ class PidBlock: public GridBlock {
     using GridBlock::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
     virtual void blockDerivative(double input,
                                  double didt,
@@ -69,7 +68,6 @@ class PidBlock: public GridBlock {
                                        index_t argLoc,
                                        const SolverMode& sMode) override;
     virtual double step(CoreTime time, double inputA) override;
-    virtual stringVec localStateNames() const override;
 };
 
 }  // namespace griddyn::blocks

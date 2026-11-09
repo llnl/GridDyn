@@ -33,6 +33,8 @@ class Violation;
  **/
 class GridComponent: public CoreObject {
   protected:
+    /** Translate an object-local state slot into the selected solver vector. */
+    virtual index_t solverIndex(index_t localIndex, const SolverMode& sMode) const;
     std::bitset<64> opFlags;  //!< operational flags these flags are designed to be normal false
                               //!< @see ::OperationFlags
     OffsetTable offsets;  //!< a table of offsets for the different solver modes
@@ -510,12 +512,12 @@ see GridComponent::dynInitializeA for more details
                         std::string_view param,
                         double val,
                         units::unit unitType = units::defunit);
-    /** @brief get the local state names
-    used within a couple functions to automate the population of the state names and finding of the
-    indices  states should be algebraic states first,  then differential states
-    @return a string vector of the local state names
-    */
-    virtual stringVec localStateNames() const;
+    /** @brief Names of this object's solver states, excluding child objects.
+     * The vector follows local storage order: voltage, angle, algebraic, differential.
+     * Uses local-vector ModelDescription state declarations; retained localState fields
+     * are separate. Mode-bound primary states use getStateName with a solver mode.
+     */
+    stringVec solverStateNames() const;
     /** @brief get a vector of input Names
     @details the return data is a vector of vectors of string the first element of each vector is
     the typical input Name the others are alternatives

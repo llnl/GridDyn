@@ -72,9 +72,13 @@ const ModelDescription& GenModelGENSAL::getModelDescription() const
     static const auto description = ModelDescription::define<GenModelGENSAL>(
         "GenModelGENSAL",
         &GenModel5::getModelDescription(),
-        {state("epq", units::one, "Solver variable epq"),
-         state("psikd", units::one, "Solver variable psikd"),
-         state("psi2q", units::one, "Solver variable psi2q")});
+        {state({"epq"}, units::one, 4, "Solver variable epq"),
+         state({"psikd"}, units::one, 5, "Solver variable psikd"),
+         state({"psi2q"}, units::one, 6, "Solver variable psi2q"),
+         state({"edp"}, units::one, kInvalidLocation, "Not allocated by this machine formulation"),
+         state({"eqp"}, units::one, kInvalidLocation, "Not allocated by this machine formulation"),
+         state(
+             {"edpp"}, units::one, kInvalidLocation, "Not allocated by this machine formulation")});
     return description;
 }
 
@@ -505,11 +509,6 @@ MachineSignalDerivativeData
                             psi2d * loc.diffStateLoc[4] * saturationDerivativeOverFlux);
     }
     return data;
-}
-
-stringVec GenModelGENSAL::localStateNames() const
-{
-    return {"id", "iq", "delta", "freq", "epq", "psikd", "psi2q"};
 }
 
 bool GenModelGENSAL::usesExponentialSaturation() const

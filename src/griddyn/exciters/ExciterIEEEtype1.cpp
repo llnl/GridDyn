@@ -44,10 +44,14 @@ const ModelDescription& ExciterIEEEtype1::getModelDescription() const
          localState("hasTwoPointSaturationParameters",
                     &ExciterIEEEtype1::hasTwoPointSaturationParameters,
                     "Retained hasTwoPointSaturationParameters mode"),
-         state("ef", units::one, "Field voltage"),
-         state("vr", units::one, "Regulator state"),
-         state("rf", units::one, "rf solver state"),
-         state("vmeas", units::one, "Measured terminal voltage")});
+         state({"ef"}, units::one, 0, "Field voltage"),
+         state({"vr"}, units::one, 1, "Regulator state"),
+         state({"rf"}, units::one, 2, "rf solver state"),
+         state<ExciterIEEEtype1>(
+             {"vmeas"},
+             units::one,
+             [](const auto& model) { return model.Tr > 0.0 ? 3 : kInvalidLocation; },
+             "Measured terminal voltage")});
     return description;
 }
 
@@ -312,10 +316,6 @@ ChangeCode ExciterIEEEtype1::rootCheck(const IOdata& inputs,
     return ret;
 }
 
-stringVec ExciterIEEEtype1::localStateNames() const
-{
-    return (Tr > 0.0) ? stringVec{"ef", "vr", "rf", "vmeas"} : stringVec{"ef", "vr", "rf"};
-}
 // set parameters
 void ExciterIEEEtype1::set(std::string_view param, double val, units::unit unitType)
 {

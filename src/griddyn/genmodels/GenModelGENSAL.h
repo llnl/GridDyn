@@ -52,7 +52,6 @@ class GenModelGENSAL: public GenModel5 {
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
 
-    stringVec localStateNames() const override;
     void residual(const IOdata& inputs,
                   const StateData& stateData,
                   double resid[],

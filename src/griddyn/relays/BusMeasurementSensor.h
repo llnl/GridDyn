@@ -36,16 +36,15 @@ class BusMeasurementSensor: public Sensor {
                                   const StateData& stateData,
                                   MatrixData<double>& matrixData,
                                   const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
+
     GridBus* sourceBus() const { return bus(); }
 
   protected:
     GridBus* bus() const;
     double angle(const StateData& stateData, const SolverMode& sMode) const;
     double voltage(const StateData& stateData, const SolverMode& sMode) const;
-    void defineStates(count_t alg, count_t diff, stringVec names);
+    void defineStates(count_t alg, count_t diff);
     virtual index_t outputState(index_t outNum) const = 0;
-    stringVec stateNames;
 };
 
 /** ANDES PLL1/PLL2 equations; each instance has an independent bus source and state. */

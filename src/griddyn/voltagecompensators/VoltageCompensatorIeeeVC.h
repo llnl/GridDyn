@@ -41,7 +41,6 @@ class VoltageCompensatorIeeeVC: public VoltageCompensator {
                           MatrixData<double>& matrixData,
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
-    index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
     double compensatedVoltage(const IOdata& inputs) const;
 };

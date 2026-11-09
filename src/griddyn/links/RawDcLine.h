@@ -77,9 +77,6 @@ class RawDcLine final: public Link {
                     double state[],
                     double dstateDt[],
                     const SolverMode& sMode) override;
-    void getStateName(stringVec& stNames,
-                      const SolverMode& sMode,
-                      const std::string& prefix = "") const override;
 };
 
 }  // namespace griddyn::links

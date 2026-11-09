@@ -67,7 +67,7 @@ namespace {
         while (!pending.empty()) {
             auto* component = pending.back();
             pending.pop_back();
-            const auto names = component->localStateNames();
+            const auto names = component->solverStateNames();
             for (size_t index = 0; index < names.size(); ++index) {
                 if (values != nullptr) {
                     values->push_back(component->getState(static_cast<index_t>(index)));

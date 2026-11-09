@@ -57,12 +57,12 @@ const ModelDescription& ExciterESST1A::getModelDescription() const
                     &ExciterESST1A::opFlags,
                     ExciterESST1A::AMPLIFIER_LIMIT_HIGH,
                     "Retained amplifier_limit_high mode"),
-         state("efd", units::one, "Field voltage"),
-         state("vmeas", units::one, "Measured terminal voltage"),
-         state("ll1", units::one, "ll1 solver state"),
-         state("ll2", units::one, "ll2 solver state"),
-         state("va", units::one, "Amplifier state"),
-         state("rf", units::one, "rf solver state")});
+         state({"efd", "field"}, units::one, 0, "Field voltage"),
+         state({"vmeas"}, units::one, 1, "Measured terminal voltage"),
+         state({"ll1"}, units::one, 2, "ll1 solver state"),
+         state({"ll2"}, units::one, 3, "ll2 solver state"),
+         state({"va"}, units::one, 4, "Amplifier state"),
+         state({"rf"}, units::one, 5, "rf solver state")});
     return description;
 }
 
@@ -527,35 +527,6 @@ ChangeCode ExciterESST1A::rootCheck(const IOdata& inputs,
     m_dstate_dt[amplifierState + 1] = 0.0;
     alert(this, JAC_COUNT_DECREASE);
     return ChangeCode::JACOBIAN_CHANGE;
-}
-
-stringVec ExciterESST1A::localStateNames() const
-{
-    return {"efd", "vmeas", "ll1", "ll2", "va", "rf"};
-}
-
-index_t ExciterESST1A::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "efd") || (field == "field")) {
-        return offsets.getAlgOffset(sMode);
-    }
-    const auto offset = offsets.getDiffOffset(sMode);
-    if (field == "vmeas") {
-        return offset + voltageMeasurementState;
-    }
-    if (field == "ll1") {
-        return offset + firstLeadLagState;
-    }
-    if (field == "ll2") {
-        return offset + secondLeadLagState;
-    }
-    if (field == "va") {
-        return offset + amplifierState;
-    }
-    if (field == "rf") {
-        return offset + feedbackState;
-    }
-    return kInvalidLocation;
 }
 
 }  // namespace griddyn::exciters

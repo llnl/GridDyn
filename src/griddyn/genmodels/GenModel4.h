@@ -30,7 +30,6 @@ class GenModel4: public GenModel3 {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual stringVec localStateNames() const override;
     // dynamics
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,

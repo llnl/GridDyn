@@ -26,10 +26,10 @@ GenModel6::GenModel6(const std::string& objName): GenModel5(objName)
 
 const ModelDescription& GenModel6::getModelDescription() const
 {
-    static const auto description =
-        ModelDescription::define<GenModel6>("GenModel6",
-                                            &GenModel5::getModelDescription(),
-                                            {state("eqpp", units::one, "Solver variable eqpp")});
+    static const auto description = ModelDescription::define<GenModel6>(
+        "GenModel6",
+        &GenModel5::getModelDescription(),
+        {state({"eqpp"}, units::one, 7, "Solver variable eqpp")});
     return description;
 }
 
@@ -275,10 +275,4 @@ void GenModel6::jacobianElements(const IOdata& inputs,
     md.assign(refDiff + 5, refDiff + 5, -1.0 / Tdopp - sD.cj);
 }
 
-static const stringVec genModel6Names{"id", "iq", "delta", "freq", "edp", "eqp", "edpp", "eqpp"};
-
-stringVec GenModel6::localStateNames() const
-{
-    return genModel6Names;
-}
 }  // namespace griddyn::genmodels

@@ -74,13 +74,17 @@ GenModelGENROU::GenModelGENROU(const std::string& objName): GenModel5(objName)
 
 const ModelDescription& GenModelGENROU::getModelDescription() const
 {
-    static const auto description =
-        ModelDescription::define<GenModelGENROU>("GenModelGENROU",
-                                                 &GenModel5::getModelDescription(),
-                                                 {state("e1d", units::one, "Solver variable e1d"),
-                                                  state("e1q", units::one, "Solver variable e1q"),
-                                                  state("e2q", units::one, "Solver variable e2q"),
-                                                  state("e2d", units::one, "Solver variable e2d")});
+    static const auto description = ModelDescription::define<GenModelGENROU>(
+        "GenModelGENROU",
+        &GenModel5::getModelDescription(),
+        {state({"e1d"}, units::one, 4, "Solver variable e1d"),
+         state({"e1q"}, units::one, 5, "Solver variable e1q"),
+         state({"e2q"}, units::one, 6, "Solver variable e2q"),
+         state({"e2d"}, units::one, 7, "Solver variable e2d"),
+         state({"edp"}, units::one, kInvalidLocation, "Not allocated by this machine formulation"),
+         state({"eqp"}, units::one, kInvalidLocation, "Not allocated by this machine formulation"),
+         state(
+             {"edpp"}, units::one, kInvalidLocation, "Not allocated by this machine formulation")});
     return description;
 }
 
@@ -535,12 +539,5 @@ MachineSignalDerivativeData
     return derivatives;
 }
 
-static const stringVec
-    GEN_MODEL_GENROU_NAMES{"id", "iq", "delta", "freq", "e1d", "e1q", "e2q", "e2d"};
-
-stringVec GenModelGENROU::localStateNames() const
-{
-    return GEN_MODEL_GENROU_NAMES;
-}
 // NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::genmodels

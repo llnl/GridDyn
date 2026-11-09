@@ -42,8 +42,7 @@ const ModelDescription& ExciterSEXS::getModelDescription() const
         &Exciter::getModelDescription(),
         {parameter({"tb"}, &ExciterSEXS::Tb, units::second, "Lead-lag denominator time constant"),
          parameter({"te"}, &ExciterSEXS::Te, units::second, "Field time constant"),
-         state("ef", units::one, "Per-unit field voltage"),
-         state("x", units::one, "Lead-lag memory in the solver vector")});
+         state({"x"}, units::one, 1, "Lead-lag memory in the solver vector")});
     return description;
 }
 
@@ -102,17 +101,6 @@ void ExciterSEXS::dynObjectInitializeB(const IOdata& inputs,
 
     m_dstate_dt[0] = 0.0;
     m_dstate_dt[1] = 0.0;
-}
-
-stringVec ExciterSEXS::localStateNames() const
-{
-    stringVec names;
-    for (const auto& field : ExciterSEXS::getModelDescription().fields()) {
-        if (field.kind() == ModelFieldKind::STATE) {
-            names.emplace_back(field.name());
-        }
-    }
-    return names;
 }
 
 double ExciterSEXS::regulatorOutput(const IOdata& inputs, const double stateX) const

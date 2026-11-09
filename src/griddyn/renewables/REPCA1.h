@@ -53,7 +53,6 @@ class REPCA1 final: public RenewableComponent {
                                   const StateData& stateData,
                                   MatrixData<double>& matrixData,
                                   const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   private:
     int VCFlag = 0, RefFlag = 1, Fflag = 0, PLflag = 1;

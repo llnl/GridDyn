@@ -1099,14 +1099,4 @@ count_t RenewableGenerator::outputDependencyCount(index_t num, const SolverMode&
     return electricalModel == nullptr ? 0 : electricalModel->outputDependencyCount(num, sMode) + 1;
 }
 
-void RenewableGenerator::getStateName(stringVec& stNames,
-                                      const SolverMode& sMode,
-                                      const std::string& prefix) const
-{
-    if (!isDynamic(sMode) && stateSize(sMode) > 0) {
-        Generator::getStateName(stNames, sMode, prefix);
-    }
-    GridComponent::getStateName(stNames, sMode, prefix);
-}
-
 }  // namespace griddyn

@@ -105,14 +105,14 @@ const ModelDescription& WT3E1::getModelDescription() const
          parameter({"wp60"}, &WT3E1::Wp60, units::one, "Wp60"),
          parameter({"pminspeed"}, &WT3E1::PminSpeed, units::one, "Pmin speed"),
          parameter({"wp100"}, &WT3E1::Wp100, units::one, "Wp100"),
-         state("Ipcmd", units::one, "Solver variable Ipcmd when active"),
-         state("Eqcmd", units::one, "Solver variable Eqcmd when active"),
-         state("Pord", units::one, "Solver variable Pord when active"),
-         state("wref", units::one, "Solver variable wref when active"),
-         state("Vf", units::one, "Solver variable Vf when active"),
-         state("Pf", units::one, "Solver variable Pf when active"),
-         state("Pint", units::one, "Solver variable Pint when active"),
-         state("Qint", units::one, "Solver variable Qint when active"),
+         state({"Ipcmd"}, units::one, 0, "Solver variable Ipcmd when active"),
+         state({"Eqcmd"}, units::one, 1, "Solver variable Eqcmd when active"),
+         state({"Pord"}, units::one, 2, "Solver variable Pord when active"),
+         state({"wref"}, units::one, 3, "Solver variable wref when active"),
+         state({"Vf"}, units::one, 4, "Solver variable Vf when active"),
+         state({"Pf"}, units::one, 5, "Solver variable Pf when active"),
+         state({"Pint"}, units::one, 6, "Solver variable Pint when active"),
+         state({"Qint"}, units::one, 7, "Solver variable Qint when active"),
          localState("initialP", &WT3E1::initialP, "Initial p"),
          localState("initialQ", &WT3E1::initialQ, "Initial q"),
          localState("vref", &WT3E1::vref, "Vref"),
@@ -491,9 +491,5 @@ void WT3E1::outputPartialDerivatives(const IOdata& inputs,
     }
     (void)inputs;
     (void)stateData;
-}
-stringVec WT3E1::localStateNames() const
-{
-    return {"Ipcmd", "Eqcmd", "Pord", "wref", "Vf", "Pf", "Pint", "Qint"};
 }
 }  // namespace griddyn

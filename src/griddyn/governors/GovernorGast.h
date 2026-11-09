@@ -72,8 +72,6 @@ class GovernorGast final: public Governor {
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
-    index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
   private:
     static constexpr double minimumTimeConstant = 1e-3;

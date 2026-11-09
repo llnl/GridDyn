@@ -45,9 +45,9 @@ const ModelDescription& GovernorTgov1::getModelDescription() const
         "GovernorTgov1",
         &GovernorIeeeSimple::getModelDescription(),
         {parameter({"dt"}, &GovernorTgov1::Dt, units::one, "Turbine damping"),
-         state("pmech", units::puMW, "Mechanical power"),
-         state("v1", units::one, "Valve state"),
-         state("v2", units::one, "Turbine state")});
+         state({"pmech", "pm"}, units::puMW, 0, "Mechanical power"),
+         state({"v1"}, units::one, 1, "Valve state"),
+         state({"v2"}, units::one, 2, "Turbine state")});
     return description;
 }
 
@@ -318,20 +318,6 @@ void GovernorTgov1::rootTrigger(CoreTime /*time*/,
         }
         ++rootOffset;
     }
-}
-
-index_t GovernorTgov1::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    index_t ret = kInvalidLocation;
-    if ((field == "pm") || (field == "pmech")) {
-        ret = offsets.getAlgOffset(sMode);
-    } else if (field == "v1") {
-        ret = offsets.getDiffOffset(sMode);
-    } else if (field == "v2") {
-        ret = offsets.getDiffOffset(sMode);
-        ret = (ret != kNullLocation) ? ret + 1 : ret;
-    }
-    return ret;
 }
 
 // set parameters

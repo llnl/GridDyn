@@ -39,8 +39,8 @@ const ModelDescription& ExcitationLimiterOEL4C::getModelDescription() const
          localState("violating", &ExcitationLimiterOEL4C::violating, "Violating"),
          localState("delayElapsed", &ExcitationLimiterOEL4C::delayElapsed, "Delay elapsed"),
          localState("violationStart", &ExcitationLimiterOEL4C::violationStart, "Violation start"),
-         state("voel", units::one, "Solver variable voel when active"),
-         state("integral", units::one, "Solver variable integral when active")});
+         state({"voel"}, units::one, 0, "Solver variable voel when active"),
+         state({"integral"}, units::one, 1, "Solver variable integral when active")});
     return description;
 }
 
@@ -332,8 +332,4 @@ void ExcitationLimiterOEL4C::timestep(CoreTime time,
     prevTime = time;
 }
 
-stringVec ExcitationLimiterOEL4C::localStateNames() const
-{
-    return {"voel", "integral"};
-}
 }  // namespace griddyn::limiters

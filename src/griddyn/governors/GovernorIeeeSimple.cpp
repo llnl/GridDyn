@@ -47,8 +47,8 @@ const ModelDescription& GovernorIeeeSimple::getModelDescription() const
         &Governor::getModelDescription(),
         {parameter({"pup"}, &GovernorIeeeSimple::Pup, units::puMW, "Upper ramp limit"),
          parameter({"pdown"}, &GovernorIeeeSimple::Pdown, units::puMW, "Lower ramp limit"),
-         state("pm", units::puMW, "Mechanical power"),
-         state("x", units::one, "Governor lag state")});
+         state({"x"}, units::one, 1, "Governor lag state"),
+         state({"pmech", "pm"}, units::puMW, 0, "Solver variable pmech")});
     return description;
 }
 
@@ -188,18 +188,6 @@ void GovernorIeeeSimple::jacobianElements(const IOdata& /*inputs*/,
         matrixData.assignCheck(stateIndex, inputLocs[govpSetInLocation], 1 / T3);
     }
     matrixData.assign(stateIndex + 1, stateIndex + 1, (-1 / T1) - stateData.cj);
-}
-
-index_t GovernorIeeeSimple::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    index_t ret = kInvalidLocation;
-    if (field == "pm") {
-        ret = offsets.getDiffOffset(sMode);
-    } else if (field == "x") {
-        ret = offsets.getDiffOffset(sMode);
-        ret = (ret != kNullLocation) ? ret + 1 : ret;
-    }
-    return ret;
 }
 
 void GovernorIeeeSimple::rootTest(const IOdata& inputs,

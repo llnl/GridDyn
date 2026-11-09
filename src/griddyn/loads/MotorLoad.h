@@ -26,6 +26,7 @@ class MotorLoad: public GridLoad {
     };
 
   protected:
+    index_t solverIndex(index_t localIndex, const SolverMode& sMode) const override;
     model_parameter Pmot = -kBigNum;  //!< the mechanical power of the motor
     model_parameter r = 0.01;  //!< the motor resistance
     model_parameter x = 0.15;  //!< the motor impedance
@@ -109,9 +110,6 @@ class MotorLoad: public GridLoad {
                                   MatrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
-    virtual void getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix) const override;
 
     virtual void rootTest(const IOdata& inputs,
                           const StateData& stateDataValue,
@@ -137,7 +135,6 @@ class MotorLoad: public GridLoad {
 */
     virtual double dmechds(double slip) const;
 
-    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual double getRealPower(const IOdata& inputs,

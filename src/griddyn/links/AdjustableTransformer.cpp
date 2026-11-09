@@ -99,7 +99,27 @@ const ModelDescription& AdjustableTransformer::getModelDescription() const
          command({"fault"}, units::defunit, "Set fault"),
          command({"maxtapangle"}, units::defunit, "Set maxtapangle"),
          command({"stepsize", "tapchange"}, units::defunit, "Set stepsize"),
-         command({"nsteps"}, units::defunit, "Set nsteps")});
+         command({"nsteps"}, units::defunit, "Set nsteps"),
+         state<AdjustableTransformer>(
+             {"tapAngle"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return !isDynamic(mode) && model.stateSize(mode) > 0 &&
+                         model.cMode == ControlMode::MW_CONTROL ?
+                     model.offsets.getAlgOffset(mode) :
+                     kInvalidLocation;
+             },
+             "Solver variable tapAngle"),
+         state<AdjustableTransformer>(
+             {"tap"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return !isDynamic(mode) && model.stateSize(mode) > 0 &&
+                         model.cMode != ControlMode::MW_CONTROL ?
+                     model.offsets.getAlgOffset(mode) :
+                     kInvalidLocation;
+             },
+             "Solver variable tap")});
     return description;
 }
 
@@ -583,24 +603,6 @@ count_t AdjustableTransformer::localJacobianCount(const SolverMode& sMode) const
         }
     }
     return localJacSize;
-}
-
-void AdjustableTransformer::getStateName(stringVec& stNames,
-                                         const SolverMode& sMode,
-                                         const std::string& prefix) const
-{
-    if (stateSize(sMode) > 0) {
-        const std::string prefix2 = prefix + getName() + ':';
-        if (isDynamic(sMode)) {
-        } else {
-            auto offset = offsets.getAlgOffset(sMode);
-            if (cMode == ControlMode::MW_CONTROL) {
-                stNames[offset] = prefix2 + "tapAngle";
-            } else {
-                stNames[offset] = prefix2 + "tap";
-            }
-        }
-    }
 }
 
 void AdjustableTransformer::reset(ResetLevels level)

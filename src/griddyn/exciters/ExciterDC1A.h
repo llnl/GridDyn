@@ -31,7 +31,6 @@ class ExciterDC1A: public ExciterIEEEtype1 {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual stringVec localStateNames() const override;
 
     virtual void residual(const IOdata& inputs,
                           const StateData& stateDataValue,

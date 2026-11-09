@@ -102,11 +102,15 @@ const ModelDescription& DistributedConverter::getModelDescription() const
          parameter({"pref", "pref0"}, &DistributedConverter::pref, units::one, "Pref"),
          parameter({"qref", "qref0"}, &DistributedConverter::qref, units::one, "Qref"),
          command({"reset"}, units::defunit, "Set reset"),
-         state("Pe", units::one, "Solver variable Pe when active"),
-         state("Qe", units::one, "Solver variable Qe when active"),
-         state("Ip", units::one, "Solver variable Ip when active"),
-         state("Iq", units::one, "Solver variable Iq when active"),
-         state("SOC", units::one, "Solver variable SOC when active")});
+         state({"Pe"}, units::one, 0, "Solver variable Pe when active"),
+         state({"Qe"}, units::one, 1, "Solver variable Qe when active"),
+         state({"Ip"}, units::one, 2, "Solver variable Ip when active"),
+         state({"Iq"}, units::one, 3, "Solver variable Iq when active"),
+         state<DistributedConverter>(
+             {"SOC"},
+             units::one,
+             [](const auto& model) { return model.variant == Variant::pv ? kInvalidLocation : 4; },
+             "Solver variable SOC when active")});
     return description;
 }
 
@@ -549,12 +553,6 @@ ChangeCode DistributedConverter::rootCheck(const IOdata& inputs,
         ChangeCode::NON_STATE_CHANGE :
         ChangeCode::NO_CHANGE;
 }
-stringVec DistributedConverter::localStateNames() const
-{
-    return variant == Variant::pv ? stringVec{"Pe", "Qe", "Ip", "Iq"} :
-                                    stringVec{"Pe", "Qe", "Ip", "Iq", "SOC"};
-}
-
 void DistributedConverter::copyParametersTo(DistributedConverter* target) const
 {
     target->fn = fn;

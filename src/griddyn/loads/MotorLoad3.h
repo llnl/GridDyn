@@ -14,6 +14,7 @@ namespace griddyn::loads {
  */
 class MotorLoad3: public MotorLoad {
   protected:
+    index_t solverIndex(index_t localIndex, const SolverMode& sMode) const override;
     double xp = 0.0;  //!< transient reactance of the motor
     double T0p = 0.0;  //!< transient time constant of the motor
     double x0 = 0.0;  //!< x0 parameter
@@ -96,10 +97,7 @@ class MotorLoad3: public MotorLoad {
                                   MatrixData<double>& matrixData,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
-    virtual void getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix) const override;
-    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
+
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual double getRealPower(const IOdata& inputs,

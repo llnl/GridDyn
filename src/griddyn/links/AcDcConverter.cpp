@@ -70,7 +70,21 @@ const ModelDescription& AcDcConverter::getModelDescription() const
          command({"t", "tp"}, units::defunit, "Set t"),
          command({"controlki", "controli"}, units::defunit, "Set controlki"),
          command({"controlkp", "controlgain"}, units::defunit, "Set controlkp"),
-         command({"tm", "td"}, units::defunit, "Set tm")});
+         command({"tm", "td"}, units::defunit, "Set tm"),
+         state<AcDcConverter>(
+             {"Idc"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return isDynamic(mode) ? model.offsets.getAlgOffset(mode) : kInvalidLocation;
+             },
+             "Solver variable Idc"),
+         state<AcDcConverter>(
+             {"cos(firing_angle)"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return !isDynamic(mode) ? model.offsets.getAlgOffset(mode) : kInvalidLocation;
+             },
+             "Solver variable cos(firing_angle)")});
     return description;
 }
 
@@ -754,30 +768,6 @@ int AcDcConverter::fixPower(double /*power*/,
                             units::unit /*unitType*/)
 {
     return 0;
-}
-
-void AcDcConverter::getStateName(stringVec& stNames,
-                                 const SolverMode& sMode,
-                                 const std::string& prefix) const
-{
-    auto offset = offsets.getAlgOffset(sMode);
-
-    const std::string prefix2 = prefix + getName() + ':';
-
-    if (isDynamic(sMode)) {
-        if (offset > 0) {
-            stNames[offset] = prefix2 + "Idc";
-        }
-        firingAngleControl->getStateName(stNames, sMode, prefix2);
-        if (powerLevelControl->isEnabled()) {
-            powerLevelControl->getStateName(stNames, sMode, prefix2);
-            if (controlDelay->isEnabled()) {
-                controlDelay->getStateName(stNames, sMode, prefix2);
-            }
-        }
-    } else {
-        stNames[offset] = prefix2 + "cos(firing_angle)";
-    }
 }
 
 }  // namespace griddyn::links

@@ -75,9 +75,6 @@ class Fuse: public Relay {
 
     virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
-    virtual void getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix) const override;
 
   protected:
     virtual void conditionTriggered(index_t conditionNum, CoreTime triggerTime) override;

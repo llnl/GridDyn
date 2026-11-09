@@ -179,7 +179,6 @@ class GenModelGENROU: public GenModel5 {
                                               const IOlocs& inputLocs,
                                               const SolverMode& sMode) const override;
 
-    virtual stringVec localStateNames() const override;
     // dynamics
     virtual void residual(const IOdata& inputs,
                           const StateData& stateData,

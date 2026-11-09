@@ -94,11 +94,23 @@ const ModelDescription& ExciterESST3A::getModelDescription() const
                     &ExciterESST3A::opFlags,
                     ExciterESST3A::VM_LIMIT_HIGH,
                     "Retained vm_limit_high mode"),
-         state("efd", units::one, "Field voltage"),
-         state("vmeas", units::one, "Measured terminal voltage"),
-         state("ll", units::one, "Lead-lag state"),
-         state("vr", units::one, "Regulator state"),
-         state("vm", units::one, "vm solver state")});
+         state({"efd", "field"}, units::one, 0, "Field voltage"),
+         state<ExciterESST3A>(
+             {"vmeas"},
+             units::one,
+             [](const auto& model) { return model.hasDynamicVoltageRegulator() ? 1 : 2; },
+             "Measured terminal voltage"),
+         state<ExciterESST3A>(
+             {"ll"},
+             units::one,
+             [](const auto& model) { return model.hasDynamicVoltageRegulator() ? 2 : 3; },
+             "Lead-lag state"),
+         state<ExciterESST3A>(
+             {"vr"},
+             units::one,
+             [](const auto& model) { return model.hasDynamicVoltageRegulator() ? 3 : 1; },
+             "Regulator state"),
+         state({"vm"}, units::one, 4, "vm solver state")});
     return description;
 }
 
@@ -617,33 +629,5 @@ void ExciterESST3A::set(std::string_view param, double val, units::unit unitType
     Exciter::set(param, val, unitType);
 }
 
-stringVec ExciterESST3A::localStateNames() const
-{
-    return hasDynamicVoltageRegulator() ? stringVec{"efd", "vmeas", "ll", "vr", "vm"} :
-                                          stringVec{"efd", "vr", "vmeas", "ll", "vm"};
-}
-
-index_t ExciterESST3A::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "efd") || (field == "field")) {
-        return offsets.getAlgOffset(sMode);
-    }
-    const index_t diffOffset = offsets.getDiffOffset(sMode);
-    if (field == "vmeas") {
-        return diffOffset + voltageMeasurementState;
-    }
-    if (field == "ll") {
-        return diffOffset + leadLagState;
-    }
-    if (field == "vr") {
-        return hasDynamicVoltageRegulator() ? diffOffset + dynamicVoltageRegulatorState :
-                                              offsets.getAlgOffset(sMode) + 1;
-    }
-    if (field == "vm") {
-        return diffOffset +
-            (hasDynamicVoltageRegulator() ? dynamicFieldRegulatorState : staticFieldRegulatorState);
-    }
-    return kInvalidLocation;
-}
 // NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::exciters

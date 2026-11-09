@@ -20,8 +20,30 @@ const ModelDescription& ControlBlock::getModelDescription() const
         &GridBlock::getModelDescription(),
         {parameter({"t1", "t"}, &ControlBlock::mT1, units::defunit, "Delay time constant"),
          parameter({"t2"}, &ControlBlock::mT2, units::defunit, "Upper time constant"),
-         state("output", units::defunit, "Controller output"),
-         state("intermediate", units::defunit, "Intermediate controller state")});
+         state<ControlBlock>(
+             {"output"},
+             units::defunit,
+             [](const auto& model) { return model.limiter_alg + model.limiter_diff; },
+             "Controller output"),
+         state<ControlBlock>(
+             {"intermediate", "m1"},
+             units::defunit,
+             [](const auto& model) { return model.limiter_alg + model.limiter_diff + 1; },
+             "Intermediate controller state"),
+         state<ControlBlock>(
+             {"limiter_out"},
+             units::one,
+             [](const auto& model) {
+                 return model.limiter_alg + model.limiter_diff > 0 ? 0 : kInvalidLocation;
+             },
+             "Solver variable limiter_out"),
+         state<ControlBlock>(
+             {"ramp_limiter_out"},
+             units::one,
+             [](const auto& model) {
+                 return model.limiter_alg + model.limiter_diff > 1 ? 1 : kInvalidLocation;
+             },
+             "Solver variable ramp_limiter_out")});
     return description;
 }
 
@@ -205,30 +227,5 @@ double ControlBlock::step(CoreTime time, double input)
     return out;
 }
 
-index_t ControlBlock::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    index_t ret = kInvalidLocation;
-    if (field == "m1") {
-        ret = offsets.getDiffOffset(sMode);
-    } else {
-        ret = GridBlock::findIndex(field, sMode);
-    }
-    return ret;
-}
-
 // set parameters
-stringVec ControlBlock::localStateNames() const
-{
-    stringVec out(stateSize(cLocalSolverMode));
-    int loc = 0;
-    if (opFlags[USE_BLOCK_LIMITS]) {
-        out[loc++] = "limiter_out";
-    }
-    if (opFlags[USE_RAMP_LIMITS]) {
-        out[loc++] = "ramp_limiter_out";
-    }
-    out[loc++] = "output";
-    out[loc] = "intermediate";
-    return out;
-}
 }  // namespace griddyn::blocks

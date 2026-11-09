@@ -41,7 +41,6 @@ class GovernorTG2 final: public Governor {
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
   private:
     double dbL = -0.0001, dbU = 0.0001, dbC = 0.0;

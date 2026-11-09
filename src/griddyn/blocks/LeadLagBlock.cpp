@@ -23,8 +23,23 @@ const ModelDescription& LeadLagBlock::getModelDescription() const
         {command({"ta"}, units::defunit, "Lead time constant"),
          command({"tb", "t"}, units::defunit, "Lag time constant"),
          command({"k", "gain"}, units::defunit, "Gain"),
-         state("unlimited_output", units::defunit, "Lead-lag output before limiting"),
-         state("lag_state", units::defunit, "Lag state")});
+         state<LeadLagBlock>(
+             {"output"},
+             units::defunit,
+             [](const auto& model) {
+                 return model.opFlags[USE_BLOCK_LIMITS] ? 0 : kInvalidLocation;
+             },
+             "Limited lead-lag output"),
+         state<LeadLagBlock>(
+             {"unlimited_output"},
+             units::defunit,
+             [](const auto& model) { return model.limiter_alg; },
+             "Lead-lag output before limiting"),
+         state<LeadLagBlock>(
+             {"lag_state"},
+             units::defunit,
+             [](const auto& model) { return model.offsets.local().local.algSize; },
+             "Lag state")});
     return description;
 }
 
@@ -199,15 +214,4 @@ void LeadLagBlock::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-stringVec LeadLagBlock::localStateNames() const
-{
-    stringVec names(stateSize(cLocalSolverMode));
-    index_t index = 0;
-    if (opFlags[USE_BLOCK_LIMITS]) {
-        names[index++] = "output";
-    }
-    names[index++] = "unlimited_output";
-    names[index] = "lag_state";
-    return names;
-}
 }  // namespace griddyn::blocks

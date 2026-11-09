@@ -51,7 +51,8 @@ const ModelDescription& ExcitationLimiter::getModelDescription() const
          localState("limiterRole", &ExcitationLimiter::limiterRole, "Limiter role"),
          localState("thresholdSet", &ExcitationLimiter::thresholdSet, "Threshold set"),
          localState("roleInitialized", &ExcitationLimiter::roleInitialized, "Role initialized"),
-         command({"role"}, units::defunit, "Configure role", ModelFieldType::STRING)});
+         command({"role"}, units::defunit, "Configure role", ModelFieldType::STRING),
+         state({"output"}, units::one, 0, "Excitation limit signal")});
     return description;
 }
 

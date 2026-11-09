@@ -139,9 +139,6 @@ namespace links {
                              id_type_t fixedTerminal = 0,
                              units::unit unitType = units::defunit) override;
 
-        virtual void getStateName(stringVec& stNames,
-                                  const SolverMode& sMode,
-                                  const std::string& prefix = "") const override;
 
       private:
         /** build out the components of the converter*/

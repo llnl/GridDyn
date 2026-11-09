@@ -45,7 +45,6 @@ class ExcitationLimiterUEL2C final: public ExcitationLimiter {
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   private:
     struct CurveEvaluation {

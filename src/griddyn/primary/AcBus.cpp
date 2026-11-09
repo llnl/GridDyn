@@ -116,7 +116,9 @@ const ModelDescription& AcBus::getModelDescription() const
          command({"autogenq"}, units::defunit, "Set autogenq"),
          command({"autogendelay"}, units::defunit, "Set autogendelay"),
          command({"tw"}, units::defunit, "Set tw"),
-         command({"lowvdisconnect"}, units::defunit, "Set lowvdisconnect")});
+         command({"lowvdisconnect"}, units::defunit, "Set lowvdisconnect"),
+         state({"voltage"}, units::puV, 0, "Bus voltage magnitude"),
+         state({"angle"}, units::rad, 1, "Bus voltage angle")});
     return description;
 }
 
@@ -2537,12 +2539,6 @@ double AcBus::computeError(const StateData& stateDataValue, const SolverMode& sM
             break;
     }
     return err;
-}
-
-static const stringVec ST_NAMES{"voltage", "angle"};
-stringVec AcBus::localStateNames() const
-{
-    return ST_NAMES;
 }
 
 void AcBus::setOffsets(const SolverOffsets& newOffsets, const SolverMode& sMode)

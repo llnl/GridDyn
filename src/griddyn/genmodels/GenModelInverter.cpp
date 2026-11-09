@@ -32,7 +32,7 @@ const ModelDescription& GenModelInverter::getModelDescription() const
                     &GenModelInverter::opFlags,
                     AT_ANGLE_LIMITS,
                     "Retained limiter state"),
-         state("angle", units::rad, "Solver variable angle")});
+         state({"angle"}, units::rad, 0, "Solver variable angle")});
     return description;
 }
 
@@ -360,11 +360,6 @@ void GenModelInverter::outputPartialDerivatives(const IOdata& inputs,
 count_t GenModelInverter::outputDependencyCount(index_t /*num*/, const SolverMode& /*sMode*/) const
 {
     return 1;
-}
-stringVec GenModelInverter::localStateNames() const
-{
-    static const stringVec genModelNames{"angle"};
-    return genModelNames;
 }
 // set parameters
 void GenModelInverter::set(std::string_view param, std::string_view val)

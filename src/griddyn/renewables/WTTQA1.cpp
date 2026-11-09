@@ -49,10 +49,10 @@ const ModelDescription& WTTQA1::getModelDescription() const
          parameter({"spd2"}, &WTTQA1::speed, 1, units::one, "Speed"),
          parameter({"spd3"}, &WTTQA1::speed, 2, units::one, "Speed"),
          parameter({"spd4"}, &WTTQA1::speed, 3, units::one, "Speed"),
-         state("Pref", units::one, "Solver variable Pref when active"),
-         state("PeFiltered", units::one, "Solver variable PeFiltered when active"),
-         state("speedReference", units::one, "Solver variable speedReference when active"),
-         state("torqueIntegral", units::one, "Solver variable torqueIntegral when active"),
+         state({"Pref"}, units::one, 0, "Solver variable Pref when active"),
+         state({"PeFiltered"}, units::one, 1, "Solver variable PeFiltered when active"),
+         state({"speedReference"}, units::one, 2, "Solver variable speedReference when active"),
+         state({"torqueIntegral"}, units::one, 3, "Solver variable torqueIntegral when active"),
          localState("initialPower", &WTTQA1::initialPower, "Initial power")});
     return description;
 }
@@ -326,11 +326,6 @@ index_t WTTQA1::getOutputLoc(const SolverMode& sMode, index_t outputNum) const
         return offsets.getDiffOffset(sMode) + wref;
     }
     return RenewableComponent::getOutputLoc(sMode, outputNum);
-}
-
-stringVec WTTQA1::localStateNames() const
-{
-    return {"Pref", "PeFiltered", "speedReference", "torqueIntegral"};
 }
 
 }  // namespace griddyn

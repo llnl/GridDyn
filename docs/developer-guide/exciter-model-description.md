@@ -128,11 +128,13 @@ not guessed. Native values, including the model's existing zero-time-constant
 cases, retain their established meaning. The initialization-only `vbias`
 parameter uses the same conversion and setter helpers as the other parameters.
 
-SEXS derives `localStateNames()` from its own `state` declarations. This avoids
-a second list of `ef`/`x` names. `findIndex` resolves them through the existing
-active offsets; tests use nonzero, changing offsets in both DAE and differential
-layouts. The shared Exciter table does not declare solver variables on behalf
-of children, since concrete models can replace its equations and state layout.
+SEXS binds its `ef`/`x` declarations to local solver slots. The common
+`solverStateNames()` and `findIndex()` implementations use those declarations.
+Tests use nonzero, changing offsets in DAE and differential layouts. The base
+Exciter declares its own `ef` slot, and concrete models can replace its name or
+binding. EXAC1 binds its optional states through
+one numerical layout helper, also inherited by EXAC2. AC7B and AC8B use fixed
+bindings. All other native exciters now use the same shared naming and lookup paths.
 
 ## Restoring a model-level point
 
@@ -180,7 +182,7 @@ Several details need attention when building a full dynamic checkpoint:
 
 - A model's active solver layout can depend on time constants or other
   parameters. Its description lists all possible solver-state names; the active
-  order and offsets still come from `localStateNames()` and the initialized
+  order and offsets still come from `solverStateNames()` and the initialized
   model. Restore parameters and establish a compatible layout before loading
   solver vectors.
 - The saturation objects built during initialization from `E1`, `Se1`, `E2`,

@@ -67,7 +67,7 @@ TEST(EPCGENReference, DissertationOperatingPointInitializes)
     IOdata fields;
     model->dynInitializeB({1.0, 1.0}, {0.4, 0.1}, fields);
 
-    EXPECT_EQ(model->localStateNames().size(), 10U);
+    EXPECT_EQ(model->solverStateNames().size(), 10U);
     EXPECT_EQ(model->getStates().size(), 12U);  // two algebraic P/Q entries plus ten states
     for (const auto value : model->getStates()) {
         EXPECT_TRUE(std::isfinite(value));

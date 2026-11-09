@@ -109,7 +109,7 @@ class GenModelGENTPJ final: public GenModel5 {
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
-    stringVec localStateNames() const override;
+
     void residual(const IOdata& inputs,
                   const StateData& sD,
                   double resid[],

@@ -80,16 +80,16 @@ const ModelDescription& EPCGEN::getModelDescription() const
                     "Initial voltage reference"),
          localState("prevTime", &EPCGEN::prevTime, "Prev time"),
          localState("tripped", &EPCGEN::tripped, "Tripped"),
-         state("QPI", units::one, "Solver variable QPI when active"),
-         state("Vf", units::one, "Solver variable Vf when active"),
-         state("Pgov", units::one, "Solver variable Pgov when active"),
-         state("Pll", units::one, "Solver variable Pll when active"),
-         state("Iq", units::one, "Solver variable Iq when active"),
-         state("Ip", units::one, "Solver variable Ip when active"),
-         state("Ed", units::one, "Solver variable Ed when active"),
-         state("Eq", units::one, "Solver variable Eq when active"),
-         state("Pcorr", units::one, "Solver variable Pcorr when active"),
-         state("Qcorr", units::one, "Solver variable Qcorr when active")});
+         state({"QPI"}, units::one, 0, "Solver variable QPI when active"),
+         state({"Vf"}, units::one, 1, "Solver variable Vf when active"),
+         state({"Pgov"}, units::one, 2, "Solver variable Pgov when active"),
+         state({"Pll"}, units::one, 3, "Solver variable Pll when active"),
+         state({"Iq"}, units::one, 4, "Solver variable Iq when active"),
+         state({"Ip"}, units::one, 5, "Solver variable Ip when active"),
+         state({"Ed"}, units::one, 6, "Solver variable Ed when active"),
+         state({"Eq"}, units::one, 7, "Solver variable Eq when active"),
+         state({"Pcorr"}, units::one, 8, "Solver variable Pcorr when active"),
+         state({"Qcorr"}, units::one, 9, "Solver variable Qcorr when active")});
     return description;
 }
 
@@ -507,11 +507,6 @@ ChangeCode EPCGEN::rootCheck(const IOdata& inputs,
         return ChangeCode::NON_STATE_CHANGE;
     }
     return ChangeCode::NO_CHANGE;
-}
-
-stringVec EPCGEN::localStateNames() const
-{
-    return {"QPI", "Vf", "Pgov", "Pll", "Iq", "Ip", "Ed", "Eq", "Pcorr", "Qcorr"};
 }
 
 }  // namespace griddyn

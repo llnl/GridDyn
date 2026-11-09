@@ -103,9 +103,21 @@ const ModelDescription& Governor::getModelDescription() const
          localState("initial_setpoint_overdrive",
                     &Governor::initialSetpointOverdrive,
                     "Retained initial limit adjustment"),
-         state("pm", units::puMW, "Mechanical power output"),
-         state("dbo", units::one, "Deadband block output"),
-         state("w", units::one, "Filter block output"),
+         stateReference<Governor>(
+             {"pm"},
+             units::puMW,
+             [](const auto& model, const auto& mode) { return model.delay.getOutputLoc(mode, 0); },
+             "Mechanical power output"),
+         stateReference<Governor>(
+             {"dbo"},
+             units::one,
+             [](const auto& model, const auto& mode) { return model.dbb.getOutputLoc(mode, 0); },
+             "Deadband block output"),
+         stateReference<Governor>(
+             {"w"},
+             units::one,
+             [](const auto& model, const auto& mode) { return model.cb.getOutputLoc(mode, 0); },
+             "Filter block output"),
          command({"r"}, units::one, "Droop as the reciprocal of the gain")});
     return description;
 }
@@ -361,19 +373,6 @@ void Governor::rootTest(const IOdata& /*inputs*/,
     if (delay.checkFlag(HAS_ROOTS)) {
         delay.rootTest(blockInput, stateData, roots, sMode);
     }
-}
-
-index_t Governor::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    index_t ret = kInvalidLocation;
-    if (field == "pm") {
-        ret = delay.getOutputLoc(sMode, 0);
-    } else if (field == "dbo") {
-        ret = dbb.getOutputLoc(sMode, 0);
-    } else if (field == "w") {
-        ret = cb.getOutputLoc(sMode, 0);
-    }
-    return ret;
 }
 
 void Governor::setFlag(std::string_view flag, bool val)

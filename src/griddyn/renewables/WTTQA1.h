@@ -51,7 +51,6 @@ class WTTQA1 final: public RenewableComponent {
                      const SolverMode& sMode,
                      index_t outputNum) const override;
     index_t getOutputLoc(const SolverMode& sMode, index_t outputNum) const override;
-    stringVec localStateNames() const override;
 
   private:
     int Tflag = 0;

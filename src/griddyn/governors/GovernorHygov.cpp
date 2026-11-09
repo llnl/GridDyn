@@ -99,11 +99,11 @@ const ModelDescription& GovernorHygov::getModelDescription() const
          localState("rate_root_transition_pending", &GovernorHygov::rateRootTransitionPending),
          localState("position_root_transition_pending",
                     &GovernorHygov::positionRootTransitionPending),
-         state("pmech", units::puMW, "Mechanical power"),
-         state("filter", units::one, "Speed filter"),
-         state("gate_position", units::one, "Gate position"),
-         state("gate", units::one, "Gate servo"),
-         state("flow", units::one, "Water flow"),
+         state({"pmech", "pm"}, units::puMW, 0, "Mechanical power"),
+         state({"filter", "lg"}, units::one, 1, "Speed filter"),
+         state({"gate_position", "c", "gtpos"}, units::one, 2, "Gate position"),
+         state({"gate", "g"}, units::one, 3, "Gate servo"),
+         state({"flow", "q"}, units::one, 4, "Water flow"),
          command({"gmax"}, units::puMW, "Upper gate limit alias"),
          command({"gmin"}, units::puMW, "Lower gate limit alias")});
     return description;
@@ -678,32 +678,5 @@ double GovernorHygov::get(std::string_view param, units::unit unitType) const
     return Governor::get(param, unitType);
 }
 
-stringVec GovernorHygov::localStateNames() const
-{
-    return {"pmech", "filter", "gate_position", "gate", "flow"};
-}
-
-index_t GovernorHygov::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "pm") || (field == "pmech")) {
-        return offsets.getAlgOffset(sMode) + pmechOutput;
-    }
-    if ((field == "filter") || (field == "lg")) {
-        return offsets.getDiffOffset(sMode) + filterState;
-    }
-    if ((field == "gate_position") || (field == "c") || (field == "gtpos")) {
-        return offsets.getDiffOffset(sMode) + gatePositionState;
-    }
-    if ((field == "gate") || (field == "g")) {
-        return offsets.getDiffOffset(sMode) + servoState;
-    }
-    if ((field == "flow") || (field == "q")) {
-        return offsets.getDiffOffset(sMode) + flowState;
-    }
-    if ((field == "head") || (field == "h")) {
-        return kInvalidLocation;
-    }
-    return kInvalidLocation;
-}
 // NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::governors

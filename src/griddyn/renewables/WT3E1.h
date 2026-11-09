@@ -59,7 +59,6 @@ class WT3E1 final: public RenewableComponent {
                                   const StateData& stateData,
                                   MatrixData<double>& matrixData,
                                   const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   private:
     int varFlag = 0, vlrFlag = 1;

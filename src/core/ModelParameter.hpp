@@ -442,4 +442,134 @@ ModelField localState(std::string_view name,
     return detail::bindModelBit({name}, member, bit, description, ModelFieldKind::LOCAL_STATE);
 }
 
+/** Bind a configuration-dependent local state slot. Return kInvalidLocation when inactive. */
+template<class Model, class Resolver>
+    requires std::invocable<Resolver, const Model&>
+ModelField state(std::initializer_list<std::string_view> names,
+                 units::unit unitType,
+                 Resolver resolver,
+                 std::string_view description = {})
+{
+    return {names,
+            unitType,
+            description,
+            {.mLocalIndex = [resolver](const CoreObject& object, index_t) {
+                return std::invoke(resolver, detail::fieldOwner<Model>(object));
+            }}};
+}
+
+/** Bind an index already assigned by a model's layout, shifted into the local vector. */
+template<class Model>
+ModelField state(std::initializer_list<std::string_view> names,
+                 units::unit unitType,
+                 index_t Model::* member,
+                 index_t prefix,
+                 std::string_view description = {})
+{
+    return state<Model>(
+        names,
+        unitType,
+        [member, prefix](const Model& model) { return stateSlot(model.*member, prefix); },
+        description);
+}
+
+/** Bind one member of a fixed array of assigned state indices. */
+template<class Model, std::size_t Size>
+ModelField state(std::initializer_list<std::string_view> names,
+                 units::unit unitType,
+                 std::array<index_t, Size> Model::* member,
+                 std::size_t element,
+                 index_t prefix,
+                 std::string_view description = {})
+{
+    if (element >= Size) {
+        throw std::invalid_argument("model state index outside array");
+    }
+    return state<Model>(
+        names,
+        unitType,
+        [member, element, prefix](const Model& model) {
+            return stateSlot((model.*member)[element], prefix);
+        },
+        description);
+}
+
+/** Bind an owned solver state whose location is resolved directly in the selected mode. */
+template<class Model, class Resolver>
+    requires std::invocable<Resolver, const Model&, const SolverMode&>
+ModelField state(std::initializer_list<std::string_view> names,
+                 units::unit unitType,
+                 Resolver resolver,
+                 std::string_view description = {})
+{
+    return {names,
+            unitType,
+            description,
+            {.mSolverIndex = [resolver](const CoreObject& object, const SolverMode& mode) {
+                return std::invoke(resolver, detail::fieldOwner<Model>(object), mode);
+            }}};
+}
+
+/** Reference another object's solver output without adding an owned state or label. */
+template<class Model, class Resolver>
+ModelField stateReference(std::initializer_list<std::string_view> names,
+                          units::unit unitType,
+                          Resolver resolver,
+                          std::string_view description = {})
+{
+    return {names,
+            unitType,
+            description,
+            {.mSolverIndex =
+                 [resolver](const CoreObject& object, const SolverMode& mode) {
+                     return std::invoke(resolver, detail::fieldOwner<Model>(object), mode);
+                 }},
+            ModelFieldKind::STATE_REFERENCE};
+}
+
+/** Bind a configurable label and local slot. Declared aliases remain valid. */
+template<class Model, class NameResolver, class IndexResolver>
+ModelField namedState(std::initializer_list<std::string_view> names,
+                      units::unit unitType,
+                      NameResolver nameResolver,
+                      IndexResolver indexResolver,
+                      std::string_view description = {})
+{
+    return {names,
+            unitType,
+            description,
+            {.mLocalIndex =
+                 [indexResolver](const CoreObject& object, index_t) {
+                     return std::invoke(indexResolver, detail::fieldOwner<Model>(object));
+                 },
+             .mName =
+                 [nameResolver](const CoreObject& object, index_t) {
+                     return std::string(
+                         std::invoke(nameResolver, detail::fieldOwner<Model>(object)));
+                 }}};
+}
+
+/** Bind a variable-length family such as x0, x1, ... . The resolver receives a zero-based element.
+ */
+template<class Model, class CountResolver, class IndexResolver>
+ModelField indexedState(std::initializer_list<std::string_view> prefixes,
+                        units::unit unitType,
+                        CountResolver countResolver,
+                        IndexResolver indexResolver,
+                        std::string_view description = {})
+{
+    return {prefixes,
+            unitType,
+            description,
+            {.mLocalIndex =
+                 [indexResolver](const CoreObject& object, index_t element) {
+                     return std::invoke(indexResolver, detail::fieldOwner<Model>(object), element);
+                 },
+             .mCount =
+                 [countResolver](const CoreObject& object) {
+                     return std::invoke(countResolver, detail::fieldOwner<Model>(object));
+                 }},
+            ModelFieldKind::INDEXED_STATE};
+}
+
 }  // namespace griddyn

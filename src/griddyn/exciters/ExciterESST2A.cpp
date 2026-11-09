@@ -85,11 +85,11 @@ const ModelDescription& ExciterESST2A::getModelDescription() const
                     &ExciterESST2A::opFlags,
                     ExciterESST2A::FIELD_LIMIT_HIGH,
                     "Retained field_limit_high mode"),
-         state("efd", units::one, "Field voltage"),
-         state("vmeas", units::one, "Measured terminal voltage"),
-         state("va", units::one, "Amplifier state"),
-         state("wf", units::one, "Washout state"),
-         state("efstate", units::one, "efstate solver state")});
+         state({"efd", "field"}, units::one, 0, "Field voltage"),
+         state({"vmeas", "vc"}, units::one, 1, "Measured terminal voltage"),
+         state({"va", "regulator"}, units::one, 2, "Amplifier state"),
+         state({"wf", "feedback"}, units::one, 3, "Washout state"),
+         state({"efstate"}, units::one, 4, "efstate solver state")});
     return description;
 }
 
@@ -519,32 +519,6 @@ ChangeCode ExciterESST2A::rootCheck(const IOdata& inputs,
         return ChangeCode::JACOBIAN_CHANGE;
     }
     return ChangeCode::NO_CHANGE;
-}
-
-stringVec ExciterESST2A::localStateNames() const
-{
-    return {"efd", "vmeas", "va", "wf", "efstate"};
-}
-
-index_t ExciterESST2A::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "efd") || (field == "field")) {
-        return offsets.getAlgOffset(sMode);
-    }
-    const auto offset = offsets.getDiffOffset(sMode);
-    if ((field == "vmeas") || (field == "vc")) {
-        return offset + voltageMeasurementState;
-    }
-    if ((field == "va") || (field == "regulator")) {
-        return offset + regulatorState;
-    }
-    if ((field == "wf") || (field == "feedback")) {
-        return offset + feedbackState;
-    }
-    if (field == "efstate") {
-        return offset + fieldState;
-    }
-    return kInvalidLocation;
 }
 
 void ExciterESST2A::set(std::string_view param, double val, units::unit unitType)

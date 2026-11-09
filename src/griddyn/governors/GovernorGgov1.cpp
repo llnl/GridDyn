@@ -160,17 +160,17 @@ const ModelDescription& GovernorGgov1::getModelDescription() const
          parameter({"rdown"}, &GovernorGgov1::Rdown, units::one, "Lower ramp rate"),
          localState("power_reference", &GovernorGgov1::powerReference),
          localState("initial_valve_overdrive", &GovernorGgov1::initialValveOverdrive),
-         state("pmech", units::puMW, "Mechanical power"),
-         state("pelec_f", units::one, "Electrical power filter"),
-         state("mw_reset", units::one, "MW reset state"),
-         state("gov_int", units::one, "Governor integral"),
-         state("derr_f", units::one, "Derivative error filter"),
-         state("valve", units::one, "Valve position"),
-         state("turbine", units::one, "Turbine state"),
-         state("temp_ll", units::one, "Temperature lead-lag state"),
-         state("temp", units::one, "Temperature state"),
-         state("load_int", units::one, "Load integral"),
-         state("accel_f", units::one, "Acceleration filter")});
+         state({"pmech", "pm"}, units::puMW, 0, "Mechanical power"),
+         state({"pelec_f"}, units::one, 1, "Electrical power filter"),
+         state({"mw_reset"}, units::one, 2, "MW reset state"),
+         state({"gov_int"}, units::one, 3, "Governor integral"),
+         state({"derr_f"}, units::one, 4, "Derivative error filter"),
+         state({"valve"}, units::one, 5, "Valve position"),
+         state({"turbine"}, units::one, 6, "Turbine state"),
+         state({"temp_ll"}, units::one, 7, "Temperature lead-lag state"),
+         state({"temp"}, units::one, 8, "Temperature state"),
+         state({"load_int"}, units::one, 9, "Load integral"),
+         state({"accel_f"}, units::one, 10, "Acceleration filter")});
     return description;
 }
 
@@ -753,24 +753,5 @@ double GovernorGgov1::get(std::string_view param, units::unit unitType) const
     return Governor::get(canonicalValveLimitName(param), unitType);
 }
 
-stringVec GovernorGgov1::localStateNames() const
-{
-    return {"pmech",
-            "pelec_f",
-            "mw_reset",
-            "gov_int",
-            "derr_f",
-            "valve",
-            "turbine",
-            "temp_ll",
-            "temp",
-            "load_int",
-            "accel_f"};
-}
-
-index_t GovernorGgov1::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    return ((field == "pm") || (field == "pmech")) ? offsets.getAlgOffset(sMode) : kInvalidLocation;
-}
 // NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::governors

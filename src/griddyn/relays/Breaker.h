@@ -78,7 +78,6 @@ class Breaker: public Relay {
 
     virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
-
   protected:
     virtual void conditionTriggered(index_t conditionNum, CoreTime triggeredTime) override;
     /** trip the breaker

@@ -106,7 +106,6 @@ class GovernorHygov: public Governor {
                          const SolverMode& sMode,
                          CheckLevel level) override;
 
-
   private:
     static double speedDeviation(const IOdata& inputs);
     double governorError(const IOdata& inputs, const double diffState[]) const;

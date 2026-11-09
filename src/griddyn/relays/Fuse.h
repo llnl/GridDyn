@@ -75,7 +75,6 @@ class Fuse: public Relay {
 
     virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
-
   protected:
     virtual void conditionTriggered(index_t conditionNum, CoreTime triggerTime) override;
     /** function to setup the numerical calculations associated with the fuse*/

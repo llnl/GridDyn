@@ -53,7 +53,6 @@ class ControlBlock: public GridBlock {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-
     virtual void blockDerivative(double input,
                                  double didt,
                                  const StateData& stateDataRef,

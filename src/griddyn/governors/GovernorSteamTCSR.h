@@ -43,7 +43,6 @@ class GovernorSteamTCSR: public GovernorSteamNR {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-
     virtual void residual(const IOdata& inputs,
                           const StateData& stateData,
                           double resid[],

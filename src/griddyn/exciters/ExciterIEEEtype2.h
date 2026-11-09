@@ -30,7 +30,6 @@ class ExciterIEEEtype2: public ExciterIEEEtype1 {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
-
     virtual void residual(const IOdata& inputs,
                           const StateData& stateData,
                           double resid[],

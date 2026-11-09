@@ -73,7 +73,6 @@ class ExciterEXST1: public Exciter {
     using Exciter::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-
     void residual(const IOdata& inputs,
                   const StateData& stateData,
                   double resid[],

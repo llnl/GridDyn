@@ -139,7 +139,6 @@ namespace links {
                              id_type_t fixedTerminal = 0,
                              units::unit unitType = units::defunit) override;
 
-
       private:
         /** build out the components of the converter*/
         void buildSubsystem();

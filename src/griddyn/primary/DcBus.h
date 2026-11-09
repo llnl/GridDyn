@@ -155,7 +155,6 @@ class DcBus: public GridBus {
     virtual int getMode(const SolverMode& sMode) const;
     virtual int propogatePower(bool makeSlack = false) override;
 
-
   protected:
     void computePowerAdjustments();
 };

@@ -47,7 +47,6 @@ class ExciterIEEEtype1: public Exciter {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
                           const StateData& stateData,

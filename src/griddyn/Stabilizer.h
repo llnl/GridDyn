@@ -63,7 +63,6 @@ class Stabilizer: public GridSubModel {
     {
         return MachineControllerSignal::ELECTRICAL_TORQUE;
     }
-
 };
 
 }  // namespace griddyn

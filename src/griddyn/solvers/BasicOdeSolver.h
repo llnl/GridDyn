@@ -44,6 +44,8 @@ class BasicOdeSolver: public SolverInterface {
     const double* typeData() const noexcept override;
     virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
     virtual void initialize(CoreTime t0) override;
+    bool supportsCheckpointRestore() const noexcept override { return true; }
+    void restoreFromCheckpoint(CoreTime time) override;
 
     virtual double get(std::string_view param) const override;
     virtual void set(std::string_view param, std::string_view val) override;

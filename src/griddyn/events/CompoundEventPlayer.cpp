@@ -37,6 +37,11 @@ void CompoundEventPlayer::cloneTo(Event* gE) const
     if (nE == nullptr) {
         return;
     }
+    nE->period = period;
+    nE->ts = ts;
+    nE->currIndex = currIndex;
+    nE->eFile = eFile;
+    nE->columns = columns;
 }
 
 void CompoundEventPlayer::setTime(CoreTime time)

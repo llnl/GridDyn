@@ -15,6 +15,7 @@
 #include "simulation/GridSimulation.h"
 // libraries
 #include "griddyn/griddyn-config.h"
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <queue>
@@ -31,8 +32,15 @@ namespace griddyn {
 class Contingency;
 class ContinuationSequence;
 class SolverInterface;
+struct BinaryStateData;
 class ParameterSet;
 class GridLoad;
+
+/** Selects how much of a binary state capture is applied to a simulation. */
+enum class CheckpointRestoreLevel : std::uint8_t {
+    SOLVER_STATE_ONLY,  //!< Restore solver vectors without changing simulation time.
+    MINIMAL,  //!< Restore solver vectors and restart solver/simulation time at the captured point.
+};
 
 /** additional flags for the controlFlags bitset*/
 enum GridDynFlags {
@@ -617,6 +625,31 @@ class GridDynSimulation: public GridSimulation {
     reference to that
     */
     SolverMode getCurrentMode(const SolverMode& sMode = cEmptySolverMode) const;
+
+    /** Restore a binary solver-state capture into this initialized simulation.
+     *
+     * MINIMAL restores the solver vectors and derivative vectors, resets the
+     * backend from those arrays at the captured time, and updates the simulation
+     * clock. It does not restore model fields, event progress, or other runtime
+     * state. SOLVER_STATE_ONLY performs the vector load without changing the
+     * simulation clock or backend integration history.
+     *
+     * If mode is empty, the captured mode is matched to an initialized solver
+     * in this simulation. Pass mode to disambiguate multiple compatible solvers.
+     */
+    void checkpointRestore(const BinaryStateData& state,
+                           CheckpointRestoreLevel level = CheckpointRestoreLevel::MINIMAL,
+                           const SolverMode& mode = cEmptySolverMode);
+
+    /** Read the last binary state frame from fileName and restore it.
+     *
+     * An empty fileName uses the configured statefile. The loaded frame is
+     * passed through the BinaryStateData overload so file and in-memory
+     * restores share validation and application behavior.
+     */
+    void checkpointRestore(const std::string& fileName,
+                           CheckpointRestoreLevel level = CheckpointRestoreLevel::MINIMAL,
+                           const SolverMode& mode = cEmptySolverMode);
 
     /** @brief makes sure the SolverInterface object is ready to run solutions
     @param[in] solver pointer to a solver to make ready

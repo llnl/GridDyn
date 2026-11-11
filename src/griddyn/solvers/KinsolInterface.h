@@ -32,6 +32,7 @@ class KinsolInterface: public SundialsInterface {
     virtual void cloneTo(SolverInterface* si, bool fullCopy = false) const override;
     virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
     virtual void initialize(CoreTime time0) override;
+    void restoreFromCheckpoint(CoreTime time) override;
     virtual void sparseReInit(SparseReinitMode sparseReinitMode) override;
     virtual void kluReInit(SparseReinitMode sparseReinitMode, bool resetJacobian = true) override;
     int solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;

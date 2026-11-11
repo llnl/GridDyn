@@ -362,6 +362,20 @@ void IdaInterface::initialize(CoreTime t0)
     flags.set(INITIALIZED_FLAG);
 }
 
+void IdaInterface::restoreFromCheckpoint(CoreTime time)
+{
+    if (!flags[INITIALIZED_FLAG]) {
+        throw(InvalidSolverOperation());
+    }
+    resetPerformanceStats();
+    int retval = IDAReInit(solverMem, time, state, dstate_dt);
+    checkFlag(&retval, "IDAReInit", 1);
+    std::fill(rootsfound.begin(), rootsfound.end(), 0);
+    integrationReferenceState.clear();
+    integrationFailureLogged = false;
+    solveTime = time;
+}
+
 void IdaInterface::sparseReInit(SparseReinitMode sparseReInitMode)
 {
     kluReInit(sparseReInitMode);

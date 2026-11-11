@@ -221,6 +221,15 @@ class SolverInterface: public HelperObject {
     */
     virtual void initialize(CoreTime t0);
 
+    /** Whether this backend can restart from already loaded state arrays at a saved time. */
+    virtual bool supportsCheckpointRestore() const noexcept;
+
+    /** Restart backend time/history from the current state arrays without guessing new conditions.
+     *
+     * The state and derivative buffers must already contain the values to restore.
+     */
+    virtual void restoreFromCheckpoint(CoreTime time);
+
     /** @brief reinitialize the sparse components
     @param[in] mode the reinitialization mode
     */

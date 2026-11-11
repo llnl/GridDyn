@@ -31,7 +31,7 @@ HelperObject::HelperObject(std::string objectName): m_oid(s_obcnt++), mName(std:
 
 void HelperObject::set(std::string_view param, std::string_view val)
 {
-    if ((param == "name") || (param == "id")) {
+    if ((param == "name") || (param == "rename")) {
         setName(val);
     } else if (param == "description") {
         setDescription(val);

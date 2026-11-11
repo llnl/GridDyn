@@ -226,6 +226,17 @@ void SolverInterface::initialize(CoreTime t0)
 {
     solveTime = t0;
 }
+bool SolverInterface::supportsCheckpointRestore() const noexcept
+{
+    return !mode.differential;
+}
+void SolverInterface::restoreFromCheckpoint(CoreTime time)
+{
+    if (!isInitialized() || !supportsCheckpointRestore()) {
+        throw(InvalidSolverOperation());
+    }
+    solveTime = time;
+}
 void SolverInterface::sparseReInit(SparseReinitMode /*mode*/) {}
 void SolverInterface::setConstraints() {}
 int SolverInterface::calcIC(CoreTime /*t0*/,

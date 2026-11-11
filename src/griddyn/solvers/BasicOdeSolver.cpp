@@ -89,6 +89,15 @@ void BasicOdeSolver::initialize(CoreTime t0)
     solveTime = t0;
 }
 
+void BasicOdeSolver::restoreFromCheckpoint(CoreTime time)
+{
+    if (!isInitialized()) {
+        throw(InvalidSolverOperation());
+    }
+    solveTime = time;
+    solverCallCount = 0;
+}
+
 double BasicOdeSolver::get(std::string_view param) const
 {
     if (param == "deltat") {

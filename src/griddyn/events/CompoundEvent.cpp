@@ -53,6 +53,13 @@ void CompoundEvent::updateObject(CoreObject* gco, ObjectUpdateMode mode)
     if (mode == ObjectUpdateMode::DIRECT) {
         setTarget(gco);
     } else if (mode == ObjectUpdateMode::MATCH) {
+        if (m_obj != nullptr) {
+            auto tempobj = findMatchingObject(m_obj, gco);
+            if (tempobj == nullptr) {
+                throw(ObjectUpdateFailException());
+            }
+            m_obj = tempobj;
+        }
         for (auto& obj : targetObjects) {
             if (obj != nullptr) {
                 auto tempobj = findMatchingObject(obj, gco);

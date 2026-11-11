@@ -260,6 +260,10 @@ does not rewind the iteration or its load profiles. A subsequent solve uses
 the current model inputs and the restored solution as its starting point. It is
 not a dynamic or full-simulation checkpoint.
 
+This API is intentionally separate from the per-object `ModelFieldSnapshot`
+and the HDF5 solver-vector snapshots. The current capture and restore boundaries
+are summarized in the [checkpointing developer guide](developer-guide/checkpointing.md).
+
 ## DC optimal power flow
 
 When GridDyn is built with its optimization library, load a network with

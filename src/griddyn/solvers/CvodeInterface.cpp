@@ -18,6 +18,7 @@
 #    include <sunlinsol/sunlinsol_klu.h>
 #endif
 
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cstdio>
@@ -373,6 +374,18 @@ void CvodeInterface::initialize(CoreTime time0)
 
     solveTime = time0;
     flags.set(INITIALIZED_FLAG);
+}
+
+void CvodeInterface::restoreFromCheckpoint(CoreTime time)
+{
+    if (!flags[INITIALIZED_FLAG]) {
+        throw(InvalidSolverOperation());
+    }
+    resetPerformanceStats();
+    int retval = CVodeReInit(solverMem, time, state);
+    checkFlag(&retval, "CVodeReInit", 1);
+    std::fill(rootsfound.begin(), rootsfound.end(), 0);
+    solveTime = time;
 }
 
 void CvodeInterface::sparseReInit(SparseReinitMode reInitMode)

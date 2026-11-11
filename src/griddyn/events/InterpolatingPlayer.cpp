@@ -42,6 +42,8 @@ void InterpolatingPlayer::cloneTo(Event* gE) const
         return;
     }
     nE->slopeField = slopeField;
+    nE->samplePeriod = samplePeriod;
+    nE->slope = slope;
     nE->useSlopeField = useSlopeField;
 }
 

@@ -50,6 +50,8 @@ class ArkodeInterface: public SundialsInterface {
     virtual void cloneTo(SolverInterface* si, bool fullCopy = false) const override;
     virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
     virtual void initialize(CoreTime time0) override;
+    bool supportsCheckpointRestore() const noexcept override { return true; }
+    void restoreFromCheckpoint(CoreTime time) override;
     virtual void setMaxNonZeros(count_t nonZeroCount) override;
     virtual void sparseReInit(SparseReinitMode sparseReinitMode) override;
     virtual void getCurrentData() override;

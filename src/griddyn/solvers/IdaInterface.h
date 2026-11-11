@@ -46,6 +46,8 @@ class IdaInterface: public SundialsInterface {
     virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
     void setMaxNonZeros(count_t nonZeros) override;
     virtual void initialize(CoreTime t0) override;
+    bool supportsCheckpointRestore() const noexcept override { return true; }
+    void restoreFromCheckpoint(CoreTime time) override;
     virtual void sparseReInit(SparseReinitMode sparseReInitMode) override;
     int calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, bool constraints) override;
     virtual void getCurrentData() override;

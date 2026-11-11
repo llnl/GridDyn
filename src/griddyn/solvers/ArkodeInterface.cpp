@@ -18,6 +18,7 @@
 #    include <sunlinsol/sunlinsol_klu.h>
 #endif
 
+#include <algorithm>
 #include <cassert>
 #include <cstdio>
 #include <format>
@@ -416,6 +417,18 @@ void ArkodeInterface::initialize(CoreTime time0)
     setConstraints();
     solveTime = time0;
     flags.set(INITIALIZED_FLAG);
+}
+
+void ArkodeInterface::restoreFromCheckpoint(CoreTime time)
+{
+    if (!flags[INITIALIZED_FLAG]) {
+        throw(InvalidSolverOperation());
+    }
+    resetPerformanceStats();
+    int retval = ARKStepReInit(solverMem, arkodeFunc, nullptr, time, state);
+    checkFlag(&retval, "ARKStepReInit", 1);
+    std::fill(rootsfound.begin(), rootsfound.end(), 0);
+    solveTime = time;
 }
 
 void ArkodeInterface::sparseReInit(SparseReinitMode sparseReinitMode)

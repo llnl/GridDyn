@@ -247,6 +247,20 @@ void KinsolInterface::initialize(CoreTime /*t0*/)
     flags.set(INITIALIZED_FLAG);
 }
 
+void KinsolInterface::restoreFromCheckpoint(CoreTime time)
+{
+    if (!flags[INITIALIZED_FLAG]) {
+        throw(InvalidSolverOperation());
+    }
+    resetPerformanceStats();
+    linearSetupReady = false;
+    partitionedDiagnosticCallCount = 0;
+    partitionedDiagnosticJacobianCallCount = 0;
+    int retval = KINSetNoInitSetup(solverMem, SUNFALSE);
+    checkFlag(&retval, "KINSetNoInitSetup", 1);
+    solveTime = time;
+}
+
 void KinsolInterface::sparseReInit(SparseReinitMode sparseReinitMode)
 {
     linearSetupReady = false;

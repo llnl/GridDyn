@@ -689,8 +689,8 @@ TEST_F(PowerflowSystemTests, BinaryStateCheckpointRestoreLevels)
 
     auto incompatible = saved;
     incompatible.state.pop_back();
-    const std::vector<double> beforeRejectedRestore(
-        solver->stateData(), solver->stateData() + solver->size());
+    const std::vector<double> beforeRejectedRestore(solver->stateData(),
+                                                    solver->stateData() + solver->size());
     EXPECT_THROW(gds->checkpointRestore(incompatible, CheckpointRestoreLevel::MINIMAL, mode),
                  FileOperationError);
     EXPECT_EQ(std::vector<double>(solver->stateData(), solver->stateData() + solver->size()),
@@ -1064,10 +1064,9 @@ TEST_F(PowerflowSystemTests, Hdf5PartitionedStateRoundTrip)
         std::fill(differential->derivData(),
                   differential->derivData() + differential->size(),
                   -778.0);
-        std::fill(algebraic->stateData(),
-                  algebraic->stateData() + algebraic->size(),
-                  -779.0);
-        gds->checkpointRestore(saved, CheckpointRestoreLevel::MINIMAL,
+        std::fill(algebraic->stateData(), algebraic->stateData() + algebraic->size(), -779.0);
+        gds->checkpointRestore(saved,
+                               CheckpointRestoreLevel::MINIMAL,
                                differential->getSolverMode());
         EXPECT_TRUE(std::equal(saved.state.begin(), saved.state.end(), differential->stateData()));
         EXPECT_TRUE(std::equal(saved.derivatives.begin(),

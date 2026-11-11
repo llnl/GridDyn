@@ -432,11 +432,11 @@ These are per-object field snapshots; the solver vector is a separate payload,
 and a simulation-level coordinator must collect and identify every object:
 
 | Data         | State-level field snapshot  | Parameter-level field snapshot |
-| ------------ | --------------------------- | --------------------------- |
-| Parameters   | Keep current values         | Restore                     |
-| Flags        | Restore                     | Restore                     |
-| Solver state | Restore from solver payload | Restore from solver payload |
-| Local state  | Restore                     | Restore                     |
+| ------------ | --------------------------- | ------------------------------ |
+| Parameters   | Keep current values         | Restore                        |
+| Flags        | Restore                     | Restore                        |
+| Solver state | Restore from solver payload | Restore from solver payload    |
+| Local state  | Restore                     | Restore                        |
 
 Commands and reconstructible derived values are omitted. Thus a state-only
 restore keeps changed P/Q, exponents and scheduling parameters; a full parameter
@@ -517,7 +517,7 @@ external-interface and checkpoint coverage:
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Computed getters         | Counts, solver statistics, controller outputs and diagnostic values are often absent. They need a read-only description distinct from solver `state` and retained `localState`.                                                                               |
 | Legacy suffix parsing    | AcLine accepts redundant numeric suffixes; ZonalRelay parses only one digit and maps other suffixes to zone zero; ThreeWindingTransformer dispatches a fixed set of suffixed leg settings. These interfaces need consistent declarations and bounds behavior. |
-| Helper hierarchies       | Solvers, recorders, players, events and optimizer interfaces derive from `HelperObject` rather than `CoreObject`; they have no shared description table. The reuse design for helper descriptions is in [checkpointing.md](checkpointing.md). |
+| Helper hierarchies       | Solvers, recorders, players, events and optimizer interfaces derive from `HelperObject` rather than `CoreObject`; they have no shared description table. The reuse design for helper descriptions is in [checkpointing.md](checkpointing.md).                 |
 | Command-backed data      | Describing a command does not save its values. Fractions, transfer-function coefficient arrays, relay zones, internal block settings and external-file configuration need underlying parameter/state bindings and restore coordination.                       |
 | Retained runtime history | Controller integrals, relay pending actions, file cursors and random-source state require a separate history audit.                                                                                                                                           |
 | Inherited restrictions   | Some models reject settings advertised by a parent table, such as REECB1 restrictions on REECA1 settings. Effective external descriptions must account for that.                                                                                              |

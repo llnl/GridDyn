@@ -1086,7 +1086,10 @@ namespace {
              !saved.paired.empty())) {
             throw FileOperationError("HDF5 paired state does not match the solver configuration");
         }
-        validate(primarySolver, primarySolver->getSolverMode(), saved.mode, saved.state,
+        validate(primarySolver,
+                 primarySolver->getSolverMode(),
+                 saved.mode,
+                 saved.state,
                  saved.derivatives);
         if (!saved.paired.empty()) {
             const auto pairIndex = primarySolver->getSolverMode().pairedOffsetIndex;
@@ -1095,7 +1098,10 @@ namespace {
                 throw FileOperationError("paired solver is unavailable");
             }
             const auto& pair = saved.paired.front();
-            validate(pairedSolver, pairedSolver->getSolverMode(), pair.mode, pair.state,
+            validate(pairedSolver,
+                     pairedSolver->getSolverMode(),
+                     pair.mode,
+                     pair.state,
                      pair.derivatives);
         }
         if (level == CheckpointRestoreLevel::MINIMAL &&
@@ -1107,10 +1113,11 @@ namespace {
         // Check every block before modifying any solver array.
         for (const auto& target : targets) {
             if (!target.mState->empty()) {
-                std::copy(target.mState->begin(), target.mState->end(), target.mSolver->stateData());
+                std::copy(target.mState->begin(),
+                          target.mState->end(),
+                          target.mSolver->stateData());
             }
-            if (hasDifferential(target.mSolver->getSolverMode()) &&
-                !target.mDerivative->empty()) {
+            if (hasDifferential(target.mSolver->getSolverMode()) && !target.mDerivative->empty()) {
                 std::copy(target.mDerivative->begin(),
                           target.mDerivative->end(),
                           target.mSolver->derivData());
@@ -1160,8 +1167,7 @@ void GridDynSimulation::checkpointRestore(const BinaryStateData& saved,
             const auto& candidateMode = candidate->getSolverMode();
             if ((stateModeFlags(candidateMode) != stateModeFlags(expectedMode)) ||
                 (candidateMode.approx != expectedMode.approx) ||
-                ((candidateMode.pairedOffsetIndex != kNullLocation) !=
-                 !saved.paired.empty()) ||
+                ((candidateMode.pairedOffsetIndex != kNullLocation) != !saved.paired.empty()) ||
                 std::cmp_not_equal(candidate->size(), saved.state.size())) {
                 continue;
             }

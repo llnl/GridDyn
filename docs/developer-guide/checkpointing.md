@@ -8,11 +8,11 @@ currently a complete dynamic simulation checkpoint.
 
 ## Current capture structures
 
-| Structure | Captures | Restore boundary |
-| --- | --- | --- |
-| HDF5 solver snapshot | State and, for differential blocks, derivatives. Paired partitioned solvers are written in the same frame. | Supplies arrays to an already initialized solver. The restore level determines whether backend time/history and the simulation clock are reset. It does not restore model fields or events. |
-| `ModelFieldSnapshot` | Declared fields on one exact `CoreObject` type: flags and retained local state; optionally parameters. | Restores members on an existing compatible object. Does not serialize solver vectors, traverse child objects, rebuild derived data, or invoke normal setters. |
-| Power-flow JSON checkpoint | Named power-flow solver values and bus voltage/angle values. | Restores a solution into an already initialized compatible model, then updates bus state and local caches. Parameters and dynamic history remain current. |
+| Structure                  | Captures                                                                                                   | Restore boundary                                                                                                                                                                            |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HDF5 solver snapshot       | State and, for differential blocks, derivatives. Paired partitioned solvers are written in the same frame. | Supplies arrays to an already initialized solver. The restore level determines whether backend time/history and the simulation clock are reset. It does not restore model fields or events. |
+| `ModelFieldSnapshot`       | Declared fields on one exact `CoreObject` type: flags and retained local state; optionally parameters.     | Restores members on an existing compatible object. Does not serialize solver vectors, traverse child objects, rebuild derived data, or invoke normal setters.                               |
+| Power-flow JSON checkpoint | Named power-flow solver values and bus voltage/angle values.                                               | Restores a solution into an already initialized compatible model, then updates bus state and local caches. Parameters and dynamic history remain current.                                   |
 
 The HDF5 capture implementation is shared by solver snapshots, diagnostics,
 recorder output, and sparse matrix records. `saveStateBinary` writes a complete
@@ -30,10 +30,10 @@ frame and delegates to the `BinaryStateData` overload, so both entry points use
 the same validation and restore logic. Its initial levels are deliberately
 narrow:
 
-| `CheckpointRestoreLevel` | Effect |
-| --- | --- |
-| `SOLVER_STATE_ONLY` | Copies the saved state and derivative vectors. Leaves the simulation clocks and backend integration history alone. `loadStateBinary()` uses this level to preserve its existing behavior. |
-| `MINIMAL` | Copies the vectors, asks each backend to restart from those arrays at the captured time, then updates the simulation clocks. This restarts solver history from an accepted point; it does not reproduce the prior integrator history exactly. |
+| `CheckpointRestoreLevel` | Effect                                                                                                                                                                                                                                        |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SOLVER_STATE_ONLY`      | Copies the saved state and derivative vectors. Leaves the simulation clocks and backend integration history alone. `loadStateBinary()` uses this level to preserve its existing behavior.                                                     |
+| `MINIMAL`                | Copies the vectors, asks each backend to restart from those arrays at the captured time, then updates the simulation clocks. This restarts solver history from an accepted point; it does not reproduce the prior integrator history exactly. |
 
 The minimum restore currently supports `BasicOdeSolver`, SUNDIALS CVODE,
 IDA, ARKStep, and KINSOL.
@@ -67,10 +67,10 @@ to produce names for active solver layouts. `ModelFieldSnapshot::capture()` is
 per object and requires the object's exact dynamic type to be described. Its
 field levels are:
 
-| Level | Fields included |
-| --- | --- |
-| `FieldSnapshotLevel::STATE` | Flags and declared `localState` fields. Parameters remain as configured on the destination object. |
-| `FieldSnapshotLevel::PARAMETERS` | Parameters, flags, and declared `localState` fields. This is the default. |
+| Level                            | Fields included                                                                                    |
+| -------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `FieldSnapshotLevel::STATE`      | Flags and declared `localState` fields. Parameters remain as configured on the destination object. |
+| `FieldSnapshotLevel::PARAMETERS` | Parameters, flags, and declared `localState` fields. This is the default.                          |
 
 Solver-managed `state(...)` fields describe names and locations; the actual
 values remain in solver vectors. `command(...)` entries describe operations,
@@ -120,11 +120,11 @@ remain the supported narrower operations.
 
 ## Implementation options
 
-| Option | Scope | Tradeoff |
-| --- | --- | --- |
-| In-process rollback | Capture fields, solver vectors, simulation runtime, and a cloned event queue in memory. | Avoids a disk schema and can support named rollback points in one process. Solver history is still restarted unless backend-specific state is added. |
-| Accepted-point restart | Persist per-object field records plus a reference to an HDF5 solver frame and runtime data. Reconstruct the model from its case/assets, then restart from an accepted point. | Supports process restart and keeps bulk numerical data in HDF5. Requires stable object identities, full runtime adapters, and an explicit restart initialization path. |
-| Exact solver continuation | Persist backend integrator state in addition to GridDyn state. | Backend-specific and version-sensitive; substantially larger scope than a portable accepted-point restart. |
+| Option                    | Scope                                                                                                                                                                        | Tradeoff                                                                                                                                                               |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| In-process rollback       | Capture fields, solver vectors, simulation runtime, and a cloned event queue in memory.                                                                                      | Avoids a disk schema and can support named rollback points in one process. Solver history is still restarted unless backend-specific state is added.                   |
+| Accepted-point restart    | Persist per-object field records plus a reference to an HDF5 solver frame and runtime data. Reconstruct the model from its case/assets, then restart from an accepted point. | Supports process restart and keeps bulk numerical data in HDF5. Requires stable object identities, full runtime adapters, and an explicit restart initialization path. |
+| Exact solver continuation | Persist backend integrator state in addition to GridDyn state.                                                                                                               | Backend-specific and version-sensitive; substantially larger scope than a portable accepted-point restart.                                                             |
 
 The practical direction is one in-memory snapshot model with multiple
 adapters: memory for rollback, and a versioned manifest plus the existing HDF5
@@ -160,13 +160,13 @@ just to mirror CoreObject.
 The current model field machinery is partly generic and partly tied to
 `CoreObject`:
 
-| Existing part | Reuse potential |
-| --- | --- |
-| `ModelFieldValue`, field kinds/types, aliases, descriptions, and snapshot entries | Reuse as the common typed value and metadata vocabulary. |
-| Member binding, value conversion, validators, staged restore assignments, and inherited-table traversal | Share through templates parameterized by the object base. These contain much of the code that should not be duplicated. |
-| `ModelField` reader/writer/restorer callbacks and `fieldOwner<Model>` | Currently accept `CoreObject&` and `const CoreObject&`; this is the main binding seam that must be generalized or wrapped for `HelperObject`. |
-| `ModelDescription` solver-state bindings and `SolverMode` lookups | Keep CoreObject-specific. Helper descriptions should not inherit solver-layout APIs. |
-| `ModelFieldSnapshot` capture/restore flow | Reuse through a base-parameterized snapshot implementation while retaining model and helper facades. |
+| Existing part                                                                                           | Reuse potential                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ModelFieldValue`, field kinds/types, aliases, descriptions, and snapshot entries                       | Reuse as the common typed value and metadata vocabulary.                                                                                      |
+| Member binding, value conversion, validators, staged restore assignments, and inherited-table traversal | Share through templates parameterized by the object base. These contain much of the code that should not be duplicated.                       |
+| `ModelField` reader/writer/restorer callbacks and `fieldOwner<Model>`                                   | Currently accept `CoreObject&` and `const CoreObject&`; this is the main binding seam that must be generalized or wrapped for `HelperObject`. |
+| `ModelDescription` solver-state bindings and `SolverMode` lookups                                       | Keep CoreObject-specific. Helper descriptions should not inherit solver-layout APIs.                                                          |
+| `ModelFieldSnapshot` capture/restore flow                                                               | Reuse through a base-parameterized snapshot implementation while retaining model and helper facades.                                          |
 
 Making `HelperObject` derive from `CoreObject`, or making `ModelDescription`
 pretend every object has solver states, would couple unrelated lifecycles and
@@ -231,4 +231,3 @@ So the code-reuse decision is not “one description class for every object” o
 small explicit adapters. This supports a single field definition without
 pretending that a field table alone can serialize queues, pointers, lambdas, or
 backend workspaces.
-

@@ -1179,27 +1179,20 @@ TEST(ModelParameterTests, EnumeratesCategoriesAndAliasesInDeclarationHierarchyOr
         stringVec names;
         bool local;
     };
-    for (const auto& expected :
-         std::array{ExpectedNames{.type = ParamStringType::LOCAL_NUM,
-                                  .names = {"shared",
-                                            "child_alias",
-                                            "child_operation",
-                                            "output",
-                                            "output_"},
-                                  .local = true},
-                    ExpectedNames{.type = ParamStringType::LOCAL_STR,
-                                  .names = {"child_label", "input"},
-                                  .local = true},
-                    ExpectedNames{.type = ParamStringType::LOCAL_FLAGS,
-                                  .names = {"child_flag"},
-                                  .local = true},
-                    ExpectedNames{.type = ParamStringType::NUMERIC,
-                                  .names = numeric,
-                                  .local = false},
-                    ExpectedNames{.type = ParamStringType::STR, .names = text, .local = false},
-                    ExpectedNames{.type = ParamStringType::FLAGS,
-                                  .names = flags,
-                                  .local = false}}) {
+    for (const auto& expected : std::array{
+             ExpectedNames{
+                 .type = ParamStringType::LOCAL_NUM,
+                 .names = {"shared", "child_alias", "child_operation", "output", "output_"},
+                 .local = true},
+             ExpectedNames{.type = ParamStringType::LOCAL_STR,
+                           .names = {"child_label", "input"},
+                           .local = true},
+             ExpectedNames{.type = ParamStringType::LOCAL_FLAGS,
+                           .names = {"child_flag"},
+                           .local = true},
+             ExpectedNames{.type = ParamStringType::NUMERIC, .names = numeric, .local = false},
+             ExpectedNames{.type = ParamStringType::STR, .names = text, .local = false},
+             ExpectedNames{.type = ParamStringType::FLAGS, .names = flags, .local = false}}) {
         SCOPED_TRACE(static_cast<int>(expected.type));
         stringVec names{"existing"};
         auto wanted = expected.names;

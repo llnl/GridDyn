@@ -158,9 +158,7 @@ int BasicOdeSolver::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
                            state.end(),
                            deriv.begin(),
                            state.begin(),
-                           [stepDuration](double a, double b) {
-                               return fma(stepDuration, b, a);
-                           });
+                           [stepDuration](double a, double b) { return fma(stepDuration, b, a); });
             solveTime += stepDuration;
             ++iterations;
         }

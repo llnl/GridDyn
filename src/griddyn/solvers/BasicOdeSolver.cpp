@@ -127,7 +127,7 @@ int BasicOdeSolver::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
         tReturn = tStop;
         return FUNCTION_EXECUTION_SUCCESS;
     }
-    CoreTime Tstep = (std::min)(deltaT, tStop - solveTime);
+    CoreTime stepDuration = (std::min)(deltaT, tStop - solveTime);
     if (mode.pairedOffsetIndex != kNullLocation) {
         int ret = m_gds->dynAlgebraicSolve(solveTime, state.data(), deriv.data(), mode);
         if (ret < FUNCTION_EXECUTION_SUCCESS) {
@@ -139,14 +139,14 @@ int BasicOdeSolver::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
                    state.end(),
                    deriv.begin(),
                    state.begin(),
-                   [Tstep](double a, double b) { return fma(Tstep, b, a); });
-    solveTime += Tstep;
+                   [stepDuration](double a, double b) { return fma(stepDuration, b, a); });
+    solveTime += stepDuration;
 
     count_t iterations = 0;
     // if we are in single step mode don't go into the loop
     if (stepMode == StepMode::NORMAL) {
         while (solveTime < tStop && iterations < max_iterations) {
-            Tstep = (std::min)(deltaT, tStop - solveTime);
+            stepDuration = (std::min)(deltaT, tStop - solveTime);
             if (mode.pairedOffsetIndex != kNullLocation) {
                 int ret = m_gds->dynAlgebraicSolve(solveTime, state.data(), deriv.data(), mode);
                 if (ret < FUNCTION_EXECUTION_SUCCESS) {
@@ -158,8 +158,10 @@ int BasicOdeSolver::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
                            state.end(),
                            deriv.begin(),
                            state.begin(),
-                           [Tstep](double a, double b) { return fma(Tstep, b, a); });
-            solveTime += Tstep;
+                           [stepDuration](double a, double b) {
+                               return fma(stepDuration, b, a);
+                           });
+            solveTime += stepDuration;
             ++iterations;
         }
     }

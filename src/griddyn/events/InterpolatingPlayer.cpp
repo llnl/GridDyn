@@ -13,6 +13,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
 
 namespace griddyn::events {
 InterpolatingPlayer::InterpolatingPlayer(const std::string& eventName): Player(eventName) {}
@@ -34,17 +35,17 @@ std::unique_ptr<Event> InterpolatingPlayer::clone() const
     return upE;
 }
 
-void InterpolatingPlayer::cloneTo(Event* gE) const
+void InterpolatingPlayer::cloneTo(Event* event) const
 {
-    Player::cloneTo(gE);
-    auto nE = dynamic_cast<InterpolatingPlayer*>(gE);
-    if (nE == nullptr) {
+    Player::cloneTo(event);
+    auto* interpolatingPlayer = dynamic_cast<InterpolatingPlayer*>(event);
+    if (interpolatingPlayer == nullptr) {
         return;
     }
-    nE->slopeField = slopeField;
-    nE->samplePeriod = samplePeriod;
-    nE->slope = slope;
-    nE->useSlopeField = useSlopeField;
+    interpolatingPlayer->slopeField = slopeField;
+    interpolatingPlayer->samplePeriod = samplePeriod;
+    interpolatingPlayer->slope = slope;
+    interpolatingPlayer->useSlopeField = useSlopeField;
 }
 
 void InterpolatingPlayer::set(std::string_view param, double val)
@@ -84,7 +85,7 @@ void InterpolatingPlayer::setFlag(std::string_view flag, bool val)
 }
 void InterpolatingPlayer::setNextValue()
 {
-    if (static_cast<index_t>(ts.size()) <= currIndex) {
+    if (std::cmp_less_equal(ts.size(), currIndex)) {
         return;
     }
     if (currIndex >= static_cast<index_t>(ts.size()) - 1) {
@@ -118,45 +119,45 @@ void InterpolatingPlayer::setNextValue()
 std::string InterpolatingPlayer::to_string() const
 {
     // @time1[,time2,time3,... |+ period] >[rootobj::obj:]field(units) = val1,[val2,val3,...]
-    std::stringstream ss;
-    auto Npts = static_cast<index_t>(ts.size());
+    std::stringstream output;
+    auto pointCount = static_cast<index_t>(ts.size());
     if (eFile.empty()) {
-        ss << '@' << triggerTime;
+        output << '@' << triggerTime;
         if (period > timeZero) {
-            ss << '+' << period << '|';
-        } else if (Npts > 0) {
-            for (index_t nn = currIndex + 1; nn < Npts; ++nn) {
-                ss << ", " << ts.time(nn);
+            output << '+' << period << '|';
+        } else if (pointCount > 0) {
+            for (index_t nn = currIndex + 1; nn < pointCount; ++nn) {
+                output << ", " << ts.time(nn);
             }
-            ss << "| ";
+            output << "| ";
         } else {
-            ss << " | ";
+            output << " | ";
         }
-        ss << fullObjectName(m_obj) << ':' << field;
+        output << fullObjectName(m_obj) << ':' << field;
         if (unitType != units::defunit) {
-            ss << '(' << units::to_string(unitType) << ')';
+            output << '(' << units::to_string(unitType) << ')';
         }
-        ss << " = " << value;
-        if (Npts > 0) {
-            for (auto nn = currIndex + 1; nn < Npts; ++nn) {
-                ss << ", " << ts.data(nn);
+        output << " = " << value;
+        if (pointCount > 0) {
+            for (auto nn = currIndex + 1; nn < pointCount; ++nn) {
+                output << ", " << ts.data(nn);
             }
         }
     } else {
-        ss << fullObjectName(m_obj) << ':' << field;
+        output << fullObjectName(m_obj) << ':' << field;
         if (unitType != units::defunit) {
-            ss << '(' << units::to_string(unitType) << ')';
+            output << '(' << units::to_string(unitType) << ')';
         }
-        ss << " = {" << eFile;
+        output << " = {" << eFile;
         if (column > 0) {
-            ss << '#' << column;
+            output << '#' << column;
         }
-        ss << '}';
+        output << '}';
         if (period > timeZero) {
-            ss << '+' << period;
+            output << '+' << period;
         }
     }
-    return ss.str();
+    return output.str();
 }
 
 ChangeCode InterpolatingPlayer::trigger()

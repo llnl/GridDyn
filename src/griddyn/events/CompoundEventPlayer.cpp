@@ -30,18 +30,18 @@ std::unique_ptr<Event> CompoundEventPlayer::clone() const
     return upE;
 }
 
-void CompoundEventPlayer::cloneTo(Event* gE) const
+void CompoundEventPlayer::cloneTo(Event* event) const
 {
-    CompoundEvent::cloneTo(gE);
-    auto nE = dynamic_cast<CompoundEventPlayer*>(gE);
-    if (nE == nullptr) {
+    CompoundEvent::cloneTo(event);
+    auto* compoundPlayer = dynamic_cast<CompoundEventPlayer*>(event);
+    if (compoundPlayer == nullptr) {
         return;
     }
-    nE->period = period;
-    nE->ts = ts;
-    nE->currIndex = currIndex;
-    nE->eFile = eFile;
-    nE->columns = columns;
+    compoundPlayer->period = period;
+    compoundPlayer->ts = ts;
+    compoundPlayer->currIndex = currIndex;
+    compoundPlayer->eFile = eFile;
+    compoundPlayer->columns = columns;
 }
 
 void CompoundEventPlayer::setTime(CoreTime time)
@@ -80,16 +80,16 @@ void CompoundEventPlayer::updateTrigger(CoreTime time)
     if (currIndex != kNullLocation)  // we have a file operation
     {
         currIndex++;
-        auto Npts = static_cast<index_t>(ts.size());
-        if (currIndex >= Npts) {
+        auto pointCount = static_cast<index_t>(ts.size());
+        if (currIndex >= pointCount) {
             if (period > timeZero)  // if we have a period loop the time series
             {
                 if (time - ts.time(currIndex) > period) {
-                    for (index_t kk = 0; kk < Npts; ++kk) {
+                    for (index_t kk = 0; kk < pointCount; ++kk) {
                         ts.time(kk) += period + triggerTime;
                     }
                 } else {
-                    for (index_t kk = 0; kk < Npts; ++kk) {
+                    for (index_t kk = 0; kk < pointCount; ++kk) {
                         ts.time(kk) += period;
                     }
                 }
@@ -120,40 +120,40 @@ void CompoundEventPlayer::initialize() {}
 std::string CompoundEventPlayer::to_string() const
 {
     // @time1[,time2,time3,... |+ period] >[rootobj::obj:]field(units) = val1,[val2,val3,...]
-    std::stringstream ss;
-    auto Ntargets = static_cast<index_t>(ts.size());
+    std::stringstream output;
+    auto targetCount = static_cast<index_t>(ts.size());
     if (eFile.empty()) {
-        ss << '@' << triggerTime;
+        output << '@' << triggerTime;
         if (period > timeZero) {
-            ss << '+' << period << '|';
-        } else if (Ntargets > 0) {
-            for (auto nn = currIndex + 1; nn < Ntargets; ++nn) {
-                ss << ", " << ts.time(nn);
+            output << '+' << period << '|';
+        } else if (targetCount > 0) {
+            for (auto nn = currIndex + 1; nn < targetCount; ++nn) {
+                output << ", " << ts.time(nn);
             }
-            ss << "| ";
+            output << "| ";
         } else {
-            ss << " | ";
+            output << " | ";
         }
-        ss << fullObjectName(m_obj) << ':' << field;
+        output << fullObjectName(m_obj) << ':' << field;
         if (unitType != units::defunit) {
-            ss << '(' << units::to_string(unitType) << ')';
+            output << '(' << units::to_string(unitType) << ')';
         }
-        ss << " = " << value;
-        if (Ntargets > 0) {
-            for (index_t nn = currIndex + 1; nn < Ntargets; ++nn) {
-                // ss << ", " << ts.data[nn];
+        output << " = " << value;
+        if (targetCount > 0) {
+            for (index_t nn = currIndex + 1; nn < targetCount; ++nn) {
+                // output << ", " << ts.data[nn];
             }
         }
     } else {
-        ss << fullObjectName(m_obj) << ':' << field;
+        output << fullObjectName(m_obj) << ':' << field;
         if (unitType != units::defunit) {
-            ss << '(' << units::to_string(unitType) << ')';
+            output << '(' << units::to_string(unitType) << ')';
         }
-        ss << " = <" << eFile;
+        output << " = <" << eFile;
 
-        ss << '>';
+        output << '>';
     }
-    return ss.str();
+    return output.str();
 }
 
 ChangeCode CompoundEventPlayer::trigger()

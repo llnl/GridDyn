@@ -637,9 +637,9 @@ class GridDynSimulation: public GridSimulation {
      * If mode is empty, the captured mode is matched to an initialized solver
      * in this simulation. Pass mode to disambiguate multiple compatible solvers.
      */
-    void checkpointRestore(const BinaryStateData& state,
+    void checkpointRestore(const BinaryStateData& saved,
                            CheckpointRestoreLevel level = CheckpointRestoreLevel::MINIMAL,
-                           const SolverMode& mode = cEmptySolverMode);
+                           const SolverMode& requestedMode = cEmptySolverMode);
 
     /** Read the last binary state frame from fileName and restore it.
      *

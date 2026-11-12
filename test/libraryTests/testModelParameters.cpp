@@ -1491,7 +1491,8 @@ TEST(ModelParameterTests, DefaultStringSetPreservesParentHandlersAliasesAndValid
     EXPECT_TRUE(model.mActive);
     model.set("enabled", "false");
     EXPECT_FALSE(model.isEnabled());
-    model.set("id", "renamed");
+    EXPECT_THROW(model.set("id", "renamed"), UnrecognizedParameter);
+    model.set("name", "renamed");
     EXPECT_EQ(model.getName(), "renamed");
 }
 

@@ -9,6 +9,7 @@
 #include "core/CoreExceptions.h"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
+#include <cstddef>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -34,17 +35,17 @@ std::unique_ptr<Event> CompoundEvent::clone() const
     return upE;
 }
 
-void CompoundEvent::cloneTo(Event* gE) const
+void CompoundEvent::cloneTo(Event* event) const
 {
-    Event::cloneTo(gE);
-    auto nE = dynamic_cast<CompoundEvent*>(gE);
-    if (nE == nullptr) {
+    Event::cloneTo(event);
+    auto* compoundEvent = dynamic_cast<CompoundEvent*>(event);
+    if (compoundEvent == nullptr) {
         return;
     }
-    nE->fields = fields;
-    nE->values = values;
-    nE->units = units;
-    nE->targetObjects = targetObjects;
+    compoundEvent->fields = fields;
+    compoundEvent->values = values;
+    compoundEvent->units = units;
+    compoundEvent->targetObjects = targetObjects;
 }
 
 void CompoundEvent::updateObject(CoreObject* gco, ObjectUpdateMode mode)
@@ -54,19 +55,19 @@ void CompoundEvent::updateObject(CoreObject* gco, ObjectUpdateMode mode)
         setTarget(gco);
     } else if (mode == ObjectUpdateMode::MATCH) {
         if (m_obj != nullptr) {
-            auto tempobj = findMatchingObject(m_obj, gco);
-            if (tempobj == nullptr) {
+            auto* matchedObject = findMatchingObject(m_obj, gco);
+            if (matchedObject == nullptr) {
                 throw(ObjectUpdateFailException());
             }
-            m_obj = tempobj;
+            m_obj = matchedObject;
         }
         for (auto& obj : targetObjects) {
             if (obj != nullptr) {
-                auto tempobj = findMatchingObject(obj, gco);
-                if (tempobj == nullptr) {
+                auto* matchedObject = findMatchingObject(obj, gco);
+                if (matchedObject == nullptr) {
                     throw(ObjectUpdateFailException());
                 }
-                obj = tempobj;
+                obj = matchedObject;
             }
         }
     }
@@ -79,19 +80,19 @@ CoreObject* CompoundEvent::getObject() const
 
 void CompoundEvent::getObjects(std::vector<CoreObject*>& objects) const
 {
-    for (auto& obj : targetObjects) {
-        objects.push_back(obj);
+    for (const auto& targetObject : targetObjects) {
+        objects.push_back(targetObject);
     }
 }
 
 void CompoundEvent::setValue(double val, units::unit newUnits)
 {
     // TODO(pt): this has issues
-    for (auto& vv : values) {
-        vv = val;
+    for (auto& assignedValue : values) {
+        assignedValue = val;
     }
-    for (auto& uu : units) {
-        uu = newUnits;
+    for (auto& assignedUnits : units) {
+        assignedUnits = newUnits;
     }
 }
 
@@ -119,23 +120,23 @@ void CompoundEvent::setValue(const std::vector<double>& val)
 std::string CompoundEvent::to_string() const
 {
     // @time1[,time2,time3,... |+ period] >[rootobj::obj:]field(units) = val1,[val2,val3,...]
-    std::stringstream ss;
-    ss << '@' << triggerTime << " | ";
+    std::stringstream output;
+    output << '@' << triggerTime << " | ";
 
-    ss << fullObjectName(targetObjects[0]) << ':' << fields[0];
+    output << fullObjectName(targetObjects[0]) << ':' << fields[0];
     if (units[0] != units::defunit) {
-        ss << '(' << units::to_string(units[0]) << ')';
+        output << '(' << units::to_string(units[0]) << ')';
     }
-    ss << " = " << values[0];
-    for (index_t kk = 1; kk < static_cast<index_t>(values.size()); ++kk) {
-        ss << "; " << fullObjectName(targetObjects[kk]) << ':' << fields[kk];
-        if (units[kk] != units::defunit) {
-            ss << '(' << units::to_string(units[kk]) << ')';
+    output << " = " << values[0];
+    for (std::size_t index = 1; index < values.size(); ++index) {
+        output << "; " << fullObjectName(targetObjects[index]) << ':' << fields[index];
+        if (units[index] != units::defunit) {
+            output << '(' << units::to_string(units[index]) << ')';
         }
-        ss << " = " << values[kk];
+        output << " = " << values[index];
     }
 
-    return ss.str();
+    return output.str();
 }
 ChangeCode CompoundEvent::trigger()
 {
@@ -143,10 +144,8 @@ ChangeCode CompoundEvent::trigger()
         if (targetObjects.empty()) {
             m_obj->set(field, value, unitType);
         } else {
-            int index = 0;
-            for (auto& to : targetObjects) {
-                to->set(fields[index], values[index], units[index]);
-                ++index;
+            for (std::size_t index = 0; index < targetObjects.size(); ++index) {
+                targetObjects[index]->set(fields[index], values[index], units[index]);
             }
         }
         return ChangeCode::PARAMETER_CHANGE;
@@ -164,10 +163,8 @@ ChangeCode CompoundEvent::trigger(CoreTime time)
             if (targetObjects.empty()) {
                 m_obj->set(field, value, unitType);
             } else {
-                int index = 0;
-                for (auto& to : targetObjects) {
-                    to->set(fields[index], values[index], units[index]);
-                    ++index;
+                for (std::size_t index = 0; index < targetObjects.size(); ++index) {
+                    targetObjects[index]->set(fields[index], values[index], units[index]);
                 }
             }
             ret = ChangeCode::PARAMETER_CHANGE;

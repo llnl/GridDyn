@@ -48,6 +48,9 @@ partitioned startup conditions have populated both vectors.
 trial diagnostics. It reads the index in bounded blocks and materializes only
 that frame's state arrays. `BinaryStateData` exposes the primary time, mode,
 state and derivatives, plus `paired` blocks when present.
+Ordinary `saveStateBinary` frames do not currently write the optional `NAMES`
+records, even though the HDF5 schema and explicit diagnostic/Jacobian captures
+support them.
 
 `loadStateBinary(sim, path, mode)` checks the mode properties, initialized sizes,
 and availability of every destination block before copying any arrays. Stored
@@ -55,8 +58,19 @@ offset numbers identify file blocks; the destination's current pairing selects
 the paired solver. Load is a solver-vector operation: it does not rewind the
 simulation clock, commit component state, restore parameters/events/limit flags,
 or recover solver integration history. This remains separate from a complete
-checkpoint/restore system. No physical-consistency reconciliation of user edits
-is performed.
+checkpoint/restore system. The in-memory
+`GridDynSimulation::checkpointRestore(BinaryStateData, MINIMAL)` API can reset
+supported solver backends from an already-read frame and restore its time, but
+it does not restore model fields or simulation runtime. See
+[Checkpointing and restore boundaries](checkpointing.md#binary-state-restore-api).
+No physical-consistency reconciliation of user edits is performed.
+
+The model-field and whole-simulation boundaries are described in
+[Checkpointing and restore boundaries](checkpointing.md). In brief,
+`ModelDescription` supplies per-class field and solver-layout declarations, and
+`ModelFieldSnapshot` captures one described object's flags, retained local
+state, and optionally parameters. It does not recursively capture a simulation
+or serialize those fields into this HDF5 schema.
 
 ## File schema, version 1
 

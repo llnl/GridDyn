@@ -1,10 +1,14 @@
 # Component model descriptions
 
-The native loads, links and transformers, buses, generator containers, excitation
-limiters, voltage compensators, and renewable/converter models now provide
-`ModelDescription` tables. Relays, general-purpose blocks, and controllers remain
-for a later migration. The shared `GridPrimary`, `GridSecondary`, and `GridSubModel`
-layers also identify their own types and preserve the existing parent dispatch.
+`ModelDescription` tables now cover the shared `GridPrimary`, `GridSecondary`,
+and `GridSubModel` layers; loads, links and transformers, buses, generator
+containers, excitation limiters, voltage compensators, renewable/converter
+models; and migrated relay, general-purpose block, and controller classes.
+Coverage is not complete for every concrete class in those families. The
+declaration and dispatch audit in [model-parameters.md](model-parameters.md)
+tracks remaining gaps. Leaf classes with no additional fields still declare
+their type so object-field snapshots do not silently treat a derived object as
+its parent.
 
 The public interface remains `set(name, value, units)` and `get(name, units)`.
 Simple scalar assignments, aliases, unit conversion, and value-only validation
@@ -95,11 +99,12 @@ images. In particular:
 - Solver integration history, active partitions, network assembly, external
   files, and event queues remain outside object-field snapshots.
 
-A later systemic review should address discovery of inherited aliases without
-duplicating captured values, inverse flag aliases, overloaded numeric/string
-names, parameter-dependent layouts, and reconstruction after raw restoration.
-That review follows the relay/block/controller migration rather than being
-folded into this component conversion.
+A systemic follow-up should address inherited aliases without duplicating
+captured values, inverse flag aliases, overloaded numeric/string names,
+parameter-dependent layouts, and reconstruction after raw restoration. The
+remaining migration and checkpoint coverage gaps are tracked in
+[model-parameters.md](model-parameters.md) and
+[checkpointing.md](checkpointing.md).
 
 `testComponentDescriptions.cpp` checks the concrete types across these families,
 alias/getter agreement, Boolean dispatch, no-op keys, and field snapshots.

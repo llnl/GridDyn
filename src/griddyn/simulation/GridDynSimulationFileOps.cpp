@@ -1051,8 +1051,9 @@ BinaryStateData readStateBinary(const std::string& fileName)
 
 namespace {
     void applyBinaryState(GridDynSimulation* gds,
-                          const SolverMode& mode,
-                          const BinaryStateData& saved)
+                          const std::shared_ptr<SolverInterface>& primarySolver,
+                          const BinaryStateData& saved,
+                          CheckpointRestoreLevel level)
     {
         struct Target {
             std::shared_ptr<SolverInterface> mSolver;
@@ -1060,11 +1061,11 @@ namespace {
             const std::vector<double>* mDerivative;
         };
         std::vector<Target> targets;
-        const auto validate = [&](const SolverMode& targetMode,
+        const auto validate = [&](const std::shared_ptr<SolverInterface>& solver,
+                                  const SolverMode& targetMode,
                                   const SolverMode& storedMode,
                                   const std::vector<double>& state,
                                   const std::vector<double>& derivative) {
-            auto solver = gds->getSolverInterface(targetMode);
             if (!solver || !solver->isInitialized()) {
                 throw FileOperationError("solver must be initialized before loading HDF5 state");
             }
@@ -1080,44 +1081,132 @@ namespace {
             }
             targets.push_back({.mSolver = solver, .mState = &state, .mDerivative = &derivative});
         };
-        validate(mode, saved.mode, saved.state, saved.derivatives);
+        if ((saved.paired.size() > 1) ||
+            ((primarySolver->getSolverMode().pairedOffsetIndex != kNullLocation) !=
+             !saved.paired.empty())) {
+            throw FileOperationError("HDF5 paired state does not match the solver configuration");
+        }
+        validate(primarySolver,
+                 primarySolver->getSolverMode(),
+                 saved.mode,
+                 saved.state,
+                 saved.derivatives);
         if (!saved.paired.empty()) {
-            if (saved.paired.size() != 1 || mode.pairedOffsetIndex == kNullLocation) {
-                throw FileOperationError(
-                    "HDF5 paired state does not match the solver configuration");
-            }
-            auto solver = gds->getSolverInterface(SolverMode(mode.pairedOffsetIndex));
-            if (!solver) {
+            const auto pairIndex = primarySolver->getSolverMode().pairedOffsetIndex;
+            auto pairedSolver = gds->getSolverInterface(pairIndex);
+            if (!pairedSolver) {
                 throw FileOperationError("paired solver is unavailable");
             }
             const auto& pair = saved.paired.front();
-            validate(solver->getSolverMode(), pair.mode, pair.state, pair.derivatives);
+            validate(pairedSolver,
+                     pairedSolver->getSolverMode(),
+                     pair.mode,
+                     pair.state,
+                     pair.derivatives);
+        }
+        if (level == CheckpointRestoreLevel::MINIMAL &&
+            std::any_of(targets.begin(), targets.end(), [](const Target& target) {
+                return !target.mSolver->supportsCheckpointRestore();
+            })) {
+            throw FileOperationError("a solver backend does not support checkpoint restore");
         }
         // Check every block before modifying any solver array.
         for (const auto& target : targets) {
-            std::copy(target.mState->begin(), target.mState->end(), target.mSolver->stateData());
-            if (hasDifferential(target.mSolver->getSolverMode())) {
+            if (!target.mState->empty()) {
+                std::copy(target.mState->begin(),
+                          target.mState->end(),
+                          target.mSolver->stateData());
+            }
+            if (hasDifferential(target.mSolver->getSolverMode()) && !target.mDerivative->empty()) {
                 std::copy(target.mDerivative->begin(),
                           target.mDerivative->end(),
                           target.mSolver->derivData());
+            }
+        }
+        if (level == CheckpointRestoreLevel::MINIMAL) {
+            for (const auto& target : targets) {
+                target.mSolver->restoreFromCheckpoint(saved.time);
             }
         }
     }
 
 }  // namespace
 
-void loadStateBinary(GridDynSimulation* gds, const std::string& fileName, const SolverMode& sMode)
+void GridDynSimulation::checkpointRestore(const BinaryStateData& saved,
+                                          CheckpointRestoreLevel level,
+                                          const SolverMode& requestedMode)
 {
-    const auto path = fileName.empty() ? gds->getString("statefile") : fileName;
+    if ((level != CheckpointRestoreLevel::SOLVER_STATE_ONLY) &&
+        (level != CheckpointRestoreLevel::MINIMAL)) {
+        throw FileOperationError("unsupported checkpoint restore level");
+    }
+    if (saved.paired.size() > 1) {
+        throw FileOperationError("HDF5 state contains too many paired solver blocks");
+    }
+    if ((saved.mode.pairedOffsetIndex != kNullLocation) != !saved.paired.empty()) {
+        throw FileOperationError("HDF5 paired state does not match its recorded solver mode");
+    }
+
+    const bool explicitMode = requestedMode.offsetIndex != kNullLocation ||
+        (stateModeFlags(requestedMode) != stateModeFlags(cEmptySolverMode)) ||
+        (requestedMode.approx != cEmptySolverMode.approx);
+    const SolverMode& expectedMode = explicitMode ? requestedMode : saved.mode;
+    std::shared_ptr<SolverInterface> selectedSolver;
+
+    if (requestedMode.offsetIndex != kNullLocation) {
+        selectedSolver = getSolverInterface(requestedMode.offsetIndex);
+        if (!selectedSolver) {
+            throw FileOperationError("requested solver mode is unavailable");
+        }
+    } else {
+        std::vector<std::shared_ptr<SolverInterface>> matches;
+        for (const auto& candidate : solverInterfaces) {
+            if (!candidate || !candidate->isInitialized()) {
+                continue;
+            }
+            const auto& candidateMode = candidate->getSolverMode();
+            if ((stateModeFlags(candidateMode) != stateModeFlags(expectedMode)) ||
+                (candidateMode.approx != expectedMode.approx) ||
+                ((candidateMode.pairedOffsetIndex != kNullLocation) != !saved.paired.empty()) ||
+                std::cmp_not_equal(candidate->size(), saved.state.size())) {
+                continue;
+            }
+            matches.push_back(candidate);
+        }
+        if (matches.empty()) {
+            throw FileOperationError("no initialized solver matches the HDF5 state mode");
+        }
+        if (matches.size() > 1) {
+            throw FileOperationError(
+                "HDF5 state mode is ambiguous; specify the target solver mode explicitly");
+        }
+        selectedSolver = matches.front();
+    }
+
+    applyBinaryState(this, selectedSolver, saved, level);
+    if (level == CheckpointRestoreLevel::MINIMAL) {
+        currentTime = saved.time;
+        simulationTime.store(saved.time);
+        timeReturn = saved.time;
+        nextStopTime = negTime;
+    }
+}
+
+void GridDynSimulation::checkpointRestore(const std::string& fileName,
+                                          CheckpointRestoreLevel level,
+                                          const SolverMode& mode)
+{
+    const auto path = fileName.empty() ? getString("statefile") : fileName;
     if (path.empty()) {
         throw FileOperationError("no binary state file specified");
     }
     const auto saved = readStateBinary(path);
-    const auto solver = gds->getSolverInterface(gds->getCurrentMode(sMode));
-    if (!solver) {
-        throw FileOperationError("solver is unavailable");
-    }
-    applyBinaryState(gds, solver->getSolverMode(), saved);
+    checkpointRestore(saved, level, mode);
+}
+
+void loadStateBinary(GridDynSimulation* gds, const std::string& fileName, const SolverMode& sMode)
+{
+    gds->checkpointRestore(fileName, CheckpointRestoreLevel::SOLVER_STATE_ONLY, sMode);
 }
 
 void loadPowerFlow(GridDynSimulation* gds, const std::string& fileName)

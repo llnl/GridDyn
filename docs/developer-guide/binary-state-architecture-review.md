@@ -1,16 +1,27 @@
 # Binary state, diagnostics, and optimization review
 
-Implementation update: state and diagnostic output now use the HDF5 submodule
-checkout supplied on `develop`. See [the current format and API](binary-state-output.md).
-The design inventory and earlier build experiments below retain their historical
-context; other application adapters are future work. LUT use is deferred until
-last, if it is pursued at all.
+## Current status (2026-11-09)
+
+State, diagnostic, recorder, sparse-matrix, and convergence captures use the
+shared HDF5 implementation described in [binary-state-output.md](binary-state-output.md).
+Periodic partitioned state capture now writes the differential and paired
+algebraic blocks in one frame, including the initial accepted capture after
+partitioned startup conditions. This document's original review was written on
+2026-10-30; its design inventory and implementation sequence below are retained
+as historical context, not as a current list of unimplemented work.
+
+`ModelDescription` and `ModelFieldSnapshot` now provide per-object declarations
+and snapshots for parameters, flags, retained local state, and solver-state
+layout metadata. They do not yet capture a whole simulation. See
+[Checkpointing and restore boundaries](checkpointing.md) for the current split
+between HDF5 solver frames, object-field snapshots, the solution-only power-flow
+JSON checkpoint, and the missing full dynamic restore coordinator.
 
 Reviewed 2026-10-30 against the working tree based on `c6d24432`, including the
 uncommitted binary-output changes. This is a source and architecture review;
 the historical large-case benchmarks below were not rerun for this review.
 
-## Conclusion and scope
+## Historical conclusion and scope (2026-10-30)
 
 Keep one binary storage format and one implementation of numeric storage,
 reading, and buffering. Simulation snapshots, nonlinear-solver
@@ -20,12 +31,13 @@ adapters over that implementation. A future checkpoint manifest should refer
 to complete captured frames and model/parameter files rather than inventing
 another numeric representation.
 
-The current implementation has made a useful start: it shares little-endian
-encoding, record headers/trailers, packed vectors, sparse coordinate entries,
-and names between the simulation and SUNDIALS diagnostic writers. It is not
-yet the reusable, complete capture layer described here. In particular,
-partitioned periodic output does not capture the paired algebraic state, and
-the record contract remains tied to `SolverMode`.
+At the time of this review, the implementation shared numeric encoding between
+simulation and diagnostic writers, but partitioned periodic output did not
+capture the paired algebraic state. That gap has since been closed: the current
+HDF5 adapter writes paired solver blocks in the same frame. HDF5 also provides
+the neutral storage API; the remaining gap is whole-simulation capture and
+restore, not selection of a numeric container. The solver-facing adapter still
+uses `SolverMode` to select its blocks.
 
 This review precedes the next implementation/refactoring step. It does not add
 checkpoint restore, parameter restoration, optimizer serialization, or a new
@@ -34,13 +46,15 @@ wire-format revision. The follow-on
 output as a required application, compilation probes and a preliminary Parquet
 comparison.
 
-## Standard-format assessment
+## Historical standard-format assessment (2026-10-30)
 
-The shared capture contract does not require a custom byte protocol. Before
-extending `GDSTATE1`, evaluate HDF5 as the sole numerical container. This is a
-design recommendation based on the requirements and published capabilities;
-no production HDF5 integration or comparative performance benchmark has been
-performed. Subsequent standalone compilation checks are recorded in the
+This assessment recommended against extending `GDSTATE1` and selected HDF5 as
+the sole numerical container. That recommendation is now implemented. The
+current schema and APIs are documented in [binary-state-output.md](binary-state-output.md).
+The original assessment was a design recommendation based on the requirements
+and published capabilities. Production HDF5 integration now exists; no
+comparative performance benchmark against the removed custom format is recorded
+here. The earlier standalone compilation checks are in the
 [integration assessment](hdf5-integration-assessment.md).
 
 | Candidate      | Fit for GridDyn                                                                                                                                                                                                      | Main cost or limitation                                                                                                                                                                                                                          |
@@ -59,7 +73,11 @@ and [FAQ](https://docs.unidata.ucar.edu/netcdf-c/current/faq.html),
 and [types](https://www.sqlite.org/datatype3.html), and
 [ADIOS2 BP5](https://adios2.readthedocs.io/en/v2.12.0/engines/engines.html).
 
-### Proposed HDF5 use
+### Historical HDF5 schema proposal
+
+The following organization was illustrative and was not adopted as schema
+version 1. The implemented datasets and record fields are documented in
+[binary-state-output.md](binary-state-output.md).
 
 Store arrays as ordinary HDF5 datasets. HDF5 would own physical types,
 byte-order conversion, dataset
@@ -126,7 +144,8 @@ installed R2013a. Check dimensions/order, integer types, names, empty arrays,
 all-zero/rectangular matrices and optional compression in real cross-language
 fixtures. See [MATLAB version history](https://www.mathworks.com/help/matlab/ref/h5create.html).
 
-The next decision should follow a small HDF5 experiment: large vector and
+At the time of the review, the next decision was to follow a small HDF5
+experiment: large vector and
 sparse-array round trips, many small diagnostic frames, partial reads,
 interrupted writes and append/reopen behavior. Compare with the current format
 using equivalent capture/flush policies, while distinguishing format costs from
@@ -138,144 +157,87 @@ to `state.h5` plus editable parameter/runtime files.
 
 ## Current producers, readers, and ownership
 
-| Application                             | Existing mechanism                                                                                                                                                                            | Coverage and limitation                                                                                                                                                         |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Single-mode solver snapshot             | `saveStateBinary` / `readStateBinary` / `loadStateBinary` in [GridDynSimulationFileOps.cpp](../../src/griddyn/simulation/GridDynSimulationFileOps.cpp)                                        | One initialized solver's state, derivatives when differential, time, and mode. Load copies vectors; it does not reinitialize a solver or simulation.                            |
-| Periodic dynamic recording              | `dynInitialize` schedules `saveStateBinary` in [gridDynDynamic.cpp](../../src/griddyn/simulation/gridDynDynamic.cpp)                                                                          | DAE records include the combined state. Partitioned recording selects the differential mode and omits its algebraic partner.                                                    |
-| IDA trial diagnostics                   | `idaFunc` in [IdaInterface.cpp](../../src/griddyn/solvers/IdaInterface.cpp)                                                                                                                   | Callback state, supplied derivatives, and residual; trial time and evaluation index.                                                                                            |
-| CVODE / ARKODE trial diagnostics        | `cvodeFunc` / `arkodeFunc` in [CvodeInterface.cpp](../../src/griddyn/solvers/CvodeInterface.cpp) and [ArkodeInterface.cpp](../../src/griddyn/solvers/ArkodeInterface.cpp)                     | Differential trial state and computed RHS. Algebraic work happens through a paired solver and lacks a shared evaluation identity.                                               |
-| Nonlinear algebraic diagnostics         | `kinsolFunc` in [KinsolInterface.cpp](../../src/griddyn/solvers/KinsolInterface.cpp)                                                                                                          | Algebraic trial state and residual; its local evaluation counter does not identify the enclosing differential trial.                                                            |
-| Solver Jacobians                        | `sundialsJac` in [SundialsInterface.cpp](../../src/griddyn/solvers/SundialsInterface.cpp)                                                                                                     | Shared sparse-record writer; the file lacks the actual `cj`, evaluation-stage context, explicit matrix shape, and layout associations.                                          |
-| Explicit Jacobian captures              | `captureJacState` / `saveJacobian`                                                                                                                                                            | Shared vector, sparse, and names records. Both evaluate using a hard-coded `cj = 10000`, rather than a recorded solver linearization context.                                   |
-| Convergence exploration                 | `dynamicSolverConvergenceTest` in [Diagnostics.cpp](../../src/griddyn/simulation/Diagnostics.cpp)                                                                                             | Still writes a separate unversioned binary stream directly. Its only discovered call is commented out, but retaining the writer preserves a competing format.                   |
-| IC, root, and performance investigation | IDA reports and `partitionedDiagnostic`                                                                                                                                                       | Useful bounded text and counters, but their context is not linked to binary captures. Text remains appropriate for summaries; numerical payloads should use the shared records. |
-| Optimization                            | [OptimizerInterface](../../src/optimization/optimizerInterface.h), [NativeQpProblem](../../src/optimization/nativeProblem.h), [NativeSolveResult](../../src/optimization/nativeDenseSolver.h) | Own canonical arrays, names, dimensions, and results. No shared binary-output adapter was found.                                                                                |
-| MATLAB / Octave                         | [readStateFile.m](../../matlab/readStateFile.m), Jacobian and CVODE helpers                                                                                                                   | Decode the common format. Helpers currently select first/last matching records without frame/layout correlation and load the complete file into memory.                         |
-| Initial power-flow solution checkpoint  | `savePowerFlowCheckpoint` / `loadPowerFlowCheckpoint`                                                                                                                                         | A separate JSON solution representation exists. It is not an iterated-run checkpoint and should eventually be a view/adapter over the same capture model.                       |
-| Simulation recorder output              | `Recorder::saveFile` / `TimeSeriesMulti`                                                                                                                                                      | Shared HDF5 for `.h5`/`.hdf5`; text for `.csv`/`.txt`; existing binary otherwise. Autosave, append, reset and explicit buffer exports are preserved.                            |
-| Power-flow result output                | `savePowerFlow`, bus/link result exports                                                                                                                                                      | Several readable output paths; generic binary dispatch currently reaches the empty `savePowerFlowBinary` stub. HDF5 result tables require a real adapter.                       |
+| Application                             | Existing mechanism                                                                                                                                                                            | Coverage and limitation                                                                                                                                                                     |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Solver snapshot                         | `saveStateBinary` / `readStateBinary` / `loadStateBinary` in [GridDynSimulationFileOps.cpp](../../src/griddyn/simulation/GridDynSimulationFileOps.cpp)                                        | One initialized solver block, plus its initialized paired block when present; differential blocks include derivatives. Load copies vectors into initialized solvers.                        |
+| Periodic dynamic recording              | `dynInitialize` and the partitioned startup path schedule `saveStateBinary` in [gridDynDynamic.cpp](../../src/griddyn/simulation/gridDynDynamic.cpp)                                          | DAE records include state and derivatives. Partitioned frames include the differential block and its paired algebraic block; the initial partitioned frame follows startup-condition setup. |
+| IDA trial diagnostics                   | `idaFunc` in [IdaInterface.cpp](../../src/griddyn/solvers/IdaInterface.cpp)                                                                                                                   | Callback state, supplied derivatives, and residual; trial time and evaluation index.                                                                                                        |
+| CVODE / ARKODE trial diagnostics        | `cvodeFunc` / `arkodeFunc` in [CvodeInterface.cpp](../../src/griddyn/solvers/CvodeInterface.cpp) and [ArkodeInterface.cpp](../../src/griddyn/solvers/ArkodeInterface.cpp)                     | Differential trial state and computed RHS. Algebraic work happens through a paired solver and lacks a shared evaluation identity.                                                           |
+| Nonlinear algebraic diagnostics         | `kinsolFunc` in [KinsolInterface.cpp](../../src/griddyn/solvers/KinsolInterface.cpp)                                                                                                          | Algebraic trial state and residual; its local evaluation counter does not identify the enclosing differential trial.                                                                        |
+| Solver Jacobians                        | `sundialsJac` in [SundialsInterface.cpp](../../src/griddyn/solvers/SundialsInterface.cpp)                                                                                                     | Shared sparse-record writer stores matrix dimensions and actual `cj`; evaluation-stage and layout associations are not complete.                                                            |
+| Explicit Jacobian captures              | `captureJacState` / `saveJacobian`                                                                                                                                                            | Shared vector, sparse, and names records. The recorded `cj` is the helper's fixed value of 10000, not the active solver's linearization context.                                            |
+| Convergence exploration                 | `dynamicSolverConvergenceTest` in [Diagnostics.cpp](../../src/griddyn/simulation/Diagnostics.cpp)                                                                                             | Uses `Hdf5DataFile` and the shared diagnostic-vector adapter. Its trial and result codes are documented in [binary-state-output.md](binary-state-output.md).                                |
+| IC, root, and performance investigation | IDA reports and `partitionedDiagnostic`                                                                                                                                                       | Useful bounded text and counters, but their context is not linked to binary captures. Text remains appropriate for summaries; numerical payloads should use the shared records.             |
+| Optimization                            | [OptimizerInterface](../../src/optimization/optimizerInterface.h), [NativeQpProblem](../../src/optimization/nativeProblem.h), [NativeSolveResult](../../src/optimization/nativeDenseSolver.h) | Own canonical arrays, names, dimensions, and results. No shared binary-output adapter was found.                                                                                            |
+| MATLAB / Octave                         | [readStateFile.m](../../matlab/readStateFile.m), Jacobian and CVODE helpers                                                                                                                   | Decode the common format with frame/source/key/code selection and bounded index/payload reads. Jacobian state, matrix, and names are selected together by frame and key.                    |
+| Initial power-flow solution checkpoint  | `savePowerFlowCheckpoint` / `loadPowerFlowCheckpoint`                                                                                                                                         | A separate JSON solution-only API exists. It is not an iterated-run or dynamic checkpoint; it may later share lower-level capture primitives.                                               |
+| Simulation recorder output              | `Recorder::saveFile` / `TimeSeriesMulti`                                                                                                                                                      | Shared HDF5 for `.h5`/`.hdf5`; text for `.csv`/`.txt`; existing binary otherwise. Autosave, append, reset and explicit buffer exports are preserved.                                        |
+| Power-flow result output                | `savePowerFlow`, bus/link result exports                                                                                                                                                      | Several readable output paths; generic binary dispatch currently reaches the empty `savePowerFlowBinary` stub. HDF5 result tables require a real adapter.                                   |
 
-Recorder/time-series and result tables are distinct data products, now explicitly
-required to use the proposed common HDF5 storage implementation. They retain
-their own sampling/table contracts rather than masquerading as solver snapshots.
-Readable exports can continue alongside the single consolidated numeric format.
+Recorder/time-series and result tables are distinct data products. Recorder
+HDF5 output uses the shared storage implementation while retaining its own
+sampling and buffer contracts. Readable exports remain available alongside the
+common numeric format. Power-flow result HDF5 tables and optimizer persistence
+are separate adapters, not prerequisites for dynamic checkpoint restore.
 
-## Findings to address before building restore
+## Current findings for complete checkpoint restore
 
-### 1. Partitioned capture needs a complete, synchronized frame
+### 1. Solver frames are synchronized; model/runtime capture is still separate
 
-`dynInitialize` chooses `defDynDiffMode` for partitioned execution and captures
-that solver alone. `setupDynamicPartitioned` later initializes the paired
-algebraic solver and can transfer corrected DAE initial conditions into both
-vectors. The initial periodic record can therefore precede that final
-partitioned setup. The snapshot encoding does not persist `pairedOffsetIndex`,
-so the reconstructed `BinaryStateData` does not identify the missing algebraic block.
-
-Recording two independent snapshots is insufficient: `readStateBinary` selects
-the last snapshot, and `loadStateBinary` then compares it with the requested
-mode. It cannot select a complete differential/algebraic pair from one frame.
-
-Required direction:
-
-- A capture frame contains all required blocks, their layout IDs, one exact
-  time, stage, and a completion marker.
-- DAE frames contain combined `y` and `yp`, with variable classification.
-- Partitioned frames contain `x_d`, `dx_d/dt`, and `x_a` after the endpoint
-  algebraic solve and cache updates. Include other solver-owned arrays only
-  when their role is explicitly declared.
-- Capture the initial accepted frame after the final selected initialization
-  strategy has completed, and capture post-event frames after the full event
-  correction. Trial and failure captures remain available with their own stage.
-- Never run an extra algebraic solve just to serialize data. Capture policy
-  chooses a synchronized point; serialization observes the supplied buffers.
+Periodic DAE captures store state and derivative vectors. Partitioned captures
+store the differential block and its initialized algebraic partner in one HDF5
+frame; the startup path records its initial frame after the partitioned startup
+conditions. These solver frames still do not include component fields, the
+simulation clock, event queue progress, or a restartable solver history. The
+`loadStateBinary` API copies vectors into an initialized solver and is not the
+restore coordinator for a dynamic simulation.
 
 ### 2. Metadata must identify what the arrays mean
 
-The current source values distinguish snapshots and diagnostics. They do not
-identify the backend, the enclosing differential trial, IC attempt, root
-transition, accepted step, model/layout revision, or matrix linearization.
-Solver offsets and unrelated local counters cannot establish those links.
+The HDF5 schema now records complete-frame identity, solver keys, paired keys,
+vector roles, explicit sparse-matrix dimensions, and the Jacobian `cj` when
+available. Names are supported records, but ordinary solver snapshots do not
+currently write a named state layout. `ModelDescription` can produce active
+state names and locations; the checkpoint capture adapter should record those
+names (or a stable layout descriptor) with each solver block so restore can
+check more than vector size and mode bits. Trial diagnostics still need richer
+cross-solver evaluation and accepted-step context for some workflows.
 
-The format also has no matrix row/column dimensions. Inferring dimensions
-from nonzero coordinates loses empty/trailing rows and columns and cannot
-reliably represent a rectangular optimization constraint Jacobian. A DAE
-Jacobian additionally needs its residual convention and actual `cj` to be
-interpreted correctly. Explicit helper captures with `cj = 10000` must be
-labelled as such or accept a caller-supplied evaluation context.
+### 3. Shared storage exists; capture adapters remain domain-specific
 
-Use stable file-local producer, layout, frame, and evaluation IDs. Store names,
-units/bases, mode descriptions, matrix shape and row/column layout references
-in descriptors, usually once per layout revision. Record stage, return code,
-`cj` where applicable, and parent evaluation at the capture point. A backend
-name is metadata, not a separate binary format.
+`Hdf5DataFile` in `src/utilities` now owns the shared typed-vector, sparse-matrix,
+name-record, streaming-read, and frame-publication implementation. Simulation,
+solver diagnostics, recorder, and convergence code use adapters over that
+store. The remaining checkpoint work is to define a domain-neutral logical
+simulation snapshot and connect model fields and runtime records to it. An
+optimization capture adapter is still future work and should use its canonical
+problem structures rather than fabricate a `SolverMode`.
 
-Use 64-bit frame/evaluation IDs and payload lengths/counts consistently. The
-current diagnostic vector API narrows its count to `uint32_t`, and matrix
-coordinates are restricted to 32 bits. Any retained compact index encoding
-needs an explicit declared width and a checked adapter boundary.
+### 4. HDF5 buffering and diagnostic failure handling are implemented
 
-### 3. The shared codec is still coupled to simulation policy
-
-The byte helpers and record constants are private to the large simulation
-file-operations implementation. Every public writer requires `SolverMode`.
-The C++ reader parses general records internally but exposes only the last
-simulation snapshot. Optimization would have to fabricate a simulation mode
-or add another writer/reader, neither of which is appropriate.
-
-Move the storage boundary into a neutral utility module, reusing the selected
-container library rather than reimplementing its byte protocol. Expose typed record kinds,
-headers/descriptors, a generic streaming reader and a writer. Keep the existing
-simulation entry points as adapters. Add an optimization adapter using its
-existing arrays and canonical problem representation. Preserve one authority
-for each datum, as required by the [optimizer work plan](optimizer-work-plan.md).
-
-The snapshot bundle and standalone vector records can remain convenience
-operations over the same primitives; they should not have separate encoders
-or independent definitions of state, derivative, and residual roles.
-
-### 4. Buffering and diagnostic failure handling need a clear boundary
-
-Each record currently reopens the file, reads the header and last marker for
-append, writes a record, and closes it. IDA can do that three times per residual
-evaluation. Sparse output invokes three stream writes per nonzero, in addition
-to encoding each index and value. These are source-level costs; their runtime
-impact has not been benchmarked in this review.
-
-Use a session-scoped buffered writer, with header validation once per open,
-contiguous vector writes and bounded chunks of sparse entries. Preserve
-streaming and avoid a whole-case JSON DOM, dense matrix, or second full numeric
-copy. Emit stable names and structure descriptions once when possible.
-
-The optional diagnostic writers can currently throw from SUNDIALS callbacks,
-which have no local I/O exception boundary. Define the policy in one capture
-adapter: contain the error, retain an actionable message, and either disable
-optional capture or return a deliberate solver callback failure according to
-the selected policy. A required checkpoint write should fail explicitly.
-Those policies should share the same encoding implementation.
-
-The custom append check verifies header and final marker, not the complete
-preceding record. If retained, a completed frame/footer should carry a length
-or offset so checking an append boundary remains constant-time and stronger
-than matching four trailing bytes. A standard container would instead own
-physical structure checks; GridDyn must still establish frame completeness.
-This is file-integrity handling, not model validation.
+The current implementation keeps solver diagnostic file sessions open, batches
+related records, writes vectors contiguously, and emits sparse data in bounded
+chunks. Optional callback capture catches I/O failures, logs a warning, and
+disables capture without changing the numerical callback return value. Required
+snapshot writes report errors. HDF5 frame publication is a logical completeness
+marker, not a crash-durability guarantee; see the format documentation for that
+boundary.
 
 ### 5. Remaining parallel paths and misleading interfaces need cleanup
 
-- Migrate or remove `dynamicSolverConvergenceTest`'s raw binary writer. If
-  retained, record its trial inputs, outputs, sweep coordinates, and status in
-  the common format.
-- `saveStateXML` and `loadStateXML` are empty, and the action handlers for
-  loading state/checkpoint/rollback are stubs. They should report unsupported
-  behavior until implemented, rather than imply successful state restoration.
-- Ordinary snapshots omit names although named records exist. The format note
-  must distinguish optional descriptors from the default capture content.
-- Consolidate the duplicate `matlab` / `docgen/matlab` Jacobian helper logic.
-  Select state, matrix, and names by compatible frame/layout instead of picking
-  unrelated first or last records.
-- The existing JSON power-flow checkpoint should not grow a second independent
-  definition of numerical state. Retain readable export through the capture
-  model and let a future manifest reference the binary payload.
+- `dynamicSolverConvergenceTest` now writes through the common HDF5 diagnostic
+  path; it no longer maintains a separate raw binary writer.
+- `saveStateXML` and `loadStateXML` remain empty. `LOAD state`, `CHECKPOINT`, and
+  `ROLLBACK` action execution also remain unimplemented; their parser entries
+  do not imply working restore behavior.
+- Ordinary HDF5 solver snapshots still omit state names. The
+  [checkpointing guide](checkpointing.md) records this as a layout-validation
+  gap for restore.
+- The MATLAB Jacobian helpers now share frame/key selection through the common
+  state reader.
+- The power-flow JSON checkpoint remains a solution-only API. A future common
+  capture layer can back both that readable view and dynamic restart without
+  broadening the existing API's promise.
 
 ## What the solver investigations require from capture
 
@@ -305,6 +267,11 @@ accepted simulation history.
 
 ## Recommended architecture
 
+The storage portion of this proposal is now implemented by
+`utilities::Hdf5DataFile`. The diagram and adapter layering remain useful for
+future optimization capture and whole-simulation checkpoint/restore. Current
+checkpoint limits are in [checkpointing.md](checkpointing.md).
+
 ```mermaid
 flowchart LR
     S[Simulation capture points] --> A[Simulation adapter]
@@ -321,12 +288,11 @@ flowchart LR
     F --> M[MATLAB reader]
 ```
 
-1. **Neutral record layer**, for example `utilities/BinaryDataFile`. Owns
-   the logical schema, typed vectors, sparse matrices, descriptors, buffering,
-   bounds checks and storage errors. Delegate physical encoding and container
-   structure to HDF5 if selected; maintain explicit logical frame completion. It
-   has no dependency on `GridDynSimulation`, `SolverMode`, `OptimizationMode`,
-   SUNDIALS, or a backend-specific result object.
+1. **Neutral record layer.** `utilities::Hdf5DataFile` owns the common HDF5
+   record schema, vector/name/sparse-matrix payloads, buffering, bounds checks,
+   and logical frame publication. The storage API does not depend on
+   `GridDynSimulation` or `SolverMode`; simulation adapters still use those
+   types to select data to capture.
 2. **Descriptors and frames.** Lightweight descriptors refer to source,
    layout, frame/evaluation, role and payload byte length. Descriptors carry
    richer metadata so it is not repeated beside every number. Frame completion
@@ -383,8 +349,10 @@ operations.
 ## Future parameter and checkpoint wrapper
 
 A readable manifest can link the shared binary frame to model, parameter,
-runtime and asset files. This illustrative future contract assumes HDF5 is
-selected; it is not a current loader schema:
+runtime and asset files. HDF5 is the current numeric container, but this
+illustrative manifest is not a current loader schema. `ModelFieldSnapshot`
+provides the per-object field representation; whole-simulation enumeration,
+identity, persistence, and restore coordination remain future work:
 
 ```json
 {
@@ -414,7 +382,11 @@ Parsing, supported-type, size and frame-completeness checks remain necessary
 to load the requested values safely. Unsupported component persistence must
 be reported explicitly rather than silently omitted.
 
-## Ordered implementation and verification
+## Historical implementation plan and verification (2026-10-30)
+
+This sequence predates the HDF5 implementation and the `ModelFieldSnapshot`
+work. It is preserved as the original plan; use the current status and remaining
+restore scope in [checkpointing.md](checkpointing.md).
 
 1. Evaluate HDF5 against the capture and interoperability requirements above
    before extending the custom format. Implement the neutral record layer and
@@ -434,18 +406,10 @@ be reported explicitly rather than silently omitted.
    at representative state/nnz counts before adding compression or alternate
    sparse storage. Then design the parameter/runtime manifest and restore layer.
 
-Existing tests in [testpFlow.cpp](../../test/systemTests/testpFlow.cpp) cover
-single-mode round trips, appended snapshots, periodic DAE output, live solver
-diagnostic callbacks, mixed numerical records and malformed files. The
-[MATLAB tests](../../matlab/tests/testReadStateFile.m) consume C++-generated
-fixtures. These do not prove a complete accepted partitioned snapshot, optimizer
-persistence, or a complete checkpoint/restore cycle.
-
-Add tests for synchronized differential/algebraic frames; selection among
-multiple modes and layouts; IC/root/accepted-stage association; actual `cj` and
-rectangular/all-zero matrices; optimizer bounds/types/units/scaling and result
-status; structural-zero patterns; optional/required extension records; partial
-frames and failed I/O; future solver adapters; and large streaming reads/writes.
-Check capture enabled/disabled trajectories to ensure that observation does not
-change numerical behavior. Keep historical large-case timings distinct from
-fresh acceptance evidence.
+The current HDF5 test coverage is summarized in
+[binary-state-output.md](binary-state-output.md). In particular,
+`Hdf5PartitionedStateRoundTrip` in [testpFlow.cpp](../../test/systemTests/testpFlow.cpp)
+checks paired solver-block capture and vector loading. These tests do not
+exercise whole-simulation field/event restore, optimizer persistence, or a
+complete dynamic checkpoint cycle. The remaining checkpoint scope is listed in
+[checkpointing.md](checkpointing.md).

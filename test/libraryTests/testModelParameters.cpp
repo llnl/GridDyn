@@ -217,7 +217,7 @@ namespace {
     class InverseFlagModel: public CoreObject {
       public:
         std::bitset<32> mBits;
-        const ModelDescription& getModelDescription() const override
+        [[nodiscard]] const ModelDescription& getModelDescription() const override
         {
             static const auto description = ModelDescription::define<InverseFlagModel>(
                 "InverseFlagModel",
@@ -239,7 +239,7 @@ namespace {
         int mTextWrites = 0;
         int mTextOperations = 0;
         using CoreObject::set;
-        const ModelDescription& getModelDescription() const override
+        [[nodiscard]] const ModelDescription& getModelDescription() const override
         {
             static const auto description = ModelDescription::define<ContextualGetterModel>(
                 "ContextualGetterModel",
@@ -300,7 +300,8 @@ namespace {
                 CoreObject::set(fieldName, value, unitType);
             }
         }
-        double get(std::string_view fieldName, units::unit unitType = units::defunit) const override
+        [[nodiscard]] double get(std::string_view fieldName,
+                                 units::unit unitType = units::defunit) const override
         {
             if (fieldName == "power") {
                 return units::convert(mPower, units::puMW, unitType, 200.0);
@@ -319,7 +320,7 @@ namespace {
         int mBoundaryOperations = 0;
         int mBoundaryTextOperations = 0;
         using ContextualGetterModel::set;
-        const ModelDescription& getModelDescription() const override
+        [[nodiscard]] const ModelDescription& getModelDescription() const override
         {
             static const auto description = ModelDescription::define<GetterBoundaryModel>(
                 "GetterBoundaryModel",
@@ -365,7 +366,8 @@ namespace {
                 ContextualGetterModel::set(fieldName, value, unitType);
             }
         }
-        double get(std::string_view fieldName, units::unit unitType = units::defunit) const override
+        [[nodiscard]] double get(std::string_view fieldName,
+                                 units::unit unitType = units::defunit) const override
         {
             if (const auto value =
                     GetterBoundaryModel::getModelDescription().tryGet(*this, fieldName, unitType)) {
@@ -386,7 +388,7 @@ namespace {
         double mHistory = 4.0;
         std::string mLabel;
         using GetterBoundaryModel::set;
-        const ModelDescription& getModelDescription() const override
+        [[nodiscard]] const ModelDescription& getModelDescription() const override
         {
             static const auto description = ModelDescription::define<DefaultGetterModel>(
                 "DefaultGetterModel",
@@ -429,7 +431,7 @@ namespace {
         bool mParentActive = true;
         int mChanges = 0;
         int mAlerts = 0;
-        const ModelDescription& getModelDescription() const override
+        [[nodiscard]] const ModelDescription& getModelDescription() const override
         {
             static const auto description = ModelDescription::define<FlagHandlerModel>(
                 "FlagHandlerModel",
@@ -452,7 +454,7 @@ namespace {
                 CoreObject::setFlag(flagName, value);
             }
         }
-        bool getFlag(std::string_view flagName) const override
+        [[nodiscard]] bool getFlag(std::string_view flagName) const override
         {
             if (flagName == "inverse_mode") {
                 return !mMode;
@@ -470,7 +472,7 @@ namespace {
       public:
         bool mActive = false;
         std::bitset<64> mBits;
-        const ModelDescription& getModelDescription() const override
+        [[nodiscard]] const ModelDescription& getModelDescription() const override
         {
             static const auto description = ModelDescription::define<DefaultFlagModel>(
                 "DefaultFlagModel",
@@ -950,7 +952,7 @@ TEST(ModelParameterTests, ResolvesParameterBeforeSameNamedStateRegardlessOfDecla
     EXPECT_TRUE(isSetHandled(description.trySetLocal(model, "gain", 2.5)));
     const auto gain = description.tryGetLocal(model, "gain");
     ASSERT_TRUE(gain.has_value());
-    EXPECT_DOUBLE_EQ(*gain, 2.5);
+    EXPECT_DOUBLE_EQ(gain.value_or(0.0), 2.5);
 }
 
 TEST(ModelParameterTests, StructuredParametersConvertValidateAndRestoreAtomically)
@@ -1177,15 +1179,20 @@ TEST(ModelParameterTests, EnumeratesCategoriesAndAliasesInDeclarationHierarchyOr
         stringVec names;
         bool local;
     };
-    for (const auto& expected :
-         std::array{ExpectedNames{ParamStringType::LOCAL_NUM,
-                                  {"shared", "child_alias", "child_operation", "output", "output_"},
-                                  true},
-                    ExpectedNames{ParamStringType::LOCAL_STR, {"child_label", "input"}, true},
-                    ExpectedNames{ParamStringType::LOCAL_FLAGS, {"child_flag"}, true},
-                    ExpectedNames{ParamStringType::NUMERIC, numeric, false},
-                    ExpectedNames{ParamStringType::STR, text, false},
-                    ExpectedNames{ParamStringType::FLAGS, flags, false}}) {
+    for (const auto& expected : std::array{
+             ExpectedNames{
+                 .type = ParamStringType::LOCAL_NUM,
+                 .names = {"shared", "child_alias", "child_operation", "output", "output_"},
+                 .local = true},
+             ExpectedNames{.type = ParamStringType::LOCAL_STR,
+                           .names = {"child_label", "input"},
+                           .local = true},
+             ExpectedNames{.type = ParamStringType::LOCAL_FLAGS,
+                           .names = {"child_flag"},
+                           .local = true},
+             ExpectedNames{.type = ParamStringType::NUMERIC, .names = numeric, .local = false},
+             ExpectedNames{.type = ParamStringType::STR, .names = text, .local = false},
+             ExpectedNames{.type = ParamStringType::FLAGS, .names = flags, .local = false}}) {
         SCOPED_TRACE(static_cast<int>(expected.type));
         stringVec names{"existing"};
         auto wanted = expected.names;
@@ -1270,12 +1277,12 @@ TEST(ModelParameterTests, DefaultNumericGetPreservesUnitsFlagsShadowingAndCustom
 
     const auto& boundary = model.GetterBoundaryModel::getModelDescription();
     EXPECT_FALSE(boundary.tryGetLocal(model, "delay"));
-    EXPECT_NEAR(*boundary.tryGet(model, "delay", units::ms), 500.0, 1e-4);
+    EXPECT_NEAR(boundary.tryGet(model, "delay", units::ms).value_or(0.0), 500.0, 1e-4);
     // Default lookup stops before the parent whose getter supplies the power base.
     EXPECT_FALSE(boundary.tryGet(model, "power", units::MW));
     const auto& parent = model.ContextualGetterModel::getModelDescription();
-    EXPECT_DOUBLE_EQ(*parent.tryGetLocal(model, "gain"), 2.0);
-    EXPECT_DOUBLE_EQ(*parent.tryGet(model, "gain"), 3.0);
+    EXPECT_DOUBLE_EQ(parent.tryGetLocal(model, "gain").value_or(0.0), 2.0);
+    EXPECT_DOUBLE_EQ(parent.tryGet(model, "gain").value_or(0.0), 3.0);
 }
 
 TEST(ModelParameterTests, StandaloneGetterTablesKeepLocalLookupAndTypeErrors)
@@ -1285,7 +1292,7 @@ TEST(ModelParameterTests, StandaloneGetterTablesKeepLocalLookupAndTypeErrors)
         "StandaloneView",
         nullptr,
         {parameter({"custom_delay"}, &DefaultGetterModel::mDelay, units::second, "Delay")});
-    EXPECT_NEAR(*view.tryGet(model, "custom_delay", units::ms), 500.0, 1e-4);
+    EXPECT_NEAR(view.tryGet(model, "custom_delay", units::ms).value_or(0.0), 500.0, 1e-4);
     EXPECT_FALSE(view.tryGet(model, "gain"));
     CoreObject unrelated;
     EXPECT_THROW((void)view.tryGet(unrelated, "custom_delay"), InvalidParameterValue);
@@ -1339,9 +1346,9 @@ TEST(ModelParameterTests, FlagDefaultsRespectDeclaringBoundariesAndStandaloneTab
     DefaultFlagModel model;
     const auto& parent = model.FlagHandlerModel::getModelDescription();
     ASSERT_TRUE(parent.tryGetFlagLocal(model, "active").has_value());
-    EXPECT_TRUE(*parent.tryGetFlagLocal(model, "active"));
+    EXPECT_TRUE(parent.tryGetFlagLocal(model, "active").value_or(false));
     ASSERT_TRUE(parent.tryGetFlag(model, "active").has_value());
-    EXPECT_FALSE(*parent.tryGetFlag(model, "active"));
+    EXPECT_FALSE(parent.tryGetFlag(model, "active").value_or(true));
     EXPECT_FALSE(parent.tryGetFlag(model, "enabled").has_value());
     EXPECT_FALSE(parent.trySetFlag(model, "updates", true));
     EXPECT_FALSE(model.hasUpdates());
@@ -1351,7 +1358,7 @@ TEST(ModelParameterTests, FlagDefaultsRespectDeclaringBoundariesAndStandaloneTab
     const auto view = ModelDescription::define<DefaultFlagModel>(
         "FlagView", nullptr, {flag({"view_active"}, &DefaultFlagModel::mActive, "Active")});
     EXPECT_TRUE(view.trySetFlag(model, "view_active", true));
-    EXPECT_TRUE(*view.tryGetFlag(model, "view_active"));
+    EXPECT_TRUE(view.tryGetFlag(model, "view_active").value_or(false));
     EXPECT_FALSE(view.tryGetFlag(model, "active").has_value());
     CoreObject unrelated;
     EXPECT_THROW(view.trySetFlag(unrelated, "view_active", true), InvalidParameterValue);
@@ -1362,13 +1369,13 @@ TEST(ModelParameterTests, CoreFlagDefaultsRetainTheVirtualEnabledQuery)
 {
     class DisabledView: public CoreObject {
       public:
-        bool isEnabled() const override { return false; }
+        [[nodiscard]] bool isEnabled() const override { return false; }
     };
     DisabledView model;
     for (const auto* alias : {"enabled", "enable", "status"}) {
         EXPECT_FALSE(model.getFlag(alias));
     }
-    EXPECT_TRUE(*model.getModelDescription().tryGetFlagLocal(model, "enabled"));
+    EXPECT_TRUE(model.getModelDescription().tryGetFlagLocal(model, "enabled").value_or(false));
 }
 
 TEST(ModelParameterTests, DefaultNumericSetRetainsValidatorsUnitsAndParentSideEffects)
@@ -1428,7 +1435,7 @@ TEST(ModelParameterTests, DefaultSetChecksInputBeforeDerivedLookupAndSupportsLoc
 {
     class LookupGuard: public CoreObject {
       public:
-        const ModelDescription& getModelDescription() const override
+        [[nodiscard]] const ModelDescription& getModelDescription() const override
         {
             throw std::logic_error("description lookup reached");
         }
@@ -1491,7 +1498,8 @@ TEST(ModelParameterTests, DefaultStringSetPreservesParentHandlersAliasesAndValid
     EXPECT_TRUE(model.mActive);
     model.set("enabled", "false");
     EXPECT_FALSE(model.isEnabled());
-    model.set("id", "renamed");
+    EXPECT_THROW(model.set("id", "renamed"), UnrecognizedParameter);
+    model.set("name", "renamed");
     EXPECT_EQ(model.getName(), "renamed");
 }
 
@@ -1521,7 +1529,7 @@ TEST(ModelParameterTests, DefaultStringSetIgnoresBeforeLookupAndSupportsStandalo
 {
     class LookupGuard: public CoreObject {
       public:
-        const ModelDescription& getModelDescription() const override
+        [[nodiscard]] const ModelDescription& getModelDescription() const override
         {
             throw std::logic_error("description lookup reached");
         }

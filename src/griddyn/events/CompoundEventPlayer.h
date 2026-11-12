@@ -35,7 +35,7 @@ class CompoundEventPlayer: public CompoundEvent {
     CompoundEventPlayer(EventInfo& gdEI, CoreObject* rootObject);
     virtual std::unique_ptr<Event> clone() const override;
 
-    virtual void cloneTo(Event* gE) const override;
+    virtual void cloneTo(Event* event) const override;
 
     // virtual void updateEvent(EventInfo &gdEI, CoreObject *rootObject) override;
 

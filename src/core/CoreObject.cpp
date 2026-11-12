@@ -156,7 +156,7 @@ void CoreObject::getParameterStrings(stringVec& pstr, ParamStringType pstype) co
 
 void CoreObject::set(std::string_view param, std::string_view val)  // NOLINT(misc-no-recursion)
 {
-    if ((param == "name") || (param == "rename") || (param == "id")) {
+    if ((param == "name") || (param == "rename")) {
         setName(val);
     } else if (param == "description") {
         setDescription(val);

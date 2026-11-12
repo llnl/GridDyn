@@ -14,6 +14,7 @@
 #include "griddyn/solvers/SolverInterface.h"
 #include "utilities/Hdf5DataFile.h"
 #include "utilities/MatrixDataSparse.hpp"
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <bit>
@@ -649,6 +650,120 @@ TEST_F(PowerflowSystemTests, BinaryStateDynamicRoundTripAndAppend)
         std::equal(expectedDerivative.begin(), expectedDerivative.end(), solver->derivData()));
 }
 
+TEST_F(PowerflowSystemTests, BinaryStateCheckpointRestoreLevels)
+{
+    TemporaryStateFile file;
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_dynamic_example.xml");
+    ASSERT_NE(gds, nullptr);
+    disableFixtureRecorderFiles(*gds);
+
+    const CoreTime captureTime(0.123456789);
+    ASSERT_EQ(gds->dynInitialize(captureTime), FUNCTION_EXECUTION_SUCCESS);
+    const auto mode = gds->getCurrentMode();
+    auto solver = gds->getSolverInterface(mode);
+    ASSERT_NE(solver, nullptr);
+    ASSERT_TRUE(hasDifferential(mode));
+    ASSERT_GT(solver->size(), 0U);
+
+    saveStateBinary(gds.get(), file.path.string(), mode, false);
+    const auto saved = readStateBinary(file.path.string());
+    ASSERT_EQ(saved.time, captureTime);
+    const auto expectedState = saved.state;
+    const auto expectedDerivative = saved.derivatives;
+
+    ASSERT_EQ(gds->run(CoreTime(0.173456789)), FUNCTION_EXECUTION_SUCCESS);
+    const auto laterSimulationTime = gds->getSimulationTime();
+    const auto laterSolverTime = solver->getSolverTime();
+    ASSERT_GT(laterSimulationTime, captureTime);
+    ASSERT_GT(laterSolverTime, captureTime);
+
+    std::fill(solver->stateData(), solver->stateData() + solver->size(), -11.0);
+    std::fill(solver->derivData(), solver->derivData() + solver->size(), -12.0);
+    gds->checkpointRestore(saved, CheckpointRestoreLevel::SOLVER_STATE_ONLY, mode);
+    EXPECT_EQ(std::vector<double>(solver->stateData(), solver->stateData() + solver->size()),
+              expectedState);
+    EXPECT_EQ(std::vector<double>(solver->derivData(), solver->derivData() + solver->size()),
+              expectedDerivative);
+    EXPECT_EQ(gds->getSimulationTime(), laterSimulationTime);
+    EXPECT_EQ(solver->getSolverTime(), laterSolverTime);
+
+    auto incompatible = saved;
+    incompatible.state.pop_back();
+    const std::vector<double> beforeRejectedRestore(solver->stateData(),
+                                                    solver->stateData() + solver->size());
+    EXPECT_THROW(gds->checkpointRestore(incompatible, CheckpointRestoreLevel::MINIMAL, mode),
+                 FileOperationError);
+    EXPECT_EQ(std::vector<double>(solver->stateData(), solver->stateData() + solver->size()),
+              beforeRejectedRestore);
+    EXPECT_EQ(gds->getSimulationTime(), laterSimulationTime);
+    EXPECT_EQ(solver->getSolverTime(), laterSolverTime);
+
+    std::fill(solver->stateData(), solver->stateData() + solver->size(), -21.0);
+    std::fill(solver->derivData(), solver->derivData() + solver->size(), -22.0);
+    gds->checkpointRestore(file.path.string(), CheckpointRestoreLevel::MINIMAL, mode);
+    EXPECT_EQ(std::vector<double>(solver->stateData(), solver->stateData() + solver->size()),
+              expectedState);
+    EXPECT_EQ(std::vector<double>(solver->derivData(), solver->derivData() + solver->size()),
+              expectedDerivative);
+    EXPECT_EQ(gds->getSimulationTime(), captureTime);
+    EXPECT_EQ(solver->getSolverTime(), captureTime);
+    ASSERT_EQ(gds->run(CoreTime(0.133456789)), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_GT(gds->getSimulationTime(), captureTime);
+    EXPECT_GT(solver->getSolverTime(), captureTime);
+
+    std::fill(solver->stateData(), solver->stateData() + solver->size(), -31.0);
+    std::fill(solver->derivData(), solver->derivData() + solver->size(), -32.0);
+    gds->checkpointRestore(saved, CheckpointRestoreLevel::MINIMAL);
+    EXPECT_EQ(std::vector<double>(solver->stateData(), solver->stateData() + solver->size()),
+              expectedState);
+    EXPECT_EQ(std::vector<double>(solver->derivData(), solver->derivData() + solver->size()),
+              expectedDerivative);
+    EXPECT_EQ(gds->getSimulationTime(), captureTime);
+    EXPECT_EQ(solver->getSolverTime(), captureTime);
+}
+
+TEST_F(PowerflowSystemTests, BinaryStateCheckpointRestoreMultiMachineDae)
+{
+    TemporaryStateFile file;
+    gds = readSimXMLFile(std::string(GRIDDYN_TEST_DIRECTORY) + "/dyn_tests2/test_2m4bDyn.xml");
+    ASSERT_NE(gds, nullptr);
+    disableFixtureRecorderFiles(*gds);
+
+    const CoreTime captureTime(0.0);
+    ASSERT_EQ(gds->dynInitialize(captureTime), FUNCTION_EXECUTION_SUCCESS);
+    const auto mode = gds->getCurrentMode();
+    ASSERT_TRUE(mode.differential);
+    ASSERT_TRUE(mode.algebraic);
+    auto solver = gds->getSolverInterface(mode);
+    ASSERT_NE(solver, nullptr);
+    ASSERT_GT(solver->size(), 0U);
+
+    saveStateBinary(gds.get(), file.path.string(), mode, false);
+    const auto saved = readStateBinary(file.path.string());
+    ASSERT_EQ(saved.time, captureTime);
+    ASSERT_EQ(saved.state.size(), solver->size());
+    ASSERT_EQ(saved.derivatives.size(), solver->size());
+
+    ASSERT_EQ(gds->run(CoreTime(0.02)), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_GT(gds->getSimulationTime(), saved.time);
+    std::fill(solver->stateData(), solver->stateData() + solver->size(), -91.0);
+    std::fill(solver->derivData(), solver->derivData() + solver->size(), -92.0);
+
+    gds->checkpointRestore(saved, CheckpointRestoreLevel::MINIMAL, mode);
+    EXPECT_EQ(std::vector<double>(solver->stateData(), solver->stateData() + solver->size()),
+              saved.state);
+    EXPECT_EQ(std::vector<double>(solver->derivData(), solver->derivData() + solver->size()),
+              saved.derivatives);
+    EXPECT_EQ(gds->getSimulationTime(), saved.time);
+    EXPECT_EQ(solver->getSolverTime(), saved.time);
+
+    ASSERT_EQ(gds->run(CoreTime(0.025)), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_GT(gds->getSimulationTime(), saved.time);
+    EXPECT_TRUE(std::all_of(solver->stateData(),
+                            solver->stateData() + solver->size(),
+                            [](double value) { return std::isfinite(value); }));
+}
+
 TEST_F(PowerflowSystemTests, BinaryStatePeriodicDynamicOutput)
 {
     TemporaryStateFile file;
@@ -904,7 +1019,7 @@ TEST_F(PowerflowSystemTests, Hdf5FailedFrameIsNotPublished)
 
 TEST_F(PowerflowSystemTests, Hdf5PartitionedStateRoundTrip)
 {
-    std::vector<std::string> solvers;
+    std::vector<std::string> solvers{"basicode"};
 #ifdef GRIDDYN_ENABLE_CVODE
     solvers.emplace_back("cvode");
 #endif
@@ -940,6 +1055,30 @@ TEST_F(PowerflowSystemTests, Hdf5PartitionedStateRoundTrip)
         EXPECT_TRUE(std::equal(saved.paired.front().state.begin(),
                                saved.paired.front().state.end(),
                                algebraic->stateData()));
+
+        ASSERT_EQ(gds->run(CoreTime(0.10)), FUNCTION_EXECUTION_SUCCESS);
+        ASSERT_GT(gds->getSimulationTime(), saved.time);
+        std::fill(differential->stateData(),
+                  differential->stateData() + differential->size(),
+                  -777.0);
+        std::fill(differential->derivData(),
+                  differential->derivData() + differential->size(),
+                  -778.0);
+        std::fill(algebraic->stateData(), algebraic->stateData() + algebraic->size(), -779.0);
+        gds->checkpointRestore(saved,
+                               CheckpointRestoreLevel::MINIMAL,
+                               differential->getSolverMode());
+        EXPECT_TRUE(std::equal(saved.state.begin(), saved.state.end(), differential->stateData()));
+        EXPECT_TRUE(std::equal(saved.derivatives.begin(),
+                               saved.derivatives.end(),
+                               differential->derivData()));
+        EXPECT_TRUE(std::equal(saved.paired.front().state.begin(),
+                               saved.paired.front().state.end(),
+                               algebraic->stateData()));
+        EXPECT_EQ(gds->getSimulationTime(), saved.time);
+        EXPECT_EQ(differential->getSolverTime(), saved.time);
+        EXPECT_EQ(algebraic->getSolverTime(), saved.time);
+
         const auto fixture = name + "-paired-state.h5";
         exportMatlabStateFixture(file.path, fixture.c_str());
     }

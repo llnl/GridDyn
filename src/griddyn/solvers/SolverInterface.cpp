@@ -137,11 +137,13 @@ namespace {
     const SolverInterface::FlagDescription*
         findSolverFlag(const SolverInterface::Description& description, std::string_view name)
     {
-        return findSolverField(
-            description, &SolverInterface::Description::flags, [name](const auto& field) {
-                return !name.empty() &&
-                    (name == field.name || name == field.alias || name == field.inverseName);
-            });
+        return findSolverField(description,
+                               &SolverInterface::Description::flags,
+                               [name](const auto& field) {
+                                   return !name.empty() &&
+                                       (name == field.name || name == field.alias ||
+                                        name == field.inverseName);
+                               });
     }
 }  // namespace
 
@@ -298,17 +300,20 @@ const SolverInterface::Description& SolverInterface::getSolverDescription() cons
         property<SolverInterface, &SolverInterface::jacCallCount>("jaccallcount", "Jacobian calls"),
         property<SolverInterface, &SolverInterface::rootCallCount>(
             "rootcallcount", "Root test calls", units::defunit, {"roottestcount"}),
-        property<SolverInterface, &SolverInterface::funcCallCount>("funccallcount", "Function calls"),
-        property<SolverInterface, &SolverInterface::tolerance, true>("tolerance", "Solver tolerance"),
+        property<SolverInterface, &SolverInterface::funcCallCount>("funccallcount",
+                                                                   "Function calls"),
+        property<SolverInterface, &SolverInterface::tolerance, true>("tolerance",
+                                                                     "Solver tolerance"),
         property<SolverInterface, &SolverInterface::max_iterations, true>(
             "maxiterations", "Maximum solver iterations or steps"),
     };
     static constexpr Property<std::string_view> text[]{
-        property<SolverInterface, &SolverInterface::solverLogFile, true>(
-            "logfile", "Solver log file"),
+        property<SolverInterface, &SolverInterface::solverLogFile, true>("logfile",
+                                                                         "Solver log file"),
     };
-    static const Description description{
-        .numeric = numeric, .text = text, .flags = flagDescriptions()};
+    static const Description description{.numeric = numeric,
+                                         .text = text,
+                                         .flags = flagDescriptions()};
     return description;
 }
 
@@ -365,13 +370,14 @@ bool SolverInterface::trySetProperty(std::string_view param, std::string_view va
     return false;
 }
 
-const SolverInterface::Property<double>*
-    SolverInterface::trySetProperty(std::string_view param, double val)
+const SolverInterface::Property<double>* SolverInterface::trySetProperty(std::string_view param,
+                                                                         double val)
 {
     if (isIgnoredParameter(param)) {
         return nullptr;
     }
-    if (const auto* field = findProperty(param, &Description::numeric); field && field->editable()) {
+    if (const auto* field = findProperty(param, &Description::numeric);
+        field && field->editable()) {
         field->mWrite(*this, val);
         return field;
     }
@@ -476,34 +482,55 @@ void SolverInterface::set(std::string_view param, double val)
 std::span<const SolverInterface::FlagDescription> SolverInterface::flagDescriptions() noexcept
 {
     static constexpr FlagDescription descriptions[]{
-        {.bit = FILE_CAPTURE_FLAG, .name = "filecapture", .description = "Save diagnostics to files."},
-        {.bit = DIRECT_LOGGING_FLAG, .name = "directlogging",
-         .description = "Log backend messages directly.", .alias = "solver_log"},
-        {.bit = DENSE_FLAG, .name = "dense",
-         .description = "Use dense matrices.", .inverseName = "sparse"},
-        {.bit = PARALLEL_FLAG, .name = "parallel",
-         .description = "Use parallel solving.", .inverseName = "serial"},
+        {.bit = FILE_CAPTURE_FLAG,
+         .name = "filecapture",
+         .description = "Save diagnostics to files."},
+        {.bit = DIRECT_LOGGING_FLAG,
+         .name = "directlogging",
+         .description = "Log backend messages directly.",
+         .alias = "solver_log"},
+        {.bit = DENSE_FLAG,
+         .name = "dense",
+         .description = "Use dense matrices.",
+         .inverseName = "sparse"},
+        {.bit = PARALLEL_FLAG,
+         .name = "parallel",
+         .description = "Use parallel solving.",
+         .inverseName = "serial"},
         {.bit = USE_MASK_FLAG, .name = "mask", .description = "Apply the configured state mask."},
-        {.bit = CONSTANT_JACOBIAN_FLAG, .name = "constantjacobian",
+        {.bit = CONSTANT_JACOBIAN_FLAG,
+         .name = "constantjacobian",
          .description = "Treat the Jacobian as constant."},
-        {.bit = USE_OMP_FLAG, .name = "omp",
-         .description = "Use OpenMP solver data structures.", .alias = "useomp"},
-        {.bit = USE_BDF_FLAG, .name = "bdf",
-         .description = "Use the BDF integration method.", .inverseName = "adams"},
-        {.bit = USE_NEWTON_FLAG, .name = "newton",
-         .description = "Use Newton iteration.", .inverseName = "functional"},
-        {.bit = PRINT_RESIDUALS, .name = "print_resid",
-         .description = "Print residual values.", .alias = "print_residuals"},
-        {.bit = IDA_IC_DIAGNOSTICS, .name = "ida_ic_diagnostics",
+        {.bit = USE_OMP_FLAG,
+         .name = "omp",
+         .description = "Use OpenMP solver data structures.",
+         .alias = "useomp"},
+        {.bit = USE_BDF_FLAG,
+         .name = "bdf",
+         .description = "Use the BDF integration method.",
+         .inverseName = "adams"},
+        {.bit = USE_NEWTON_FLAG,
+         .name = "newton",
+         .description = "Use Newton iteration.",
+         .inverseName = "functional"},
+        {.bit = PRINT_RESIDUALS,
+         .name = "print_resid",
+         .description = "Print residual values.",
+         .alias = "print_residuals"},
+        {.bit = IDA_IC_DIAGNOSTICS,
+         .name = "ida_ic_diagnostics",
          .description = "Log IDA initial condition diagnostics.",
          .alias = "ida_initial_condition_diagnostics"},
-        {.bit = IDA_IC_STOP_ON_FAILURE, .name = "ida_ic_stop_on_failure",
+        {.bit = IDA_IC_STOP_ON_FAILURE,
+         .name = "ida_ic_stop_on_failure",
          .description = "Request stopping on an IDA initial condition failure.",
          .alias = "ida_initial_condition_stop_on_failure"},
-        {.bit = IDA_INTEGRATION_DIAGNOSTICS, .name = "ida_integration_diagnostics",
+        {.bit = IDA_INTEGRATION_DIAGNOSTICS,
+         .name = "ida_integration_diagnostics",
          .description = "Log IDA integration diagnostics.",
          .alias = "ida_integration_trace"},
-        {.bit = BLOCK_MODE_ONLY, .name = "block_mode_only",
+        {.bit = BLOCK_MODE_ONLY,
+         .name = "block_mode_only",
          .description = "Mark the solver as supporting only block mode."},
     };
     return descriptions;

@@ -102,8 +102,8 @@ const SolverInterface::Description& BasicOdeSolver::getSolverDescription() const
 {
     static constexpr Property<double> numeric[]{
         fixedStepProperty<BasicOdeSolver, &BasicOdeSolver::deltaT>()};
-    static const Description description{
-        .numeric = numeric, .parent = &SolverInterface::getSolverDescription()};
+    static const Description description{.numeric = numeric,
+                                         .parent = &SolverInterface::getSolverDescription()};
     return description;
 }
 

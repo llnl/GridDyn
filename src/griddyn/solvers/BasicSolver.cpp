@@ -108,8 +108,8 @@ namespace solvers {
             property<BasicSolver, &BasicSolver::alpha, true>("alpha", "Convergence gain"),
             property<BasicSolver, &BasicSolver::iterations>("iterations", "Iteration count"),
         };
-        static const Description description{
-            .numeric = numeric, .parent = &SolverInterface::getSolverDescription()};
+        static const Description description{.numeric = numeric,
+                                             .parent = &SolverInterface::getSolverDescription()};
         return description;
     }
     void BasicSolver::set(std::string_view param, std::string_view val)

@@ -5,8 +5,8 @@
  */
 
 #include "../gtestHelper.h"
-#include "core/CoreObject.h"
 #include "core/CoreExceptions.h"
+#include "core/CoreObject.h"
 #include "fileInput/fileInput.h"
 #include "griddyn/events/CompoundEventPlayer.h"
 #include "griddyn/events/Event.h"
@@ -71,8 +71,7 @@ TEST_F(EventTests, PlayerPeriodChangesRepeatTimeWithoutChangingTheSample)
     griddyn::CoreObject target;
     griddyn::events::Player player;
     ASSERT_TRUE(player.setTarget(&target, "id"));
-    player.setTimeValue(std::vector<griddyn::CoreTime>{1.0, 2.0},
-                        std::vector<double>{3.0, 4.0});
+    player.setTimeValue(std::vector<griddyn::CoreTime>{1.0, 2.0}, std::vector<double>{3.0, 4.0});
     player.set("period", 5.0);
 
     player.trigger(1.0);

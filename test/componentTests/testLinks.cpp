@@ -46,7 +46,7 @@ TEST_F(LinkTests, TextStatusDistinguishesEnablementFromConnectivity)
     component.set("status", "disconnected");
     EXPECT_FALSE(component.isConnected());
     EXPECT_TRUE(component.isEnabled());
-    EXPECT_THROW(component.set("status", "disconected"), InvalidParameterValue);
+    EXPECT_THROW(component.set("status", "disconnected"), InvalidParameterValue);
     component.set("status", "connected");
     EXPECT_TRUE(component.isConnected());
 

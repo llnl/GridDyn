@@ -232,16 +232,17 @@ const double* SundialsInterface::typeData() const noexcept
 const SolverInterface::Description& SundialsInterface::getSolverDescription() const
 {
     static constexpr Property<double> numeric[]{
-        property<SundialsInterface, &SundialsInterface::maxNNZ>(
-            "maxnnz", "Maximum Jacobian nonzeros"),
-        property<SundialsInterface, &SundialsInterface::performanceSolveTime>(
-            "perftotal", "Total solve time", units::second),
-        property<SundialsInterface, &SundialsInterface::performanceResidualCalls>(
-            "perfresiduals", "Residual calls"),
+        property<SundialsInterface, &SundialsInterface::maxNNZ>("maxnnz",
+                                                                "Maximum Jacobian nonzeros"),
+        property<SundialsInterface, &SundialsInterface::performanceSolveTime>("perftotal",
+                                                                              "Total solve time",
+                                                                              units::second),
+        property<SundialsInterface, &SundialsInterface::performanceResidualCalls>("perfresiduals",
+                                                                                  "Residual calls"),
         property<SundialsInterface, &SundialsInterface::performanceResidualTime>(
             "perfresidualtime", "Residual evaluation time", units::second),
-        property<SundialsInterface, &SundialsInterface::performanceJacobianCalls>(
-            "perfjacobians", "Jacobian calls"),
+        property<SundialsInterface, &SundialsInterface::performanceJacobianCalls>("perfjacobians",
+                                                                                  "Jacobian calls"),
         property<SundialsInterface, &SundialsInterface::performanceJacobianTime>(
             "perfjacobiantime", "Jacobian evaluation time", units::second),
         property<SundialsInterface, &SundialsInterface::performanceModelJacobianTime>(
@@ -259,8 +260,8 @@ const SolverInterface::Description& SundialsInterface::getSolverDescription() co
         property<SundialsInterface, &SundialsInterface::performanceDerivativeTime>(
             "perfderivativetime", "Derivative evaluation time", units::second),
     };
-    static const Description description{
-        .numeric = numeric, .parent = &SolverInterface::getSolverDescription()};
+    static const Description description{.numeric = numeric,
+                                         .parent = &SolverInterface::getSolverDescription()};
     return description;
 }
 

@@ -276,7 +276,7 @@ TEST(OptimizationDescriptionTests, ConnectionStatusTargetsTheSourceComponent)
     EXPECT_TRUE(adapter.isEnabled());
     adapter.set("status", "connected");
     EXPECT_TRUE(source.isConnected());
-    EXPECT_THROW(adapter.set("status", "conected"), InvalidParameterValue);
+    EXPECT_THROW(adapter.set("status", "connected"), InvalidParameterValue);
     GridOptObject unbound;
     EXPECT_THROW(unbound.set("status", "connected"), InvalidParameterValue);
 }

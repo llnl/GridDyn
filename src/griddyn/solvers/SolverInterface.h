@@ -169,9 +169,8 @@ class SolverInterface: public HelperObject {
                                    std::array<std::string_view, 3> aliases = {})
     {
         using Storage = std::remove_cvref_t<decltype(std::declval<Owner&>().*Member)>;
-        using Value = std::conditional_t<std::is_same_v<Storage, std::string>,
-                                         std::string_view,
-                                         double>;
+        using Value =
+            std::conditional_t<std::is_same_v<Storage, std::string>, std::string_view, double>;
         Property<Value> field;
         field.name = name;
         field.description = description;
@@ -191,8 +190,10 @@ class SolverInterface: public HelperObject {
     template<class Owner, auto Member>
     static constexpr auto fixedStepProperty()
     {
-        return property<Owner, Member, true>(
-            "deltat", "Fixed integration step", units::second, {"delta", "step", "steptime"});
+        return property<Owner, Member, true>("deltat",
+                                             "Fixed integration step",
+                                             units::second,
+                                             {"delta", "step", "steptime"});
     }
 
     // Use these in get/set overrides before handling backend-specific names.

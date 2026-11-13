@@ -244,8 +244,9 @@ const SolverInterface::Description& braidSolver::getSolverDescription() const
         property<braidSolver, &braidSolver::configFile, true>(
             "configfile", "Braid configuration file", units::defunit, {"config_file"}),
     };
-    static const Description description{
-        .numeric = numeric, .text = text, .parent = &SolverInterface::getSolverDescription()};
+    static const Description description{.numeric = numeric,
+                                         .text = text,
+                                         .parent = &SolverInterface::getSolverDescription()};
     return description;
 }
 void braidSolver::set(std::string_view param, std::string_view val)

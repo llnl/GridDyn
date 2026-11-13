@@ -439,7 +439,7 @@ SetResult ModelDescription::trySet(CoreObject& object,
                                    units::unit unitType) const
 {
     // Preserve the input gate before looking up even the derived description.
-    if (name.empty() || name.front() == '#' || !std::isfinite(value)) {
+    if (isIgnoredParameter(name) || !std::isfinite(value)) {
         return trySetLocal(object, name, value, unitType);
     }
     for (const auto* description = derivedDescription(object); description != this;
@@ -456,7 +456,7 @@ SetResult ModelDescription::trySet(CoreObject& object,
                                    std::string_view name,
                                    std::string_view value) const
 {
-    if (name.empty() || name.front() == '#') {
+    if (isIgnoredParameter(name)) {
         return SetResult::IGNORED;
     }
     for (const auto* description = derivedDescription(object);;
@@ -483,7 +483,7 @@ SetResult ModelDescription::trySetLocal(CoreObject& object,
                                         double value,
                                         units::unit unitType) const
 {
-    if (name.empty() || name.front() == '#') {
+    if (isIgnoredParameter(name)) {
         return SetResult::IGNORED;
     }
     if (!std::isfinite(value)) {
@@ -520,7 +520,7 @@ SetResult ModelDescription::trySetLocal(CoreObject& object,
                                         std::string_view name,
                                         std::string_view value) const
 {
-    if (name.empty() || name.front() == '#') {
+    if (isIgnoredParameter(name)) {
         return SetResult::IGNORED;
     }
     const auto* field = findLocal(name);
@@ -617,6 +617,9 @@ ModelField state(std::string_view name, units::unit unitType, std::string_view d
 
 bool ModelDescription::trySetFlag(CoreObject& object, std::string_view name, bool value) const
 {
+    if (isIgnoredParameter(name)) {
+        return true;
+    }
     for (const auto* description = derivedDescription(object); description != this;
          description = description->parent()) {
         if (description->trySetFlagLocal(object, name, value)) {
@@ -640,6 +643,9 @@ std::optional<bool> ModelDescription::tryGetFlag(const CoreObject& object,
 
 bool ModelDescription::trySetFlagLocal(CoreObject& object, std::string_view name, bool value) const
 {
+    if (isIgnoredParameter(name)) {
+        return true;
+    }
     const auto* field = findLocal(name);
     if (field == nullptr || field->kind() != ModelFieldKind::FLAG || !field->mWrite) {
         return false;

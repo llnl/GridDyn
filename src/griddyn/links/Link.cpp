@@ -82,7 +82,8 @@ const ModelDescription& Link::getModelDescription() const
              {"circuit"}, &Link::circuitNum, units::one, "Helper field for multicircuit links"),
          command({"bus1", "from"}, units::defunit, "Configure bus1", ModelFieldType::STRING),
          command({"bus2", "to"}, units::defunit, "Configure bus2", ModelFieldType::STRING),
-         command({"status"}, units::defunit, "Configure status", ModelFieldType::STRING),
+         command(
+             {"status"}, units::defunit, "Set enablement or switch status", ModelFieldType::STRING),
          command(
              {"state", "switch", "switch1", "breaker", "breaker_open", "breaker1", "breaker_open1"},
              units::defunit,
@@ -232,6 +233,8 @@ void Link::set(std::string_view param, std::string_view val)
             reconnect();
         } else if ((statusValue == "open") || (statusValue == "disconnected")) {
             disconnect();
+        } else {
+            GridPrimary::set(param, val);
         }
     } else {
         GridPrimary::set(param, val);

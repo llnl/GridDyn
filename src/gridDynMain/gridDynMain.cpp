@@ -19,10 +19,6 @@
 #    include "helics/helicsRunner.h"
 #endif
 
-#ifdef ENABLE_DIME
-#    include "networking/dimeRunner.h"
-#endif
-
 #ifdef ENABLE_FMI_EXPORT
 #    include "fmi_export/fmuBuilder.h"
 #endif
@@ -33,7 +29,6 @@ enum class ExecMode : std::uint8_t {
     MPICOUNT = 1,
     HELICS = 2,
     BUILDFMU = 3,
-    DIME = 4,
     BUILDGDZ = 5,
 };
 }
@@ -74,12 +69,6 @@ int main(int argc, char* argv[])
             if (strcmp("--helics", argv[ii]) == 0) {
                 executionMode = ExecMode::HELICS;
 
-                break;
-            }
-#endif
-#ifdef ENABLE_DIME
-            if (strcmp("--dime", argv[ii]) == 0) {
-                executionMode = ExecMode::DIME;
                 break;
             }
 #endif
@@ -147,23 +136,6 @@ int main(int argc, char* argv[])
                 }
 #endif
             } break;
-            case ExecMode::DIME: {
-#ifdef ENABLE_DIME
-                auto runner = std::make_unique<dimeLib::DimeRunner>(simulation);
-                simulation->log(nullptr,
-                                griddyn::PrintLevel::SUMMARY,
-                                std::string("Executing through DIME runner"));
-                auto returnCode = runner->Initialize(argc, argv);
-                if (returnCode > 0) {
-                    return 0;
-                }
-                if (returnCode < 0) {
-                    return returnCode;
-                }
-                runner->simInitialize();
-                runner->Run();
-#endif
-            }
             case ExecMode::BUILDGDZ:
                 simulation->log(nullptr,
                                 griddyn::PrintLevel::ERROR,

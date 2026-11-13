@@ -40,7 +40,6 @@
 
 #cmakedefine GRIDDYN_ENABLE_HELICS_EXECUTABLE
 
-#cmakedefine GRIDDYN_ENABLE_DIME
 #cmakedefine GRIDDYN_ENABLE_TCP
 #cmakedefine GRIDDYN_ENABLE_ZMQ
 

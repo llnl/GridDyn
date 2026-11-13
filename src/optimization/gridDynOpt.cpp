@@ -297,7 +297,7 @@ void GridDynOptimization::set(std::string_view param, double val, units::unit un
         GridDynSimulation::set(param, val, unitType);
     }
     catch (const UnrecognizedParameter&) {
-        setFlag(param, (val > 0.1));
+        setFlag(param, val != 0.0);
     }
 }
 

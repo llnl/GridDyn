@@ -252,10 +252,33 @@ TEST(OptimizationDescriptionTests, StatusCommandPreservesBusDisableCascade)
     GridBusOpt bus;
     GridLinkOpt link;
     bus.add(&link);
-    bus.set("status", "out");
-    EXPECT_FALSE(bus.isEnabled());
-    EXPECT_FALSE(link.isEnabled());
+    for (const auto* status : {"off", "out", "disabled", "false"}) {
+        bus.enable();
+        link.enable();
+        bus.set("status", status);
+        EXPECT_FALSE(bus.isEnabled()) << status;
+        EXPECT_FALSE(link.isEnabled()) << status;
+    }
+    for (const auto* status : {"on", "in", "enabled", " TRUE "}) {
+        bus.disable();
+        bus.set("status", status);
+        EXPECT_TRUE(bus.isEnabled()) << status;
+    }
     bus.remove(&link);
+}
+
+TEST(OptimizationDescriptionTests, ConnectionStatusTargetsTheSourceComponent)
+{
+    Generator source;
+    GridGenOpt adapter(&source);
+    adapter.set("status", "disconnected");
+    EXPECT_FALSE(source.isConnected());
+    EXPECT_TRUE(adapter.isEnabled());
+    adapter.set("status", "connected");
+    EXPECT_TRUE(source.isConnected());
+    EXPECT_THROW(adapter.set("status", "invalid"), InvalidParameterValue);
+    GridOptObject unbound;
+    EXPECT_THROW(unbound.set("status", "connected"), InvalidParameterValue);
 }
 
 TEST(OptimizationDescriptionTests, SimulationToleranceUsesSharedParameterStorage)

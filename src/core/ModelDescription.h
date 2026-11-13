@@ -68,6 +68,12 @@ enum class SetResult : std::uint8_t {
     IGNORED = 10
 };
 
+/** Empty keys and comment keys are no-ops for parameter and flag setters. */
+[[nodiscard]] constexpr bool isIgnoredParameter(std::string_view name) noexcept
+{
+    return name.empty() || name.front() == '#';
+}
+
 /** True when dispatch completed the operation, including ignored comment names. */
 [[nodiscard]] constexpr bool isSetHandled(SetResult result)
 {
@@ -263,6 +269,7 @@ class ModelDescription {
         trySetLocal(CoreObject& object, std::string_view name, std::string_view value) const;
     /** Default flag access through the object's derived tables down to this declaring table.
      * Commands and parent handlers remain the responsibility of the class's public methods.
+     * Empty and comment keys are treated as handled.
      */
     bool trySetFlag(CoreObject& object, std::string_view name, bool value) const;
     [[nodiscard]] std::optional<bool> tryGetFlag(const CoreObject& object,

@@ -125,22 +125,26 @@ void IdaInterface::setMaxNonZeros(count_t nonZeros)
 
 void IdaInterface::set(std::string_view param, double val)
 {
+    SundialsInterface::set(param, val);
     if (param == "maxiterations") {
-        max_iterations = static_cast<count_t>(val);
-        // Solver parameters may be loaded from the simulation file before IDA's
-        // memory block is allocated.  Keep the value for initialize(), where it
-        // is applied unconditionally, instead of calling into IDA with nullptr.
-        if (solverMem != nullptr) {
-            int retval = IDASetMaxNumSteps(solverMem, max_iterations);
-            checkFlag(&retval, "IDASetMaxNumSteps", 1);
-        }
-    } else {
-        SundialsInterface::set(param, val);
+        applyIterationLimit();
+    }
+}
+
+void IdaInterface::applyIterationLimit()
+{
+    // The input reader can set the limit before IDA allocates its memory.
+    if (solverMem != nullptr) {
+        int retval = IDASetMaxNumSteps(solverMem, max_iterations);
+        checkFlag(&retval, "IDASetMaxNumSteps", 1);
     }
 }
 
 double IdaInterface::get(std::string_view param) const
 {
+    if (const auto value = tryGetProperty(param)) {
+        return *value;
+    }
     long int val = -1;
     if ((param == "resevals") || (param == "iterationcount")) {
         IDAGetNumResEvals(solverMem, &val);
@@ -310,8 +314,7 @@ void IdaInterface::initialize(CoreTime t0)
                        max_iterations);
     }
 
-    retval = IDASetMaxNumSteps(solverMem, max_iterations);
-    checkFlag(&retval, "IDASetMaxNumSteps", 1);
+    applyIterationLimit();
 
     freeLinearSolver();
 #ifdef GRIDDYN_ENABLE_KLU

@@ -91,6 +91,9 @@ TEST_F(SourceTests, DescriptionPreservesSourceAliasesAndFileFlags)
 
     FileSource file;
     ASSERT_TRUE(file.getModelDescription().describesExactType(file));
+    file.set("filename", GRIDDYN_TEST_DIRECTORY "/load_tests/FileLoadInfo.bin");
+    file.updateA(timeZero);
+    EXPECT_DOUBLE_EQ(file.computeOutput(timeZero), 0.5);
     file.set("relative", 1.0);
     EXPECT_FALSE(file.getFlag("absolute"));
     file.set("step", 1.0);

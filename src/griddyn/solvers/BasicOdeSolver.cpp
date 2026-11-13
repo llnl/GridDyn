@@ -98,27 +98,13 @@ void BasicOdeSolver::restoreFromCheckpoint(CoreTime time)
     solverCallCount = 0;
 }
 
-double BasicOdeSolver::get(std::string_view param) const
+const SolverInterface::Description& BasicOdeSolver::getSolverDescription() const
 {
-    if (param == "deltat") {
-        return deltaT;
-    }
-    return SolverInterface::get(param);
-}
-void BasicOdeSolver::set(std::string_view param, std::string_view val)
-{
-    if (param.empty() || param[0] == '#') {
-    } else {
-        SolverInterface::set(param, val);
-    }
-}
-void BasicOdeSolver::set(std::string_view param, double val)
-{
-    if ((param == "delta") || (param == "deltat") || (param == "step") || (param == "steptime")) {
-        deltaT = val;
-    } else {
-        SolverInterface::set(param, val);
-    }
+    static constexpr Property<double> numeric[]{
+        fixedStepProperty<BasicOdeSolver, &BasicOdeSolver::deltaT>()};
+    static const Description description{.numeric = numeric,
+                                         .parent = &SolverInterface::getSolverDescription()};
+    return description;
 }
 
 int BasicOdeSolver::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)

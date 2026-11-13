@@ -210,14 +210,6 @@ void Collector::set(std::string_view param, double val)
     }
 }
 
-void Collector::set(std::string_view param, std::string_view val)
-{
-    if (!param.empty() && param.front() == '#') {
-    } else {
-        HelperObject::set(param, val);
-    }
-}
-
 void Collector::setFlag(std::string_view flag, bool val)
 {
     if (flag == "vector_name") {

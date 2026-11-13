@@ -96,7 +96,7 @@ class Communicator:
     virtual void initialize();
     /** disconnect the communicator from the communications medium*/
     virtual void disconnect();
-    virtual void set(std::string_view param, std::string_view val) override;
+    using HelperObject::set;
     virtual void set(std::string_view param, double val) override;
     virtual void setFlag(std::string_view flag, bool val) override;
 

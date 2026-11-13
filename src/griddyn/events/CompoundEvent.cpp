@@ -96,22 +96,6 @@ void CompoundEvent::setValue(double val, units::unit newUnits)
     }
 }
 
-void CompoundEvent::set(std::string_view param, double val)
-{
-    if (param.empty() || param[0] == '#') {
-    } else {
-        Event::set(param, val);
-    }
-}
-
-void CompoundEvent::set(std::string_view param, std::string_view val)
-{
-    if (param.empty() || param[0] == '#') {
-    } else {
-        Event::set(param, val);
-    }
-}
-
 void CompoundEvent::setValue(const std::vector<double>& val)
 {
     values = val;

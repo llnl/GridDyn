@@ -6,6 +6,7 @@
 
 #include "gridOptObjects.h"
 
+#include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ModelDescription.h"
 #include "gmlc/utilities/stringOps.h"
@@ -20,7 +21,10 @@ const ModelDescription& GridOptObject::getModelDescription() const
     static const auto description = ModelDescription::define<GridOptObject>(
         "GridOptObject",
         &CoreObject::getModelDescription(),
-        {command({"status"}, units::defunit, "Set status to in or out", ModelFieldType::STRING)});
+        {command({"status"},
+                 units::defunit,
+                 "Set adapter enablement or source connectivity",
+                 ModelFieldType::STRING)});
     return description;
 }
 
@@ -228,17 +232,15 @@ void GridOptObject::set(std::string_view param, std::string_view val)
         return;
     }
     if (param == "status") {
-        const auto status = gmlc::utilities::convertToLowerCase(val);
-        if (status == "out") {
-            if (isEnabled()) {
-                disable();
+        const auto [flag, active] = parseStatus(val);
+        if (flag == "connected") {
+            auto* source = sourceObject();
+            if (source == nullptr) {
+                throw InvalidParameterValue("status requires a source object for connectivity");
             }
-        } else if (status == "in") {
-            if (!isEnabled()) {
-                enable();
-            }
+            source->set("status", active ? "connected" : "disconnected");
         } else {
-            CoreObject::set(param, val);
+            setFlag(flag, active);
         }
     } else {
         CoreObject::set(param, val);

@@ -18,7 +18,6 @@ namespace solvers {
      */
     class BasicSolver: public SolverInterface {
       public:
-        using SolverInterface::set;
         /** define whether to use the gauss algorithm or the gauss-seidel algorithm*/
         enum class Mode { gauss, gauss_seidel };
 
@@ -56,9 +55,9 @@ namespace solvers {
         virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
         virtual void initialize(CoreTime t0) override;
 
-        virtual double get(std::string_view param) const override;
-        virtual void set(std::string_view param, std::string_view val) override;
-        virtual void set(std::string_view param, double val) override;
+        [[nodiscard]] const Description& getSolverDescription() const override;
+        using SolverInterface::set;
+        void set(std::string_view param, std::string_view val) override;
 
         virtual int
             solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;

@@ -12,8 +12,8 @@
    </library>
 
 
-   <import file="./powerflowWECC.raw"/>
-   <!--<import file="./dynamicsWECC.dyr"/>-->
+   <import file="../pFlow_tests/powerflowWECC.raw"/>
+   <!--<import file="../IEEE_test_cases/dynamics.dyr"/>-->
 
 
    <relay flags="comm_enabled" name="76_82_1" target="LINK#74">

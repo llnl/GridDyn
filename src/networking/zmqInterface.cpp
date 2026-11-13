@@ -8,8 +8,6 @@
 
 #include "core/FactoryTemplates.hpp"
 #include "core/ObjectFactory.hpp"
-#include "dimeCollector.h"
-#include "dimeCommunicator.h"
 #include "zmqCommunicator.h"
 #include <string>
 

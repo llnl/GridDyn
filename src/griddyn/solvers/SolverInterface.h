@@ -8,11 +8,17 @@
 
 #include "core/HelperObject.h"
 #include "griddyn/GridComponentHelperClasses.h"
+#include "units/units.hpp"
+#include <array>
 #include <exception>
 #include <format>
 #include <memory>
+#include <optional>
+#include <span>
 #include <string>
 #include <string_view>
+#include <type_traits>
+#include <utility>
 #include <vector>
 template<class T>
 class MatrixData;
@@ -102,6 +108,41 @@ particular solver methodology
 */
 class SolverInterface: public HelperObject {
   public:
+    struct FlagDescription {
+        SolverFlags bit;
+        std::string_view name;
+        std::string_view description;
+        std::string_view alias{};
+        std::string_view inverseName{};
+    };
+    /** Bit-backed Boolean settings. Individual backends may use a subset of these flags. */
+    [[nodiscard]] static std::span<const FlagDescription> flagDescriptions() noexcept;
+
+    template<class Value>
+    struct Property {
+        std::string_view name;
+        std::string_view description;
+        units::unit unitType = units::defunit;
+        std::array<std::string_view, 3> aliases{};
+        [[nodiscard]] bool editable() const noexcept { return mWrite != nullptr; }
+
+      private:
+        friend class SolverInterface;
+        Value (*mRead)(const SolverInterface&) = nullptr;
+        void (*mWrite)(SolverInterface&, Value) = nullptr;
+    };
+
+    /** Fields declared by this class. Walk parent for inherited fields. */
+    struct Description {
+        std::span<const Property<double>> numeric{};
+        std::span<const Property<std::string_view>> text{};
+        std::span<const FlagDescription> flags{};
+        const Description* parent = nullptr;
+    };
+    [[nodiscard]] virtual const Description& getSolverDescription() const;
+    /** Read a declared text property. The view remains valid until the property changes. */
+    [[nodiscard]] std::optional<std::string_view> getString(std::string_view param) const;
+
     /** @brief enumeration of solver call modes*/
     enum class StepMode {
         NORMAL,  //!< normal operation
@@ -120,6 +161,52 @@ class SolverInterface: public HelperObject {
     };
 
     std::vector<int> rootsfound;  //!< mask vector for which roots were found
+  protected:
+    template<class Owner, auto Member, bool Editable = false>
+    static constexpr auto property(std::string_view name,
+                                   std::string_view description,
+                                   units::unit unitType = units::defunit,
+                                   std::array<std::string_view, 3> aliases = {})
+    {
+        using Storage = std::remove_cvref_t<decltype(std::declval<Owner&>().*Member)>;
+        using Value =
+            std::conditional_t<std::is_same_v<Storage, std::string>, std::string_view, double>;
+        Property<Value> field;
+        field.name = name;
+        field.description = description;
+        field.unitType = unitType;
+        field.aliases = aliases;
+        field.mRead = [](const SolverInterface& solver) {
+            return static_cast<Value>(dynamic_cast<const Owner&>(solver).*Member);
+        };
+        if constexpr (Editable) {
+            field.mWrite = [](SolverInterface& solver, Value value) {
+                dynamic_cast<Owner&>(solver).*Member = static_cast<Storage>(value);
+            };
+        }
+        return field;
+    }
+
+    template<class Owner, auto Member>
+    static constexpr auto fixedStepProperty()
+    {
+        return property<Owner, Member, true>("deltat",
+                                             "Fixed integration step",
+                                             units::second,
+                                             {"delta", "step", "steptime"});
+    }
+
+    // Use these in get/set overrides before handling backend-specific names.
+    [[nodiscard]] std::optional<double> tryGetProperty(std::string_view param) const;
+    [[nodiscard]] const Property<double>* trySetProperty(std::string_view param, double val);
+    [[nodiscard]] bool trySetProperty(std::string_view param, std::string_view val);
+
+  private:
+    template<class Value>
+    [[nodiscard]] const Property<Value>*
+        findProperty(std::string_view name,
+                     std::span<const Property<Value>> Description::* fields) const;
+
   protected:
     std::string lastErrorString;  //!< string containing the last error
 

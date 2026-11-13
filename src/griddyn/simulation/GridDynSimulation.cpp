@@ -1314,7 +1314,7 @@ void GridDynSimulation::set(std::string_view param, double val, units::unit unit
             GridSimulation::set(param, val, unitType);
         }
         catch (const UnrecognizedParameter&) {
-            setFlag(param, (val > 0.1));
+            setFlag(param, val != 0.0);
         }
     }
 }

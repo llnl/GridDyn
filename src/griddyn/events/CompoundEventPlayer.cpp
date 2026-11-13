@@ -60,21 +60,6 @@ void CompoundEventPlayer::setTimeValue(const std::vector<CoreTime>& /* times */,
 {
 }
 
-void CompoundEventPlayer::set(std::string_view param, double val)
-{
-    if (param.empty() || param[0] == '#') {
-    } else {
-        CompoundEvent::set(param, val);
-    }
-}
-
-void CompoundEventPlayer::set(std::string_view param, std::string_view val)
-{
-    if (param.empty() || param[0] == '#') {
-    } else {
-        CompoundEvent::set(param, val);
-    }
-}
 void CompoundEventPlayer::updateTrigger(CoreTime time)
 {
     if (currIndex != kNullLocation)  // we have a file operation

@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <cmath>
 #include <format>
 #include <functional>
 #include <iostream>
@@ -51,6 +52,8 @@ const ModelDescription& GridComponent::getModelDescription() const
                    units::rad / units::s,
                    "System frequency base"),
          command({"flags"}, units::defunit, "Apply a list of flags", ModelFieldType::STRING),
+         command(
+             {"status"}, units::defunit, "Set enablement or connectivity", ModelFieldType::STRING),
          command(
              {"connected"}, units::defunit, "Change connection status", ModelFieldType::BOOLEAN),
          command(
@@ -617,29 +620,21 @@ void GridComponent::set(std::string_view param, std::string_view val)
     }
 
     if (param == "status") {
-        auto valueLower = convertToLowerCase(std::string{val});
-        if ((valueLower == "on") || (valueLower == "in") || (valueLower == "enabled")) {
+        const auto [flag, active] = parseStatus(val);
+        if (flag == "connected") {
+            setFlag(flag, active);
+        } else if (active) {
             if (!isEnabled()) {
                 enable();
                 if ((opFlags[HAS_PFLOW_STATES]) || (opFlags[HAS_DYN_STATES])) {
                     alert(this, STATE_COUNT_CHANGE);
                 }
             }
-        } else if ((valueLower == "off") || (valueLower == "out") || (valueLower == "disabled")) {
-            if (isEnabled()) {
-                if ((opFlags[HAS_PFLOW_STATES]) || (opFlags[HAS_DYN_STATES])) {
-                    alert(this, STATE_COUNT_CHANGE);
-                }
-                disable();
+        } else if (isEnabled()) {
+            if ((opFlags[HAS_PFLOW_STATES]) || (opFlags[HAS_DYN_STATES])) {
+                alert(this, STATE_COUNT_CHANGE);
             }
-        } else if (valueLower == "connected") {
-            if (!isConnected()) {
-                reconnect();
-            }
-        } else if (valueLower == "disconnected") {
-            if (isConnected()) {
-                disconnect();
-            }
+            disable();
         }
     } else if (param == "flags") {
         setMultipleFlags(this, val);
@@ -722,7 +717,10 @@ void GridComponent::set(std::string_view param, double val, units::unit unitType
     }
 
     if ((param == "enabled") || (param == "status")) {
-        if (val > 0.1) {
+        if (!std::isfinite(val)) {
+            throw InvalidParameterValue(param);
+        }
+        if (val != 0.0) {
             if (!isEnabled()) {
                 enable();
                 if (opFlags[HAS_DYN_STATES]) {
@@ -738,7 +736,10 @@ void GridComponent::set(std::string_view param, double val, units::unit unitType
             }
         }
     } else if (param == "connected") {
-        if (val > 0.1) {
+        if (!std::isfinite(val)) {
+            throw InvalidParameterValue(param);
+        }
+        if (val != 0.0) {
             if (!isConnected()) {
                 reconnect();
             }

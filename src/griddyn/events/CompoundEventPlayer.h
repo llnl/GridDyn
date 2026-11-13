@@ -42,8 +42,6 @@ class CompoundEventPlayer: public CompoundEvent {
     virtual ChangeCode trigger() override;
     virtual ChangeCode trigger(CoreTime time) override;
 
-    virtual void set(std::string_view param, double val) override;
-    virtual void set(std::string_view param, std::string_view val) override;
     void setTime(CoreTime time) override;
     void setTimeValue(CoreTime time, double val);
     void setTimeValue(const std::vector<CoreTime>& time, const std::vector<double>& val);

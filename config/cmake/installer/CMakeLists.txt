@@ -570,11 +570,6 @@ endif(HELICS_EXECUTABLE)
 # Enable ZMQ interfacing
 # -------------------------------------------------------------
 
-option(DIME_ENABLE "Enable connection with Dime" OFF)
-
-if(DIME_ENABLE)
-    set(ZMQ_NEEDED ON CACHE BOOL "ZMQ is needed" FORCE)
-endif(DIME_ENABLE)
 option(ZMQ_ENABLE "Enable ZMQ networking library" ${ZMQ_NEEDED})
 # If ZMQ library is enabled try to locate it and link against it
 

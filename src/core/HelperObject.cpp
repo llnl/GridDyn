@@ -7,9 +7,11 @@
 #include "HelperObject.h"
 
 #include "CoreExceptions.h"
+#include "ModelDescription.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewOps.h"
 #include "utilities/dataDictionary.h"
+#include <cmath>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -31,6 +33,9 @@ HelperObject::HelperObject(std::string objectName): m_oid(s_obcnt++), mName(std:
 
 void HelperObject::set(std::string_view param, std::string_view val)
 {
+    if (isIgnoredParameter(param)) {
+        return;
+    }
     if ((param == "name") || (param == "rename")) {
         setName(val);
     } else if (param == "description") {
@@ -44,7 +49,13 @@ void HelperObject::set(std::string_view param, std::string_view val)
 
 void HelperObject::set(std::string_view param, double val)
 {
-    setFlag(param, (val > 0.1));
+    if (isIgnoredParameter(param)) {
+        return;
+    }
+    if (!std::isfinite(val)) {
+        throw InvalidParameterValue(param);
+    }
+    setFlag(param, val != 0.0);
 }
 void HelperObject::setDescription(std::string_view description)  // NOLINT
 {
@@ -57,7 +68,9 @@ std::string HelperObject::getDescription() const
 }
 void HelperObject::setFlag(std::string_view flag, bool /*val*/)
 {
-    throw(UnrecognizedParameter(flag));
+    if (!isIgnoredParameter(flag)) {
+        throw(UnrecognizedParameter(flag));
+    }
 }
 bool HelperObject::getFlag(std::string_view flag) const
 {

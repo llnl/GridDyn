@@ -241,8 +241,7 @@ void KinsolInterface::initialize(CoreTime /*t0*/)
     retval = KINSetMaxSubSetupCalls(solverMem, 2);  // residual calls
     checkFlag(&retval, "KINSetMaxSubSetupCalls", 1);
 
-    retval = KINSetNumMaxIters(solverMem, max_iterations);  // residual calls
-    checkFlag(&retval, "KINSetNumMaxIters", 1);
+    applyIterationLimit();
 
     flags.set(INITIALIZED_FLAG);
 }
@@ -280,49 +279,60 @@ void KinsolInterface::kluReInit(SparseReinitMode sparseReinitMode, bool resetJac
     SundialsInterface::kluReInit(sparseReinitMode, resetJacobian);
 }
 
+void KinsolInterface::pairedModeChanged()
+{
+    if (flags[INITIALIZED_FLAG] && !max_setup_calls_explicit) {
+        max_setup_calls = 5;
+        int retval = KINSetMaxSetupCalls(solverMem, max_setup_calls);
+        checkFlag(&retval, "KINSetMaxSetupCalls", 1);
+    }
+}
+
 void KinsolInterface::set(std::string_view param, std::string_view val)
 {
-    if (param.empty()) {
-    } else if ((param == "pair") || (param == "pairedmode")) {
-        SundialsInterface::set(param, val);
-        if (flags[INITIALIZED_FLAG] && !max_setup_calls_explicit) {
-            max_setup_calls = 5;
-            int retval = KINSetMaxSetupCalls(solverMem, max_setup_calls);
-            checkFlag(&retval, "KINSetMaxSetupCalls", 1);
-        }
-    } else {
-        SundialsInterface::set(param, val);
+    if (trySetProperty(param, val)) {
+        return;
+    }
+    SundialsInterface::set(param, val);
+    if (param == "pair" || param == "pairedmode") {
+        pairedModeChanged();
     }
 }
 
 void KinsolInterface::set(std::string_view param, double val)
 {
-    if (param.empty()) {
-    } else if (param == "maxiterations") {
-        max_iterations = static_cast<count_t>(val);
-        int retval = KINSetNumMaxIters(solverMem, max_iterations);
-        checkFlag(&retval, "KINSetNumMaxIters", 1);
-    } else if ((param == "maxsetupcalls") || (param == "kinsolmaxsetupcalls")) {
+    if (const auto* field = trySetProperty(param, val)) {
+        if (field->name == "maxiterations") {
+            applyIterationLimit();
+        }
+        return;
+    }
+    if ((param == "maxsetupcalls") || (param == "kinsolmaxsetupcalls")) {
         max_setup_calls = (val < 1.0) ? count_t{1} : static_cast<count_t>(val);
         max_setup_calls_explicit = true;
         if (flags[INITIALIZED_FLAG]) {
             int retval = KINSetMaxSetupCalls(solverMem, max_setup_calls);
             checkFlag(&retval, "KINSetMaxSetupCalls", 1);
         }
-    } else if ((param == "pair") || (param == "pairedmode")) {
-        SundialsInterface::set(param, val);
-        if (flags[INITIALIZED_FLAG] && !max_setup_calls_explicit) {
-            max_setup_calls = 5;
-            int retval = KINSetMaxSetupCalls(solverMem, max_setup_calls);
-            checkFlag(&retval, "KINSetMaxSetupCalls", 1);
-        }
     } else {
         SundialsInterface::set(param, val);
+        if (param == "pair" || param == "pairedmode") {
+            pairedModeChanged();
+        }
     }
+}
+
+void KinsolInterface::applyIterationLimit()
+{
+    int retval = KINSetNumMaxIters(solverMem, max_iterations);
+    checkFlag(&retval, "KINSetNumMaxIters", 1);
 }
 
 double KinsolInterface::get(std::string_view param) const
 {
+    if (const auto value = tryGetProperty(param)) {
+        return *value;
+    }
     long int val = -1;
     if (param == "jac calls") {
         KINGetNumJacEvals(solverMem, &val);

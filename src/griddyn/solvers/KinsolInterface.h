@@ -15,7 +15,6 @@ namespace griddyn::solvers {
  */
 class KinsolInterface: public SundialsInterface {
   public:
-    using SundialsInterface::set;
     /** @brief constructor*/
     explicit KinsolInterface(const std::string& objName = "kinsol");
     /** @brief constructor loading the SolverInterface structure*
@@ -40,9 +39,9 @@ class KinsolInterface: public SundialsInterface {
 
     void logSolverStats(PrintLevel logLevel, bool iconly = false) const override;
     void logErrorWeights(PrintLevel /*logLevel*/) const override {}
-    virtual double get(std::string_view param) const override;
-    virtual void set(std::string_view param, std::string_view val) override;
-    virtual void set(std::string_view param, double val) override;
+    [[nodiscard]] double get(std::string_view param) const override;
+    void set(std::string_view param, double val) override;
+    void set(std::string_view param, std::string_view val) override;
     // wrapper functions used by kinsol and ida to call the internal functions
     friend int kinsolFunc(N_Vector state, N_Vector resid, void* userData);
     friend int kinsolJac(N_Vector state,
@@ -53,6 +52,9 @@ class KinsolInterface: public SundialsInterface {
                          N_Vector tmp2);
 
   private:
+    void applyIterationLimit();
+    void pairedModeChanged();
+
     count_t max_setup_calls = 1;  //!< nonlinear iterations between Jacobian setups
     bool max_setup_calls_explicit = false;
     bool linearSetupReady = false;  //!< a previous partitioned solve left a usable factorization

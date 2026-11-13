@@ -7,6 +7,7 @@
 #include "../gtestHelper.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/simulation/GridDynSimulationFileOps.h"
+#include <filesystem>
 #include <gtest/gtest.h>
 #include <iostream>
 #include <map>
@@ -26,10 +27,11 @@
 
 static constexpr std::string_view validationTestDirectory{GRIDDYN_TEST_DIRECTORY
                                                           "/validation_tests/"};
+static constexpr char pegase9241CaseFile[] = MATLAB_TEST_DIRECTORY "case9241pegase.m";
 
 static std::string makeValidationTestPath(std::string_view fileName)
 {
-    return std::string{validationTestDirectory} + std::string{fileName};
+    return (std::filesystem::path{validationTestDirectory} / fileName).string();
 }
 
 #define INPUT_TEST_DIRECTORY (GRIDDYN_TEST_DIRECTORY "/input_tests/")
@@ -64,7 +66,7 @@ class ValidationTests: public GridDynSimulationTestFixture, public ::testing::Te
         auto fileName = makeValidationTestPath(test_case_pair.first);
 
         loadFile(gds, fileName);
-        gds->sourceFile = test_case_pair.first;
+        gds->sourceFile = std::filesystem::path{test_case_pair.first}.filename().string();
         gds->setFlag("no_powerflow_adjustments");
         if (!solver.empty()) {
             gds->set("defpowerflow", solver);
@@ -154,7 +156,7 @@ TEST_F(ValidationTests, MatpowerValidationTests)
         {"case3375wp.m", "case3375wp_res.m"},
         {"case6468rte_res.m", "case6468rte_res.m"},
         {"case6515rte_res.m", "case6515rte_res.m"},
-        {"case9241pegase.m", "case9241pegase_res.m"},
+        {pegase9241CaseFile, "case9241pegase_res.m"},
         {"case13659pegase.m", "case13659pegase_res.m"},
     };
     for (const auto& test_case_pair : compareCases) {
@@ -213,7 +215,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsWithq)
         {"case3012wp.m", "case3012wp_resqlim.m"},
         {"case3120sp.m", "case3120sp_resqlim.m"},
         {"case3375wp.m", "case3375wp_resqlim.m"},
-        {"case9241pegase.m", "case9241pegase_resqlim.m"},
+        {pegase9241CaseFile, "case9241pegase_resqlim.m"},
     };
 
     std::vector<double> volts1;
@@ -229,12 +231,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsWithq)
         SCOPED_TRACE(mp.first);
         gds = std::make_unique<GridDynSimulation>();
         gds->set("consoleprintlevel", PrintLevel::SUMMARY);
-        std::string fileName;
-        if (mp.first.length() > 25) {
-            fileName = mp.first;
-        } else {
-            fileName = makeValidationTestPath(mp.first);
-        }
+        std::string fileName = makeValidationTestPath(mp.first);
 
         loadFile(gds, fileName);
         ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::STARTUP);

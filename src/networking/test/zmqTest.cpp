@@ -5,7 +5,6 @@
  */
 
 #include "../../../test/gtestHelper.h"
-#include "networking/dimeCollector.h"
 #include "networking/zmqInterface.h"
 #include "networking/zmqLibrary/zmqContextManager.h"
 #include "networking/zmqLibrary/zmqHelper.h"
@@ -15,8 +14,6 @@
 #include <gtest/gtest.h>
 #include <string>
 #include <thread>
-
-[[maybe_unused]] static constexpr char zmq_test_directory[] = GRIDDYN_TEST_DIRECTORY "/zmq_tests/";
 
 namespace {
 class ZmqTests: public ::testing::Test {};

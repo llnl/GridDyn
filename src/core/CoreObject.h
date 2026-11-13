@@ -339,6 +339,8 @@ class CoreObject {
     friend class NullObject;
 
   protected:
+    /** Map a text status to a flag name and value. */
+    [[nodiscard]] static std::pair<std::string_view, bool> parseStatus(std::string_view value);
     /** simple function for alerting of a name change*/
     virtual void nameUpdate();
     /** simple function for alerting of a user id change*/

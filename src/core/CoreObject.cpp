@@ -154,13 +154,32 @@ void CoreObject::getParameterStrings(stringVec& pstr, ParamStringType pstype) co
     getModelDescription().getParameterStrings(pstr, pstype);
 }
 
+std::pair<std::string_view, bool> CoreObject::parseStatus(std::string_view value)
+{
+    const auto status =
+        gmlc::utilities::convertToLowerCase(gmlc::utilities::string_viewOps::trim(value));
+    if (status == "on" || status == "in" || status == "enabled" || status == "true") {
+        return {"enabled", true};
+    }
+    if (status == "off" || status == "out" || status == "disabled" || status == "false") {
+        return {"enabled", false};
+    }
+    if (status == "connected" || status == "disconnected") {
+        return {"connected", status == "connected"};
+    }
+    throw InvalidParameterValue("status");
+}
+
 void CoreObject::set(std::string_view param, std::string_view val)  // NOLINT(misc-no-recursion)
 {
     if ((param == "name") || (param == "rename")) {
         setName(val);
     } else if (param == "description") {
         setDescription(val);
-    } else if ((param.empty()) || (param.front() == '#')) {
+    } else if (param == "status") {
+        const auto [flag, active] = parseStatus(val);
+        setFlag(flag, active);
+    } else if (isIgnoredParameter(param)) {
         // comment parameter meant to do nothing
     } else {
         if (val == "true") {
@@ -254,8 +273,6 @@ void CoreObject::setFlag(std::string_view flag, bool val)  // NOLINT(misc-no-rec
         alert(this, UPDATE_REQUIRED);
     } else if (CoreObject::getModelDescription().trySetFlag(*this, flag, val)) {
         return;
-    } else if ((flag.empty()) || (flag.front() == '#')) {
-        // comment parameter meant to do nothing
     } else {
         auto lower = gmlc::utilities::convertToLowerCase(flag);
         if (lower != flag) {
@@ -317,7 +334,7 @@ void CoreObject::set(std::string_view param, double val, units::unit unitType)
         setUserID(static_cast<index_t>(val));
     } else {
         try {
-            setFlag(param, (val > 0.1));
+            setFlag(param, val != 0.0);
         }
         catch (const UnrecognizedParameter&) {
             auto lower = gmlc::utilities::convertToLowerCase(param);

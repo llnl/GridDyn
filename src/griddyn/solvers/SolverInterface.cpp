@@ -14,16 +14,14 @@
 #include "SundialsInterface.h"
 #include "core/CoreExceptions.h"
 #include "core/FactoryTemplates.hpp"
-#include "gmlc/containers/mapOps.hpp"
+#include "core/ModelDescription.h"
 #include "gmlc/utilities/stringConversion.h"
 #include "griddyn/simulation/GridDynSimulationFileOps.h"
 #include "utilities/Hdf5DataFile.h"
 #include <algorithm>
 #include <charconv>
 #include <cstdio>
-#include <functional>
 #include <iostream>
-#include <map>
 #include <memory>
 #include <new>
 #include <string>
@@ -119,6 +117,31 @@ namespace {
             start = end + 1;
         }
         return values;
+    }
+
+    template<class Field, class Predicate>
+    const Field* findSolverField(const SolverInterface::Description& description,
+                                 std::span<const Field> SolverInterface::Description::* fields,
+                                 Predicate matches)
+    {
+        for (const auto* table = &description; table != nullptr; table = table->parent) {
+            const auto entries = table->*fields;
+            const auto match = std::ranges::find_if(entries, matches);
+            if (match != entries.end()) {
+                return &*match;
+            }
+        }
+        return nullptr;
+    }
+
+    const SolverInterface::FlagDescription*
+        findSolverFlag(const SolverInterface::Description& description, std::string_view name)
+    {
+        return findSolverField(
+            description, &SolverInterface::Description::flags, [name](const auto& field) {
+                return !name.empty() &&
+                    (name == field.name || name == field.alias || name == field.inverseName);
+            });
     }
 }  // namespace
 
@@ -268,31 +291,98 @@ void SolverInterface::setSimulationData(GridDynSimulation* gds)
     }
 }
 
+const SolverInterface::Description& SolverInterface::getSolverDescription() const
+{
+    static constexpr Property<double> numeric[]{
+        property<SolverInterface, &SolverInterface::solverCallCount>("solvercount", "Solver calls"),
+        property<SolverInterface, &SolverInterface::jacCallCount>("jaccallcount", "Jacobian calls"),
+        property<SolverInterface, &SolverInterface::rootCallCount>(
+            "rootcallcount", "Root test calls", units::defunit, {"roottestcount"}),
+        property<SolverInterface, &SolverInterface::funcCallCount>("funccallcount", "Function calls"),
+        property<SolverInterface, &SolverInterface::tolerance, true>("tolerance", "Solver tolerance"),
+        property<SolverInterface, &SolverInterface::max_iterations, true>(
+            "maxiterations", "Maximum solver iterations or steps"),
+    };
+    static constexpr Property<std::string_view> text[]{
+        property<SolverInterface, &SolverInterface::solverLogFile, true>(
+            "logfile", "Solver log file"),
+    };
+    static const Description description{
+        .numeric = numeric, .text = text, .flags = flagDescriptions()};
+    return description;
+}
+
+template<class Value>
+const SolverInterface::Property<Value>*
+    SolverInterface::findProperty(std::string_view name,
+                                  std::span<const Property<Value>> Description::* fields) const
+{
+    return findSolverField(getSolverDescription(), fields, [name](const auto& field) {
+        return !name.empty() &&
+            (name == field.name || std::ranges::find(field.aliases, name) != field.aliases.end());
+    });
+}
+
+std::optional<double> SolverInterface::tryGetProperty(std::string_view param) const
+{
+    if (const auto* field = findProperty(param, &Description::numeric)) {
+        return field->mRead(*this);
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string_view> SolverInterface::getString(std::string_view param) const
+{
+    if (const auto* field = findProperty(param, &Description::text)) {
+        return field->mRead(*this);
+    }
+    return std::nullopt;
+}
+
 double SolverInterface::get(std::string_view param) const
 {
-    double res;
-    if (param == "solvercount") {
-        res = static_cast<double>(solverCallCount);
-    } else if (param == "jaccallcount") {
-        res = static_cast<double>(jacCallCount);
-    } else if ((param == "rootcallcount") || (param == "roottestcount")) {
-        res = static_cast<double>(rootCallCount);
-    } else if (param == "funccallcount") {
-        res = static_cast<double>(funcCallCount);
-    } else if (param == "approx") {
-        res = static_cast<double>(getLinkApprox(mode));
-    } else if (param == "printlevel") {
-        res = static_cast<double>(printLevel);
-    } else if (param == "tolerance") {
-        res = tolerance;
-    } else {
-        return HelperObject::get(param);
+    if (const auto value = tryGetProperty(param)) {
+        return *value;
     }
-    return res;
+    if (param == "approx") {
+        return static_cast<double>(getLinkApprox(mode));
+    }
+    if (param == "printlevel") {
+        return static_cast<double>(printLevel);
+    }
+    return HelperObject::get(param);
+}
+
+bool SolverInterface::trySetProperty(std::string_view param, std::string_view val)
+{
+    if (isIgnoredParameter(param)) {
+        return true;
+    }
+    if (const auto* field = findProperty(param, &Description::text); field && field->editable()) {
+        field->mWrite(*this, val);
+        return true;
+    }
+    return false;
+}
+
+const SolverInterface::Property<double>*
+    SolverInterface::trySetProperty(std::string_view param, double val)
+{
+    if (isIgnoredParameter(param)) {
+        return nullptr;
+    }
+    if (const auto* field = findProperty(param, &Description::numeric); field && field->editable()) {
+        field->mWrite(*this, val);
+        return field;
+    }
+    return nullptr;
 }
 
 void SolverInterface::set(std::string_view param, std::string_view val)
 {
+    if (trySetProperty(param, val)) {
+        return;
+    }
     using gmlc::utilities::convertToLowerCase;
 
     if ((param == "approx") || (param == "approximation")) {
@@ -330,8 +420,6 @@ void SolverInterface::set(std::string_view param, std::string_view val)
         maskElements = parseMaskElements(val);
     } else if (param == "mode") {
         setMultipleFlags(this, val);
-    } else if ((param == "file") || (param == "logfile")) {
-        solverLogFile = std::string{val};
     } else if (param == "jacfile") {
         jacobianCapture.reset();
         jacFile = std::string{val};
@@ -350,10 +438,11 @@ void SolverInterface::set(std::string_view param, std::string_view val)
 
 void SolverInterface::set(std::string_view param, double val)
 {
+    if (isIgnoredParameter(param) || trySetProperty(param, val)) {
+        return;
+    }
     if ((param == "pair") || (param == "pairedmode")) {
         mode.pairedOffsetIndex = static_cast<index_t>(val);
-    } else if (param == "tolerance") {
-        tolerance = val;
     } else if (param == "printlevel") {
         switch (static_cast<int>(val)) {
             case 0:
@@ -375,68 +464,63 @@ void SolverInterface::set(std::string_view param, double val)
         } else {
             throw(InvalidParameterValue(param));
         }
-    } else if (param == "maskElement") {
+    } else if (param == "maskelement" || param == "maskElement") {
         addMaskElement(static_cast<index_t>(val));
     } else if (param == "index") {
         mode.offsetIndex = static_cast<index_t>(val);
-    } else if (param == "maxiterations") {
-        max_iterations = static_cast<index_t>(val);
     } else {
         HelperObject::set(param, val);
     }
 }
 
-static const std::map<std::string_view, int, std::less<>> SOLVER_FLAG_MAP{
-    {"filecapture", FILE_CAPTURE_FLAG},
-    {"directlogging", DIRECT_LOGGING_FLAG},
-    {"solver_log", DIRECT_LOGGING_FLAG},
-    {"dense", DENSE_FLAG},
-    {"sparse", -DENSE_FLAG},
-    {"parallel", PARALLEL_FLAG},
-    {"serial", -PARALLEL_FLAG},
-    {"mask", USE_MASK_FLAG},
-    {"constantjacobian", CONSTANT_JACOBIAN_FLAG},
-    {"omp", USE_OMP_FLAG},
-    {"useomp", USE_OMP_FLAG},
-    {"bdf", USE_BDF_FLAG},
-    {"adams", -USE_BDF_FLAG},
-    {"functional", -USE_NEWTON_FLAG},
-    {"newton", USE_NEWTON_FLAG},
-    {"print_resid", PRINT_RESIDUALS},
-    {"print_residuals", PRINT_RESIDUALS},
-    {"ida_ic_diagnostics", IDA_IC_DIAGNOSTICS},
-    {"ida_initial_condition_diagnostics", IDA_IC_DIAGNOSTICS},
-    {"ida_ic_stop_on_failure", IDA_IC_STOP_ON_FAILURE},
-    {"ida_initial_condition_stop_on_failure", IDA_IC_STOP_ON_FAILURE},
-    {"ida_integration_diagnostics", IDA_INTEGRATION_DIAGNOSTICS},
-    {"ida_integration_trace", IDA_INTEGRATION_DIAGNOSTICS},
-    {"block_mode_only", BLOCK_MODE_ONLY}};
+std::span<const SolverInterface::FlagDescription> SolverInterface::flagDescriptions() noexcept
+{
+    static constexpr FlagDescription descriptions[]{
+        {.bit = FILE_CAPTURE_FLAG, .name = "filecapture", .description = "Save diagnostics to files."},
+        {.bit = DIRECT_LOGGING_FLAG, .name = "directlogging",
+         .description = "Log backend messages directly.", .alias = "solver_log"},
+        {.bit = DENSE_FLAG, .name = "dense",
+         .description = "Use dense matrices.", .inverseName = "sparse"},
+        {.bit = PARALLEL_FLAG, .name = "parallel",
+         .description = "Use parallel solving.", .inverseName = "serial"},
+        {.bit = USE_MASK_FLAG, .name = "mask", .description = "Apply the configured state mask."},
+        {.bit = CONSTANT_JACOBIAN_FLAG, .name = "constantjacobian",
+         .description = "Treat the Jacobian as constant."},
+        {.bit = USE_OMP_FLAG, .name = "omp",
+         .description = "Use OpenMP solver data structures.", .alias = "useomp"},
+        {.bit = USE_BDF_FLAG, .name = "bdf",
+         .description = "Use the BDF integration method.", .inverseName = "adams"},
+        {.bit = USE_NEWTON_FLAG, .name = "newton",
+         .description = "Use Newton iteration.", .inverseName = "functional"},
+        {.bit = PRINT_RESIDUALS, .name = "print_resid",
+         .description = "Print residual values.", .alias = "print_residuals"},
+        {.bit = IDA_IC_DIAGNOSTICS, .name = "ida_ic_diagnostics",
+         .description = "Log IDA initial condition diagnostics.",
+         .alias = "ida_initial_condition_diagnostics"},
+        {.bit = IDA_IC_STOP_ON_FAILURE, .name = "ida_ic_stop_on_failure",
+         .description = "Request stopping on an IDA initial condition failure.",
+         .alias = "ida_initial_condition_stop_on_failure"},
+        {.bit = IDA_INTEGRATION_DIAGNOSTICS, .name = "ida_integration_diagnostics",
+         .description = "Log IDA integration diagnostics.",
+         .alias = "ida_integration_trace"},
+        {.bit = BLOCK_MODE_ONLY, .name = "block_mode_only",
+         .description = "Mark the solver as supporting only block mode."},
+    };
+    return descriptions;
+}
 
 void SolverInterface::setFlag(std::string_view flag, bool val)
 {
-    if (flag == "filecapture" && !val) {
-        stateCapture.reset();
-        jacobianCapture.reset();
-    }
-    // DENSE_FLAG is bit 0, so it cannot be represented by the negative-index
-    // convention used below for flags whose default is enabled.
-    if (flag == "dense") {
-        flags.set(DENSE_FLAG, val);
+    if (isIgnoredParameter(flag)) {
         return;
     }
-    if (flag == "sparse") {
-        flags.set(DENSE_FLAG, !val);
-        return;
-    }
-
-    const auto foundFlag = SOLVER_FLAG_MAP.find(flag);
-    const int flgInd = (foundFlag != SOLVER_FLAG_MAP.end()) ? foundFlag->second : -60;
-    if (flgInd > -32) {
-        if (flgInd > 0) {
-            flags.set(flgInd, val);
-        } else {
-            flags.set(-flgInd, !val);
+    if (const auto* field = findSolverFlag(getSolverDescription(), flag)) {
+        const bool enabled = val != (flag == field->inverseName);
+        if (field->bit == FILE_CAPTURE_FLAG && !enabled) {
+            stateCapture.reset();
+            jacobianCapture.reset();
         }
+        flags.set(field->bit, enabled);
         return;
     }
 
@@ -449,14 +533,11 @@ void SolverInterface::setFlag(std::string_view flag, bool val)
     } else if (flag == "powerflow") {
         mode.dynamic = false;
         mode.differential = false;
-        mode.dynamic = false;
         mode.algebraic = true;
     } else if (flag == "differential") {
+        mode.differential = val;
         if (val) {
-            mode.differential = true;
             mode.dynamic = true;
-        } else {
-            mode.differential = false;
         }
     } else if (flag == "algebraic") {
         mode.algebraic = val;
@@ -467,8 +548,6 @@ void SolverInterface::setFlag(std::string_view flag, bool val)
             mode.differential = true;
             mode.dynamic = true;
             mode.algebraic = true;
-        } else {
-            // PT:: what does dae false mean?  probably not do anything
         }
     } else if (flag == "extended") {
         mode.extended_state = val;
@@ -480,12 +559,10 @@ void SolverInterface::setFlag(std::string_view flag, bool val)
         printLevel = SolverPrintLevel::ERROR_TRAP;
     } else if (flag == "error") {
         printLevel = SolverPrintLevel::ERROR_LOG;
+    } else if (val) {
+        setApproximation(flag);
     } else {
-        if (val) {
-            setApproximation(flag);
-        } else {
-            throw(UnrecognizedParameter(flag));
-        }
+        throw(UnrecognizedParameter(flag));
     }
 }
 
@@ -525,24 +602,8 @@ void SolverInterface::setApproximation(std::string_view approx)
 
 bool SolverInterface::getFlag(std::string_view flag) const
 {
-    // DENSE_FLAG is bit 0, so it cannot be represented by the negative-index
-    // convention used below for flags whose default is enabled.
-    if (flag == "dense") {
-        return flags[DENSE_FLAG];
-    }
-    if (flag == "sparse") {
-        return !flags[DENSE_FLAG];
-    }
-
-    const auto foundFlag = SOLVER_FLAG_MAP.find(flag);
-    const int flgInd = (foundFlag != SOLVER_FLAG_MAP.end()) ? foundFlag->second : -60;
-    if (flgInd > -32) {
-        if (flgInd > 0) {
-            return flags[flgInd];
-        }
-        return !flags[-flgInd];
-    }
-    return false;
+    const auto* field = findSolverFlag(getSolverDescription(), flag);
+    return field != nullptr && (flags[field->bit] != (flag == field->inverseName));
 }
 void SolverInterface::setMaskElements(std::vector<index_t> msk)
 {

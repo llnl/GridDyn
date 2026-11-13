@@ -16,9 +16,11 @@
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include <algorithm>
+#include <charconv>
 #include <format>
 #include <memory>
 #include <string>
+#include <system_error>
 #include <utility>
 
 namespace griddyn::relays {
@@ -113,13 +115,6 @@ void ZonalRelay::set(std::string_view param, double val, units::unit unitType)
     if (isSetHandled(ZonalRelay::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
-    auto parseZoneIndex = [](std::string_view parameterName) {
-        index_t zoneIndex = 0;
-        if ((parameterName.size() == 6) && (std::isdigit(parameterName[5]) != 0)) {
-            zoneIndex = static_cast<index_t>(parameterName[5] - '0');
-        }
-        return zoneIndex;
-    };
     auto ensureZoneStorage = [this](count_t requestedZoneCount) {
         const auto zoneLevelSize = static_cast<count_t>(mZoneLevels.size());
         if (requestedZoneCount > zoneLevelSize) {
@@ -140,20 +135,29 @@ void ZonalRelay::set(std::string_view param, double val, units::unit unitType)
     };
     if (param == "zones") {
         ensureZoneStorage(static_cast<count_t>(val));
-    } else if (param.starts_with("level")) {
-        const index_t zoneIndex = parseZoneIndex(param);
+    } else if (param.starts_with("level") || param.starts_with("delay")) {
+        const bool settingLevel = param.starts_with("level");
+        const auto prefix = settingLevel ? std::string_view{"level"} : std::string_view{"delay"};
+        const auto suffix = param.substr(prefix.size());
+        index_t zoneIndex = 0;
+        if (!suffix.empty()) {
+            const auto [end, error] =
+                std::from_chars(suffix.data(), suffix.data() + suffix.size(), zoneIndex);
+            if (suffix.front() < '0' || suffix.front() > '9' || error != std::errc{} ||
+                end != suffix.data() + suffix.size() || zoneIndex == kIndexMax) {
+                throw InvalidParameterValue(param);
+            }
+        }
         if (zoneIndex >= mZoneCount) {
             ensureZoneStorage(zoneIndex + 1);
         }
-        ensureSizeAtLeast(mZoneLevels, zoneIndex + 1);
-        mZoneLevels[zoneIndex] = val;
-    } else if (param.starts_with("delay")) {
-        const index_t zoneIndex = parseZoneIndex(param);
-        if (zoneIndex >= mZoneCount) {
-            ensureZoneStorage(zoneIndex + 1);
+        if (settingLevel) {
+            ensureSizeAtLeast(mZoneLevels, zoneIndex + 1);
+            mZoneLevels[zoneIndex] = val;
+        } else {
+            ensureSizeAtLeast(mZoneDelays, zoneIndex + 1);
+            mZoneDelays[zoneIndex] = val;
         }
-        ensureSizeAtLeast(mZoneDelays, zoneIndex + 1);
-        mZoneDelays[zoneIndex] = val;
     } else {
         Relay::set(param, val, unitType);
     }

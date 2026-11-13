@@ -26,6 +26,7 @@
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -38,6 +39,33 @@
 using namespace griddyn;
 
 class RelayTests: public GridDynSimulationTestFixture, public ::testing::Test {};
+
+TEST(ZonalRelayTests, IndexedSettersUseTheEntireSuffix)
+{
+    class InspectableRelay: public relays::ZonalRelay {
+      public:
+        using ZonalRelay::mZoneCount;
+        using ZonalRelay::mZoneDelays;
+        using ZonalRelay::mZoneLevels;
+    };
+    InspectableRelay relay;
+    relay.set("zones", 2.0);
+    relay.set("level", 0.7);
+    relay.set("delay", 0.25);
+    relay.set("level10", 7.5);
+    relay.set("delay10", 2.0);
+    EXPECT_THROW(relay.set("level10oops", 9.0), InvalidParameterValue);
+    EXPECT_THROW(relay.set("delay-1", 9.0), InvalidParameterValue);
+    EXPECT_THROW(relay.set("level999999999999999999999999", 9.0), InvalidParameterValue);
+
+    ASSERT_EQ(relay.mZoneCount, 11);
+    ASSERT_EQ(relay.mZoneLevels.size(), 11U);
+    ASSERT_EQ(relay.mZoneDelays.size(), 11U);
+    EXPECT_DOUBLE_EQ(relay.mZoneLevels.at(0), 0.7);
+    EXPECT_DOUBLE_EQ(relay.mZoneLevels.at(10), 7.5);
+    EXPECT_EQ(relay.mZoneDelays.at(0), CoreTime(0.25));
+    EXPECT_EQ(relay.mZoneDelays.at(10), CoreTime(2.0));
+}
 
 TEST(TimeOverCurrentRelayTests, IECAndIEEECharacteristics)
 {
@@ -122,6 +150,37 @@ TEST(CommMessageSerializationTests, StringAndVectorStreamsRoundTripEquivalentByt
     CommMessage fromVector;
     fromVector.fromVector(dataVector);
     EXPECT_EQ(fromVector.toDataString(), dataString);
+}
+
+TEST(CommunicatorTests, NameAndIdUseDistinctSetterTypes)
+{
+    Communicator communicator("initial", 12);
+    HelperObject& helper = communicator;
+    helper.set("name", "renamed");
+    EXPECT_EQ(helper.getName(), "renamed");
+    EXPECT_EQ(communicator.getCommID(), 12U);
+    helper.set("id", 34.0);
+    EXPECT_EQ(communicator.getCommID(), 34U);
+    EXPECT_THROW(helper.set("id", "other"), UnrecognizedParameter);
+    EXPECT_THROW(helper.set("name", 56.0), UnrecognizedParameter);
+    EXPECT_THROW(helper.set("id", -1.0), InvalidParameterValue);
+    EXPECT_THROW(helper.set("id", 0x1p64), InvalidParameterValue);
+    EXPECT_EQ(helper.getName(), "renamed");
+    EXPECT_EQ(communicator.getCommID(), 34U);
+}
+
+TEST(CommunicatorTests, NumericFlagUsesFiniteNonzeroValues)
+{
+    Communicator communicator;
+    for (const double value : {0.05, -1.0}) {
+        communicator.set("autopingenabled", 0.0);
+        EXPECT_FALSE(communicator.autoPingEnabled);
+        communicator.set("autopingenabled", value);
+        EXPECT_TRUE(communicator.autoPingEnabled);
+    }
+    EXPECT_THROW(communicator.set("autopingenabled", std::numeric_limits<double>::infinity()),
+                 InvalidParameterValue);
+    EXPECT_TRUE(communicator.autoPingEnabled);
 }
 
 TEST(CommunicatorTests, BasicNamedTransportRoutesAndCleansUp)

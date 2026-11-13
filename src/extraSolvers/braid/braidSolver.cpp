@@ -236,29 +236,26 @@ void braidSolver::initialize(CoreTime t0)
                                    rootsfound);
 }
 
-double braidSolver::get(std::string_view param) const
+const SolverInterface::Description& braidSolver::getSolverDescription() const
 {
-    if (param == "deltat") {
-        return deltaT;
-    } else {
-        return SolverInterface::get(param);
-    }
+    static constexpr Property<double> numeric[]{
+        fixedStepProperty<braidSolver, &braidSolver::deltaT>()};
+    static constexpr Property<std::string_view> text[]{
+        property<braidSolver, &braidSolver::configFile, true>(
+            "configfile", "Braid configuration file", units::defunit, {"config_file"}),
+    };
+    static const Description description{
+        .numeric = numeric, .text = text, .parent = &SolverInterface::getSolverDescription()};
+    return description;
 }
 void braidSolver::set(std::string_view param, std::string_view val)
 {
-    if ((param == "configfile") || (param == "file") || (param == "config_file")) {
-        configFile = std::string{val};
-    } else if (param == "discontinuities") {
+    if (trySetProperty(param, val)) {
+        return;
+    }
+    if (param == "discontinuities") {
         discontinuities = gmlc::utilities::str2vector<double>(std::string{val}, 0.0);
         std::sort(discontinuities.begin(), discontinuities.end(), std::less<>());
-    } else {
-        SolverInterface::set(param, val);
-    }
-}
-void braidSolver::set(std::string_view param, double val)
-{
-    if ((param == "delta") || (param == "deltat") || (param == "step") || (param == "steptime")) {
-        deltaT = val;
     } else {
         SolverInterface::set(param, val);
     }

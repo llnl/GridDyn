@@ -7,6 +7,7 @@
 
 #include "CommMessage.h"
 #include "CommunicationsCore.h"
+#include "core/CoreExceptions.h"
 #include "core/FactoryTemplates.hpp"
 #include "griddyn/griddyn-config.h"
 #include <memory>
@@ -137,18 +138,14 @@ CoreTime Communicator::getLastPingTime() const
 {
     return mLastReplyRx - mLastPingSend;
 }
-void Communicator::set(std::string_view param, std::string_view val)
-{
-    if ((param == "id") || (param == "name")) {
-        setName(val);
-    } else {
-        HelperObject::set(param, val);
-    }
-}
 void Communicator::set(std::string_view param, double val)
 {
-    if ((param == "id") || (param == "name")) {
-        setCommID(static_cast<uint64_t>(val));
+    if (param == "id") {
+        // The upper bound is exclusive because UINT64_MAX rounds up in a double.
+        if (!(val >= 0.0 && val < 0x1p64)) {
+            throw InvalidParameterValue(param);
+        }
+        setCommID(static_cast<std::uint64_t>(val));
     } else {
         HelperObject::set(param, val);
     }

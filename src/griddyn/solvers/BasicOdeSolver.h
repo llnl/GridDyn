@@ -23,7 +23,6 @@ class BasicOdeSolver: public SolverInterface {
     CoreTime deltaT = 0.005;  //!< the default time step
 
   public:
-    using SolverInterface::set;
     /** @brief default constructor*/
     explicit BasicOdeSolver(const std::string& objName = "basicOde");
     /** alternate constructor to feed to SolverInterface
@@ -47,9 +46,7 @@ class BasicOdeSolver: public SolverInterface {
     bool supportsCheckpointRestore() const noexcept override { return true; }
     void restoreFromCheckpoint(CoreTime time) override;
 
-    virtual double get(std::string_view param) const override;
-    virtual void set(std::string_view param, std::string_view val) override;
-    virtual void set(std::string_view param, double val) override;
+    [[nodiscard]] const Description& getSolverDescription() const override;
 
     virtual int
         solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;

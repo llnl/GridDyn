@@ -16,7 +16,6 @@ namespace griddyn::solvers {
  */
 class CvodeInterface: public SundialsInterface {
   public:
-    using SundialsInterface::set;
     count_t icCount = 0;  //!< total number of initial condition calls
 
   private:
@@ -54,9 +53,9 @@ class CvodeInterface: public SundialsInterface {
 
     virtual void logSolverStats(PrintLevel logLevel, bool iconly = false) const override;
     virtual void logErrorWeights(PrintLevel logLevel) const override;
-    virtual void set(std::string_view param, std::string_view val) override;
-    virtual void set(std::string_view param, double val) override;
-    virtual double get(std::string_view param) const override;
+    [[nodiscard]] double get(std::string_view param) const override;
+    using SundialsInterface::set;
+    void set(std::string_view param, double val) override;
 
     // declare friend some helper functions
     friend int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userData);
@@ -73,6 +72,8 @@ class CvodeInterface: public SundialsInterface {
     friend int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* userData);
 
   protected:
+    void applyIterationLimit();
+
     void loadMaskElements();
 };
 

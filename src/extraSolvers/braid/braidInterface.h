@@ -59,9 +59,9 @@ class braidSolver: public SolverInterface {
     virtual void allocate(count_t size, count_t numroots = 0) override;
     virtual void initialize(CoreTime t0) override;
 
-    virtual double get(std::string_view param) const override;
-    virtual void set(std::string_view param, std::string_view val) override;
-    virtual void set(std::string_view param, double val) override;
+    [[nodiscard]] const Description& getSolverDescription() const override;
+    using SolverInterface::set;
+    void set(std::string_view param, std::string_view val) override;
 
     virtual int calcIC(CoreTime t0, CoreTime tstep0, IcModes mode, bool constraints) override;
 

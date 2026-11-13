@@ -120,16 +120,14 @@ void CvodeInterface::setMaxNonZeros(count_t nonZeroCount)
     a1.clear();
 }
 
-void CvodeInterface::set(std::string_view param, std::string_view val)
-{
-    if (param.empty() || param[0] == '#') {
-    } else {
-        SolverInterface::set(param, val);
-    }
-}
-
 void CvodeInterface::set(std::string_view param, double val)
 {
+    if (const auto* field = trySetProperty(param, val)) {
+        if (field->name == "maxiterations") {
+            applyIterationLimit();
+        }
+        return;
+    }
     bool checkStepUpdate = false;
     if (param == "step") {
         if ((maxStep < 0) || (maxStep == step)) {
@@ -149,12 +147,8 @@ void CvodeInterface::set(std::string_view param, double val)
     } else if (param == "minstep") {
         minStep = val;
         checkStepUpdate = true;
-    } else if (param == "maxiterations") {
-        max_iterations = static_cast<count_t>(val);
-        int retval = CVodeSetMaxNumSteps(solverMem, max_iterations);
-        checkFlag(&retval, "CVodeSetMaxNumSteps", 1);
     } else {
-        SolverInterface::set(param, val);
+        SundialsInterface::set(param, val);
     }
     if (checkStepUpdate) {
         if (flags[INITIALIZED_FLAG]) {
@@ -171,8 +165,17 @@ void CvodeInterface::set(std::string_view param, double val)
     }
 }
 
+void CvodeInterface::applyIterationLimit()
+{
+    int retval = CVodeSetMaxNumSteps(solverMem, max_iterations);
+    checkFlag(&retval, "CVodeSetMaxNumSteps", 1);
+}
+
 double CvodeInterface::get(std::string_view param) const
 {
+    if (const auto value = tryGetProperty(param)) {
+        return *value;
+    }
     int val = -1;
     if ((param == "resevals") || (param == "iterationcount")) {
         //    CVodeGetNumResEvals(solverMem, &val);
@@ -317,8 +320,7 @@ void CvodeInterface::initialize(CoreTime time0)
     retval = CVodeSVtolerances(solverMem, tolerance / 100, abstols);
     checkFlag(&retval, "CVodeSVtolerances", 1);
 
-    retval = CVodeSetMaxNumSteps(solverMem, max_iterations);
-    checkFlag(&retval, "CVodeSetMaxNumSteps", 1);
+    applyIterationLimit();
 
     if (!wasInitialized) {
         freeLinearSolver();

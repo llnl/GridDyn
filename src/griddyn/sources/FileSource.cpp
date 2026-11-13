@@ -18,7 +18,10 @@ const ModelDescription& FileSource::getModelDescription() const
         &RampSource::getModelDescription(),
         {flag({"absolute"}, &FileSource::opFlags, USE_ABSOLUTE_TIME_FLAG, "Absolute"),
          flag({"step"}, &FileSource::opFlags, USE_STEP_CHANGE_FLAG, "Step"),
-         command({"fileName", "file"}, units::defunit, "Filename", ModelFieldType::STRING),
+         command({"filename", "file", "fileName"},
+                 units::defunit,
+                 "Load time series from a file",
+                 ModelFieldType::STRING),
          inverseFlag({"relative"}, &FileSource::opFlags, USE_ABSOLUTE_TIME_FLAG, "Relative"),
          inverseFlag({"interpolate"}, &FileSource::opFlags, USE_STEP_CHANGE_FLAG, "Interpolate")});
     return description;
@@ -119,7 +122,8 @@ void FileSource::timestep(CoreTime time, const IOdata& inputs, const SolverMode&
 
 void FileSource::set(std::string_view param, std::string_view val)
 {
-    if ((param == "fileName") || (param == "file")) {
+    if (const auto* field = FileSource::getModelDescription().findLocal(param);
+        field != nullptr && field->name() == "filename") {
         setFile(std::string{val}, 0);
     } else {
         Source::set(param, val);

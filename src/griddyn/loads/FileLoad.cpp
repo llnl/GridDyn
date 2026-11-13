@@ -33,8 +33,10 @@ const ModelDescription& FileLoad::getModelDescription() const
          parameter({"qratio"}, &FileLoad::qratio, units::one, "Qratio"),
          flag({"absolute"}, &FileLoad::opFlags, USE_ABSOLUTE_TIME_FLAG, "Absolute"),
          flag({"step"}, &FileLoad::opFlags, USE_STEP_CHANGE_FLAG, "Step"),
-         command(
-             {"fileName", "file"}, units::defunit, "Configure fileName", ModelFieldType::STRING),
+         command({"filename", "file", "fileName"},
+                 units::defunit,
+                 "Load time series from a file",
+                 ModelFieldType::STRING),
          command({"units"}, units::defunit, "Configure units", ModelFieldType::STRING),
          command({"mode", "timemode"}, units::defunit, "Configure mode", ModelFieldType::STRING),
          inverseFlag({"relative"},
@@ -221,7 +223,8 @@ static int columnCode(const std::string& ldc)
 
 void FileLoad::set(std::string_view param, std::string_view val)
 {
-    if ((param == "fileName") || (param == "file")) {
+    if (const auto* field = FileLoad::getModelDescription().findLocal(param);
+        field != nullptr && field->name() == "filename") {
         fileName_ = val;
         if (opFlags[POWERFLOW_INITIALIZED]) {
             count = 0;

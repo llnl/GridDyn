@@ -857,6 +857,43 @@ TEST(ModelParameterTests, StateOnlyRestoreRetainsCurrentConfiguration)
     EXPECT_EQ(model.mSamples, (std::vector<double>{1.0, 2.0}));
 }
 
+TEST(ModelParameterTests, LocalStateOnlyRestoresInheritedHistoryAndKeepsConfiguration)
+{
+    DerivedParameterModel model;
+    constexpr auto level = FieldSnapshotLevel::LOCAL_STATE;
+    constexpr std::int64_t savedNanoseconds = 9007199254740993LL;
+    model.mRememberedTime = CoreTime(std::chrono::nanoseconds(savedNanoseconds));
+    model.mFlags.set(63);
+    model.updateA(CoreTime(2.0));
+    const auto saved = ModelFieldSnapshot::capture(model, level);
+    EXPECT_EQ(saved.mModelType, "DerivedParameterModel");
+    EXPECT_EQ(saved.mLevel, level);
+
+    model.set("gain", 4.0);
+    model.setFlag("packed", true);
+    model.disable();
+    model.mRememberedTime = timeOneSecond;
+    model.mSamples = {6.0, 7.0};
+    model.mFlags.reset();
+    model.updateA(CoreTime(5.0));
+    saved.restore(model);
+
+    EXPECT_EQ(model.mRememberedTime.to_ns().count(), savedNanoseconds);
+    EXPECT_EQ(model.mSamples, (std::vector<double>{1.0, 2.0}));
+    EXPECT_TRUE(model.mFlags.test(63));
+    EXPECT_DOUBLE_EQ(model.get("lastupdate"), 2.0);
+    EXPECT_DOUBLE_EQ(model.get("gain"), 4.0);
+    EXPECT_TRUE(model.getFlag("packed"));
+    EXPECT_FALSE(model.isEnabled());
+
+    model.mRememberedTime = timeOneSecond;
+    model.mSamples.resize(3);
+    model.updateA(CoreTime(6.0));
+    EXPECT_THROW(saved.restore(model), FileOperationError);
+    EXPECT_EQ(model.mRememberedTime, timeOneSecond);
+    EXPECT_DOUBLE_EQ(model.get("lastupdate"), 6.0);
+}
+
 TEST(ModelParameterTests, RestoreBypassesValidatorsAndOrdinarySetterSideEffects)
 {
     ParameterModel model;

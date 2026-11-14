@@ -7,8 +7,11 @@
 #include "../gtestHelper.h"
 #include "core/CoreExceptions.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/Link.h"
 #include "griddyn/Load.h"
+#include "griddyn/exciters/ExciterSEXS.h"
 #include "griddyn/measurement/Recorder.h"
 #include "griddyn/simulation/GridDynSimulationFileOps.h"
 #include "griddyn/solvers/SolverInterface.h"
@@ -30,6 +33,7 @@
 #include <limits>
 #include <memory>
 #include <nlohmann/json.hpp>
+#include <ranges>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -76,6 +80,16 @@ void disableFixtureRecorderFiles(GridDynSimulation& simulation)
     for (const auto& collector : simulation.getCollectors()) {
         if (auto* recorder = dynamic_cast<Recorder*>(collector.get())) {
             recorder->set("file", "");
+        }
+    }
+}
+
+void nameCheckpointGeneratorModels(GridDynSimulation& simulation)
+{
+    for (index_t ii = 0; ii < 2; ++ii) {
+        auto* generator = simulation.getBus(ii)->getGen();
+        for (const auto* role : {"genmodel", "exciter", "governor"}) {
+            generator->find(role)->setName(role);
         }
     }
 }
@@ -545,6 +559,13 @@ TEST_F(PowerflowSystemTests, BinaryStatePowerFlowRoundTrip)
     const auto mode = gds->getSolverMode("powerflow");
     auto solver = gds->getSolverInterface(mode);
     ASSERT_GT(solver->size(), 0U);
+    auto* bus = gds->getBus(1);
+    auto* link = gds->getLink(0);
+    ASSERT_NE(bus, nullptr);
+    ASSERT_NE(link, nullptr);
+    const auto voltage = bus->getVoltage();
+    const auto angle = bus->getAngle();
+    const auto linkPower = link->getRealPower();
     const std::vector<double> expected(solver->stateData(), solver->stateData() + solver->size());
     gds->set("statefile", file.path.string());
     saveState(gds.get(), "", cEmptySolverMode, false);
@@ -586,9 +607,18 @@ TEST_F(PowerflowSystemTests, BinaryStatePowerFlowRoundTrip)
     EXPECT_EQ(saved.state, expected);
     EXPECT_TRUE(saved.derivatives.empty());
 
+    bus->setVoltageAngle(voltage - 0.1, angle - 0.05);
+    gds->updateLocalCache();
+    ASSERT_GT(std::abs(link->getRealPower() - linkPower), 1e-3);
     std::fill(solver->stateData(), solver->stateData() + solver->size(), -42.0);
     loadStateBinary(gds.get(), "", cEmptySolverMode);
     EXPECT_TRUE(std::equal(expected.begin(), expected.end(), solver->stateData()));
+    EXPECT_DOUBLE_EQ(bus->getVoltage(), voltage - 0.1);
+
+    gds->checkpointRestore(saved, CheckpointRestoreLevel::MINIMAL, mode);
+    EXPECT_DOUBLE_EQ(bus->getVoltage(), voltage);
+    EXPECT_DOUBLE_EQ(bus->getAngle(), angle);
+    EXPECT_NEAR(link->getRealPower(), linkPower, 1e-12);
 }
 
 TEST_F(PowerflowSystemTests, BinaryStateDynamicRoundTripAndAppend)
@@ -728,6 +758,9 @@ TEST_F(PowerflowSystemTests, BinaryStateCheckpointRestoreMultiMachineDae)
     gds = readSimXMLFile(std::string(GRIDDYN_TEST_DIRECTORY) + "/dyn_tests2/test_2m4bDyn.xml");
     ASSERT_NE(gds, nullptr);
     disableFixtureRecorderFiles(*gds);
+    auto* bus = gds->getBus(2);
+    ASSERT_NE(bus, nullptr);
+    bus->setFlag("compute_frequency", true);
 
     const CoreTime captureTime(0.0);
     ASSERT_EQ(gds->dynInitialize(captureTime), FUNCTION_EXECUTION_SUCCESS);
@@ -743,9 +776,15 @@ TEST_F(PowerflowSystemTests, BinaryStateCheckpointRestoreMultiMachineDae)
     ASSERT_EQ(saved.time, captureTime);
     ASSERT_EQ(saved.state.size(), solver->size());
     ASSERT_EQ(saved.derivatives.size(), solver->size());
+    const auto voltage = bus->getVoltage(saved.state.data(), mode);
+    const auto angle = bus->getAngle(saved.state.data(), mode);
+    const auto frequency =
+        bus->getFreq(StateData(saved.time, saved.state.data(), saved.derivatives.data()), mode);
 
     ASSERT_EQ(gds->run(CoreTime(0.02)), FUNCTION_EXECUTION_SUCCESS);
     ASSERT_GT(gds->getSimulationTime(), saved.time);
+    bus->setVoltageAngle(voltage - 0.1, angle - 0.05);
+    bus->set("frequency", frequency + 0.05);
     std::fill(solver->stateData(), solver->stateData() + solver->size(), -91.0);
     std::fill(solver->derivData(), solver->derivData() + solver->size(), -92.0);
 
@@ -756,12 +795,220 @@ TEST_F(PowerflowSystemTests, BinaryStateCheckpointRestoreMultiMachineDae)
               saved.derivatives);
     EXPECT_EQ(gds->getSimulationTime(), saved.time);
     EXPECT_EQ(solver->getSolverTime(), saved.time);
+    EXPECT_DOUBLE_EQ(bus->getVoltage(), voltage);
+    EXPECT_DOUBLE_EQ(bus->getAngle(), angle);
+    EXPECT_DOUBLE_EQ(bus->getFreq(), frequency);
 
     ASSERT_EQ(gds->run(CoreTime(0.025)), FUNCTION_EXECUTION_SUCCESS);
     EXPECT_GT(gds->getSimulationTime(), saved.time);
     EXPECT_TRUE(std::all_of(solver->stateData(),
                             solver->stateData() + solver->size(),
                             [](double value) { return std::isfinite(value); }));
+}
+
+TEST_F(PowerflowSystemTests, LocalStateCheckpointRestoresNestedModelHistory)
+{
+    TemporaryStateFile file;
+    const auto modelFile = std::string(GRIDDYN_TEST_DIRECTORY) + "/dyn_tests2/test_2m4bDyn.xml";
+    gds = readSimXMLFile(modelFile);
+    ASSERT_NE(gds, nullptr);
+    nameCheckpointGeneratorModels(*gds);
+    disableFixtureRecorderFiles(*gds);
+    ASSERT_EQ(gds->run(CoreTime(0.05)), FUNCTION_EXECUTION_SUCCESS);
+
+    auto* bus = gds->getBus(0);
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen();
+    ASSERT_NE(generator, nullptr);
+    CoreObject* exciter = generator->find("exciter");
+    ASSERT_NE(exciter, nullptr);
+
+    const auto bias = [&](double change) {
+        auto savedFields = ModelFieldSnapshot::capture(*exciter, FieldSnapshotLevel::LOCAL_STATE);
+        auto field =
+            std::ranges::find(savedFields.mFields, "operating_bias", &ModelFieldEntry::mName);
+        if (field == savedFields.mFields.end()) {
+            throw FileOperationError("fixture exciter lacks operating bias");
+        }
+        const auto original = std::get<double>(field->mValue);
+        if (change != 0.0) {
+            field->mValue = original + change;
+            savedFields.restore(*exciter);
+        }
+        return original;
+    };
+    const auto savedBias = bias(0.0);
+    constexpr std::int64_t exactClock = 9007199254740993LL;
+    exciter->updateA(CoreTime(std::chrono::nanoseconds(exactClock)));
+    const auto voltage = bus->getVoltage();
+    const auto captured = gds->checkpointCapture();
+    const auto path = file.path.string();
+    saveStateBinary(gds.get(), path, captured.mode, false);
+    EXPECT_THROW(gds->checkpointRestore(path, CheckpointRestoreLevel::LOCAL_STATE),
+                 FileOperationError);
+    gds->checkpointCapture(path, captured.mode, true);
+    exportMatlabStateFixture(file.path, "local-state-checkpoint.h5");
+    const auto decoded = readStateBinary(path);
+    ASSERT_TRUE(decoded.localState.has_value());
+    EXPECT_EQ(decoded.state, captured.state);
+    EXPECT_EQ(decoded.stateNames, captured.stateNames);
+
+    ASSERT_EQ(gds->run(CoreTime(0.1)), FUNCTION_EXECUTION_SUCCESS);
+    const auto reference = gds->getState(captured.mode);
+    bias(0.02);
+    exciter->updateA(timeOneSecond);
+    const auto changedBias = bias(0.0);
+    auto incomplete = decoded;
+    incomplete.localState->pop_back();
+    EXPECT_THROW(gds->checkpointRestore(incomplete, CheckpointRestoreLevel::LOCAL_STATE),
+                 FileOperationError);
+    auto badField = decoded;
+    ASSERT_FALSE(badField.localState->back().fields.mFields.empty());
+    badField.localState->back().fields.mFields.back().mValue = std::string("wrong type");
+    EXPECT_THROW(gds->checkpointRestore(badField, CheckpointRestoreLevel::LOCAL_STATE),
+                 FileOperationError);
+    auto mismatched = decoded;
+    ASSERT_FALSE(mismatched.stateNames.empty());
+    mismatched.stateNames.back() += " invalid";
+    EXPECT_THROW(gds->checkpointRestore(mismatched, CheckpointRestoreLevel::LOCAL_STATE),
+                 FileOperationError);
+    EXPECT_EQ(gds->getState(captured.mode), reference);
+    EXPECT_DOUBLE_EQ(bias(0.0), changedBias);
+    EXPECT_EQ(gds->getSimulationTime(), CoreTime(0.1));
+
+    gds->checkpointRestore(path, CheckpointRestoreLevel::LOCAL_STATE);
+    EXPECT_EQ(gds->getSimulationTime(), captured.time);
+    EXPECT_DOUBLE_EQ(bus->getVoltage(), voltage);
+    EXPECT_DOUBLE_EQ(bias(0.0), savedBias);
+    auto exciterFields = ModelFieldSnapshot::capture(*exciter, FieldSnapshotLevel::LOCAL_STATE);
+    const auto clock =
+        std::ranges::find(exciterFields.mFields, "lastUpdateTime", &ModelFieldEntry::mName);
+    ASSERT_NE(clock, exciterFields.mFields.end());
+    EXPECT_EQ(std::get<CoreTime>(clock->mValue).to_ns().count(), exactClock);
+
+    ASSERT_EQ(gds->run(CoreTime(0.1)), FUNCTION_EXECUTION_SUCCESS);
+    const auto replay = gds->getState(captured.mode);
+    ASSERT_EQ(replay.size(), reference.size());
+    for (std::size_t ii = 0; ii < reference.size(); ++ii) {
+        EXPECT_NEAR(replay[ii], reference[ii], 1e-6);
+    }
+
+    bias(0.01);
+    gds->checkpointRestore(captured, CheckpointRestoreLevel::LOCAL_STATE);
+    EXPECT_DOUBLE_EQ(bias(0.0), savedBias);
+
+    gds2 = readSimXMLFile(modelFile);
+    ASSERT_NE(gds2, nullptr);
+    nameCheckpointGeneratorModels(*gds2);
+    disableFixtureRecorderFiles(*gds2);
+    ASSERT_EQ(gds2->dynInitialize(), FUNCTION_EXECUTION_SUCCESS);
+    gds2->checkpointRestore(path, CheckpointRestoreLevel::LOCAL_STATE);
+    EXPECT_EQ(gds2->getState(captured.mode), captured.state);
+    EXPECT_EQ(gds2->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
+    ASSERT_EQ(gds2->run(CoreTime(0.1)), FUNCTION_EXECUTION_SUCCESS);
+    const auto restarted = gds2->getState(captured.mode);
+    ASSERT_EQ(restarted.size(), reference.size());
+    for (std::size_t ii = 0; ii < reference.size(); ++ii) {
+        EXPECT_NEAR(restarted[ii], reference[ii], 1e-6);
+    }
+}
+
+TEST_F(PowerflowSystemTests, FileCheckpointContinuesWithAnActiveExciterLimitAfterReload)
+{
+    TemporaryStateFile file;
+    const auto modelFile = std::string(GRIDDYN_TEST_DIRECTORY) + "/dyn_tests2/test_2m4bDyn.xml";
+    const auto prepare = [&] {
+        gds = readSimXMLFile(modelFile);
+        ASSERT_NE(gds, nullptr);
+        nameCheckpointGeneratorModels(*gds);
+        auto* generator = gds->getBus(0)->getGen();
+        ASSERT_NE(generator, nullptr);
+        auto* exciter = new exciters::ExciterSEXS("exciter");
+        exciter->set("ta", 0.0);
+        exciter->set("tb", 0.20);
+        exciter->set("te", 0.15);
+        exciter->set("vrmax", 3.0);
+        exciter->set("vrmin", -2.0);
+        generator->add(exciter);
+    };
+    const auto limiterFlag = [](const CoreObject& exciter, std::string_view name) {
+        return std::get<bool>(exciter.getModelDescription().find(name)->value(exciter));
+    };
+    const auto path = file.path.string();
+    const CoreTime captureTime(0.65);
+    const std::array sampleTimes{CoreTime(0.75), CoreTime(0.85), CoreTime(0.95)};
+    std::vector<std::vector<double>> reference;
+    double steppedReference = 0.0;
+    ASSERT_NO_FATAL_FAILURE(prepare());
+    {
+        auto* exciter = gds->getBus(0)->getGen()->find("exciter");
+        ASSERT_EQ(gds->run(CoreTime(0.05)), FUNCTION_EXECUTION_SUCCESS);
+        ASSERT_FALSE(limiterFlag(*exciter, "limiter_active"));
+        steppedReference = exciter->get("vref") + 0.25;
+        exciter->set("vref", steppedReference);
+        ASSERT_EQ(gds->run(captureTime), FUNCTION_EXECUTION_SUCCESS);
+        ASSERT_TRUE(limiterFlag(*exciter, "limiter_active"));
+        ASSERT_TRUE(limiterFlag(*exciter, "limiter_high"));
+        gds->checkpointCapture(path);
+
+        for (const auto time : sampleTimes) {
+            ASSERT_EQ(gds->run(time), FUNCTION_EXECUTION_SUCCESS);
+            reference.push_back(gds->getState(gds->getCurrentMode()));
+        }
+    }
+    gds.reset();
+
+    ASSERT_NO_FATAL_FAILURE(prepare());
+    ASSERT_EQ(gds->dynInitialize(), FUNCTION_EXECUTION_SUCCESS);
+    auto* exciter = gds->getBus(0)->getGen()->find("exciter");
+    ASSERT_FALSE(limiterFlag(*exciter, "limiter_active"));
+    // The file restores local history. Reapply the same reference step as configuration.
+    exciter->set("vref", steppedReference);
+    gds->checkpointRestore(path, CheckpointRestoreLevel::LOCAL_STATE);
+    EXPECT_EQ(gds->getSimulationTime(), captureTime);
+    EXPECT_TRUE(limiterFlag(*exciter, "limiter_active"));
+    EXPECT_TRUE(limiterFlag(*exciter, "limiter_high"));
+
+    for (std::size_t sample = 0; sample < sampleTimes.size(); ++sample) {
+        SCOPED_TRACE(sample);
+        ASSERT_EQ(gds->run(sampleTimes[sample]), FUNCTION_EXECUTION_SUCCESS);
+        const auto restarted = gds->getState(gds->getCurrentMode());
+        ASSERT_EQ(restarted.size(), reference[sample].size());
+        for (std::size_t ii = 0; ii < restarted.size(); ++ii) {
+            EXPECT_NEAR(restarted[ii], reference[sample][ii], 1e-5) << "state " << ii;
+        }
+        EXPECT_TRUE(limiterFlag(*exciter, "limiter_active"));
+    }
+}
+
+TEST_F(PowerflowSystemTests, LocalStateCheckpointRestoresBothPartitionedBlocks)
+{
+    TemporaryStateFile file;
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_dynamic_example.xml");
+    ASSERT_NE(gds, nullptr);
+    disableFixtureRecorderFiles(*gds);
+    gds->set("dynamicsolvermethod", "partitioned");
+    ASSERT_EQ(gds->run(CoreTime(0.05)), FUNCTION_EXECUTION_SUCCESS);
+    const auto mode = gds->getSolverMode("differential");
+    const auto path = file.path.string();
+    auto* bus = gds->getBus(1);
+    ASSERT_NE(bus, nullptr);
+    bus->updateA(CoreTime(0.02));
+    gds->checkpointCapture(path, mode);
+    const auto saved = readStateBinary(path);
+    ASSERT_EQ(saved.paired.size(), 1U);
+    ASSERT_EQ(saved.state.size(), saved.stateNames.size());
+    ASSERT_EQ(saved.paired.front().state.size(), saved.paired.front().stateNames.size());
+    ASSERT_EQ(gds->run(CoreTime(0.1)), FUNCTION_EXECUTION_SUCCESS);
+    bus->updateA(CoreTime(0.09));
+
+    gds->checkpointRestore(path, CheckpointRestoreLevel::MINIMAL, mode);
+    EXPECT_DOUBLE_EQ(bus->get("lastupdate"), 0.09);
+    gds->checkpointRestore(path, CheckpointRestoreLevel::LOCAL_STATE, mode);
+    EXPECT_DOUBLE_EQ(bus->get("lastupdate"), 0.02);
+    EXPECT_EQ(gds->getState(mode), saved.state);
+    EXPECT_EQ(gds->getState(saved.paired.front().mode), saved.paired.front().state);
+    EXPECT_EQ(gds->getSimulationTime(), saved.time);
 }
 
 TEST_F(PowerflowSystemTests, BinaryStatePeriodicDynamicOutput)
@@ -1046,6 +1293,20 @@ TEST_F(PowerflowSystemTests, Hdf5PartitionedStateRoundTrip)
                   differential->getSolverMode().offsetIndex);
         ASSERT_EQ(saved.state.size(), differential->size());
         ASSERT_EQ(saved.paired.front().state.size(), algebraic->size());
+        const auto& diffMode = differential->getSolverMode();
+        const auto& algMode = algebraic->getSolverMode();
+        auto* loadBus = gds->getBus(1);
+        auto* generatorBus = gds->getBus(0);
+        ASSERT_NE(loadBus, nullptr);
+        ASSERT_NE(generatorBus, nullptr);
+        auto* generator = generatorBus->getGen();
+        ASSERT_NE(generator, nullptr);
+        index_t rotorAngleIndex = kNullLocation;
+        generator->getAngle(emptyStateData, diffMode, &rotorAngleIndex);
+        ASSERT_TRUE(isValidIndex(rotorAngleIndex, saved.state));
+        const auto rotorAngle = saved.state[rotorAngleIndex];
+        const auto voltage = loadBus->getVoltage(saved.paired.front().state.data(), algMode);
+        const auto angle = loadBus->getAngle(saved.paired.front().state.data(), algMode);
         std::fill(differential->stateData(),
                   differential->stateData() + differential->size(),
                   -999.0);
@@ -1058,6 +1319,13 @@ TEST_F(PowerflowSystemTests, Hdf5PartitionedStateRoundTrip)
 
         ASSERT_EQ(gds->run(CoreTime(0.10)), FUNCTION_EXECUTION_SUCCESS);
         ASSERT_GT(gds->getSimulationTime(), saved.time);
+        loadBus->setVoltageAngle(voltage - 0.1, angle - 0.05);
+        differential->stateData()[rotorAngleIndex] = rotorAngle + 0.1;
+        gds->setState(gds->getSimulationTime(),
+                      differential->stateData(),
+                      differential->derivData(),
+                      diffMode);
+        ASSERT_DOUBLE_EQ(generator->getAngle(emptyStateData, cLocalSolverMode), rotorAngle + 0.1);
         std::fill(differential->stateData(),
                   differential->stateData() + differential->size(),
                   -777.0);
@@ -1078,9 +1346,25 @@ TEST_F(PowerflowSystemTests, Hdf5PartitionedStateRoundTrip)
         EXPECT_EQ(gds->getSimulationTime(), saved.time);
         EXPECT_EQ(differential->getSolverTime(), saved.time);
         EXPECT_EQ(algebraic->getSolverTime(), saved.time);
+        EXPECT_DOUBLE_EQ(loadBus->getVoltage(), voltage);
+        EXPECT_DOUBLE_EQ(loadBus->getAngle(), angle);
+        EXPECT_DOUBLE_EQ(generator->getAngle(emptyStateData, cLocalSolverMode), rotorAngle);
 
         const auto fixture = name + "-paired-state.h5";
         exportMatlabStateFixture(file.path, fixture.c_str());
+
+        auto& paired = saved.paired.front();
+        std::swap(saved.mode, paired.mode);
+        std::swap(saved.state, paired.state);
+        std::swap(saved.derivatives, paired.derivatives);
+        loadBus->setVoltageAngle(voltage - 0.05, angle - 0.1);
+        differential->stateData()[rotorAngleIndex] = rotorAngle - 0.1;
+        gds->setState(saved.time, differential->stateData(), differential->derivData(), diffMode);
+
+        gds->checkpointRestore(saved, CheckpointRestoreLevel::MINIMAL, algMode);
+        EXPECT_DOUBLE_EQ(loadBus->getVoltage(), voltage);
+        EXPECT_DOUBLE_EQ(loadBus->getAngle(), angle);
+        EXPECT_DOUBLE_EQ(generator->getAngle(emptyStateData, cLocalSolverMode), rotorAngle);
     }
 }
 
@@ -1120,6 +1404,30 @@ TEST_F(PowerflowSystemTests, PFlowOffsetsRestoredAfterDynamicInitialization)
     ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
     EXPECT_TRUE(gds->getOffsets(cPflowSolverMode).offsetsLoaded);
     EXPECT_EQ(bus30->getOffsets(cPflowSolverMode).aOffset, originalAngleOffset);
+}
+
+TEST_F(PowerflowSystemTests, BinaryStateCheckpointRestoreRebuildsPowerFlowOffsets)
+{
+    TemporaryStateFile file;
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "iterated_test_case.xml");
+    ASSERT_NE(gds, nullptr);
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    const auto mode = gds->getSolverMode("powerflow");
+    auto* bus = gds->findByUserID("bus", 30);
+    auto* bus30 = dynamic_cast<GridBus*>(bus);
+    ASSERT_NE(bus30, nullptr);
+    const auto voltage = bus30->getVoltage();
+    const auto angle = bus30->getAngle();
+    saveStateBinary(gds.get(), file.path.string(), mode, false);
+
+    ASSERT_EQ(gds->dynInitialize(), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_FALSE(gds->getOffsets(mode).offsetsLoaded);
+    bus30->setVoltageAngle(voltage - 0.1, angle - 0.05);
+
+    gds->checkpointRestore(file.path.string(), CheckpointRestoreLevel::MINIMAL, mode);
+    EXPECT_TRUE(gds->getOffsets(mode).offsetsLoaded);
+    EXPECT_DOUBLE_EQ(bus30->getVoltage(), voltage);
+    EXPECT_DOUBLE_EQ(bus30->getAngle(), angle);
 }
 
 /** test case for a floating bus ie a bus off a line with no load*/

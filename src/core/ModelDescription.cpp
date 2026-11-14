@@ -47,9 +47,10 @@ namespace {
 
     bool selected(const ModelField& field, FieldSnapshotLevel level)
     {
-        return field.kind() == ModelFieldKind::FLAG ||
-            field.kind() == ModelFieldKind::LOCAL_STATE ||
-            (field.kind() == ModelFieldKind::PARAMETER && level == FieldSnapshotLevel::PARAMETERS);
+        const auto kind = field.kind();
+        return kind == ModelFieldKind::LOCAL_STATE ||
+            (kind == ModelFieldKind::FLAG && level != FieldSnapshotLevel::LOCAL_STATE) ||
+            (kind == ModelFieldKind::PARAMETER && level == FieldSnapshotLevel::PARAMETERS);
     }
 
     struct SnapshotField {
@@ -61,7 +62,8 @@ namespace {
                         FieldSnapshotLevel level,
                         std::vector<SnapshotField>& fields)
     {
-        if (level != FieldSnapshotLevel::STATE && level != FieldSnapshotLevel::PARAMETERS) {
+        if (level != FieldSnapshotLevel::STATE && level != FieldSnapshotLevel::PARAMETERS &&
+            level != FieldSnapshotLevel::LOCAL_STATE) {
             throw FileOperationError("unsupported field snapshot level");
         }
         std::vector<const ModelDescription*> hierarchy;
@@ -686,6 +688,11 @@ ModelFieldSnapshot ModelFieldSnapshot::capture(const CoreObject& object, FieldSn
 
 void ModelFieldSnapshot::restore(CoreObject& object) const
 {
+    prepareRestore(object)();
+}
+
+ModelField::Assignment ModelFieldSnapshot::prepareRestore(CoreObject& object) const
+{
     const auto& description = object.getModelDescription();
     if (!description.describesExactType(object) || mModelType != description.name()) {
         throw FileOperationError("field snapshot model class does not match");
@@ -704,9 +711,11 @@ void ModelFieldSnapshot::restore(CoreObject& object) const
         }
         assignments.push_back(expected[ii].mField->mRestore(object, mFields[ii].mValue));
     }
-    for (auto& assignment : assignments) {
-        assignment();
-    }
+    return [assignments = std::move(assignments)]() mutable {
+        for (auto& assignment : assignments) {
+            assignment();
+        }
+    };
 }
 
 ModelField state(std::initializer_list<std::string_view> names,

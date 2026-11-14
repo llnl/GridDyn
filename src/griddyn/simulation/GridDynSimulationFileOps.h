@@ -7,8 +7,10 @@
 #pragma once
 
 #include "../solvers/SolverMode.hpp"
+#include "core/ModelDescription.h"
 #include <limits>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 template<class Y>
@@ -25,15 +27,25 @@ struct BinaryStateBlock {
     SolverMode mode = cEmptySolverMode;
     std::vector<double> state;
     std::vector<double> derivatives;
+    std::vector<std::string> stateNames;
 };
 
-/** @brief One HDF5 solver-state frame, including paired solver blocks when present. */
+struct ComponentStateSnapshot {
+    std::vector<std::string> path;  //!< Root-relative path, empty for the simulation itself.
+    ModelFieldSnapshot fields;
+    bool enabled = true;
+    bool connected = true;
+};
+
+/** @brief One HDF5 solver frame with optional declared local state. */
 struct BinaryStateData {
     CoreTime time = timeZero;  //!< simulation time at capture
     SolverMode mode = cEmptySolverMode;  //!< recorded solver mode
     std::vector<double> state;
     std::vector<double> derivatives;  //!< empty for modes without differential states
     std::vector<BinaryStateBlock> paired;
+    std::vector<std::string> stateNames;
+    std::optional<std::vector<ComponentStateSnapshot>> localState;
 };
 
 /** @brief save the current state to a file

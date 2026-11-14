@@ -431,17 +431,17 @@ Snapshot membership follows the declaration, with no model-specific overrides.
 These are per-object field snapshots; the solver vector is a separate payload,
 and a simulation-level coordinator must collect and identify every object:
 
-| Data         | State-level field snapshot  | Parameter-level field snapshot |
-| ------------ | --------------------------- | ------------------------------ |
-| Parameters   | Keep current values         | Restore                        |
-| Flags        | Restore                     | Restore                        |
-| Solver state | Restore from solver payload | Restore from solver payload    |
-| Local state  | Restore                     | Restore                        |
+| Data         | `LOCAL_STATE`               | `STATE`                     | `PARAMETERS`                |
+| ------------ | --------------------------- | --------------------------- | --------------------------- |
+| Parameters   | Keep current values         | Keep current values         | Restore                     |
+| Flags        | Keep current values         | Restore                     | Restore                     |
+| Solver state | Restore from solver payload | Restore from solver payload | Restore from solver payload |
+| Local state  | Restore                     | Restore                     | Restore                     |
 
-Commands and reconstructible derived values are omitted. Thus a state-only
-restore keeps changed P/Q, exponents and scheduling parameters; a full parameter
-snapshot restores those settings too. Flags follow one consistent rule in both
-levels.
+Snapshot capture and restore use the existing `localState(...)` bindings for
+inherited and model-specific fields. A Boolean declared as `localState`, such
+as an exciter limiter bit, is restored at every level. Commands and derived
+values that can be rebuilt are outside the snapshot.
 
 ```cpp
 auto saved = ModelFieldSnapshot::capture(load); // full parameter level by default

@@ -6,6 +6,7 @@
 
 #include "../gtestHelper.h"
 #include "core/CoreExceptions.h"
+#include "core/ModelDescription.h"
 #include "core/ObjectFactory.hpp"
 #include "griddyn/Governor.h"
 #include "griddyn/exciters/ExciterIEEEtype1.h"
@@ -13,9 +14,17 @@
 #include "griddyn/loads/FileLoad.h"
 #include "griddyn/loads/SourceLoad.h"
 #include "griddyn/loads/ZipLoad.h"
+#include <bitset>
+#include <cstddef>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <memory>
+#include <set>
 #include <string>
+#include <type_traits>
+#include <typeindex>
+#include <variant>
 
 // test case for CoreObject object
 
@@ -183,10 +192,94 @@ TEST(CoreTests, GridDynTime)
     EXPECT_NEAR(dval3, -1.0, 1e-9);
 }
 
-/** test case to construct all objects and do some potentially problematic things to them to ensure
-the object doesn't break or cause a fault
-*/
+TEST(CoreTests, RegisteredModelsRoundTripEveryDeclaredLocalStateField)
+{
+    auto factory = CoreObjectFactory::instance();
+    std::set<std::type_index> tested;
+    std::set<std::string> missingDescriptions;
+    std::size_t fieldsTested = 0;
+    for (const auto& category : factory->getFactoryNames()) {
+        for (const auto& type : factory->getTypeNames(category)) {
+            SCOPED_TRACE(category + "/" + type);
+            std::unique_ptr<CoreObject> model(factory->createObject(category, type));
+            ASSERT_NE(model, nullptr);
+            const auto& description = model->getModelDescription();
+            const auto& object = *model;
+            if (!tested.insert(typeid(object)).second) {
+                continue;
+            }
+            if (!description.describesExactType(object)) {
+                missingDescriptions.insert(category + "/" + type);
+                continue;
+            }
 
+            auto snapshot = ModelFieldSnapshot::capture(object, FieldSnapshotLevel::LOCAL_STATE);
+            std::size_t fieldCount = 0;
+            for (const auto* table = &description; table != nullptr; table = table->parent()) {
+                for (const auto& field : table->fields()) {
+                    if (field.kind() == ModelFieldKind::LOCAL_STATE) {
+                        ++fieldCount;
+                    }
+                }
+            }
+            ASSERT_EQ(snapshot.mFields.size(), fieldCount);
+            for (auto& entry : snapshot.mFields) {
+                SCOPED_TRACE(entry.mDeclaringClass + "::" + entry.mName);
+                const auto* owner = &description;
+                while (owner != nullptr && owner->name() != entry.mDeclaringClass) {
+                    owner = owner->parent();
+                }
+                ASSERT_NE(owner, nullptr);
+                const auto* field = owner->findLocal(entry.mName);
+                ASSERT_NE(field, nullptr);
+                ASSERT_EQ(field->kind(), ModelFieldKind::LOCAL_STATE);
+                entry.mValue = std::visit(
+                    [](const auto& value) -> ModelFieldValue {
+                        using Value = std::decay_t<decltype(value)>;
+                        if constexpr (std::is_same_v<Value, CoreTime>) {
+                            return value == timeOneSecond ? timeZero : timeOneSecond;
+                        } else if constexpr (std::is_same_v<Value, bool>) {
+                            return !value;
+                        } else if constexpr (std::is_arithmetic_v<Value>) {
+                            return value == Value{1} ? Value{0} : Value{1};
+                        } else if constexpr (std::is_same_v<Value, std::string>) {
+                            return value + " changed";
+                        } else if constexpr (std::is_same_v<Value, std::bitset<64>>) {
+                            return ~value;
+                        } else {
+                            auto copy = value;
+                            for (auto& element : copy) {
+                                element = element == 1.0 ? 0.0 : 1.0;
+                            }
+                            return copy;
+                        }
+                    },
+                    entry.mValue);
+                ++fieldsTested;
+            }
+            model->CoreObject::disable();
+            snapshot.restore(*model);
+            EXPECT_FALSE(model->isEnabled());
+            const auto actual =
+                ModelFieldSnapshot::capture(*model, FieldSnapshotLevel::LOCAL_STATE);
+            ASSERT_EQ(actual.mFields.size(), snapshot.mFields.size());
+            for (std::size_t ii = 0; ii < snapshot.mFields.size(); ++ii) {
+                const auto& expected = snapshot.mFields[ii];
+                SCOPED_TRACE(expected.mDeclaringClass + "::" + expected.mName);
+                EXPECT_EQ(actual.mFields[ii].mDeclaringClass, expected.mDeclaringClass);
+                EXPECT_EQ(actual.mFields[ii].mName, expected.mName);
+                EXPECT_EQ(actual.mFields[ii].mValue, expected.mValue);
+            }
+        }
+    }
+    EXPECT_GT(tested.size(), 80U);
+    EXPECT_GT(fieldsTested, 100U);
+    RecordProperty("model_types", static_cast<int>(tested.size()));
+    RecordProperty("local_state_fields", static_cast<int>(fieldsTested));
+    EXPECT_TRUE(missingDescriptions.empty()) << ::testing::PrintToString(missingDescriptions);
+}
+
+/** Exercise construction, access, and cloning for factory-registered objects. */
 TEST(CoreTests, ObjectProbe)
 {
     auto cof = CoreObjectFactory::instance();

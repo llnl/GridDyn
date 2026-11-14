@@ -56,7 +56,8 @@ using ModelFieldValue = std::variant<double,
                                      std::vector<double>,
                                      std::bitset<64>>;
 
-enum class FieldSnapshotLevel : std::uint8_t { STATE, PARAMETERS };
+/** Select which declarations a field snapshot captures and restores. */
+enum class FieldSnapshotLevel : std::uint8_t { STATE, PARAMETERS, LOCAL_STATE };
 
 /** Outcome of local setter dispatch. Commands still require class-specific handling. */
 enum class SetResult : std::uint8_t {
@@ -332,6 +333,8 @@ class ModelFieldSnapshot {
     static ModelFieldSnapshot capture(const CoreObject& object,
                                       FieldSnapshotLevel level = FieldSnapshotLevel::PARAMETERS);
     void restore(CoreObject& object) const;
+    /** Validate and stage assignments for an object that must live until commit. */
+    [[nodiscard]] ModelField::Assignment prepareRestore(CoreObject& object) const;
     std::string mModelType;
     FieldSnapshotLevel mLevel = FieldSnapshotLevel::PARAMETERS;
     std::vector<ModelFieldEntry> mFields;

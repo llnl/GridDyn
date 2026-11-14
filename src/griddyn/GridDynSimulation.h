@@ -17,6 +17,7 @@
 #include "griddyn/griddyn-config.h"
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <memory>
 #include <queue>
 #include <string>
@@ -39,7 +40,8 @@ class GridLoad;
 /** Selects how much of a binary state capture is applied to a simulation. */
 enum class CheckpointRestoreLevel : std::uint8_t {
     SOLVER_STATE_ONLY,  //!< Restore solver vectors without changing simulation time.
-    MINIMAL,  //!< Restore solver vectors and restart solver/simulation time at the captured point.
+    MINIMAL,  //!< Restart at the captured time and publish the solver state to the components.
+    LOCAL_STATE,  //!< Also restore declared component history from a checkpoint capture.
 };
 
 /** additional flags for the controlFlags bitset*/
@@ -626,13 +628,24 @@ class GridDynSimulation: public GridSimulation {
     */
     SolverMode getCurrentMode(const SolverMode& sMode = cEmptySolverMode) const;
 
+    /** Capture solver vectors and declared local state at an accepted simulation point. */
+    [[nodiscard]] BinaryStateData
+        checkpointCapture(const SolverMode& mode = cEmptySolverMode) const;
+
+    /** Capture an accepted point and write it as one HDF5 frame. */
+    void checkpointCapture(const std::string& fileName,
+                           const SolverMode& mode = cEmptySolverMode,
+                           bool append = false) const;
+
     /** Restore a binary solver-state capture into this initialized simulation.
      *
      * MINIMAL restores the solver vectors and derivative vectors, resets the
      * backend from those arrays at the captured time, and updates the simulation
-     * clock. It does not restore model fields, event progress, or other runtime
-     * state. SOLVER_STATE_ONLY performs the vector load without changing the
-     * simulation clock or backend integration history.
+     * clock. It publishes the restored solver state to components and refreshes
+     * their output caches. Independent model fields and event progress are outside
+     * the capture. SOLVER_STATE_ONLY copies the vectors into the solver buffers only.
+     * LOCAL_STATE adds declared local history and requires a checkpointCapture frame
+     * and the same initialized model, configuration, and component status.
      *
      * If mode is empty, the captured mode is matched to an initialized solver
      * in this simulation. Pass mode to disambiguate multiple compatible solvers.
@@ -817,6 +830,7 @@ class GridDynSimulation: public GridSimulation {
     bool checkEventsForDynamicReset(CoreTime cTime, const SolverMode& sMode);
 
   private:
+    std::map<std::vector<std::string>, CoreObject*> checkpointChildren() const;
     void setupDynamicDAE();
     void setupDynamicPartitioned();
 

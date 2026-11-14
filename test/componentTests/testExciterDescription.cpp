@@ -414,7 +414,7 @@ TEST(ExciterDescriptionTests, KeepsDistinctLimiterHistoryAtTheSameBoundaryState)
     model.setState(2.0, states.data(), rates.data(), cLocalSolverMode);
     EXPECT_EQ(model.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::FULL_CHECK),
               ChangeCode::NO_CHANGE);
-    const auto freeBranch = ModelFieldSnapshot::capture(model, FieldSnapshotLevel::STATE);
+    const auto freeBranch = ModelFieldSnapshot::capture(model, FieldSnapshotLevel::LOCAL_STATE);
     const StateData data(2.0, states.data(), rates.data());
     IOlocs inputLocations(exciterInputCount, kNullLocation);
     MatrixDataSparse<double> freeJacobian;
@@ -424,7 +424,7 @@ TEST(ExciterDescriptionTests, KeepsDistinctLimiterHistoryAtTheSameBoundaryState)
     model.rootTrigger(2.0, inputs, {1}, cLocalSolverMode);
     ASSERT_TRUE(historyBit(model, "limiter_active"));
     ASSERT_TRUE(historyBit(model, "limiter_high"));
-    const auto limitedBranch = ModelFieldSnapshot::capture(model, FieldSnapshotLevel::STATE);
+    const auto limitedBranch = ModelFieldSnapshot::capture(model, FieldSnapshotLevel::LOCAL_STATE);
     EXPECT_EQ(model.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::FULL_CHECK),
               ChangeCode::NO_CHANGE);
     MatrixDataSparse<double> limitedJacobian;

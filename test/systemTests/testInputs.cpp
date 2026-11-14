@@ -24,6 +24,7 @@
 #include <memory>
 #include <print>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 // test case for CoreObject object
@@ -685,18 +686,29 @@ TEST_F(InputTests, EpcEmptyInjectionGroupsAreIgnoredSilently)
 }
 
 struct CompareCase {
-    std::array<std::string_view, 3> fileNames;
-    size_t fileCount;
+    std::string_view referenceFile;
+    std::array<std::string_view, 2> comparisonFiles;
+    int busCount;
 };
 
 static constexpr std::array<CompareCase, 5> COMPARE_CASES{{
-    {.fileNames = {{"ieee14_act.cdf", "IEEE 14 bus.epc", "IEEE 14 bus.raw"}}, .fileCount = 3},
-    {.fileNames = {{"ieee118_act.cdf", "ieee118.psp", "IEEE 118 Bus.EPC"}}, .fileCount = 3},
-    {.fileNames = {{"IEEE39.raw", "ieee39_v29.raw", ""}}, .fileCount = 2},
-    {.fileNames =
-         {{"powerflowWECC179_v30.raw", "powerflowWECC179_v31.raw", "powerflowWECC179_v32.raw"}},
-     .fileCount = 3},
-    {.fileNames = {{"ieee30_no_limit.cdf", "testCSV.xml", ""}}, .fileCount = 2},
+    {.referenceFile = IEEE_TEST_DIRECTORY "ieee14_act.cdf",
+     .comparisonFiles = {IEEE_TEST_DIRECTORY "IEEE 14 bus.epc",
+                         IEEE_TEST_DIRECTORY "IEEE 14 bus.raw"},
+     .busCount = 14},
+    {.referenceFile = IEEE_TEST_DIRECTORY "ieee118_act.cdf",
+     .comparisonFiles = {IEEE_TEST_DIRECTORY "ieee118.psp", IEEE_TEST_DIRECTORY "IEEE 118 Bus.EPC"},
+     .busCount = 118},
+    {.referenceFile = IEEE_TEST_DIRECTORY "IEEE39.raw",
+     .comparisonFiles = {IEEE_TEST_DIRECTORY "ieee39_v29.raw", {}},
+     .busCount = 39},
+    {.referenceFile = INPUT_TEST_DIRECTORY "powerflowWECC179_v30.raw",
+     .comparisonFiles = {INPUT_TEST_DIRECTORY "powerflowWECC179_v31.raw",
+                         INPUT_TEST_DIRECTORY "powerflowWECC179_v32.raw"},
+     .busCount = 179},
+    {.referenceFile = IEEE_TEST_DIRECTORY "ieee30_no_limit.cdf",
+     .comparisonFiles = {INPUT_TEST_DIRECTORY "testCSV.xml", {}},
+     .busCount = 30},
 }};
 
 static void runCompareCase(GridDynSimulationTestFixture& fixture, const CompareCase& compareCase)
@@ -708,90 +720,49 @@ static void runCompareCase(GridDynSimulationTestFixture& fixture, const CompareC
 
     fixture.gds = std::make_unique<GridDynSimulation>();
 
-    SCOPED_TRACE(compareCase.fileNames[0]);
-    std::string fileName = std::string(IEEE_TEST_DIRECTORY) + std::string{compareCase.fileNames[0]};
-    if (!std::filesystem::exists(fileName)) {
-        fileName = std::string(INPUT_TEST_DIRECTORY) + std::string{compareCase.fileNames[0]};
-    }
-    loadFile(fixture.gds, fileName);
-
-    int bcount = fixture.gds->getInt("totalbuscount");
-    int lcount = fixture.gds->getInt("totallinkcount");
-
-    fixture.gds->powerflow();
+    SCOPED_TRACE(compareCase.referenceFile);
+    ASSERT_TRUE(std::filesystem::is_regular_file(compareCase.referenceFile));
+    loadFile(fixture.gds, std::string{compareCase.referenceFile});
+    ASSERT_EQ(fixture.gds->getInt("totalbuscount"), compareCase.busCount);
+    const auto linkCount = fixture.gds->getInt("totallinkcount");
+    ASSERT_EQ(fixture.gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(fixture.gds->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     fixture.gds->getVoltage(volts1);
     fixture.gds->getAngle(ang1);
+    const auto busCount = static_cast<size_t>(compareCase.busCount);
+    ASSERT_EQ(volts1.size(), busCount);
+    ASSERT_EQ(ang1.size(), busCount);
 
-    for (size_t caseFileIndex = 1; caseFileIndex < compareCase.fileCount; ++caseFileIndex) {
-        std::string secondFileName = std::string{compareCase.fileNames[caseFileIndex]};
-        const auto& compareFileName = compareCase.fileNames[caseFileIndex];
+    for (const auto comparisonFile : compareCase.comparisonFiles) {
+        if (comparisonFile.empty()) {
+            continue;
+        }
+        SCOPED_TRACE(comparisonFile);
+        ASSERT_TRUE(std::filesystem::is_regular_file(comparisonFile));
         fixture.gds2 = std::make_unique<GridDynSimulation>();
-        if (secondFileName.size() < 25) {
-            secondFileName = std::string(IEEE_TEST_DIRECTORY) + std::string{compareFileName};
-            if (!std::filesystem::exists(secondFileName)) {
-                secondFileName = std::string(INPUT_TEST_DIRECTORY) + std::string{compareFileName};
-            }
-        }
-
-        loadFile(fixture.gds2, secondFileName);
-
-        int count = fixture.gds2->getInt("totalbuscount");
-        EXPECT_EQ(count, bcount);
+        loadFile(fixture.gds2, std::string{comparisonFile});
+        ASSERT_EQ(fixture.gds2->getInt("totalbuscount"), compareCase.busCount);
+        EXPECT_EQ(fixture.gds2->getInt("totallinkcount"), linkCount);
         std::vector<GridBus*> compareBuses;
-        std::vector<GridBus*> referenceBuses;
         fixture.gds2->getBusVector(compareBuses);
-        fixture.gds->getBusVector(referenceBuses);
-        ASSERT_EQ(compareBuses.size(), static_cast<size_t>(count));
-        ASSERT_EQ(referenceBuses.size(), static_cast<size_t>(bcount));
-        for (index_t busIndex = 0; busIndex < count; ++busIndex) {
-            auto* compareBusObject = compareBuses[busIndex];
-            auto* referenceBusObject = referenceBuses[busIndex];
-            auto busesMatch = compareBus(compareBusObject, referenceBusObject, false);
-            if (!busesMatch) {
-            }
-            compareBusObject->setVoltageAngle(volts1[busIndex], ang1[busIndex]);
+        ASSERT_EQ(compareBuses.size(), busCount);
+        for (size_t busIndex = 0; busIndex < busCount; ++busIndex) {
+            compareBuses[busIndex]->setVoltageAngle(volts1[busIndex], ang1[busIndex]);
         }
-        count = fixture.gds2->getInt("totallinkcount");
-        EXPECT_EQ(count, lcount);
 
-        fixture.gds2->powerflow();
-
+        ASSERT_EQ(fixture.gds2->powerflow(), FUNCTION_EXECUTION_SUCCESS);
         ASSERT_EQ(fixture.gds2->currentProcessState(),
-                  GridDynSimulation::GridState::POWERFLOW_COMPLETE)
-            << secondFileName << " failed to complete";
+                  GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
         fixture.gds2->getVoltage(volts2);
         fixture.gds2->getAngle(ang2);
-
-        int vdiff = 0;
-        int adiff = 0;
-
-        for (size_t kk = 0; kk < volts1.size(); ++kk) {
-            if (std::abs(volts1[kk] - volts2[kk]) > 0.0008) {
-                std::println("{} vs. {} Voltage difference bus {}::{:.12g} vs. {:.12g}",
-                             compareCase.fileNames[0],
-                             compareFileName,
-                             kk + 1,
-                             volts1[kk],
-                             volts2[kk]);
-                vdiff++;
-            }
-
-            if (std::abs(ang1[kk] - ang2[kk]) > 0.0009) {
-                std::println(
-                    "{} vs. {} Angle difference-- bus {}::{:.12g} vs. {:.12g}::{:.12g} deg",
-                    compareCase.fileNames[0],
-                    compareFileName,
-                    kk + 1,
-                    ang1[kk] * 180.0 / kPI,
-                    ang2[kk] * 180.0 / kPI,
-                    std::abs(ang1[kk] - ang2[kk]) * 180.0 / kPI);
-                adiff++;
-            }
+        ASSERT_EQ(volts2.size(), busCount);
+        ASSERT_EQ(ang2.size(), busCount);
+        for (size_t busIndex = 0; busIndex < busCount; ++busIndex) {
+            EXPECT_NEAR(volts1[busIndex], volts2[busIndex], 0.0008) << "bus " << busIndex + 1;
+            EXPECT_NEAR(ang1[busIndex], ang2[busIndex], 0.0009) << "bus " << busIndex + 1;
         }
-        EXPECT_EQ(vdiff, 0);
-        EXPECT_EQ(adiff, 0);
     }
 }
 
@@ -808,7 +779,8 @@ struct ExecutionCase {
 };
 
 static constexpr std::array<ExecutionCase, 3> EXECUTION_CASES{{
-    {.fileName = MATLAB_TEST_DIRECTORY "case4gs.m", .expectedValues = {{0, 4, 4, 0}}},
+    {.fileName = GRIDDYN_TEST_DIRECTORY "/validation_tests/case4gs.m",
+     .expectedValues = {{0, 4, 4, 0}}},
     // { std::string(MATLAB_TEST_DIRECTORY "d_003.m"), { { 0, 3, 3, 0 } } },
     // { std::string(INPUT_TEST_DIRECTORY "test_mat_dyn.xml"), { { 1, 9, 9, 2 } } },
     {.fileName = INPUT_TEST_DIRECTORY "test_2m4bDyn_inputchange.xml",

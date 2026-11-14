@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--xml file to test matdyn execution-->
+<!-- WECC 179-bus time-grant playback with two transformer trips. -->
 <griddyn name="test1" version="0.0.1">
    <library>
     <sensor name="lineSensor" flags="comm_enabled">
@@ -7,60 +7,58 @@
         <input>current</input>
         <input>voltage</input>
         <commtype>basic</commtype>
-        <outputnames>current, voltage</outputnames>
     </sensor>
    </library>
 
 
    <import file="../pFlow_tests/powerflowWECC.raw"/>
-   <!--<import file="../IEEE_test_cases/dynamics.dyr"/>-->
 
 
-   <relay flags="comm_enabled" name="76_82_1" target="LINK#74">
+   <relay flags="comm_enabled" name="76_82_1" target="GRIZZLY_to_JOHN DAY">
        <commtype>basic</commtype>
        <terminal>1</terminal>
        <type>control</type>
    </relay>
-   <relay flags="comm_enabled" name="76_82_2" target="LINK#75">
+   <relay flags="comm_enabled" name="76_82_2" target="GRIZZLY_to_JOHN DAY_2">
        <commtype>basic</commtype>
        <terminal>1</terminal>
        <type>control</type>
    </relay>
-   <relay flags="comm_enabled" name="76_82_3" target="LINK#76">
+   <relay flags="comm_enabled" name="76_82_3" target="GRIZZLY_to_JOHN DAY_3">
        <commtype>basic</commtype>
        <terminal>1</terminal>
        <type>control</type>
    </relay>
 
-   <relay flags="comm_enabled" name="86_180" target="LINK#198">
+   <relay flags="comm_enabled" name="86_180" target="BURNS2_to_SUMMER L">
        <commtype>basic</commtype>
        <terminal>2</terminal>
        <type>control</type>
    </relay>
 
-   <relay flags="comm_enabled" name="454" target="LINK#135">
+   <relay flags="comm_enabled" name="454" target="LUGO_to_VINCENT">
        <commtype>basic</commtype>
        <terminal>2</terminal>
        <type>control</type>
    </relay>
-   <relay flags="comm_enabled" name="455" target="LINK#136">
+   <relay flags="comm_enabled" name="455" target="LUGO_to_VINCENT_2">
        <commtype>basic</commtype>
        <terminal>2</terminal>
        <type>control</type>
    </relay>
 
-   <sensor terminal="1" ref="lineSensor" commname="Sensor_1" target="LINK#10"/>
-   <sensor terminal="2" ref="lineSensor" commname="Sensor_2" target="LINK#12"/>
+   <sensor name="sensor1" terminal="1" ref="lineSensor" commname="Sensor_1" target="MOENKOPI_to_MOENKOP1"/>
+   <sensor name="sensor2" terminal="2" ref="lineSensor" commname="Sensor_2" target="MOENKOP2_to_WESTWING"/>
 
 
    <event>
-       <target>LINK#228</target>
+       <target>tx_ROUND MT_to_ROUND MT_200</target>
        <field>breaker1</field>
        <value>1</value>
        <time>2</time>
    </event>
    <event>
-       <target>LINK#231</target>
+       <target>tx_TEVATR_to_TEVATR_200</target>
        <field>breaker1</field>
        <value>1</value>
        <time>2</time>
@@ -69,7 +67,7 @@
 
 
    <recorder field="auto" period="0.01">
-       <file>dynfault.csv</file>
+       <file>runner_playback.csv</file>
    </recorder>
    <timestart>0</timestart>
    <timestop>60</timestop>

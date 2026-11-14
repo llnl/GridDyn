@@ -11,6 +11,7 @@
 #include "griddyn/simulation/GridDynSimulationFileOps.h"
 #include "griddyn/solvers/SolverInterface.h"
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
 #include <iostream>
@@ -38,18 +39,17 @@ static std::string makeValidationTestPath(std::string_view fileName)
 
 TEST_F(ExtraPerformanceTests, PerformanceTests1)
 {
-    const stringVec perf_cases{
-        "case1354pegase.m", "case2869pegase.m", "case3012wp.m", "case3375wp.m", "case9241pegase.m"};
+    const std::string pegase9241CaseFile = MATLAB_TEST_DIRECTORY "case9241pegase.m";
+    const stringVec perfCases{makeValidationTestPath("case1354pegase.m"),
+                              makeValidationTestPath("case2869pegase.m"),
+                              makeValidationTestPath("case3012wp.m"),
+                              makeValidationTestPath("case3375wp.m"),
+                              pegase9241CaseFile};
 
     std::chrono::duration<double> pflow_time(0);
     std::chrono::duration<double> load_time(0);
-    for (const auto& matpowerCase : perf_cases) {
-        std::string fileName;
-        if (matpowerCase.length() > 25) {
-            fileName = matpowerCase;
-        } else {
-            fileName = makeValidationTestPath(matpowerCase);
-        }
+    for (const auto& fileName : perfCases) {
+        ASSERT_TRUE(std::filesystem::is_regular_file(fileName)) << fileName;
         for (int kk = 0; kk < 10; ++kk) {
             gds = std::make_unique<GridDynSimulation>();
             gds->set("consoleprintlevel", "summary");
@@ -73,7 +73,7 @@ TEST_F(ExtraPerformanceTests, PerformanceTests1)
             ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
         }
         std::println("{} load in {:f} powerflow in {:f}",
-                     matpowerCase,
+                     std::filesystem::path(fileName).filename().string(),
                      load_time.count() / 10.0,
                      pflow_time.count() / 10.0);
     }

@@ -7,37 +7,40 @@
 // test cases for the main executable
 
 #include "../exeTestHelper.h"
-#include <cstdio>
-#include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <gtest/gtest.h>
-#include <iostream>
 #include <string>
 
 static const char pFlow_test_directory[] = GRIDDYN_TEST_DIRECTORY "/pFlow_tests/";
 
-TEST(MainExeTests, MainExeTest1)
+TEST(MainExeTests, PrintsVersion)
 {
-    ExeTestRunner mainExeRunner(GRIDDYNMAIN_LOCATION, GRIDDYNINSTALL_LOCATION, "griddynMain");
-    if (mainExeRunner.isActive()) {
-        auto out = mainExeRunner.runCaptureOutput("--version");
-        EXPECT_EQ(out.compare(0, 15, "GridDyn version"), 0);
-        if (out.compare(0, 15, "GridDyn version") != 0) {
-            printf("mismatch out string\n");
-            printf("out=%s||\n", out.c_str());
-        }
-    } else {
-        std::cout << "Unable to locate main executable:: skipping test\n";
-    }
+    ExeTestRunner mainExeRunner(GRIDDYN_TEST_MAIN_DIRECTORY, "gridDynMain");
+    ASSERT_TRUE(mainExeRunner.isActive());
+    const auto output = mainExeRunner.runCaptureOutput("--version");
+    EXPECT_TRUE(output.starts_with("GridDyn version")) << output;
+    EXPECT_EQ(output.find(" returned "), std::string::npos) << output;
 }
 
-// test is in development
-TEST(MainExeTests, CdfReadwriteTest)
+TEST(MainExeTests, WritesPowerFlowCaseAsCdf)
 {
-    ExeTestRunner mainExeRunner(GRIDDYNMAIN_LOCATION, GRIDDYNINSTALL_LOCATION, "griddynMain");
-    if (mainExeRunner.isActive()) {
-        std::string fileName = std::string(pFlow_test_directory) + "test_powerflow3m9b2.xml";
-        auto out = mainExeRunner.runCaptureOutput(
-            fileName + " --powerflow-only --powerflow-output testout.cdf");
-        std::cout << out;
+    ExeTestRunner mainExeRunner(GRIDDYN_TEST_MAIN_DIRECTORY, "gridDynMain");
+    ASSERT_TRUE(mainExeRunner.isActive());
+    const std::string outputFile = "main_exe_powerflow.cdf";
+    std::filesystem::remove(outputFile);
+    const std::string inputFile = std::string{pFlow_test_directory} + "test_powerflow3m9b2.xml";
+    ASSERT_EQ(mainExeRunner.run("\"" + inputFile + "\" --powerflow-only --powerflow-output " +
+                                outputFile),
+              0);
+    std::ifstream result(outputFile);
+    ASSERT_TRUE(result.is_open()) << outputFile;
+    std::string contents;
+    for (std::string line; std::getline(result, line);) {
+        contents += line + '\n';
     }
+    result.close();
+    std::filesystem::remove(outputFile);
+    EXPECT_NE(contents.find("BUS DATA FOLLOWS"), std::string::npos);
+    EXPECT_NE(contents.find("BRANCH DATA FOLLOWS"), std::string::npos);
 }

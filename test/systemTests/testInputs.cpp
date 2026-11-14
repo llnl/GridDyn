@@ -692,18 +692,23 @@ struct CompareCase {
 };
 
 static constexpr std::array<CompareCase, 5> COMPARE_CASES{{
-    {IEEE_TEST_DIRECTORY "ieee14_act.cdf",
-     {IEEE_TEST_DIRECTORY "IEEE 14 bus.epc", IEEE_TEST_DIRECTORY "IEEE 14 bus.raw"},
-     14},
-    {IEEE_TEST_DIRECTORY "ieee118_act.cdf",
-     {IEEE_TEST_DIRECTORY "ieee118.psp", IEEE_TEST_DIRECTORY "IEEE 118 Bus.EPC"},
-     118},
-    {IEEE_TEST_DIRECTORY "IEEE39.raw", {IEEE_TEST_DIRECTORY "ieee39_v29.raw", {}}, 39},
-    {INPUT_TEST_DIRECTORY "powerflowWECC179_v30.raw",
-     {INPUT_TEST_DIRECTORY "powerflowWECC179_v31.raw",
-      INPUT_TEST_DIRECTORY "powerflowWECC179_v32.raw"},
-     179},
-    {IEEE_TEST_DIRECTORY "ieee30_no_limit.cdf", {INPUT_TEST_DIRECTORY "testCSV.xml", {}}, 30},
+    {.referenceFile = IEEE_TEST_DIRECTORY "ieee14_act.cdf",
+     .comparisonFiles = {IEEE_TEST_DIRECTORY "IEEE 14 bus.epc",
+                         IEEE_TEST_DIRECTORY "IEEE 14 bus.raw"},
+     .busCount = 14},
+    {.referenceFile = IEEE_TEST_DIRECTORY "ieee118_act.cdf",
+     .comparisonFiles = {IEEE_TEST_DIRECTORY "ieee118.psp", IEEE_TEST_DIRECTORY "IEEE 118 Bus.EPC"},
+     .busCount = 118},
+    {.referenceFile = IEEE_TEST_DIRECTORY "IEEE39.raw",
+     .comparisonFiles = {IEEE_TEST_DIRECTORY "ieee39_v29.raw", {}},
+     .busCount = 39},
+    {.referenceFile = INPUT_TEST_DIRECTORY "powerflowWECC179_v30.raw",
+     .comparisonFiles = {INPUT_TEST_DIRECTORY "powerflowWECC179_v31.raw",
+                         INPUT_TEST_DIRECTORY "powerflowWECC179_v32.raw"},
+     .busCount = 179},
+    {.referenceFile = IEEE_TEST_DIRECTORY "ieee30_no_limit.cdf",
+     .comparisonFiles = {INPUT_TEST_DIRECTORY "testCSV.xml", {}},
+     .busCount = 30},
 }};
 
 static void runCompareCase(GridDynSimulationTestFixture& fixture, const CompareCase& compareCase)

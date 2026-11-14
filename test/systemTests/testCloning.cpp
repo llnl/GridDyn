@@ -30,7 +30,7 @@ TEST_F(CloneTests, RawRemoteVoltageGroupCloneUsesItsOwnRegulatedBus)
                              std::string(GRIDDYN_TEST_DIRECTORY) +
                                  "/input_tests/raw_remote_voltage_group.raw"));
     gds2 = std::unique_ptr<GridDynSimulation>(static_cast<GridDynSimulation*>(gds->clone()));
-    gds.reset();
+    gds = nullptr;
 
     auto* regulatedBus = dynamic_cast<AcBus*>(gds2->findByUserID("bus", 2));
     ASSERT_NE(regulatedBus, nullptr);
@@ -52,12 +52,12 @@ TEST_F(CloneTests, CloningTest1)
 
     gds2->powerflow();
     ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
-    std::vector<double> V1;
-    std::vector<double> V2;
-    gds->getVoltage(V1);
-    gds2->getVoltage(V2);
-    auto diffc = countDiffs(V1, V2, 0.0000001);
-    EXPECT_EQ(diffc, 0u);
+    std::vector<double> originalVoltages;
+    std::vector<double> clonedVoltages;
+    gds->getVoltage(originalVoltages);
+    gds2->getVoltage(clonedVoltages);
+    auto diffc = countDiffs(originalVoltages, clonedVoltages, 0.0000001);
+    EXPECT_EQ(diffc, 0U);
 }
 
 TEST_F(CloneTests, CloningTest2)
@@ -72,12 +72,12 @@ TEST_F(CloneTests, CloningTest2)
 
     gds2->powerflow();
     ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
-    std::vector<double> V1;
-    std::vector<double> V2;
-    gds->getVoltage(V1);
-    gds2->getVoltage(V2);
-    auto diffc = countDiffs(V1, V2, 0.0000001);
-    EXPECT_EQ(diffc, 0u);
+    std::vector<double> originalVoltages;
+    std::vector<double> clonedVoltages;
+    gds->getVoltage(originalVoltages);
+    gds2->getVoltage(clonedVoltages);
+    auto diffc = countDiffs(originalVoltages, clonedVoltages, 0.0000001);
+    EXPECT_EQ(diffc, 0U);
 }
 
 /* clone test 3 has an approximation in the solver that should get cloned over to powerflow 2*/
@@ -93,12 +93,12 @@ TEST_F(CloneTests, CloningTestSolverApprox)
     checkState2(GridDynSimulation::GridState::STARTUP);
     gds2->powerflow();
     requireState2(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
-    std::vector<double> V1;
-    std::vector<double> V2;
-    gds->getVoltage(V1);
-    gds2->getVoltage(V2);
-    auto diffc = countDiffs(V1, V2, 0.0000001);
-    EXPECT_EQ(diffc, 0u);
+    std::vector<double> originalVoltages;
+    std::vector<double> clonedVoltages;
+    gds->getVoltage(originalVoltages);
+    gds2->getVoltage(clonedVoltages);
+    auto diffc = countDiffs(originalVoltages, clonedVoltages, 0.0000001);
+    EXPECT_EQ(diffc, 0U);
 
     auto obj = gds2->find("bus3::load3");
 
@@ -109,13 +109,13 @@ TEST_F(CloneTests, CloningTestSolverApprox)
     gds->powerflow();
     gds2->powerflow();
 
-    gds2->getVoltage(V1);
-    diffc = countDiffs(V1, V2, 0.0000001);
-    EXPECT_GT(diffc, 0u);
+    gds2->getVoltage(clonedVoltages);
+    diffc = countDiffs(originalVoltages, clonedVoltages, 0.0000001);
+    EXPECT_GT(diffc, 0U);
 
-    gds->getVoltage(V2);
-    diffc = countDiffs(V1, V2, 0.0000001);
-    EXPECT_GT(diffc, 0u);
+    gds->getVoltage(originalVoltages);
+    diffc = countDiffs(originalVoltages, clonedVoltages, 0.0000001);
+    EXPECT_GT(diffc, 0U);
 
     obj->set("q+", -0.3);
     // ensure there is no connection with the previous simulation object
@@ -136,14 +136,14 @@ TEST_F(CloneTests, CloningTestEvents)
     gds->pFlowInitialize();
     gds2->pFlowInitialize();
 
-    std::vector<double> v1;
-    std::vector<double> v2;
-    auto cnt1 = gds->getVoltage(v1);
-    auto cnt2 = gds2->getVoltage(v2);
+    std::vector<double> originalVoltages;
+    std::vector<double> clonedVoltages;
+    auto cnt1 = gds->getVoltage(originalVoltages);
+    auto cnt2 = gds2->getVoltage(clonedVoltages);
     EXPECT_EQ(cnt1, cnt2);
 
-    auto diffc = countDiffs(v1, v2, 0.0000001);
-    EXPECT_EQ(diffc, 0u);
+    auto diffc = countDiffs(originalVoltages, clonedVoltages, 0.0000001);
+    EXPECT_EQ(diffc, 0U);
 
     auto res = checkObjectEquivalence(gds.get(), gds2.get(), true);
     ASSERT_TRUE(res);
@@ -164,10 +164,10 @@ TEST_F(CloneTests, CloningTestEvents)
     gds->run();
     checkStates(gds->currentProcessState(), gds2->currentProcessState());
 
-    cnt1 = gds->getVoltage(v1);
-    cnt2 = gds2->getVoltage(v2);
+    cnt1 = gds->getVoltage(originalVoltages);
+    cnt2 = gds2->getVoltage(clonedVoltages);
     EXPECT_EQ(cnt1, cnt2);
 
-    diffc = countDiffs(v1, v2, 0.0000001);
-    EXPECT_EQ(diffc, 0u);
+    diffc = countDiffs(originalVoltages, clonedVoltages, 0.0000001);
+    EXPECT_EQ(diffc, 0U);
 }

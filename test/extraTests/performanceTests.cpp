@@ -39,11 +39,12 @@ static std::string makeValidationTestPath(std::string_view fileName)
 
 TEST_F(ExtraPerformanceTests, PerformanceTests1)
 {
+    const std::string pegase9241CaseFile = MATLAB_TEST_DIRECTORY "case9241pegase.m";
     const stringVec perfCases{makeValidationTestPath("case1354pegase.m"),
                               makeValidationTestPath("case2869pegase.m"),
                               makeValidationTestPath("case3012wp.m"),
                               makeValidationTestPath("case3375wp.m"),
-                              MATLAB_TEST_DIRECTORY "case9241pegase.m"};
+                              pegase9241CaseFile};
 
     std::chrono::duration<double> pflow_time(0);
     std::chrono::duration<double> load_time(0);

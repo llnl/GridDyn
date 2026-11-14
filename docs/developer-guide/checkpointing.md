@@ -8,11 +8,11 @@ currently a complete dynamic simulation checkpoint.
 
 ## Current capture structures
 
-| Structure                  | Captures                                                                                                   | Restore boundary                                                                                                                                                                            |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Structure                  | Captures                                                                                                   | Restore boundary                                                                                                                                                            |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | HDF5 solver snapshot       | State and, for differential blocks, derivatives. Paired partitioned solvers are written in the same frame. | Supplies arrays to an already initialized solver. `MINIMAL` also resets the backend and clock, publishes the solver state to components, and refreshes their output caches. |
-| `ModelFieldSnapshot`       | Declared fields on one exact `CoreObject` type: flags and retained local state; optionally parameters.     | Restores members on an existing compatible object. Does not serialize solver vectors, traverse child objects, rebuild derived data, or invoke normal setters.                               |
-| Power-flow JSON checkpoint | Named power-flow solver values and bus voltage/angle values.                                               | Restores a solution into an already initialized compatible model, then updates bus state and local caches. Parameters and dynamic history remain current.                                   |
+| `ModelFieldSnapshot`       | Declared fields on one exact `CoreObject` type: flags and retained local state; optionally parameters.     | Restores members on an existing compatible object. Does not serialize solver vectors, traverse child objects, rebuild derived data, or invoke normal setters.               |
+| Power-flow JSON checkpoint | Named power-flow solver values and bus voltage/angle values.                                               | Restores a solution into an already initialized compatible model, then updates bus state and local caches. Parameters and dynamic history remain current.                   |
 
 The HDF5 capture implementation is shared by solver snapshots, diagnostics,
 recorder output, and sparse matrix records. `saveStateBinary` writes a complete
@@ -30,11 +30,11 @@ frame and delegates to the `BinaryStateData` overload, so both entry points use
 the same validation and restore logic. Its initial levels are deliberately
 narrow:
 
-| `CheckpointRestoreLevel`  | Effect                                                                                                                                 |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `SOLVER_STATE_ONLY`       | Copies the saved state and derivative vectors into the solver buffers. `loadStateBinary()` uses this level.                            |
-| `MINIMAL`                 | Restarts the solvers and clocks at the captured time, publishes the restored vectors to components, and refreshes their output caches. |
-| `LOCAL_STATE`             | Also restores declared component history from a `checkpointCapture()` frame.                                                          |
+| `CheckpointRestoreLevel` | Effect                                                                                                                                 |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `SOLVER_STATE_ONLY`      | Copies the saved state and derivative vectors into the solver buffers. `loadStateBinary()` uses this level.                            |
+| `MINIMAL`                | Restarts the solvers and clocks at the captured time, publishes the restored vectors to components, and refreshes their output caches. |
+| `LOCAL_STATE`            | Also restores declared component history from a `checkpointCapture()` frame.                                                           |
 
 For partitioned dynamics, `MINIMAL` publishes the differential block before the
 algebraic block. Each backend starts fresh integration history at the captured
@@ -91,11 +91,11 @@ to produce names for active solver layouts. `ModelFieldSnapshot::capture()` is
 per object and requires the object's exact dynamic type to be described. Its
 field levels are:
 
-| Level                             | Fields included                                                                                 |
-| --------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `FieldSnapshotLevel::LOCAL_STATE` | Declared `localState` fields from the model and its base classes.                                |
-| `FieldSnapshotLevel::STATE`       | Flags and declared `localState` fields.                                                          |
-| `FieldSnapshotLevel::PARAMETERS`  | Parameters, flags, and declared `localState` fields. This is the default.                        |
+| Level                             | Fields included                                                           |
+| --------------------------------- | ------------------------------------------------------------------------- |
+| `FieldSnapshotLevel::LOCAL_STATE` | Declared `localState` fields from the model and its base classes.         |
+| `FieldSnapshotLevel::STATE`       | Flags and declared `localState` fields.                                   |
+| `FieldSnapshotLevel::PARAMETERS`  | Parameters, flags, and declared `localState` fields. This is the default. |
 
 Solver-managed `state(...)` fields describe names and locations; the actual
 values remain in solver vectors. `command(...)` entries describe operations,

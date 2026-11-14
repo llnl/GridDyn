@@ -11,11 +11,8 @@ include(AddGoogletest)
 
 set(gtestMain_headers gtestHelper.h)
 set(extra_gtest_sources
-    gtestHelperFunctions.cpp
-    extraTests/performanceTests.cpp
-    extraTests/largeContingencyTests.cpp
-    extraTests/largeInputTests.cpp
-    extraTests/objectSizeReport.cpp
+    gtestHelperFunctions.cpp extraTests/performanceTests.cpp extraTests/largeContingencyTests.cpp
+    extraTests/largeInputTests.cpp extraTests/objectSizeReport.cpp
 )
 
 if(GRIDDYN_ENABLE_FMI)
@@ -45,10 +42,8 @@ set(file_reader_gtest_sources
     readerTests/testXmlElementReader.cpp
 )
 
-set(model_comparison_gtest_sources
-    gtestHelperFunctions.cpp
-    comparisonTests/testModelComparison.cpp
-    comparisonTests/testPowerFlowComparison.cpp
+set(model_comparison_gtest_sources gtestHelperFunctions.cpp comparisonTests/testModelComparison.cpp
+                                   comparisonTests/testPowerFlowComparison.cpp
 )
 
 set(network_component_gtest_sources
@@ -127,11 +122,8 @@ set(workflow_system_gtest_sources
     systemTests/testInputs.cpp
 )
 
-set(executable_system_gtest_sources
-    systemTests/testMainExe.cpp
-    systemTests/testGridDynRunner.cpp
-    systemTests/testRunnerPlayback.cpp
-    exeTestHelper.cpp
+set(executable_system_gtest_sources systemTests/testMainExe.cpp systemTests/testGridDynRunner.cpp
+                                    systemTests/testRunnerPlayback.cpp exeTestHelper.cpp
 )
 
 set(dynamic_system_gtest_sources
@@ -269,4 +261,6 @@ endforeach()
 add_gtest(ExtraTests "Nightly")
 
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
-install(TARGETS ${continuous_test_targets} ExtraTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+install(TARGETS ${continuous_test_targets} ExtraTests
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/
+)

@@ -42,7 +42,7 @@ TEST_F(CloneTests, RawRemoteVoltageGroupCloneUsesItsOwnRegulatedBus)
 
 TEST_F(CloneTests, CloningTest1)
 {
-    std::string fileName = std::string(clone_test_directory) + "clone_test1.xml";
+    const std::string fileName = GRIDDYN_TEST_DIRECTORY "/pFlow_tests/two_bus_example.xml";
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
 
@@ -62,7 +62,7 @@ TEST_F(CloneTests, CloningTest1)
 
 TEST_F(CloneTests, CloningTest2)
 {
-    std::string fileName = std::string(clone_test_directory) + "clone_test2.xml";
+    const std::string fileName = GRIDDYN_TEST_DIRECTORY "/dyn_tests1/test_griddyn39.xml";
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
 

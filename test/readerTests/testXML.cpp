@@ -13,6 +13,7 @@
 #include "griddyn/Link.h"
 #include "griddyn/loads/ZipLoad.h"
 #include <algorithm>
+#include <filesystem>
 #include <gtest/gtest.h>
 #include <iostream>
 #include <memory>
@@ -423,8 +424,8 @@ TEST_F(XmlTests, XmlTest9)
 
 TEST_F(XmlTests, TestBadXml)
 {
-    // test the define functionality
-    std::string fileName = makeXmlTestPath("test_bad_xml.xml");
+    const std::string fileName = GRIDDYN_TEST_DIRECTORY "/element_reader_tests/test_bad_xml.xml";
+    ASSERT_TRUE(std::filesystem::is_regular_file(fileName)) << fileName;
     gds = readSimXMLFile(fileName);
     ASSERT_EQ(gds, nullptr);
     std::cout << "NOTE: this was supposed to have a failed file load to check error recovery\n";

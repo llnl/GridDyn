@@ -924,7 +924,7 @@ TEST_F(GeneratorTests, GenTestRemote2)
 
 TEST_F(GeneratorTests, GenTestRemote2B)
 {
-    std::string fileName = std::string(GEN_TEST_DIRECTORY "test_gen_dualremote_b.xml");
+    std::string fileName = std::string(GEN_TEST_DIRECTORY "test_gen_dualremote.xml");
     detailedStageCheck(fileName, GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
 }
 

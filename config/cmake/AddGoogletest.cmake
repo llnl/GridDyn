@@ -36,16 +36,21 @@ if(GOOGLE_TEST_INDIVIDUAL)
 endif()
 
 # Target must already exist
-macro(add_gtest TESTNAME)
+function(add_gtest TESTNAME TEST_LABELS)
     target_link_libraries(${TESTNAME} PUBLIC gmock_main)
 
     if(GOOGLE_TEST_INDIVIDUAL)
-        gtest_discover_tests(${TESTNAME} TEST_PREFIX "${TESTNAME}." PROPERTIES FOLDER "Tests")
+        # Pass the label list as one property value to test discovery.
+        string(REPLACE ";" "\\;" discovery_labels "${TEST_LABELS}")
+        gtest_discover_tests(
+            ${TESTNAME} TEST_PREFIX "${TESTNAME}." PROPERTIES LABELS "${discovery_labels}"
+        )
     else()
         add_test(NAME ${TESTNAME} COMMAND $<TARGET_FILE:${TESTNAME}>)
-        set_target_properties(${TESTNAME} PROPERTIES FOLDER "Tests")
+        set_tests_properties(${TESTNAME} PROPERTIES LABELS "${TEST_LABELS}")
     endif()
-endmacro()
+    set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
+endfunction()
 
 hide_variable(gmock_build_tests)
 hide_variable(gtest_build_samples)

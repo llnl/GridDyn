@@ -72,7 +72,7 @@ TEST_F(AreaTests, AreaTest1)
 
     auto state = gds->getState();
 
-    fileName = std::string(AREA_TEST_DIRECTORY "area_test0.xml");
+    fileName = GRIDDYN_TEST_DIRECTORY "/pFlow_tests/test_powerflow3m9b.xml";
 
     gds2 = readSimXMLFile(fileName);
 

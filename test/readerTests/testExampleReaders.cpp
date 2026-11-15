@@ -339,17 +339,17 @@ TEST(ExampleReaderTests, EpcLargeCaseImportsDcRecords)
     ASSERT_NO_THROW(griddyn::loadFile(simulation, filePath.string()));
 
     EXPECT_EQ(simulation->getInt("totalbuscount"), 302);
-    const auto* from = dynamic_cast<const griddyn::DcBus*>(simulation->find("Bus1"));
-    const auto* to = dynamic_cast<const griddyn::DcBus*>(simulation->find("Bus2"));
-    ASSERT_NE(from, nullptr);
-    ASSERT_NE(to, nullptr);
-    EXPECT_DOUBLE_EQ(from->get("basevoltage"), 85.997);
-    EXPECT_DOUBLE_EQ(to->get("basevoltage"), 85.997);
+    const auto* fromBus = dynamic_cast<const griddyn::DcBus*>(simulation->find("Bus1"));
+    const auto* toBus = dynamic_cast<const griddyn::DcBus*>(simulation->find("Bus2"));
+    ASSERT_NE(fromBus, nullptr);
+    ASSERT_NE(toBus, nullptr);
+    EXPECT_DOUBLE_EQ(fromBus->get("basevoltage"), 85.997);
+    EXPECT_DOUBLE_EQ(toBus->get("basevoltage"), 85.997);
 
     std::vector<griddyn::Link*> links;
     simulation->getLinkVector(links);
-    const auto link = std::ranges::find_if(links, [from, to](const auto* candidate) {
-        return candidate->getBus(1) == from && candidate->getBus(2) == to;
+    const auto link = std::ranges::find_if(links, [fromBus, toBus](const auto* candidate) {
+        return candidate->getBus(1) == fromBus && candidate->getBus(2) == toBus;
     });
     ASSERT_NE(link, links.end());
     ASSERT_NE(dynamic_cast<const griddyn::links::DcLink*>(*link), nullptr);

@@ -126,8 +126,9 @@ TEST_F(InputTests, LargeRawCaseImportsFixedShuntAndTwoTerminalDcLine)
     const auto* bus = dynamic_cast<const GridBus*>(gds->findByUserID("bus", 117));
     ASSERT_NE(bus, nullptr);
     const GridLoad* fixedShunt = nullptr;
-    for (index_t i = 0; i < static_cast<index_t>(bus->getInt("loadcount")); ++i) {
-        const auto* load = bus->getLoad(i);
+    const auto loadCount = static_cast<index_t>(bus->getInt("loadcount"));
+    for (index_t loadIndex = 0; loadIndex < loadCount; ++loadIndex) {
+        const auto* load = bus->getLoad(loadIndex);
         if (load->isFixedShunt()) {
             fixedShunt = load;
             break;
@@ -138,17 +139,17 @@ TEST_F(InputTests, LargeRawCaseImportsFixedShuntAndTwoTerminalDcLine)
 
     std::vector<Link*> links;
     gds->getLinkVector(links);
-    const auto dc = std::ranges::find_if(links, [](const auto* link) {
+    const auto dcLink = std::ranges::find_if(links, [](const auto* link) {
         return dynamic_cast<const links::RawDcLine*>(link) != nullptr;
     });
-    ASSERT_NE(dc, links.end());
-    const auto* from = gds->findByUserID("bus", 119);
-    const auto* to = gds->findByUserID("bus", 120);
-    ASSERT_NE(from, nullptr);
-    ASSERT_NE(to, nullptr);
-    EXPECT_EQ((*dc)->getBus(1), from);
-    EXPECT_EQ((*dc)->getBus(2), to);
-    EXPECT_TRUE((*dc)->isEnabled());
+    ASSERT_NE(dcLink, links.end());
+    const auto* fromBus = gds->findByUserID("bus", 119);
+    const auto* toBus = gds->findByUserID("bus", 120);
+    ASSERT_NE(fromBus, nullptr);
+    ASSERT_NE(toBus, nullptr);
+    EXPECT_EQ((*dcLink)->getBus(1), fromBus);
+    EXPECT_EQ((*dcLink)->getBus(2), toBus);
+    EXPECT_TRUE((*dcLink)->isEnabled());
 }
 
 TEST_F(InputTests, RawTransformerUsesInterpolatedImpedanceCorrectionTable)

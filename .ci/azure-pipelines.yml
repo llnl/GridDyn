@@ -7,7 +7,7 @@ variables:
 jobs:
   - job: macOS_latest
     pool:
-      vmImage: "macOS-latest"
+      vmImage: 'macOS-latest'
     steps:
       # -----------------------
       # Install dependencies
@@ -22,25 +22,25 @@ jobs:
       - task: CMake@1
         inputs:
           cmakeArgs: -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_SUITESPARSE_FORCE_SUBPROJECT=ON ..
-        displayName: "Configure GridDyn"
+        displayName: 'Configure GridDyn'
 
       # -----------------------
       # Build GridDyn
       # -----------------------
       - bash: cmake --build . --config Release
-        displayName: "Build GridDyn"
+        displayName: 'Build GridDyn'
         workingDirectory: build
 
       # -----------------------
       # Test GridDyn
       # -----------------------
       - bash: ctest --output-on-failure --timeout 480 -C Release -L "Continuous"
-        displayName: "Test GridDyn"
+        displayName: 'Test GridDyn'
         workingDirectory: build
 
-  - job: macOS_14
+  - job: macOS_15
     pool:
-      vmImage: "macOS-14"
+      vmImage: 'macOS-15'
     steps:
       # -----------------------
       # Install dependencies
@@ -55,20 +55,20 @@ jobs:
       - task: CMake@1
         inputs:
           cmakeArgs: -DGRIDDYN_BUILD_TESTS=ON ..
-        displayName: "Configure GridDyn"
+        displayName: 'Configure GridDyn'
 
       # -----------------------
       # Build GridDyn
       # -----------------------
       - bash: cmake --build . --config Release
-        displayName: "Build GridDyn"
+        displayName: 'Build GridDyn'
         workingDirectory: build
 
       # -----------------------
       # Test GridDyn
       # -----------------------
       - bash: ctest --output-on-failure --timeout 480 -C Release -L "Continuous"
-        displayName: "Test GridDyn"
+        displayName: 'Test GridDyn'
         workingDirectory: build
   # - job: Docker
   #   variables:
@@ -89,13 +89,13 @@ jobs:
     strategy:
       matrix:
         VSlatest-64bit:
-          imageName: "windows-latest"
-          vsArch: "x64"
-          extraFlags: "-DGRIDDYN_ENABLE_FMI=OFF -DGRIDDYN_BUILD_CXX_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON"
+          imageName: 'windows-latest'
+          vsArch: 'x64'
+          extraFlags: '-DGRIDDYN_ENABLE_FMI=OFF -DGRIDDYN_BUILD_CXX_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON'
         VS2022-64bit:
-          imageName: "windows-2022"
-          vsArch: "x64"
-          extraFlags: "-DGRIDDYN_ENABLE_FMI=ON"
+          imageName: 'windows-2022'
+          vsArch: 'x64'
+          extraFlags: '-DGRIDDYN_ENABLE_FMI=ON'
     pool:
       vmImage: $(imageName)
     variables:
@@ -167,14 +167,14 @@ jobs:
             -DGRIDDYN_HDF5_USE_MSVC_PROBE_PRESETS=ON
             -DGRIDDYN_SUITESPARSE_FORCE_SUBPROJECT=ON
             $(extraFlags) ..
-        displayName: "Configure GridDyn"
+        displayName: 'Configure GridDyn'
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
 
       # -----------------------
       # Build GridDyn
       # -----------------------
       - bash: cmake --build . --config Release
-        displayName: "Build GridDyn"
+        displayName: 'Build GridDyn'
         workingDirectory: build
 
       # -----------------------
@@ -184,23 +184,23 @@ jobs:
           cpack_dir="$(which cmake)"
           cpack_dir="${cpack_dir%/cmake}"
           "${cpack_dir}/cpack" -G "NSIS" -C Release -B "$PWD/installer-output"
-        displayName: "Package GridDyn"
+        displayName: 'Package GridDyn'
         workingDirectory: build
 
       - task: CopyFiles@2
         inputs:
-          sourceFolder: "$(Build.SourcesDirectory)/build/installer-output"
-          contents: "*.exe"
-          TargetFolder: "$(Build.ArtifactStagingDirectory)"
+          sourceFolder: '$(Build.SourcesDirectory)/build/installer-output'
+          contents: '*.exe'
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
       - task: PublishBuildArtifacts@1
         inputs:
-          pathtoPublish: "$(Build.ArtifactStagingDirectory)"
-          artifactName: "installer-$(imageName)"
+          pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+          artifactName: 'installer-$(imageName)'
 
       # -----------------------
       # Test GridDyn
       # -----------------------
       - bash: ctest --output-on-failure --timeout 480 -C Release -L "Continuous"
-        displayName: "Test GridDyn"
+        displayName: 'Test GridDyn'
         workingDirectory: build

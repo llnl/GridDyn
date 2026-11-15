@@ -581,9 +581,10 @@ TEST(DyrReaderComparisonTests, RejectsMalformedGenroeAndUnsupportedIeeex1Switch)
     };
     for (const auto& [fileName, diagnostic] : cases) {
         SCOPED_TRACE(fileName);
+        const auto filePath = makeReaderErrorTestPath(fileName);
         auto simulation = std::make_unique<griddyn::GridDynSimulation>();
         griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
-        EXPECT_THAT([&] { griddyn::loadFile(simulation.get(), makeReaderErrorTestPath(fileName)); },
+        EXPECT_THAT([&] { griddyn::loadFile(simulation.get(), filePath); },
                     ::testing::ThrowsMessage<griddyn::InvalidParameterValue>(
                         ::testing::HasSubstr(diagnostic)));
     }
@@ -1911,9 +1912,9 @@ TEST(DynamicComparisonTests, HygovDbRemainsAtEquilibriumInsideSpeedDeadband)
     ASSERT_EQ(simulation->run(2.0), 0);
     const auto final = simulation->getState();
     ASSERT_EQ(final.size(), initial.size());
-    for (std::size_t i = 0; i < final.size(); ++i) {
-        EXPECT_TRUE(std::isfinite(final[i]));
-        EXPECT_NEAR(final[i], initial[i], 1e-5);
+    for (std::size_t stateIndex = 0; stateIndex < final.size(); ++stateIndex) {
+        EXPECT_TRUE(std::isfinite(final[stateIndex]));
+        EXPECT_NEAR(final[stateIndex], initial[stateIndex], 1e-5);
     }
 }
 
@@ -2470,9 +2471,9 @@ TEST(Stab2aReaderTests, AllBypassCombinationsRunWithDaeAndPartitionedSolvers)
                 dynamic_cast<griddyn::stabilizers::StabilizerStab2a*>(generator->find("pss"));
             ASSERT_NE(stabilizer, nullptr);
             const std::array<std::string_view, 3> names{"t2", "t3", "t5"};
-            for (unsigned int i = 0; i < names.size(); ++i) {
-                if ((bypasses & (1U << i)) != 0) {
-                    stabilizer->set(names[i], 0.0);
+            for (unsigned int parameterIndex = 0; parameterIndex < names.size(); ++parameterIndex) {
+                if ((bypasses & (1U << parameterIndex)) != 0) {
+                    stabilizer->set(names[parameterIndex], 0.0);
                 }
             }
             if (partitioned) {

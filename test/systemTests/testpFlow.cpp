@@ -859,12 +859,21 @@ TEST_F(PowerflowSystemTests, LocalStateCheckpointRestoresNestedModelHistory)
     exciter->updateA(timeOneSecond);
     const auto changedBias = bias(0.0);
     auto incomplete = decoded;
+    if (!incomplete.localState) {
+        FAIL() << "checkpoint has no local-state payload";
+    }
+    ASSERT_FALSE(incomplete.localState->empty());
     incomplete.localState->pop_back();
     EXPECT_THROW(gds->checkpointRestore(incomplete, CheckpointRestoreLevel::LOCAL_STATE),
                  FileOperationError);
     auto badField = decoded;
-    ASSERT_FALSE(badField.localState->back().fields.mFields.empty());
-    badField.localState->back().fields.mFields.back().mValue = std::string("wrong type");
+    if (!badField.localState) {
+        FAIL() << "checkpoint has no local-state payload";
+    }
+    ASSERT_FALSE(badField.localState->empty());
+    auto& fields = badField.localState->back().fields.mFields;
+    ASSERT_FALSE(fields.empty());
+    fields.back().mValue = std::string("wrong type");
     EXPECT_THROW(gds->checkpointRestore(badField, CheckpointRestoreLevel::LOCAL_STATE),
                  FileOperationError);
     auto mismatched = decoded;
@@ -956,7 +965,7 @@ TEST_F(PowerflowSystemTests, FileCheckpointContinuesWithAnActiveExciterLimitAfte
             reference.push_back(gds->getState(gds->getCurrentMode()));
         }
     }
-    gds.reset();
+    gds = nullptr;
 
     ASSERT_NO_FATAL_FAILURE(prepare());
     ASSERT_EQ(gds->dynInitialize(), FUNCTION_EXECUTION_SUCCESS);

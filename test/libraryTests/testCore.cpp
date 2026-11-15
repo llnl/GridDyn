@@ -73,43 +73,43 @@ TEST(CoreTests, CoreObject)
     EXPECT_EQ(obj3->getName(), "test_object");
     // check the parameter not found function
     EXPECT_THROW(obj3->set("bob", 0.5), UnrecognizedParameter);
-    delete (obj1);
-    delete (obj2);
-    delete (obj3);
+    delete obj1;
+    delete obj2;
+    delete obj3;
 }
 
 // testcase for GenModel Object
 TEST(CoreTests, GenModel)
 {
-    auto gm = new genmodels::GenModel4();
-    auto id = gm->getID();
-    EXPECT_EQ(gm->getName().compare("genModel4_" + std::to_string(id)), 0);
+    auto* machine = new genmodels::GenModel4();
+    const auto machineId = machine->getID();
+    EXPECT_EQ(machine->getName().compare("genModel4_" + std::to_string(machineId)), 0);
     std::string temp1 = "gen_model 5";
-    gm->setName(temp1);
-    EXPECT_EQ(gm->getName().compare(temp1), 0);
+    machine->setName(temp1);
+    EXPECT_EQ(machine->getName().compare(temp1), 0);
 
-    gm->setName("namebbghs");
-    EXPECT_EQ(gm->getName().compare("namebbghs"), 0);
-    gm->dynInitializeA(timeZero, 0);
-    EXPECT_EQ(gm->stateSize(cLocalSolverMode), 6_cnt);
-    gm->set("h", 4.5);
-    gm->setOffset(0, cLocalSolverMode);
-    EXPECT_EQ(gm->findIndex("freq", cLocalSolverMode), static_cast<index_t>(3));
-    delete (gm);
+    machine->setName("namebbghs");
+    EXPECT_EQ(machine->getName().compare("namebbghs"), 0);
+    machine->dynInitializeA(timeZero, 0);
+    EXPECT_EQ(machine->stateSize(cLocalSolverMode), 6_cnt);
+    machine->set("h", 4.5);
+    machine->setOffset(0, cLocalSolverMode);
+    EXPECT_EQ(machine->findIndex("freq", cLocalSolverMode), static_cast<index_t>(3));
+    delete machine;
 }
 
 TEST(CoreTests, Exciter)
 {
-    Exciter* ex = new exciters::ExciterIEEEtype1();
+    Exciter* exciter = new exciters::ExciterIEEEtype1();
     std::string temp1 = "exciter 2";
-    ex->setName(temp1);
-    EXPECT_EQ(ex->getName().compare(temp1), 0);
-    ex->dynInitializeA(0.0, 0);
-    EXPECT_EQ(ex->stateSize(cLocalSolverMode), 3_ind);
-    ex->set("tf", 4.5);
-    ex->setOffset(0, cLocalSolverMode);
-    EXPECT_EQ(ex->findIndex("vr", cLocalSolverMode), static_cast<index_t>(1));
-    delete (ex);
+    exciter->setName(temp1);
+    EXPECT_EQ(exciter->getName().compare(temp1), 0);
+    exciter->dynInitializeA(0.0, 0);
+    EXPECT_EQ(exciter->stateSize(cLocalSolverMode), 3_ind);
+    exciter->set("tf", 4.5);
+    exciter->setOffset(0, cLocalSolverMode);
+    EXPECT_EQ(exciter->findIndex("vr", cLocalSolverMode), static_cast<index_t>(1));
+    delete exciter;
 }
 
 TEST(CoreTests, Governor)
@@ -123,7 +123,7 @@ TEST(CoreTests, Governor)
     gov->set("t1", 4.5);
     gov->setOffset(0, cLocalSolverMode);
     EXPECT_EQ(gov->findIndex("pm", cLocalSolverMode), static_cast<index_t>(0));
-    delete (gov);
+    delete gov;
 }
 
 TEST(CoreTests, UnitFunctions)
@@ -161,24 +161,24 @@ TEST(CoreTests, ObjectFactory)
 {
     auto cof = CoreObjectFactory::instance();
     CoreObject* obj = cof->createObject("load", "basic");
-    auto ld = dynamic_cast<ZipLoad*>(obj);
-    EXPECT_NE(ld, nullptr);
-    delete ld;
+    auto* load = dynamic_cast<ZipLoad*>(obj);
+    EXPECT_NE(load, nullptr);
+    delete load;
     auto gsL = dynamic_cast<loads::SourceLoad*>(cof->createObject("load", "sine"));
     EXPECT_NE(gsL, nullptr);
     delete gsL;
 
     obj = cof->createObject("load");
-    ld = dynamic_cast<ZipLoad*>(obj);
-    EXPECT_NE(ld, nullptr);
-    delete ld;
+    load = dynamic_cast<ZipLoad*>(obj);
+    EXPECT_NE(load, nullptr);
+    delete load;
 }
 
 TEST(CoreTests, GridDynTime)
 {
-    CoreTime rt(34.123141512);
+    const CoreTime time(34.123141512);
 
-    auto dval = static_cast<double>(rt);
+    auto dval = static_cast<double>(time);
     EXPECT_NEAR(dval, 34.123141512, 34.123141512 * 1e-9);
 
     CoreTime rt2(-2.3);
@@ -200,7 +200,9 @@ TEST(CoreTests, RegisteredModelsRoundTripEveryDeclaredLocalStateField)
     std::size_t fieldsTested = 0;
     for (const auto& category : factory->getFactoryNames()) {
         for (const auto& type : factory->getTypeNames(category)) {
-            SCOPED_TRACE(category + "/" + type);
+            auto modelName = category;
+            modelName.append("/").append(type);
+            SCOPED_TRACE(modelName);
             std::unique_ptr<CoreObject> model(factory->createObject(category, type));
             ASSERT_NE(model, nullptr);
             const auto& description = model->getModelDescription();
@@ -209,7 +211,7 @@ TEST(CoreTests, RegisteredModelsRoundTripEveryDeclaredLocalStateField)
                 continue;
             }
             if (!description.describesExactType(object)) {
-                missingDescriptions.insert(category + "/" + type);
+                missingDescriptions.insert(modelName);
                 continue;
             }
 
@@ -315,10 +317,8 @@ TEST(CoreTests, ObjectProbe)
                     if ((copiedObj != nullptr) && (copiedObj != sameTypeObj)) {
                         delete copiedObj;
                     }
-                    if (sameTypeObj != nullptr) {
-                        delete sameTypeObj;
-                    }
-                    delete (nobj);
+                    delete sameTypeObj;
+                    delete nobj;
                 } else {
                     std::cout << "unable to clone " << comp << "::" << type << '\n';
                 }

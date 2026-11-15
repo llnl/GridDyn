@@ -65,6 +65,8 @@ namespace {
             }
             return *this;
         }
+        // HDF5 C functions take raw IDs while Handle retains ownership.
+        // NOLINTNEXTLINE(google-explicit-constructor)
         operator hid_t() const { return mId; }
     };
     // Suppress only this thread's temporary error printer; retain the caller's policy.

@@ -847,7 +847,7 @@ namespace {
                     return {"time_ns", std::to_string(stored.to_ns().count())};
                 } else if constexpr (std::is_same_v<Value, std::vector<double>>) {
                     auto values = LocalStateJson::array();
-                    for (double element : stored) {
+                    for (const double element : stored) {
                         values.push_back(writeReal(element));
                     }
                     return {"real_vector", std::move(values)};
@@ -938,9 +938,10 @@ namespace {
             component.fields.mLevel = FieldSnapshotLevel::LOCAL_STATE;
             component.fields.mFields.reserve(fields.size());
             for (const auto& field : fields) {
-                component.fields.mFields.push_back({field.at("owner").get<std::string>(),
-                                                    field.at("name").get<std::string>(),
-                                                    readFieldValue(field.at("data"))});
+                component.fields.mFields.push_back(
+                    {.mDeclaringClass = field.at("owner").get<std::string>(),
+                     .mName = field.at("name").get<std::string>(),
+                     .mValue = readFieldValue(field.at("data"))});
             }
             components.push_back(std::move(component));
         }
@@ -1066,21 +1067,26 @@ void saveStateBinary(GridDynSimulation* gds,
 std::map<std::vector<std::string>, CoreObject*> GridDynSimulation::checkpointChildren() const
 {
     std::map<std::vector<std::string>, CoreObject*> objects;
-    std::vector<std::string> path;
-    const auto visit = [&](const auto& recurse, const CoreObject& object) -> void {
+    const std::vector<std::string> rootPath;
+    std::vector<std::pair<const std::vector<std::string>*, const CoreObject*>> pending{
+        {&rootPath, this}};
+    while (!pending.empty()) {
+        const auto [parentPath, object] = pending.back();
+        pending.pop_back();
         const auto addChild = [&](CoreObject* child) {
-            if (child == nullptr || child->getParent() != &object) {
+            if (child == nullptr || child->getParent() != object) {
                 return;
             }
+            auto path = *parentPath;
             path.push_back(child->getName());
-            if (!objects.emplace(path, child).second) {
+            const auto [entry, inserted] = objects.emplace(std::move(path), child);
+            if (!inserted) {
                 throw FileOperationError("ambiguous checkpoint component path " +
                                          fullObjectName(child));
             }
-            recurse(recurse, *child);
-            path.pop_back();
+            pending.emplace_back(&entry->first, child);
         };
-        if (const auto* area = dynamic_cast<const GridArea*>(&object)) {
+        if (const auto* area = dynamic_cast<const GridArea*>(object)) {
             for (auto* child : area->primaryObjects) {
                 addChild(child);
             }
@@ -1088,13 +1094,12 @@ std::map<std::vector<std::string>, CoreObject*> GridDynSimulation::checkpointChi
                 addChild(child);
             }
         }
-        if (const auto* component = dynamic_cast<const GridComponent*>(&object)) {
+        if (const auto* component = dynamic_cast<const GridComponent*>(object)) {
             for (auto* child : component->getSubObjects()) {
                 addChild(child);
             }
         }
-    };
-    visit(visit, *this);
+    }
     return objects;
 }
 
@@ -1145,10 +1150,11 @@ BinaryStateData GridDynSimulation::checkpointCapture(const SolverMode& requested
                                      fullObjectName(&object));
         }
         const auto* component = dynamic_cast<const GridComponent*>(&object);
-        localState.push_back({path,
-                              ModelFieldSnapshot::capture(object, FieldSnapshotLevel::LOCAL_STATE),
-                              object.isEnabled(),
-                              component == nullptr || component->isConnected()});
+        localState.push_back(
+            {.path = path,
+             .fields = ModelFieldSnapshot::capture(object, FieldSnapshotLevel::LOCAL_STATE),
+             .enabled = object.isEnabled(),
+             .connected = component == nullptr || component->isConnected()});
     };
     captureObject({}, *this);
     for (const auto& [path, object] : checkpointChildren()) {
@@ -1383,7 +1389,7 @@ BinaryStateData readStateBinary(const std::string& fileName)
             if (record.source == snapshotSource && record.code == localStateCode) {
                 if (saved.localState || record.type != Hdf5RecordType::BYTES ||
                     record.time_ns != saved.time.to_ns().count() || record.index != 0 ||
-                    record.key != static_cast<std::uint64_t>(saved.mode.offsetIndex)) {
+                    std::cmp_not_equal(record.key, saved.mode.offsetIndex)) {
                     throw FileOperationError("invalid checkpoint local-state record");
                 }
                 saved.localState = readLocalState(input.readBytes(record));
@@ -1427,7 +1433,10 @@ namespace {
                 (!solver->stateData() || (hasDifferential(targetMode) && !solver->derivData()))) {
                 throw FileOperationError("solver state or derivative data is unavailable");
             }
-            targets.push_back({solver, &state, &derivative, &names});
+            targets.push_back({.mSolver = solver,
+                               .mState = &state,
+                               .mDerivative = &derivative,
+                               .mStateNames = &names});
         };
         if ((saved.paired.size() > 1) ||
             ((primarySolver->getSolverMode().pairedOffsetIndex != kNullLocation) !=
@@ -1473,9 +1482,6 @@ void GridDynSimulation::checkpointRestore(const BinaryStateData& saved,
         (level != CheckpointRestoreLevel::MINIMAL) &&
         (level != CheckpointRestoreLevel::LOCAL_STATE)) {
         throw FileOperationError("unsupported checkpoint restore level");
-    }
-    if (level == CheckpointRestoreLevel::LOCAL_STATE && !saved.localState) {
-        throw FileOperationError("checkpoint has no local-state payload");
     }
     if (saved.paired.size() > 1) {
         throw FileOperationError("HDF5 state contains too many paired solver blocks");
@@ -1524,6 +1530,9 @@ void GridDynSimulation::checkpointRestore(const BinaryStateData& saved,
     std::vector<ModelField::Assignment> beforePublish;
     std::vector<ModelField::Assignment> afterPublish;
     if (level == CheckpointRestoreLevel::LOCAL_STATE) {
+        if (!saved.localState) {
+            throw FileOperationError("checkpoint has no local-state payload");
+        }
         auto objects = checkpointChildren();
         objects.emplace(std::vector<std::string>{}, this);
         for (const auto& component : *saved.localState) {

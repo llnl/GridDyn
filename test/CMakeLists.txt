@@ -40,6 +40,7 @@ set(file_reader_gtest_sources
     readerTests/testXML.cpp
     readerTests/testJsonReader.cpp
     readerTests/testXmlElementReader.cpp
+    readerTests/testYamlElementReader.cpp
 )
 
 set(model_comparison_gtest_sources gtestHelperFunctions.cpp comparisonTests/testModelComparison.cpp

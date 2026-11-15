@@ -68,10 +68,12 @@
 #include "griddyn/stabilizers/StabilizerStab2a.h"
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <memory>
 #include <nlohmann/json.hpp>
@@ -87,6 +89,13 @@ constexpr std::string_view comparisonTestDirectory{GRIDDYN_TEST_DIRECTORY "/comp
 std::string makeComparisonTestPath(std::string_view fileName)
 {
     return std::string{comparisonTestDirectory} + std::string{fileName};
+}
+
+std::string makeReaderErrorTestPath(std::string_view fileName)
+{
+    return (std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "reader_error_tests" /
+            std::string{fileName})
+        .string();
 }
 
 std::unique_ptr<griddyn::GridDynSimulation>
@@ -566,12 +575,55 @@ TEST(DyrReaderComparisonTests, InitializesGenroeAndIeeex1WithConsistentEquations
 
 TEST(DyrReaderComparisonTests, RejectsMalformedGenroeAndUnsupportedIeeex1Switch)
 {
-    for (const auto record : {"ieee14_genroe_bad_fields.dyr", "ieee14_ieeex1_nonzero_switch.dyr"}) {
+    constexpr std::pair<const char*, const char*> cases[]{
+        {"ieee14_genroe_bad_fields.dyr", "GENROE DYR record must contain 17 fields"},
+        {"ieee14_ieeex1_nonzero_switch.dyr", "IEEEX1 nonzero Switch is unsupported"},
+    };
+    for (const auto& [fileName, diagnostic] : cases) {
+        SCOPED_TRACE(fileName);
         auto simulation = std::make_unique<griddyn::GridDynSimulation>();
         griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
-        EXPECT_THROW(griddyn::loadFile(simulation.get(), makeComparisonTestPath(record)),
-                     griddyn::InvalidParameterValue)
-            << record;
+        EXPECT_THAT(
+            [&] { griddyn::loadFile(simulation.get(), makeReaderErrorTestPath(fileName)); },
+            ::testing::ThrowsMessage<griddyn::InvalidParameterValue>(
+                ::testing::HasSubstr(diagnostic)));
+    }
+}
+
+TEST(DydReaderTests, RejectsMalformedAndUnresolvedLoadTemplateBusSelectors)
+{
+    struct TemporaryDydFile {
+        std::filesystem::path path;
+
+        ~TemporaryDydFile()
+        {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    };
+    const auto timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    const TemporaryDydFile file{std::filesystem::temp_directory_path() /
+                               ("griddyn_dyd_selector_" + std::to_string(timestamp) + ".dyd")};
+    for (const auto selector : {"-1", "not-an-integer", "1.5", "18446744073709551616", "1"}) {
+        SCOPED_TRACE(selector);
+        {
+            std::ofstream output(file.path);
+            ASSERT_TRUE(output.is_open());
+            output << "models\nblwscc " << selector
+                   << " \"Bus 1\" 230.0 \"1\" : #9 0 1 1 0 0 0 0 0 0 0 0\n";
+            output.close();
+            ASSERT_TRUE(output);
+        }
+        auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+        const char* reason = std::string_view{selector} == "1" ?
+            "bus selector 1 was not found" :
+            "selector must be a nonnegative integer";
+        EXPECT_THAT(
+            [&] { griddyn::loadFile(simulation.get(), file.path.string()); },
+            ::testing::ThrowsMessage<griddyn::InvalidParameterValue>(::testing::AllOf(
+                ::testing::HasSubstr(file.path.string() + ":2 "),
+                ::testing::HasSubstr(std::string{"selector "} + selector + ':'),
+                ::testing::HasSubstr(reason))));
     }
 }
 
@@ -977,13 +1029,15 @@ TEST(DyrReaderComparisonTests, OmitsCmpldwFeederWhenFeederReactanceIsZero)
 
 TEST(DyrReaderComparisonTests, RejectsMalformedCmpldwRecords)
 {
-    for (const auto record : {"ieee14_cmpldw_bad_count.dyr"}) {
-        auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
-        EXPECT_THROW(griddyn::loadFile(simulation.get(), makeComparisonTestPath(record)),
-                     griddyn::InvalidParameterValue)
-            << record;
-    }
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    EXPECT_THAT(
+        [&] {
+            griddyn::loadFile(simulation.get(),
+                              makeReaderErrorTestPath("ieee14_cmpldw_bad_count.dyr"));
+        },
+        ::testing::ThrowsMessage<griddyn::InvalidParameterValue>(
+            ::testing::HasSubstr("CMLDBLU1 DYR record must contain 132 parameters")));
 }
 
 TEST(DyrReaderComparisonTests, RejectsDynamicCmpldwLtcUntilDelayedTapControlIsAvailable)
@@ -1019,7 +1073,8 @@ TEST(DyrReaderComparisonTests, RejectsUnsupportedModelWithRecordLocation)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
     try {
-        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_unsupported_model.dyr"));
+        griddyn::loadFile(simulation.get(),
+                          makeReaderErrorTestPath("ieee14_unsupported_model.dyr"));
         FAIL() << "unsupported DYR model was accepted";
     }
     catch (const griddyn::InvalidParameterValue& error) {

@@ -10,10 +10,12 @@
 #include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
+#include "griddyn/Load.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include "griddyn/links/RawDcLine.h"
 #include "griddyn/primary/AcBus.h"
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <filesystem>
@@ -30,6 +32,7 @@
 // test case for CoreObject object
 
 #define INPUT_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/input_tests/"
+#define READER_ERROR_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/reader_error_tests/"
 
 using namespace griddyn;
 using namespace gmlc::utilities;
@@ -109,6 +112,60 @@ TEST_F(InputTests, RawImportWarnsWhenUnsupportedSectionsContainRecords)
     EXPECT_NE(message.find("BEGIN MULTI-TERMINAL DC DATA"), std::string::npos);
     EXPECT_NE(message.find("1 non-comment data line that"), std::string::npos);
     EXPECT_EQ(message.find("missing section marker"), std::string::npos);
+}
+
+TEST_F(InputTests, LargeRawCaseImportsFixedShuntAndTwoTerminalDcLine)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    const auto filePath = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" /
+        "IEEE300Bus.raw";
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    ASSERT_NO_THROW(loadFile(gds, filePath.string()));
+    EXPECT_EQ(gds->getInt("totalbuscount"), 300);
+    const auto* bus = dynamic_cast<const GridBus*>(gds->findByUserID("bus", 117));
+    ASSERT_NE(bus, nullptr);
+    const GridLoad* fixedShunt = nullptr;
+    for (index_t i = 0; i < static_cast<index_t>(bus->getInt("loadcount")); ++i) {
+        const auto* load = bus->getLoad(i);
+        if (load->isFixedShunt()) {
+            fixedShunt = load;
+            break;
+        }
+    }
+    ASSERT_NE(fixedShunt, nullptr);
+    EXPECT_DOUBLE_EQ(fixedShunt->get("yq", units::MVAR), -325.0);
+
+    std::vector<Link*> links;
+    gds->getLinkVector(links);
+    const auto dc = std::ranges::find_if(links, [](const auto* link) {
+        return dynamic_cast<const links::RawDcLine*>(link) != nullptr;
+    });
+    ASSERT_NE(dc, links.end());
+    const auto* from = gds->findByUserID("bus", 119);
+    const auto* to = gds->findByUserID("bus", 120);
+    ASSERT_NE(from, nullptr);
+    ASSERT_NE(to, nullptr);
+    EXPECT_EQ((*dc)->getBus(1), from);
+    EXPECT_EQ((*dc)->getBus(2), to);
+    EXPECT_TRUE((*dc)->isEnabled());
+}
+
+TEST_F(InputTests, RawTransformerUsesInterpolatedImpedanceCorrectionTable)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    ASSERT_NO_THROW(
+        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_impedance_correction.raw"));
+
+    ASSERT_EQ(gds->getInt("totallinkcount"), 1);
+    const auto* transformer = dynamic_cast<const AcLine*>(gds->getLink(0));
+    ASSERT_NE(transformer, nullptr);
+    ASSERT_NE(transformer->getBus(1), nullptr);
+    ASSERT_NE(transformer->getBus(2), nullptr);
+    EXPECT_EQ(transformer->getBus(1)->getUserID(), 1);
+    EXPECT_EQ(transformer->getBus(2)->getUserID(), 2);
+    EXPECT_NEAR(transformer->get("r"), 0.02, 1e-12);
+    EXPECT_NEAR(transformer->get("x"), 0.20, 1e-12);
 }
 
 TEST_F(InputTests, InterAreaTransferLoadsFromRaw)
@@ -630,8 +687,17 @@ TEST_F(InputTests, PssERawRemoteVoltageGroupIncludesLocalPlant)
 TEST_F(InputTests, PssERawRemoteSwitchedShuntGroupsAreUnsupported)
 {
     gds = std::make_unique<GridDynSimulation>();
-    EXPECT_THROW(loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_remote_shunt_group.raw"),
-                 std::runtime_error);
+    const std::string path = READER_ERROR_TEST_DIRECTORY "raw_remote_shunt_group.raw";
+    ASSERT_TRUE(std::filesystem::is_regular_file(path)) << path;
+    try {
+        loadFile(gds, path);
+        FAIL() << "Expected rejection of the remote switched shunt group";
+    }
+    catch (const std::runtime_error& error) {
+        EXPECT_NE(std::string_view{error.what()}.find("grouped remote shunt participation"),
+                  std::string_view::npos)
+            << error.what();
+    }
 }
 
 TEST_F(InputTests, PssERawTransformerMagnetizingAdmittance)

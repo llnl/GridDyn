@@ -148,23 +148,26 @@ std::string YamlReaderElement::getMultiText(const std::string& sep) const
     if (!isValid()) {
         return nullStr;
     }
-    if (mCurrent->getElement().IsScalar()) {
-        return mCurrent->getElement().as<std::string>();
-    }
-    if (mCurrent->getElement().IsSequence()) {
+    if (mCurrent->isSequence()) {
+        const auto& sequence = mCurrent->getSequence();
+        if (sequence.begin() == sequence.end()) {
+            return nullStr;
+        }
         std::string ret;
-        YAML::const_iterator elementIterator = mCurrent->getElement().begin();
-        if (elementIterator->IsScalar()) {
-            const YAML::const_iterator elementEnd = mCurrent->getElement().end();
-            while (elementIterator != elementEnd) {
-                if (!ret.empty()) {
-                    ret += sep;
-                }
-                ret += elementIterator->as<std::string>();
-                ++elementIterator;
+        for (auto elementIterator = sequence.begin(); elementIterator != sequence.end();
+             ++elementIterator) {
+            if (!elementIterator->IsScalar()) {
+                return nullStr;
             }
+            if (!ret.empty()) {
+                ret += sep;
+            }
+            ret += elementIterator->as<std::string>();
         }
         return ret;
+    }
+    if (mCurrent->getElement().IsScalar()) {
+        return mCurrent->getElement().as<std::string>();
     }
     return nullStr;
 }
@@ -207,10 +210,12 @@ ReaderAttribute YamlReaderElement::getFirstAttribute()
 
     mIteratorCount = 0;
     while (attIterator != elementEnd) {
-        if (isAttribute(*attIterator)) {
-            return {attIterator->Tag(), attIterator->as<std::string>()};
+        if (isAttribute(attIterator->second)) {
+            return {attIterator->first.as<std::string>(),
+                    attIterator->second.as<std::string>()};
         }
         ++attIterator;
+        ++mIteratorCount;
     }
 
     return {};
@@ -235,8 +240,9 @@ ReaderAttribute YamlReaderElement::getNextAttribute()
     ++attIterator;
     ++mIteratorCount;
     while (attIterator != elementEnd) {
-        if (isAttribute(*attIterator)) {
-            return {attIterator->Tag(), attIterator->as<std::string>()};
+        if (isAttribute(attIterator->second)) {
+            return {attIterator->first.as<std::string>(),
+                    attIterator->second.as<std::string>()};
         }
         ++attIterator;
         ++mIteratorCount;
@@ -303,7 +309,7 @@ void YamlReaderElement::moveToFirstChild()
         ++mCurrent->mElementIndex;
     }
     mParents.push_back(mCurrent);
-    mCurrent->clear();
+    mCurrent = std::make_shared<YamlElement>();
 }
 
 void YamlReaderElement::moveToFirstChild(const std::string& childName)
@@ -321,7 +327,7 @@ void YamlReaderElement::moveToFirstChild(const std::string& childName)
     }
 
     mParents.push_back(mCurrent);
-    mCurrent->clear();
+    mCurrent = std::make_shared<YamlElement>();
 }
 
 void YamlReaderElement::moveToNextSibling()

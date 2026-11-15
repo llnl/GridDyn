@@ -27,6 +27,7 @@ class DcLink: public Link {
     double r = 0;  //!< [puOhm]  the dc resistance
     double x = 0.0001;  //!< [puOhm]  the dc inductance
     double c = 0.0;  //!< [puF]  the dc capacitance
+    model_parameter length{0.0};  //!< [km] physical line length, when supplied by the reader
     Topology topology = Topology::RL;
     bool currentBalance = false;  //!< use ANDES' nodal-current convention
 

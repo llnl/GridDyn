@@ -1,0 +1,19 @@
+griddyn:
+  name: demo
+  version: version-one
+  network:
+    buses:
+      - null
+      - name: bus1
+        type: PQ
+        basekv: 230
+      - name: bus2
+        type: SLK
+        basekv: 115
+    name: sample_grid
+    enabled: 1
+    rating: 12.5
+    bad_number: not-a-number
+    labels: [alpha, beta, gamma]
+    child:
+      words: [part1, part2, part3]

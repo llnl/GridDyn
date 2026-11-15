@@ -1,0 +1,17 @@
+name: yaml_two_bus
+bus:
+  - name: source
+    type: SLK
+    basevoltage: 230
+  - name: demand
+    basevoltage: 230
+    load:
+      name: demand_load
+      p: 0.25
+      q: 0.05
+link:
+  name: feeder
+  from: source
+  to: demand
+  r: 0.01
+  x: 0.08

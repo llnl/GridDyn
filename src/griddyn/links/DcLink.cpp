@@ -31,6 +31,7 @@ const ModelDescription& DcLink::getModelDescription() const
         {parameter({"r", "rdc"}, &DcLink::r, units::one, "The dc resistance"),
          parameter({"l", "x", "ldc"}, &DcLink::x, units::one, "The dc inductance"),
          parameter({"c", "cdc"}, &DcLink::c, units::one, "The dc capacitance"),
+         parameter({"length"}, &DcLink::length, units::km, "Physical line length"),
          flag({"andes_current_balance", "current_balance"},
               &DcLink::currentBalance,
               "Use ANDES' nodal-current convention"),
@@ -95,6 +96,7 @@ CoreObject* DcLink::clone(CoreObject* obj) const
     nobj->r = r;
     nobj->x = x;
     nobj->c = c;
+    nobj->length = length;
     nobj->topology = topology;
     nobj->currentBalance = currentBalance;
 

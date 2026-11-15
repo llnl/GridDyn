@@ -1,0 +1,13 @@
+title
+Minimal EPC DC network record test
+!
+solution parameters
+sbase 100.0
+!
+dc bus data [ 2]                 ty  ar  zone  vsched  dc_volt
+1 "DC_A" 320.0 : 1 1 1 320.0 320.0 0 0 0 1 0
+2 "DC_B" 320.0 : 2 1 1 320.0 320.0 0 0 0 1 0
+dc line data [ 2]                ck   ------------long_id_------------ st ar zone resist react capac rate1 rate2 rate3 rate4 length
+1 "DC_A" 320.0 2 "DC_B" 320.0 "1 " "active link" : 1 1 1 0.25 0.01 0.0 150.0 140.0 130.0 50.0 60.0
+1 "DC_A" 320.0 2 "DC_B" 320.0 "2 " "out of service link" : 0 1 1 0.50 0.02 0.0 120.0 110.0 100.0 40.0 45.0
+end

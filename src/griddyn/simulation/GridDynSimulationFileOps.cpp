@@ -1071,9 +1071,10 @@ std::map<std::vector<std::string>, CoreObject*> GridDynSimulation::checkpointChi
     std::vector<std::pair<const std::vector<std::string>*, const CoreObject*>> pending{
         {&rootPath, this}};
     while (!pending.empty()) {
-        const auto [parentPath, object] = pending.back();
+        const auto* parentPath = pending.back().first;
+        const auto* object = pending.back().second;
         pending.pop_back();
-        const auto addChild = [&](CoreObject* child) {
+        const auto addChild = [parentPath, object, &objects, &pending](CoreObject* child) {
             if (child == nullptr || child->getParent() != object) {
                 return;
             }

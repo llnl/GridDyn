@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <array>
 #include <bit>
+#include <charconv>
 #include <chrono>
 #include <cmath>
 #include <cstdio>
@@ -28,7 +29,9 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <limits>
+#include <map>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <pugixml.hpp>
@@ -36,7 +39,11 @@
 #include <span>
 #include <sstream>
 #include <string>
+#include <string_view>
+#include <system_error>
+#include <type_traits>
 #include <utility>
+#include <variant>
 #include <vector>
 
 namespace griddyn {
@@ -699,6 +706,9 @@ namespace {
     constexpr std::uint32_t dynamicFlag = 1U, differentialFlag = 2U, algebraicFlag = 4U;
     constexpr std::uint32_t localFlag = 8U, extendedFlag = 16U, parameterFlag = 32U;
     constexpr std::uint32_t snapshotSource = 0U, diagnosticSource = 1U;
+    constexpr std::uint32_t localStateCode = 3U;
+    using LocalStateJson = nlohmann::json;
+    constexpr int localStateVersion = 1;
 
     std::uint32_t stateModeFlags(const SolverMode& mode)
     {
@@ -762,6 +772,180 @@ namespace {
         view.info = recordInfo(time, source, code, index, mode);
         view.values = std::span<const double>(data, static_cast<std::size_t>(count));
         return view;
+    }
+
+    void appendSolverRecords(std::vector<Hdf5RecordView>& records,
+                             CoreTime time,
+                             std::uint64_t index,
+                             const SolverMode& mode,
+                             std::uint64_t count,
+                             const double* state,
+                             const double* derivative)
+    {
+        records.push_back(
+            vectorRecord(time, snapshotSource, STATE_INFORMATION, index, mode, count, state));
+        if (hasDifferential(mode)) {
+            records.push_back(vectorRecord(
+                time, snapshotSource, DERIVATIVE_INFORMATION, index, mode, count, derivative));
+        }
+    }
+
+    std::vector<std::string> checkpointStateNames(const GridDynSimulation& simulation,
+                                                  const SolverMode& mode,
+                                                  std::size_t count)
+    {
+        std::vector<std::string> names;
+        if (count != 0) {
+            simulation.getStateName(names, mode);
+            names.resize(count);
+        }
+        return names;
+    }
+
+    template<class Integer>
+    Integer readExactInteger(const LocalStateJson& value)
+    {
+        const auto& text = value.get_ref<const std::string&>();
+        Integer result{};
+        const auto [end, error] = std::from_chars(text.data(), text.data() + text.size(), result);
+        if (error != std::errc{} || end != text.data() + text.size()) {
+            throw FileOperationError("invalid checkpoint integer");
+        }
+        return result;
+    }
+
+    LocalStateJson writeReal(double value)
+    {
+        // Preserve the bits of non-finite values, which JSON numbers cannot represent.
+        return std::isfinite(value) ?
+            LocalStateJson(value) :
+            LocalStateJson(std::to_string(std::bit_cast<std::uint64_t>(value)));
+    }
+
+    double readReal(const LocalStateJson& value)
+    {
+        return value.is_number() ? value.get<double>() :
+                                   std::bit_cast<double>(readExactInteger<std::uint64_t>(value));
+    }
+
+    LocalStateJson writeFieldValue(const ModelFieldValue& value)
+    {
+        return std::visit(
+            [](const auto& stored) -> LocalStateJson {
+                using Value = std::decay_t<decltype(stored)>;
+                if constexpr (std::is_same_v<Value, double>) {
+                    return {"real", writeReal(stored)};
+                } else if constexpr (std::is_same_v<Value, std::int64_t>) {
+                    return {"integer", std::to_string(stored)};
+                } else if constexpr (std::is_same_v<Value, std::uint64_t>) {
+                    return {"unsigned", std::to_string(stored)};
+                } else if constexpr (std::is_same_v<Value, bool>) {
+                    return {"boolean", stored};
+                } else if constexpr (std::is_same_v<Value, std::string>) {
+                    return {"string", stored};
+                } else if constexpr (std::is_same_v<Value, CoreTime>) {
+                    return {"time_ns", std::to_string(stored.to_ns().count())};
+                } else if constexpr (std::is_same_v<Value, std::vector<double>>) {
+                    auto values = LocalStateJson::array();
+                    for (const double element : stored) {
+                        values.push_back(writeReal(element));
+                    }
+                    return {"real_vector", std::move(values)};
+                } else {
+                    return {"flags", std::to_string(stored.to_ullong())};
+                }
+            },
+            value);
+    }
+
+    ModelFieldValue readFieldValue(const LocalStateJson& field)
+    {
+        if (!field.is_array() || field.size() != 2) {
+            throw FileOperationError("invalid checkpoint field value");
+        }
+        const auto& type = field[0].get_ref<const std::string&>();
+        const auto& value = field[1];
+        if (type == "real") {
+            return readReal(value);
+        }
+        if (type == "integer") {
+            return readExactInteger<std::int64_t>(value);
+        }
+        if (type == "unsigned") {
+            return readExactInteger<std::uint64_t>(value);
+        }
+        if (type == "boolean") {
+            return value.get<bool>();
+        }
+        if (type == "string") {
+            return value.get<std::string>();
+        }
+        if (type == "time_ns") {
+            return CoreTime(std::chrono::nanoseconds(readExactInteger<std::int64_t>(value)));
+        }
+        if (type == "flags") {
+            return std::bitset<64>(readExactInteger<std::uint64_t>(value));
+        }
+        if (type == "real_vector" && value.is_array()) {
+            std::vector<double> values;
+            values.reserve(value.size());
+            std::transform(value.begin(), value.end(), std::back_inserter(values), readReal);
+            return values;
+        }
+        throw FileOperationError("unsupported checkpoint field value type");
+    }
+
+    std::string writeLocalState(const std::vector<ComponentStateSnapshot>& components)
+    {
+        auto objects = LocalStateJson::array();
+        for (const auto& component : components) {
+            auto fields = LocalStateJson::array();
+            for (const auto& field : component.fields.mFields) {
+                fields.push_back({{"owner", field.mDeclaringClass},
+                                  {"name", field.mName},
+                                  {"data", writeFieldValue(field.mValue)}});
+            }
+            objects.push_back({{"path", component.path},
+                               {"type", component.fields.mModelType},
+                               {"enabled", component.enabled},
+                               {"connected", component.connected},
+                               {"fields", std::move(fields)}});
+        }
+        return LocalStateJson{{"version", localStateVersion}, {"objects", std::move(objects)}}
+            .dump();
+    }
+
+    std::vector<ComponentStateSnapshot> readLocalState(std::string_view text)
+    {
+        const auto document = LocalStateJson::parse(text);
+        const auto& version = document.at("version");
+        const auto& objects = document.at("objects");
+        if (!version.is_number_integer() || version != localStateVersion || !objects.is_array()) {
+            throw FileOperationError("unsupported checkpoint local-state payload");
+        }
+        std::vector<ComponentStateSnapshot> components;
+        components.reserve(objects.size());
+        for (const auto& object : objects) {
+            const auto& fields = object.at("fields");
+            if (!fields.is_array()) {
+                throw FileOperationError("invalid checkpoint component fields");
+            }
+            ComponentStateSnapshot component;
+            component.path = object.at("path").get<std::vector<std::string>>();
+            component.fields.mModelType = object.at("type").get<std::string>();
+            component.enabled = object.at("enabled").get<bool>();
+            component.connected = object.at("connected").get<bool>();
+            component.fields.mLevel = FieldSnapshotLevel::LOCAL_STATE;
+            component.fields.mFields.reserve(fields.size());
+            for (const auto& field : fields) {
+                component.fields.mFields.push_back(
+                    {.mDeclaringClass = field.at("owner").get<std::string>(),
+                     .mName = field.at("name").get<std::string>(),
+                     .mValue = readFieldValue(field.at("data"))});
+            }
+            components.push_back(std::move(component));
+        }
+        return components;
     }
     Hdf5RecordView matrixRecord(CoreTime time,
                                 std::uint32_t code,
@@ -827,6 +1011,9 @@ namespace {
         try {
             return function();
         }
+        catch (const nlohmann::json::exception& error) {
+            throw FileOperationError(error.what());
+        }
         catch (const std::runtime_error& error) {
             throw FileOperationError(error.what());
         }
@@ -854,22 +1041,13 @@ void saveStateBinary(GridDynSimulation* gds,
             if (!solver || !solver->isInitialized()) {
                 throw FileOperationError("solver must be initialized before saving state");
             }
-            records.push_back(vectorRecord(gds->getSimulationTime(),
-                                           snapshotSource,
-                                           STATE_INFORMATION,
-                                           block,
-                                           selected,
-                                           solver->size(),
-                                           solver->stateData()));
-            if (hasDifferential(selected)) {
-                records.push_back(vectorRecord(gds->getSimulationTime(),
-                                               snapshotSource,
-                                               DERIVATIVE_INFORMATION,
-                                               block,
-                                               selected,
-                                               solver->size(),
-                                               solver->derivData()));
-            }
+            appendSolverRecords(records,
+                                gds->getSimulationTime(),
+                                block,
+                                selected,
+                                solver->size(),
+                                solver->stateData(),
+                                hasDifferential(selected) ? solver->derivData() : nullptr);
         };
         addSolver(mode, 0);
         if (mode.pairedOffsetIndex != kNullLocation) {
@@ -879,6 +1057,154 @@ void saveStateBinary(GridDynSimulation* gds,
             }
             addSolver(paired->getSolverMode(), 1);
         }
+        Hdf5DataFile output(path,
+                            append ? Hdf5DataFile::OpenMode::APPEND :
+                                     Hdf5DataFile::OpenMode::TRUNCATE);
+        output.append(records);
+    });
+}
+
+std::map<std::vector<std::string>, CoreObject*> GridDynSimulation::checkpointChildren() const
+{
+    std::map<std::vector<std::string>, CoreObject*> objects;
+    const std::vector<std::string> rootPath;
+    std::vector<std::pair<const std::vector<std::string>*, const CoreObject*>> pending{
+        {&rootPath, this}};
+    while (!pending.empty()) {
+        const auto* parentPath = pending.back().first;
+        const auto* object = pending.back().second;
+        pending.pop_back();
+        const auto addChild = [parentPath, object, &objects, &pending](CoreObject* child) {
+            if (child == nullptr || child->getParent() != object) {
+                return;
+            }
+            auto path = *parentPath;
+            path.push_back(child->getName());
+            const auto [entry, inserted] = objects.emplace(std::move(path), child);
+            if (!inserted) {
+                throw FileOperationError("ambiguous checkpoint component path " +
+                                         fullObjectName(child));
+            }
+            pending.emplace_back(&entry->first, child);
+        };
+        if (const auto* area = dynamic_cast<const GridArea*>(object)) {
+            for (auto* child : area->primaryObjects) {
+                addChild(child);
+            }
+            for (auto* child : area->objectHolder) {
+                addChild(child);
+            }
+        }
+        if (const auto* component = dynamic_cast<const GridComponent*>(object)) {
+            for (auto* child : component->getSubObjects()) {
+                addChild(child);
+            }
+        }
+    }
+    return objects;
+}
+
+BinaryStateData GridDynSimulation::checkpointCapture(const SolverMode& requestedMode) const
+{
+    BinaryStateData saved;
+    saved.time = getSimulationTime();
+    const auto captureBlock = [&](const std::shared_ptr<const SolverInterface>& solver) {
+        if (!solver || !solver->isInitialized()) {
+            throw FileOperationError("checkpoint capture requires an initialized solver");
+        }
+        BinaryStateBlock block;
+        block.mode = solver->getSolverMode();
+        if (!getOffsets(block.mode).offsetsLoaded ||
+            std::cmp_not_equal(stateSize(block.mode), solver->size())) {
+            throw FileOperationError("checkpoint capture requires a current solver layout");
+        }
+        if (isDynamic(block.mode) && solver->getSolverTime() != saved.time) {
+            throw FileOperationError("checkpoint capture requires a synchronized solver time");
+        }
+        if (solver->size() > 0) {
+            const auto* state = solver->stateData();
+            const auto* derivative = hasDifferential(block.mode) ? solver->derivData() : nullptr;
+            if (state == nullptr || (hasDifferential(block.mode) && derivative == nullptr)) {
+                throw FileOperationError("checkpoint solver vectors are unavailable");
+            }
+            block.state.assign(state, state + solver->size());
+            if (derivative != nullptr) {
+                block.derivatives.assign(derivative, derivative + solver->size());
+            }
+        }
+        block.stateNames = checkpointStateNames(*this, block.mode, block.state.size());
+        return block;
+    };
+    auto primary = captureBlock(getSolverInterface(getCurrentMode(requestedMode)));
+    saved.mode = primary.mode;
+    saved.state = std::move(primary.state);
+    saved.derivatives = std::move(primary.derivatives);
+    saved.stateNames = std::move(primary.stateNames);
+    if (saved.mode.pairedOffsetIndex != kNullLocation) {
+        saved.paired.push_back(captureBlock(getSolverInterface(saved.mode.pairedOffsetIndex)));
+    }
+
+    auto& localState = saved.localState.emplace();
+    const auto captureObject = [&](const std::vector<std::string>& path, const CoreObject& object) {
+        if (!object.getModelDescription().describesExactType(object)) {
+            throw FileOperationError("checkpoint requires an exact model description for " +
+                                     fullObjectName(&object));
+        }
+        const auto* component = dynamic_cast<const GridComponent*>(&object);
+        localState.push_back(
+            {.path = path,
+             .fields = ModelFieldSnapshot::capture(object, FieldSnapshotLevel::LOCAL_STATE),
+             .enabled = object.isEnabled(),
+             .connected = component == nullptr || component->isConnected()});
+    };
+    captureObject({}, *this);
+    for (const auto& [path, object] : checkpointChildren()) {
+        captureObject(path, *object);
+    }
+    return saved;
+}
+
+void GridDynSimulation::checkpointCapture(const std::string& fileName,
+                                          const SolverMode& mode,
+                                          bool append) const
+{
+    const auto path = fileName.empty() ? getString("statefile") : fileName;
+    if (path.empty()) {
+        throw FileOperationError("no checkpoint file specified");
+    }
+    const auto saved = checkpointCapture(mode);
+    stateFileOperation([&]() {
+        std::vector<Hdf5RecordView> records;
+        const auto addBlock = [&](std::uint64_t index,
+                                  const SolverMode& blockMode,
+                                  const std::vector<double>& state,
+                                  const std::vector<double>& derivatives,
+                                  const std::vector<std::string>& names) {
+            appendSolverRecords(records,
+                                saved.time,
+                                index,
+                                blockMode,
+                                state.size(),
+                                state.data(),
+                                derivatives.data());
+            Hdf5RecordView nameRecord;
+            nameRecord.info =
+                recordInfo(saved.time, snapshotSource, STATE_INFORMATION, index, blockMode);
+            nameRecord.info.type = Hdf5RecordType::NAMES;
+            nameRecord.names = names;
+            records.push_back(nameRecord);
+        };
+        addBlock(0, saved.mode, saved.state, saved.derivatives, saved.stateNames);
+        for (const auto& block : saved.paired) {
+            addBlock(1, block.mode, block.state, block.derivatives, block.stateNames);
+        }
+        const auto payload = writeLocalState(*saved.localState);
+        Hdf5RecordView local;
+        local.info = recordInfo(saved.time, snapshotSource, localStateCode, 0, saved.mode);
+        local.info.type = Hdf5RecordType::BYTES;
+        local.bytes = payload;
+        records.push_back(local);
+
         Hdf5DataFile output(path,
                             append ? Hdf5DataFile::OpenMode::APPEND :
                                      Hdf5DataFile::OpenMode::TRUNCATE);
@@ -1012,6 +1338,20 @@ BinaryStateData readStateBinary(const std::string& fileName)
             BinaryStateBlock block;
             block.mode = recordedMode(record);
             block.state = input.readValues(record);
+            const auto matchesNames = [&](const auto& other) {
+                return other.source == snapshotSource && other.type == Hdf5RecordType::NAMES &&
+                    other.code == STATE_INFORMATION && other.key == record.key;
+            };
+            const auto names = std::ranges::find_if(frame, matchesNames);
+            if (names != frame.end()) {
+                if (names->count != record.count || names->time_ns != record.time_ns ||
+                    names->index != record.index ||
+                    std::ranges::find_if(std::next(names), frame.end(), matchesNames) !=
+                        frame.end()) {
+                    throw FileOperationError("invalid checkpoint solver state names");
+                }
+                block.stateNames = input.readNames(*names);
+            }
             if (hasDifferential(block.mode)) {
                 auto derivative = std::find_if(frame.begin(), frame.end(), [&](const auto& other) {
                     return other.source == snapshotSource && other.type == Hdf5RecordType::VECTOR &&
@@ -1028,6 +1368,7 @@ BinaryStateData readStateBinary(const std::string& fileName)
                 saved.mode = block.mode;
                 saved.state = std::move(block.state);
                 saved.derivatives = std::move(block.derivatives);
+                saved.stateNames = std::move(block.stateNames);
                 primary = false;
             } else {
                 if (record.time_ns != saved.time.to_ns().count()) {
@@ -1045,27 +1386,41 @@ BinaryStateData readStateBinary(const std::string& fileName)
             })) {
             throw FileOperationError("incomplete paired state frame");
         }
+        for (const auto& record : frame) {
+            if (record.source == snapshotSource && record.code == localStateCode) {
+                if (saved.localState || record.type != Hdf5RecordType::BYTES ||
+                    record.time_ns != saved.time.to_ns().count() || record.index != 0 ||
+                    std::cmp_not_equal(record.key, saved.mode.offsetIndex)) {
+                    throw FileOperationError("invalid checkpoint local-state record");
+                }
+                saved.localState = readLocalState(input.readBytes(record));
+            }
+        }
         return saved;
     });
 }
 
 namespace {
-    void applyBinaryState(GridDynSimulation* gds,
-                          const std::shared_ptr<SolverInterface>& primarySolver,
-                          const BinaryStateData& saved,
-                          CheckpointRestoreLevel level)
+    struct BinaryStateTarget {
+        std::shared_ptr<SolverInterface> mSolver;
+        const std::vector<double>* mState;
+        const std::vector<double>* mDerivative;
+        const std::vector<std::string>* mStateNames;
+    };
+
+    std::vector<BinaryStateTarget>
+        validateBinaryState(GridDynSimulation* gds,
+                            const std::shared_ptr<SolverInterface>& primarySolver,
+                            const BinaryStateData& saved,
+                            CheckpointRestoreLevel level)
     {
-        struct Target {
-            std::shared_ptr<SolverInterface> mSolver;
-            const std::vector<double>* mState;
-            const std::vector<double>* mDerivative;
-        };
-        std::vector<Target> targets;
+        std::vector<BinaryStateTarget> targets;
         const auto validate = [&](const std::shared_ptr<SolverInterface>& solver,
                                   const SolverMode& targetMode,
                                   const SolverMode& storedMode,
                                   const std::vector<double>& state,
-                                  const std::vector<double>& derivative) {
+                                  const std::vector<double>& derivative,
+                                  const std::vector<std::string>& names) {
             if (!solver || !solver->isInitialized()) {
                 throw FileOperationError("solver must be initialized before loading HDF5 state");
             }
@@ -1079,7 +1434,10 @@ namespace {
                 (!solver->stateData() || (hasDifferential(targetMode) && !solver->derivData()))) {
                 throw FileOperationError("solver state or derivative data is unavailable");
             }
-            targets.push_back({.mSolver = solver, .mState = &state, .mDerivative = &derivative});
+            targets.push_back({.mSolver = solver,
+                               .mState = &state,
+                               .mDerivative = &derivative,
+                               .mStateNames = &names});
         };
         if ((saved.paired.size() > 1) ||
             ((primarySolver->getSolverMode().pairedOffsetIndex != kNullLocation) !=
@@ -1090,7 +1448,8 @@ namespace {
                  primarySolver->getSolverMode(),
                  saved.mode,
                  saved.state,
-                 saved.derivatives);
+                 saved.derivatives,
+                 saved.stateNames);
         if (!saved.paired.empty()) {
             const auto pairIndex = primarySolver->getSolverMode().pairedOffsetIndex;
             auto pairedSolver = gds->getSolverInterface(pairIndex);
@@ -1102,32 +1461,16 @@ namespace {
                      pairedSolver->getSolverMode(),
                      pair.mode,
                      pair.state,
-                     pair.derivatives);
+                     pair.derivatives,
+                     pair.stateNames);
         }
-        if (level == CheckpointRestoreLevel::MINIMAL &&
-            std::any_of(targets.begin(), targets.end(), [](const Target& target) {
+        if (level != CheckpointRestoreLevel::SOLVER_STATE_ONLY &&
+            std::any_of(targets.begin(), targets.end(), [](const BinaryStateTarget& target) {
                 return !target.mSolver->supportsCheckpointRestore();
             })) {
             throw FileOperationError("a solver backend does not support checkpoint restore");
         }
-        // Check every block before modifying any solver array.
-        for (const auto& target : targets) {
-            if (!target.mState->empty()) {
-                std::copy(target.mState->begin(),
-                          target.mState->end(),
-                          target.mSolver->stateData());
-            }
-            if (hasDifferential(target.mSolver->getSolverMode()) && !target.mDerivative->empty()) {
-                std::copy(target.mDerivative->begin(),
-                          target.mDerivative->end(),
-                          target.mSolver->derivData());
-            }
-        }
-        if (level == CheckpointRestoreLevel::MINIMAL) {
-            for (const auto& target : targets) {
-                target.mSolver->restoreFromCheckpoint(saved.time);
-            }
-        }
+        return targets;
     }
 
 }  // namespace
@@ -1137,7 +1480,8 @@ void GridDynSimulation::checkpointRestore(const BinaryStateData& saved,
                                           const SolverMode& requestedMode)
 {
     if ((level != CheckpointRestoreLevel::SOLVER_STATE_ONLY) &&
-        (level != CheckpointRestoreLevel::MINIMAL)) {
+        (level != CheckpointRestoreLevel::MINIMAL) &&
+        (level != CheckpointRestoreLevel::LOCAL_STATE)) {
         throw FileOperationError("unsupported checkpoint restore level");
     }
     if (saved.paired.size() > 1) {
@@ -1183,12 +1527,104 @@ void GridDynSimulation::checkpointRestore(const BinaryStateData& saved,
         selectedSolver = matches.front();
     }
 
-    applyBinaryState(this, selectedSolver, saved, level);
-    if (level == CheckpointRestoreLevel::MINIMAL) {
-        currentTime = saved.time;
-        simulationTime.store(saved.time);
-        timeReturn = saved.time;
-        nextStopTime = negTime;
+    auto targets = validateBinaryState(this, selectedSolver, saved, level);
+    std::vector<ModelField::Assignment> beforePublish;
+    std::vector<ModelField::Assignment> afterPublish;
+    if (level == CheckpointRestoreLevel::LOCAL_STATE) {
+        if (!saved.localState) {
+            throw FileOperationError("checkpoint has no local-state payload");
+        }
+        auto objects = checkpointChildren();
+        objects.emplace(std::vector<std::string>{}, this);
+        for (const auto& component : *saved.localState) {
+            const auto target = objects.find(component.path);
+            if (target == objects.end()) {
+                throw FileOperationError("missing or duplicate checkpoint component " +
+                                         LocalStateJson(component.path).dump());
+            }
+            if (component.fields.mLevel != FieldSnapshotLevel::LOCAL_STATE) {
+                throw FileOperationError("checkpoint component field scope does not match");
+            }
+            const auto* gridComponent = dynamic_cast<const GridComponent*>(target->second);
+            if (target->second->isEnabled() != component.enabled ||
+                (gridComponent == nullptr || gridComponent->isConnected()) != component.connected) {
+                throw FileOperationError("checkpoint component status does not match " +
+                                         fullObjectName(target->second));
+            }
+            beforePublish.push_back(component.fields.prepareRestore(*target->second));
+            afterPublish.push_back(component.fields.prepareRestore(*target->second));
+            objects.erase(target);
+        }
+        if (!objects.empty()) {
+            throw FileOperationError("checkpoint does not cover the destination components");
+        }
+    }
+    if (level != CheckpointRestoreLevel::SOLVER_STATE_ONLY) {
+        for (const auto& target : targets) {
+            const auto& mode = target.mSolver->getSolverMode();
+            // An initialized solver's offsets can be invalidated when switching modes.
+            if (std::cmp_not_equal(stateSize(mode), target.mState->size())) {
+                throw FileOperationError("HDF5 state does not match the component state size");
+            }
+            if (!getOffsets(mode).offsetsLoaded) {
+                updateOffsets(mode);
+            }
+            if (level == CheckpointRestoreLevel::LOCAL_STATE &&
+                checkpointStateNames(*this, mode, target.mState->size()) != *target.mStateNames) {
+                throw FileOperationError("checkpoint solver state ordering does not match");
+            }
+        }
+    }
+    for (const auto& target : targets) {
+        if (!target.mState->empty()) {
+            std::copy(target.mState->begin(), target.mState->end(), target.mSolver->stateData());
+        }
+        if (hasDifferential(target.mSolver->getSolverMode()) && !target.mDerivative->empty()) {
+            std::copy(target.mDerivative->begin(),
+                      target.mDerivative->end(),
+                      target.mSolver->derivData());
+        }
+    }
+    if (level == CheckpointRestoreLevel::SOLVER_STATE_ONLY) {
+        return;
+    }
+
+    for (const auto& target : targets) {
+        target.mSolver->restoreFromCheckpoint(saved.time);
+    }
+    currentTime = saved.time;
+    simulationTime.store(saved.time);
+    timeReturn = saved.time;
+    nextStopTime = negTime;
+
+    for (auto& restore : beforePublish) {
+        restore();
+    }
+    // Match the accepted-step order for partitioned dynamics, regardless of the primary block.
+    if (targets.size() == 2 && isAlgebraicOnly(targets.front().mSolver->getSolverMode()) &&
+        isDifferentialOnly(targets.back().mSolver->getSolverMode())) {
+        std::swap(targets.front(), targets.back());
+    }
+    for (const auto& target : targets) {
+        const auto& mode = target.mSolver->getSolverMode();
+        setState(saved.time,
+                 target.mSolver->stateData(),
+                 hasDifferential(mode) ? target.mSolver->derivData() : nullptr,
+                 mode);
+    }
+    // setState may advance model clocks or recompute retained values while publishing outputs.
+    for (auto& restore : afterPublish) {
+        restore();
+    }
+    updateLocalCache();
+    if (level == CheckpointRestoreLevel::LOCAL_STATE && pState == GridState::DYNAMIC_INITIALIZED) {
+        const auto activeMode = getCurrentMode();
+        if (isDynamic(activeMode) && std::ranges::any_of(targets, [&](const auto& target) {
+                return target.mSolver->getSolverMode().offsetIndex == activeMode.offsetIndex;
+            })) {
+            // The restored active solver already has an accepted point. Skip startup conditions.
+            pState = GridState::DYNAMIC_COMPLETE;
+        }
     }
 }
 

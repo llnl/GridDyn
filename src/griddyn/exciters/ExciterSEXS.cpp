@@ -221,8 +221,9 @@ void ExciterSEXS::rootTrigger(CoreTime time,
         alert(this, JAC_COUNT_DECREASE);
     }
 
+    // These buffers belong to the exciter, so use its local offsets.
     const StateData state(time, m_state.data());
-    derivative(inputs, state, m_dstate_dt.data(), solverMode);
+    derivative(inputs, state, m_dstate_dt.data(), cLocalSolverMode);
 }
 
 ChangeCode ExciterSEXS::rootCheck(const IOdata& inputs,

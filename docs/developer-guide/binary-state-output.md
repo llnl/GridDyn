@@ -46,8 +46,8 @@ partitioned startup conditions have populated both vectors.
 
 `readStateBinary(path)` selects the last published snapshot frame, skipping
 trial diagnostics. It reads the index in bounded blocks and materializes only
-that frame's state arrays. `BinaryStateData` exposes the primary time, mode,
-state and derivatives, plus `paired` blocks when present.
+the selected frame. `BinaryStateData` exposes the primary time, mode, state
+and derivatives, plus paired blocks, state names, and local state when present.
 Ordinary `saveStateBinary` frames do not currently write the optional `NAMES`
 records, even though the HDF5 schema and explicit diagnostic/Jacobian captures
 support them.
@@ -59,18 +59,21 @@ the paired solver. Load is a solver-vector operation: it does not rewind the
 simulation clock, commit component state, restore parameters/events/limit flags,
 or recover solver integration history. This remains separate from a complete
 checkpoint/restore system. The in-memory
-`GridDynSimulation::checkpointRestore(BinaryStateData, MINIMAL)` API can reset
-supported solver backends from an already-read frame and restore its time, but
-it does not restore model fields or simulation runtime. See
+`GridDynSimulation::checkpointRestore(BinaryStateData, MINIMAL)` API restarts
+supported solver backends at the saved time and publishes the restored solution
+to components so their outputs reflect it immediately. See
 [Checkpointing and restore boundaries](checkpointing.md#binary-state-restore-api).
 No physical-consistency reconciliation of user edits is performed.
 
-The model-field and whole-simulation boundaries are described in
-[Checkpointing and restore boundaries](checkpointing.md). In brief,
-`ModelDescription` supplies per-class field and solver-layout declarations, and
-`ModelFieldSnapshot` captures one described object's flags, retained local
-state, and optionally parameters. It does not recursively capture a simulation
-or serialize those fields into this HDF5 schema.
+`GridDynSimulation::checkpointCapture(path, mode, append)` writes solver state
+and ordered `NAMES` records for each solver block, plus one `BYTES` record
+with source 0 and code 3. The byte record contains version 1 UTF-8 JSON with
+root-relative component paths, type and status checks, and typed values keyed
+by declaring class and field name. Integer values, nanosecond clocks, and
+packed flags use decimal strings for exact round trips. Floating-point
+values use JSON numbers, with the original bit pattern stored as a decimal
+string for non-finite values. All records are published together.
+[Checkpointing and restore boundaries](checkpointing.md) explains the restore levels.
 
 ## File schema, version 1
 
@@ -82,7 +85,7 @@ All payloads are ordinary typed, extendible one-dimensional datasets:
 | `/records`           | Packed compound table       | Capture metadata and offsets; fields below.                      |
 | `/values`            | Little-endian IEEE binary64 | Vector and sparse-matrix values.                                 |
 | `/indices`           | Little-endian uint64        | Sparse rows followed by columns, or relative UTF-8 name offsets. |
-| `/bytes`             | uint8                       | UTF-8 name bytes.                                                |
+| `/bytes`             | uint8                       | UTF-8 names and byte records.                                    |
 | `/committed_records` | Scalar little-endian uint64 | Number of published index rows.                                  |
 
 `/records` has these named fields:
@@ -93,12 +96,12 @@ All payloads are ordinary typed, extendible one-dimensional datasets:
 | `frame`, `index`                    | uint64 frame identity and producer evaluation/block index.                                                                                                 |
 | `key`, `paired_key`, `parent_index` | uint64 producer keys; absent values are `UINT64_MAX`. Solver keys are offset indices. `parent_index` is reserved when no enclosing evaluation is supplied. |
 | `source`                            | uint32: 0 snapshot, 1 diagnostic, 3 recorder samples/metadata.                                                                                             |
-| `type`                              | uint32: 0 vector, 1 sparse COUP matrix, 2 names.                                                                                                           |
+| `type`                              | uint32: 0 vector, 1 sparse COUP matrix, 2 names, 3 bytes.                                                                                                  |
 | `code`                              | uint32 vector role: 0 state, 1 derivative/RHS, 2 residual; matrix role 1 Jacobian.                                                                         |
 | `flags`, `approx`                   | uint32 solver mode bits and approximation mask. Mode bits 0-5 mean dynamic, differential, algebraic, local, extended state and parameters.                 |
 | `value_offset`, `count`             | uint64 zero-based offset into `/values` and element count; for names, count is number of names.                                                            |
 | `index_offset`                      | uint64 offset into `/indices`. A matrix stores `count` rows then `count` columns. Names store `count+1` nondecreasing offsets beginning at zero.           |
-| `byte_offset`, `byte_count`         | uint64 range in `/bytes` for names.                                                                                                                        |
+| `byte_offset`, `byte_count`         | uint64 range in `/bytes` for names or byte records.                                                                                                        |
 | `rows`, `columns`                   | uint64 explicit matrix dimensions; indices are zero based.                                                                                                 |
 | `cj`                                | binary64 Jacobian integration coefficient; NaN means unspecified.                                                                                          |
 

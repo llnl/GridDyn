@@ -33,6 +33,7 @@ it also acts as focal point for wide area controls such as AGC and can compute o
 statistics across a wide area
 */
 class GridArea: public GridPrimary {
+    friend class GridDynSimulation;
     friend class ListMaintainer;
 
   public:

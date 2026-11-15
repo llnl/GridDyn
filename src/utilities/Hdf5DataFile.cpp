@@ -65,6 +65,8 @@ namespace {
             }
             return *this;
         }
+        // HDF5 C functions take raw IDs while Handle retains ownership.
+        // NOLINTNEXTLINE(google-explicit-constructor)
         operator hid_t() const { return mId; }
     };
     // Suppress only this thread's temporary error printer; retain the caller's policy.
@@ -412,6 +414,18 @@ void Hdf5DataFile::append(std::span<const Hdf5RecordView> views)
                          true);
                 byteEnd += info.byte_count;
                 indexEnd += offsets.size();
+            } else if (info.type == Hdf5RecordType::BYTES) {
+                info.count = 0;
+                info.byte_count = view.bytes.size();
+                check(info.byte_count <= hdf5NoIndex - byteEnd, "byte offset overflow");
+                extend(mImpl->mBytes, byteEnd + info.byte_count);
+                transfer(mImpl->mBytes,
+                         H5T_NATIVE_UINT8,
+                         byteEnd,
+                         info.byte_count,
+                         const_cast<char*>(view.bytes.data()),
+                         true);
+                byteEnd += info.byte_count;
             } else {
                 check(false, "unsupported record type");
             }
@@ -455,7 +469,7 @@ std::vector<Hdf5RecordInfo> Hdf5DataFile::readRecords(std::uint64_t first,
     transfer(mImpl->mRecords, mImpl->mNativeRecord, first, count, result.data(), false);
     for (const auto& info : result) {
         check(info.type == Hdf5RecordType::VECTOR || info.type == Hdf5RecordType::MATRIX ||
-                  info.type == Hdf5RecordType::NAMES,
+                  info.type == Hdf5RecordType::NAMES || info.type == Hdf5RecordType::BYTES,
               "unsupported record type");
     }
     return result;
@@ -466,7 +480,8 @@ std::vector<double> Hdf5DataFile::readValues(const Hdf5RecordInfo& record,
 {
     const std::scoped_lock lock(storageMutex());
     const ErrorScope errors;
-    check(record.type != Hdf5RecordType::NAMES, "names have no numeric values");
+    check(record.type == Hdf5RecordType::VECTOR || record.type == Hdf5RecordType::MATRIX,
+          "record has no numeric values");
     if (count == hdf5NoIndex) {
         check(first <= record.count, "invalid value selection");
         count = record.count - first;
@@ -540,5 +555,20 @@ std::vector<std::string> Hdf5DataFile::readNames(const Hdf5RecordInfo& record) c
                         static_cast<std::size_t>(offsets[entryIndex] - offsets[entryIndex - 1])));
     }
     return result;
+}
+std::string Hdf5DataFile::readBytes(const Hdf5RecordInfo& record) const
+{
+    const std::scoped_lock lock(storageMutex());
+    const ErrorScope errors;
+    check(record.type == Hdf5RecordType::BYTES && record.count == 0, "invalid byte record");
+    range(record.byte_offset, record.byte_count, extent(mImpl->mBytes));
+    std::string bytes(checkedSize(record.byte_count, 1), '\0');
+    transfer(mImpl->mBytes,
+             H5T_NATIVE_UINT8,
+             record.byte_offset,
+             record.byte_count,
+             bytes.data(),
+             false);
+    return bytes;
 }
 }  // namespace utilities

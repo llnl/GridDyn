@@ -1805,10 +1805,14 @@ void AcBus::setState(CoreTime time,
         lastAcceptedAngle = angle;
     }
 
-    if (opFlags[COMPUTE_FREQUENCY]) {
-        // fblock->setState(time, state, dstate_dt, sMode);
-    } else if ((isDynamic(sMode)) && (keyGen != nullptr)) {
-        freq = keyGen->getFreq(emptyStateData, sMode);
+    if (isDynamic(sMode)) {
+        // Read the local state just published by GridBus::setState. It also holds
+        // the other block's values when publishing a partitioned solution.
+        if (opFlags[COMPUTE_FREQUENCY] && fblock && fblock->checkFlag(DYN_INITIALIZED)) {
+            freq = fblock->getBlockOutput() + 1.0;
+        } else if (keyGen != nullptr) {
+            freq = keyGen->getFreq(emptyStateData, cLocalSolverMode);
+        }
     }
     //    assert(voltage > 0.0);
 }

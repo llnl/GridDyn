@@ -211,8 +211,7 @@ ReaderAttribute YamlReaderElement::getFirstAttribute()
     mIteratorCount = 0;
     while (attIterator != elementEnd) {
         if (isAttribute(attIterator->second)) {
-            return {attIterator->first.as<std::string>(),
-                    attIterator->second.as<std::string>()};
+            return {attIterator->first.as<std::string>(), attIterator->second.as<std::string>()};
         }
         ++attIterator;
         ++mIteratorCount;
@@ -241,8 +240,7 @@ ReaderAttribute YamlReaderElement::getNextAttribute()
     ++mIteratorCount;
     while (attIterator != elementEnd) {
         if (isAttribute(attIterator->second)) {
-            return {attIterator->first.as<std::string>(),
-                    attIterator->second.as<std::string>()};
+            return {attIterator->first.as<std::string>(), attIterator->second.as<std::string>()};
         }
         ++attIterator;
         ++mIteratorCount;

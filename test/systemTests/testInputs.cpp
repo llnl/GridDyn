@@ -117,8 +117,8 @@ TEST_F(InputTests, RawImportWarnsWhenUnsupportedSectionsContainRecords)
 TEST_F(InputTests, LargeRawCaseImportsFixedShuntAndTwoTerminalDcLine)
 {
     gds = std::make_unique<GridDynSimulation>();
-    const auto filePath = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" /
-        "IEEE300Bus.raw";
+    const auto filePath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE300Bus.raw";
 
     ASSERT_TRUE(std::filesystem::exists(filePath));
     ASSERT_NO_THROW(loadFile(gds, filePath.string()));

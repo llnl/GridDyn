@@ -271,8 +271,8 @@ TEST(ExampleReaderTests, LoadEpcAreaDefinitions)
 
 TEST(ExampleReaderTests, EpcDcBusAndLineRecordsLoad)
 {
-    const auto filePath = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "input_tests" /
-        "epc_dc_network.epc";
+    const auto filePath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "input_tests" / "epc_dc_network.epc";
     ASSERT_TRUE(std::filesystem::exists(filePath));
 
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
@@ -331,8 +331,8 @@ TEST(ExampleReaderTests, EpcThreeWindingTransformerUsesExplicitStarBus)
 
 TEST(ExampleReaderTests, EpcLargeCaseImportsDcRecords)
 {
-    const auto filePath = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" /
-        "IEEE300Bus.epc";
+    const auto filePath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE300Bus.epc";
     ASSERT_TRUE(std::filesystem::exists(filePath));
 
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
@@ -358,8 +358,8 @@ TEST(ExampleReaderTests, EpcLargeCaseImportsDcRecords)
 
 TEST(ExampleReaderTests, PsatImportsOptionalArrayTypes)
 {
-    const auto filePath = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "input_tests" /
-        "psat_reader_variants.m";
+    const auto filePath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "input_tests" / "psat_reader_variants.m";
     ASSERT_TRUE(std::filesystem::exists(filePath));
 
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
@@ -385,10 +385,10 @@ TEST(ExampleReaderTests, PsatImportsOptionalArrayTypes)
 
     // Lines.con scales per-kilometre impedance. Ltc.con and Phs.con set different controls.
     const auto* line = dynamic_cast<const griddyn::AcLine*>(simulation->getLink(1));
-    const auto* tap = dynamic_cast<const griddyn::links::AdjustableTransformer*>(
-        simulation->getLink(2));
-    const auto* phase = dynamic_cast<const griddyn::links::AdjustableTransformer*>(
-        simulation->getLink(3));
+    const auto* tap =
+        dynamic_cast<const griddyn::links::AdjustableTransformer*>(simulation->getLink(2));
+    const auto* phase =
+        dynamic_cast<const griddyn::links::AdjustableTransformer*>(simulation->getLink(3));
     ASSERT_NE(line, nullptr);
     ASSERT_NE(tap, nullptr);
     ASSERT_NE(phase, nullptr);
@@ -415,8 +415,8 @@ TEST(ExampleReaderTests, PsatImportsOptionalArrayTypes)
 
 TEST(ExampleReaderTests, EpcPowerflowOnlyFlagCreatesStaticGenerators)
 {
-    const auto filePath = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "input_tests" /
-        "WSCC 9 bus.epc";
+    const auto filePath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "input_tests" / "WSCC 9 bus.epc";
     ASSERT_TRUE(std::filesystem::exists(filePath));
 
     griddyn::ReaderInfo readerInfo;

@@ -583,10 +583,9 @@ TEST(DyrReaderComparisonTests, RejectsMalformedGenroeAndUnsupportedIeeex1Switch)
         SCOPED_TRACE(fileName);
         auto simulation = std::make_unique<griddyn::GridDynSimulation>();
         griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
-        EXPECT_THAT(
-            [&] { griddyn::loadFile(simulation.get(), makeReaderErrorTestPath(fileName)); },
-            ::testing::ThrowsMessage<griddyn::InvalidParameterValue>(
-                ::testing::HasSubstr(diagnostic)));
+        EXPECT_THAT([&] { griddyn::loadFile(simulation.get(), makeReaderErrorTestPath(fileName)); },
+                    ::testing::ThrowsMessage<griddyn::InvalidParameterValue>(
+                        ::testing::HasSubstr(diagnostic)));
     }
 }
 
@@ -603,7 +602,7 @@ TEST(DydReaderTests, RejectsMalformedAndUnresolvedLoadTemplateBusSelectors)
     };
     const auto timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
     const TemporaryDydFile file{std::filesystem::temp_directory_path() /
-                               ("griddyn_dyd_selector_" + std::to_string(timestamp) + ".dyd")};
+                                ("griddyn_dyd_selector_" + std::to_string(timestamp) + ".dyd")};
     for (const auto selector : {"-1", "not-an-integer", "1.5", "18446744073709551616", "1"}) {
         SCOPED_TRACE(selector);
         {
@@ -618,12 +617,11 @@ TEST(DydReaderTests, RejectsMalformedAndUnresolvedLoadTemplateBusSelectors)
         const char* reason = std::string_view{selector} == "1" ?
             "bus selector 1 was not found" :
             "selector must be a nonnegative integer";
-        EXPECT_THAT(
-            [&] { griddyn::loadFile(simulation.get(), file.path.string()); },
-            ::testing::ThrowsMessage<griddyn::InvalidParameterValue>(::testing::AllOf(
-                ::testing::HasSubstr(file.path.string() + ":2 "),
-                ::testing::HasSubstr(std::string{"selector "} + selector + ':'),
-                ::testing::HasSubstr(reason))));
+        EXPECT_THAT([&] { griddyn::loadFile(simulation.get(), file.path.string()); },
+                    ::testing::ThrowsMessage<griddyn::InvalidParameterValue>(::testing::AllOf(
+                        ::testing::HasSubstr(file.path.string() + ":2 "),
+                        ::testing::HasSubstr(std::string{"selector "} + selector + ':'),
+                        ::testing::HasSubstr(reason))));
     }
 }
 

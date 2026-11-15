@@ -17,13 +17,13 @@
 #include <string>
 #include <string_view>
 
-static constexpr std::string_view yamlElementReaderTestDirectory{
-    GRIDDYN_TEST_DIRECTORY "/element_reader_tests/"};
-static constexpr std::string_view yamlReaderErrorTestDirectory{
-    GRIDDYN_TEST_DIRECTORY "/reader_error_tests/"};
+static constexpr std::string_view yamlElementReaderTestDirectory{GRIDDYN_TEST_DIRECTORY
+                                                                 "/element_reader_tests/"};
+static constexpr std::string_view yamlReaderErrorTestDirectory{GRIDDYN_TEST_DIRECTORY
+                                                               "/reader_error_tests/"};
 
 static std::string makeYamlElementReaderTestPath(std::string_view directory,
-                                                std::string_view fileName)
+                                                 std::string_view fileName)
 {
     return std::string{directory} + std::string{fileName};
 }
@@ -194,16 +194,16 @@ TEST(YamlElementReaderErrorTests, RejectsMalformedAndMissingYamlFiles)
     EXPECT_FALSE(reader.getNextAttribute().isValid());
 
     ASSERT_TRUE(reader.parse("valid: [1, 2]"));
-    const auto malformed = makeYamlElementReaderTestPath(yamlReaderErrorTestDirectory,
-                                                         "malformed.yaml");
+    const auto malformed =
+        makeYamlElementReaderTestPath(yamlReaderErrorTestDirectory, "malformed.yaml");
     ASSERT_TRUE(std::filesystem::is_regular_file(malformed)) << malformed;
     EXPECT_FALSE(reader.loadFile(malformed));
     EXPECT_FALSE(reader.isValid());
     EXPECT_FALSE(reader.isDocument());
 
     ASSERT_TRUE(reader.parse("valid: [1, 2]"));
-    EXPECT_FALSE(reader.loadFile(makeYamlElementReaderTestPath(yamlReaderErrorTestDirectory,
-                                                               "missing.yaml")));
+    EXPECT_FALSE(reader.loadFile(
+        makeYamlElementReaderTestPath(yamlReaderErrorTestDirectory, "missing.yaml")));
     EXPECT_FALSE(reader.isValid());
     EXPECT_TRUE(reader.getText().empty());
     EXPECT_FALSE(reader.getFirstAttribute().isValid());
@@ -220,8 +220,8 @@ TEST(YamlElementReaderErrorTests, RejectsMalformedAndMissingYamlFiles)
 
 TEST(YamlElementReaderTests, ImportsNamedBusesLoadAndLinkThroughLoadFile)
 {
-    const auto fixture = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "input_tests" /
-        "yaml_two_bus.yaml";
+    const auto fixture =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "input_tests" / "yaml_two_bus.yaml";
     ASSERT_TRUE(std::filesystem::is_regular_file(fixture)) << fixture;
     griddyn::GridDynSimulation simulation;
     ASSERT_NO_THROW(griddyn::loadFile(&simulation, fixture.string()));

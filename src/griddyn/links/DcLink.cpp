@@ -31,6 +31,7 @@ const ModelDescription& DcLink::getModelDescription() const
         {parameter({"r", "rdc"}, &DcLink::r, units::one, "The dc resistance"),
          parameter({"l", "x", "ldc"}, &DcLink::x, units::one, "The dc inductance"),
          parameter({"c", "cdc"}, &DcLink::c, units::one, "The dc capacitance"),
+         parameter({"length"}, &DcLink::length, units::km, "Physical line length"),
          flag({"andes_current_balance", "current_balance"},
               &DcLink::currentBalance,
               "Use ANDES' nodal-current convention"),
@@ -39,11 +40,12 @@ const ModelDescription& DcLink::getModelDescription() const
              {"idc"},
              units::one,
              [](const auto& model, const auto& mode) {
-                 return model.stateSize(mode) > 0 ?
-                     ((model.hasCapacitor() && isDynamic(mode)) || !isDynamic(mode) ?
-                          model.offsets.getAlgOffset(mode) :
-                          model.offsets.getDiffOffset(mode)) :
-                     kInvalidLocation;
+                 if (model.stateSize(mode) <= 0) {
+                     return kInvalidLocation;
+                 }
+                 return !isDynamic(mode) || model.hasCapacitor() ?
+                     model.offsets.getAlgOffset(mode) :
+                     model.offsets.getDiffOffset(mode);
              },
              "Solver variable idc"),
          state<DcLink>(
@@ -61,13 +63,12 @@ const ModelDescription& DcLink::getModelDescription() const
              {"vc"},
              units::one,
              [](const auto& model, const auto& mode) {
-                 return model.hasCapacitor() && isDynamic(mode) ?
-                     stateSlot(model.offsets.getDiffOffset(mode),
-                               model.topology == Topology::RLC_PARALLEL ||
-                                       model.topology == Topology::RLC_SERIES ?
-                                   1 :
-                                   0) :
-                     kInvalidLocation;
+                 if (!model.hasCapacitor() || !isDynamic(mode)) {
+                     return kInvalidLocation;
+                 }
+                 const bool hasInductorState = model.topology == Topology::RLC_PARALLEL ||
+                     model.topology == Topology::RLC_SERIES;
+                 return stateSlot(model.offsets.getDiffOffset(mode), hasInductorState ? 1 : 0);
              },
              "Solver variable vc")});
     return description;
@@ -95,6 +96,7 @@ CoreObject* DcLink::clone(CoreObject* obj) const
     nobj->r = r;
     nobj->x = x;
     nobj->c = c;
+    nobj->length = length;
     nobj->topology = topology;
     nobj->currentBalance = currentBalance;
 

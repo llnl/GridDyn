@@ -75,7 +75,7 @@ TEST(XmlElementReaderTests, LoadsAndNavigatesAnXmlFile)
 TEST(XmlElementReaderTests, ReadsAttributesAfterLoadFailure)
 {
     XmlReaderElement reader;
-    const auto malformedFile = makeElementReaderTestPath("test_bad_xml.xml");
+    const std::string malformedFile = GRIDDYN_TEST_DIRECTORY "/reader_error_tests/test_bad_xml.xml";
     ASSERT_TRUE(std::filesystem::is_regular_file(malformedFile)) << malformedFile;
     EXPECT_FALSE(reader.loadFile(malformedFile));
     EXPECT_FALSE(reader.isValid());

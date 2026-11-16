@@ -424,7 +424,7 @@ TEST_F(XmlTests, XmlTest9)
 
 TEST_F(XmlTests, TestBadXml)
 {
-    const std::string fileName = GRIDDYN_TEST_DIRECTORY "/element_reader_tests/test_bad_xml.xml";
+    const std::string fileName = GRIDDYN_TEST_DIRECTORY "/reader_error_tests/test_bad_xml.xml";
     ASSERT_TRUE(std::filesystem::is_regular_file(fileName)) << fileName;
     gds = readSimXMLFile(fileName);
     ASSERT_EQ(gds, nullptr);

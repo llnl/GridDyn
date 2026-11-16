@@ -1,0 +1,14 @@
+title
+Three-winding transformer reader case
+!
+solution parameters
+sbase 100.0
+!
+bus data [4]
+1 "Bus 1" 230 : 0 1.0 1.0 0 1 1 1.1 0.9
+2 "Bus 2" 115 : 1 1.0 1.0 0 1 1 1.1 0.9
+3 "Bus 3" 230 : 1 1.0 1.0 0 1 1 1.1 0.9
+4 "Bus 4" 115 : 1 1.0 1.0 0 1 1 1.1 0.9
+transformer data [1]
+1 "Bus 1" 230 2 "Bus 2" 115 "1" "three winding test" : 1 1 0 "Bus 3" 230 0 3 "Bus 3" 230 4 "Bus 4" 115 1 1 100 0.01 0.30 0.03 0.60 0.04 0.50 230 230 115 0 0 0 100 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 100 0 0 100
+end

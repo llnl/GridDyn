@@ -38,9 +38,9 @@ jobs:
         displayName: "Test GridDyn"
         workingDirectory: build
 
-  - job: macOS_14
+  - job: macOS_15
     pool:
-      vmImage: "macOS-14"
+      vmImage: "macOS-15"
     steps:
       # -----------------------
       # Install dependencies

@@ -36,9 +36,10 @@ repos:
       - id: check-case-conflict
       - id: check-yaml
         args: ["--allow-multiple-documents"]
+        exclude: ^test/test_files/reader_error_tests/malformed\.yaml$
       - id: check-toml
       - id: check-xml
-        exclude: ^test/test_files/element_reader_tests/test_bad_xml\.xml$
+        exclude: ^test/test_files/reader_error_tests/test_bad_xml\.xml$
       - id: end-of-file-fixer
       - id: check-symlinks
       - id: check-shebang-scripts-are-executable
@@ -50,7 +51,7 @@ repos:
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
-        exclude: ^(docs/user-guide/examples/user_guide_examples|\.clang-tidy$)
+        exclude: ^(docs/user-guide/examples/user_guide_examples|\.clang-tidy$|test/test_files/reader_error_tests/malformed\.yaml$)
   - repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 3.0.0
     hooks:

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="continuation_q_limits">
+    <basepower>100</basepower>
+    <bus name="source" id="10" type="SLK" voltage="1" angle="0">
+        <generator name="supply" />
+    </bus>
+    <bus name="regulated" id="20" type="PV" vtarget="1">
+        <generator name="regulator" qmin="-0.2" qmax="0.25" />
+        <load name="reactive_load" p="0" q="0.1">
+            <flags>no_pqvoltage_limit</flags>
+        </load>
+    </bus>
+    <link name="line" from="source" to="regulated" r="0" x="0.5" />
+</griddyn>

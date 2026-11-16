@@ -1018,7 +1018,179 @@ namespace {
             throw FileOperationError(error.what());
         }
     }
+
+    constexpr std::uint32_t continuationSource = 2U;
+    constexpr std::uint32_t continuationMetadataCode = 0U, continuationTraceCode = 1U;
+    constexpr std::uint64_t continuationRecordsPerStudy = 2;
+    constexpr std::string_view continuationFormat = "griddyn-continuation-power-flow";
+    constexpr int continuationSchemaVersion = 1;
+
+    std::vector<Hdf5RecordInfo> continuationRecords(const Hdf5DataFile& file, std::uint64_t study)
+    {
+        auto records =
+            file.readRecords(study * continuationRecordsPerStudy, continuationRecordsPerStudy);
+        const auto& metadata = records.front();
+        const auto& trace = records.back();
+        if (metadata.source != continuationSource || metadata.code != continuationMetadataCode ||
+            metadata.type != Hdf5RecordType::BYTES || metadata.frame != study ||
+            trace.source != continuationSource || trace.code != continuationTraceCode ||
+            trace.type != Hdf5RecordType::VECTOR || trace.frame != study) {
+            throw FileOperationError("invalid continuation archive records");
+        }
+        return records;
+    }
+
+    nlohmann::json continuationMetadata(const Hdf5DataFile& file, const Hdf5RecordInfo& record)
+    {
+        auto metadata = nlohmann::json::parse(file.readBytes(record));
+        if (metadata.at("format").get<std::string>() != continuationFormat ||
+            metadata.at("schema_version").get<int>() != continuationSchemaVersion) {
+            throw FileOperationError("unsupported continuation archive format or version");
+        }
+        return metadata;
+    }
 }  // namespace
+
+void saveContinuationPowerFlow(const ContinuationResult& result,
+                               const std::string& fileName,
+                               bool append)
+{
+    stateFileOperation([&]() {
+        auto events = nlohmann::json::array();
+        for (const auto& event : result.qLimitEvents) {
+            if (!std::isfinite(event.lambda) || !std::isfinite(event.qMvar)) {
+                throw FileOperationError("non-finite continuation Q-limit event");
+            }
+            events.push_back({{"bus_id", event.busId},
+                              {"regulated_bus_id", event.regulatedBusId},
+                              {"generator", event.generator},
+                              {"lambda", event.lambda},
+                              {"q_mvar", event.qMvar},
+                              {"upper", event.upper}});
+        }
+        if (result.targetLambda && !std::isfinite(*result.targetLambda)) {
+            throw FileOperationError("non-finite continuation target lambda");
+        }
+        const auto metadata = nlohmann::json{
+            {"format", continuationFormat},
+            {"schema_version", continuationSchemaVersion},
+            {"status", std::to_underlying(result.status)},
+            {"monitor_buses", result.monitorBuses},
+            {"target_lambda",
+             result.targetLambda ? nlohmann::json(*result.targetLambda) : nlohmann::json(nullptr)},
+            {"has_nose", result.nose.has_value()},
+            {"q_limit_events",
+             std::move(events)}}.dump();
+
+        const auto busCount = result.monitorBuses.size();
+        const auto rowCount =
+            result.points.size() + static_cast<std::size_t>(result.nose.has_value());
+        std::vector<std::array<double, 2>> coordinates;
+        coordinates.reserve(rowCount);
+        std::vector<std::span<const double>> segments;
+        segments.reserve(3 * rowCount);
+        const auto addPoint = [&](const ContinuationPoint& point) {
+            if (point.voltages.size() != busCount || point.angles.size() != busCount) {
+                throw FileOperationError(
+                    "continuation point does not match the monitored bus order");
+            }
+            coordinates.push_back({point.lambda, point.residualNorm});
+            segments.emplace_back(coordinates.back());
+            segments.emplace_back(point.voltages);
+            segments.emplace_back(point.angles);
+        };
+        std::ranges::for_each(result.points, addPoint);
+        if (result.nose) {
+            addPoint(*result.nose);
+        }
+
+        Hdf5DataFile output(fileName,
+                            append ? Hdf5DataFile::OpenMode::APPEND :
+                                     Hdf5DataFile::OpenMode::TRUNCATE);
+        const auto recordCount = output.recordCount();
+        if (recordCount != 0) {
+            if (recordCount % continuationRecordsPerStudy != 0) {
+                throw FileOperationError("invalid continuation archive record count");
+            }
+            const auto lastStudy = (recordCount / continuationRecordsPerStudy) - 1;
+            const auto records = continuationRecords(output, lastStudy);
+            continuationMetadata(output, records.front());
+        }
+        std::array<Hdf5RecordView, continuationRecordsPerStudy> records;
+        records.front().info.source = continuationSource;
+        records.front().info.code = continuationMetadataCode;
+        records.front().info.type = Hdf5RecordType::BYTES;
+        records.front().bytes = metadata;
+        records.back().info.source = continuationSource;
+        records.back().info.code = continuationTraceCode;
+        records.back().info.rows = rowCount;
+        records.back().info.columns = 2 + (2 * busCount);
+        records.back().valueSegments = segments;
+        output.append(records);
+    });
+}
+
+ContinuationResult readContinuationPowerFlow(const std::string& fileName,
+                                             std::optional<std::uint64_t> studyIndex)
+{
+    return stateFileOperation([&]() {
+        const Hdf5DataFile input(fileName, Hdf5DataFile::OpenMode::READ_ONLY);
+        const auto recordCount = input.recordCount();
+        if (recordCount == 0 || recordCount % continuationRecordsPerStudy != 0) {
+            throw FileOperationError("invalid continuation archive record count");
+        }
+        const auto studyCount = recordCount / continuationRecordsPerStudy;
+        const auto study = studyIndex.value_or(studyCount - 1);
+        if (study >= studyCount) {
+            throw FileOperationError("continuation study index is out of range");
+        }
+        const auto records = continuationRecords(input, study);
+        const auto metadata = continuationMetadata(input, records.front());
+        const auto& trace = records.back();
+        ContinuationResult result;
+        const auto status = metadata.at("status").get<int>();
+        if (status < 0 || status > std::to_underlying(ContinuationStatus::STEP_LIMIT)) {
+            throw FileOperationError("invalid continuation status");
+        }
+        result.status = static_cast<ContinuationStatus>(status);
+        result.monitorBuses = metadata.at("monitor_buses").get<std::vector<index_t>>();
+        const auto& target = metadata.at("target_lambda");
+        if (!target.is_null()) {
+            result.targetLambda = target.get<double>();
+        }
+        for (const auto& event : metadata.at("q_limit_events")) {
+            result.qLimitEvents.push_back(
+                {.busId = event.at("bus_id").get<index_t>(),
+                 .generator = event.at("generator").get<std::string>(),
+                 .lambda = event.at("lambda").get<double>(),
+                 .qMvar = event.at("q_mvar").get<double>(),
+                 .upper = event.at("upper").get<bool>(),
+                 .regulatedBusId = event.at("regulated_bus_id").get<index_t>()});
+        }
+        const auto columns = 2 + (2 * result.monitorBuses.size());
+        const auto hasNose = metadata.at("has_nose").get<bool>();
+        if (trace.columns != columns || trace.rows != trace.count / columns ||
+            trace.count % columns != 0 || (hasNose && trace.rows == 0)) {
+            throw FileOperationError("invalid continuation trace shape");
+        }
+        const auto numPoints = trace.rows - static_cast<std::uint64_t>(hasNose);
+        for (std::uint64_t row = 0; row < trace.rows; ++row) {
+            const auto values = input.readValues(trace, row * columns, columns);
+            const auto voltage = std::span(values).subspan(2, result.monitorBuses.size());
+            const auto angles = std::span(values).subspan(2 + result.monitorBuses.size());
+            ContinuationPoint point{.lambda = values[0],
+                                    .residualNorm = values[1],
+                                    .voltages = {voltage.begin(), voltage.end()},
+                                    .angles = {angles.begin(), angles.end()}};
+            if (row == numPoints) {
+                result.nose = std::move(point);
+            } else {
+                result.points.push_back(std::move(point));
+            }
+        }
+        return result;
+    });
+}
 
 void saveStateBinary(GridDynSimulation* gds,
                      const std::string& fileName,

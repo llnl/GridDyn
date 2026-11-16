@@ -337,15 +337,25 @@ void Hdf5DataFile::append(std::span<const Hdf5RecordView> views)
             info.byte_offset = byteEnd;
             if (info.type == Hdf5RecordType::VECTOR) {
                 info.count = view.values.size();
+                for (const auto segment : view.valueSegments) {
+                    check(segment.size() <= hdf5NoIndex - info.count, "vector size overflow");
+                    info.count += segment.size();
+                }
                 check(info.count <= hdf5NoIndex - valueEnd, "value offset overflow");
                 extend(mImpl->mValues, valueEnd + info.count);
-                transfer(mImpl->mValues,
-                         H5T_NATIVE_DOUBLE,
-                         valueEnd,
-                         info.count,
-                         const_cast<double*>(view.values.data()),
-                         true);
-                valueEnd += info.count;
+                const auto writeValues = [&](std::span<const double> values) {
+                    transfer(mImpl->mValues,
+                             H5T_NATIVE_DOUBLE,
+                             valueEnd,
+                             values.size(),
+                             const_cast<double*>(values.data()),
+                             true);
+                    valueEnd += values.size();
+                };
+                writeValues(view.values);
+                for (const auto segment : view.valueSegments) {
+                    writeValues(segment);
+                }
             } else if (info.type == Hdf5RecordType::MATRIX) {
                 check(info.count <= (hdf5NoIndex - indexEnd) / 2 &&
                           info.count <= hdf5NoIndex - valueEnd,

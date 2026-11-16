@@ -337,6 +337,12 @@ void GridDynSimulation::reInitpFlow(const SolverMode& sMode, ChangeCode change)
 // all other solver data objects would be initialized by a reInitPFlow(xxx) call;
 int GridDynSimulation::pFlowInitialize(CoreTime time0)
 {
+    return initializePowerFlow(time0, {});
+}
+
+int GridDynSimulation::initializePowerFlow(CoreTime time0,
+                                           const std::function<void()>& configureVoltageControls)
+{
     if (time0 == negTime) {
         time0 = powerFlowStartTime;
         if (time0 == negTime) {
@@ -369,6 +375,9 @@ int GridDynSimulation::pFlowInitialize(CoreTime time0)
         if (acBus != nullptr) {
             acBus->updateControlLimits();
         }
+    }
+    if (configureVoltageControls) {
+        configureVoltageControls();
     }
     auto ssize = stateSize(solverModeRef);
     pFlowData->allocate(ssize);

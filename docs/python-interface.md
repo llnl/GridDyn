@@ -264,6 +264,77 @@ This API is intentionally separate from the per-object `ModelFieldSnapshot`
 and the HDF5 solver-vector snapshots. The current capture and restore boundaries
 are summarized in the [checkpointing developer guide](developer-guide/checkpointing.md).
 
+## Continuation power flow
+
+Use `sim.power_flow.continuation(load_scale=1.5)` to trace an AC loading
+curve from the current network settings toward 150% of the constant-power
+demand. Both real and reactive demand scale together. The solver works on a
+copy, so the original simulation's operating point stays available.
+
+```python
+demand = sim.buses["demand"]
+result = sim.power_flow.continuation(load_scale=1.5, monitor_buses=[demand.name])
+print(result["message"])
+print(result["limiting_lambda"])
+voltage_curve = list(zip(result["lambda_values"], result["bus_voltages"][demand.uid]))
+```
+
+The loading parameter is zero at the base case and one at the specified
+target. With the default `stop_at="nose"`, the trace can continue beyond one.
+Pass `stop_at=1.0` to check the exact target. Like the OPF result, the dictionary
+provides `success`, a machine-readable `status`, and a human-readable `message`.
+`success` is true when the requested target is reached or when the default
+study finds a loading limit. A numeric target that lies beyond a loading
+limit has `success=False` and still returns the confirmed limit.
+
+| Field                             | Meaning                                                                       |
+| --------------------------------- | ----------------------------------------------------------------------------- |
+| `target_lambda`                   | Requested numeric stop, or `None` for a loading-limit study.                  |
+| `last_lambda`                     | Last accepted point, or `None` when the base case cannot be solved.           |
+| `limiting_lambda`                 | Confirmed limit at a smooth nose or a turn at a generator Q limit, or `None`. |
+| `nose_lambda`                     | Smooth nose only, or `None`.                                                  |
+| `lambda_values`, `residual_norms` | Aligned lists for all accepted points.                                        |
+| `bus_voltages`, `bus_angles`      | Aligned traces in per unit and radians, keyed by bus user ID.                 |
+
+`monitor_buses` accepts bus names or integer user IDs (`bus.uid`).
+`nose_before_target` indicates a confirmed nose before a numeric target.
+`base_solve_failed`, `numerical_failure`, and `step_limit` identify an incomplete
+trace. Any returned points passed the residual tolerance.
+
+For selected loads, pass absolute targets such as
+`load_targets={"load5": {"p_mw": 60, "q_mvar": 20}}` instead of
+`load_scale`. Include only `p_mw` or only `q_mvar` to hold the other component
+at its base value. Optionally specify non-slack generator MW with
+`generator_targets={"gen2": 150}`. Use unique or qualified object names.
+
+Continuation supports one connected AC island with one angle reference
+and uses the simulation's dense or sparse solver setting.
+Uniform scaling applies to the constant-power portion of standard loads and
+leaves fixed shunts and other load models at their base settings. Tap, shunt,
+and PV/PQ assignments stay fixed by default. Generator reactive limits and
+equipment ratings can impose earlier operating limits than the fixed-control
+nose.
+
+Pass `enforce_q_limits=True` to enforce fixed reactive limits for local and
+remote generator voltage control, including shared groups imported from
+PSS/E RAW. At a bound the solver locates the crossing and fixes that
+generator's reactive output. The remaining generators regulate the bus
+using the group's participation factors. The regulated voltage becomes
+free to change when the group runs out of participating generators.
+
+Each accepted switch appears in `q_limit_events` with the generator's
+terminal bus user ID (`bus_id`), the regulated bus user ID
+(`regulated_bus_id`), generator name, loading parameter, bound
+(`"upper"` or `"lower"`), and reactive output in MVAr. The two bus IDs
+are the same for a local controller.
+`q_limit_turn` means no increasing-load path continues from the switch with
+the generator held at that bound. `limiting_lambda` gives the loading level
+at that turn.
+The trace holds a binding limit through the end of the study. Reactive
+limits at a fixed-voltage slack bus, generator capability curves, and
+limits for non-generator voltage controllers are outside this option's
+current scope.
+
 ## DC optimal power flow
 
 When GridDyn is built with its optimization library, load a network with

@@ -103,11 +103,14 @@ class Generator: public GridSecondary {
     virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
-    /** Configure a local voltage controller after it joins a remote bus group. */
+    /** Use the generator's algebraic Q state to regulate controlBus in AC power flow. */
     void configureIndirectVoltageControl(GridBus* controlBus);
 
     /** Return the bus whose voltage this generator regulates, if configured. */
     GridBus* getRemoteBus() const noexcept { return remoteBus; }
+
+    /** Hold the algebraic power-flow Q state at a limit in system per unit. */
+    void fixPowerFlowReactivePower(double reactivePower);
 
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,

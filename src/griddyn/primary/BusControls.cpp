@@ -257,8 +257,17 @@ void BusControls::updateVoltageControls()
         } else {
             controlledBus->set("type", "pq");
         }
-        controlledBus->opFlags.set(INDIRECT_VOLTAGE_CONTROL);
     }
+    // A directly connected controller may also use an algebraic Q equation
+    // when its target is a PQ bus. The network check must see this voltage
+    // reference even if the only angle reference is AFIX.
+    controlledBus->opFlags.set(INDIRECT_VOLTAGE_CONTROL,
+                               nonDirectRemote ||
+                                   std::ranges::any_of(vControlObjects, [](const auto* controller) {
+                                       return controller->isConnected() &&
+                                           controller->isEnabled() &&
+                                           controller->checkFlag(INDIRECT_VOLTAGE_CONTROL);
+                                   }));
     // check if the v and p controls are identical
     controlledBus->opFlags.set(AcBus::BusFlags::IDENTICAL_PQ_CONTROL_OBJECTS,
                                checkIdenticalControls());

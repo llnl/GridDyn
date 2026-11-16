@@ -97,8 +97,7 @@ auto first = griddyn::readContinuationPowerFlow("continuation.h5", 0);
 auto latest = griddyn::readContinuationPowerFlow("continuation.h5");
 ```
 
-A read opens only the selected study. Each study has two records with source
-2. Code 0 is UTF-8 JSON metadata with format `griddyn-continuation-power-flow`
+A read opens only the selected study. Each study has two records with source 2. Code 0 is UTF-8 JSON metadata with format `griddyn-continuation-power-flow`
 and schema version 1. It stores the status, target loading parameter,
 ordered monitor bus IDs, Q-limit events, and whether a nose row is present.
 Code 1 is a dense row-major trace in `/values`. Its `rows` and `columns` fields

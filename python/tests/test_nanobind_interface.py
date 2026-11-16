@@ -164,7 +164,9 @@ def test_continuation_matches_power_flow_for_a_mixed_remote_control_group(solver
     assert result["status"] == "target_reached"
     assert result["bus_voltages"][2] == pytest.approx([1.04] * len(result["lambda_values"]))
     events = result["q_limit_events"]
-    assert [(event["generator"], event["bus_id"], event["regulated_bus_id"]) for event in events] == [
+    assert [
+        (event["generator"], event["bus_id"], event["regulated_bus_id"]) for event in events
+    ] == [
         ("REMOTE_Gen_1", 2, 2),
         ("GEN2_Gen_1", 4, 2),
     ]

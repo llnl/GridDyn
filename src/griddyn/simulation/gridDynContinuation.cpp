@@ -27,10 +27,12 @@
 #include <limits>
 #include <memory>
 #include <numeric>
+#include <string>
 #include <string_view>
 #include <typeinfo>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
 namespace griddyn {
 namespace {
@@ -203,7 +205,7 @@ namespace {
                        const std::string& name,
                        GetDevice getDevice)
     {
-        if (name.find(':') != std::string::npos) {
+        if (name.contains(':')) {
             return dynamic_cast<Device*>(sim.find(name));
         }
         Device* matched = nullptr;
@@ -412,7 +414,7 @@ namespace {
             return std::isfinite(effect) && effect > residualTolerance;
         }
 
-        std::optional<ReactiveLimit> violatedLimit(const Vector& state) const
+        [[nodiscard]] std::optional<ReactiveLimit> violatedLimit(const Vector& state) const
         {
             for (std::size_t index = 0; index < mReactiveControls.size(); ++index) {
                 const auto& control = mReactiveControls[index];
@@ -446,7 +448,8 @@ namespace {
                     .regulatedBusId = control.mRegulatedBus->getUserID()};
         }
 
-        bool pointsIntoVoltageControlRegion(double lambda, const Vector& direction) const
+        [[nodiscard]] bool pointsIntoVoltageControlRegion(double lambda,
+                                                          const Vector& direction) const
         {
             return std::ranges::any_of(mReactiveControls, [&](const auto& control) {
                 if (!control.mHeldAtUpper || control.mBindingLambda != lambda ||

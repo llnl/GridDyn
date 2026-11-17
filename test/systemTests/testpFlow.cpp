@@ -62,7 +62,9 @@ TEST_F(PowerflowSystemTests, ContinuationFindsAnalyticalNoseAndPreservesBase)
     request.monitorBuses = {20};
     const auto result = gds->continuationPowerFlow(request);
     ASSERT_EQ(result.status, ContinuationStatus::NOSE_FOUND);
-    ASSERT_TRUE(result.nose.has_value());
+    if (!result.nose) {
+        FAIL() << "Expected an analytical nose point";
+    }
     EXPECT_NEAR(result.nose->lambda, 0.8, 1e-5);
     ASSERT_EQ(result.nose->voltages.size(), 1);
     EXPECT_NEAR(result.nose->voltages.front(), std::sqrt(0.5), 1e-5);
@@ -94,14 +96,16 @@ TEST_F(PowerflowSystemTests, ContinuationStopsAtTargetOrReportsNoseBeforeIt)
     EXPECT_DOUBLE_EQ(reached.points.back().lambda, 0.5);
     EXPECT_EQ(reached.monitorBuses, (std::vector<index_t>{20, 10}));
     EXPECT_NEAR(reached.points.back().voltages[0],
-                std::sqrt(0.5 * (1.0 + std::sqrt(1.0 - 0.7 * 0.7))),
+                std::sqrt(0.5 * (1.0 + std::sqrt(1.0 - (0.7 * 0.7)))),
                 1e-7);
     EXPECT_DOUBLE_EQ(reached.points.back().voltages[1], 1.0);
 
     request.stopLambda = 1.0;
     const auto beyond = gds->continuationPowerFlow(request);
     ASSERT_EQ(beyond.status, ContinuationStatus::NOSE_BEFORE_TARGET);
-    ASSERT_TRUE(beyond.nose.has_value());
+    if (!beyond.nose) {
+        FAIL() << "Expected a nose point before the requested target";
+    }
     EXPECT_NEAR(beyond.nose->lambda, 0.8, 1e-5);
     EXPECT_DOUBLE_EQ(gds->getBus(1)->getLoad()->get("p"), 0.2);
 
@@ -132,7 +136,9 @@ TEST_F(PowerflowSystemTests, ContinuationMatchesCase9Reference)
     request.stopLambda.reset();
     const auto curve = gds->continuationPowerFlow(request);
     ASSERT_EQ(curve.status, ContinuationStatus::NOSE_FOUND);
-    ASSERT_TRUE(curve.nose.has_value());
+    if (!curve.nose) {
+        FAIL() << "Expected a nose point for case9";
+    }
     // PYPOWER runcpf with pseudo-arclength and step 0.003, using its best sampled point.
     EXPECT_NEAR(curve.nose->lambda, 2.5093133149, 1e-5);
     EXPECT_NEAR(curve.nose->voltages.back(), 0.6439267375, 0.002);
@@ -169,7 +175,9 @@ TEST_F(PowerflowSystemTests, ContinuationEnforcesUpperQLimitThroughTheNose)
     EXPECT_DOUBLE_EQ(event.qMvar, 25.0);
 
     // After the switch, V(1-V)/X = Qload - Qmax. Its maximum is 0.5 p.u. at V=0.5.
-    ASSERT_TRUE(result.nose.has_value());
+    if (!result.nose) {
+        FAIL() << "Expected a nose point after the upper Q limit was reached";
+    }
     EXPECT_NEAR(result.nose->lambda, 0.65, 1e-6);
     EXPECT_NEAR(result.nose->voltages.front(), 0.5, 1e-5);
     EXPECT_LE(result.nose->residualNorm, 1e-8);
@@ -332,7 +340,6 @@ TEST_F(PowerflowSystemTests, ContinuationArchiveRoundTripsAndAppendsStudies)
     request.enforceQLimits = true;
     const auto result = gds->continuationPowerFlow(request);
     ASSERT_EQ(result.status, ContinuationStatus::NOSE_FOUND);
-    ASSERT_TRUE(result.nose.has_value());
     ASSERT_EQ(result.qLimitEvents.size(), 1);
 
     const TemporaryStateFile file;
@@ -361,11 +368,13 @@ TEST_F(PowerflowSystemTests, ContinuationArchiveRoundTripsAndAppendsStudies)
 
     const auto first = readContinuationPowerFlow(path, 0);
     ASSERT_EQ(first.points.size(), result.points.size());
-    ASSERT_TRUE(first.nose.has_value());
     ASSERT_EQ(first.qLimitEvents.size(), 1);
     EXPECT_EQ(first.status, result.status);
     EXPECT_EQ(first.monitorBuses, result.monitorBuses);
     EXPECT_EQ(first.limitingLambda(), result.limitingLambda());
+    if (!first.nose || !result.nose) {
+        FAIL() << "Expected the archive to preserve the nose point";
+    }
     EXPECT_EQ(first.nose->voltages, result.nose->voltages);
     EXPECT_EQ(first.qLimitEvents.front().generator, result.qLimitEvents.front().generator);
     EXPECT_EQ(first.qLimitEvents.front().regulatedBusId, 20);

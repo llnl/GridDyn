@@ -11,6 +11,7 @@
 @brief define the simulation object itself and several helper classes and enumerations*/
 
 // header files
+#include "simulation/Continuation.h"
 #include "simulation/GridDynActions.h"
 #include "simulation/GridSimulation.h"
 // libraries
@@ -286,6 +287,12 @@ class GridDynSimulation: public GridSimulation {
     @details this function will likely be changing as the continuation analysis develops further
     */
     void continuationPowerFlow(std::string_view contName);
+
+    /** Trace the fixed-control AC power-flow curve on a working copy. */
+    ContinuationResult continuationPowerFlow(const ContinuationRequest& request) const;
+
+    /** Trace the curve with a uniform target multiplier for constant-power demand. */
+    ContinuationResult continuationPowerFlow(double loadScale) const;
 
     /** @brief function to get the system constraints
       constraints allowable are >0,  <0, >=0,  <=0
@@ -830,6 +837,8 @@ class GridDynSimulation: public GridSimulation {
     bool checkEventsForDynamicReset(CoreTime cTime, const SolverMode& sMode);
 
   private:
+    int initializePowerFlow(CoreTime time0, const std::function<void()>& configureVoltageControls);
+
     std::map<std::vector<std::string>, CoreObject*> checkpointChildren() const;
     void setupDynamicDAE();
     void setupDynamicPartitioned();

@@ -123,7 +123,7 @@ class SundialsInterface: public SolverInterface {
 
     virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
 
-    virtual void cloneTo(SolverInterface* si, bool fullCopy = false) const override;
+    virtual void cloneTo(SolverInterface* destination, bool fullCopy = false) const override;
     virtual double* stateData() noexcept override;
     virtual double* derivData() noexcept override;
     virtual const double* stateData() const noexcept override;

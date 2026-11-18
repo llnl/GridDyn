@@ -1671,7 +1671,8 @@ Generator* AcBus::indirectVoltageControlReference() const
 {
     Generator* reference = nullptr;
     for (auto* control : busController.vControlObjects) {
-        if (!control->checkFlag(INDIRECT_VOLTAGE_CONTROL) ||
+        if (!control->isEnabled() || !control->isConnected() ||
+            !control->checkFlag(INDIRECT_VOLTAGE_CONTROL) ||
             control->checkFlag(Generator::AT_LIMIT)) {
             continue;
         }

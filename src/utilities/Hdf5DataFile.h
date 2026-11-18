@@ -50,6 +50,8 @@ struct Hdf5RecordView {
     std::string_view bytes;
     std::function<void(std::span<double>, std::span<std::uint64_t>, std::span<std::uint64_t>)>
         matrix;
+    /** Additional contiguous ranges for a VECTOR, written after values. */
+    std::span<const std::span<const double>> valueSegments;
 };
 
 struct Hdf5SparseData {

@@ -114,22 +114,23 @@ std::unique_ptr<SolverInterface> SundialsInterface::clone(bool fullCopy) const
     return si;
 }
 
-void SundialsInterface::cloneTo(SolverInterface* si, bool fullCopy) const
+void SundialsInterface::cloneTo(SolverInterface* destination, bool fullCopy) const
 {
-    SolverInterface::cloneTo(si, fullCopy);
-    auto ai = dynamic_cast<SundialsInterface*>(si);
-    if (ai == nullptr) {
+    auto* sundials = dynamic_cast<SundialsInterface*>(destination);
+    if (sundials != nullptr) {
+        // A full clone initializes the destination solver and allocates its Jacobian.
+        sundials->maxNNZ = maxNNZ;
+    }
+    SolverInterface::cloneTo(destination, fullCopy);
+    if (sundials == nullptr || !fullCopy || !flags[ALLOCATED_FLAG]) {
         return;
     }
-    ai->maxNNZ = maxNNZ;
-    if ((fullCopy) && (flags[ALLOCATED_FLAG])) {
-        auto tols = nvecdata(use_omp, abstols);
-        std::copy(tols, tols + svsize, nvecdata(use_omp, ai->abstols));
-        auto cons = nvecdata(use_omp, consData);
-        std::copy(cons, cons + svsize, nvecdata(use_omp, ai->consData));
-        auto sc = nvecdata(use_omp, scale);
-        std::copy(sc, sc + svsize, nvecdata(use_omp, ai->scale));
-    }
+    const auto* tolerances = nvecdata(use_omp, abstols);
+    std::copy(tolerances, tolerances + svsize, nvecdata(use_omp, sundials->abstols));
+    const auto* constraints = nvecdata(use_omp, consData);
+    std::copy(constraints, constraints + svsize, nvecdata(use_omp, sundials->consData));
+    const auto* scales = nvecdata(use_omp, scale);
+    std::copy(scales, scales + svsize, nvecdata(use_omp, sundials->scale));
 }
 
 void SundialsInterface::allocate(count_t stateCount, count_t /*numRoots*/)

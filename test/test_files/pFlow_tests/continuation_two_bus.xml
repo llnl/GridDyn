@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="continuation_two_bus">
+    <basepower>100</basepower>
+    <bus name="source" id="10" type="SLK" voltage="1" angle="0">
+        <generator name="supply" />
+    </bus>
+    <bus name="demand" id="20" type="PQ">
+        <load name="demand_load" p="0.2" q="0">
+            <flags>no_pqvoltage_limit</flags>
+        </load>
+    </bus>
+    <link name="line" from="source" to="demand" r="0" x="0.5" />
+</griddyn>

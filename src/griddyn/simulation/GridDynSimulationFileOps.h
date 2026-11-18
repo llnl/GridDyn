@@ -7,7 +7,9 @@
 #pragma once
 
 #include "../solvers/SolverMode.hpp"
+#include "Continuation.h"
 #include "core/ModelDescription.h"
+#include <cstdint>
 #include <limits>
 #include <memory>
 #include <optional>
@@ -131,6 +133,20 @@ void saveJacobian(GridDynSimulation* gds,
 @param[in] fileName the name of the file for storage
 */
 void savePowerFlow(GridDynSimulation* gds, const std::string& fileName);
+
+/** Save one continuation study to an HDF5 archive. Set append=false to replace the archive.
+ * @throws FileOperationError on incompatible files, invalid results, or failed writes.
+ */
+void saveContinuationPowerFlow(const ContinuationResult& result,
+                               const std::string& fileName,
+                               bool append = true);
+
+/** Read a zero-based study from a continuation archive. Omit the index for the latest study.
+ * @throws FileOperationError on invalid archives or study indices.
+ */
+ContinuationResult
+    readContinuationPowerFlow(const std::string& fileName,
+                              std::optional<std::uint64_t> studyIndex = std::nullopt);
 
 /** @brief save the powerflow results to a cdf formatted file
 @param[in] gds  the GridDynSimulation object to operate from

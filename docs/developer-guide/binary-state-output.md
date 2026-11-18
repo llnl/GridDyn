@@ -1,7 +1,7 @@
 # HDF5 state, diagnostic and recorder output
 
-GridDyn recorder samples, state snapshots, solver callback diagnostics, sparse Jacobians and the
-convergence diagnostic use one HDF5 implementation in
+GridDyn recorder samples, state snapshots, solver callback diagnostics, sparse Jacobians,
+continuation studies and the convergence diagnostic use one HDF5 implementation in
 [Hdf5DataFile](../../src/utilities/Hdf5DataFile.h). The custom `GDSTATE1`
 encoding and reader have been removed. File extensions do not select another
 state format; `.h5` is recommended. `saveState` and `loadState` use HDF5.
@@ -75,6 +75,63 @@ values use JSON numbers, with the original bit pattern stored as a decimal
 string for non-finite values. All records are published together.
 [Checkpointing and restore boundaries](checkpointing.md) explains the restore levels.
 
+## Continuation power flow archives
+
+Choose the bus user IDs to collect in `ContinuationRequest::monitorBuses`.
+After solving, save the returned study to an HDF5 archive. Each save appends
+one study by default. Pass `false` as the third argument to replace the archive.
+Studies may have different monitored buses and numbers of points.
+
+```cpp
+#include "griddyn/GridDynSimulation.h"
+#include "griddyn/simulation/GridDynSimulationFileOps.h"
+
+// Inside a function with an initialized GridDynSimulation named sim.
+griddyn::ContinuationRequest request;
+request.loadScale = 1.5;
+request.monitorBuses = {5, 9};
+request.enforceQLimits = true;
+griddyn::saveContinuationPowerFlow(sim.continuationPowerFlow(request), "continuation.h5");
+
+auto first = griddyn::readContinuationPowerFlow("continuation.h5", 0);
+auto latest = griddyn::readContinuationPowerFlow("continuation.h5");
+```
+
+A read opens only the selected study. Each study has two records with source 2. Code 0 is UTF-8 JSON metadata with format `griddyn-continuation-power-flow`
+and schema version 1. It stores the status, target loading parameter,
+ordered monitor bus IDs, Q-limit events, and whether a nose row is present.
+Code 1 is a dense row-major trace in `/values`. Its `rows` and `columns` fields
+give the shape. Each row holds lambda, residual norm, all monitored voltages
+in per unit, then all monitored angles in radians. The final row holds the
+optional nose point.
+
+For example, this reads the voltage curve for bus 9 from study zero using
+h5py. The strided read selects one voltage column.
+
+```python
+import json
+
+import h5py
+
+with h5py.File("continuation.h5") as archive:
+    metadata_record, trace = archive["records"][0:2]
+    start = int(metadata_record["byte_offset"])
+    size = int(metadata_record["byte_count"])
+    metadata = json.loads(archive["bytes"][start : start + size].tobytes())
+
+    start = int(trace["value_offset"])
+    width = int(trace["columns"])
+    point_count = int(trace["rows"]) - int(metadata["has_nose"])
+    stop = start + width * point_count
+    voltage_column = 2 + metadata["monitor_buses"].index(9)
+    lambda_values = archive["values"][start:stop:width]
+    voltages = archive["values"][start + voltage_column : stop : width]
+```
+
+For study `i`, the metadata and trace are at record indices `2*i` and
+`2*i+1`. Divide `/committed_records` by two to get the number of complete
+studies.
+
 ## File schema, version 1
 
 Root attributes are `format="griddyn-data"` and `schema_version=uint32(1)`.
@@ -95,7 +152,7 @@ All payloads are ordinary typed, extendible one-dimensional datasets:
 | `time_ns`                           | Signed int64 elapsed simulation nanoseconds.                                                                                                               |
 | `frame`, `index`                    | uint64 frame identity and producer evaluation/block index.                                                                                                 |
 | `key`, `paired_key`, `parent_index` | uint64 producer keys; absent values are `UINT64_MAX`. Solver keys are offset indices. `parent_index` is reserved when no enclosing evaluation is supplied. |
-| `source`                            | uint32: 0 snapshot, 1 diagnostic, 3 recorder samples/metadata.                                                                                             |
+| `source`                            | uint32: 0 snapshot, 1 diagnostic, 2 continuation study, 3 recorder samples/metadata.                                                                       |
 | `type`                              | uint32: 0 vector, 1 sparse COUP matrix, 2 names, 3 bytes.                                                                                                  |
 | `code`                              | uint32 vector role: 0 state, 1 derivative/RHS, 2 residual; matrix role 1 Jacobian.                                                                         |
 | `flags`, `approx`                   | uint32 solver mode bits and approximation mask. Mode bits 0-5 mean dynamic, differential, algebraic, local, extended state and parameters.                 |

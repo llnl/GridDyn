@@ -12,6 +12,7 @@
 #include "core/CoreOwningPtr.hpp"
 #include "utilities/MatrixDataCompact.hpp"
 #include "utilities/MatrixDataTranslate.hpp"
+#include <span>
 #include <string>
 
 namespace griddyn {
@@ -386,6 +387,11 @@ class AcBus: public GridBus {
     {
         return static_cast<count_t>(busController.vControlObjects.size() +
                                     busController.vControlLinks.size());
+    }
+
+    std::span<GridSecondary* const> voltageControlObjects() const
+    {
+        return busController.vControlObjects;
     }
     /** @brief select the stable reference controller for a generator-only indirect group. */
     Generator* indirectVoltageControlReference() const;

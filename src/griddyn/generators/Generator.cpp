@@ -319,6 +319,8 @@ void Generator::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
         P = 0.0;
         Q = 0.0;
     }
+    opFlags.set(HAS_POWERFLOW_ADJUSTMENTS,
+                opFlags[INDIRECT_VOLTAGE_CONTROL] || opFlags[REMOTE_VOLTAGE_CONTROL]);
 
     GridSecondary::pFlowObjectInitializeA(time0, flags);
 }
@@ -611,14 +613,12 @@ ChangeCode Generator::powerFlowAdjust(const IOdata& /*inputs*/,
         }
     } else {
         if (Q > getQmax()) {
-            opFlags.set(AT_LIMIT);
-            Q = getQmax();
+            fixPowerFlowReactivePower(getQmax());
             return opFlags[INDIRECT_VOLTAGE_CONTROL] ? ChangeCode::JACOBIAN_CHANGE :
                                                        ChangeCode::PARAMETER_CHANGE;
         }
         if (Q < getQmin()) {
-            opFlags.set(AT_LIMIT);
-            Q = getQmin();
+            fixPowerFlowReactivePower(getQmin());
             return opFlags[INDIRECT_VOLTAGE_CONTROL] ? ChangeCode::JACOBIAN_CHANGE :
                                                        ChangeCode::PARAMETER_CHANGE;
         }
@@ -660,6 +660,7 @@ void Generator::setFlag(std::string_view flag, bool val)
     } else if (flag == "indirect_voltage_control") {
         const bool wasIndirect = opFlags[INDIRECT_VOLTAGE_CONTROL];
         opFlags.set(INDIRECT_VOLTAGE_CONTROL, val);
+        opFlags.set(HAS_POWERFLOW_ADJUSTMENTS, val || opFlags[REMOTE_VOLTAGE_CONTROL]);
         if (wasIndirect != val) {
             offsets.stateUnload();
             alert(this, STATE_COUNT_CHANGE);
@@ -787,9 +788,11 @@ void Generator::ioPartialDerivatives(const IOdata& inputs,
                 matrixDataValue.assignCheckCol(POUT_LOCATION,
                                                inputLocs[VOLTAGE_IN_LOCATION],
                                                -P * 1.25);
-                matrixDataValue.assignCheckCol(QOUT_LOCATION,
-                                               inputLocs[VOLTAGE_IN_LOCATION],
-                                               -Q * 1.25);
+                if (!opFlags[INDIRECT_VOLTAGE_CONTROL]) {
+                    matrixDataValue.assignCheckCol(QOUT_LOCATION,
+                                                   inputLocs[VOLTAGE_IN_LOCATION],
+                                                   -Q * 1.25);
+                }
             }
         }
     }
@@ -865,6 +868,12 @@ double Generator::getReactivePower(const IOdata& inputs,
     // printf("t=%f (%s ) voltage=%f T=%f, P=%f\n", time, parent->name.c_str(),
     // inputs[VOLTAGE_IN_LOCATION], inputs[ANGLE_IN_LOCATION], output[POUT_LOCATION]);
     return output;
+}
+
+void Generator::fixPowerFlowReactivePower(double reactivePower)
+{
+    Q = reactivePower;
+    opFlags.set(AT_LIMIT);
 }
 
 double Generator::getRealPower() const

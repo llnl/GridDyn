@@ -45,6 +45,7 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #if defined(__clang__)
 #    pragma clang diagnostic pop
@@ -57,6 +58,7 @@
 #include <string>
 #include <unordered_set>
 #include <utility>
+#include <variant>
 #include <vector>
 
 namespace nb = nanobind;
@@ -1327,6 +1329,53 @@ class PyRecorderCollection {
     std::shared_ptr<griddyn::GriddynRunner> runner_;
 };
 
+std::pair<const char*, const char*> continuationStatus(griddyn::ContinuationStatus status)
+{
+    using Status = griddyn::ContinuationStatus;
+    switch (status) {
+        case Status::TARGET_REACHED:
+            return {"target_reached", "Reached the requested loading parameter."};
+        case Status::NOSE_FOUND:
+            return {"nose_found", "Found the nose of the loading curve."};
+        case Status::NOSE_BEFORE_TARGET:
+            return {"nose_before_target", "The loading curve reached its nose before the target."};
+        case Status::Q_LIMIT_TURN:
+            return {"q_limit_turn",
+                    "The curve stopped increasing in loading at a generator Q limit."};
+        case Status::BASE_SOLVE_FAILED:
+            return {"base_solve_failed",
+                    "Could not solve the base case under the selected controls."};
+        case Status::STEP_LIMIT:
+            return {"step_limit", "Reached the continuation step limit."};
+        case Status::NUMERICAL_FAILURE:
+            break;
+    }
+    return {"numerical_failure", "Could not solve the next continuation point or tangent."};
+}
+
+griddyn::ContinuationLoadTarget continuationLoadTarget(nb::handle name, nb::handle values)
+{
+    griddyn::ContinuationLoadTarget target;
+    target.load = nb::cast<std::string>(name);
+    const auto fields = nb::cast<nb::dict>(values);
+    for (const auto& [field, value] : fields) {
+        const auto key = nb::cast<std::string>(field);
+        if (key == "p_mw") {
+            target.pMW = nb::cast<double>(value);
+        } else if (key == "q_mvar") {
+            target.qMvar = nb::cast<double>(value);
+        } else {
+            throw nb::value_error("load_targets entries support only p_mw and q_mvar");
+        }
+    }
+    if (fields.empty()) {
+        throw nb::value_error("load_targets entries require p_mw or q_mvar");
+    }
+    return target;
+}
+
+using ContinuationBusSelector = std::variant<index_t, std::string>;
+
 class PyPowerFlowRoutine {
   public:
     explicit PyPowerFlowRoutine(std::shared_ptr<griddyn::GriddynRunner> runner):
@@ -1342,6 +1391,99 @@ class PyPowerFlowRoutine {
         if (result < 0) {
             throw SolveError("powerflow failed");
         }
+    }
+
+    nb::dict continuation(std::optional<double> loadScale,
+                          const nb::object& stopAt,
+                          const std::vector<ContinuationBusSelector>& monitorBuses,
+                          const std::optional<nb::dict>& loadTargets,
+                          const std::optional<nb::dict>& generatorTargets,
+                          bool enforceQLimits)
+    {
+        griddyn::ContinuationRequest request;
+        request.loadScale = loadScale;
+        request.enforceQLimits = enforceQLimits;
+        const PyBusCollection buses(runner_);
+        for (const auto& bus : monitorBuses) {
+            if (const auto* name = std::get_if<std::string>(&bus)) {
+                request.monitorBuses.push_back(buses.getByName(*name).userId());
+            } else {
+                request.monitorBuses.push_back(std::get<index_t>(bus));
+            }
+        }
+        if (nb::isinstance<nb::str>(stopAt)) {
+            if (nb::cast<std::string>(stopAt) != "nose") {
+                throw nb::value_error("stop_at must be 'nose' or a nonnegative lambda");
+            }
+        } else {
+            request.stopLambda = nb::cast<double>(stopAt);
+        }
+        if (loadTargets) {
+            for (const auto& [name, values] : *loadTargets) {
+                request.loadTargets.push_back(continuationLoadTarget(name, values));
+            }
+        }
+        if (generatorTargets) {
+            for (const auto& [name, power] : *generatorTargets) {
+                request.generatorTargets.push_back(
+                    {.generator = nb::cast<std::string>(name), .pMW = nb::cast<double>(power)});
+            }
+        }
+
+        griddyn::ContinuationResult solution;
+        {
+            auto sim = simulationFromRunner(runner_);
+            const nb::gil_scoped_release release;
+            solution = sim->continuationPowerFlow(request);
+        }
+
+        const auto [status, message] = continuationStatus(solution.status);
+        nb::dict result;
+        result["success"] = solution.successful();
+        result["status"] = status;
+        result["message"] = message;
+        result["target_lambda"] = solution.targetLambda;
+        result["last_lambda"] =
+            solution.points.empty() ? nb::none() : nb::cast(solution.points.back().lambda);
+        result["limiting_lambda"] = solution.limitingLambda();
+        result["control_policy"] = enforceQLimits ? "q_limits" : "fixed";
+        nb::list qLimitEvents;
+        for (const auto& event : solution.qLimitEvents) {
+            nb::dict entry;
+            entry["bus_id"] = event.busId;
+            entry["regulated_bus_id"] = event.regulatedBusId;
+            entry["generator"] = event.generator;
+            entry["lambda"] = event.lambda;
+            entry["q_mvar"] = event.qMvar;
+            entry["bound"] = event.upper ? "upper" : "lower";
+            qLimitEvents.append(entry);
+        }
+        result["q_limit_events"] = qLimitEvents;
+        result["nose_lambda"] = solution.nose ? nb::cast(solution.nose->lambda) : nb::none();
+        nb::list lambdaValues;
+        nb::list residualNorms;
+        for (const auto& point : solution.points) {
+            lambdaValues.append(point.lambda);
+            residualNorms.append(point.residualNorm);
+        }
+        result["lambda_values"] = lambdaValues;
+        result["residual_norms"] = residualNorms;
+        nb::dict voltages;
+        nb::dict angles;
+        for (std::size_t busIndex = 0; busIndex < solution.monitorBuses.size(); ++busIndex) {
+            const auto busId = nb::int_(solution.monitorBuses[busIndex]);
+            nb::list voltage;
+            nb::list angle;
+            for (const auto& point : solution.points) {
+                voltage.append(point.voltages[busIndex]);
+                angle.append(point.angles[busIndex]);
+            }
+            voltages[busId] = voltage;
+            angles[busId] = angle;
+        }
+        result["bus_voltages"] = voltages;
+        result["bus_angles"] = angles;
+        return result;
     }
 
   private:
@@ -2046,6 +2188,16 @@ NB_MODULE(_core, mod)
 
     nb::class_<PyPowerFlowRoutine>(mod, "PowerFlowRoutine")
         .def("run", &PyPowerFlowRoutine::run)
+        .def("continuation",
+             &PyPowerFlowRoutine::continuation,
+             "load_scale"_a = nb::none(),
+             nb::kw_only(),
+             "stop_at"_a = "nose",
+             "monitor_buses"_a = std::vector<ContinuationBusSelector>{},
+             "load_targets"_a = nb::none(),
+             "generator_targets"_a = nb::none(),
+             "enforce_q_limits"_a = false,
+             "Trace the AC loading curve on a working copy of the simulation.")
         .def("__repr__", [](const PyPowerFlowRoutine&) { return "<griddyn.PowerFlowRoutine>"; });
 
     nb::class_<PyTimeDomainRoutine>(mod, "TimeDomainRoutine")

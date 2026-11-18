@@ -33,6 +33,7 @@
 #include <limits>
 #include <memory>
 #include <nlohmann/json.hpp>
+#include <numeric>
 #include <ranges>
 #include <string>
 #include <string_view>
@@ -45,6 +46,240 @@ using gmlc::utilities::countDiffs;
 static const char pFlow_test_directory[] = GRIDDYN_TEST_DIRECTORY "/pFlow_tests/";
 
 class PowerflowSystemTests: public GridDynSimulationTestFixture, public ::testing::Test {};
+
+TEST_F(PowerflowSystemTests, ContinuationFindsAnalyticalNoseAndPreservesBase)
+{
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "continuation_two_bus.xml");
+    ASSERT_NE(gds, nullptr);
+    ASSERT_EQ(gds->powerflow(), 0);
+    const auto* bus = gds->getBus(1);
+    ASSERT_NE(bus, nullptr);
+    const auto baseVoltage = bus->getVoltage();
+    const auto baseState = gds->getState();
+
+    ContinuationRequest request;
+    request.loadScale = 6.0;
+    request.monitorBuses = {20};
+    const auto result = gds->continuationPowerFlow(request);
+    ASSERT_EQ(result.status, ContinuationStatus::NOSE_FOUND);
+    if (!result.nose) {
+        FAIL() << "Expected an analytical nose point";
+    }
+    EXPECT_NEAR(result.nose->lambda, 0.8, 1e-5);
+    ASSERT_EQ(result.nose->voltages.size(), 1);
+    EXPECT_NEAR(result.nose->voltages.front(), std::sqrt(0.5), 1e-5);
+    EXPECT_DOUBLE_EQ(result.points.front().lambda, 0.0);
+    EXPECT_NEAR(result.points.front().voltages.front(), baseVoltage, 1e-8);
+    for (const auto& sample : result.points) {
+        EXPECT_LE(sample.residualNorm, 1e-8);
+    }
+    EXPECT_EQ(gds->getState(), baseState);
+    EXPECT_DOUBLE_EQ(bus->getVoltage(), baseVoltage);
+    EXPECT_DOUBLE_EQ(bus->getLoad()->get("p"), 0.2);
+}
+
+TEST_F(PowerflowSystemTests, ContinuationStopsAtTargetOrReportsNoseBeforeIt)
+{
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "continuation_two_bus.xml");
+    ASSERT_NE(gds, nullptr);
+    const auto simple = gds->continuationPowerFlow(6.0);
+    EXPECT_EQ(simple.status, ContinuationStatus::NOSE_FOUND);
+
+    ContinuationRequest request;
+    request.loadTargets = {{.load = "demand_load", .pMW = 120.0, .qMvar = 0.0}};
+    request.monitorBuses = {20, 10};
+    request.stopLambda = 0.5;
+    const auto reached = gds->continuationPowerFlow(request);
+    ASSERT_EQ(reached.status, ContinuationStatus::TARGET_REACHED);
+    EXPECT_FALSE(reached.nose.has_value());
+    ASSERT_FALSE(reached.points.empty());
+    EXPECT_DOUBLE_EQ(reached.points.back().lambda, 0.5);
+    EXPECT_EQ(reached.monitorBuses, (std::vector<index_t>{20, 10}));
+    EXPECT_NEAR(reached.points.back().voltages[0],
+                std::sqrt(0.5 * (1.0 + std::sqrt(1.0 - (0.7 * 0.7)))),
+                1e-7);
+    EXPECT_DOUBLE_EQ(reached.points.back().voltages[1], 1.0);
+
+    request.stopLambda = 1.0;
+    const auto beyond = gds->continuationPowerFlow(request);
+    ASSERT_EQ(beyond.status, ContinuationStatus::NOSE_BEFORE_TARGET);
+    if (!beyond.nose) {
+        FAIL() << "Expected a nose point before the requested target";
+    }
+    EXPECT_NEAR(beyond.nose->lambda, 0.8, 1e-5);
+    EXPECT_DOUBLE_EQ(gds->getBus(1)->getLoad()->get("p"), 0.2);
+
+    EXPECT_THROW(gds->continuationPowerFlow(1.0), InvalidParameterValue);
+}
+
+TEST_F(PowerflowSystemTests, ContinuationMatchesCase9Reference)
+{
+    const auto file = std::string{GRIDDYN_TEST_DIRECTORY} + "/matlab_test_files/case9.m";
+    gds = std::make_unique<GridDynSimulation>();
+    loadFile(gds, file);
+    gds->setAll("load", "pqlowvlimit", 0.1);
+
+    ContinuationRequest request;
+    request.loadScale = 1.5;
+    request.stopLambda = 1.0;
+    request.monitorBuses = {5, 7, 9};
+    const auto target = gds->continuationPowerFlow(request);
+    ASSERT_EQ(target.status, ContinuationStatus::TARGET_REACHED);
+    ASSERT_FALSE(target.points.empty());
+    EXPECT_DOUBLE_EQ(target.points.back().lambda, 1.0);
+    // PYPOWER 5.1.21 runpf with 150% Pd and Qd, unchanged Pg and no Q limits.
+    const std::array targetVoltages{0.9347529052, 0.9538736468, 0.9096351980};
+    for (std::size_t busIndex = 0; busIndex < targetVoltages.size(); ++busIndex) {
+        EXPECT_NEAR(target.points.back().voltages[busIndex], targetVoltages[busIndex], 1e-7);
+    }
+
+    request.stopLambda.reset();
+    const auto curve = gds->continuationPowerFlow(request);
+    ASSERT_EQ(curve.status, ContinuationStatus::NOSE_FOUND);
+    if (!curve.nose) {
+        FAIL() << "Expected a nose point for case9";
+    }
+    // PYPOWER runcpf with pseudo-arclength and step 0.003, using its best sampled point.
+    EXPECT_NEAR(curve.nose->lambda, 2.5093133149, 1e-5);
+    EXPECT_NEAR(curve.nose->voltages.back(), 0.6439267375, 0.002);
+
+    request.stopLambda = 1.0;
+    request.generatorTargets = {{.generator = "gen2", .pMW = 185.0}};
+    const auto redispatch = gds->continuationPowerFlow(request);
+    ASSERT_EQ(redispatch.status, ContinuationStatus::TARGET_REACHED);
+    ASSERT_FALSE(redispatch.points.empty());
+    EXPECT_NEAR(redispatch.points.back().voltages.back(), 0.9090427439, 1e-7);
+}
+
+TEST_F(PowerflowSystemTests, ContinuationEnforcesUpperQLimitThroughTheNose)
+{
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "continuation_q_limits.xml");
+    ASSERT_NE(gds, nullptr);
+    ASSERT_EQ(gds->powerflow(), 0);
+    const auto* bus = gds->getBus(1);
+    ASSERT_NE(bus, nullptr);
+    const double originalQ = bus->getGen()->getReactivePower();
+
+    ContinuationRequest request;
+    request.enforceQLimits = true;
+    request.loadTargets = {{.load = "reactive_load", .pMW = 0.0, .qMvar = 110.0}};
+    request.monitorBuses = {20};
+    const auto result = gds->continuationPowerFlow(request);
+    ASSERT_EQ(result.status, ContinuationStatus::NOSE_FOUND);
+    ASSERT_EQ(result.qLimitEvents.size(), 1);
+    const auto& event = result.qLimitEvents.front();
+    EXPECT_EQ(event.busId, 20);
+    EXPECT_EQ(event.generator, "regulator");
+    EXPECT_TRUE(event.upper);
+    EXPECT_NEAR(event.lambda, 0.15, 2e-7);
+    EXPECT_DOUBLE_EQ(event.qMvar, 25.0);
+
+    // After the switch, V(1-V)/X = Qload - Qmax. Its maximum is 0.5 p.u. at V=0.5.
+    if (!result.nose) {
+        FAIL() << "Expected a nose point after the upper Q limit was reached";
+    }
+    EXPECT_NEAR(result.nose->lambda, 0.65, 1e-6);
+    EXPECT_NEAR(result.nose->voltages.front(), 0.5, 1e-5);
+    EXPECT_LE(result.nose->residualNorm, 1e-8);
+    EXPECT_EQ(bus->getType(), GridBus::BusType::PV);
+    EXPECT_DOUBLE_EQ(bus->getGen()->getReactivePower(), originalQ);
+}
+
+TEST_F(PowerflowSystemTests, ContinuationEnforcesLowerQLimitBeforeExactTarget)
+{
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "continuation_q_limits.xml");
+    ASSERT_NE(gds, nullptr);
+    ContinuationRequest request;
+    request.enforceQLimits = true;
+    request.loadTargets = {{.load = "reactive_load", .pMW = 0.0, .qMvar = -90.0}};
+    request.monitorBuses = {20};
+    request.stopLambda = 0.55;
+
+    const auto result = gds->continuationPowerFlow(request);
+    ASSERT_EQ(result.status, ContinuationStatus::TARGET_REACHED);
+    ASSERT_EQ(result.qLimitEvents.size(), 1);
+    EXPECT_FALSE(result.qLimitEvents.front().upper);
+    EXPECT_NEAR(result.qLimitEvents.front().lambda, 0.3, 2e-7);
+    EXPECT_DOUBLE_EQ(result.qLimitEvents.front().qMvar, -20.0);
+    EXPECT_DOUBLE_EQ(result.points.back().lambda, 0.55);
+    EXPECT_NEAR(result.points.back().voltages.front(), (1.0 + std::sqrt(1.5)) / 2.0, 1e-8);
+
+    request.stopLambda = 0.2;
+    const auto before = gds->continuationPowerFlow(request);
+    ASSERT_EQ(before.status, ContinuationStatus::TARGET_REACHED);
+    EXPECT_TRUE(before.qLimitEvents.empty());
+    EXPECT_DOUBLE_EQ(before.points.back().voltages.front(), 1.0);
+}
+
+TEST_F(PowerflowSystemTests, ContinuationHandlesQBoundAtBaseAndLimitInducedTurn)
+{
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "continuation_q_limits.xml");
+    ASSERT_NE(gds, nullptr);
+    auto* bus = gds->getBus(1);
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen();
+    ASSERT_NE(generator, nullptr);
+
+    ContinuationRequest request;
+    request.enforceQLimits = true;
+    request.loadTargets = {{.load = "reactive_load", .pMW = 0.0, .qMvar = 110.0}};
+    request.monitorBuses = {20};
+    request.stopLambda = 0.0;
+    generator->set("qmax", 5.0, units::MVAR);
+    const auto base = gds->continuationPowerFlow(request);
+    ASSERT_EQ(base.status, ContinuationStatus::TARGET_REACHED);
+    ASSERT_EQ(base.qLimitEvents.size(), 1);
+    EXPECT_DOUBLE_EQ(base.qLimitEvents.front().lambda, 0.0);
+    EXPECT_NEAR(base.points.front().voltages.front(), (1.0 + std::sqrt(0.9)) / 2.0, 1e-8);
+
+    // This voltage-controlled state lies below the maximum-power voltage of
+    // the saturated two-bus system. With Q fixed at its upper bound, increasing
+    // load would require voltage to increase back above its control target.
+    bus->set("voltage", 0.4);
+    generator->set("qmin", -90.0, units::MVAR);
+    generator->set("qmax", 25.0, units::MVAR);
+    request.stopLambda.reset();
+    const auto turn = gds->continuationPowerFlow(request);
+    ASSERT_EQ(turn.status, ContinuationStatus::Q_LIMIT_TURN);
+    ASSERT_EQ(turn.qLimitEvents.size(), 1);
+    EXPECT_NEAR(turn.qLimitEvents.front().lambda, 0.63, 2e-7);
+    EXPECT_NEAR(turn.points.back().voltages.front(), 0.4, 1e-6);
+    EXPECT_FALSE(turn.nose.has_value());
+}
+
+TEST_F(PowerflowSystemTests, ContinuationHoldsLocalVoltageUntilBothGeneratorsReachQLimits)
+{
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "continuation_q_limits.xml");
+    ASSERT_NE(gds, nullptr);
+    auto* bus = gds->getBus(1);
+    ASSERT_NE(bus, nullptr);
+    auto* second = new Generator("second_regulator");
+    second->set("qmax", 0.35);
+    bus->add(second);
+
+    ContinuationRequest request;
+    request.enforceQLimits = true;
+    request.loadScale = 11.0;
+    request.monitorBuses = {20};
+    request.stopLambda = 0.65;
+    const auto result = gds->continuationPowerFlow(request);
+    ASSERT_EQ(result.status, ContinuationStatus::TARGET_REACHED);
+    ASSERT_EQ(result.qLimitEvents.size(), 2);
+    const auto& firstEvent = result.qLimitEvents.front();
+    const auto& lastEvent = result.qLimitEvents.back();
+    EXPECT_EQ(firstEvent.generator, "regulator");
+    EXPECT_EQ(lastEvent.generator, "second_regulator");
+    EXPECT_NEAR(firstEvent.lambda, 0.4, 2e-7);
+    EXPECT_NEAR(lastEvent.lambda, 0.5, 2e-7);
+    EXPECT_EQ(firstEvent.regulatedBusId, firstEvent.busId);
+    for (const auto& point : result.points) {
+        if (point.lambda <= lastEvent.lambda) {
+            EXPECT_NEAR(point.voltages.front(), 1.0, 2e-7);
+        }
+    }
+    EXPECT_NEAR(result.points.back().voltages.front(), (1.0 + std::sqrt(0.7)) / 2.0, 1e-7);
+    EXPECT_EQ(bus->getType(), GridBus::BusType::PV);
+}
 
 namespace {
 class TemporaryStateFile {
@@ -94,6 +329,80 @@ void nameCheckpointGeneratorModels(GridDynSimulation& simulation)
     }
 }
 }  // namespace
+
+TEST_F(PowerflowSystemTests, ContinuationArchiveRoundTripsAndAppendsStudies)
+{
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "continuation_q_limits.xml");
+    ASSERT_NE(gds, nullptr);
+    ContinuationRequest request;
+    request.loadScale = 11.0;
+    request.monitorBuses = {20, 10};
+    request.enforceQLimits = true;
+    const auto result = gds->continuationPowerFlow(request);
+    ASSERT_EQ(result.status, ContinuationStatus::NOSE_FOUND);
+    ASSERT_EQ(result.qLimitEvents.size(), 1);
+
+    const TemporaryStateFile file;
+    const auto path = file.path.string();
+    saveContinuationPowerFlow(result, path);
+
+    ContinuationResult large;
+    constexpr std::size_t busCount = 12000;
+    large.status = ContinuationStatus::TARGET_REACHED;
+    large.targetLambda = 1.0;
+    large.monitorBuses.resize(busCount);
+    std::iota(large.monitorBuses.begin(), large.monitorBuses.end(), index_t{100});
+    ContinuationPoint row{.lambda = 0.0,
+                          .residualNorm = 1e-9,
+                          .voltages = std::vector<double>(busCount),
+                          .angles = std::vector<double>(busCount)};
+    for (std::size_t bus = 0; bus < busCount; ++bus) {
+        row.voltages[bus] = 0.8 + (static_cast<double>(bus) * 1e-5);
+        row.angles[bus] = -static_cast<double>(bus) * 1e-5;
+    }
+    large.points.push_back(row);
+    row.lambda = 1.0;
+    row.voltages.back() = 1.2;
+    large.points.push_back(std::move(row));
+    saveContinuationPowerFlow(large, path);
+
+    const auto first = readContinuationPowerFlow(path, 0);
+    ASSERT_EQ(first.points.size(), result.points.size());
+    ASSERT_EQ(first.qLimitEvents.size(), 1);
+    EXPECT_EQ(first.status, result.status);
+    EXPECT_EQ(first.monitorBuses, result.monitorBuses);
+    EXPECT_EQ(first.limitingLambda(), result.limitingLambda());
+    if (!first.nose || !result.nose) {
+        FAIL() << "Expected the archive to preserve the nose point";
+    }
+    EXPECT_EQ(first.nose->voltages, result.nose->voltages);
+    EXPECT_EQ(first.qLimitEvents.front().generator, result.qLimitEvents.front().generator);
+    EXPECT_EQ(first.qLimitEvents.front().regulatedBusId, 20);
+    EXPECT_DOUBLE_EQ(first.qLimitEvents.front().qMvar, 25.0);
+
+    const auto latest = readContinuationPowerFlow(path);
+    ASSERT_EQ(latest.points.size(), 2);
+    EXPECT_EQ(latest.status, large.status);
+    EXPECT_EQ(latest.targetLambda, large.targetLambda);
+    EXPECT_EQ(latest.monitorBuses, large.monitorBuses);
+    EXPECT_EQ(latest.points.front().voltages, large.points.front().voltages);
+    EXPECT_EQ(latest.points.back().angles, large.points.back().angles);
+    EXPECT_DOUBLE_EQ(latest.points.back().lambda, 1.0);
+    EXPECT_DOUBLE_EQ(latest.points.back().residualNorm, 1e-9);
+    EXPECT_TRUE(latest.qLimitEvents.empty());
+    EXPECT_THROW(readContinuationPowerFlow(path, 2), FileOperationError);
+
+    large.points.back().angles.pop_back();
+    EXPECT_THROW(saveContinuationPowerFlow(large, path, false), FileOperationError);
+    EXPECT_EQ(readContinuationPowerFlow(path).monitorBuses, latest.monitorBuses);
+
+    const ContinuationResult failed;
+    saveContinuationPowerFlow(failed, path, false);
+    const auto replacement = readContinuationPowerFlow(path);
+    EXPECT_EQ(replacement.status, ContinuationStatus::BASE_SOLVE_FAILED);
+    EXPECT_TRUE(replacement.points.empty());
+    EXPECT_THROW(readContinuationPowerFlow(path, 1), FileOperationError);
+}
 
 class FlagRecordingPowerFlowSimulation: public GridDynSimulation {
   public:

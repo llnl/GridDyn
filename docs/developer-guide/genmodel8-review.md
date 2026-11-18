@@ -12,11 +12,11 @@ does not change generator equations or claim an external trajectory match.
 
 ## References and their limits
 
-| Reference | Checkout | Use in this review |
-| --- | --- | --- |
-| [OpenIPSL PSAT Order6](https://github.com/OpenIPSL/OpenIPSL/blob/9a595ebfe42696650108dbaa47b112cf7afb24e1/OpenIPSL/Electrical/Machines/PSAT/Order6.mo) and its [base machine](https://github.com/OpenIPSL/OpenIPSL/blob/9a595ebfe42696650108dbaa47b112cf7afb24e1/OpenIPSL/Electrical/Machines/PSAT/BaseClasses/baseMachine.mo) | `9a595ebfe42696650108dbaa47b112cf7afb24e1` | Four rotor-state equations, the additional `Taa` term, steady-state initialization, and generator dq conventions |
-| [PowerDynamics SauerPaiMachine](https://github.com/JuliaEnergy/PowerDynamics.jl/blob/93792632ae7862f9c0fdaf681763c9c89b4cece4/src/Library/Machines/SauerPaiMachine.jl) | `93792632ae7862f9c0fdaf681763c9c89b4cece4` | An independent source implementation with optional stator dynamics, rotor-frame speed terms, electrical torque, and explicit flux/current constraints |
-| [GridDyn GenModel8](../../src/griddyn/genmodels/GenModel8.cpp) | Current working tree | The actual equations and initialization evaluated by the diagnostic |
+| Reference                                                                                                                                                                                                                                                                                                                      | Checkout                                   | Use in this review                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [OpenIPSL PSAT Order6](https://github.com/OpenIPSL/OpenIPSL/blob/9a595ebfe42696650108dbaa47b112cf7afb24e1/OpenIPSL/Electrical/Machines/PSAT/Order6.mo) and its [base machine](https://github.com/OpenIPSL/OpenIPSL/blob/9a595ebfe42696650108dbaa47b112cf7afb24e1/OpenIPSL/Electrical/Machines/PSAT/BaseClasses/baseMachine.mo) | `9a595ebfe42696650108dbaa47b112cf7afb24e1` | Four rotor-state equations, the additional `Taa` term, steady-state initialization, and generator dq conventions                                      |
+| [PowerDynamics SauerPaiMachine](https://github.com/JuliaEnergy/PowerDynamics.jl/blob/93792632ae7862f9c0fdaf681763c9c89b4cece4/src/Library/Machines/SauerPaiMachine.jl)                                                                                                                                                         | `93792632ae7862f9c0fdaf681763c9c89b4cece4` | An independent source implementation with optional stator dynamics, rotor-frame speed terms, electrical torque, and explicit flux/current constraints |
+| [GridDyn GenModel8](../../src/griddyn/genmodels/GenModel8.cpp)                                                                                                                                                                                                                                                                 | Current working tree                       | The actual equations and initialization evaluated by the diagnostic                                                                                   |
 
 The two external reference files were clean in their local checkouts.
 OpenIPSL Order6 treats stator currents algebraically and does not validate
@@ -74,10 +74,10 @@ currents indirectly through subsequent speed and angle changes.
 
 The compiled diagnostic confirms this at a perturbed operating point:
 
-| Frozen-state experiment | Change in the magnitude of the dq current vector |
-| --- | --- |
-| Increase `psi_d` by 0.1 and decrease `psi_q` by 0.1, then update currents | Exactly 0 |
-| Reduce terminal voltage magnitude by 10%, keeping all differential states fixed | 0.864843553567 pu |
+| Frozen-state experiment                                                         | Change in the magnitude of the dq current vector |
+| ------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Increase `psi_d` by 0.1 and decrease `psi_q` by 0.1, then update currents       | Exactly 0                                        |
+| Reduce terminal voltage magnitude by 10%, keeping all differential states fixed | 0.864843553567 pu                                |
 
 For a full flux-state model with finite, nonsingular winding inductances,
 fixed stator and rotor flux states determine winding currents. A finite
@@ -138,11 +138,11 @@ d(Eqp)/dt  = -2*r*Ef / Tdop  = -0.00291419960463
 d(Eqpp)/dt =  2*r*Ef / Tdopp =  0.291419960463
 ```
 
-| Initialization experiment | Maximum absolute residual |
-| --- | --- |
-| Default `Taa=0` | 5.55e-16 |
-| `Taa=0.02`, current implementation | 0.291419960463 |
-| Same point with only the deduced `Eqp` correction applied to the diagnostic state | 2.78e-16 |
+| Initialization experiment                                                         | Maximum absolute residual |
+| --------------------------------------------------------------------------------- | ------------------------- |
+| Default `Taa=0`                                                                   | 5.55e-16                  |
+| `Taa=0.02`, current implementation                                                | 0.291419960463            |
+| Same point with only the deduced `Eqp` correction applied to the diagnostic state | 2.78e-16                  |
 
 The production model was not modified for this experiment. The default
 `Taa=0` hides this defect.
@@ -165,11 +165,11 @@ The audit used the actual C++ residual, derivative, current update, and
 Jacobian methods. At a perturbed point with nonzero angle, speed `0.91`,
 unequal subtransient reactances, and solver coefficient `cj=2.3`:
 
-| Check | Maximum absolute error |
-| --- | --- |
-| Central differences of all residual state/input derivatives, including the DAE derivative term | 2.81e-8 |
-| Central differences of terminal P/Q state/input derivatives | 6.61e-11 |
-| Stator power identity below | 5.55e-17 |
+| Check                                                                                          | Maximum absolute error |
+| ---------------------------------------------------------------------------------------------- | ---------------------- |
+| Central differences of all residual state/input derivatives, including the DAE derivative term | 2.81e-8                |
+| Central differences of terminal P/Q state/input derivatives                                    | 6.61e-11               |
+| Stator power identity below                                                                    | 5.55e-17               |
 
 The identity follows directly from the stator differential equations:
 

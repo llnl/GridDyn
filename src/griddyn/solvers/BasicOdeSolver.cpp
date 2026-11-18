@@ -23,8 +23,7 @@ namespace {
 
     bool allFinite(const std::vector<double>& values)
     {
-        return std::all_of(
-            values.begin(), values.end(), [](double v) { return std::isfinite(v); });
+        return std::all_of(values.begin(), values.end(), [](double v) { return std::isfinite(v); });
     }
 }  // namespace
 

@@ -17,15 +17,15 @@ GridDyn already models induction motors, including multiple rotor circuits.
 
 ## Existing models and the additional capability
 
-| Model | Dynamic electrical/mechanical states | Terminal interface and intended use |
-| --- | --- | --- |
-| `MotorLoad` (`motor`, `motor1`) | One slip state; electrical power is an algebraic voltage/slip characteristic | Balanced phasor load for inexpensive electromechanical response and stall/reset behavior |
-| `MotorLoad3` (`motor3`) | Slip plus two transient internal-voltage states; two algebraic stator-current variables | Balanced single-cage transient motor model |
-| `MotorLoad5` (`motor5`) | Slip plus four transient/subtransient internal-voltage states; two algebraic stator-current variables | Balanced motor with additional rotor-circuit dynamics; supports Type-A/Type-B data and a regularized single-cage limit |
-| `CIM5`, `CIM6` | The `MotorLoad5` electrical DAE, with saturation and model-specific speed/torque laws | Native PSS/E-style motor models; factory support exists, motor DYR mapping remains absent |
-| `WECCMotor3` | The CIM6 electrical DAE, direct CMPLDW parameters, and timed protection groups | Composite Motor A/B/C, including allocation-aware initialization and trip/reclose fractions; despite its name, it inherits five differential electrical/mechanical states |
-| `MotorDLoad` | Performance curves and stall/restart/protection logic; optional voltage/thermal states | Single-phase air-conditioner compressor aggregate for composite-load and delayed-voltage-recovery studies |
-| GridKit `PowerElectronics::InductionMotor` | Five internal currents, apparently stator alpha/beta/zero and rotor alpha/beta; external speed and angle also have differential equations | Instantaneous phase-voltage inputs, phase-current residuals, and shared shaft variables; a single-cage circuit prototype |
+| Model                                      | Dynamic electrical/mechanical states                                                                                                      | Terminal interface and intended use                                                                                                                                       |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MotorLoad` (`motor`, `motor1`)            | One slip state; electrical power is an algebraic voltage/slip characteristic                                                              | Balanced phasor load for inexpensive electromechanical response and stall/reset behavior                                                                                  |
+| `MotorLoad3` (`motor3`)                    | Slip plus two transient internal-voltage states; two algebraic stator-current variables                                                   | Balanced single-cage transient motor model                                                                                                                                |
+| `MotorLoad5` (`motor5`)                    | Slip plus four transient/subtransient internal-voltage states; two algebraic stator-current variables                                     | Balanced motor with additional rotor-circuit dynamics; supports Type-A/Type-B data and a regularized single-cage limit                                                    |
+| `CIM5`, `CIM6`                             | The `MotorLoad5` electrical DAE, with saturation and model-specific speed/torque laws                                                     | Native PSS/E-style motor models; factory support exists, motor DYR mapping remains absent                                                                                 |
+| `WECCMotor3`                               | The CIM6 electrical DAE, direct CMPLDW parameters, and timed protection groups                                                            | Composite Motor A/B/C, including allocation-aware initialization and trip/reclose fractions; despite its name, it inherits five differential electrical/mechanical states |
+| `MotorDLoad`                               | Performance curves and stall/restart/protection logic; optional voltage/thermal states                                                    | Single-phase air-conditioner compressor aggregate for composite-load and delayed-voltage-recovery studies                                                                 |
+| GridKit `PowerElectronics::InductionMotor` | Five internal currents, apparently stator alpha/beta/zero and rotor alpha/beta; external speed and angle also have differential equations | Instantaneous phase-voltage inputs, phase-current residuals, and shared shaft variables; a single-cage circuit prototype                                                  |
 
 GridKit's five internal variables are **not** equivalent to GridDyn's
 five-state `motor5`. The former retains stator currents and one rotor circuit;
@@ -49,14 +49,14 @@ residuals identify three phase currents, shaft acceleration, and
 `d(angle)/dt = speed`. The internal equations identify the current ordering
 used in the comparison above; the source does not document that ordering.
 
-| Finding | Evidence and consequence |
-| --- | --- |
-| Invalid internal derivative index | The zero-sequence row reads `yp_int_[7]` although there are five internal variables. It cannot legitimately address an eighth internal derivative, even if adjacent system storage happens to make the read accessible. |
-| Apparent incorrect mutual coupling | The first stator row couples to derivative 1 and the second to derivative 0. Given the rotor rows and phase-current reconstruction, mutual inductance should couple stator alpha to rotor alpha (index 3), and stator beta to rotor beta (index 4). This must be checked against an authoritative machine reference. |
-| Initialization is a stub | `initialize()` returns zero without establishing a loaded running point or an explicit starting condition. The constructor still has TODOs for a component case and correctness test. |
-| Manual Jacobian is a stub | `evaluateJacobian()` returns zero without populating entries, and the component leaves the manual nonzero count at its base default of zero. Dependency-tracking template instantiations exist; they do not establish working numerical derivatives or correct physical equations. |
-| No built-in resisting torque or damping | The shaft residual contains inertia and electromagnetic torque. A connected component could contribute load torque through the shared shaft residual, but the motor by itself does not specify a loaded operating point. |
-| Shaft state classification needs review | GridKit's `PowerElectronics::SystemModel::tagDifferentiable()` copies internal tags and assumes shared node variables are algebraic. This motor places speed and angle derivatives on external variables, so the assembled shaft ownership/classification needs explicit treatment. |
+| Finding                                 | Evidence and consequence                                                                                                                                                                                                                                                                                             |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Invalid internal derivative index       | The zero-sequence row reads `yp_int_[7]` although there are five internal variables. It cannot legitimately address an eighth internal derivative, even if adjacent system storage happens to make the read accessible.                                                                                              |
+| Apparent incorrect mutual coupling      | The first stator row couples to derivative 1 and the second to derivative 0. Given the rotor rows and phase-current reconstruction, mutual inductance should couple stator alpha to rotor alpha (index 3), and stator beta to rotor beta (index 4). This must be checked against an authoritative machine reference. |
+| Initialization is a stub                | `initialize()` returns zero without establishing a loaded running point or an explicit starting condition. The constructor still has TODOs for a component case and correctness test.                                                                                                                                |
+| Manual Jacobian is a stub               | `evaluateJacobian()` returns zero without populating entries, and the component leaves the manual nonzero count at its base default of zero. Dependency-tracking template instantiations exist; they do not establish working numerical derivatives or correct physical equations.                                   |
+| No built-in resisting torque or damping | The shaft residual contains inertia and electromagnetic torque. A connected component could contribute load torque through the shared shaft residual, but the motor by itself does not specify a loaded operating point.                                                                                             |
+| Shaft state classification needs review | GridKit's `PowerElectronics::SystemModel::tagDifferentiable()` copies internal tags and assumes shared node variables are algebraic. This motor places speed and angle derivatives on external variables, so the assembled shaft ownership/classification needs explicit treatment.                                  |
 
 The Clarke voltage transform and current reconstruction use a beta-axis sign
 opposite to a common convention. That alone is not a defect. Rotation and
@@ -83,15 +83,15 @@ then evaluate electrical and shaft derivatives. Positive leakage inductances
 and consistent physical bases make the linear matrix nonsingular. Saturation
 would require a separately specified nonlinear extension.
 
-| GridKit parameter | Relation to existing GridDyn motor data |
-| --- | --- |
-| `Rs` | Stator resistance `r`, after conversion to the motor impedance base |
-| `Rr` | Rotor resistance `r1`, on the same referred circuit/base |
-| `Lls` | Stator leakage reactance `x = omega_b * Lls / Z_base` for SI inductance |
-| `Llr` | Rotor leakage reactance `x1 = omega_b * Llr / Z_base` |
-| `Lms` | Magnetizing reactance `xm = omega_b * Lms / Z_base` |
-| `RJ` | Appears to be shaft inertia from the acceleration residual; interpret and document units before using `H = J * omega_mech_base^2 / (2 * S_motor_base)` |
-| `P` | Appears to be pole count from the `P/2` speed factor and torque coefficient; it is not GridDyn's load active power `P` |
+| GridKit parameter | Relation to existing GridDyn motor data                                                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Rs`              | Stator resistance `r`, after conversion to the motor impedance base                                                                                    |
+| `Rr`              | Rotor resistance `r1`, on the same referred circuit/base                                                                                               |
+| `Lls`             | Stator leakage reactance `x = omega_b * Lls / Z_base` for SI inductance                                                                                |
+| `Llr`             | Rotor leakage reactance `x1 = omega_b * Llr / Z_base`                                                                                                  |
+| `Lms`             | Magnetizing reactance `xm = omega_b * Lms / Z_base`                                                                                                    |
+| `RJ`              | Appears to be shaft inertia from the acceleration residual; interpret and document units before using `H = J * omega_mech_base^2 / (2 * S_motor_base)` |
+| `P`               | Appears to be pole count from the `P/2` speed factor and torque coefficient; it is not GridDyn's load active power `P`                                 |
 
 Use `omega_mech_base = omega_b / pole_pairs`, and distinguish physical
 inertia, electrical angular speed, mechanical angular speed, RMS voltage,

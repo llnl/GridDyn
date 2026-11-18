@@ -96,18 +96,18 @@ The power-flow load is the equivalent-circuit demand at the prescribed
 speed; it is not the configured P allocation. An explicit rating is useful
 for this mode. Starting does not impose equilibrium on the shaft.
 
-| Parameter | Default | Meaning |
-| --- | --- | --- |
-| `rs`, `rr` | 0.01, 0.02 | Positive stator and referred rotor resistance, per unit |
-| `xls`, `xlr`, `xm` | 0.10, 0.10, 3.0 | Positive leakage and magnetizing reactance, per unit |
-| `h` | 0.5 | Positive inertia constant in seconds on the motor MVA base |
-| `rating` | Automatic | Positive motor MVA rating; numeric default units use the repository's MW/MVA base convention |
-| `load_factor` | 0.8 | If no rating is supplied, motor MVA = allocated MW / load factor; must be in (0, 1] |
-| `torque_constant`, `torque_linear`, `torque_quadratic` | 0, 0, 1 | Nonnegative coefficients; at least one must be positive |
-| `damping` | 0 | Nonnegative viscous shaft-torque coefficient |
-| `load_torque` | Calibrated for running; 1 for starting | Nonnegative nominal mechanical torque on the motor base; can also be changed for a load-step study |
-| `initialization` | `running` | `running` or `starting` |
-| `initial_speed` | 0 | Starting speed, per unit; must be in [0, 1) |
+| Parameter                                              | Default                                | Meaning                                                                                            |
+| ------------------------------------------------------ | -------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `rs`, `rr`                                             | 0.01, 0.02                             | Positive stator and referred rotor resistance, per unit                                            |
+| `xls`, `xlr`, `xm`                                     | 0.10, 0.10, 3.0                        | Positive leakage and magnetizing reactance, per unit                                               |
+| `h`                                                    | 0.5                                    | Positive inertia constant in seconds on the motor MVA base                                         |
+| `rating`                                               | Automatic                              | Positive motor MVA rating; numeric default units use the repository's MW/MVA base convention       |
+| `load_factor`                                          | 0.8                                    | If no rating is supplied, motor MVA = allocated MW / load factor; must be in (0, 1]                |
+| `torque_constant`, `torque_linear`, `torque_quadratic` | 0, 0, 1                                | Nonnegative coefficients; at least one must be positive                                            |
+| `damping`                                              | 0                                      | Nonnegative viscous shaft-torque coefficient                                                       |
+| `load_torque`                                          | Calibrated for running; 1 for starting | Nonnegative nominal mechanical torque on the motor base; can also be changed for a load-step study |
+| `initialization`                                       | `running`                              | `running` or `starting`                                                                            |
+| `initial_speed`                                        | 0                                      | Starting speed, per unit; must be in [0, 1)                                                        |
 
 Configure circuit, rating, and initialization settings before initialization.
 The scale is fixed from the rating or original allocated P, rather than

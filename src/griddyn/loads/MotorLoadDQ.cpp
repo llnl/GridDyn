@@ -55,7 +55,9 @@ CoreObject* MotorLoadDQ::clone(CoreObject* obj) const
 }
 
 namespace {
-    inline constexpr auto positiveValue = [](const double& v) { return std::isfinite(v) && v > 0.0; };
+    inline constexpr auto positiveValue = [](const double& v) {
+        return std::isfinite(v) && v > 0.0;
+    };
     inline constexpr auto nonnegativeValue = [](const double& v) {
         return std::isfinite(v) && v >= 0.0;
     };
@@ -74,18 +76,49 @@ const ModelDescription& MotorLoadDQ::getModelDescription() const
         &GridLoad::getModelDescription(),
         {parameter({"rs"}, &MotorLoadDQ::mRs, units::one, "Stator resistance", positiveValue),
          parameter({"rr"}, &MotorLoadDQ::mRr, units::one, "Rotor resistance", positiveValue),
-         parameter({"xls"}, &MotorLoadDQ::mXls, units::one, "Stator leakage reactance", positiveValue),
-         parameter({"xlr"}, &MotorLoadDQ::mXlr, units::one, "Rotor leakage reactance", positiveValue),
+         parameter(
+             {"xls"}, &MotorLoadDQ::mXls, units::one, "Stator leakage reactance", positiveValue),
+         parameter(
+             {"xlr"}, &MotorLoadDQ::mXlr, units::one, "Rotor leakage reactance", positiveValue),
          parameter({"xm"}, &MotorLoadDQ::mXm, units::one, "Magnetizing reactance", positiveValue),
          parameter({"h"}, &MotorLoadDQ::mInertia, units::second, "Inertia constant", positiveValue),
-         parameter({"rating"}, &MotorLoadDQ::mRating, units::MW, "Motor rating; zero uses load_factor", nonnegativeValue),
-         parameter({"load_factor"}, &MotorLoadDQ::mLoadFactor, units::one, "Load factor in (0, 1]", loadFactorValue),
-         parameter({"torque_constant"}, &MotorLoadDQ::mTorqueConstant, units::one, "Constant torque coefficient", nonnegativeValue),
-         parameter({"torque_linear"}, &MotorLoadDQ::mTorqueLinear, units::one, "Linear torque coefficient", nonnegativeValue),
-         parameter({"torque_quadratic"}, &MotorLoadDQ::mTorqueQuadratic, units::one, "Quadratic torque coefficient", nonnegativeValue),
-         parameter({"damping"}, &MotorLoadDQ::mDamping, units::one, "Speed-proportional damping", nonnegativeValue),
-         parameter({"initial_speed"}, &MotorLoadDQ::mInitialSpeed, units::one, "Initial speed in [0, 1)", initialSpeedValue),
-         // load_torque also sets mTorqueSpecified, so it is handled by set() rather than bound to storage
+         parameter({"rating"},
+                   &MotorLoadDQ::mRating,
+                   units::MW,
+                   "Motor rating; zero uses load_factor",
+                   nonnegativeValue),
+         parameter({"load_factor"},
+                   &MotorLoadDQ::mLoadFactor,
+                   units::one,
+                   "Load factor in (0, 1]",
+                   loadFactorValue),
+         parameter({"torque_constant"},
+                   &MotorLoadDQ::mTorqueConstant,
+                   units::one,
+                   "Constant torque coefficient",
+                   nonnegativeValue),
+         parameter({"torque_linear"},
+                   &MotorLoadDQ::mTorqueLinear,
+                   units::one,
+                   "Linear torque coefficient",
+                   nonnegativeValue),
+         parameter({"torque_quadratic"},
+                   &MotorLoadDQ::mTorqueQuadratic,
+                   units::one,
+                   "Quadratic torque coefficient",
+                   nonnegativeValue),
+         parameter({"damping"},
+                   &MotorLoadDQ::mDamping,
+                   units::one,
+                   "Speed-proportional damping",
+                   nonnegativeValue),
+         parameter({"initial_speed"},
+                   &MotorLoadDQ::mInitialSpeed,
+                   units::one,
+                   "Initial speed in [0, 1)",
+                   initialSpeedValue),
+         // load_torque also sets mTorqueSpecified, so it is handled by set() rather than bound to
+         // storage
          command({"load_torque"}, units::one, "Load torque at rated speed")});
     return description;
 }

@@ -23,6 +23,7 @@ namespace links {
      */
     class VSCShunt final: public AcDcConverter {
       public:
+        const ModelDescription& getModelDescription() const override;
         enum class Control { PQ = 0, PV = 1, VQ = 2, VV = 3 };
 
       private:
@@ -106,9 +107,7 @@ namespace links {
                         double state[],
                         double dstateDt[],
                         const SolverMode& sMode) override;
-        void getStateName(stringVec& stNames,
-                          const SolverMode& sMode,
-                          const std::string& prefix = "") const override;
+
         double getRealPower(id_type_t busId = 0) const override;
         double getReactivePower(id_type_t busId = 0) const override;
     };

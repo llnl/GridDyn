@@ -24,6 +24,8 @@ namespace griddyn::blocks {
  */
 class ControlBlock: public GridBlock {
   public:
+    const ModelDescription& getModelDescription() const override;
+
   protected:
     model_parameter mT1 = 0.1;  //!< delay time constant
     model_parameter mT2 = 0.0;  //!< upper time constant
@@ -51,11 +53,6 @@ class ControlBlock: public GridBlock {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
-
     virtual void blockDerivative(double input,
                                  double didt,
                                  const StateData& stateDataRef,
@@ -74,7 +71,6 @@ class ControlBlock: public GridBlock {
                                        const SolverMode& sMode) override;
     virtual double step(CoreTime time, double input) override;
     // virtual void setTime(CoreTime time){prevTime=time;};
-    virtual stringVec localStateNames() const override;
 };
 
 }  // namespace griddyn::blocks

@@ -102,18 +102,21 @@ namespace solvers {
         solverCallCount = 0;
     }
 
-    double BasicSolver::get(std::string_view param) const
+    const SolverInterface::Description& BasicSolver::getSolverDescription() const
     {
-        if (param == "alpha") {
-            return alpha;
-        }
-        if (param == "iterations") {
-            return static_cast<double>(iterations);
-        }
-        return SolverInterface::get(param);
+        static constexpr Property<double> numeric[]{
+            property<BasicSolver, &BasicSolver::alpha, true>("alpha", "Convergence gain"),
+            property<BasicSolver, &BasicSolver::iterations>("iterations", "Iteration count"),
+        };
+        static const Description description{.numeric = numeric,
+                                             .parent = &SolverInterface::getSolverDescription()};
+        return description;
     }
     void BasicSolver::set(std::string_view param, std::string_view val)
     {
+        if (trySetProperty(param, val)) {
+            return;
+        }
         if (param == "algorithm") {
             auto lcs = convertToLowerCase(val);
             if (lcs == "gauss") {
@@ -123,14 +126,6 @@ namespace solvers {
                 algorithm = Mode::gauss_seidel;
                 mode.approx[FORCE_RECALC] = true;
             }
-        } else {
-            SolverInterface::set(param, val);
-        }
-    }
-    void BasicSolver::set(std::string_view param, double val)
-    {
-        if (param == "alpha") {
-            alpha = val;
         } else {
             SolverInterface::set(param, val);
         }

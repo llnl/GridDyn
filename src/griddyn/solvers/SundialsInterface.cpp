@@ -114,22 +114,23 @@ std::unique_ptr<SolverInterface> SundialsInterface::clone(bool fullCopy) const
     return si;
 }
 
-void SundialsInterface::cloneTo(SolverInterface* si, bool fullCopy) const
+void SundialsInterface::cloneTo(SolverInterface* destination, bool fullCopy) const
 {
-    SolverInterface::cloneTo(si, fullCopy);
-    auto ai = dynamic_cast<SundialsInterface*>(si);
-    if (ai == nullptr) {
+    auto* sundials = dynamic_cast<SundialsInterface*>(destination);
+    if (sundials != nullptr) {
+        // A full clone initializes the destination solver and allocates its Jacobian.
+        sundials->maxNNZ = maxNNZ;
+    }
+    SolverInterface::cloneTo(destination, fullCopy);
+    if (sundials == nullptr || !fullCopy || !flags[ALLOCATED_FLAG]) {
         return;
     }
-    ai->maxNNZ = maxNNZ;
-    if ((fullCopy) && (flags[ALLOCATED_FLAG])) {
-        auto tols = nvecdata(use_omp, abstols);
-        std::copy(tols, tols + svsize, nvecdata(use_omp, ai->abstols));
-        auto cons = nvecdata(use_omp, consData);
-        std::copy(cons, cons + svsize, nvecdata(use_omp, ai->consData));
-        auto sc = nvecdata(use_omp, scale);
-        std::copy(sc, sc + svsize, nvecdata(use_omp, ai->scale));
-    }
+    const auto* tolerances = nvecdata(use_omp, abstols);
+    std::copy(tolerances, tolerances + svsize, nvecdata(use_omp, sundials->abstols));
+    const auto* constraints = nvecdata(use_omp, consData);
+    std::copy(constraints, constraints + svsize, nvecdata(use_omp, sundials->consData));
+    const auto* scales = nvecdata(use_omp, scale);
+    std::copy(scales, scales + svsize, nvecdata(use_omp, sundials->scale));
 }
 
 void SundialsInterface::allocate(count_t stateCount, count_t /*numRoots*/)
@@ -229,48 +230,40 @@ const double* SundialsInterface::typeData() const noexcept
     return nvecdata(use_omp, types);
 }
 
-double SundialsInterface::get(std::string_view param) const
+const SolverInterface::Description& SundialsInterface::getSolverDescription() const
 {
-    if (param == "maxnnz") {
-        return static_cast<double>(maxNNZ);
-    }
-    if (param == "perftotal") {
-        return performanceSolveTime;
-    }
-    if (param == "perfresiduals") {
-        return static_cast<double>(performanceResidualCalls);
-    }
-    if (param == "perfresidualtime") {
-        return performanceResidualTime;
-    }
-    if (param == "perfjacobians") {
-        return static_cast<double>(performanceJacobianCalls);
-    }
-    if (param == "perfjacobiantime") {
-        return performanceJacobianTime;
-    }
-    if (param == "perfmodeljacobiantime") {
-        return performanceModelJacobianTime;
-    }
-    if (param == "perfrhs") {
-        return static_cast<double>(performanceRhsCalls);
-    }
-    if (param == "perfrhstime") {
-        return performanceRhsTime;
-    }
-    if (param == "perfalgebraic") {
-        return static_cast<double>(performanceAlgebraicCalls);
-    }
-    if (param == "perfalgebraictime") {
-        return performanceAlgebraicTime;
-    }
-    if (param == "perfderivative") {
-        return static_cast<double>(performanceDerivativeCalls);
-    }
-    if (param == "perfderivativetime") {
-        return performanceDerivativeTime;
-    }
-    return SolverInterface::get(param);
+    static constexpr Property<double> numeric[]{
+        property<SundialsInterface, &SundialsInterface::maxNNZ>("maxnnz",
+                                                                "Maximum Jacobian nonzeros"),
+        property<SundialsInterface, &SundialsInterface::performanceSolveTime>("perftotal",
+                                                                              "Total solve time",
+                                                                              units::second),
+        property<SundialsInterface, &SundialsInterface::performanceResidualCalls>("perfresiduals",
+                                                                                  "Residual calls"),
+        property<SundialsInterface, &SundialsInterface::performanceResidualTime>(
+            "perfresidualtime", "Residual evaluation time", units::second),
+        property<SundialsInterface, &SundialsInterface::performanceJacobianCalls>("perfjacobians",
+                                                                                  "Jacobian calls"),
+        property<SundialsInterface, &SundialsInterface::performanceJacobianTime>(
+            "perfjacobiantime", "Jacobian evaluation time", units::second),
+        property<SundialsInterface, &SundialsInterface::performanceModelJacobianTime>(
+            "perfmodeljacobiantime", "Model Jacobian evaluation time", units::second),
+        property<SundialsInterface, &SundialsInterface::performanceRhsCalls>(
+            "perfrhs", "Right hand side calls"),
+        property<SundialsInterface, &SundialsInterface::performanceRhsTime>(
+            "perfrhstime", "Right hand side evaluation time", units::second),
+        property<SundialsInterface, &SundialsInterface::performanceAlgebraicCalls>(
+            "perfalgebraic", "Algebraic solves"),
+        property<SundialsInterface, &SundialsInterface::performanceAlgebraicTime>(
+            "perfalgebraictime", "Algebraic solve time", units::second),
+        property<SundialsInterface, &SundialsInterface::performanceDerivativeCalls>(
+            "perfderivative", "Derivative calls"),
+        property<SundialsInterface, &SundialsInterface::performanceDerivativeTime>(
+            "perfderivativetime", "Derivative evaluation time", units::second),
+    };
+    static const Description description{.numeric = numeric,
+                                         .parent = &SolverInterface::getSolverDescription()};
+    return description;
 }
 
 void SundialsInterface::resetPerformanceStats() noexcept

@@ -1,0 +1,1602 @@
+/*
+ * Copyright (c) 2014-2026, Lawrence Livermore National Security
+ * See the top-level NOTICE for additional details. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "../gtestHelper.h"
+#include "griddyn/Generator.h"
+#include "griddyn/GridArea.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/Link.h"
+#include "griddyn/Load.h"
+#include "griddyn/exciters/ExciterDC1A.h"
+#include "griddyn/exciters/ExciterDC2A.h"
+#include "griddyn/exciters/ExciterESAC1A.h"
+#include "griddyn/exciters/ExciterESAC6A.h"
+#include "griddyn/generators/DynamicGenerator.h"
+#include "griddyn/generators/RenewableGenerator.h"
+#include "griddyn/governors/GovernorGPWSCC.h"
+#include "griddyn/governors/GovernorGgov1.h"
+#include "griddyn/governors/GovernorIeeeG2.h"
+#include "griddyn/links/AcLine.h"
+#include "griddyn/links/AdjustableTransformer.h"
+#include "griddyn/links/DcLink.h"
+#include "griddyn/loads/MotorLoad.h"
+#include "griddyn/primary/DcBus.h"
+#include "griddyn/relays/Pmu.h"
+#include "griddyn/renewables/WTPTA1.h"
+#include "griddyn/stabilizers/StabilizerIee2st.h"
+#include "griddyn/stabilizers/StabilizerPss2a.h"
+#include "griddyn/stabilizers/StabilizerStab3.h"
+#include "griddyn/voltagecompensators/VoltageCompensatorIeeeVC.h"
+#include <algorithm>
+#include <array>
+#include <filesystem>
+#include <fstream>
+#include <gtest/gtest.h>
+#include <memory>
+#include <ranges>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
+namespace {
+
+struct ExampleReaderCase {
+    std::string_view fileName;
+    int busCount;
+    int linkCount;
+    int genCount;
+    int loadCount;
+};
+
+std::filesystem::path makeExamplePath(std::string_view fileName)
+{
+    return std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / ".." / ".." / "examples" /
+        std::string{fileName};
+}
+
+std::filesystem::path makeMatlabTestPath(std::string_view fileName)
+{
+    return std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "matlab_test_files" /
+        std::string{fileName};
+}
+
+void expectInternalLinksBelongToArea(griddyn::GridArea* area)
+{
+    const auto linkCount = area->getInt("linkcount");
+    for (int linkIndex = 0; linkIndex < linkCount; ++linkIndex) {
+        auto* link = area->getLink(linkIndex);
+        ASSERT_NE(link, nullptr);
+        ASSERT_NE(link->getBus(1), nullptr);
+        ASSERT_NE(link->getBus(2), nullptr);
+        EXPECT_EQ(link->getBus(1)->getParent(), area);
+        EXPECT_EQ(link->getBus(2)->getParent(), area);
+    }
+}
+
+}  // namespace
+
+TEST(ExampleReaderTests, LoadTopLevelExamples)
+{
+    static constexpr std::array<ExampleReaderCase, 7> exampleCases{{
+        {.fileName = "two_bus_example.xml",
+         .busCount = 2,
+         .linkCount = 1,
+         .genCount = 1,
+         .loadCount = 2},
+        {.fileName = "IEEE_14bus.cdf",
+         .busCount = 14,
+         .linkCount = 20,
+         .genCount = 5,
+         .loadCount = 11},
+        {.fileName = "IEEE39.raw",
+         .busCount = 39,
+         .linkCount = 46,
+         .genCount = 10,
+         .loadCount = 33},
+        {.fileName = "powerflow.raw",
+         .busCount = 179,
+         .linkCount = 263,
+         .genCount = 29,
+         .loadCount = 144},
+        {.fileName = "powerflowWECC.raw",
+         .busCount = 179,
+         .linkCount = 263,
+         .genCount = 29,
+         .loadCount = 144},
+        {.fileName = "test_griddyn39.xml",
+         .busCount = 39,
+         .linkCount = 46,
+         .genCount = 10,
+         .loadCount = 20},
+        {.fileName = "test_faulting.xml",
+         .busCount = 3,
+         .linkCount = 3,
+         .genCount = 1,
+         .loadCount = 1},
+    }};
+
+    for (const auto& exampleCase : exampleCases) {
+        SCOPED_TRACE(exampleCase.fileName);
+        auto gds = std::make_unique<griddyn::GridDynSimulation>();
+        const auto filePath = makeExamplePath(exampleCase.fileName);
+
+        ASSERT_TRUE(std::filesystem::exists(filePath));
+        griddyn::loadFile(gds, filePath.string());
+
+        ASSERT_EQ(gds->currentProcessState(), griddyn::GridDynSimulation::GridState::STARTUP);
+        EXPECT_EQ(gds->getInt("totalbuscount"), exampleCase.busCount);
+        EXPECT_EQ(gds->getInt("totallinkcount"), exampleCase.linkCount);
+        EXPECT_EQ(gds->getInt("gencount"), exampleCase.genCount);
+        EXPECT_EQ(gds->getInt("loadcount"), exampleCase.loadCount);
+    }
+}
+
+TEST(ExampleReaderTests, LoadAndSolveMatDynModel)
+{
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    const auto networkPath = makeMatlabTestPath("case9.m");
+    const auto dynamicPath = makeMatlabTestPath("case9dyn.m");
+    const auto eventPath = makeMatlabTestPath("fault.m");
+
+    ASSERT_TRUE(std::filesystem::exists(networkPath));
+    ASSERT_TRUE(std::filesystem::exists(dynamicPath));
+    ASSERT_TRUE(std::filesystem::exists(eventPath));
+    griddyn::loadFile(gds, networkPath.string());
+    griddyn::loadFile(gds, dynamicPath.string());
+    griddyn::loadFile(gds, eventPath.string());
+
+    EXPECT_DOUBLE_EQ(gds->get("basefrequency", units::Hz), 50.0);
+    EXPECT_EQ(gds->getInt("totalbuscount"), 9);
+    EXPECT_EQ(gds->getInt("totallinkcount"), 9);
+    EXPECT_EQ(gds->getInt("gencount"), 3);
+    auto* firstGenerator = gds->findByUserID("gen", 1);
+    ASSERT_NE(firstGenerator, nullptr);
+    ASSERT_NE(firstGenerator->find("genmodel"), nullptr);
+    auto* thirdGenerator = gds->findByUserID("gen", 3);
+    ASSERT_NE(thirdGenerator, nullptr);
+    auto* exciter = thirdGenerator->find("exciter");
+    ASSERT_NE(exciter, nullptr);
+    ASSERT_EQ(gds->pFlowInitialize(), 0);
+    ASSERT_EQ(gds->powerflow(), 0);
+    EXPECT_EQ(gds->currentProcessState(),
+              griddyn::GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_EQ(gds->currentProcessState(),
+              griddyn::GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
+    ASSERT_TRUE(gds->hasDynamics());
+    EXPECT_EQ(gds->run(0.1), 0);
+}
+
+TEST(ExampleReaderTests, LoadRawAreaDefinitions)
+{
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    const auto filePath = makeExamplePath("powerflow.raw");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds, filePath.string());
+
+    ASSERT_EQ(gds->getInt("totalareacount"), 3);
+    auto* area = gds->getGridArea(0);
+    ASSERT_NE(area, nullptr);
+    EXPECT_EQ(area->getUserID(), 1);
+    EXPECT_EQ(area->getInterchangeSlackBus(), nullptr);
+    ASSERT_TRUE(area->getScheduledNetInterchangeMW().has_value());
+    EXPECT_DOUBLE_EQ(area->getScheduledNetInterchangeMW().value_or(griddyn::kNullVal), 0.0);
+    ASSERT_TRUE(area->getInterchangeToleranceMW().has_value());
+    EXPECT_DOUBLE_EQ(area->getInterchangeToleranceMW().value_or(griddyn::kNullVal), 5.0);
+    EXPECT_DOUBLE_EQ(area->get("interchangetolerance", units::MW), 5.0);
+    EXPECT_DOUBLE_EQ(area->get("interchangetolerance", units::puMW), 0.05);
+    EXPECT_EQ(area->getInt("buscount"), 72);
+    expectInternalLinksBelongToArea(area);
+    int internalLinkCount = area->getInt("linkcount");
+    area = gds->getGridArea(1);
+    ASSERT_NE(area, nullptr);
+    EXPECT_EQ(area->getUserID(), 2);
+    EXPECT_EQ(area->getInt("buscount"), 76);
+    expectInternalLinksBelongToArea(area);
+    internalLinkCount += area->getInt("linkcount");
+    area = gds->getGridArea(2);
+    ASSERT_NE(area, nullptr);
+    EXPECT_EQ(area->getUserID(), 3);
+    EXPECT_EQ(area->getInt("buscount"), 31);
+    expectInternalLinksBelongToArea(area);
+    internalLinkCount += area->getInt("linkcount");
+    EXPECT_GT(internalLinkCount, 0);
+    EXPECT_GT(gds->getInt("linkcount"), 0);
+    EXPECT_EQ(internalLinkCount + gds->getInt("linkcount"), gds->getInt("totallinkcount"));
+    EXPECT_EQ(gds->getInt("buscount"), 0);
+}
+
+TEST(ExampleReaderTests, AreaInterchangePropertiesDistinguishUnsetFromZero)
+{
+    griddyn::GridArea area("test_area");
+    EXPECT_FALSE(area.getScheduledNetInterchangeMW().has_value());
+    EXPECT_FALSE(area.getInterchangeToleranceMW().has_value());
+    EXPECT_EQ(area.get("schedulednetinterchange", units::MW), griddyn::kNullVal);
+
+    area.set("schedulednetinterchange", 0.0, units::MW);
+    area.set("interchangetolerance", 2.5, units::MW);
+    ASSERT_TRUE(area.getScheduledNetInterchangeMW().has_value());
+    EXPECT_DOUBLE_EQ(area.getScheduledNetInterchangeMW().value_or(griddyn::kNullVal), 0.0);
+    EXPECT_DOUBLE_EQ(area.get("schedulednetinterchange", units::MW), 0.0);
+    EXPECT_DOUBLE_EQ(area.get("interchangetolerance", units::MW), 2.5);
+}
+
+TEST(ExampleReaderTests, AreaInterchangeSlackBusAcceptsBusNumberAndName)
+{
+    auto area = std::make_unique<griddyn::GridArea>("test_area");
+    area->set("interchangeslackbus", 101.0);
+    EXPECT_EQ(area->getInterchangeSlackBus(), nullptr);
+
+    auto* numberedBus = new griddyn::GridBus("numbered_slack");
+    numberedBus->setUserID(101);
+    area->add(numberedBus);
+    EXPECT_EQ(area->getInterchangeSlackBus(), numberedBus);
+    EXPECT_EQ(area->get("interchangeslackbus"), 101.0);
+
+    area->set("interchangeslackbus", "Named Slack");
+    auto* namedBus = new griddyn::GridBus("Named Slack");
+    namedBus->setUserID(202);
+    area->add(namedBus);
+    EXPECT_EQ(area->getInterchangeSlackBus(), namedBus);
+    EXPECT_EQ(area->getString("interchangeslackbus"), "Named Slack");
+
+    area->set("interchangeslackbus", 0.0);
+    EXPECT_EQ(area->getInterchangeSlackBus(), nullptr);
+    EXPECT_EQ(area->get("interchangeslackbus"), griddyn::kNullVal);
+}
+
+TEST(ExampleReaderTests, LoadEpcAreaDefinitions)
+{
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    const auto filePath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds, filePath.string());
+
+    ASSERT_EQ(gds->getInt("totalareacount"), 1);
+    auto* area = gds->getGridArea(0);
+    ASSERT_NE(area, nullptr);
+    EXPECT_EQ(area->getInt("buscount"), 14);
+    expectInternalLinksBelongToArea(area);
+    const auto internalLinkCount = area->getInt("linkcount");
+    EXPECT_EQ(internalLinkCount + gds->getInt("linkcount"), gds->getInt("totallinkcount"));
+    EXPECT_EQ(gds->getInt("buscount"), 0);
+}
+
+TEST(ExampleReaderTests, EpcDcBusAndLineRecordsLoad)
+{
+    const auto filePath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "input_tests" / "epc_dc_network.epc";
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, filePath.string()));
+
+    auto* bus1 = dynamic_cast<griddyn::DcBus*>(simulation->find("DC_A"));
+    auto* bus2 = dynamic_cast<griddyn::DcBus*>(simulation->find("DC_B"));
+    ASSERT_NE(bus1, nullptr);
+    ASSERT_NE(bus2, nullptr);
+    EXPECT_DOUBLE_EQ(bus1->get("basevoltage"), 320.0);
+    EXPECT_DOUBLE_EQ(bus2->get("basevoltage"), 320.0);
+
+    ASSERT_EQ(simulation->getInt("totallinkcount"), 2);
+    const auto* activeLink = dynamic_cast<const griddyn::links::DcLink*>(simulation->getLink(0));
+    const auto* outOfServiceLink =
+        dynamic_cast<const griddyn::links::DcLink*>(simulation->getLink(1));
+    ASSERT_NE(activeLink, nullptr);
+    ASSERT_NE(outOfServiceLink, nullptr);
+    for (const auto* link : {activeLink, outOfServiceLink}) {
+        EXPECT_EQ(link->getBus(1), bus1);
+        EXPECT_EQ(link->getBus(2), bus2);
+    }
+    EXPECT_TRUE(activeLink->isEnabled());
+    EXPECT_DOUBLE_EQ(activeLink->get("r"), 0.25);
+    EXPECT_DOUBLE_EQ(activeLink->get("x"), 0.01);
+    EXPECT_DOUBLE_EQ(activeLink->get("length", units::km), 60.0);
+    EXPECT_FALSE(outOfServiceLink->isEnabled());
+    EXPECT_DOUBLE_EQ(outOfServiceLink->get("r"), 0.5);
+    EXPECT_DOUBLE_EQ(outOfServiceLink->get("x"), 0.02);
+    EXPECT_DOUBLE_EQ(outOfServiceLink->get("length", units::km), 45.0);
+}
+
+TEST(ExampleReaderTests, EpcThreeWindingTransformerUsesExplicitStarBus)
+{
+    const auto filePath = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "input_tests" /
+        "epc_three_winding_transformer.epc";
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, filePath.string()));
+
+    ASSERT_EQ(simulation->getInt("totalbuscount"), 4);
+    ASSERT_EQ(simulation->getInt("totallinkcount"), 3);
+    auto* starBus = simulation->findByUserID("bus", 3);
+    ASSERT_NE(starBus, nullptr);
+    const std::array<int, 3> externalBusNumbers{1, 2, 4};
+    const std::array<double, 3> expectedReactances{0.2, 0.1, 0.4};
+    for (int legIndex = 0; legIndex < 3; ++legIndex) {
+        const auto* leg = dynamic_cast<const griddyn::AcLine*>(simulation->getLink(legIndex));
+        ASSERT_NE(leg, nullptr);
+        EXPECT_EQ(leg->getBus(1), simulation->findByUserID("bus", externalBusNumbers[legIndex]));
+        EXPECT_EQ(leg->getBus(2), starBus);
+        EXPECT_NEAR(leg->get("x"), expectedReactances[legIndex], 1e-12);
+    }
+}
+
+TEST(ExampleReaderTests, EpcLargeCaseImportsDcRecords)
+{
+    const auto filePath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE300Bus.epc";
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, filePath.string()));
+
+    EXPECT_EQ(simulation->getInt("totalbuscount"), 302);
+    const auto* fromBus = dynamic_cast<const griddyn::DcBus*>(simulation->find("Bus1"));
+    const auto* toBus = dynamic_cast<const griddyn::DcBus*>(simulation->find("Bus2"));
+    ASSERT_NE(fromBus, nullptr);
+    ASSERT_NE(toBus, nullptr);
+    EXPECT_DOUBLE_EQ(fromBus->get("basevoltage"), 85.997);
+    EXPECT_DOUBLE_EQ(toBus->get("basevoltage"), 85.997);
+
+    std::vector<griddyn::Link*> links;
+    simulation->getLinkVector(links);
+    const auto link = std::ranges::find_if(links, [fromBus, toBus](const auto* candidate) {
+        return candidate->getBus(1) == fromBus && candidate->getBus(2) == toBus;
+    });
+    ASSERT_NE(link, links.end());
+    ASSERT_NE(dynamic_cast<const griddyn::links::DcLink*>(*link), nullptr);
+    EXPECT_DOUBLE_EQ((*link)->get("r"), 6.2);
+}
+
+TEST(ExampleReaderTests, PsatImportsOptionalArrayTypes)
+{
+    const auto filePath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "input_tests" / "psat_reader_variants.m";
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, filePath.string()));
+
+    EXPECT_EQ(simulation->getInt("totalbuscount"), 2);
+    ASSERT_EQ(simulation->getInt("totallinkcount"), 4);
+    const auto* slack = dynamic_cast<const griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    const auto* bus = dynamic_cast<const griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+    ASSERT_NE(slack, nullptr);
+    ASSERT_NE(bus, nullptr);
+
+    // Gen.con, Shunt.con and Not.con each have a distinct effect on bus 2.
+    ASSERT_EQ(bus->getInt("gencount"), 1);
+    // Generator terminal power is negative for an injection into the network.
+    EXPECT_DOUBLE_EQ(bus->getGen(0)->get("p", units::MW), -25.0);
+    EXPECT_DOUBLE_EQ(bus->getGen(0)->get("q", units::MVAR), -5.0);
+    EXPECT_DOUBLE_EQ(bus->get("vtarget"), 1.04);
+    ASSERT_EQ(bus->getInt("loadcount"), 2);
+    EXPECT_DOUBLE_EQ(bus->getLoad(0)->get("yp"), 0.001);
+    EXPECT_DOUBLE_EQ(bus->getLoad(0)->get("yq"), 0.002);
+    EXPECT_NE(dynamic_cast<const griddyn::loads::MotorLoad*>(bus->getLoad(1)), nullptr);
+
+    // Lines.con scales per-kilometre impedance. Ltc.con and Phs.con set different controls.
+    const auto* line = dynamic_cast<const griddyn::AcLine*>(simulation->getLink(1));
+    const auto* tap =
+        dynamic_cast<const griddyn::links::AdjustableTransformer*>(simulation->getLink(2));
+    const auto* phase =
+        dynamic_cast<const griddyn::links::AdjustableTransformer*>(simulation->getLink(3));
+    ASSERT_NE(line, nullptr);
+    ASSERT_NE(tap, nullptr);
+    ASSERT_NE(phase, nullptr);
+    for (const auto* link : std::array<const griddyn::Link*, 3>{line, tap, phase}) {
+        EXPECT_EQ(link->getBus(1), slack);
+        EXPECT_EQ(link->getBus(2), bus);
+    }
+    EXPECT_DOUBLE_EQ(line->get("r"), 0.20);
+    EXPECT_DOUBLE_EQ(line->get("x"), 0.80);
+    EXPECT_DOUBLE_EQ(line->get("tap"), 1.05);
+    EXPECT_DOUBLE_EQ(tap->get("mintap"), 0.8);
+    EXPECT_DOUBLE_EQ(tap->get("maxtap"), 1.2);
+    EXPECT_DOUBLE_EQ(phase->get("ptarget"), 0.16);
+    EXPECT_DOUBLE_EQ(phase->get("maxtapangle"), 0.5);
+    EXPECT_FALSE(phase->isEnabled());
+
+    const auto* pmu = dynamic_cast<const griddyn::relays::Pmu*>(simulation->getRelay(0));
+    ASSERT_NE(pmu, nullptr);
+    EXPECT_EQ(pmu->getObject(), bus);
+    EXPECT_DOUBLE_EQ(pmu->get("samplerate"), 60.0);
+    EXPECT_DOUBLE_EQ(pmu->get("tv"), 0.03);
+    EXPECT_DOUBLE_EQ(pmu->get("ttheta"), 0.05);
+}
+
+TEST(ExampleReaderTests, EpcPowerflowOnlyFlagCreatesStaticGenerators)
+{
+    const auto filePath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "input_tests" / "WSCC 9 bus.epc";
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+
+    griddyn::ReaderInfo readerInfo;
+    griddyn::addFlags(readerInfo, "powerflow_only");
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, filePath.string(), &readerInfo));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    ASSERT_GT(bus->getInt("gencount"), 0);
+    const auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    EXPECT_EQ(dynamic_cast<const griddyn::DynamicGenerator*>(generator), nullptr);
+
+    auto defaultSimulation = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(defaultSimulation, filePath.string()));
+    const auto* defaultBus =
+        dynamic_cast<const griddyn::GridBus*>(defaultSimulation->findByUserID("bus", 1));
+    ASSERT_NE(defaultBus, nullptr);
+    const auto* dynamicGenerator =
+        dynamic_cast<const griddyn::DynamicGenerator*>(defaultBus->getGen(0));
+    ASSERT_NE(dynamicGenerator, nullptr);
+    EXPECT_DOUBLE_EQ(generator->get("p"), dynamicGenerator->get("p"));
+}
+
+TEST(ExampleReaderTests, LoadEpcDyrDynamicModels)
+{
+    griddyn::GridDynSimulation::resetObjectCounters();
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dyrPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests" / "ieee14_genrou.dyr";
+
+    ASSERT_TRUE(std::filesystem::exists(epcPath));
+    ASSERT_TRUE(std::filesystem::exists(dyrPath));
+
+    auto dyrSimulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(dyrSimulation, epcPath.string());
+    griddyn::loadFile(dyrSimulation, dyrPath.string());
+    EXPECT_EQ(dyrSimulation->getInt("gencount"), 5);
+    for (const auto busId : {1, 2, 3, 6, 8}) {
+        auto* bus = dynamic_cast<griddyn::GridBus*>(dyrSimulation->findByUserID("bus", busId));
+        ASSERT_NE(bus, nullptr) << "bus " << busId;
+        auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+        ASSERT_NE(generator, nullptr) << "dynamic generator at bus " << busId;
+        EXPECT_NE(generator->find("genmodel"), nullptr) << "GENROU at bus " << busId;
+    }
+}
+
+TEST(ExampleReaderTests, LoadIeeeG2AndIeeeVCFromDyr)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dyrPath = std::filesystem::temp_directory_path() / "griddyn_ieeeg2_ieeevc.dyr";
+    {
+        std::ofstream output(dyrPath);
+        ASSERT_TRUE(output.is_open());
+        output << "1 'GENROU' 1 6.5 0.06 0.2 0.05 4.0 0.0 1.8 1.75 0.6 0.8 "
+                  "0.23 0.15 0.09 0.38 0 0 0 /\n"
+                  "1 'IEEEG2' 1 20.0 50.0 5.0 1.0 1.25 0.0 1.5 /\n"
+                  "1 'IEEEVC' 1 0.02 0.10 /\n"
+                  "1 'IEEET1' 1 0.06 25.0 0.2 1.0 -1.0 -0.044 0.5 "
+                  "0.15 1.0 0.0 1.2692 0.0080931 1.6923 0.011281 /\n";
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup()
+        {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } cleanup{dyrPath};
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, epcPath.string()));
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, dyrPath.string()));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* governor = dynamic_cast<griddyn::governors::GovernorIeeeG2*>(generator->find("governor"));
+    ASSERT_NE(governor, nullptr);
+    EXPECT_DOUBLE_EQ(governor->get("t4"), 1.5);
+    EXPECT_DOUBLE_EQ(governor->get("pmax"), 1.25);
+    EXPECT_DOUBLE_EQ(governor->get("pmin"), 0.0);
+    auto* compensator = dynamic_cast<griddyn::voltagecompensators::VoltageCompensatorIeeeVC*>(
+        generator->find("voltagecompensator"));
+    ASSERT_NE(compensator, nullptr);
+    EXPECT_DOUBLE_EQ(compensator->get("rc"), 0.02);
+    EXPECT_DOUBLE_EQ(compensator->get("xc"), 0.10);
+    EXPECT_NE(generator->find("exciter"), nullptr);
+    EXPECT_EQ(simulation->dynInitialize(), 0);
+}
+
+TEST(ExampleReaderTests, LoadIeeeG2AndIeeeVCFromDyd)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dydPath = std::filesystem::temp_directory_path() / "griddyn_ieeeg2_ieeevc.dyd";
+    {
+        std::ofstream output(dydPath);
+        ASSERT_TRUE(output.is_open());
+        output << "models\n"
+                  "genrou 1 \"Bus 1\" 138.0 \"1\" : 6.5 0.06 0.2 0.05 4.0 0.0 "
+                  "1.8 1.75 0.6 0.8 0.23 0.15 0.09 0.38 0 0 0 /\n"
+                  "ieeeg2 1 \"Bus 1\" 138.0 \"1\" : 20.0 50.0 5.0 1.0 1.25 "
+                  "0.0 1.5 /\n"
+                  "ieeevc 1 \"Bus 1\" 138.0 \"1\" : 0.02 0.10 /\n"
+                  "ieeet1 1 \"Bus 1\" 138.0 \"1\" : 0.06 25.0 0.2 1.0 -1.0 "
+                  "-0.044 0.5 0.15 1.0 0.0 1.2692 0.0080931 1.6923 0.011281 0 /\n";
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup()
+        {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } cleanup{dydPath};
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, epcPath.string()));
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, dydPath.string()));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* governor = dynamic_cast<griddyn::governors::GovernorIeeeG2*>(generator->find("governor"));
+    ASSERT_NE(governor, nullptr);
+    EXPECT_DOUBLE_EQ(governor->get("t4"), 1.5);
+    EXPECT_DOUBLE_EQ(governor->get("pmax"), 1.25);
+    EXPECT_DOUBLE_EQ(governor->get("pmin"), 0.0);
+    EXPECT_NE(dynamic_cast<griddyn::voltagecompensators::VoltageCompensatorIeeeVC*>(
+                  generator->find("voltagecompensator")),
+              nullptr);
+    EXPECT_NE(generator->find("exciter"), nullptr);
+    EXPECT_EQ(simulation->dynInitialize(), 0);
+}
+
+TEST(ExampleReaderTests, LoadStabilizersFromDyr)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dyrPath = std::filesystem::temp_directory_path() / "griddyn_stabilizers.dyr";
+    {
+        std::ofstream output(dyrPath);
+        ASSERT_TRUE(output.is_open());
+        const auto genrou =
+            " 6.5 0.06 0.2 0.05 4.0 0.0 1.8 1.75 0.6 0.8 0.23 0.15 0.09 0.38 0 0 0 /\n";
+        output << "1 'GENROU' 1" << genrou
+               << "1 'IEE2ST' 1 1 0 3 0 2 2 .03 .03 10 10 .15 .05 .15 .05 .15 .05 .1 -.1 0 0 /\n"
+               << "2 'GENROU' 1" << genrou
+               << "2 'PSS2A' 1 1 0 3 0 2 2 0 2 0 2 .98 1 .5 .1 8 .15 .03 .15 .03 .1 -.1 /\n"
+               << "3 'GENROU' 1" << genrou << "3 'STAB3' 1 0 .1 .47 2.38 200 /\n";
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup()
+        {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } cleanup{dyrPath};
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, epcPath.string()));
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, dyrPath.string()));
+    auto* bus1 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    auto* bus2 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+    auto* bus3 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 3));
+    ASSERT_NE(bus1, nullptr);
+    ASSERT_NE(bus2, nullptr);
+    ASSERT_NE(bus3, nullptr);
+    auto* generator1 = dynamic_cast<griddyn::DynamicGenerator*>(bus1->getGen(0));
+    auto* generator2 = dynamic_cast<griddyn::DynamicGenerator*>(bus2->getGen(0));
+    auto* generator3 = dynamic_cast<griddyn::DynamicGenerator*>(bus3->getGen(0));
+    ASSERT_NE(generator1, nullptr);
+    ASSERT_NE(generator2, nullptr);
+    ASSERT_NE(generator3, nullptr);
+    auto* iee2st = dynamic_cast<griddyn::stabilizers::StabilizerIee2st*>(generator1->find("pss"));
+    auto* pss2a = dynamic_cast<griddyn::stabilizers::StabilizerPss2a*>(generator2->find("pss"));
+    auto* stab3 = dynamic_cast<griddyn::stabilizers::StabilizerStab3*>(generator3->find("pss"));
+    ASSERT_NE(iee2st, nullptr);
+    ASSERT_NE(pss2a, nullptr);
+    ASSERT_NE(stab3, nullptr);
+    EXPECT_DOUBLE_EQ(iee2st->get("mode2"), 3.0);
+    EXPECT_DOUBLE_EQ(iee2st->get("t4"), 10.0);
+    EXPECT_DOUBLE_EQ(pss2a->get("ks2"), 0.98);
+    EXPECT_DOUBLE_EQ(pss2a->get("ks1"), 8.0);
+    EXPECT_DOUBLE_EQ(stab3->get("tx2"), 0.47);
+    EXPECT_DOUBLE_EQ(stab3->get("kx"), 2.38);
+    EXPECT_EQ(simulation->dynInitialize(), 0);
+}
+
+TEST(ExampleReaderTests, LoadStabilizersFromDyd)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dydPath = std::filesystem::temp_directory_path() / "griddyn_stabilizers.dyd";
+    {
+        std::ofstream output(dydPath);
+        ASSERT_TRUE(output.is_open());
+        output << "models\n"
+               << "genrou 1 \"Bus 1\" 138.0 \"1\" : 6.5 0.06 0.2 0.05 4.0 0.0 1.8 1.75 "
+                  "0.6 0.8 0.23 0.15 0.09 0.38 0 0 0 /\n"
+               << "iee2st 1 \"Bus 1\" 138.0 \"1\" : 1 0 3 0 2 2 .03 .03 10 10 .15 .05 "
+                  ".15 .05 .15 .05 .1 -.1 0 0 /\n"
+               << "genrou 2 \"Bus 2\" 138.0 \"1\" : 6.5 0.06 0.2 0.05 4.0 0.0 1.8 1.75 "
+                  "0.6 0.8 0.23 0.15 0.09 0.38 0 0 0 /\n"
+               << "pss2a 2 \"Bus 2\" 138.0 \"1\" : 1 0 3 0 2 2 0 2 0 2 .98 1 .5 .1 8 "
+                  ".15 .03 .15 .03 .1 -.1 /\n"
+               << "genrou 3 \"Bus 3\" 138.0 \"1\" : 6.5 0.06 0.2 0.05 4.0 0.0 1.8 1.75 "
+                  "0.6 0.8 0.23 0.15 0.09 0.38 0 0 0 /\n"
+               << "stab3 3 \"Bus 3\" 138.0 \"1\" : 0 .1 .47 2.38 200 /\n";
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup()
+        {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } cleanup{dydPath};
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, epcPath.string()));
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, dydPath.string()));
+    auto* bus1 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    auto* bus2 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+    auto* bus3 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 3));
+    ASSERT_NE(bus1, nullptr);
+    ASSERT_NE(bus2, nullptr);
+    ASSERT_NE(bus3, nullptr);
+    auto* generator1 = dynamic_cast<griddyn::DynamicGenerator*>(bus1->getGen(0));
+    auto* generator2 = dynamic_cast<griddyn::DynamicGenerator*>(bus2->getGen(0));
+    auto* generator3 = dynamic_cast<griddyn::DynamicGenerator*>(bus3->getGen(0));
+    ASSERT_NE(generator1, nullptr);
+    ASSERT_NE(generator2, nullptr);
+    ASSERT_NE(generator3, nullptr);
+    auto* iee2st = dynamic_cast<griddyn::stabilizers::StabilizerIee2st*>(generator1->find("pss"));
+    auto* pss2a = dynamic_cast<griddyn::stabilizers::StabilizerPss2a*>(generator2->find("pss"));
+    auto* stab3 = dynamic_cast<griddyn::stabilizers::StabilizerStab3*>(generator3->find("pss"));
+    ASSERT_NE(iee2st, nullptr);
+    ASSERT_NE(pss2a, nullptr);
+    ASSERT_NE(stab3, nullptr);
+    EXPECT_DOUBLE_EQ(iee2st->get("mode2"), 3.0);
+    EXPECT_DOUBLE_EQ(iee2st->get("t4"), 10.0);
+    EXPECT_DOUBLE_EQ(pss2a->get("ks2"), 0.98);
+    EXPECT_DOUBLE_EQ(pss2a->get("ks1"), 8.0);
+    EXPECT_DOUBLE_EQ(stab3->get("tx2"), 0.47);
+    EXPECT_DOUBLE_EQ(stab3->get("kx"), 2.38);
+    EXPECT_EQ(simulation->dynInitialize(), 0);
+}
+
+TEST(ExampleReaderTests, LoadEpcDydDynamicModels)
+{
+    griddyn::GridDynSimulation::resetObjectCounters();
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dydPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests" / "ieee14_genrou.dyd";
+
+    ASSERT_TRUE(std::filesystem::exists(epcPath));
+    ASSERT_TRUE(std::filesystem::exists(dydPath));
+
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(gds, epcPath.string());
+    auto* shuntBus = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 9));
+    ASSERT_NE(shuntBus, nullptr);
+    griddyn::GridLoad* fixedShunt = nullptr;
+    for (int index = 0; shuntBus->getLoad(index) != nullptr; ++index) {
+        if (shuntBus->getLoad(index)->isFixedShunt()) {
+            fixedShunt = shuntBus->getLoad(index);
+            break;
+        }
+    }
+    ASSERT_NE(fixedShunt, nullptr);
+    const double shuntReactivePower = fixedShunt->getReactivePower(1.0);
+    griddyn::loadFile(gds, dydPath.string());
+
+    EXPECT_TRUE(fixedShunt->isFixedShunt());
+    EXPECT_NEAR(fixedShunt->getReactivePower(1.0), shuntReactivePower, 1e-12);
+    bool shuntRetained = false;
+    for (int index = 0; shuntBus->getLoad(index) != nullptr; ++index) {
+        shuntRetained |= (shuntBus->getLoad(index) == fixedShunt);
+    }
+    EXPECT_TRUE(shuntRetained);
+
+    EXPECT_EQ(gds->getInt("gencount"), 5);
+    for (const auto busId : {1, 2, 3, 6, 8}) {
+        auto* bus = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", busId));
+        ASSERT_NE(bus, nullptr) << "bus " << busId;
+        auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+        ASSERT_NE(generator, nullptr) << "dynamic generator at bus " << busId;
+        EXPECT_NE(generator->find("genmodel"), nullptr) << "GENROU at bus " << busId;
+    }
+}
+
+TEST(ExampleReaderTests, MapsPslfGenrouDydOrder)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dydPath = std::filesystem::temp_directory_path() / "griddyn_pslf_genrou_order.dyd";
+    {
+        std::ofstream output(dydPath);
+        ASSERT_TRUE(output.is_open());
+        output << "models\n"
+                  "genrou 1 \"Bus 1\" 138.0 \"1\" : #9 mva=615 "
+                  "3.79976 0 0 2.1644 2.0179 0.3156 0.4608 0.1999 0.1549 "
+                  "6.4449 1.0248 0.0446 0.0791 0.1495 0.4969 0 0 /\n";
+    }
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), epcPath.string());
+    ASSERT_NO_THROW(griddyn::loadFile(simulation.get(), dydPath.string()));
+    std::filesystem::remove(dydPath);
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* machine = generator->find("genmodel");
+    ASSERT_NE(machine, nullptr);
+    EXPECT_DOUBLE_EQ(machine->get("tdop"), 6.4449);
+    EXPECT_DOUBLE_EQ(machine->get("tdopp"), 0.0446);
+    EXPECT_DOUBLE_EQ(machine->get("h"), 3.79976);
+    EXPECT_DOUBLE_EQ(machine->get("xd"), 2.1644);
+    EXPECT_DOUBLE_EQ(machine->get("xdpp"), 0.1999);
+    EXPECT_DOUBLE_EQ(machine->get("xl"), 0.1549);
+    EXPECT_DOUBLE_EQ(machine->get("s1"), 0.1495);
+    EXPECT_DOUBLE_EQ(machine->get("s12"), 0.4969);
+}
+
+TEST(ExampleReaderTests, AlignsWt3pDydSetpointAtInitialization)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dydPath = std::filesystem::temp_directory_path() / "griddyn_wt3p_alignment.dyd";
+    {
+        std::ofstream output(dydPath);
+        ASSERT_TRUE(output.is_open());
+        output << "models\n"
+                  "wt3p 1 \"Bus 1\" 138.0 \"1\" : #9 150 25 3 30 27 -4 10 0.3 1 /\n";
+    }
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), epcPath.string());
+    ASSERT_NO_THROW(griddyn::loadFile(simulation.get(), dydPath.string()));
+    std::filesystem::remove(dydPath);
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::RenewableGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* pitch = dynamic_cast<griddyn::WTPTA1*>(
+        generator->getSubObject("renewable_component",
+                                static_cast<index_t>(griddyn::RenewableRole::pitchControl)));
+    ASSERT_NE(pitch, nullptr);
+    griddyn::IOdata output;
+    pitch->dynInitializeB({1.0, 0.8, 0.8, 1.0, 0.0}, {}, output);
+    EXPECT_DOUBLE_EQ(pitch->get("pset"), 0.8);
+}
+
+TEST(ExampleReaderTests, LoadPslfExciterParameterExtensionsFromDyd)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto genrouPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests" / "ieee14_genrou.dyd";
+    const auto dydPath =
+        std::filesystem::temp_directory_path() / "griddyn_pslf_exciter_extensions.dyd";
+    {
+        std::ofstream output(dydPath);
+        ASSERT_TRUE(output.is_open());
+        output << "models\n"
+                  "esdc1a 1 \"Bus 1\" 138.0 \"1\" : #9 0.02 10 0.1 0.1 0.05 5 -5 0 1 "
+                  "0.1 0 0 1.0 0.01 1.2 0.02 0 1\n"
+                  "esdc2a 2 \"Bus 2\" 138.0 \"1\" : #9 0.02 10 0.1 0.1 0.05 5 -5 0 1 "
+                  "0.1 0 0 1.0 0.01 1.2 0.02 0 0\n"
+                  "esac6a 3 \"Bus 3\" 138.0 \"1\" : #9 0.02 20 0.05 1 0.1 0.05 5 -5 "
+                  "5 -5 0.5 1 0.1 0.1 1 5 0.2 0.1 1 1.0 0.01 1.2 0.02 1\n";
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup()
+        {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } cleanup{dydPath};
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    std::vector<std::string> logMessages;
+    simulation->setLogger(
+        [&logMessages](int, const std::string& message) { logMessages.push_back(message); });
+    ASSERT_NO_THROW(griddyn::loadFile(simulation.get(), epcPath.string()));
+    ASSERT_NO_THROW(griddyn::loadFile(simulation.get(), genrouPath.string()));
+    EXPECT_NO_THROW(griddyn::loadFile(simulation.get(), dydPath.string()));
+
+    const auto getGenerator = [&simulation](int busId) {
+        auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", busId));
+        return (bus == nullptr) ? nullptr :
+                                  dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    };
+    auto* generator1 = getGenerator(1);
+    auto* generator2 = getGenerator(2);
+    auto* generator3 = getGenerator(3);
+    ASSERT_NE(generator1, nullptr);
+    ASSERT_NE(generator2, nullptr);
+    ASSERT_NE(generator3, nullptr);
+    EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterDC1A*>(generator1->find("exciter")), nullptr);
+    EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterDC2A*>(generator2->find("exciter")), nullptr);
+    auto* esac6a = dynamic_cast<griddyn::exciters::ExciterESAC6A*>(generator3->find("exciter"));
+    ASSERT_NE(esac6a, nullptr);
+    EXPECT_DOUBLE_EQ(esac6a->get("spdmlt"), 1.0);
+    EXPECT_DOUBLE_EQ(esac6a->get("vfelim"), 1.0);
+    EXPECT_DOUBLE_EQ(esac6a->get("vhmax"), 5.0);
+    EXPECT_DOUBLE_EQ(esac6a->get("th"), 0.1);
+    EXPECT_DOUBLE_EQ(esac6a->get("tj"), 0.1);
+    EXPECT_TRUE(std::ranges::any_of(logMessages, [](const auto& message) {
+        return (message.find("ESDC1A/ESDC2A UEL or exclim selectors") != std::string::npos) &&
+            (message.find("1 record(s)") != std::string::npos);
+    }));
+}
+
+TEST(ExampleReaderTests, WarnsWhenDynamicFilesPrecedeStaticNetwork)
+{
+    const auto tempDirectory = std::filesystem::temp_directory_path();
+    const auto dyrPath = tempDirectory / "griddyn_models_before_static.dyr";
+    const auto dydPath = tempDirectory / "griddyn_models_before_static.dyd";
+    struct TempFileCleanup {
+        std::filesystem::path dyr;
+        std::filesystem::path dyd;
+        ~TempFileCleanup()
+        {
+            std::error_code error;
+            std::filesystem::remove(dyr, error);
+            std::filesystem::remove(dyd, error);
+        }
+    } cleanup{.dyr = dyrPath, .dyd = dydPath};
+    {
+        std::ofstream dyr(dyrPath);
+        ASSERT_TRUE(dyr.is_open());
+        dyr << "0 'IEELAL' '*' 1 0 0 1 0 0 0 0 2 0 0 2 0 0 /\n";
+        std::ofstream dyd(dydPath);
+        ASSERT_TRUE(dyd.is_open());
+        dyd << "models\nwlwscc 0 ! ! \"1\" : #9 0 1 1 0 0 0 0 0 0 0 0 /\n";
+    }
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    std::vector<std::string> logMessages;
+    simulation->setLogger(
+        [&logMessages](int, const std::string& message) { logMessages.push_back(message); });
+    EXPECT_NO_THROW(griddyn::loadFile(simulation.get(), dyrPath.string()));
+    EXPECT_NO_THROW(griddyn::loadFile(simulation.get(), dydPath.string()));
+    EXPECT_TRUE(std::ranges::any_of(logMessages, [](const auto& message) {
+        return message.find("DYR model file loaded before a static network") != std::string::npos;
+    }));
+    EXPECT_TRUE(std::ranges::any_of(logMessages, [](const auto& message) {
+        return message.find("DYD model file loaded before a static network") != std::string::npos;
+    }));
+}
+
+TEST(ExampleReaderTests, LoadDydAliasesAndContinuationRecords)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dydPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests" / "dyd_alias_models.dyd";
+
+    ASSERT_TRUE(std::filesystem::exists(epcPath));
+    ASSERT_TRUE(std::filesystem::exists(dydPath));
+
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(gds, epcPath.string());
+    EXPECT_NO_THROW(griddyn::loadFile(gds, dydPath.string()));
+
+    auto* bus1 = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 1));
+    auto* bus2 = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 2));
+    auto* bus3 = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 3));
+    auto* bus6 = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 6));
+    ASSERT_NE(bus1, nullptr);
+    ASSERT_NE(bus2, nullptr);
+    ASSERT_NE(bus3, nullptr);
+    ASSERT_NE(bus6, nullptr);
+
+    auto* synchronous1 = dynamic_cast<griddyn::DynamicGenerator*>(bus1->getGen(0));
+    ASSERT_NE(synchronous1, nullptr);
+    EXPECT_NE(synchronous1->find("genmodel"), nullptr);
+    EXPECT_NE(synchronous1->find("exciter"), nullptr);
+    EXPECT_NE(synchronous1->find("governor"), nullptr);
+
+    auto* synchronous2 = dynamic_cast<griddyn::DynamicGenerator*>(bus2->getGen(0));
+    ASSERT_NE(synchronous2, nullptr);
+    EXPECT_NE(synchronous2->find("genmodel"), nullptr);
+    EXPECT_NE(synchronous2->find("exciter"), nullptr);
+
+    auto* renewable = dynamic_cast<griddyn::RenewableGenerator*>(bus3->getGen(0));
+    ASSERT_NE(renewable, nullptr);
+    EXPECT_EQ(renewable->getSubObjects().size(), 2U);
+
+    auto* synchronous6 = dynamic_cast<griddyn::DynamicGenerator*>(bus6->getGen(0));
+    ASSERT_NE(synchronous6, nullptr);
+    EXPECT_NE(synchronous6->find("genmodel"), nullptr);
+    EXPECT_NE(synchronous6->find("governor"), nullptr);
+}
+
+TEST(ExampleReaderTests, LoadGPWSCCDydRecordWithNamedMWCap)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto genrouPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests" / "ieee14_genrou.dyd";
+    const auto dydPath = std::filesystem::temp_directory_path() / "griddyn_gpwscc_named_mwcap.dyd";
+    {
+        std::ofstream output(dydPath);
+        ASSERT_TRUE(output.is_open());
+        // This is the GPWSCC parameter set used by the original PSLF case.
+        // Its named MWCap must be retained, whereas other DYD model families
+        // obtain their base from the static network data.
+        output << "gpwscc 1 ! ! \"1 \" : #9 mwcap=51.9 0.85 0.0 0.055 0.04 0.04 0.13 "
+                  "0.3 -0.3 4.0 1.5 2.0 15.0 1.0 0.8 1.0 2.0 0.0 0.0 0.0 "
+                  "0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 /\n";
+    }
+
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(gds, epcPath.string()));
+    ASSERT_NO_THROW(griddyn::loadFile(gds, genrouPath.string()));
+    EXPECT_NO_THROW(griddyn::loadFile(gds, dydPath.string()));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* governor = dynamic_cast<griddyn::governors::GovernorGPWSCC*>(generator->find("governor"));
+    ASSERT_NE(governor, nullptr);
+    EXPECT_DOUBLE_EQ(governor->get("mwcap"), 51.9);
+    EXPECT_DOUBLE_EQ(governor->get("gmax"), 0.85);
+    EXPECT_DOUBLE_EQ(governor->get("tturb"), 1.0);
+    EXPECT_DOUBLE_EQ(governor->get("aturb"), 0.8);
+    EXPECT_DOUBLE_EQ(governor->get("bturb"), 1.0);
+
+    std::error_code removeError;
+    std::filesystem::remove(dydPath, removeError);
+}
+
+TEST(ExampleReaderTests, MapsPslfGgov1DydOrderAndBypassedTemperatureLeadLag)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto genrouPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests" / "ieee14_genrou.dyd";
+    const auto dydPath = std::filesystem::temp_directory_path() / "griddyn_pslf_ggov1.dyd";
+    {
+        std::ofstream output(dydPath);
+        ASSERT_TRUE(output.is_open());
+        // PSLF GGOV1 order: R, RSEL, TP, ..., Flag, ..., Pmwset, Aset, ... .
+        // Tsa=Tsb=0 requests a bypass of the optional temperature lead-lag.
+        output << "ggov1 1 ! ! \"1 \" : #1 mwcap=100.0 "
+                  "0.10 1.0 1.0 0.2 -0.2 5.3 1.9 4.9 1.0 0.692 0.09 0.2 1.916 "
+                  "0.17 0.1 0.0 0.0 0.0 0.0167 10.0 0.0 2.0 0.0 3.3 -3.3 0.0 "
+                  "123.0 1.0 10.0 0.0167 0.0 0.0 0.0 1.0 -1.0 /\n";
+    }
+
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(gds, epcPath.string()));
+    ASSERT_NO_THROW(griddyn::loadFile(gds, genrouPath.string()));
+    ASSERT_NO_THROW(griddyn::loadFile(gds, dydPath.string()));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* governor = dynamic_cast<griddyn::governors::GovernorGgov1*>(generator->find("governor"));
+    ASSERT_NE(governor, nullptr);
+    EXPECT_DOUBLE_EQ(governor->get("rselect"), 1.0);
+    EXPECT_DOUBLE_EQ(governor->get("fswitch"), 0.0);
+    EXPECT_DOUBLE_EQ(governor->get("r"), 0.10);
+    EXPECT_DOUBLE_EQ(governor->get("tpelec"), 1.0);
+    EXPECT_DOUBLE_EQ(governor->get("aset"), 1.0);
+    EXPECT_DOUBLE_EQ(governor->get("trate"), 0.0);
+    EXPECT_DOUBLE_EQ(governor->get("tsb"), 0.0);
+    EXPECT_NO_THROW(gds->dynInitialize());
+
+    std::error_code removeError;
+    std::filesystem::remove(dydPath, removeError);
+}
+
+TEST(ExampleReaderTests, SparseEPCBusIDResolvesDYDModelsAndESAC1ATrailer)
+{
+    const auto tempDirectory = std::filesystem::temp_directory_path();
+    const auto epcPath = tempDirectory / "griddyn_sparse_epc_bus_id.epc";
+    const auto dydPath = tempDirectory / "griddyn_sparse_epc_bus_id.dyd";
+    struct TempFileCleanup {
+        std::filesystem::path epc;
+        std::filesystem::path dyd;
+        ~TempFileCleanup()
+        {
+            std::error_code error;
+            std::filesystem::remove(epc, error);
+            std::filesystem::remove(dyd, error);
+        }
+    } cleanup{.epc = epcPath, .dyd = dydPath};
+
+    {
+        std::ofstream output(epcPath);
+        ASSERT_TRUE(output.is_open());
+        output << "title\n"
+                  "Sparse EPC bus-ID regression fixture\n"
+                  "comments\n!\n"
+                  "solution parameters\nsbase 100.0\n!\n"
+                  "bus data [1]\n"
+                  "101 \"Bus 101\" 15.0 : 0 1.0 1.0 0.0 1 1 1.1 0.9 "
+                  "400101 391231 0 0 1 0 0.0 0.0 0 0.0 0.0 0.0\n"
+                  "branch data [0]\n"
+                  "transformer data [0]\n"
+                  "generator data [1]\n"
+                  "101 \"1_MACH\" 15.0 \"1\" \"\" : 1 101 \"1_MACH\" 15.0 "
+                  "0.0 0.0 1 1 100.0 200.0 0.0 10.0 50.0 -50.0 100.0 "
+                  "0.0 0.0 0.0 0.0 -1 \"\" 0.0 -1 \"\" 0.0 0.0 /\n"
+                  "load data [0]\n"
+                  "shunt data [0]\n"
+                  "svd data [0]\n"
+                  "area data [0]\n"
+                  "zone data [0]\n"
+                  "interface data [0]\n";
+    }
+    {
+        std::ofstream output(dydPath);
+        ASSERT_TRUE(output.is_open());
+        output << "models\n"
+                  "gensal 101 \"1_MACH\" 15.0 \"1\" : #9 mva=100.0 "
+                  "8.5 0.05 0.2 3.6 0 1.1 0.65 0.25 0.25 0.14 0 0 0 0 0 /\n"
+                  "esac1a 101 \"1_MACH\" 15.0 \"1\" : #9 "
+                  "0.01 0.1 0.2 400 0.05 5.5 -5.5 0.75 0.03 1.2 "
+                  "0.2 0.4 1.1 2.0 0.1 4.0 0.2 99 -99 0.25 /\n";
+    }
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(simulation.get(), epcPath.string()));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 101));
+    ASSERT_NE(bus, nullptr);
+    std::vector<std::string> logMessages;
+    simulation->setLogger(
+        [&logMessages](int, const std::string& message) { logMessages.push_back(message); });
+    ASSERT_NO_THROW(griddyn::loadFile(simulation.get(), dydPath.string()));
+
+    EXPECT_TRUE(std::ranges::any_of(logMessages, [](const auto& message) {
+        return message.find("Spdmlt=0.25") != std::string::npos;
+    }));
+
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    EXPECT_NE(generator->find("genmodel"), nullptr);
+    auto* exciter = dynamic_cast<griddyn::exciters::ExciterESAC1A*>(generator->find("exciter"));
+    ASSERT_NE(exciter, nullptr);
+    const std::array<std::pair<std::string_view, double>, 19> expectedParameters{
+        {{"tr", 0.01},
+         {"tb", 0.1},
+         {"tc", 0.2},
+         {"ka", 400.0},
+         {"ta", 0.05},
+         {"vamax", 5.5},
+         {"vamin", -5.5},
+         {"te", 0.75},
+         {"kf", 0.03},
+         {"tf", 1.2},
+         {"kc", 0.2},
+         {"kd", 0.4},
+         {"ke", 1.1},
+         {"e1", 2.0},
+         {"se1", 0.1},
+         {"e2", 4.0},
+         {"se2", 0.2},
+         {"vrmax", 99.0},
+         {"vrmin", -99.0}}};
+    for (const auto& [parameter, value] : expectedParameters) {
+        EXPECT_DOUBLE_EQ(exciter->get(parameter), value) << parameter;
+    }
+}
+
+TEST(ExampleReaderTests, IgnoreNonessentialDydModelsWithWarning)
+{
+    const auto dydPath =
+        std::filesystem::temp_directory_path() / "griddyn_ignored_nonessential_models.dyd";
+    {
+        std::ofstream output(dydPath);
+        ASSERT_TRUE(output.is_open());
+        output << "fmetr 1001 ! ! \"1 \" : #9 0.0 /\n"
+                  "vmetr 1001 ! ! \"1 \" : #9 0.0 /\n"
+                  "lsdt1 3107 ! ! \"41\" : #9 59.3 0.1 0.0833 1.0 0.0 0.0 0.0 0.0 0.0 0.0 /\n";
+    }
+
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    EXPECT_NO_THROW(griddyn::loadFile(gds, dydPath.string()));
+
+    std::error_code removeError;
+    std::filesystem::remove(dydPath, removeError);
+}
+
+TEST(ExampleReaderTests, LoadMatPowerAreaDefinitions)
+{
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    const auto filePath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "matlab_test_files" / "case24_ieee_rts.m";
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds, filePath.string());
+
+    ASSERT_EQ(gds->getInt("totalareacount"), 4);
+    const std::array<int, 4> expectedBusCounts{6, 4, 7, 7};
+    for (size_t ii = 0; ii < expectedBusCounts.size(); ++ii) {
+        auto* area = gds->getGridArea(static_cast<index_t>(ii));
+        ASSERT_NE(area, nullptr);
+        EXPECT_EQ(area->getInt("buscount"), expectedBusCounts[ii]);
+    }
+    EXPECT_EQ(gds->getInt("buscount"), 0);
+}
+
+TEST(ExampleReaderTests, MatPowerVoltageTargetPolicies)
+{
+    const auto filePath =
+        std::filesystem::temp_directory_path() / "griddyn_matpower_voltage_angle_limits.m";
+    {
+        std::ofstream output(filePath);
+        ASSERT_TRUE(output.is_open());
+        output << "function mpc = griddyn_matpower_voltage_angle_limits\n"
+                  "mpc.version = '2';\n"
+                  "mpc.baseMVA = 100;\n"
+                  "mpc.bus = [\n"
+                  "1 2 0 0 0 0 1 1.0000 0.0000 230 1 1.1000 0.9000;\n"
+                  "2 1 10 2 0 0 1 0.9800 -1.0000 230 1 1.1000 0.9000;\n"
+                  "];\n"
+                  "mpc.gen = [\n"
+                  "1 10 3 50 -20 1.0500 100 1 50 0;\n"
+                  "];\n"
+                  "mpc.branch = [\n"
+                  "1 2 0.01 0.05 0.01 100 100 100 0 0 1 0 0;\n"
+                  "1 2 0.02 0.06 0.01 100 100 100 0 0 1 -30 0;\n"
+                  "];\n";
+    }
+
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(gds, filePath.string());
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    EXPECT_DOUBLE_EQ(bus->getVoltage(), 1.0);
+    EXPECT_DOUBLE_EQ(bus->get("vtarget"), 1.05);
+    EXPECT_DOUBLE_EQ(bus->get("vmax"), 1.1);
+    EXPECT_DOUBLE_EQ(bus->get("vmin"), 0.9);
+
+    griddyn::ReaderInfo readerInfo;
+    griddyn::addFlags(readerInfo, "use_bus_voltage_targets");
+    auto busTargetGds = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(busTargetGds, filePath.string(), &readerInfo);
+    auto* busTargetBus = dynamic_cast<griddyn::GridBus*>(busTargetGds->findByUserID("bus", 1));
+    ASSERT_NE(busTargetBus, nullptr);
+    EXPECT_DOUBLE_EQ(busTargetBus->getVoltage(), 1.0);
+    EXPECT_DOUBLE_EQ(busTargetBus->get("vtarget"), 1.0);
+
+    auto* link = dynamic_cast<griddyn::AcLine*>(gds->findByUserID("link", 1));
+    ASSERT_NE(link, nullptr);
+    EXPECT_NEAR(link->get("minangle"), -2.0 * griddyn::kPI, 1.0e-6);
+    EXPECT_NEAR(link->get("maxangle"), 2.0 * griddyn::kPI, 1.0e-6);
+
+    auto* oneSidedLink = dynamic_cast<griddyn::AcLine*>(gds->findByUserID("link", 2));
+    ASSERT_NE(oneSidedLink, nullptr);
+    EXPECT_NEAR(oneSidedLink->get("minangle"), -30.0 * griddyn::kPI / 180.0, 1.0e-6);
+    EXPECT_NEAR(oneSidedLink->get("maxangle"), 0.0, 1.0e-12);
+
+    std::error_code removeError;
+    std::filesystem::remove(filePath, removeError);
+}
+
+TEST(ExampleReaderTests, MatPowerOutOfServiceBranchesAreDisabled)
+{
+    const auto filePath =
+        std::filesystem::temp_directory_path() / "griddyn_matpower_out_of_service_branch.m";
+    {
+        std::ofstream output(filePath);
+        ASSERT_TRUE(output.is_open());
+        output << "function mpc = griddyn_matpower_out_of_service_branch\n"
+                  "mpc.version = '2';\n"
+                  "mpc.baseMVA = 100;\n"
+                  "mpc.bus = [\n"
+                  "1 3 0 0 0 0 1 1.0200 0.0000 230 1 1.1000 0.9000;\n"
+                  "2 1 10 2 0 0 1 0.9800 -1.0000 230 1 1.1000 0.9000;\n"
+                  "3 4 0 0 0 0 1 1.0000 0.0000 230 1 1.1000 0.9000;\n"
+                  "];\n"
+                  "mpc.gen = [\n"
+                  "1 10 0 50 -50 1.0200 100 1 50 0;\n"
+                  "];\n"
+                  "mpc.branch = [\n"
+                  "1 2 0.01 0.05 0.01 100 100 100 0 0 1 0 0;\n"
+                  "2 3 0.02 0.06 0.01 100 100 100 0 0 0 0 0;\n"
+                  "];\n";
+    }
+
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(gds, filePath.string());
+
+    auto* isolatedBus = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 3));
+    ASSERT_NE(isolatedBus, nullptr);
+    EXPECT_FALSE(isolatedBus->isEnabled());
+
+    auto* inServiceBranch = dynamic_cast<griddyn::AcLine*>(gds->findByUserID("link", 1));
+    ASSERT_NE(inServiceBranch, nullptr);
+    EXPECT_TRUE(inServiceBranch->isEnabled());
+
+    auto* outOfServiceBranch = dynamic_cast<griddyn::AcLine*>(gds->findByUserID("link", 2));
+    ASSERT_NE(outOfServiceBranch, nullptr);
+    EXPECT_FALSE(outOfServiceBranch->isEnabled());
+
+    std::error_code removeError;
+    std::filesystem::remove(filePath, removeError);
+}
+
+TEST(ExampleReaderTests, PyPowerVoltageTargetPolicies)
+{
+    const auto filePath =
+        std::filesystem::temp_directory_path() / "griddyn_pypower_voltage_angle_limits.py";
+    {
+        std::ofstream output(filePath);
+        ASSERT_TRUE(output.is_open());
+        output << "from numpy import array\n"
+                  "ppc = {}\n"
+                  "ppc['baseMVA'] = 100\n"
+                  "ppc['bus'] = array([\n"
+                  "[1, 2, 0, 0, 0, 0, 1, 1.0000, 0.0000, 230, 1, 1.1000, 0.9000],\n"
+                  "[2, 1, 10, 2, 0, 0, 1, 0.9800, -1.0000, 230, 1, 1.1000, 0.9000]\n"
+                  "])\n"
+                  "ppc['gen'] = array([\n"
+                  "[1, 10, 3, 50, -20, 1.0500, 100, 1, 50, 0]\n"
+                  "])\n"
+                  "ppc['branch'] = array([\n"
+                  "[1, 2, 0.01, 0.05, 0.01, 100, 100, 100, 0, 0, 1, 0, 0],\n"
+                  "[1, 2, 0.02, 0.06, 0.01, 100, 100, 100, 0, 0, 1, -30, 0]\n"
+                  "])\n";
+    }
+
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(gds, filePath.string());
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    EXPECT_DOUBLE_EQ(bus->getVoltage(), 1.0);
+    EXPECT_DOUBLE_EQ(bus->get("vtarget"), 1.05);
+    EXPECT_DOUBLE_EQ(bus->get("vmax"), 1.1);
+    EXPECT_DOUBLE_EQ(bus->get("vmin"), 0.9);
+
+    griddyn::ReaderInfo readerInfo;
+    griddyn::addFlags(readerInfo, "use_bus_voltage_targets");
+    auto busTargetGds = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(busTargetGds, filePath.string(), &readerInfo);
+    auto* busTargetBus = dynamic_cast<griddyn::GridBus*>(busTargetGds->findByUserID("bus", 1));
+    ASSERT_NE(busTargetBus, nullptr);
+    EXPECT_DOUBLE_EQ(busTargetBus->getVoltage(), 1.0);
+    EXPECT_DOUBLE_EQ(busTargetBus->get("vtarget"), 1.0);
+
+    auto* link = dynamic_cast<griddyn::AcLine*>(gds->findByUserID("link", 1));
+    ASSERT_NE(link, nullptr);
+    EXPECT_NEAR(link->get("minangle"), -2.0 * griddyn::kPI, 1.0e-6);
+    EXPECT_NEAR(link->get("maxangle"), 2.0 * griddyn::kPI, 1.0e-6);
+
+    auto* oneSidedLink = dynamic_cast<griddyn::AcLine*>(gds->findByUserID("link", 2));
+    ASSERT_NE(oneSidedLink, nullptr);
+    EXPECT_NEAR(oneSidedLink->get("minangle"), -30.0 * griddyn::kPI / 180.0, 1.0e-6);
+    EXPECT_NEAR(oneSidedLink->get("maxangle"), 0.0, 1.0e-12);
+
+    std::error_code removeError;
+    std::filesystem::remove(filePath, removeError);
+}
+
+TEST(ExampleReaderTests, LoadDynamicImportExampleWithoutRunningDynamics)
+{
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    const auto filePath = makeExamplePath("179busDynamicTest.xml");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds, filePath.string());
+
+    ASSERT_EQ(gds->currentProcessState(), griddyn::GridDynSimulation::GridState::STARTUP);
+    EXPECT_EQ(gds->getInt("totalbuscount"), 179);
+    EXPECT_EQ(gds->getInt("totallinkcount"), 263);
+    EXPECT_EQ(gds->getInt("gencount"), 29);
+    EXPECT_EQ(gds->getInt("loadcount"), 144);
+}
+
+TEST(ExampleReaderTests, LoadPyPowerCase)
+{
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    const auto filePath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "pypower_tests" / "case2.py";
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds, filePath.string());
+
+    EXPECT_EQ(gds->getInt("totalbuscount"), 2);
+    EXPECT_EQ(gds->getInt("totallinkcount"), 1);
+    EXPECT_EQ(gds->getInt("gencount"), 1);
+    EXPECT_EQ(gds->getInt("loadcount"), 1);
+}
+
+TEST(ExampleReaderTests, LoadAndSolvePsatDynamicModel)
+{
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    const auto filePath = makeMatlabTestPath("d_009_fault_mdl.m");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds, filePath.string());
+
+    EXPECT_EQ(gds->getInt("totalbuscount"), 9);
+    EXPECT_EQ(gds->getInt("gencount"), 3);
+    auto* firstGenerator = gds->findByUserID("gen", 1);
+    ASSERT_NE(firstGenerator, nullptr);
+    ASSERT_NE(firstGenerator->find("genmodel"), nullptr);
+    ASSERT_EQ(gds->pFlowInitialize(), 0);
+    ASSERT_EQ(gds->powerflow(), 0);
+    EXPECT_EQ(gds->currentProcessState(),
+              griddyn::GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_EQ(gds->currentProcessState(),
+              griddyn::GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
+    ASSERT_TRUE(gds->hasDynamics());
+    EXPECT_EQ(gds->run(0.1), 0);
+}
+
+TEST(ExampleReaderTests, LoadAndInitializePsatDetailedModels)
+{
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    const auto filePath = makeMatlabTestPath("d_014_dyn_mdl.m");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds, filePath.string());
+
+    EXPECT_EQ(gds->getInt("totalbuscount"), 14);
+    EXPECT_EQ(gds->getInt("gencount"), 5);
+    auto* firstGenerator = gds->findByUserID("gen", 1);
+    ASSERT_NE(firstGenerator, nullptr);
+    ASSERT_NE(firstGenerator->find("genmodel"), nullptr);
+    ASSERT_NE(firstGenerator->find("exciter"), nullptr);
+    ASSERT_EQ(gds->pFlowInitialize(), 0);
+    ASSERT_EQ(gds->powerflow(), 0);
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_TRUE(gds->hasDynamics());
+}
+
+TEST(ExampleReaderTests, ExportPyPowerRoundTrip)
+{
+    const auto source = makeMatlabTestPath("case9.m");
+    const auto exported = std::filesystem::temp_directory_path() / "griddyn_pypower_roundtrip.py";
+    auto original = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(original, source.string());
+    griddyn::stringVec warnings;
+    ASSERT_TRUE(griddyn::savePyPowerCase(original.get(), exported.string(), &warnings));
+    EXPECT_TRUE(warnings.empty());
+    auto imported = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(imported, exported.string());
+    EXPECT_EQ(imported->getInt("totalbuscount"), original->getInt("totalbuscount"));
+    EXPECT_EQ(imported->getInt("totallinkcount"), original->getInt("totallinkcount"));
+    EXPECT_EQ(imported->getInt("gencount"), original->getInt("gencount"));
+    EXPECT_EQ(imported->getInt("loadcount"), original->getInt("loadcount"));
+    std::filesystem::remove(exported);
+}
+
+TEST(ExampleReaderTests, ExportPyPowerInputToRawRoundTrip)
+{
+    const auto source =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "pypower_tests" / "case2.py";
+    const auto exported =
+        std::filesystem::temp_directory_path() / "griddyn_pypower_to_raw_roundtrip.raw";
+    auto original = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(original, source.string());
+
+    griddyn::stringVec warnings;
+    ASSERT_TRUE(griddyn::saveNetworkCaseByExtension(original.get(), exported.string(), &warnings))
+        << (warnings.empty() ? "RAW export failed" : warnings.front());
+    EXPECT_TRUE(warnings.empty());
+
+    auto imported = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(imported, exported.string());
+    EXPECT_EQ(imported->getInt("totalbuscount"), original->getInt("totalbuscount"));
+    EXPECT_EQ(imported->getInt("totallinkcount"), original->getInt("totallinkcount"));
+    EXPECT_EQ(imported->getInt("gencount"), original->getInt("gencount"));
+    EXPECT_EQ(imported->getInt("loadcount"), original->getInt("loadcount"));
+    EXPECT_DOUBLE_EQ(imported->get("basepower"), original->get("basepower"));
+    EXPECT_DOUBLE_EQ(imported->get("basefrequency", units::Hz), 60.0);
+
+    ASSERT_EQ(original->pFlowInitialize(), 0);
+    ASSERT_EQ(original->powerflow(), 0);
+    ASSERT_EQ(imported->pFlowInitialize(), 0);
+    ASSERT_EQ(imported->powerflow(), 0);
+    for (index_t busIndex = 1; busIndex <= original->getInt("totalbuscount"); ++busIndex) {
+        const auto* originalBus =
+            dynamic_cast<const griddyn::GridBus*>(original->findByUserID("bus", busIndex));
+        const auto* importedBus =
+            dynamic_cast<const griddyn::GridBus*>(imported->findByUserID("bus", busIndex));
+        ASSERT_NE(originalBus, nullptr);
+        ASSERT_NE(importedBus, nullptr);
+        EXPECT_NEAR(importedBus->getVoltage(), originalBus->getVoltage(), 1.0e-8);
+        EXPECT_NEAR(importedBus->getAngle(), originalBus->getAngle(), 1.0e-8);
+    }
+
+    std::filesystem::remove(exported);
+}
+
+TEST(ExampleReaderTests, ExportMatPowerRoundTrip)
+{
+    const auto source = makeMatlabTestPath("case9.m");
+    const auto exported = std::filesystem::temp_directory_path() / "griddyn_matpower_roundtrip.m";
+    auto original = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(original, source.string());
+    griddyn::stringVec warnings;
+    ASSERT_TRUE(griddyn::saveMatPowerCase(original.get(), exported.string(), &warnings));
+    EXPECT_TRUE(warnings.empty());
+    auto imported = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(imported, exported.string());
+    EXPECT_EQ(imported->getInt("totalbuscount"), original->getInt("totalbuscount"));
+    EXPECT_EQ(imported->getInt("totallinkcount"), original->getInt("totallinkcount"));
+    EXPECT_EQ(imported->getInt("gencount"), original->getInt("gencount"));
+    EXPECT_EQ(imported->getInt("loadcount"), original->getInt("loadcount"));
+    ASSERT_EQ(imported->pFlowInitialize(), 0);
+    EXPECT_EQ(imported->powerflow(), 0);
+    EXPECT_EQ(imported->currentProcessState(),
+              griddyn::GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+    std::filesystem::remove(exported);
+}
+
+TEST(ExampleReaderTests, ExportRawRoundTripByExtension)
+{
+    const auto source = makeMatlabTestPath("case9.m");
+    const auto exported = std::filesystem::temp_directory_path() / "griddyn_raw_roundtrip.raw";
+    auto original = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(original, source.string());
+    original->set("basefrequency", 50.0, units::Hz);
+
+    ASSERT_TRUE(griddyn::isNetworkCaseOutputFile(exported.string()));
+    griddyn::stringVec warnings;
+    ASSERT_TRUE(griddyn::saveNetworkCaseByExtension(original.get(), exported.string(), &warnings))
+        << (warnings.empty() ? "RAW export failed" : warnings.front());
+    EXPECT_TRUE(warnings.empty());
+
+    auto imported = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(imported, exported.string());
+    EXPECT_EQ(imported->getInt("totalbuscount"), original->getInt("totalbuscount"));
+    EXPECT_EQ(imported->getInt("totallinkcount"), original->getInt("totallinkcount"));
+    EXPECT_EQ(imported->getInt("gencount"), original->getInt("gencount"));
+    EXPECT_EQ(imported->getInt("loadcount"), original->getInt("loadcount"));
+    EXPECT_DOUBLE_EQ(imported->get("basepower"), original->get("basepower"));
+    EXPECT_DOUBLE_EQ(imported->get("basefrequency", units::Hz), 50.0);
+
+    for (index_t busIndex = 1; busIndex <= original->getInt("totalbuscount"); ++busIndex) {
+        auto* originalBus =
+            dynamic_cast<griddyn::GridBus*>(original->findByUserID("bus", busIndex));
+        auto* importedBus =
+            dynamic_cast<griddyn::GridBus*>(imported->findByUserID("bus", busIndex));
+        ASSERT_NE(originalBus, nullptr);
+        ASSERT_NE(importedBus, nullptr);
+        EXPECT_EQ(importedBus->getBusType(), originalBus->getBusType());
+        EXPECT_DOUBLE_EQ(importedBus->get("basevoltage"), originalBus->get("basevoltage"));
+        EXPECT_EQ(importedBus->getInt("gencount"), originalBus->getInt("gencount"));
+        EXPECT_EQ(importedBus->getInt("loadcount"), originalBus->getInt("loadcount"));
+    }
+
+    for (index_t linkIndex = 1; linkIndex <= original->getInt("totallinkcount"); ++linkIndex) {
+        auto* originalLink =
+            dynamic_cast<griddyn::AcLine*>(original->findByUserID("link", linkIndex));
+        auto* importedLink =
+            dynamic_cast<griddyn::AcLine*>(imported->findByUserID("link", linkIndex));
+        ASSERT_NE(originalLink, nullptr);
+        ASSERT_NE(importedLink, nullptr);
+        EXPECT_EQ(importedLink->getBus(1)->getUserID(), originalLink->getBus(1)->getUserID());
+        EXPECT_EQ(importedLink->getBus(2)->getUserID(), originalLink->getBus(2)->getUserID());
+        EXPECT_DOUBLE_EQ(importedLink->get("r"), originalLink->get("r"));
+        EXPECT_DOUBLE_EQ(importedLink->get("x"), originalLink->get("x"));
+        EXPECT_DOUBLE_EQ(importedLink->get("b"), originalLink->get("b"));
+    }
+
+    ASSERT_EQ(original->pFlowInitialize(), 0);
+    ASSERT_EQ(original->powerflow(), 0);
+    ASSERT_EQ(imported->pFlowInitialize(), 0);
+    ASSERT_EQ(imported->powerflow(), 0);
+    for (index_t busIndex = 1; busIndex <= original->getInt("totalbuscount"); ++busIndex) {
+        const auto* originalBus =
+            dynamic_cast<const griddyn::GridBus*>(original->findByUserID("bus", busIndex));
+        const auto* importedBus =
+            dynamic_cast<const griddyn::GridBus*>(imported->findByUserID("bus", busIndex));
+        ASSERT_NE(originalBus, nullptr);
+        ASSERT_NE(importedBus, nullptr);
+        EXPECT_NEAR(importedBus->getVoltage(), originalBus->getVoltage(), 1.0e-8);
+        EXPECT_NEAR(importedBus->getAngle(), originalBus->getAngle(), 1.0e-8);
+    }
+
+    std::filesystem::remove(exported);
+}
+
+TEST(ExampleReaderTests, ExportActivsG500ToRawRoundTripPreservesPowerFlow)
+{
+    const auto source = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "texas_am" / "ACTIVSg500" /
+        "ACTIVSg500.RAW";
+    const auto exported =
+        std::filesystem::temp_directory_path() / "griddyn_activsg500_raw_roundtrip.raw";
+    auto original = std::make_unique<griddyn::GridDynSimulation>();
+    original->consolePrintLevel = griddyn::PrintLevel::NO_PRINT;
+    ASSERT_TRUE(std::filesystem::exists(source));
+    griddyn::loadFile(original, source.string());
+
+    EXPECT_EQ(original->getInt("totalbuscount"), 500);
+    EXPECT_EQ(original->getInt("totallinkcount"), 597);
+    EXPECT_EQ(original->getInt("gencount"), 90);
+    EXPECT_EQ(original->getInt("loadcount"), 221);
+
+    griddyn::stringVec warnings;
+    ASSERT_TRUE(griddyn::saveNetworkCaseByExtension(original.get(), exported.string(), &warnings))
+        << (warnings.empty() ? "RAW export failed" : warnings.front());
+    std::string warningTrace;
+    for (const auto& warning : warnings) {
+        warningTrace.append("\n").append(warning);
+    }
+    SCOPED_TRACE(warningTrace);
+
+    auto imported = std::make_unique<griddyn::GridDynSimulation>();
+    imported->consolePrintLevel = griddyn::PrintLevel::NO_PRINT;
+    griddyn::loadFile(imported, exported.string());
+    EXPECT_EQ(imported->getInt("totalbuscount"), original->getInt("totalbuscount"));
+    EXPECT_EQ(imported->getInt("totallinkcount"), original->getInt("totallinkcount"));
+    EXPECT_EQ(imported->getInt("gencount"), original->getInt("gencount"));
+    EXPECT_EQ(imported->getInt("loadcount"), original->getInt("loadcount"));
+    EXPECT_DOUBLE_EQ(imported->get("basepower"), original->get("basepower"));
+
+    for (index_t busNumber = 1; busNumber <= original->getInt("totalbuscount"); ++busNumber) {
+        const auto* originalBus =
+            dynamic_cast<const griddyn::GridBus*>(original->findByUserID("bus", busNumber));
+        const auto* importedBus =
+            dynamic_cast<const griddyn::GridBus*>(imported->findByUserID("bus", busNumber));
+        ASSERT_NE(originalBus, nullptr);
+        ASSERT_NE(importedBus, nullptr);
+        EXPECT_EQ(importedBus->getBusType(), originalBus->getBusType());
+        EXPECT_DOUBLE_EQ(importedBus->get("basevoltage"), originalBus->get("basevoltage"));
+        EXPECT_NEAR(importedBus->getVoltage(), originalBus->getVoltage(), 1.0e-8);
+        EXPECT_NEAR(importedBus->getAngle(), originalBus->getAngle(), 1.0e-8);
+    }
+
+    ASSERT_EQ(original->pFlowInitialize(), 0);
+    ASSERT_EQ(imported->pFlowInitialize(), 0);
+    ASSERT_EQ(original->powerflow(), 0);
+    ASSERT_EQ(imported->powerflow(), 0);
+    for (index_t busNumber = 1; busNumber <= original->getInt("totalbuscount"); ++busNumber) {
+        const auto* originalBus =
+            dynamic_cast<const griddyn::GridBus*>(original->findByUserID("bus", busNumber));
+        const auto* importedBus =
+            dynamic_cast<const griddyn::GridBus*>(imported->findByUserID("bus", busNumber));
+        ASSERT_NE(originalBus, nullptr);
+        ASSERT_NE(importedBus, nullptr);
+        EXPECT_NEAR(importedBus->getVoltage(), originalBus->getVoltage(), 1.0e-6);
+        EXPECT_NEAR(importedBus->getAngle(), originalBus->getAngle(), 1.0e-6);
+        EXPECT_EQ(importedBus->getInt("gencount"), originalBus->getInt("gencount"));
+        for (index_t generatorIndex = 0;
+             generatorIndex < static_cast<index_t>(originalBus->getInt("gencount"));
+             ++generatorIndex) {
+            const auto* originalGenerator = originalBus->getGen(generatorIndex);
+            const auto* importedGenerator = importedBus->getGen(generatorIndex);
+            ASSERT_NE(originalGenerator, nullptr);
+            ASSERT_NE(importedGenerator, nullptr);
+            EXPECT_NEAR(importedGenerator->getRealPower(),
+                        originalGenerator->getRealPower(),
+                        1.0e-6);
+            EXPECT_NEAR(importedGenerator->getReactivePower(),
+                        originalGenerator->getReactivePower(),
+                        1.0e-6);
+        }
+        EXPECT_EQ(importedBus->getInt("loadcount"), originalBus->getInt("loadcount"));
+        for (index_t loadIndex = 0;
+             loadIndex < static_cast<index_t>(originalBus->getInt("loadcount"));
+             ++loadIndex) {
+            const auto* originalLoad = originalBus->getLoad(loadIndex);
+            const auto* importedLoad = importedBus->getLoad(loadIndex);
+            ASSERT_NE(originalLoad, nullptr);
+            ASSERT_NE(importedLoad, nullptr);
+            EXPECT_NEAR(importedLoad->getRealPower(), originalLoad->getRealPower(), 1.0e-6);
+            EXPECT_NEAR(importedLoad->getReactivePower(), originalLoad->getReactivePower(), 1.0e-6);
+        }
+    }
+
+    std::filesystem::remove(exported);
+}

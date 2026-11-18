@@ -26,6 +26,7 @@ power flow solution modes of a generator with no dynamics
 */
 class Generator: public GridSecondary {
   public:
+    const ModelDescription& getModelDescription() const override;
     /** @brief flags for controlling operation of the generator*/
     enum GeneratorFlags {
         VARIABLE_GENERATION = OBJECT_FLAG1,  //!< flag indicating that the generator has
@@ -102,11 +103,14 @@ class Generator: public GridSecondary {
     virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
-    /** Configure a local voltage controller after it joins a remote bus group. */
+    /** Use the generator's algebraic Q state to regulate controlBus in AC power flow. */
     void configureIndirectVoltageControl(GridBus* controlBus);
 
     /** Return the bus whose voltage this generator regulates, if configured. */
     GridBus* getRemoteBus() const noexcept { return remoteBus; }
+
+    /** Hold the algebraic power-flow Q state at a limit in system per unit. */
+    void fixPowerFlowReactivePower(double reactivePower);
 
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
@@ -166,9 +170,6 @@ class Generator: public GridSecondary {
                                   MatrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
-    virtual void getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix) const override;
 
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 

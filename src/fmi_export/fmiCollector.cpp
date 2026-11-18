@@ -43,21 +43,6 @@ ChangeCode FmiCollector::trigger(CoreTime time)
     return ChangeCode::NO_CHANGE;
 }
 
-void FmiCollector::set(std::string_view param, double val)
-{
-    if (param.empty()) {
-    } else {
-        Collector::set(param, val);
-    }
-}
-void FmiCollector::set(std::string_view param, std::string_view val)
-{
-    if (param.empty()) {
-    } else {
-        Collector::set(param, val);
-    }
-}
-
 const std::string& FmiCollector::getSinkName() const
 {
     static const std::string defaultFMIName{"fmi"};

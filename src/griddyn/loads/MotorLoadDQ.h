@@ -27,14 +27,13 @@ class MotorLoadDQ: public GridLoad {
     explicit MotorLoadDQ(const std::string& objName = "motor_dq_$");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
+    const ModelDescription& getModelDescription() const override;
     void set(std::string_view param, std::string_view val) override;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
     StateSizes localStateSizes(const SolverMode& sMode) const override;
     count_t localJacobianCount(const SolverMode& sMode) const override;
-    stringVec localStateNames() const override;
     void residual(const IOdata& inputs,
                   const StateData& stateData,
                   double resid[],

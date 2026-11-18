@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -33,6 +34,25 @@ namespace {
     }};
     constexpr index_t windGenerator = 0, windTurbine = 1, shaft = 2;
 }  // namespace
+
+const ModelDescription& WTDTA1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<WTDTA1>(
+        "WTDTA1",
+        &RenewableComponent::getModelDescription(),
+        {parameter({"h"}, &WTDTA1::H, units::second, "H"),
+         parameter({"damp"}, &WTDTA1::DAMP, units::one, "Damp"),
+         parameter({"htfrac"}, &WTDTA1::Htfrac, units::one, "Htfrac"),
+         parameter({"freq1"}, &WTDTA1::Freq1, units::Hz, "Freq1"),
+         parameter({"dshaft"}, &WTDTA1::Dshaft, units::one, "Dshaft"),
+         parameter({"w0"}, &WTDTA1::w0, units::one, "W0"),
+         state({"wg"}, units::one, 0, "Solver variable wg when active"),
+         state({"wt"}, units::one, 1, "Solver variable wt when active"),
+         state({"Tshaft"}, units::one, 2, "Solver variable Tshaft when active"),
+         localState("initialPower", &WTDTA1::initialPower, "Initial power"),
+         localState("operatingSpeed", &WTDTA1::operatingSpeed, "Operating speed")});
+    return description;
+}
 
 WTDTA1::WTDTA1(const std::string& objName): RenewableComponent(objName)
 {
@@ -67,44 +87,22 @@ std::span<const RenewablePort> WTDTA1::outputPorts() const
 
 void WTDTA1::set(std::string_view param, double val, units::unit unitType)
 {
-    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "h") {
-        H = val;
-    } else if (key == "damp") {
-        DAMP = val;
-    } else if (key == "htfrac") {
-        Htfrac = val;
-    } else if (key == "freq1") {
-        Freq1 = val;
-    } else if (key == "dshaft") {
-        Dshaft = val;
-    } else if (key == "w0") {
-        w0 = val;
-    } else {
-        RenewableComponent::set(param, val, unitType);
+    if (isSetHandled(WTDTA1::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
     }
+    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (key != param &&
+        isSetHandled(WTDTA1::getModelDescription().trySetLocal(*this, key, val, unitType))) {
+        return;
+    }
+    RenewableComponent::set(param, val, unitType);
 }
 
 double WTDTA1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "h") {
-        return H;
-    }
-    if (key == "damp") {
-        return DAMP;
-    }
-    if (key == "htfrac") {
-        return Htfrac;
-    }
-    if (key == "freq1") {
-        return Freq1;
-    }
-    if (key == "dshaft") {
-        return Dshaft;
-    }
-    if (key == "w0") {
-        return w0;
+    if (const auto value = WTDTA1::getModelDescription().tryGet(*this, key, unitType)) {
+        return *value;
     }
     return RenewableComponent::get(param, unitType);
 }
@@ -244,11 +242,6 @@ void WTDTA1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*s
         m_state[index] += deltaTime * rate[index];
     }
     prevTime = time;
-}
-
-stringVec WTDTA1::localStateNames() const
-{
-    return {"wg", "wt", "Tshaft"};
 }
 
 }  // namespace griddyn

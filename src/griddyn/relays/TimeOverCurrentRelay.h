@@ -31,6 +31,7 @@ namespace griddyn::relays {
  */
 class TimeOverCurrentRelay: public Relay {
   public:
+    const ModelDescription& getModelDescription() const override;
     enum class Curve {
         IEC_STANDARD_INVERSE,
         IEC_VERY_INVERSE,
@@ -56,8 +57,6 @@ class TimeOverCurrentRelay: public Relay {
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
     std::string getString(std::string_view param) const override;
-    void getParameterStrings(stringVec& pstr,
-                             ParamStringType pstype = ParamStringType::all) const override;
 
     /**
      * @brief Install a monotone, piecewise-linear time/current characteristic.

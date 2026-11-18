@@ -33,6 +33,7 @@ namespace blocks {
  */
 class GridBlock: public GridSubModel {
   public:
+    const ModelDescription& getModelDescription() const override;
     /** @brief flags common for all control blocks
      */
     enum ControllerFlags {
@@ -100,7 +101,7 @@ class GridBlock: public GridSubModel {
     double blockInitialize(double input, double desiredOutput);
 
     virtual void setFlag(std::string_view flag, bool val) override;
-    virtual void set(std::string_view param, std::string_view val) override;
+    using GridSubModel::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     virtual double get(std::string_view param,
@@ -207,7 +208,7 @@ class GridBlock: public GridSubModel {
                                  const SolverMode& solverModeValue,
                                  CheckLevel level) override;
     // virtual void setTime(CoreTime time){prevTime=time;};
-    virtual stringVec localStateNames() const override;
+
     /** get the single output for the block
     @param[in] stateDataValue the state data to use in computing the output
     @param[in] solverModeValue the SolverMode associated with the StateData*/

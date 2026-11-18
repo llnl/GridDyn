@@ -13,6 +13,7 @@ namespace griddyn {
 /** Wind torque controller producing an absolute REECA1 active reference. */
 class WTTQA1 final: public RenewableComponent {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit WTTQA1(const std::string& name = "WTTQA1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     using RenewableComponent::set;
@@ -50,7 +51,6 @@ class WTTQA1 final: public RenewableComponent {
                      const SolverMode& sMode,
                      index_t outputNum) const override;
     index_t getOutputLoc(const SolverMode& sMode, index_t outputNum) const override;
-    stringVec localStateNames() const override;
 
   private:
     int Tflag = 0;

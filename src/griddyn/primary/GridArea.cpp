@@ -18,12 +18,12 @@
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectList.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/string_viewOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <algorithm>
-#include <array>
 #include <charconv>
 #include <cmath>
 #include <cstdio>
@@ -53,6 +53,30 @@ std::atomic<count_t> GridArea::areaCounter{0};
 
 static TypeFactory<GridArea>
     gAreaFactory("area", std::to_array<std::string_view>({"basic", "simple"}), "basic");
+
+const ModelDescription& GridArea::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridArea>(
+        "GridArea",
+        &GridPrimary::getModelDescription(),
+        {flag({"reverse_converge"}, &GridArea::opFlags, REVERSE_CONVERGE, "Reverse converge"),
+         flag({"direction_oscillate"},
+              &GridArea::opFlags,
+              DIRECTION_OSCILLATE,
+              "Direction oscillate"),
+         command({"interchangeslackbus"},
+                 units::defunit,
+                 "Bus that balances scheduled interchange",
+                 ModelFieldType::STRING),
+         command({"basepower"}, units::MW, "Basepower"),
+         command({"basefrequency", "basefreq"}, units::Hz, "Basefrequency"),
+         command({"schedulednetinterchange"}, units::MW, "Scheduled net interchange"),
+         command({"interchangetolerance"}, units::MW, "Interchange tolerance"),
+         command({"maxpowerflowadjustmentsperpass"},
+                 units::defunit,
+                 "Root area adjustment limit per power-flow pass")});
+    return description;
+}
 
 GridArea::GridArea(const std::string& objName): GridPrimary(objName)
 {
@@ -1071,17 +1095,6 @@ void GridArea::converge(CoreTime time,
     }
 }
 
-void GridArea::setFlag(std::string_view flag, bool val)
-{
-    if (flag == "reverse_converge") {
-        opFlags.set(REVERSE_CONVERGE, val);
-    } else if (flag == "direction_oscillate") {
-        opFlags.set(DIRECTION_OSCILLATE, val);
-    } else {
-        GridPrimary::setFlag(flag, val);
-    }
-}
-
 void GridArea::setResidualThreadCount(int threadCount)
 {
     opObjectLists->setResidualThreads(threadCount);
@@ -1116,20 +1129,11 @@ void GridArea::set(std::string_view param, std::string_view val)
     }
 }
 
-static constexpr std::array<std::string_view, 3> locNumStrings{"schedulednetinterchange",
-                                                               "interchangetolerance",
-                                                               "maxpowerflowadjustmentsperpass"};
-static constexpr std::array<std::string_view, 1> locStrStrings{"interchangeslackbus"};
-static constexpr std::array<std::string_view, 0> flagStrings{};
-
-void GridArea::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    getParamString<GridArea, GridComponent>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
-}
-
 void GridArea::set(std::string_view param, double val, unit unitType)
 {
+    if (isSetHandled(GridArea::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     if (param == "basepower") {
         systemBasePower = convert(val, unitType, MW);
         for (auto* obj : primaryObjects) {
@@ -1174,6 +1178,9 @@ void GridArea::set(std::string_view param, double val, unit unitType)
 
 double GridArea::get(std::string_view param, unit unitType) const
 {
+    if (const auto value = GridArea::getModelDescription().tryGet(*this, param, unitType)) {
+        return *value;
+    }
     double val = 0.0;
     size_t vali = 0;
     if (param == "schedulednetinterchange") {

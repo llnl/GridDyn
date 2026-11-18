@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -33,6 +34,27 @@ GovernorIeeeG2::GovernorIeeeG2(const std::string& objName): Governor(objName)
     opFlags.set(IGNORE_FILTER);
     opFlags.set(IGNORE_THROTTLE);
     opFlags.set(USES_POWER_LIMITS);
+}
+
+const ModelDescription& GovernorIeeeG2::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorIeeeG2>(
+        "GovernorIeeeG2",
+        &Governor::getModelDescription(),
+        {parameter({"t4"},
+                   &GovernorIeeeG2::T4,
+                   units::second,
+                   "Water starting time",
+                   parameterValidators::nonnegative),
+         stateReference<GovernorIeeeG2>(
+             {"pmech", "pm", "output"},
+             units::puMW,
+             [](const auto& model, const auto& mode) { return model.getOutputLoc(mode, 0); },
+             "Mechanical power"),
+         state({"lead_lag"}, units::one, &GovernorIeeeG2::leadLagState, 0, "Speed lead-lag state"),
+         state({"simple_lag"}, units::one, &GovernorIeeeG2::simpleLagState, 0, "Speed lag state"),
+         state({"water_lag"}, units::one, &GovernorIeeeG2::waterState, 0, "Waterway state")});
+    return description;
 }
 
 CoreObject* GovernorIeeeG2::clone(CoreObject* obj) const
@@ -111,19 +133,10 @@ void GovernorIeeeG2::set(std::string_view param, std::string_view val)
 
 void GovernorIeeeG2::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "t4") {
-        T4 = val;
-    } else {
-        Governor::set(param, val, unitType);
+    if (isSetHandled(GovernorIeeeG2::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
     }
-}
-
-double GovernorIeeeG2::get(std::string_view param, units::unit unitType) const
-{
-    if (param == "t4") {
-        return T4;
-    }
-    return Governor::get(param, unitType);
+    Governor::set(param, val, unitType);
 }
 
 double GovernorIeeeG2::leadLagOutput(const IOdata& inputs, const double state[]) const
@@ -311,29 +324,6 @@ void GovernorIeeeG2::jacobianElements(const IOdata& inputs,
                                   inputLocs[govpSetInLocation],
                                   limitGain / waterTime);
     }
-}
-
-stringVec GovernorIeeeG2::localStateNames() const
-{
-    stringVec names;
-    if (leadLagState != kInvalidLocation) {
-        names.emplace_back("lead_lag");
-    }
-    if (simpleLagState != kInvalidLocation) {
-        names.emplace_back("simple_lag");
-    }
-    if (waterState != kInvalidLocation) {
-        names.emplace_back("water_lag");
-    }
-    return names;
-}
-
-index_t GovernorIeeeG2::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "pm") || (field == "pmech") || (field == "output")) {
-        return getOutputLoc(sMode, 0);
-    }
-    return Governor::findIndex(field, sMode);
 }
 
 const std::vector<stringVec>& GovernorIeeeG2::outputNames() const

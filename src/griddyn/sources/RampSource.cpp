@@ -7,11 +7,24 @@
 #include "RampSource.h"
 
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <ctime>
 #include <string>
 
 namespace griddyn::sources {
+const ModelDescription& RampSource::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<RampSource>("RampSource",
+                                             &Source::getModelDescription(),
+                                             {parameter({"dodt", "ramp", "rate"},
+                                                        &RampSource::mp_dOdt,
+                                                        units::defunit,
+                                                        "The ramp rate of the output")});
+    return description;
+}
+
 RampSource::RampSource(const std::string& objName, double startVal): Source(objName, startVal) {}
 CoreObject* RampSource::clone(CoreObject* obj) const
 {
@@ -24,19 +37,6 @@ CoreObject* RampSource::clone(CoreObject* obj) const
 }
 
 // set properties
-void RampSource::set(std::string_view param, std::string_view val)
-{
-    Source::set(param, val);
-}
-void RampSource::set(std::string_view param, double val, units::unit unitType)
-{
-    if ((param == "dodt") || (param == "ramp") || (param == "rate")) {
-        mp_dOdt = val;
-    } else {
-        Source::set(param, val, unitType);
-    }
-}
-
 double RampSource::computeOutput(CoreTime time) const
 {
     auto tdiff = time - prevTime;

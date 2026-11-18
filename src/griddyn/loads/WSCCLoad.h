@@ -39,16 +39,15 @@ class WSCCLoad: public GridLoad {
     double powerFrequencyDerivative(bool reactive, double voltage) const;
 
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit WSCCLoad(const std::string& objName = "wsccLoad_$");
 
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     void setWSCCParameters(const WSCCParameters& newParameters);
     const WSCCParameters& getWSCCParameters() const { return parameters; }
 
-    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
-    void set(std::string_view param, std::string_view val) override;
+    using GridLoad::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
     void ioPartialDerivatives(const IOdata& inputs,
                               const StateData& stateData,

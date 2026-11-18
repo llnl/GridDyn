@@ -7,6 +7,7 @@
 #include "GenModelGENROE.h"
 
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/Saturation.h"
 #include <string>
 
@@ -15,6 +16,15 @@ GenModelGENROE::GenModelGENROE(const std::string& objName): GenModelGENROU(objNa
 {
     sat.setType(utilities::Saturation::SaturationType::EXPONENTIAL);
     sat.setParam(S10, S12);
+}
+
+const ModelDescription& GenModelGENROE::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<GenModelGENROE>("GenModelGENROE",
+                                                 &GenModelGENROU::getModelDescription(),
+                                                 {});
+    return description;
 }
 
 CoreObject* GenModelGENROE::clone(CoreObject* obj) const

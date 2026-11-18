@@ -17,7 +17,6 @@ namespace griddyn::solvers {
  */
 class ArkodeInterface: public SundialsInterface {
   public:
-    using SundialsInterface::set;
     count_t icCount =
         0;  //!< counter for the number of times the initial condition function was called
 
@@ -50,6 +49,8 @@ class ArkodeInterface: public SundialsInterface {
     virtual void cloneTo(SolverInterface* si, bool fullCopy = false) const override;
     virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
     virtual void initialize(CoreTime time0) override;
+    bool supportsCheckpointRestore() const noexcept override { return true; }
+    void restoreFromCheckpoint(CoreTime time) override;
     virtual void setMaxNonZeros(count_t nonZeroCount) override;
     virtual void sparseReInit(SparseReinitMode sparseReinitMode) override;
     virtual void getCurrentData() override;
@@ -60,9 +61,9 @@ class ArkodeInterface: public SundialsInterface {
 
     virtual void logSolverStats(PrintLevel logLevel, bool iconly = false) const override;
     virtual void logErrorWeights(PrintLevel logLevel) const override;
-    virtual void set(std::string_view param, std::string_view val) override;
-    virtual void set(std::string_view param, double val) override;
-    virtual double get(std::string_view param) const override;
+    [[nodiscard]] double get(std::string_view param) const override;
+    void set(std::string_view param, double val) override;
+    void set(std::string_view param, std::string_view val) override;
 
     // declare friend some helper functions
     friend int arkodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userData);
@@ -77,6 +78,8 @@ class ArkodeInterface: public SundialsInterface {
     friend int arkodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* userData);
 
   protected:
+    void applyIterationLimit();
+
     /** load up masking element if needed*/
     void loadMaskElements();
 };

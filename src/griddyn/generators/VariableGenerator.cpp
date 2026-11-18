@@ -10,12 +10,23 @@
 #include "../GridBus.h"
 #include "../Source.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <string>
 
 namespace griddyn {
 using units::convert;
 using units::puV;
 using units::unit;
+
+const ModelDescription& VariableGenerator::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<VariableGenerator>(
+        "VariableGenerator",
+        &DynamicGenerator::getModelDescription(),
+        {command({"vcutout"}, units::defunit, "Set vcutout"),
+         command({"vmax"}, units::defunit, "Set vmax")});
+    return description;
+}
 
 VariableGenerator::VariableGenerator(const std::string& objName): DynamicGenerator(objName)
 {
@@ -103,13 +114,12 @@ void VariableGenerator::add(GridSubModel* obj)
 }
 
 // set properties
-void VariableGenerator::set(std::string_view param, std::string_view val)
-{
-    DynamicGenerator::set(param, val);
-}
-
 void VariableGenerator::set(std::string_view param, double val, unit unitType)
 {
+    if (isSetHandled(
+            VariableGenerator::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     if (param == "vcutout") {
         mp_Vcutout = convert(val, unitType, puV, systemBasePower, localBaseVoltage);
     } else if (param == "vmax") {

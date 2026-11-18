@@ -24,6 +24,7 @@ class DerivativeBlock: public GridBlock {
   protected:
     model_parameter mT1 = 0.1;  //!< delay time constant for the derivative filtering operation
   public:
+    const ModelDescription& getModelDescription() const override;
     //!< default constructor
     explicit DerivativeBlock(const std::string& objName = "derivBlock_#");
     /** alternate constructor to add in the time constant
@@ -39,9 +40,6 @@ class DerivativeBlock: public GridBlock {
                                       IOdata& fieldSet) override;
 
   public:
-    virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     // virtual index_t findIndex(const std::string &field, const SolverMode &sMode) const;
 
     virtual void blockDerivative(double input,
@@ -62,7 +60,6 @@ class DerivativeBlock: public GridBlock {
                                        const SolverMode& sMode) override;
     virtual double step(CoreTime time, double inputA) override;
 
-    virtual stringVec localStateNames() const override;
     // virtual void setTime(CoreTime time){prevTime=time;};
 };
 }  // namespace griddyn::blocks

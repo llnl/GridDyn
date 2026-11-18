@@ -8,6 +8,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include <cmath>
@@ -19,6 +20,29 @@ static TypeFactory<AggregateLoad>
 using gmlc::utilities::stringOps::splitline;
 using gmlc::utilities::stringOps::trailingStringInt;
 using gmlc::utilities::stringOps::trim;
+const ModelDescription& AggregateLoad::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<AggregateLoad>(
+        "AggregateLoad",
+        &ZipLoad::getModelDescription(),
+        {flag({"consume"},
+              &AggregateLoad::consumeSimpleLoad,
+              "Flag indicating consumption of existing loads"),
+         command({"fraction"}, units::defunit, "Configure fraction", ModelFieldType::STRING),
+         command({"subload"},
+                 units::defunit,
+                 "Append a subload and its fraction",
+                 ModelFieldType::STRING),
+         indexedCommand({"subload", "subload_", "subload#"},
+                        units::defunit,
+                        "Configure an indexed subload",
+                        ModelFieldType::STRING),
+         indexedCommand({"fraction", "fraction_", "fraction#"},
+                        units::defunit,
+                        "Set a subload fraction")});
+    return description;
+}
+
 AggregateLoad::AggregateLoad(const std::string& objName): ZipLoad(objName)
 {
     AggregateLoad::add(new ZipLoad(getName() + "sub"));
@@ -233,13 +257,13 @@ void AggregateLoad::set(std::string_view param, std::string_view val)
 }
 void AggregateLoad::set(std::string_view param, double val, units::unit unitType)
 {
+    if (isSetHandled(AggregateLoad::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     std::string iparam;
     int num = trailingStringInt(param, iparam, -1);
     bool reallocate = true;
-    if (param == "consume") {
-        consumeSimpleLoad = (val > 0);
-        reallocate = false;
-    } else if (iparam == "fraction") {
+    if (iparam == "fraction") {
         if (num <= 0) {
             num = 1;
         }

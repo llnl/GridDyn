@@ -16,7 +16,7 @@ class GovernorHygovDB final: public GovernorHygov {
   public:
     explicit GovernorHygovDB(const std::string& name = "govHygovDB_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
-    using GovernorHygov::set;
+    const ModelDescription& getModelDescription() const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void residual(const IOdata& inputs,
                   const StateData& stateData,
@@ -49,8 +49,6 @@ class GovernorHygovDB final: public GovernorHygov {
                          const StateData& stateData,
                          const SolverMode& sMode,
                          CheckLevel level) override;
-    void set(std::string_view param, double value, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
   private:
     double dbL = 0.0;

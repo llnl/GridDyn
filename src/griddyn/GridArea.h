@@ -33,9 +33,11 @@ it also acts as focal point for wide area controls such as AGC and can compute o
 statistics across a wide area
 */
 class GridArea: public GridPrimary {
+    friend class GridDynSimulation;
     friend class ListMaintainer;
 
   public:
+    const ModelDescription& getModelDescription() const override;
     /** A scheduled transfer specification between two areas. Power is stored in MW. */
     struct InterAreaTransfer {
         index_t fromAreaID{0};
@@ -255,13 +257,10 @@ class GridArea: public GridPrimary {
     virtual void updateTheta(CoreTime time);
 
     // parameter set functions
-    virtual void setFlag(std::string_view flag, bool val) override;
     void setResidualThreadCount(int threadCount);
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual void getParameterStrings(stringVec& pstr,
-                                     ParamStringType pstype = ParamStringType::all) const override;
     void setAll(std::string_view type,
                 std::string_view param,
                 double val,

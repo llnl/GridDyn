@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -38,6 +39,39 @@ namespace {
     constexpr index_t reactiveCurrentState = 1;
     constexpr index_t filteredVoltage = 2;
 }  // namespace
+
+const ModelDescription& REGCA1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<REGCA1>(
+        "REGCA1",
+        &TerminalElectricalModel::getModelDescription(),
+        {parameter({"tg"}, &REGCA1::Tg, units::second, "Tg"),
+         parameter({"rrpwr"}, &REGCA1::Rrpwr, units::one, "Rrpwr"),
+         parameter({"brkpt"}, &REGCA1::Brkpt, units::one, "Brkpt"),
+         parameter({"zerox"}, &REGCA1::Zerox, units::one, "Zerox"),
+         parameter({"lvpl1"}, &REGCA1::Lvpl1, units::one, "Lvpl1"),
+         parameter({"volim"}, &REGCA1::Volim, units::one, "Volim"),
+         parameter({"lvpnt1"}, &REGCA1::Lvpnt1, units::one, "Lvpnt1"),
+         parameter({"lvpnt0"}, &REGCA1::Lvpnt0, units::one, "Lvpnt0"),
+         parameter({"iolim"}, &REGCA1::Iolim, units::one, "Iolim"),
+         parameter({"tfltr"}, &REGCA1::Tfltr, units::second, "Tfltr"),
+         parameter({"khv"}, &REGCA1::Khv, units::one, "Khv"),
+         parameter({"iqrmax"}, &REGCA1::Iqrmax, units::one, "Iqrmax"),
+         parameter({"iqrmin"}, &REGCA1::Iqrmin, units::one, "Iqrmin"),
+         parameter({"accel"}, &REGCA1::Accel, units::one, "Accel"),
+         flag({"lvplsw"}, &REGCA1::Lvplsw, "Lvplsw"),
+         localState("initialReactivePower",
+                    &REGCA1::initialReactivePower,
+                    "Initial reactive power"),
+         localState("heldIpCommand", &REGCA1::heldIpCommand, "Held ip command"),
+         localState("heldIqCommand", &REGCA1::heldIqCommand, "Held iq command"),
+         state({"Pe"}, units::one, 0, "Solver variable Pe when active"),
+         state({"Qe"}, units::one, 1, "Solver variable Qe when active"),
+         state({"Ip"}, units::one, 2, "Solver variable Ip when active"),
+         state({"Iq"}, units::one, 3, "Solver variable Iq when active"),
+         state({"Vf"}, units::one, 4, "Solver variable Vf when active")});
+    return description;
+}
 
 REGCA1::REGCA1(const std::string& objName): TerminalElectricalModel(objName)
 {
@@ -81,93 +115,24 @@ std::span<const RenewablePort> REGCA1::outputPorts() const
 
 void REGCA1::set(std::string_view param, double val, units::unit unitType)
 {
-    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "tg") {
-        Tg = val;
-    } else if (key == "rrpwr") {
-        Rrpwr = val;
-    } else if (key == "brkpt") {
-        Brkpt = val;
-    } else if (key == "zerox") {
-        Zerox = val;
-    } else if (key == "lvpl1") {
-        Lvpl1 = val;
-    } else if (key == "volim") {
-        Volim = val;
-    } else if (key == "lvpnt1") {
-        Lvpnt1 = val;
-    } else if (key == "lvpnt0") {
-        Lvpnt0 = val;
-    } else if (key == "iolim") {
-        Iolim = val;
-    } else if (key == "tfltr") {
-        Tfltr = val;
-    } else if (key == "khv") {
-        Khv = val;
-    } else if (key == "iqrmax") {
-        Iqrmax = val;
-    } else if (key == "iqrmin") {
-        Iqrmin = val;
-    } else if (key == "lvplsw") {
-        if (val != 0.0 && val != 1.0) {
-            throw InvalidParameterValue("REGCA1 Lvplsw must be zero or one");
-        }
-        Lvplsw = val == 1.0;
-    } else if (key == "accel") {
-        Accel = val;
-    } else {
-        TerminalElectricalModel::set(param, val, unitType);
+    if (isSetHandled(REGCA1::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
     }
+    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (key != param &&
+        isSetHandled(REGCA1::getModelDescription().trySetLocal(*this, key, val, unitType))) {
+        return;
+    }
+    TerminalElectricalModel::set(param, val, unitType);
 }
 
 double REGCA1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "tg") {
-        return Tg;
+    if (const auto value = REGCA1::getModelDescription().tryGet(*this, key, unitType)) {
+        return *value;
     }
-    if (key == "rrpwr") {
-        return Rrpwr;
-    }
-    if (key == "brkpt") {
-        return Brkpt;
-    }
-    if (key == "zerox") {
-        return Zerox;
-    }
-    if (key == "lvpl1") {
-        return Lvpl1;
-    }
-    if (key == "volim") {
-        return Volim;
-    }
-    if (key == "lvpnt1") {
-        return Lvpnt1;
-    }
-    if (key == "lvpnt0") {
-        return Lvpnt0;
-    }
-    if (key == "iolim") {
-        return Iolim;
-    }
-    if (key == "tfltr") {
-        return Tfltr;
-    }
-    if (key == "khv") {
-        return Khv;
-    }
-    if (key == "iqrmax") {
-        return Iqrmax;
-    }
-    if (key == "iqrmin") {
-        return Iqrmin;
-    }
-    if (key == "lvplsw") {
-        return Lvplsw ? 1.0 : 0.0;
-    }
-    if (key == "accel") {
-        return Accel;
-    }
+
     return TerminalElectricalModel::get(param, unitType);
 }
 
@@ -449,11 +414,6 @@ void REGCA1::outputPartialDerivatives(const IOdata& /*inputs*/,
     const auto alg = offsets.getAlgOffset(sMode);
     matrixData.assign(activePower, alg + activePower, 1.0);
     matrixData.assign(reactivePower, alg + reactivePower, 1.0);
-}
-
-stringVec REGCA1::localStateNames() const
-{
-    return {"Pe", "Qe", "Ip", "Iq", "Vf"};
 }
 
 }  // namespace griddyn

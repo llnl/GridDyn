@@ -13,12 +13,12 @@ namespace griddyn::limiters {
 /** IEEE UEL1 circular characteristic with the AVR stabilizing input disabled. */
 class ExcitationLimiterUEL1 final: public ExcitationLimiter {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit ExcitationLimiterUEL1(const std::string& objName = "uel1_#");
     using ExcitationLimiter::set;
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     bool supportsRole(Role role) const override { return role == Role::UNDER; }
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
@@ -42,7 +42,6 @@ class ExcitationLimiterUEL1 final: public ExcitationLimiter {
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   private:
     struct Characteristic {

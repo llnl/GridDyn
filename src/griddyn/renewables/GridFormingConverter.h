@@ -16,6 +16,7 @@ namespace griddyn {
 /** Shared terminal equations for the ANDES voltage-controlled and grid-forming converters. */
 class GridFormingConverter: public TerminalElectricalModel {
   public:
+    const ModelDescription& getModelDescription() const override;
     enum class Variant { cv1, cv2, f1, f2, f3 };
     explicit GridFormingConverter(Variant variant = Variant::cv1,
                                   const std::string& name = "gridFormingConverter_#");
@@ -58,7 +59,6 @@ class GridFormingConverter: public TerminalElectricalModel {
                                   const StateData& stateData,
                                   MatrixData<double>& matrixData,
                                   const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   protected:
     Variant variant;
@@ -80,26 +80,31 @@ class GridFormingConverter: public TerminalElectricalModel {
 
 class REGCV1 final: public GridFormingConverter {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit REGCV1(const std::string& name = "REGCV1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 };
 class REGCV2 final: public GridFormingConverter {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit REGCV2(const std::string& name = "REGCV2_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 };
 class REGF1 final: public GridFormingConverter {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit REGF1(const std::string& name = "REGF1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 };
 class REGF2 final: public GridFormingConverter {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit REGF2(const std::string& name = "REGF2_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 };
 class REGF3 final: public GridFormingConverter {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit REGF3(const std::string& name = "REGF3_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 };

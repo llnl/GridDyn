@@ -14,12 +14,42 @@
 #include "../events/EventQueue.h"
 #include "../measurement/Condition.h"
 #include "core/CoreObjectTemplates.hpp"
-#include <array>
+#include "core/ModelParameter.hpp"
 #include <memory>
 #include <string>
 #include <utility>
 
 namespace griddyn::relays {
+const ModelDescription& DifferentialRelay::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<DifferentialRelay>(
+        "DifferentialRelay",
+        &Relay::getModelDescription(),
+        {parameter({"delay"},
+                   &DifferentialRelay::mDelayTime,
+                   units::defunit,
+                   "The delay time from first onset to trigger action"),
+         parameter({"level", "max_difference"},
+                   &DifferentialRelay::mMaxDifferential,
+                   units::defunit,
+                   "The maximum allowable differential"),
+         parameter({"reset_margin"},
+                   &DifferentialRelay::m_resetMargin,
+                   units::defunit,
+                   "The reset margin for clearing a fault"),
+         parameter({"minlevel"},
+                   &DifferentialRelay::mMinLevel,
+                   units::defunit,
+                   "The minimum absolute level to trigger for relative differential mode"),
+         flag({"relative"},
+              &DifferentialRelay::opFlags,
+              RELATIVE_DIFFERENTIAL_FLAG,
+              "Use relative differential current"),
+         inverseFlag(
+             {"absolute"}, &DifferentialRelay::opFlags, RELATIVE_DIFFERENTIAL_FLAG, "Absolute")});
+    return description;
+}
+
 DifferentialRelay::DifferentialRelay(const std::string& objName): Relay(objName)
 {
     opFlags.set(CONTINUOUS_FLAG);
@@ -38,56 +68,11 @@ CoreObject* DifferentialRelay::clone(CoreObject* obj) const
     return nobj;
 }
 
-void DifferentialRelay::setFlag(std::string_view flag, bool val)
-{
-    if (flag == "relative") {
-        opFlags.set(RELATIVE_DIFFERENTIAL_FLAG, val);
-    }
-    if (flag == "absolute") {
-        opFlags.set(RELATIVE_DIFFERENTIAL_FLAG, !val);
-    } else {
-        Relay::setFlag(flag, val);
-    }
-}
-
-bool DifferentialRelay::getFlag(std::string_view flag) const
-{
-    if (flag == "relative") {
-        return opFlags[RELATIVE_DIFFERENTIAL_FLAG];
-    }
-    return Relay::getFlag(flag);
-}
-
 void DifferentialRelay::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
         Relay::set(param, val);
-    }
-}
-
-void DifferentialRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    static constexpr auto numericParameterStrings =
-        std::array<std::string_view, 4>{"delay", "max_difference", "reset_margin", "minlevel"};
-    static constexpr std::array<std::string_view, 0> stringParameterStrings{};
-    static constexpr std::array<std::string_view, 0> flagStrings{};
-    getParamString<DifferentialRelay, Relay>(
-        this, pstr, numericParameterStrings, stringParameterStrings, flagStrings, pstype);
-}
-
-void DifferentialRelay::set(std::string_view param, double val, units::unit unitType)
-{
-    if (param == "delay") {
-        mDelayTime = val;
-    } else if ((param == "level") || (param == "max_difference")) {
-        mMaxDifferential = val;
-    } else if (param == "reset_margin") {
-        m_resetMargin = val;
-    } else if (param == "minlevel") {
-        mMinLevel = val;
-    } else {
-        Relay::set(param, val, unitType);
     }
 }
 

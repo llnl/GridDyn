@@ -12,13 +12,25 @@
 #include "../generators/DynamicGenerator.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <cstddef>
 #include <functional>
+#include <limits>
 #include <string>
 
 namespace griddyn {
+const ModelDescription& COISensor::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<COISensor>(
+        "COISensor",
+        &Sensor::getModelDescription(),
+        {state({"frequency"}, units::puHz, 0, "Center-of-inertia frequency"),
+         state({"angle"}, units::rad, 1, "Center-of-inertia angle")});
+    return description;
+}
+
 COISensor::COISensor(const std::string& objName): Sensor(objName)
 {
     m_outputSize = 2;
@@ -92,6 +104,11 @@ void COISensor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
         throw InvalidParameterValue(
             "COI measurement requires an enabled synchronous dynamic generator with positive inertia");
     }
+    constexpr auto maxMachines =
+        static_cast<std::size_t>(std::numeric_limits<count_t>::max() / 2 - 1);
+    if (machines.size() > maxMachines) {
+        throw InvalidParameterValue("COI measurement exceeds the solver Jacobian size limit");
+    }
     for (auto& machine : machines) {
         machine.weight /= totalInertia;
     }
@@ -100,7 +117,7 @@ void COISensor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     auto& local = offsets.local().local;
     local.algSize = 2;
     local.diffSize = 0;
-    local.jacSize = 2 * (machines.size() + 1);
+    local.jacSize = 2 * (static_cast<count_t>(machines.size()) + 1);
     m_state.assign(2, 0.0);
     m_dstate_dt.assign(2, 0.0);
 }
@@ -221,11 +238,6 @@ void COISensor::jacobianElements(const IOdata& /*inputs*/,
         matrixData.assignCheckCol(firstRow, frequencyColumn, -machine.weight);
         matrixData.assignCheckCol(firstRow + 1, angleColumn, -machine.weight);
     }
-}
-
-stringVec COISensor::localStateNames() const
-{
-    return {"frequency", "angle"};
 }
 
 }  // namespace griddyn

@@ -16,6 +16,7 @@ automatically recovers
 */
 class LoadRelay: public Relay {
   public:
+    const ModelDescription& getModelDescription() const override;
     enum LoadRelayFlags {
         NONDIRECTIONAL_FLAG = OBJECT_FLAG10,
     };
@@ -30,7 +31,6 @@ class LoadRelay: public Relay {
   public:
     explicit LoadRelay(const std::string& objName = "loadRelay_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
 
     virtual void

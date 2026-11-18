@@ -14,13 +14,13 @@ class GovernorHygov4 final: public Governor {
   public:
     explicit GovernorHygov4(const std::string& name = "govHygov4_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
     using Governor::set;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
     void set(std::string_view param, double value, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     void residual(const IOdata& inputs,
                   const StateData& stateData,
                   double resid[],
@@ -40,7 +40,6 @@ class GovernorHygov4 final: public Governor {
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
   private:
     double Rperm = 0.5, Rtemp = 1.0, UO = 1.0, UC = 0.0;

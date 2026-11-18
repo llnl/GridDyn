@@ -52,6 +52,7 @@ Each link has a disconnect switch at the "from" bus and the "to" bus
 */
 class AcLine: public Link {
   public:
+    const ModelDescription& getModelDescription() const override;
     enum AcLineFlags {
         // indicator that the angle slipped past 90 degree on a test
         ANGLE_SLIP_ON_TEST = OBJECT_FLAG10,
@@ -166,7 +167,6 @@ class AcLine: public Link {
     using Link::getAngle;
     virtual double getAngle(const double state[], const SolverMode& sMode) const override;
 
-    virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
     virtual void set(std::string_view param, std::string_view val) override;

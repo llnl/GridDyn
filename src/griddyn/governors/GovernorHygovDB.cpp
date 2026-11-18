@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -30,6 +31,15 @@ GovernorHygovDB::GovernorHygovDB(const std::string& objName): GovernorHygov(objN
     Dturb = 0.0;
     qNL = 0.1;
 }
+const ModelDescription& GovernorHygovDB::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorHygovDB>(
+        "GovernorHygovDB",
+        &GovernorHygov::getModelDescription(),
+        {parameter({"dbl"}, &GovernorHygovDB::dbL, units::one, "Lower deadband limit"),
+         parameter({"dbu"}, &GovernorHygovDB::dbU, units::one, "Upper deadband limit")});
+    return description;
+}
 
 CoreObject* GovernorHygovDB::clone(CoreObject* obj) const
 {
@@ -49,28 +59,6 @@ void GovernorHygovDB::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     GovernorHygov::dynObjectInitializeA(time0, flags);
     offsets.local().local.algRoots = 0;
     offsets.local().local.jacSize = 20;
-}
-
-void GovernorHygovDB::set(std::string_view param, double value, units::unit unitType)
-{
-    if (param == "dbl") {
-        dbL = value;
-    } else if (param == "dbu") {
-        dbU = value;
-    } else {
-        GovernorHygov::set(param, value, unitType);
-    }
-}
-
-double GovernorHygovDB::get(std::string_view param, units::unit unitType) const
-{
-    if (param == "dbl") {
-        return dbL;
-    }
-    if (param == "dbu") {
-        return dbU;
-    }
-    return GovernorHygov::get(param, unitType);
 }
 
 double GovernorHygovDB::governorSpeedDeviation(const IOdata& inputs) const

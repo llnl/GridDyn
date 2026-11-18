@@ -28,6 +28,7 @@ inline constexpr count_t voltageCompensatorInputCount =
 /** Base class for algebraic voltage-sensing compensators attached to a generator. */
 class VoltageCompensator: public GridSubModel {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit VoltageCompensator(const std::string& objName = "vcomp_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     const std::vector<stringVec>& inputNames() const override;

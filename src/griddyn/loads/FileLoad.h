@@ -15,6 +15,7 @@ namespace griddyn::loads {
 /** @brief a load that generates its value from files*/
 class FileLoad: public RampLoad {
   public:
+    const ModelDescription& getModelDescription() const override;
     enum FileLoadFlags {
         USE_ABSOLUTE_TIME_FLAG = OBJECT_FLAG7,
         USE_STEP_CHANGE_FLAG = OBJECT_FLAG8,
@@ -41,7 +42,6 @@ class FileLoad: public RampLoad {
 
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
-    virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;

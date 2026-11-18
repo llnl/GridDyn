@@ -297,6 +297,7 @@ class EventTypeAdapter<CoreObject>: public EventAdapter {
             return;
         }
         eca->targetObject = targetObject;
+        eca->evCode_ = evCode_;
     }
 
     virtual std::unique_ptr<EventAdapter> clone() const override

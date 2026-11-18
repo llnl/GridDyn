@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -24,11 +25,46 @@ namespace {
     constexpr index_t amplifierState = 3;
     constexpr index_t feedbackState = 4;
 
-    bool isWholeNumber(double value)
-    {
-        return std::isfinite(value) && (std::floor(value) == value);
-    }
 }  // namespace
+
+const ModelDescription& ExciterESST1A::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterESST1A>(
+        "ExciterESST1A",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"}, &ExciterESST1A::Tr, units::second, "Voltage measurement time constant"),
+         parameter({"vimax"}, &ExciterESST1A::Vimax, units::one, "Vimax upper limit"),
+         parameter({"vimin"}, &ExciterESST1A::Vimin, units::one, "Vimin lower limit"),
+         parameter({"tb"}, &ExciterESST1A::Tb, units::second, "Lead-lag denominator time constant"),
+         parameter({"tc"}, &ExciterESST1A::Tc, units::second, "Lead-lag numerator time constant"),
+         parameter({"tb1"}, &ExciterESST1A::Tb1, units::second, "Tb1 time constant"),
+         parameter({"tc1"}, &ExciterESST1A::Tc1, units::second, "Tc1 time constant"),
+         parameter({"vamax"}, &ExciterESST1A::Vamax, units::one, "Vamax upper limit"),
+         parameter({"vamin"}, &ExciterESST1A::Vamin, units::one, "Vamin lower limit"),
+         parameter({"ilr"}, &ExciterESST1A::Ilr, units::one, "Ilr model setting"),
+         parameter({"klr"}, &ExciterESST1A::Klr, units::one, "Klr gain or coefficient"),
+         parameter({"kc"}, &ExciterESST1A::Kc, units::one, "Kc gain or coefficient"),
+         parameter({"kf"}, &ExciterESST1A::Kf, units::one, "Kf gain or coefficient"),
+         parameter({"tf"}, &ExciterESST1A::Tf, units::second, "Feedback time constant"),
+         parameter({"uel"}, &ExciterESST1A::uelSelector, units::one, "uelSelector model setting"),
+         parameter(
+             {"vos", "vosc"}, &ExciterESST1A::vosSelector, units::one, "vosSelector model setting"),
+         localState("amplifier_limited",
+                    &ExciterESST1A::opFlags,
+                    ExciterESST1A::AMPLIFIER_LIMITED,
+                    "Retained amplifier_limited mode"),
+         localState("amplifier_limit_high",
+                    &ExciterESST1A::opFlags,
+                    ExciterESST1A::AMPLIFIER_LIMIT_HIGH,
+                    "Retained amplifier_limit_high mode"),
+         state({"efd", "field"}, units::one, 0, "Field voltage"),
+         state({"vmeas"}, units::one, 1, "Measured terminal voltage"),
+         state({"ll1"}, units::one, 2, "ll1 solver state"),
+         state({"ll2"}, units::one, 3, "ll2 solver state"),
+         state({"va"}, units::one, 4, "Amplifier state"),
+         state({"rf"}, units::one, 5, "rf solver state")});
+    return description;
+}
 
 ExciterESST1A::ExciterESST1A(const std::string& objName): Exciter(objName)
 {
@@ -491,150 +527,6 @@ ChangeCode ExciterESST1A::rootCheck(const IOdata& inputs,
     m_dstate_dt[amplifierState + 1] = 0.0;
     alert(this, JAC_COUNT_DECREASE);
     return ChangeCode::JACOBIAN_CHANGE;
-}
-
-void ExciterESST1A::set(std::string_view param, std::string_view val)
-{
-    Exciter::set(param, val);
-}
-
-void ExciterESST1A::set(std::string_view param, double val, units::unit unitType)
-{
-    if (param == "tr") {
-        Tr = val;
-    } else if (param == "vimax") {
-        Vimax = val;
-    } else if (param == "vimin") {
-        Vimin = val;
-    } else if (param == "tb") {
-        Tb = val;
-    } else if (param == "tc") {
-        Tc = val;
-    } else if (param == "tb1") {
-        Tb1 = val;
-    } else if (param == "tc1") {
-        Tc1 = val;
-    } else if (param == "vamax") {
-        Vamax = val;
-    } else if (param == "vamin") {
-        Vamin = val;
-    } else if (param == "ilr") {
-        Ilr = val;
-    } else if (param == "klr") {
-        Klr = val;
-    } else if (param == "kc") {
-        Kc = val;
-    } else if (param == "kf") {
-        Kf = val;
-    } else if (param == "tf") {
-        Tf = val;
-    } else if (param == "uel") {
-        if (!isWholeNumber(val)) {
-            throw InvalidParameterValue("ESST1A UEL selector must be an integer");
-        }
-        uelSelector = static_cast<int>(val);
-    } else if ((param == "vos") || (param == "vosc")) {
-        if (!isWholeNumber(val)) {
-            throw InvalidParameterValue("ESST1A VOS selector must be an integer");
-        }
-        vosSelector = static_cast<int>(val);
-    } else {
-        Exciter::set(param, val, unitType);
-    }
-}
-
-double ExciterESST1A::get(std::string_view param, units::unit unitType) const
-{
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "vimax") {
-        return Vimax;
-    }
-    if (param == "vimin") {
-        return Vimin;
-    }
-    if (param == "tb") {
-        return Tb;
-    }
-    if (param == "tc") {
-        return Tc;
-    }
-    if (param == "tb1") {
-        return Tb1;
-    }
-    if (param == "tc1") {
-        return Tc1;
-    }
-    if (param == "vamax") {
-        return Vamax;
-    }
-    if (param == "vamin") {
-        return Vamin;
-    }
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if ((param == "vrmax") || (param == "urmax")) {
-        return Vrmax;
-    }
-    if ((param == "vrmin") || (param == "urmin")) {
-        return Vrmin;
-    }
-    if (param == "ilr") {
-        return Ilr;
-    }
-    if (param == "klr") {
-        return Klr;
-    }
-    if (param == "kc") {
-        return Kc;
-    }
-    if (param == "kf") {
-        return Kf;
-    }
-    if (param == "tf") {
-        return Tf;
-    }
-    if (param == "uel") {
-        return static_cast<double>(uelSelector);
-    }
-    if ((param == "vos") || (param == "vosc")) {
-        return static_cast<double>(vosSelector);
-    }
-    return Exciter::get(param, unitType);
-}
-
-stringVec ExciterESST1A::localStateNames() const
-{
-    return {"efd", "vmeas", "ll1", "ll2", "va", "rf"};
-}
-
-index_t ExciterESST1A::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "efd") || (field == "field")) {
-        return offsets.getAlgOffset(sMode);
-    }
-    const auto offset = offsets.getDiffOffset(sMode);
-    if (field == "vmeas") {
-        return offset + voltageMeasurementState;
-    }
-    if (field == "ll1") {
-        return offset + firstLeadLagState;
-    }
-    if (field == "ll2") {
-        return offset + secondLeadLagState;
-    }
-    if (field == "va") {
-        return offset + amplifierState;
-    }
-    if (field == "rf") {
-        return offset + feedbackState;
-    }
-    return kInvalidLocation;
 }
 
 }  // namespace griddyn::exciters

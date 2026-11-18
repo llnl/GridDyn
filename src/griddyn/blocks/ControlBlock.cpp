@@ -7,11 +7,46 @@
 #include "ControlBlock.h"
 
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <string>
 
 namespace griddyn::blocks {
+const ModelDescription& ControlBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ControlBlock>(
+        "ControlBlock",
+        &GridBlock::getModelDescription(),
+        {parameter({"t1", "t"}, &ControlBlock::mT1, units::defunit, "Delay time constant"),
+         parameter({"t2"}, &ControlBlock::mT2, units::defunit, "Upper time constant"),
+         state<ControlBlock>(
+             {"output"},
+             units::defunit,
+             [](const auto& model) { return model.limiter_alg + model.limiter_diff; },
+             "Controller output"),
+         state<ControlBlock>(
+             {"intermediate", "m1"},
+             units::defunit,
+             [](const auto& model) { return model.limiter_alg + model.limiter_diff + 1; },
+             "Intermediate controller state"),
+         state<ControlBlock>(
+             {"limiter_out"},
+             units::one,
+             [](const auto& model) {
+                 return model.limiter_alg + model.limiter_diff > 0 ? 0 : kInvalidLocation;
+             },
+             "Solver variable limiter_out"),
+         state<ControlBlock>(
+             {"ramp_limiter_out"},
+             units::one,
+             [](const auto& model) {
+                 return model.limiter_alg + model.limiter_diff > 1 ? 1 : kInvalidLocation;
+             },
+             "Solver variable ramp_limiter_out")});
+    return description;
+}
+
 ControlBlock::ControlBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(USE_STATE);
@@ -192,47 +227,5 @@ double ControlBlock::step(CoreTime time, double input)
     return out;
 }
 
-index_t ControlBlock::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    index_t ret = kInvalidLocation;
-    if (field == "m1") {
-        ret = offsets.getDiffOffset(sMode);
-    } else {
-        ret = GridBlock::findIndex(field, sMode);
-    }
-    return ret;
-}
-
 // set parameters
-void ControlBlock::set(std::string_view param, std::string_view val)
-{
-    GridBlock::set(param, val);
-}
-void ControlBlock::set(std::string_view param, double val, units::unit unitType)
-{
-    // param   = GridDynSimulation::toLower(param);
-
-    if ((param == "t1") || (param == "t")) {
-        mT1 = val;
-    } else if (param == "t2") {
-        mT2 = val;
-    } else {
-        GridBlock::set(param, val, unitType);
-    }
-}
-
-stringVec ControlBlock::localStateNames() const
-{
-    stringVec out(stateSize(cLocalSolverMode));
-    int loc = 0;
-    if (opFlags[USE_BLOCK_LIMITS]) {
-        out[loc++] = "limiter_out";
-    }
-    if (opFlags[USE_RAMP_LIMITS]) {
-        out[loc++] = "ramp_limiter_out";
-    }
-    out[loc++] = "output";
-    out[loc] = "intermediate";
-    return out;
-}
 }  // namespace griddyn::blocks

@@ -29,6 +29,7 @@ namespace griddyn::blocks {
  */
 class DeadbandBlock: public GridBlock {
   public:
+    const ModelDescription& getModelDescription() const override;
     /** @brief flags for the deadband block*/
     enum DeadbandBlockFlags {
         USES_DEADBAND = OBJECT_FLAG10,  //!< flag indicating the deadband is in use

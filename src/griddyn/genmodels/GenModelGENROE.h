@@ -36,6 +36,7 @@ class GenModelGENROE final: public GenModelGENROU {
   public:
     explicit GenModelGENROE(const std::string& objName = "genroe_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
 };
 
 }  // namespace griddyn::genmodels

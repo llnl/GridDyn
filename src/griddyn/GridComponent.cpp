@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
@@ -15,6 +16,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <cmath>
 #include <format>
 #include <functional>
 #include <iostream>
@@ -30,6 +32,37 @@ using gmlc::utilities::ensureSizeAtLeast;
 GridComponent::GridComponent(const std::string& objName): CoreObject(objName)
 {
     offsets.setAlgOffset(0, cLocalSolverMode);
+}
+
+const ModelDescription& GridComponent::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridComponent>(
+        "GridComponent",
+        &CoreObject::getModelDescription(),
+        {parameter({"basepower", "basemw", "basemva"},
+                   &GridComponent::systemBasePower,
+                   units::MW,
+                   "System power base"),
+         parameter({"basevoltage", "vbase", "voltagebase", "basev", "bv", "base voltage"},
+                   &GridComponent::localBaseVoltage,
+                   units::V,
+                   "Local voltage base"),
+         parameter({"basefrequency", "basefreq", "systembasefrequency"},
+                   &GridComponent::systemBaseFrequency,
+                   units::rad / units::s,
+                   "System frequency base"),
+         command({"flags"}, units::defunit, "Apply a list of flags", ModelFieldType::STRING),
+         command(
+             {"status"}, units::defunit, "Set enablement or connectivity", ModelFieldType::STRING),
+         command(
+             {"connected"}, units::defunit, "Change connection status", ModelFieldType::BOOLEAN),
+         command(
+             {"disconnected"}, units::defunit, "Invert connection status", ModelFieldType::BOOLEAN),
+         command({"SAMPLED_ONLY"},
+                 units::defunit,
+                 "Use sampled evaluations only",
+                 ModelFieldType::BOOLEAN)});
+    return description;
 }
 
 GridComponent::~GridComponent()
@@ -419,6 +452,9 @@ static const auto& userSettableFlags()
 // allowing them to be set by an external function might not be the best thing
 void GridComponent::setFlag(std::string_view flag, bool val)
 {
+    if (GridComponent::getModelDescription().trySetFlag(*this, flag, val)) {
+        return;
+    }
     const auto& flags = userSettableFlags();
     auto ffind = flags.find(flag);
     if (ffind != flags.end()) {
@@ -538,6 +574,9 @@ static const auto& flagMap()
 
 bool GridComponent::getFlag(std::string_view flag) const
 {
+    if (const auto value = GridComponent::getModelDescription().tryGetFlag(*this, flag)) {
+        return *value;
+    }
     const auto& flags = flagMap();
     auto flagfind = flags.find(flag);
     if (flagfind != flags.end()) {
@@ -574,19 +613,6 @@ void GridComponent::disconnect()
 {
     opFlags.set(DISCONNECTED);
 }
-static constexpr auto localNumericStrings =
-    std::array<std::string_view, 3>{"status", "basefrequency", "basepower"};
-
-static constexpr auto localStringStrings = std::array<std::string_view, 1>{"status"};
-
-static constexpr std::array<std::string_view, 0> localFlagStrings{};
-
-void GridComponent::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    getParamString<GridComponent, CoreObject>(
-        this, pstr, localNumericStrings, localStringStrings, localFlagStrings, pstype);
-}
-
 void GridComponent::set(std::string_view param, std::string_view val)
 {
     if (opFlags[NO_GRIDCOMPONENT_SET]) {
@@ -594,29 +620,21 @@ void GridComponent::set(std::string_view param, std::string_view val)
     }
 
     if (param == "status") {
-        auto valueLower = convertToLowerCase(std::string{val});
-        if ((valueLower == "on") || (valueLower == "in") || (valueLower == "enabled")) {
+        const auto [flag, active] = parseStatus(val);
+        if (flag == "connected") {
+            setFlag(flag, active);
+        } else if (active) {
             if (!isEnabled()) {
                 enable();
                 if ((opFlags[HAS_PFLOW_STATES]) || (opFlags[HAS_DYN_STATES])) {
                     alert(this, STATE_COUNT_CHANGE);
                 }
             }
-        } else if ((valueLower == "off") || (valueLower == "out") || (valueLower == "disabled")) {
-            if (isEnabled()) {
-                if ((opFlags[HAS_PFLOW_STATES]) || (opFlags[HAS_DYN_STATES])) {
-                    alert(this, STATE_COUNT_CHANGE);
-                }
-                disable();
+        } else if (isEnabled()) {
+            if ((opFlags[HAS_PFLOW_STATES]) || (opFlags[HAS_DYN_STATES])) {
+                alert(this, STATE_COUNT_CHANGE);
             }
-        } else if (valueLower == "connected") {
-            if (!isConnected()) {
-                reconnect();
-            }
-        } else if (valueLower == "disconnected") {
-            if (isConnected()) {
-                disconnect();
-            }
+            disable();
         }
     } else if (param == "flags") {
         setMultipleFlags(this, val);
@@ -699,7 +717,10 @@ void GridComponent::set(std::string_view param, double val, units::unit unitType
     }
 
     if ((param == "enabled") || (param == "status")) {
-        if (val > 0.1) {
+        if (!std::isfinite(val)) {
+            throw InvalidParameterValue(param);
+        }
+        if (val != 0.0) {
             if (!isEnabled()) {
                 enable();
                 if (opFlags[HAS_DYN_STATES]) {
@@ -715,7 +736,10 @@ void GridComponent::set(std::string_view param, double val, units::unit unitType
             }
         }
     } else if (param == "connected") {
-        if (val > 0.1) {
+        if (!std::isfinite(val)) {
+            throw InvalidParameterValue(param);
+        }
+        if (val != 0.0) {
             if (!isConnected()) {
                 reconnect();
             }
@@ -765,6 +789,9 @@ double GridComponent::get(std::string_view param, units::unit unitType) const
         out = units::convert(systemBaseFrequency, units::rad / units::s, unitType);
     } else if (param == "basevoltage") {
         out = units::convert(localBaseVoltage, units::V, unitType);
+    } else if (const auto value =
+                   GridComponent::getModelDescription().tryGet(*this, param, unitType)) {
+        out = *value;
     } else if (param == "jacsize") {
         if (opFlags[DYN_INITIALIZED]) {
             out = jacSize(cDaeSolverMode);
@@ -1397,15 +1424,9 @@ void GridComponent::setRootOffset(index_t newRootOffset, const SolverMode& sMode
     }
 }
 
-static const stringVec& emptyStrings()
+stringVec GridComponent::solverStateNames() const
 {
-    static const stringVec strings{};
-    return strings;
-}
-
-stringVec GridComponent::localStateNames() const
-{
-    return emptyStrings();
+    return getModelDescription().solverStateNames(*this);
 }
 
 static const std::vector<stringVec>& inputNamesStorage()
@@ -1466,9 +1487,56 @@ units::unit GridComponent::outputUnits(index_t /*outputNum*/) const
     return units::defunit;
 }
 
+index_t GridComponent::solverIndex(index_t localIndex, const SolverMode& sMode) const
+{
+    if (std::cmp_less(localIndex, 0) || localIndex >= kInvalidLocation) {
+        return kInvalidLocation;
+    }
+    const auto& local = offsets.local().local;
+    const auto& active = offsets.getOffsets(sMode);
+    struct Group {
+        count_t mSize;
+        count_t mActiveSize;
+        index_t mOffset;
+        bool mIncluded;
+    };
+    const std::array<Group, 4> groups{{{.mSize = local.vSize,
+                                        .mActiveSize = active.local.vSize,
+                                        .mOffset = active.vOffset,
+                                        .mIncluded = hasAlgebraic(sMode)},
+                                       {.mSize = local.aSize,
+                                        .mActiveSize = active.local.aSize,
+                                        .mOffset = active.aOffset,
+                                        .mIncluded = hasAlgebraic(sMode)},
+                                       {.mSize = local.algSize,
+                                        .mActiveSize = active.local.algSize,
+                                        .mOffset = active.algOffset,
+                                        .mIncluded = hasAlgebraic(sMode)},
+                                       {.mSize = local.diffSize,
+                                        .mActiveSize = active.local.diffSize,
+                                        .mOffset = active.diffOffset,
+                                        .mIncluded = hasDifferential(sMode)}}};
+    for (const auto& group : groups) {
+        if (localIndex < group.mSize) {
+            return group.mIncluded && localIndex < group.mActiveSize &&
+                    group.mOffset != kNullLocation && group.mOffset != kInvalidLocation ?
+                group.mOffset + localIndex :
+                kNullLocation;
+        }
+        localIndex -= group.mSize;
+    }
+    return opFlags[DYN_INITIALIZED] ? kInvalidLocation : kNullLocation;
+}
+
 // NOLINTNEXTLINE(misc-no-recursion)
 index_t GridComponent::findIndex(std::string_view field, const SolverMode& sMode) const
 {
+    if (const auto index = getModelDescription().solverStateIndex(
+            *this, field, sMode, [this, &sMode](index_t local) {
+                return solverIndex(local, sMode);
+            })) {
+        return *index;
+    }
     const auto& solverOffsetsValue = offsets.getOffsets(sMode);
     if (field.starts_with("state")) {
         auto num = static_cast<index_t>(
@@ -1509,28 +1577,6 @@ index_t GridComponent::findIndex(std::string_view field, const SolverMode& sMode
         }
         return kInvalidLocation;
     }
-    auto stateNames = localStateNames();
-    for (index_t nn = 0; std::cmp_less(nn, stateNames.size()); ++nn) {
-        if (field == stateNames[nn]) {
-            const auto& localOffsetsValue = offsets.local();
-            if (nn < localOffsetsValue.local.algSize) {
-                if (solverOffsetsValue.algOffset != kNullLocation) {
-                    return solverOffsetsValue.algOffset + nn;
-                }
-                return kNullLocation;
-            }
-            if (nn - localOffsetsValue.local.algSize < localOffsetsValue.local.diffSize) {
-                if (solverOffsetsValue.diffOffset != kNullLocation) {
-                    return solverOffsetsValue.diffOffset + nn - localOffsetsValue.local.algSize;
-                }
-                return kNullLocation;
-            }
-            if (!opFlags[DYN_INITIALIZED]) {
-                return kNullLocation;
-            }
-            return kInvalidLocation;
-        }
-    }
     for (auto* subobj : subObjectList) {
         auto ret = subobj->findIndex(field, sMode);
         if (ret != kInvalidLocation) {
@@ -1554,70 +1600,47 @@ void GridComponent::getStateName(stringVec& stNames,
     } else {
         return;
     }
-    auto stateNames = localStateNames();
-    auto stsize = static_cast<index_t>(stateNames.size());
-    decltype(mxsize) stateNameIndex = 0;
-    const auto makeStateName = [&prefix2](std::string_view stateType, index_t index) {
-        std::string stateName{prefix2};
-        stateName += stateType;
-        stateName.push_back('_');
-        gmlc::utilities::stringOps::appendInteger(stateName, index);
-        return stateName;
-    };
-    if (hasAlgebraic(sMode)) {
-        for (index_t kk = 0; kk < solverOffsetsValue.local.vSize; kk++) {
-            if (!stNames[solverOffsetsValue.vOffset + kk].empty()) {
-                continue;
-            }
-            if (stsize > stateNameIndex) {
-                stNames[solverOffsetsValue.vOffset + kk] = prefix2 + stateNames[stateNameIndex];
-                ++stateNameIndex;
-            } else {
-                stNames[solverOffsetsValue.vOffset + kk] = makeStateName("voltage_state", kk);
-            }
+    // Bind both local-vector states and owned mode-specific states through their declarations.
+    for (const auto* field : getModelDescription().stateFields()) {
+        if (field->kind() == ModelFieldKind::STATE_REFERENCE) {
+            continue;
         }
-        stateNameIndex = offsets.local().local.vSize;
-        for (index_t kk = 0; kk < solverOffsetsValue.local.aSize; kk++) {
-            if (!stNames[solverOffsetsValue.aOffset + kk].empty()) {
+        for (index_t element = 0; element < field->stateCount(*this); ++element) {
+            auto index = field->solverStateIndex(*this, sMode);
+            if (!index) {
+                const auto local = field->stateIndex(*this, element);
+                if (!local) {
+                    continue;
+                }
+                index = solverIndex(*local, sMode);
+            }
+            if (*index < 0 || *index >= kInvalidLocation ||
+                std::cmp_greater_equal(*index, stNames.size())) {
                 continue;
             }
-            if (stsize > stateNameIndex) {
-                stNames[solverOffsetsValue.aOffset + kk] = prefix2 + stateNames[stateNameIndex];
-                ++stateNameIndex;
-            } else {
-                stNames[solverOffsetsValue.aOffset + kk] = makeStateName("angle_state", kk);
-            }
-        }
-        stateNameIndex = offsets.local().local.vSize + offsets.local().local.aSize;
-        for (index_t kk = 0; kk < solverOffsetsValue.local.algSize; kk++) {
-            if (!stNames[solverOffsetsValue.algOffset + kk].empty()) {
-                continue;
-            }
-            if (stsize > stateNameIndex) {
-                stNames[solverOffsetsValue.algOffset + kk] = prefix2 + stateNames[stateNameIndex];
-                ++stateNameIndex;
-            } else {
-                stNames[solverOffsetsValue.algOffset + kk] = makeStateName("alg_state", kk);
+            if (stNames[*index].empty()) {
+                stNames[*index] = prefix2 + field->stateName(*this, element);
             }
         }
     }
-    if (!isAlgebraicOnly(sMode)) {
-        if (solverOffsetsValue.local.diffSize > 0) {
-            stateNameIndex = offsets.local().local.algSize + offsets.local().local.vSize +
-                offsets.local().local.aSize;
-            for (index_t kk = 0; kk < solverOffsetsValue.local.diffSize; kk++) {
-                if (!stNames[solverOffsetsValue.diffOffset + kk].empty()) {
-                    continue;
-                }
-                if (stsize > stateNameIndex) {
-                    stNames[solverOffsetsValue.diffOffset + kk] =
-                        prefix2 + stateNames[stateNameIndex];
-                    ++stateNameIndex;
-                } else {
-                    stNames[solverOffsetsValue.diffOffset + kk] = makeStateName("diff_state", kk);
-                }
+    const auto fillUnnamed = [&stNames,
+                              &prefix2](index_t offset, count_t size, std::string_view type) {
+        if (offset == kNullLocation || offset == kInvalidLocation) {
+            return;
+        }
+        for (index_t index = 0; index < size; ++index) {
+            if (stNames[offset + index].empty()) {
+                stNames[offset + index] = prefix2 + std::string(type) + '_' + std::to_string(index);
             }
         }
+    };
+    if (hasAlgebraic(sMode)) {
+        fillUnnamed(solverOffsetsValue.vOffset, solverOffsetsValue.local.vSize, "voltage_state");
+        fillUnnamed(solverOffsetsValue.aOffset, solverOffsetsValue.local.aSize, "angle_state");
+        fillUnnamed(solverOffsetsValue.algOffset, solverOffsetsValue.local.algSize, "alg_state");
+    }
+    if (hasDifferential(sMode)) {
+        fillUnnamed(solverOffsetsValue.diffOffset, solverOffsetsValue.local.diffSize, "diff_state");
     }
 
     for (auto* subobj : subObjectList) {

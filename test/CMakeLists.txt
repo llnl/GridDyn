@@ -11,12 +11,8 @@ include(AddGoogletest)
 
 set(gtestMain_headers gtestHelper.h)
 set(extra_gtest_sources
-    gtestHelperFunctions.cpp
-    extraTests/testExtra.cpp
-    extraTests/performanceTests.cpp
-    extraTests/largeContingencyTests.cpp
-    extraTests/largeInputTests.cpp
-    extraTests/objectSizeReport.cpp
+    gtestHelperFunctions.cpp extraTests/performanceTests.cpp extraTests/largeContingencyTests.cpp
+    extraTests/largeInputTests.cpp extraTests/objectSizeReport.cpp
 )
 
 if(GRIDDYN_ENABLE_FMI)
@@ -25,9 +21,9 @@ endif()
 
 set(library_gtest_sources
     gtestHelperFunctions.cpp
-    libraryTests/gtestLibrarySmokeTests.cpp
     libraryTests/testBasicOdeSolver.cpp
     libraryTests/testCore.cpp
+    libraryTests/testModelParameters.cpp
     libraryTests/testGridParameter.cpp
     libraryTests/testMatrixData.cpp
     libraryTests/testZipUtilities.cpp
@@ -38,23 +34,29 @@ set(library_gtest_sources
 
 set(file_reader_gtest_sources
     gtestHelperFunctions.cpp
-    libraryTests/testReaderInfo.cpp
-    libraryTests/testExampleReaders.cpp
-    libraryTests/testSavReader.cpp
-    libraryTests/testSolverReader.cpp
-    libraryTests/testXML.cpp
-    libraryTests/testJsonReader.cpp
-    libraryTests/testElementReaders.cpp
-    libraryTests/testGridDynRunner.cpp
-    ../src/runner/gridDynRunner.cpp
+    readerTests/testReaderInfo.cpp
+    readerTests/testExampleReaders.cpp
+    readerTests/testSavReader.cpp
+    readerTests/testSolverReader.cpp
+    readerTests/testXML.cpp
+    readerTests/testJsonReader.cpp
+    readerTests/testXmlElementReader.cpp
+    readerTests/testYamlElementReader.cpp
 )
 
-set(model_comparison_gtest_sources gtestHelperFunctions.cpp comparisonTests/testModelComparison.cpp)
+set(model_comparison_gtest_sources gtestHelperFunctions.cpp comparisonTests/testModelComparison.cpp
+                                   comparisonTests/testPowerFlowComparison.cpp
+)
 
 set(network_component_gtest_sources
-    gtestHelperFunctions.cpp componentTests/testLoads.cpp componentTests/testdcLinks.cpp
+    gtestHelperFunctions.cpp
+    componentTests/testLoads.cpp
+    componentTests/testdcLinks.cpp
+    componentTests/testLinks.cpp
+    componentTests/testAdjustableTX.cpp
+    componentTests/testExponentialLoadParameters.cpp
+    componentTests/testComponentDescriptions.cpp
     componentTests/testMotorDQ.cpp
-    componentTests/testLinks.cpp componentTests/testAdjustableTX.cpp
 )
 
 set(generator_component_gtest_sources
@@ -65,10 +67,13 @@ set(generator_component_gtest_sources
     componentTests/testPSS2BESAC2A.cpp
     componentTests/testGenerators.cpp
     componentTests/testGenModels.cpp
+    componentTests/testMachineDescription.cpp
     componentTests/testEPCGEN.cpp
     componentTests/testRenewableModels.cpp
     componentTests/testDistributedModels.cpp
     componentTests/testExciters.cpp
+    componentTests/testSolverStateDescriptions.cpp
+    componentTests/testExciterDescription.cpp
     componentTests/testVoltageCompensators.cpp
 )
 
@@ -94,7 +99,7 @@ endif()
 if(GRIDDYN_ENABLE_FMI)
     list(APPEND optional_component_gtest_sources componentTests/testFMI.cpp)
 endif()
-if(GRIDDYN_ENABLE_ZMQ OR ZMQ_NEEDED)
+if(GRIDDYN_ENABLE_NETWORKING_LIBRARY AND GRIDDYN_ENABLE_ZMQ)
     list(APPEND optional_component_gtest_sources ../src/networking/test/zmqTest.cpp)
 endif()
 if(GRIDDYN_ENABLE_HELICS_EXECUTABLE)
@@ -121,7 +126,7 @@ set(workflow_system_gtest_sources
 )
 
 set(executable_system_gtest_sources systemTests/testMainExe.cpp systemTests/testGridDynRunner.cpp
-                                    exeTestHelper.cpp
+                                    systemTests/testRunnerPlayback.cpp exeTestHelper.cpp
 )
 
 set(dynamic_system_gtest_sources
@@ -135,7 +140,9 @@ set(dynamic_system_gtest_sources
 )
 
 if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
-    set(optimization_gtest_sources gtestHelperFunctions.cpp optimizationTests/testDcFormulation.cpp)
+    set(optimization_gtest_sources gtestHelperFunctions.cpp optimizationTests/testDcFormulation.cpp
+                                   optimizationTests/testOptimizationDescription.cpp
+    )
 endif()
 
 add_library(griddyn_gtest_base INTERFACE)
@@ -219,7 +226,11 @@ target_link_libraries(
 target_link_libraries(PowerflowSystemTests PRIVATE fileInput griddyn_gtest_base)
 target_link_libraries(WorkflowSystemTests PRIVATE fileInput griddyn_gtest_base)
 target_link_libraries(DynamicSystemTests PRIVATE fileInput griddyn_gtest_base)
-target_link_libraries(ExecutableSystemTests PRIVATE griddyn_gtest_base)
+target_link_libraries(ExecutableSystemTests PRIVATE runner griddyn_gtest_base)
+add_dependencies(ExecutableSystemTests gridDynMain)
+target_compile_definitions(
+    ExecutableSystemTests PRIVATE GRIDDYN_TEST_MAIN_DIRECTORY="$<TARGET_FILE_DIR:gridDynMain>"
+)
 target_link_libraries(
     OptionalComponentTests PRIVATE griddyn_optional fileInput griddyn_gtest_base
                                    ${optional_component_test_linkages}
@@ -235,25 +246,8 @@ if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
         endif()
     endif()
 endif()
-add_gtest(LibraryTests)
-add_gtest(ExtraTests)
-add_gtest(FileReaderTests)
-add_gtest(ModelComparisonTests)
-add_gtest(NetworkComponentTests)
-add_gtest(GeneratorComponentTests)
-add_gtest(EventComponentTests)
-add_gtest(SystemComponentTests)
-add_gtest(PowerflowSystemTests)
-add_gtest(WorkflowSystemTests)
-add_gtest(DynamicSystemTests)
-add_gtest(ExecutableSystemTests)
-add_gtest(OptionalComponentTests)
-if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
-    add_gtest(OptimizationTests)
-endif()
-set_target_properties(
+set(continuous_test_targets
     LibraryTests
-    ExtraTests
     FileReaderTests
     ModelComparisonTests
     NetworkComponentTests
@@ -265,43 +259,16 @@ set_target_properties(
     DynamicSystemTests
     ExecutableSystemTests
     OptionalComponentTests
-    PROPERTIES FOLDER tests
 )
 if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
-    set_target_properties(OptimizationTests PROPERTIES FOLDER tests)
+    list(APPEND continuous_test_targets OptimizationTests)
 endif()
-set_tests_properties(LibraryTests PROPERTIES LABELS "Quick;Continuous")
-set_tests_properties(ExtraTests PROPERTIES LABELS "Nightly")
-set_tests_properties(FileReaderTests PROPERTIES LABELS "Quick;Continuous")
-set_tests_properties(ModelComparisonTests PROPERTIES LABELS "Quick;Continuous")
-set_tests_properties(NetworkComponentTests PROPERTIES LABELS "Quick;Continuous")
-set_tests_properties(GeneratorComponentTests PROPERTIES LABELS "Quick;Continuous")
-set_tests_properties(EventComponentTests PROPERTIES LABELS "Quick;Continuous")
-set_tests_properties(SystemComponentTests PROPERTIES LABELS "Quick;Continuous")
-set_tests_properties(PowerflowSystemTests PROPERTIES LABELS "Quick;Continuous")
-set_tests_properties(WorkflowSystemTests PROPERTIES LABELS "Quick;Continuous")
-set_tests_properties(DynamicSystemTests PROPERTIES LABELS "Quick;Continuous")
-set_tests_properties(ExecutableSystemTests PROPERTIES LABELS "Quick;Continuous")
-set_tests_properties(OptionalComponentTests PROPERTIES LABELS "Quick;Continuous")
-if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
-    set_tests_properties(OptimizationTests PROPERTIES LABELS "Quick;Continuous")
-endif()
+foreach(test_target IN LISTS continuous_test_targets)
+    add_gtest(${test_target} "Quick;Continuous")
+endforeach()
+add_gtest(ExtraTests "Nightly")
 
-# message(${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
-install(TARGETS ExtraTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
-install(TARGETS LibraryTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
-install(TARGETS FileReaderTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
-install(TARGETS ModelComparisonTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
-install(TARGETS NetworkComponentTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
-install(TARGETS GeneratorComponentTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
-install(TARGETS EventComponentTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
-install(TARGETS SystemComponentTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
-install(TARGETS PowerflowSystemTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
-install(TARGETS WorkflowSystemTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
-install(TARGETS DynamicSystemTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
-install(TARGETS ExecutableSystemTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
-install(TARGETS OptionalComponentTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
-if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
-    install(TARGETS OptimizationTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
-endif()
+install(TARGETS ${continuous_test_targets} ExtraTests
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/
+)

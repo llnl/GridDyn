@@ -9,6 +9,7 @@
 #include "GenModelCSVGN1.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "otherGenModels.h"
@@ -90,6 +91,18 @@ GenModel::GenModel(const std::string& objName): GridSubModel(objName)
     m_inputSize = 4;
     m_outputSize = 2;
 }
+const ModelDescription& GenModel::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GenModel>(
+        "GenModel",
+        &GridSubModel::getModelDescription(),
+        {parameter({"x", "xd", "xs"}, &GenModel::Xd, units::one, "D-axis reactance"),
+         parameter({"r", "rs"}, &GenModel::Rs, units::one, "Stator resistance"),
+         parameter(
+             {"base", "mbase"}, &GenModel::machineBasePower, units::MW, "Machine power base")});
+    return description;
+}
+
 CoreObject* GenModel::clone(CoreObject* obj) const
 {
     auto* genModelClone = cloneBase<GenModel, GridSubModel>(this, obj);
@@ -253,37 +266,6 @@ void GenModel::ioPartialDerivatives(const IOdata& inputs,
 }
 
 // set parameters
-void GenModel::set(std::string_view param, std::string_view val)
-{
-    GridSubModel::set(param, val);
-}
-void GenModel::set(std::string_view param, double val, units::unit unitType)
-{
-    if (param.length() == 1) {
-        switch (param[0]) {
-            case 'x':
-                Xd = val;
-                break;
-            case 'r':
-                Rs = val;
-                break;
-            default:
-                throw(UnrecognizedParameter(param));
-        }
-        return;
-    }
-
-    if ((param == "xd") || (param == "xs")) {
-        Xd = val;
-    } else if (param == "rs") {
-        Rs = val;
-    } else if ((param == "base") || (param == "mbase")) {
-        machineBasePower = val;
-    } else {
-        GridSubModel::set(param, val, unitType);
-    }
-}
-
 const std::vector<stringVec>& GenModel::inputNames() const
 {
     return genModelInputNames();

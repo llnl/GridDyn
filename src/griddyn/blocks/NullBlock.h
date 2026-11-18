@@ -21,6 +21,7 @@ namespace griddyn::blocks {
  */
 class NullBlock final: public GridBlock {
   public:
+    const ModelDescription& getModelDescription() const override;
     /** @brief default constructor*/
     explicit NullBlock(const std::string& objName = "nullblock_#");
 

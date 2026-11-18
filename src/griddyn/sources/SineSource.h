@@ -14,6 +14,7 @@ namespace griddyn::sources {
  */
 class SineSource: public PulseSource {
   public:
+    const ModelDescription& getModelDescription() const override;
     static const char pulsedFlag = OBJECT_FLAG4;  //!< indicator that the source should be pulsed
   protected:
     model_parameter frequency = 0.0;  //!<[Hz] frequency of an oscillation
@@ -28,7 +29,7 @@ class SineSource: public PulseSource {
     SineSource(const std::string& objName = "sineSource_#", double startVal = 0.0);
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual void set(std::string_view param, std::string_view val) override;
+    using PulseSource::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 

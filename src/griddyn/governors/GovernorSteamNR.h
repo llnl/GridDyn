@@ -38,17 +38,15 @@ class GovernorSteamNR: public GovernorIeeeSimple {
     GovernorSteamNR(const std::string& objName = "govSteamNR_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual ~GovernorSteamNR();
+    const ModelDescription& getModelDescription() const override;
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void set(std::string_view param, std::string_view val) override;
+    using GovernorIeeeSimple::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual double get(std::string_view param,
-                       units::unit unitType = units::defunit) const override;
-    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
     virtual void residual(const IOdata& inputs,
                           const StateData& stateData,

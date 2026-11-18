@@ -104,30 +104,30 @@ void BasicOdeSolver::initialize(CoreTime t0)
     solveTime = t0;
 }
 
-double BasicOdeSolver::get(std::string_view param) const
-{
-    if (isStepSizeParam(param)) {
-        return deltaT;
-    }
-    return SolverInterface::get(param);
-}
-void BasicOdeSolver::set(std::string_view param, std::string_view val)
-{
-    // parameters starting with '#' are comments and are ignored
-    if (!param.empty() && param[0] != '#') {
-        SolverInterface::set(param, val);
-    }
-}
 void BasicOdeSolver::set(std::string_view param, double val)
 {
-    if (isStepSizeParam(param)) {
-        if (!(val > 0.0) || !std::isfinite(val)) {
-            throw(InvalidParameterValue(param));
-        }
-        deltaT = val;
-    } else {
-        SolverInterface::set(param, val);
+    if (isStepSizeParam(param) && (!(val > 0.0) || !std::isfinite(val))) {
+        throw(InvalidParameterValue(param));
     }
+    SolverInterface::set(param, val);
+}
+
+void BasicOdeSolver::restoreFromCheckpoint(CoreTime time)
+{
+    if (!isInitialized()) {
+        throw(InvalidSolverOperation());
+    }
+    solveTime = time;
+    solverCallCount = 0;
+}
+
+const SolverInterface::Description& BasicOdeSolver::getSolverDescription() const
+{
+    static constexpr Property<double> numeric[]{
+        fixedStepProperty<BasicOdeSolver, &BasicOdeSolver::deltaT>()};
+    static const Description description{.numeric = numeric,
+                                         .parent = &SolverInterface::getSolverDescription()};
+    return description;
 }
 
 int BasicOdeSolver::advanceStep(CoreTime tStop)

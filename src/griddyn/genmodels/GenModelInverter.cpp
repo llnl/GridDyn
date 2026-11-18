@@ -10,6 +10,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -20,6 +21,21 @@
 
 namespace griddyn::genmodels {
 GenModelInverter::GenModelInverter(const std::string& objName): GenModel(objName) {}
+const ModelDescription& GenModelInverter::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GenModelInverter>(
+        "GenModelInverter",
+        &GenModel::getModelDescription(),
+        {parameter({"maxangle"}, &GenModelInverter::maxAngle, units::rad, "Maximum firing angle"),
+         parameter({"minangle"}, &GenModelInverter::minAngle, units::rad, "Minimum firing angle"),
+         localState("angle_limited",
+                    &GenModelInverter::opFlags,
+                    AT_ANGLE_LIMITS,
+                    "Retained limiter state"),
+         state({"angle"}, units::rad, 0, "Solver variable angle")});
+    return description;
+}
+
 CoreObject* GenModelInverter::clone(CoreObject* obj) const
 {
     auto* genModelClone = cloneBase<GenModelInverter, GenModel>(this, obj);
@@ -345,11 +361,6 @@ count_t GenModelInverter::outputDependencyCount(index_t /*num*/, const SolverMod
 {
     return 1;
 }
-stringVec GenModelInverter::localStateNames() const
-{
-    static const stringVec genModelNames{"angle"};
-    return genModelNames;
-}
 // set parameters
 void GenModelInverter::set(std::string_view param, std::string_view val)
 {
@@ -358,35 +369,12 @@ void GenModelInverter::set(std::string_view param, std::string_view val)
 
 void GenModelInverter::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param.length() == 1) {
-        switch (param[0]) {
-            case 'x':
-                Xd = val;
-                reCalcImpedences();
-                break;
-            case 'r':
-                Rs = val;
-                reCalcImpedences();
-                break;
-            default:
-                throw(UnrecognizedParameter(param));
-        }
-
+    if (isSetHandled(GenModelInverter::getModelDescription().trySet(*this, param, val, unitType))) {
         return;
     }
-
-    if ((param == "xd") || (param == "xs")) {
-        Xd = val;
+    GenModel::set(param, val, unitType);
+    if (param == "x" || param == "xd" || param == "xs" || param == "r" || param == "rs") {
         reCalcImpedences();
-    } else if (param == "maxangle") {
-        maxAngle = units::convert(val, unitType, units::rad);
-    } else if (param == "minangle") {
-        minAngle = units::convert(val, unitType, units::rad);
-    } else if (param == "rs") {
-        Rs = val;
-        reCalcImpedences();
-    } else {
-        GenModel::set(param, val, unitType);
     }
 }
 

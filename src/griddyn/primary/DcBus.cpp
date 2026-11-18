@@ -12,6 +12,7 @@
 #include "../Load.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
@@ -25,6 +26,26 @@ namespace griddyn {
 static TypeFactory<DcBus> gBf("bus", std::to_array<std::string_view>({"dc", "hvdc"}));
 
 using units::unit;
+
+const ModelDescription& DcBus::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<DcBus>(
+        "DcBus",
+        &GridBus::getModelDescription(),
+        {command({"type", "bustype", "pflowtype"},
+                 units::defunit,
+                 "Configure type",
+                 ModelFieldType::STRING),
+         command({"dyntype"}, units::defunit, "Configure dyntype", ModelFieldType::STRING),
+         state<DcBus>(
+             {"voltage"},
+             units::puV,
+             [](const auto& model, const auto& mode) {
+                 return hasAlgebraic(mode) ? model.offsets.getVOffset(mode) : kNullLocation;
+             },
+             "Solver variable voltage")});
+    return description;
+}
 
 DcBus::DcBus(const std::string& objName): GridBus(objName), busController(this) {}
 
@@ -242,51 +263,12 @@ void DcBus::set(std::string_view param, std::string_view val)
     }
 }
 
-void DcBus::set(std::string_view param, double val, unit unitType)
-{
-    if (param.empty()) {
-    } else {
-        GridBus::set(param, val, unitType);
-    }
-}
-
-void DcBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    static constexpr std::array<std::string_view, 0> numeric{};
-    static constexpr auto strings = std::to_array<std::string_view>({"pflowtype", "dyntype"});
-    static constexpr std::array<std::string_view, 0> flags{};
-    getParamString<DcBus, GridBus>(this, pstr, numeric, strings, flags, pstype);
-}
-
 void DcBus::updateLocalCache(const IOdata& inputs,
                              const StateData& stateDataValue,
                              const SolverMode& sMode)
 {
     outLocs = getOutputLocs(sMode);
     GridBus::updateLocalCache(inputs, stateDataValue, sMode);
-}
-
-void DcBus::getStateName(stringVec& stNames,
-                         const SolverMode& sMode,
-                         const std::string& prefix) const
-{
-    if (hasAlgebraic(sMode)) {
-        auto voffset = offsets.getVOffset(sMode);
-
-        count_t bst = 0;
-        if (voffset != kNullLocation) {
-            if (std::cmp_less_equal(stNames.size(), static_cast<stringVec::size_type>(voffset))) {
-                stNames.resize(static_cast<stringVec::size_type>(voffset) + 1U);
-            }
-            stNames[voffset] = prefix + getName() + ":voltage";
-            ++bst;
-        }
-
-        if (stateSize(sMode) == bst) {
-            return;
-        }
-    }
-    GridBus::getStateName(stNames, sMode, prefix);
 }
 
 // pass the solution

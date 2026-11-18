@@ -12,6 +12,7 @@
 #include "core/CoreOwningPtr.hpp"
 #include "utilities/MatrixDataCompact.hpp"
 #include "utilities/MatrixDataTranslate.hpp"
+#include <span>
 #include <string>
 
 namespace griddyn {
@@ -31,6 +32,7 @@ class AcBus: public GridBus {
     friend class BusControls;
 
   public:
+    const ModelDescription& getModelDescription() const override;
     /** @brief flags for the buses*/
     enum BusFlags {
         USE_AUTOGEN = OBJECT_FLAG2,  //!< indicator if the bus is using an autogen
@@ -155,14 +157,12 @@ class AcBus: public GridBus {
     using GridBus::reconnect;
     virtual void reconnect(GridBus* mapBus) override;
     // parameter set functions
-    virtual void getParameterStrings(stringVec& pstr,
-                                     ParamStringType pstype = ParamStringType::all) const override;
     /** @brief Set compute_frequency (alias use_frequency) or an inherited flag.
      * @details Enabling/disabling the estimator changes its owned subobject and must precede
      * dynamic initialization. Repeating the current setting is a no-op.
      * @throws InvalidParameterValue if an estimator state change is requested after initialization
      */
-    virtual void setFlag(std::string_view flag, bool val) override;
+    virtual void setFlag(std::string_view flag, bool val = true) override;
     /** @brief Query the estimator-enabled flag or an inherited flag. */
     virtual bool getFlag(std::string_view flag) const override;
     virtual void set(std::string_view param, std::string_view val) override;
@@ -261,7 +261,6 @@ class AcBus: public GridBus {
     // mode
     virtual void getTols(double tols[], const SolverMode& sMode) override;
     // dynamic simulation
-    virtual stringVec localStateNames() const override;
 
     /** @brief Propagate the local real/reactive balance to adjustable components or a link.
     @param[in] makeSlack  flag indicating that the bus should be made a slack bus after propagating
@@ -388,6 +387,11 @@ class AcBus: public GridBus {
     {
         return static_cast<count_t>(busController.vControlObjects.size() +
                                     busController.vControlLinks.size());
+    }
+
+    std::span<GridSecondary* const> voltageControlObjects() const
+    {
+        return busController.vControlObjects;
     }
     /** @brief select the stable reference controller for a generator-only indirect group. */
     Generator* indirectVoltageControlReference() const;

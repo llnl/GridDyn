@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -47,6 +48,27 @@ namespace {
     constexpr double twoPi60 = 2.0 * 3.14159265358979323846 * 60.0;
 }  // namespace
 
+const ModelDescription& WT3G1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<WT3G1>(
+        "WT3G1",
+        &TerminalElectricalModel::getModelDescription(),
+        {parameter({"xeq"}, &WT3G1::Xeq, units::one, "Xeq"),
+         parameter({"kpll"}, &WT3G1::Kpll, units::one, "Kpll"),
+         parameter({"kipll"}, &WT3G1::Kipll, units::one, "Kipll"),
+         parameter({"pllmax"}, &WT3G1::Pllmax, units::one, "Pllmax"),
+         parameter({"prated"}, &WT3G1::Prated, units::one, "Prated"),
+         state({"Pe"}, units::one, 0, "Solver variable Pe when active"),
+         state({"Qe"}, units::one, 1, "Solver variable Qe when active"),
+         state({"Ip"}, units::one, 2, "Solver variable Ip when active"),
+         state({"Eq"}, units::one, 3, "Solver variable Eq when active"),
+         state({"PLLint"}, units::one, 4, "Solver variable PLLint when active"),
+         state({"delta"}, units::one, 5, "Solver variable delta when active"),
+         localState("heldIp", &WT3G1::heldIp, "Held ip"),
+         localState("heldEq", &WT3G1::heldEq, "Held eq")});
+    return description;
+}
+
 WT3G1::WT3G1(const std::string& objName): TerminalElectricalModel(objName)
 {
     m_inputSize = 4;
@@ -77,38 +99,21 @@ std::span<const RenewablePort> WT3G1::outputPorts() const
 
 void WT3G1::set(std::string_view param, double val, units::unit unitType)
 {
-    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "xeq") {
-        Xeq = val;
-    } else if (key == "kpll") {
-        Kpll = val;
-    } else if (key == "kipll") {
-        Kipll = val;
-    } else if (key == "pllmax") {
-        Pllmax = val;
-    } else if (key == "prated") {
-        Prated = val;
-    } else {
-        TerminalElectricalModel::set(param, val, unitType);
+    if (isSetHandled(WT3G1::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
     }
+    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (key != param &&
+        isSetHandled(WT3G1::getModelDescription().trySetLocal(*this, key, val, unitType))) {
+        return;
+    }
+    TerminalElectricalModel::set(param, val, unitType);
 }
 double WT3G1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "xeq") {
-        return Xeq;
-    }
-    if (key == "kpll") {
-        return Kpll;
-    }
-    if (key == "kipll") {
-        return Kipll;
-    }
-    if (key == "pllmax") {
-        return Pllmax;
-    }
-    if (key == "prated") {
-        return Prated;
+    if (const auto value = WT3G1::getModelDescription().tryGet(*this, key, unitType)) {
+        return *value;
     }
     return TerminalElectricalModel::get(param, unitType);
 }
@@ -357,9 +362,5 @@ void WT3G1::outputPartialDerivatives(const IOdata& inputs,
     matrixData.assign(electricalReactivePower, alg + electricalReactivePower, 1.0);
     (void)inputs;
     (void)stateData;
-}
-stringVec WT3G1::localStateNames() const
-{
-    return {"Pe", "Qe", "Ip", "Eq", "PLLint", "delta"};
 }
 }  // namespace griddyn

@@ -7,9 +7,17 @@
 #include "Dispatcher.h"
 
 #include "core/CoreExceptions.h"
+#include "core/ModelParameter.hpp"
 #include <string>
 
 namespace griddyn {
+const ModelDescription& Dispatcher::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<Dispatcher>("Dispatcher", &CoreObject::getModelDescription(), {});
+    return description;
+}
+
 Dispatcher::Dispatcher(const std::string& objName): CoreObject(objName) {}
 
 Dispatcher::~Dispatcher() = default;
@@ -44,10 +52,6 @@ void Dispatcher::add(Scheduler* /*sched*/)
 void Dispatcher::remove(CoreObject* /*obj*/) {}
 void Dispatcher::remove(Scheduler* /*sched*/) {}
 
-void Dispatcher::set(std::string_view param, std::string_view val)
-{
-    CoreObject::set(param, val);
-}
 void Dispatcher::set(std::string_view param, double val, units::unit unitType)
 {
     CoreObject::set(param, val, unitType);

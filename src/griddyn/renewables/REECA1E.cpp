@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <array>
@@ -43,6 +44,17 @@ namespace {
     }};
 }  // namespace
 
+const ModelDescription& REECA1E::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<REECA1E>("REECA1E",
+                                          &REECA1::getModelDescription(),
+                                          {parameter({"kf"}, &REECA1E::Kf, units::one, "Kf"),
+                                           parameter({"kdf"}, &REECA1E::Kdf, units::one, "Kdf"),
+                                           command({"pflag"}, units::defunit, "Set pflag")});
+    return description;
+}
+
 REECA1E::REECA1E(const std::string& objName): REECA1(objName)
 {
     m_inputSize = 7;
@@ -76,16 +88,17 @@ std::string_view REECA1E::sourceName(RenewableSignal signal) const
 
 void REECA1E::set(std::string_view param, double val, units::unit unitType)
 {
+    if (isSetHandled(REECA1E::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "kf") {
-        Kf = val;
-    } else if (key == "kdf") {
-        Kdf = val;
-    } else {
-        REECA1::set(param, val, unitType);
-        if (key == "pflag") {
-            m_inputSize = 7;
-        }
+    if (key != param &&
+        isSetHandled(REECA1E::getModelDescription().trySetLocal(*this, key, val, unitType))) {
+        return;
+    }
+    REECA1::set(param, val, unitType);
+    if (key == "pflag") {
+        m_inputSize = 7;
     }
 }
 
@@ -101,11 +114,8 @@ void REECA1E::set(std::string_view param, std::string_view val)
 double REECA1E::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "kf") {
-        return Kf;
-    }
-    if (key == "kdf") {
-        return Kdf;
+    if (const auto value = REECA1E::getModelDescription().tryGet(*this, key, unitType)) {
+        return *value;
     }
     return REECA1::get(param, unitType);
 }

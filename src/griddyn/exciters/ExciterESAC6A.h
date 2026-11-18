@@ -16,6 +16,7 @@ namespace griddyn::exciters {
 /** PSS/E ESAC6A IEEE Type AC6A excitation system. */
 class ExciterESAC6A final: public Exciter {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit ExciterESAC6A(const std::string& objName = "exciterESAC6A_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
@@ -53,11 +54,9 @@ class ExciterESAC6A final: public Exciter {
                          const StateData& stateData,
                          const SolverMode& sMode,
                          CheckLevel level) override;
-    stringVec localStateNames() const override;
-    index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
+
     void set(std::string_view param, std::string_view val) override;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     bool supportsLimiterSignal(ExciterLimiterSignal signal) const override;
 
   private:

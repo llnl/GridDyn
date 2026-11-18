@@ -29,6 +29,7 @@ class GovernorHydro: public Governor {
   public:
     explicit GovernorHydro(const std::string& objName = "govHydro_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
     virtual ~GovernorHydro();
 
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
@@ -36,12 +37,9 @@ class GovernorHydro: public Governor {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void set(std::string_view param, std::string_view val) override;
+    using Governor::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual double get(std::string_view param,
-                       units::unit unitType = units::defunit) const override;
-    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
     virtual void residual(const IOdata& inputs,
                           const StateData& stateData,
@@ -64,7 +62,6 @@ class GovernorHydro: public Governor {
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    virtual stringVec localStateNames() const override;
 };
 
 }  // namespace griddyn::governors

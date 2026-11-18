@@ -12,16 +12,47 @@
 #include "../measurement/Condition.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include <algorithm>
+#include <charconv>
 #include <format>
 #include <memory>
 #include <string>
+#include <system_error>
 #include <utility>
 
 namespace griddyn::relays {
 using gmlc::utilities::ensureSizeAtLeast;
+
+const ModelDescription& ZonalRelay::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ZonalRelay>(
+        "ZonalRelay",
+        &Relay::getModelDescription(),
+        {flag({"nondirectional"}, &ZonalRelay::opFlags, NONDIRECTIONAL_FLAG, "Nondirectional"),
+         command({"levels"}, units::defunit, "Levels", ModelFieldType::STRING),
+         command({"delay"}, units::defunit, "Delay", ModelFieldType::STRING),
+         command({"zones"}, units::defunit, "Zones"),
+         parameter({"terminal", "side"},
+                   &ZonalRelay::m_terminal,
+                   units::defunit,
+                   "The side of the line to connect 1=from side 2=to side, 3+ for"),
+         parameter({"resetmargin", "margin"},
+                   &ZonalRelay::mResetMargin,
+                   units::defunit,
+                   "The reset margin for clearing a fault"),
+         parameter({"autoname"},
+                   &ZonalRelay::mAutoName,
+                   units::defunit,
+                   "Storage for indicator of the type of autoname to use"),
+         command({"level"},
+                 units::defunit,
+                 "Set the impedance threshold by zone index",
+                 ModelFieldType::REAL)});
+    return description;
+}
 
 ZonalRelay::ZonalRelay(const std::string& objName): Relay(objName)
 {
@@ -45,14 +76,6 @@ CoreObject* ZonalRelay::clone(CoreObject* obj) const
     return nobj;
 }
 
-void ZonalRelay::setFlag(std::string_view flag, bool val)
-{
-    if (flag == "nondirectional") {
-        opFlags.set(NONDIRECTIONAL_FLAG, val);
-    } else {
-        Relay::setFlag(flag, val);
-    }
-}
 /*
 std::string commDestName;
 std::uint64_t commDestId=0;
@@ -89,13 +112,9 @@ void ZonalRelay::set(std::string_view param, std::string_view val)
 
 void ZonalRelay::set(std::string_view param, double val, units::unit unitType)
 {
-    auto parseZoneIndex = [](std::string_view parameterName) {
-        index_t zoneIndex = 0;
-        if ((parameterName.size() == 6) && (std::isdigit(parameterName[5]) != 0)) {
-            zoneIndex = static_cast<index_t>(parameterName[5] - '0');
-        }
-        return zoneIndex;
-    };
+    if (isSetHandled(ZonalRelay::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     auto ensureZoneStorage = [this](count_t requestedZoneCount) {
         const auto zoneLevelSize = static_cast<count_t>(mZoneLevels.size());
         if (requestedZoneCount > zoneLevelSize) {
@@ -116,26 +135,29 @@ void ZonalRelay::set(std::string_view param, double val, units::unit unitType)
     };
     if (param == "zones") {
         ensureZoneStorage(static_cast<count_t>(val));
-    } else if ((param == "terminal") || (param == "side")) {
-        m_terminal = static_cast<index_t>(val);
-    } else if ((param == "resetmargin") || (param == "margin")) {
-        mResetMargin = val;
-    } else if (param == "autoname") {
-        mAutoName = static_cast<int>(val);
-    } else if (param.starts_with("level")) {
-        const index_t zoneIndex = parseZoneIndex(param);
+    } else if (param.starts_with("level") || param.starts_with("delay")) {
+        const bool settingLevel = param.starts_with("level");
+        const auto prefix = settingLevel ? std::string_view{"level"} : std::string_view{"delay"};
+        const auto suffix = param.substr(prefix.size());
+        index_t zoneIndex = 0;
+        if (!suffix.empty()) {
+            const auto [end, error] =
+                std::from_chars(suffix.data(), suffix.data() + suffix.size(), zoneIndex);
+            if (suffix.front() < '0' || suffix.front() > '9' || error != std::errc{} ||
+                end != suffix.data() + suffix.size() || zoneIndex == kIndexMax) {
+                throw InvalidParameterValue(param);
+            }
+        }
         if (zoneIndex >= mZoneCount) {
             ensureZoneStorage(zoneIndex + 1);
         }
-        ensureSizeAtLeast(mZoneLevels, zoneIndex + 1);
-        mZoneLevels[zoneIndex] = val;
-    } else if (param.starts_with("delay")) {
-        const index_t zoneIndex = parseZoneIndex(param);
-        if (zoneIndex >= mZoneCount) {
-            ensureZoneStorage(zoneIndex + 1);
+        if (settingLevel) {
+            ensureSizeAtLeast(mZoneLevels, zoneIndex + 1);
+            mZoneLevels[zoneIndex] = val;
+        } else {
+            ensureSizeAtLeast(mZoneDelays, zoneIndex + 1);
+            mZoneDelays[zoneIndex] = val;
         }
-        ensureSizeAtLeast(mZoneDelays, zoneIndex + 1);
-        mZoneDelays[zoneIndex] = val;
     } else {
         Relay::set(param, val, unitType);
     }
@@ -143,6 +165,9 @@ void ZonalRelay::set(std::string_view param, double val, units::unit unitType)
 
 double ZonalRelay::get(std::string_view param, units::unit unitType) const
 {
+    if (const auto value = ZonalRelay::getModelDescription().tryGet(*this, param, unitType)) {
+        return *value;
+    }
     double val;
     if (param == "condition") {
         val = kNullVal;

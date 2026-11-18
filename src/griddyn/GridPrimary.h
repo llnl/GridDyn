@@ -50,6 +50,7 @@ other classes also containing primary objects.
 **/
 class GridPrimary: public GridComponent {
   public:
+    const ModelDescription& getModelDescription() const override;
     int zone = 1;  //!< publicly accessible loss zone indicator not used internally
     index_t locIndex2 = kNullLocation;  //!< a second lookup index for the object to reference
                                         //!< parent location in storage arrays for
@@ -72,13 +73,10 @@ class GridPrimary: public GridComponent {
                                 IOdata& fieldSet) override final;
 
   public:
-    virtual void set(std::string_view param, std::string_view val) override;
+    using GridComponent::set;
 
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-
-    virtual double get(std::string_view param,
-                       units::unit unitType = units::defunit) const override;
 
     virtual void setState(CoreTime time,
                           const double state[],

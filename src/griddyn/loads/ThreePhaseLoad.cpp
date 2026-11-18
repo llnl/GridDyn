@@ -8,6 +8,7 @@
 
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include "utilities/ThreePhaseFunctions.h"
 #include <array>
@@ -24,6 +25,43 @@ using units::puMW;
 using units::puV;
 using units::rad;
 using units::unit;
+
+const ModelDescription& ThreePhaseLoad::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ThreePhaseLoad>(
+        "ThreePhaseLoad",
+        &GridLoad::getModelDescription(),
+        {parameter({"multiplier"},
+                   &ThreePhaseLoad::multiplier,
+                   units::one,
+                   "Phase multiplier for amplifying current inputs"),
+         flag({"use_abs_angle"}, &ThreePhaseLoad::opFlags, USE_ABS_ANGLE, "Use abs angle"),
+         flag({"three_phase_inputs", "three_phase_input"},
+              &ThreePhaseLoad::opFlags,
+              THREE_PHASE_INPUT,
+              "Three phase inputs"),
+         flag({"three_phase_outputs", "three_phase_output"},
+              &ThreePhaseLoad::opFlags,
+              THREE_PHASE_OUTPUT,
+              "Three phase outputs"),
+         command({"pa"}, units::defunit, "Set pa"),
+         command({"pb"}, units::defunit, "Set pb"),
+         command({"pc"}, units::defunit, "Set pc"),
+         command({"qa"}, units::defunit, "Set qa"),
+         command({"qb"}, units::defunit, "Set qb"),
+         command({"qc"}, units::defunit, "Set qc"),
+         command({"imaga"}, units::defunit, "Set imaga"),
+         command({"imagb"}, units::defunit, "Set imagb"),
+         command({"imagc"}, units::defunit, "Set imagc"),
+         command({"ianglea"}, units::defunit, "Set ianglea"),
+         command({"iangleb"}, units::defunit, "Set iangleb"),
+         command({"ianglec"}, units::defunit, "Set ianglec"),
+         inverseFlag({"ignore_phase", "ignorevoltagephase"},
+                     &ThreePhaseLoad::opFlags,
+                     USE_ABS_ANGLE,
+                     "Ignore the voltage phase")});
+    return description;
+}
 
 ThreePhaseLoad::ThreePhaseLoad(const std::string& objName): GridLoad(objName) {}
 ThreePhaseLoad::ThreePhaseLoad(double realPower, double reactivePower, const std::string& objName):
@@ -73,35 +111,15 @@ void ThreePhaseLoad::setLoad(double plevel, double qlevel, unit unitType)
     Qa = Qb = Qc = getQ() / 3.0;
 }
 
-static constexpr auto locNumStrings =
-    std::array<std::string_view, 6>{"pa", "pb", "pc", "qa", "qb", "qc"};
-
-static constexpr std::array<std::string_view, 0> locStrStrings{};
-
-static constexpr auto flagStrings = std::array<std::string_view, 4>{"use_abs_angle",
-                                                                    "ignore_phase",
-                                                                    "three_phase_inputs",
-                                                                    "three_phase_outputs"};
-
-void ThreePhaseLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    getParamString<ThreePhaseLoad, GridLoad>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
-}
-
 void ThreePhaseLoad::setFlag(std::string_view flag, bool val)
 {
-    if ((flag == "ignore_phase") || (flag == "ignorevoltagephase")) {
-        opFlags.set(USE_ABS_ANGLE, !val);
-    } else if (flag == "use_abs_angle") {
-        opFlags.set(USE_ABS_ANGLE, val);
-    } else if ((flag == "three_phase_inputs") || (flag == "three_phase_input")) {
+    if ((flag == "three_phase_inputs") || (flag == "three_phase_input")) {
         opFlags.set(THREE_PHASE_INPUT, val);
         m_inputSize = val ? 7 : 3;
     } else if ((flag == "three_phase_outputs") || (flag == "three_phase_output")) {
         opFlags.set(THREE_PHASE_OUTPUT, val);
         m_outputSize = val ? 6 : 3;
-    } else {
+    } else if (!ThreePhaseLoad::getModelDescription().trySetFlag(*this, flag, val)) {
         GridLoad::setFlag(flag, val);
     }
 }
@@ -121,6 +139,9 @@ double ThreePhaseLoad::getBaseAngle() const
 
 double ThreePhaseLoad::get(std::string_view param, unit unitType) const
 {
+    if (const auto value = ThreePhaseLoad::getModelDescription().tryGet(*this, param, unitType)) {
+        return *value;
+    }
     if (param.length() == 2) {
         switch (param[0]) {
             case 'p':
@@ -235,14 +256,15 @@ double ThreePhaseLoad::get(std::string_view param, unit unitType) const
             default:
                 break;
         }
-    } else if (param == "multiplier") {
-        return multiplier;
     }
     return GridLoad::get(param, unitType);
 }
 
 void ThreePhaseLoad::set(std::string_view param, double val, unit unitType)
 {
+    if (isSetHandled(ThreePhaseLoad::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     if (param.length() == 2) {
         switch (param[0]) {
             case 'p':
@@ -364,8 +386,6 @@ void ThreePhaseLoad::set(std::string_view param, double val, unit unitType)
             default:
                 break;
         }
-    } else if (param == "multiplier") {
-        multiplier = val;
     } else {
         GridLoad::set(param, val, unitType);
     }

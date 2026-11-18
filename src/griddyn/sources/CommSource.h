@@ -23,6 +23,7 @@ namespace sources {
         comms::CommManager cManager;  //!< comm manager object to build and manage the comm link
         model_parameter maxRamp = kBigNum;  //!< the maximum rate of change of the source
       public:
+        const ModelDescription& getModelDescription() const override;
         enum CommSourceFlags {
             USE_RAMP = OBJECT_FLAG3,  //!< indicator that the output should be interpolated
             NO_MESSAGE_REPLY =

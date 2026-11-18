@@ -7,6 +7,7 @@
 #include "CoreObject.h"
 
 #include "CoreExceptions.h"
+#include "ModelParameter.hpp"
 #include "NullObject.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewOps.h"
@@ -15,6 +16,7 @@
 #include <cassert>
 #include <cmath>
 #include <string>
+#include <utility>
 
 namespace griddyn {
 // start at 101 since there are some objects that use low numbers as a check for interface number
@@ -39,6 +41,43 @@ CoreObject::CoreObject(id_type_t coid): m_refCount(0), m_oid(coid)
     parent = nullptr;
 }
 CoreObject::~CoreObject() = default;
+
+const ModelDescription& CoreObject::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<CoreObject>(
+        "CoreObject",
+        nullptr,
+        {flag({"enabled", "enable", "status"}, &CoreObject::enabled, "Object enabled status"),
+         flag({"updates"}, &CoreObject::updates_enabled, "Scheduled updates enabled"),
+         parameter({"period", "updateperiod"},
+                   &CoreObject::updatePeriod,
+                   units::second,
+                   "Current update period"),
+         parameter({"updatedelay"},
+                   &CoreObject::updateDelay,
+                   units::second,
+                   "Requested delay between update phases"),
+         localState("prevTime", &CoreObject::prevTime, "Previous model time", units::second),
+         localState(
+             "nextUpdateTime", &CoreObject::nextUpdateTime, "Next scheduled update", units::second),
+         localState(
+             "lastUpdateTime", &CoreObject::lastUpdateTime, "Previous update time", units::second),
+         command({"name", "rename"}, units::defunit, "Rename the object", ModelFieldType::STRING),
+         command({"description"}, units::defunit, "Object description", ModelFieldType::STRING),
+         command({"id", "number", "renumber"}, units::defunit, "Set the numeric user ID"),
+         command({"updaterate", "rate"}, units::Hz, "Set the reciprocal update period"),
+         command({"nextupdatetime"}, units::second, "Reschedule the next update"),
+         command({"disabled"}, units::defunit, "Disable the object", ModelFieldType::BOOLEAN),
+         command({"searchable"},
+                 units::defunit,
+                 "Notify that the object is searchable",
+                 ModelFieldType::BOOLEAN),
+         command({"hasupdates"},
+                 units::defunit,
+                 "Notify that an update is required",
+                 ModelFieldType::BOOLEAN)});
+    return description;
+}
 
 static dataDictionary<id_type_t, std::string> gDescriptionDictionary;
 
@@ -111,58 +150,37 @@ void CoreObject::addOwningReference()
     m_refCount.fetch_add(1, std::memory_order_relaxed);
 }
 
-static constexpr std::array<std::string_view, 6> locNumStrings{"updateperiod",
-                                                               "updaterate",
-                                                               "nextupdatetime",
-                                                               "basepower",
-                                                               "enabled",
-                                                               "id"};
-static constexpr std::array<std::string_view, 2> locStrStrings{"name", "description"};
-
 void CoreObject::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    switch (pstype) {
-        case ParamStringType::ALL:
-            pstr.reserve(pstr.size() + locNumStrings.size() + locStrStrings.size() + 1);
-            for (const auto paramName : locNumStrings) {
-                pstr.emplace_back(paramName);
-            }
-            pstr.emplace_back("#");
-            for (const auto paramName : locStrStrings) {
-                pstr.emplace_back(paramName);
-            }
-            break;
-        case ParamStringType::LOCAL_NUM:
-            pstr.assign(locNumStrings.begin(), locNumStrings.end());
-            break;
-        case ParamStringType::LOCAL_STR:
-            pstr.assign(locStrStrings.begin(), locStrStrings.end());
-            break;
-        case ParamStringType::NUMERIC:
-            pstr.reserve(pstr.size() + locNumStrings.size());
-            for (const auto paramName : locNumStrings) {
-                pstr.emplace_back(paramName);
-            }
-            break;
-        case ParamStringType::STR:
-            pstr.reserve(pstr.size() + locStrStrings.size());
-            for (const auto paramName : locStrStrings) {
-                pstr.emplace_back(paramName);
-            }
-            break;
-        case ParamStringType::LOCAL_FLAGS:
-        case ParamStringType::FLAGS:
-            break;
+    getModelDescription().getParameterStrings(pstr, pstype);
+}
+
+std::pair<std::string_view, bool> CoreObject::parseStatus(std::string_view value)
+{
+    const auto status =
+        gmlc::utilities::convertToLowerCase(gmlc::utilities::string_viewOps::trim(value));
+    if (status == "on" || status == "in" || status == "enabled" || status == "true") {
+        return {"enabled", true};
     }
+    if (status == "off" || status == "out" || status == "disabled" || status == "false") {
+        return {"enabled", false};
+    }
+    if (status == "connected" || status == "disconnected") {
+        return {"connected", status == "connected"};
+    }
+    throw InvalidParameterValue("status");
 }
 
 void CoreObject::set(std::string_view param, std::string_view val)  // NOLINT(misc-no-recursion)
 {
-    if ((param == "name") || (param == "rename") || (param == "id")) {
+    if ((param == "name") || (param == "rename")) {
         setName(val);
     } else if (param == "description") {
         setDescription(val);
-    } else if ((param.empty()) || (param.front() == '#')) {
+    } else if (param == "status") {
+        const auto [flag, active] = parseStatus(val);
+        setFlag(flag, active);
+    } else if (isIgnoredParameter(param)) {
         // comment parameter meant to do nothing
     } else {
         if (val == "true") {
@@ -254,8 +272,8 @@ void CoreObject::setFlag(std::string_view flag, bool val)  // NOLINT(misc-no-rec
         alert(this, OBJECT_IS_SEARCHABLE);
     } else if (flag == "hasupdates") {
         alert(this, UPDATE_REQUIRED);
-    } else if ((flag.empty()) || (flag.front() == '#')) {
-        // comment parameter meant to do nothing
+    } else if (CoreObject::getModelDescription().trySetFlag(*this, flag, val)) {
+        return;
     } else {
         auto lower = gmlc::utilities::convertToLowerCase(flag);
         if (lower != flag) {
@@ -269,13 +287,11 @@ void CoreObject::setFlag(std::string_view flag, bool val)  // NOLINT(misc-no-rec
 
 bool CoreObject::getFlag(std::string_view flag) const
 {
-    bool ret = false;
-    if (flag == "enabled") {
-        ret = isEnabled();
-    } else if (flag == "updates") {
-        ret = hasUpdates();
+    if (const auto* field = CoreObject::getModelDescription().findLocal(flag);
+        field != nullptr && field->name() == "enabled") {
+        return isEnabled();
     }
-    return ret;
+    return CoreObject::getModelDescription().tryGetFlag(*this, flag).value_or(false);
 }
 
 double CoreObject::get(std::string_view param, units::unit unitType) const
@@ -283,7 +299,7 @@ double CoreObject::get(std::string_view param, units::unit unitType) const
     double val = kNullVal;
     if (param == "eventcode") {
         val = 0.0;
-    } else if (param == "period") {
+    } else if ((param == "period") || (param == "updateperiod")) {
         val = units::convert(static_cast<double>(updatePeriod), units::second, unitType);
     } else if ((param == "time") || (param == "currenttime")) {
         val = static_cast<double>(prevTime);
@@ -291,6 +307,9 @@ double CoreObject::get(std::string_view param, units::unit unitType) const
         val = static_cast<double>(nextUpdateTime);
     } else if (param == "lastupdate") {
         val = static_cast<double>(lastUpdateTime);
+    } else if (const auto value =
+                   CoreObject::getModelDescription().tryGet(*this, param, unitType)) {
+        val = *value;
     }
     return val;
 }
@@ -299,9 +318,11 @@ double CoreObject::get(std::string_view param, units::unit unitType) const
 // NOLINTNEXTLINE(misc-no-recursion)
 void CoreObject::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "updateperiod") || (param == "period")) {
-        updatePeriod = units::convert(val, unitType, units::second);
-    } else if ((param == "updaterate") || (param == "rate")) {
+    const auto result = CoreObject::getModelDescription().trySet(*this, param, val, unitType);
+    if (isSetHandled(result)) {
+        return;
+    }
+    if ((param == "updaterate") || (param == "rate")) {
         const double rateInHertz = units::convert(val, unitType, units::Hz);
         if (rateInHertz <= 0.0) {
             updatePeriod = kBigNum;
@@ -312,11 +333,9 @@ void CoreObject::set(std::string_view param, double val, units::unit unitType)
         nextUpdateTime = units::convert(val, unitType, units::second);
     } else if ((param == "number") || (param == "renumber") || (param == "id")) {
         setUserID(static_cast<index_t>(val));
-    } else if ((param.empty()) || (param.front() == '#')) {
-        // comment parameter meant to do nothing
     } else {
         try {
-            setFlag(param, (val > 0.1));
+            setFlag(param, val != 0.0);
         }
         catch (const UnrecognizedParameter&) {
             auto lower = gmlc::utilities::convertToLowerCase(param);

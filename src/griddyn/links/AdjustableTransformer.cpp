@@ -10,6 +10,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
@@ -40,6 +41,86 @@ static void boundedIncrement(CountType& counter)
     if (counter < std::numeric_limits<CountType>::max()) {
         ++counter;
     }
+}
+
+const ModelDescription& AdjustableTransformer::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<AdjustableTransformer>(
+        "AdjustableTransformer",
+        &AcLine::getModelDescription(),
+        {parameter({"vmin"},
+                   &AdjustableTransformer::Vmin,
+                   units::one,
+                   "Minimum voltage before changing the tap"),
+         parameter({"vmax"},
+                   &AdjustableTransformer::Vmax,
+                   units::one,
+                   "Maximum voltage before changing the tap"),
+         parameter({"vtarget"}, &AdjustableTransformer::Vtarget, units::one, "Target voltage"),
+         parameter(
+             {"dtapdt"}, &AdjustableTransformer::dTapdt, units::one, "Rate of change of the tap"),
+         parameter({"dtapadt"},
+                   &AdjustableTransformer::dTapAdt,
+                   units::one,
+                   "Rate of change of the tapAngle"),
+         flag({"no_pflow_control", "no_pflow_adjustments"},
+              &AdjustableTransformer::opFlags,
+              NO_PFLOW_ADJUSTMENTS,
+              "No pflow control"),
+         command({"controlmode", "mode", "control_mode"},
+                 units::defunit,
+                 "Configure controlmode",
+                 ModelFieldType::STRING),
+         command({"change", "change_mode", "changemode", "stepmode"},
+                 units::defunit,
+                 "Configure change",
+                 ModelFieldType::STRING),
+         command({"center", "center_mode", "centermode"},
+                 units::defunit,
+                 "Configure center",
+                 ModelFieldType::STRING),
+         command({"bus", "controlbus"}, units::defunit, "Configure bus", ModelFieldType::STRING),
+         command({"tap"}, units::defunit, "Set tap"),
+         command({"tapangle"}, units::defunit, "Set tapangle"),
+         command({"cbus"}, units::defunit, "Set cbus"),
+         command({"pmin"}, units::defunit, "Set pmin"),
+         command({"pmax"}, units::defunit, "Set pmax"),
+         command({"ptarget"}, units::defunit, "Set ptarget"),
+         command({"qmin"}, units::defunit, "Set qmin"),
+         command({"qmax"}, units::defunit, "Set qmax"),
+         command({"qtarget"}, units::defunit, "Set qtarget"),
+         command({"target"}, units::defunit, "Set target"),
+         command({"min"}, units::defunit, "Set min"),
+         command({"max"}, units::defunit, "Set max"),
+         command({"direction"}, units::defunit, "Set direction"),
+         command({"mintap"}, units::defunit, "Set mintap"),
+         command({"maxtap"}, units::defunit, "Set maxtap"),
+         command({"mintapangle"}, units::defunit, "Set mintapangle"),
+         command({"fault"}, units::defunit, "Set fault"),
+         command({"maxtapangle"}, units::defunit, "Set maxtapangle"),
+         command({"stepsize", "tapchange"}, units::defunit, "Set stepsize"),
+         command({"nsteps"}, units::defunit, "Set nsteps"),
+         state<AdjustableTransformer>(
+             {"tapAngle"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return !isDynamic(mode) && model.stateSize(mode) > 0 &&
+                         model.cMode == ControlMode::MW_CONTROL ?
+                     model.offsets.getAlgOffset(mode) :
+                     kInvalidLocation;
+             },
+             "Solver variable tapAngle"),
+         state<AdjustableTransformer>(
+             {"tap"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return !isDynamic(mode) && model.stateSize(mode) > 0 &&
+                         model.cMode != ControlMode::MW_CONTROL ?
+                     model.offsets.getAlgOffset(mode) :
+                     kInvalidLocation;
+             },
+             "Solver variable tap")});
+    return description;
 }
 
 AdjustableTransformer::AdjustableTransformer(const std::string& objName): AcLine(objName) {}
@@ -82,33 +163,6 @@ CoreObject* AdjustableTransformer::clone(CoreObject* obj) const
     lnk->dTapdt = dTapdt;
     lnk->dTapAdt = dTapAdt;
     return lnk;
-}
-
-static constexpr auto locNumStrings = std::array<std::string_view, 18>{"vmin",
-                                                                       "vmax",
-                                                                       "vtarget",
-                                                                       "pmin",
-                                                                       "pmax",
-                                                                       "ptarget",
-                                                                       "qmin",
-                                                                       "qmax",
-                                                                       "qtarget",
-                                                                       "direction",
-                                                                       "mintap",
-                                                                       "maxtap",
-                                                                       "mintapangle",
-                                                                       "maxtapangle",
-                                                                       "stepsize",
-                                                                       "nsteps",
-                                                                       "dtapdt",
-                                                                       "dtapadt"};
-static constexpr auto locStrStrings =
-    std::array<std::string_view, 3>{"controlmode", "changemode", "centermode"};
-static constexpr auto flagStrings = std::array<std::string_view, 1>{"no_pflow_adjustments"};
-void AdjustableTransformer::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    getParamString<AdjustableTransformer, AcLine>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
 // set properties
@@ -162,14 +216,16 @@ void AdjustableTransformer::set(std::string_view param, std::string_view val)
 
 void AdjustableTransformer::set(std::string_view param, double val, unit unitType)
 {
+    if (isSetHandled(
+            AdjustableTransformer::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     if (param == "tap") {
         tap = val;
         tap0 = val;
     } else if (param == "tapangle") {
         tapAngle = convert(val, unitType, rad);
         tapAngle0 = tapAngle;
-    } else if ((param == "no_pflow_control") || (param == "no_pflow_adjustments")) {
-        opFlags.set(NO_PFLOW_ADJUSTMENTS, (val > 0));
     } else if ((param == "cbus") || (param == "controlbus")) {
         if (val > 2.5) {
             auto cbnum = static_cast<int>(val);
@@ -200,12 +256,6 @@ void AdjustableTransformer::set(std::string_view param, double val, unit unitTyp
             }
             direction = -1;
         }
-    } else if (param == "vmin") {
-        Vmin = val;
-    } else if (param == "vmax") {
-        Vmax = val;
-    } else if (param == "vtarget") {
-        Vtarget = val;
     } else if (param == "pmin") {
         Pmin = convert(val, unitType, puMW, systemBasePower);
     } else if (param == "pmax") {
@@ -305,10 +355,6 @@ void AdjustableTransformer::set(std::string_view param, double val, unit unitTyp
                 stepSize = std::abs(maxTap - minTap) / (val - 1);
             }
         }
-    } else if (param == "dtapdt") {
-        dTapdt = val;
-    } else if (param == "dtapadt") {
-        dTapAdt = val;
     } else {
         AcLine::set(param, val, unitType);
     }
@@ -316,18 +362,16 @@ void AdjustableTransformer::set(std::string_view param, double val, unit unitTyp
 
 double AdjustableTransformer::get(std::string_view param, units::unit unitType) const
 {
+    if (const auto value =
+            AdjustableTransformer::getModelDescription().tryGet(*this, param, unitType)) {
+        return *value;
+    }
     double val = kNullVal;
 
     if (param == "controlbus") {
         val = controlNum;
     } else if (param == "controlbusid") {
         val = (controlBus != nullptr) ? static_cast<double>(controlBus->getUserID()) : kNullVal;
-    } else if (param == "vmin") {
-        val = Vmin;
-    } else if (param == "vmax") {
-        val = Vmax;
-    } else if (param == "vtarget") {
-        val = Vtarget;
     } else if (param == "pmin") {
         val = convert(Pmin, puMW, unitType, systemBasePower);
     } else if (param == "pmax") {
@@ -390,10 +434,6 @@ double AdjustableTransformer::get(std::string_view param, units::unit unitType) 
         }
     } else if (param == "control_mode") {
         val = static_cast<double>(cMode);
-    } else if (param == "dtapdt") {
-        val = dTapdt;
-    } else if (param == "dtapadt") {
-        val = dTapAdt;
     } else {
         val = AcLine::get(param, unitType);
     }
@@ -563,24 +603,6 @@ count_t AdjustableTransformer::localJacobianCount(const SolverMode& sMode) const
         }
     }
     return localJacSize;
-}
-
-void AdjustableTransformer::getStateName(stringVec& stNames,
-                                         const SolverMode& sMode,
-                                         const std::string& prefix) const
-{
-    if (stateSize(sMode) > 0) {
-        const std::string prefix2 = prefix + getName() + ':';
-        if (isDynamic(sMode)) {
-        } else {
-            auto offset = offsets.getAlgOffset(sMode);
-            if (cMode == ControlMode::MW_CONTROL) {
-                stNames[offset] = prefix2 + "tapAngle";
-            } else {
-                stNames[offset] = prefix2 + "tap";
-            }
-        }
-    }
 }
 
 void AdjustableTransformer::reset(ResetLevels level)

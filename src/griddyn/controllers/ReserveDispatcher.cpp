@@ -11,6 +11,7 @@
 #include "AGControl.h"
 #include "Scheduler.h"
 #include "core/CoreExceptions.h"
+#include "core/ModelParameter.hpp"
 #include <algorithm>
 #include <string>
 
@@ -61,6 +62,23 @@ protected:
 };
 
 */
+const ModelDescription& ReserveDispatcher::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ReserveDispatcher>(
+        "ReserveDispatcher",
+        &CoreObject::getModelDescription(),
+        {command({"threshold", "thresholdstart"}, units::defunit, "Threshold"),
+         parameter({"thresholdstop"},
+                   &ReserveDispatcher::thresholdStop,
+                   units::defunit,
+                   "Threshold stop"),
+         parameter({"dispatchinterval", "interval"},
+                   &ReserveDispatcher::dispatchInterval,
+                   units::defunit,
+                   "Dispatch interval")});
+    return description;
+}
+
 ReserveDispatcher::ReserveDispatcher(const std::string& objName): CoreObject(objName) {}
 
 CoreObject* ReserveDispatcher::clone(CoreObject* obj) const
@@ -221,22 +239,17 @@ void ReserveDispatcher::remove(CoreObject* obj)
     }
 }
 
-void ReserveDispatcher::set(std::string_view param, std::string_view val)
-{
-    CoreObject::set(param, val);
-}
-
 void ReserveDispatcher::set(std::string_view param, double val, units::unit unitType)
 {
+    if (isSetHandled(
+            ReserveDispatcher::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     if ((param == "threshold") || (param == "thresholdstart")) {
         thresholdStart = val;
         if (thresholdStop > thresholdStart) {
             thresholdStop = thresholdStart / 2;
         }
-    } else if (param == "thresholdstop") {
-        thresholdStop = val;
-    } else if ((param == "dispatchinterval") || (param == "interval")) {
-        dispatchInterval = val;
     } else {
         CoreObject::set(param, val, unitType);
     }

@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -37,6 +38,23 @@ GovernorSteamNR::GovernorSteamNR(const std::string& objName): GovernorIeeeSimple
     offsets.local().local.algSize = 1;
     offsets.local().local.diffSize = 3;
     offsets.local().local.jacSize = 10;
+}
+
+const ModelDescription& GovernorSteamNR::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorSteamNR>(
+        "GovernorSteamNR",
+        &GovernorIeeeSimple::getModelDescription(),
+        {parameter({"tch", "t4"},
+                   &GovernorSteamNR::Tch,
+                   units::second,
+                   "Steam-chest time constant",
+                   parameterValidators::positive),
+         state({"pmech", "pm"}, units::puMW, 0, "Mechanical power"),
+         state({"valve", "integrator"}, units::one, 1, "Valve state"),
+         state({"filter", "x"}, units::one, 2, "Speed filter"),
+         state({"steamchest", "chest"}, units::one, 3, "Steam-chest state")});
+    return description;
 }
 
 CoreObject* GovernorSteamNR::clone(CoreObject* obj) const
@@ -182,43 +200,12 @@ void GovernorSteamNR::jacobianElements(const IOdata& inputs,
     matrixData.assign(diff + chestState, diff + chestState, (-1.0 / Tch) - stateData.cj);
 }
 
-index_t GovernorSteamNR::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "pm") || (field == "pmech")) {
-        return offsets.getAlgOffset(sMode) + outputState;
-    }
-    if ((field == "valve") || (field == "integrator")) {
-        return offsets.getDiffOffset(sMode) + valveState;
-    }
-    if ((field == "filter") || (field == "x")) {
-        return offsets.getDiffOffset(sMode) + filterState;
-    }
-    if ((field == "steamchest") || (field == "chest")) {
-        return offsets.getDiffOffset(sMode) + chestState;
-    }
-    return kInvalidLocation;
-}
-
-void GovernorSteamNR::set(std::string_view param, std::string_view val)
-{
-    GovernorIeeeSimple::set(param, val);
-}
-
 void GovernorSteamNR::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "tch") || (param == "t4")) {
-        Tch = val;
-    } else {
-        GovernorIeeeSimple::set(param, val, unitType);
+    if (isSetHandled(GovernorSteamNR::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
     }
-}
-
-double GovernorSteamNR::get(std::string_view param, units::unit unitType) const
-{
-    if ((param == "tch") || (param == "t4")) {
-        return Tch;
-    }
-    return GovernorIeeeSimple::get(param, unitType);
+    GovernorIeeeSimple::set(param, val, unitType);
 }
 
 }  // namespace griddyn::governors

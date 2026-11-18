@@ -54,6 +54,7 @@ class GenModelClassical: public GenModel {
     //!< @brief default constructor
     explicit GenModelClassical(const std::string& objName = "genModelClassic_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
 
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
@@ -66,7 +67,6 @@ class GenModelClassical: public GenModel {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
-    virtual stringVec localStateNames() const override;
     // dynamics
 
     virtual void residual(const IOdata& inputs,

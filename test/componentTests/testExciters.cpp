@@ -571,7 +571,7 @@ TEST_F(ExciterTests, Esst4bZeroTrAndTaBypassStatesWithConsistentResidualAndJacob
     exciter->set("vmmin", -99.0);
     generator->add(exciter);
     ASSERT_EQ(gds->dynInitialize(), 0);
-    EXPECT_EQ(exciter->localStateNames(), (stringVec{"efd", "vrint", "vmint"}));
+    EXPECT_EQ(exciter->solverStateNames(), (stringVec{"efd", "vrint", "vmint"}));
     EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode, false), 0);
 }
@@ -888,7 +888,7 @@ TEST(ExciterModelTests, Expic1MatchesGridKitPerturbedEquations)
     inputs[exciterVsetInLocation] = 1.0;
     IOdata fieldSet(2, 0.0);
     exciter.dynInitializeB(inputs, {0.8}, fieldSet);
-    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "et", "xa", "vr1", "vr", "vf1", "vf"}));
+    EXPECT_EQ(exciter.solverStateNames(), (stringVec{"efd", "et", "xa", "vr1", "vr", "vf1", "vf"}));
     const auto& initialized = exciter.getStates();
     ASSERT_EQ(initialized.size(), 7U);
     EXPECT_DOUBLE_EQ(initialized[0], 0.8);
@@ -1000,7 +1000,7 @@ TEST(ExciterModelTests, Expic1SupportsDocumentedBypassesAndValidation)
     inputs[exciterVsetInLocation] = 1.0;
     IOdata fieldSet(2, 0.0);
     exciter.dynInitializeB(inputs, {0.4}, fieldSet);
-    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "xa"}));
+    EXPECT_EQ(exciter.solverStateNames(), (stringVec{"efd", "xa"}));
     EXPECT_EQ(exciter.findIndex("et", cLocalSolverMode), kInvalidLocation);
     EXPECT_EQ(exciter.findIndex("vf", cLocalSolverMode), kInvalidLocation);
 
@@ -1051,7 +1051,7 @@ TEST(ExciterModelTests, ScrxMatchesOpenIpslPerturbedEquationsAndSelectors)
     inputs[exciterXadIfdInLocation] = 0.1;
     IOdata fieldSet(2, 0.0);
     exciter.dynInitializeB(inputs, {1.0}, fieldSet);
-    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "xll", "efdpre"}));
+    EXPECT_EQ(exciter.solverStateNames(), (stringVec{"efd", "xll", "efdpre"}));
 
     // Error = 0.42, xLL = 0.2, and amplifier state = 0.5.  The OpenIPSL SCRX
     // lead-lag gives dxLL = 0.44 and VLL = 0.244; the lag then gives
@@ -1101,7 +1101,7 @@ TEST(ExciterModelTests, Esac5aMatchesAndesEquationsAndJacobian)
     exciter.set("e2", 2.0);
     exciter.set("se2", 0.4);
     exciter.dynInitializeA(0.0, 0);
-    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "vc", "vr", "xll", "xwf", "ve"}));
+    EXPECT_EQ(exciter.solverStateNames(), (stringVec{"efd", "vc", "vr", "xll", "xwf", "ve"}));
 
     IOdata inputs(exciterInputCount, 0.0);
     inputs[exciterVoltageInLocation] = 1.0;
@@ -1163,7 +1163,7 @@ TEST(ExciterModelTests, Esac5aStepMatchesClosedFormAndesResponse)
     exciter.set("se1", 0.0);
     exciter.set("se2", 0.0);
     exciter.dynInitializeA(0.0, 0);
-    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "vr", "xwf", "ve"}));
+    EXPECT_EQ(exciter.solverStateNames(), (stringVec{"efd", "vr", "xwf", "ve"}));
     IOdata inputs(exciterInputCount, 0.0);
     inputs[exciterVoltageInLocation] = 1.0;
     inputs[exciterVsetInLocation] = 1.0;
@@ -1256,7 +1256,7 @@ TEST(ExciterModelTests, Esac6aMatchesGridKitPerturbedEquations)
     inputs[exciterOmegaInLocation] = 1.0;
     IOdata fieldSet(2, 0.0);
     exciter.dynInitializeB(inputs, {1.0}, fieldSet);
-    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "vc", "xa", "xll", "ve", "vf"}));
+    EXPECT_EQ(exciter.solverStateNames(), (stringVec{"efd", "vc", "xa", "xll", "ve", "vf"}));
 
     std::vector<double> state{1.0, 1.01, 0.4, 0.3, 0.98, 0.5};
     std::vector<double> stateDerivative(state.size(), 0.0);
@@ -1317,7 +1317,7 @@ TEST(ExciterModelTests, Esac6aUsesVoltageScaledRegulatorAndBoundedExciter)
     inputs[exciterVsetInLocation] = 1.0;
     IOdata fieldSet(2, 0.0);
     exciter.dynInitializeB(inputs, {0.1}, fieldSet);
-    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "xa", "ve"}));
+    EXPECT_EQ(exciter.solverStateNames(), (stringVec{"efd", "xa", "ve"}));
 
     std::vector<double> state{0.0, -1.0, -0.1};
     std::vector<double> stateDerivative(state.size(), 0.0);
@@ -2122,7 +2122,7 @@ TEST(ExciterModelTests, Ieeex1MatchesReferenceBlockEquations)
     // nonzero. This is the common direct path in the NPCC PSS/E records.
     configureIeeex1(*exciter, 0.0, 0.7);
     exciter->dynInitializeA(0.0, 0);
-    EXPECT_EQ(exciter->localStateNames(), (stringVec{"ef", "vr", "rf", "vmeas"}));
+    EXPECT_EQ(exciter->solverStateNames(), (stringVec{"ef", "vr", "rf", "vmeas"}));
 
     IOdata inputs(exciterInputCount, 0.0);
     inputs[exciterVoltageInLocation] = 1.0;
@@ -2154,7 +2154,7 @@ TEST(ExciterModelTests, Ieeex1MatchesReferenceBlockEquations)
     exciters::ExciterIEEEX1 leadLagExciter;
     configureIeeex1(leadLagExciter, 0.2, 0.05);
     leadLagExciter.dynInitializeA(0.0, 0);
-    EXPECT_EQ(leadLagExciter.localStateNames(), (stringVec{"ef", "vr", "x", "rf", "vmeas"}));
+    EXPECT_EQ(leadLagExciter.solverStateNames(), (stringVec{"ef", "vr", "x", "rf", "vmeas"}));
     leadLagExciter.dynInitializeB(inputs, {0.4}, fieldSet);
     state = {0.7, 1.0, 0.03, 0.05, 0.98};
     stateDerivative.assign(state.size(), 0.0);
@@ -2290,7 +2290,7 @@ TEST(ExciterModelTests, Esst1aMatchesStaticExciterBlockEquations)
     exciter->set("uel", 1.0);
     exciter->set("vos", 1.0);
     exciter->dynInitializeA(0.0, 0);
-    EXPECT_EQ(exciter->localStateNames(), (stringVec{"efd", "vmeas", "ll1", "ll2", "va", "rf"}));
+    EXPECT_EQ(exciter->solverStateNames(), (stringVec{"efd", "vmeas", "ll1", "ll2", "va", "rf"}));
 
     IOdata inputs(exciterInputCount, 0.0);
     inputs[exciterVoltageInLocation] = 1.0;
@@ -2397,7 +2397,7 @@ TEST(ExciterModelTests, CanonicalDcExciterFactoriesSupportVoltageTransducers)
         auto* exciter = dynamic_cast<Exciter*>(object.get());
         ASSERT_NE(exciter, nullptr);
         exciter->dynInitializeA(0.0, 0);
-        EXPECT_EQ(exciter->localStateNames().back(), "vmeas");
+        EXPECT_EQ(exciter->solverStateNames().back(), "vmeas");
     }
 }
 
@@ -2707,7 +2707,7 @@ TEST(ExciterModelTests, Exac1ZeroTrBypassesVoltageMeasurementState)
     IOdata fieldSet(4, 0.0);
     exciter.dynInitializeB(inputs, {0.4}, fieldSet);
     EXPECT_EQ(exciter.getStates().size(), 5U);
-    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "ll", "va", "ve", "wf"}));
+    EXPECT_EQ(exciter.solverStateNames(), (stringVec{"efd", "ll", "va", "ve", "wf"}));
     EXPECT_EQ(exciter.findIndex("vmeas", cLocalSolverMode), kInvalidLocation);
 
     std::vector<double> state{0.4, 0.1, 0.3, 1.1, 1.0};
@@ -2748,7 +2748,7 @@ TEST(ExciterModelTests, Exac1ZeroTbBypassesLeadLagState)
     exciter.dynInitializeB(inputs, {0.4}, fieldSet);
 
     EXPECT_EQ(exciter.getStates().size(), 4U);
-    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "va", "ve", "wf"}));
+    EXPECT_EQ(exciter.solverStateNames(), (stringVec{"efd", "va", "ve", "wf"}));
     EXPECT_EQ(exciter.findIndex("ll", cLocalSolverMode), kInvalidLocation);
 
     std::vector<double> state{0.4, 0.3, 1.1, 1.0};
@@ -2788,7 +2788,7 @@ TEST(ExciterModelTests, Exac1ZeroTaUsesAlgebraicRegulatorState)
     exciter.dynInitializeB(inputs, {0.4}, fieldSet);
 
     EXPECT_EQ(exciter.getStates().size(), 4U);
-    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "va", "ve", "wf"}));
+    EXPECT_EQ(exciter.solverStateNames(), (stringVec{"efd", "va", "ve", "wf"}));
     EXPECT_EQ(exciter.findIndex("va", cLocalSolverMode), 1U);
     EXPECT_EQ(exciter.findIndex("ve", cLocalSolverMode), 2U);
 
@@ -3187,7 +3187,7 @@ TEST(ExciterModelTests, Exac2ZeroTrBypassesVoltageMeasurementState)
     exciter.dynInitializeB(inputs, {0.4}, fieldSet);
 
     EXPECT_EQ(exciter.getStates().size(), 5U);
-    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "ll", "va", "ve", "wf"}));
+    EXPECT_EQ(exciter.solverStateNames(), (stringVec{"efd", "ll", "va", "ve", "wf"}));
     EXPECT_EQ(exciter.findIndex("vmeas", cLocalSolverMode), kInvalidLocation);
 
     // With TR=0, the compact state order is [ll, va, ve, wf].  The high
@@ -3435,7 +3435,7 @@ TEST(ExciterModelTests, Ac8bMatchesPidAndRotatingExciterEquations)
     exciter->set("e2", 1.0);
     exciter->set("se2", 0.0);
     exciter->dynInitializeA(0.0, 0);
-    EXPECT_EQ(exciter->localStateNames(),
+    EXPECT_EQ(exciter->solverStateNames(),
               (stringVec{"efd", "vmeas", "pidint", "pidder", "vr", "ve"}));
 
     IOdata inputs(exciterInputCount, 0.0);

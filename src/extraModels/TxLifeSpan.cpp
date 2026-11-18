@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "griddyn/Link.h"
 #include "griddyn/blocks/IntegralBlock.h"
 #include "griddyn/events/Event.h"
@@ -20,6 +21,29 @@
 #include <utility>
 
 namespace griddyn::extra {
+const ModelDescription& TxLifeSpan::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<TxLifeSpan>(
+        "TxLifeSpan",
+        &Sensor::getModelDescription(),
+        {flag({"useiec", "iec"}, &TxLifeSpan::opFlags, USE_IE_CMETHOD, "Useiec"),
+         flag({"no_disconnect"}, &TxLifeSpan::opFlags, NO_DISCONNECT, "No disconnect"),
+         parameter({"initial", "initiallife"},
+                   &TxLifeSpan::mInitialLife,
+                   units::hr,
+                   "Initial life in hours"),
+         parameter({"basetemp"},
+                   &TxLifeSpan::mBaseTemp,
+                   units::degC,
+                   "The temperature base for the lifespan equations"),
+         parameter({"agingrate", "agingconstant"},
+                   &TxLifeSpan::mAgingConstant,
+                   units::defunit,
+                   "Aging constant default value of 14594 based on"),
+         inverseFlag({"useieee", "ieee"}, &TxLifeSpan::opFlags, USE_IE_CMETHOD, "Useieee")});
+    return description;
+}
+
 TxLifeSpan::TxLifeSpan(const std::string& objName): Sensor(objName)
 {
     opFlags.reset(CONTINUOUS_FLAG);  // this is a not a continuous model everything is slow so
@@ -42,43 +66,12 @@ CoreObject* TxLifeSpan::clone(CoreObject* obj) const
     return nobj;
 }
 
-void TxLifeSpan::setFlag(std::string_view flag, bool val)
-{
-    if ((flag == "useiec") || (flag == "iec")) {
-        opFlags.set(USE_IE_CMETHOD, val);
-    } else if ((flag == "useieee") || (flag == "ieee")) {
-        opFlags.set(USE_IE_CMETHOD, !val);
-    } else if (flag == "no_disconnect") {
-        opFlags.set(NO_DISCONNECT, val);
-    } else {
-        Sensor::setFlag(flag, val);
-    }
-}
-
 void TxLifeSpan::set(std::string_view param, std::string_view val)
 {
     if (param.empty() || param[0] == '#') {
     } else {
         Sensor::set(param, val);
     }
-}
-
-void TxLifeSpan::set(std::string_view param, double val, units::unit unitType)
-{
-    if ((param == "initial") || (param == "initiallife")) {
-        mInitialLife = units::convert(val, unitType, units::hr);
-    } else if (param == "basetemp") {
-        mBaseTemp = units::convert(val, unitType, units::degC);
-    } else if ((param == "agingrate") || (param == "agingconstant")) {
-        mAgingConstant = val;
-    } else {
-        Sensor::set(param, val, unitType);
-    }
-}
-
-double TxLifeSpan::get(std::string_view param, units::unit unitType) const
-{
-    return Sensor::get(param, unitType);
 }
 
 void TxLifeSpan::add(CoreObject* /*obj*/)

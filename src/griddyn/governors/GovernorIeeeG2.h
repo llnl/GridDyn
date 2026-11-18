@@ -30,6 +30,7 @@ class GovernorIeeeG2: public Governor {
   public:
     explicit GovernorIeeeG2(const std::string& objName = "govIeeeG2_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
 
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
@@ -38,7 +39,6 @@ class GovernorIeeeG2: public Governor {
 
     void set(std::string_view param, std::string_view val) override;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
     void residual(const IOdata& inputs,
                   const StateData& stateData,
@@ -59,8 +59,6 @@ class GovernorIeeeG2: public Governor {
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
 
-    stringVec localStateNames() const override;
-    index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
     const std::vector<stringVec>& outputNames() const override;
 
   private:

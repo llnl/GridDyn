@@ -14,6 +14,7 @@ namespace griddyn {
 /** REGCA1 converter current lag, voltage-dependent current limits and P/Q injection. */
 class REGCA1: public TerminalElectricalModel {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit REGCA1(const std::string& name = "REGCA1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     using TerminalElectricalModel::set;
@@ -51,7 +52,6 @@ class REGCA1: public TerminalElectricalModel {
                                   const StateData& stateData,
                                   MatrixData<double>& matrixData,
                                   const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   protected:
     virtual std::array<double, 2>

@@ -21,6 +21,7 @@ be output or used as a basis for other relay actions
 */
 class Sensor: public Relay {
   public:
+    const ModelDescription& getModelDescription() const override;
     /** @brief sensor flags controlling operation
      */
     enum SensorFlags {

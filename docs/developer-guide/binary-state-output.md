@@ -1,7 +1,7 @@
-# HDF5 solver-state and diagnostic output
+# HDF5 state, diagnostic and recorder output
 
-GridDyn state snapshots, solver callback diagnostics, sparse Jacobians and the
-convergence diagnostic use one HDF5 implementation in
+GridDyn recorder samples, state snapshots, solver callback diagnostics, sparse Jacobians,
+continuation studies and the convergence diagnostic use one HDF5 implementation in
 [Hdf5DataFile](../../src/utilities/Hdf5DataFile.h). The custom `GDSTATE1`
 encoding and reader have been removed. File extensions do not select another
 state format; `.h5` is recommended. `saveState` and `loadState` use HDF5.
@@ -46,8 +46,11 @@ partitioned startup conditions have populated both vectors.
 
 `readStateBinary(path)` selects the last published snapshot frame, skipping
 trial diagnostics. It reads the index in bounded blocks and materializes only
-that frame's state arrays. `BinaryStateData` exposes the primary time, mode,
-state and derivatives, plus `paired` blocks when present.
+the selected frame. `BinaryStateData` exposes the primary time, mode, state
+and derivatives, plus paired blocks, state names, and local state when present.
+Ordinary `saveStateBinary` frames do not currently write the optional `NAMES`
+records, even though the HDF5 schema and explicit diagnostic/Jacobian captures
+support them.
 
 `loadStateBinary(sim, path, mode)` checks the mode properties, initialized sizes,
 and availability of every destination block before copying any arrays. Stored
@@ -55,8 +58,79 @@ offset numbers identify file blocks; the destination's current pairing selects
 the paired solver. Load is a solver-vector operation: it does not rewind the
 simulation clock, commit component state, restore parameters/events/limit flags,
 or recover solver integration history. This remains separate from a complete
-checkpoint/restore system. No physical-consistency reconciliation of user edits
-is performed.
+checkpoint/restore system. The in-memory
+`GridDynSimulation::checkpointRestore(BinaryStateData, MINIMAL)` API restarts
+supported solver backends at the saved time and publishes the restored solution
+to components so their outputs reflect it immediately. See
+[Checkpointing and restore boundaries](checkpointing.md#binary-state-restore-api).
+No physical-consistency reconciliation of user edits is performed.
+
+`GridDynSimulation::checkpointCapture(path, mode, append)` writes solver state
+and ordered `NAMES` records for each solver block, plus one `BYTES` record
+with source 0 and code 3. The byte record contains version 1 UTF-8 JSON with
+root-relative component paths, type and status checks, and typed values keyed
+by declaring class and field name. Integer values, nanosecond clocks, and
+packed flags use decimal strings for exact round trips. Floating-point
+values use JSON numbers, with the original bit pattern stored as a decimal
+string for non-finite values. All records are published together.
+[Checkpointing and restore boundaries](checkpointing.md) explains the restore levels.
+
+## Continuation power flow archives
+
+Choose the bus user IDs to collect in `ContinuationRequest::monitorBuses`.
+After solving, save the returned study to an HDF5 archive. Each save appends
+one study by default. Pass `false` as the third argument to replace the archive.
+Studies may have different monitored buses and numbers of points.
+
+```cpp
+#include "griddyn/GridDynSimulation.h"
+#include "griddyn/simulation/GridDynSimulationFileOps.h"
+
+// Inside a function with an initialized GridDynSimulation named sim.
+griddyn::ContinuationRequest request;
+request.loadScale = 1.5;
+request.monitorBuses = {5, 9};
+request.enforceQLimits = true;
+griddyn::saveContinuationPowerFlow(sim.continuationPowerFlow(request), "continuation.h5");
+
+auto first = griddyn::readContinuationPowerFlow("continuation.h5", 0);
+auto latest = griddyn::readContinuationPowerFlow("continuation.h5");
+```
+
+A read opens only the selected study. Each study has two records with source 2. Code 0 is UTF-8 JSON metadata with format `griddyn-continuation-power-flow`
+and schema version 1. It stores the status, target loading parameter,
+ordered monitor bus IDs, Q-limit events, and whether a nose row is present.
+Code 1 is a dense row-major trace in `/values`. Its `rows` and `columns` fields
+give the shape. Each row holds lambda, residual norm, all monitored voltages
+in per unit, then all monitored angles in radians. The final row holds the
+optional nose point.
+
+For example, this reads the voltage curve for bus 9 from study zero using
+h5py. The strided read selects one voltage column.
+
+```python
+import json
+
+import h5py
+
+with h5py.File("continuation.h5") as archive:
+    metadata_record, trace = archive["records"][0:2]
+    start = int(metadata_record["byte_offset"])
+    size = int(metadata_record["byte_count"])
+    metadata = json.loads(archive["bytes"][start : start + size].tobytes())
+
+    start = int(trace["value_offset"])
+    width = int(trace["columns"])
+    point_count = int(trace["rows"]) - int(metadata["has_nose"])
+    stop = start + width * point_count
+    voltage_column = 2 + metadata["monitor_buses"].index(9)
+    lambda_values = archive["values"][start:stop:width]
+    voltages = archive["values"][start + voltage_column : stop : width]
+```
+
+For study `i`, the metadata and trace are at record indices `2*i` and
+`2*i+1`. Divide `/committed_records` by two to get the number of complete
+studies.
 
 ## File schema, version 1
 
@@ -68,7 +142,7 @@ All payloads are ordinary typed, extendible one-dimensional datasets:
 | `/records`           | Packed compound table       | Capture metadata and offsets; fields below.                      |
 | `/values`            | Little-endian IEEE binary64 | Vector and sparse-matrix values.                                 |
 | `/indices`           | Little-endian uint64        | Sparse rows followed by columns, or relative UTF-8 name offsets. |
-| `/bytes`             | uint8                       | UTF-8 name bytes.                                                |
+| `/bytes`             | uint8                       | UTF-8 names and byte records.                                    |
 | `/committed_records` | Scalar little-endian uint64 | Number of published index rows.                                  |
 
 `/records` has these named fields:
@@ -78,13 +152,13 @@ All payloads are ordinary typed, extendible one-dimensional datasets:
 | `time_ns`                           | Signed int64 elapsed simulation nanoseconds.                                                                                                               |
 | `frame`, `index`                    | uint64 frame identity and producer evaluation/block index.                                                                                                 |
 | `key`, `paired_key`, `parent_index` | uint64 producer keys; absent values are `UINT64_MAX`. Solver keys are offset indices. `parent_index` is reserved when no enclosing evaluation is supplied. |
-| `source`                            | uint32: 0 snapshot, 1 diagnostic.                                                                                                                          |
-| `type`                              | uint32: 0 vector, 1 sparse COUP matrix, 2 names.                                                                                                           |
+| `source`                            | uint32: 0 snapshot, 1 diagnostic, 2 continuation study, 3 recorder samples/metadata.                                                                       |
+| `type`                              | uint32: 0 vector, 1 sparse COUP matrix, 2 names, 3 bytes.                                                                                                  |
 | `code`                              | uint32 vector role: 0 state, 1 derivative/RHS, 2 residual; matrix role 1 Jacobian.                                                                         |
 | `flags`, `approx`                   | uint32 solver mode bits and approximation mask. Mode bits 0-5 mean dynamic, differential, algebraic, local, extended state and parameters.                 |
 | `value_offset`, `count`             | uint64 zero-based offset into `/values` and element count; for names, count is number of names.                                                            |
 | `index_offset`                      | uint64 offset into `/indices`. A matrix stores `count` rows then `count` columns. Names store `count+1` nondecreasing offsets beginning at zero.           |
-| `byte_offset`, `byte_count`         | uint64 range in `/bytes` for names.                                                                                                                        |
+| `byte_offset`, `byte_count`         | uint64 range in `/bytes` for names or byte records.                                                                                                        |
 | `rows`, `columns`                   | uint64 explicit matrix dimensions; indices are zero based.                                                                                                 |
 | `cj`                                | binary64 Jacobian integration coefficient; NaN means unspecified.                                                                                          |
 
@@ -152,11 +226,14 @@ Set `GRIDDYN_MATLAB_STATE_FIXTURES` to an existing directory and run
 produce `.h5` fixtures for power flow, appended/periodic DAE state, live
 KINSOL/IDA/CVODE/ARKODE diagnostics, matrices/names, paired snapshots, exact
 64-bit metadata, special values, empty matrices and chunked compressed data.
+Run `EventComponentTests --gtest_filter=MeasurementFiles.Hdf5XmlRecorderCapturesIteratedPowerFlow`
+with the same environment setting to add the recorder fixture.
 Then add `matlab` and `matlab/tests` to the MATLAB path and run
 `testReadStateFile(fixtureDirectory)`.
 
 The C++ tests also exercise malformed/truncated files, mode mismatch, a failed
 unpublished frame, selected reads, and contained diagnostic I/O failure.
-Full parameter/runtime checkpointing, recorder-result HDF5 adapters and other
-applications in the [integration assessment](hdf5-integration-assessment.md)
-remain separate work. LUT integration is deferred and would be last, if pursued.
+[Recorder HDF5 output](../recorders-and-grabbers.md#saving-and-resetting) also uses this schema.
+Full parameter/runtime checkpointing and other applications in the
+[integration assessment](hdf5-integration-assessment.md) remain separate work.
+LUT integration is deferred and would be last, if pursued.

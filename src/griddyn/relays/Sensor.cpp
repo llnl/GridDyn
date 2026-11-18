@@ -15,19 +15,74 @@
 #include "../measurement/GrabberSet.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixDataSparse.hpp"
 #include "utilities/MatrixDataTranslate.hpp"
 #include <algorithm>
+#include <charconv>
+#include <cstddef>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 namespace griddyn {
 using gmlc::utilities::ensureSizeAtLeast;
+
+const ModelDescription& Sensor::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<Sensor>(
+        "Sensor",
+        &Relay::getModelDescription(),
+        {flag({"direct_io", "direct"}, &Sensor::opFlags, DIRECT_IO, "Direct io"),
+         command({"condition"}, units::defunit, "Condition", ModelFieldType::STRING),
+         parameter({"terminal"},
+                   &Sensor::m_terminal,
+                   units::defunit,
+                   "The terminal to use on link operations  NOTE: works with"),
+         command({"input"}, units::defunit, "Input signal specification", ModelFieldType::STRING),
+         command({"filter"}, units::defunit, "Filter block specification", ModelFieldType::STRING),
+         command({"outputname", "outputnames", "outputstring"},
+                 units::defunit,
+                 "Output names",
+                 ModelFieldType::STRING),
+         command({"output", "outputs"},
+                 units::defunit,
+                 "Output signal or index",
+                 ModelFieldType::STRING),
+         command({"blockinput", "process"},
+                 units::defunit,
+                 "Filter input routing",
+                 ModelFieldType::STRING),
+         indexedCommand({"input", "input_", "input#"},
+                        units::defunit,
+                        "Input signal specification by index",
+                        ModelFieldType::STRING),
+         indexedCommand({"filter", "filter_", "filter#"},
+                        units::defunit,
+                        "Filter block specification by index",
+                        ModelFieldType::STRING),
+         indexedCommand({"outputname", "outputname_", "outputname#"},
+                        units::defunit,
+                        "Output names by index",
+                        ModelFieldType::STRING),
+         indexedCommand({"output", "output_", "output#"},
+                        units::defunit,
+                        "Output signal or index by output index",
+                        ModelFieldType::STRING),
+         indexedCommand(
+             {"blockinput", "blockinput_", "blockinput#", "process", "process_", "process#"},
+             units::defunit,
+             "Filter input routing by index",
+             ModelFieldType::STRING),
+         command({"sampled"}, units::defunit, "Sampled", ModelFieldType::BOOLEAN),
+         command({"continuous"}, units::defunit, "Continuous", ModelFieldType::BOOLEAN)});
+    return description;
+}
 
 Sensor::Sensor(const std::string& objName): Relay(objName)
 {
@@ -145,9 +200,10 @@ std::shared_ptr<GrabberSet> Sensor::getGrabberSet(index_t grabberNum)
 
 void Sensor::setFlag(std::string_view flag, bool val)
 {
-    if ((flag == "direct_io") || (flag == "direct")) {
-        opFlags.set(DIRECT_IO, val);
-    } else if (flag == "sampled") {
+    if (Sensor::getModelDescription().trySetFlag(*this, flag, val)) {
+        return;
+    }
+    if (flag == "sampled") {
         opFlags[SAMPLED_ONLY] = val;
         opFlags[CONTINUOUS_FLAG] = !val;
     } else if (flag == "continuous") {
@@ -298,24 +354,42 @@ void Sensor::setupOutput(index_t num, const std::string& outputString)
 
 void Sensor::set(std::string_view param, double val, units::unit unitType)
 {
-    std::string iparam;
-    const int num = gmlc::utilities::stringOps::trailingStringInt(param, iparam, -1);
-    if (param == "terminal") {
-        m_terminal = static_cast<int>(val);
-    } else if ((iparam == "blockinput") || (iparam == "process")) {
-        if (num < 0) {
+    const auto result = Sensor::getModelDescription().trySet(*this, param, val, unitType);
+    if (isSetHandled(result)) {
+        return;
+    }
+    if (result == SetResult::NO_MATCH) {
+        Relay::set(param, val, unitType);
+        return;
+    }
+    std::string_view iparam = param;
+    index_t num = 0;
+    const bool indexed = result == SetResult::INDEXED_COMMAND;
+    if (indexed) {
+        const auto suffixStart = param.find_first_of("0123456789");
+        iparam = param.substr(0, suffixStart);
+        if (iparam.back() == '_' || iparam.back() == '#') {
+            iparam.remove_suffix(1);
+        }
+        const auto suffix = param.substr(suffixStart);
+        std::from_chars(suffix.data(), suffix.data() + suffix.size(), num);
+    }
+    if ((iparam == "blockinput") || (iparam == "process")) {
+        if (!indexed) {
             blockInputs.push_back(static_cast<int>(val));
         } else {
-            ensureSizeAtLeast(blockInputs, num + 1, -1);
-            blockInputs[num] = static_cast<int>(val);
+            const auto routeIndex = static_cast<std::size_t>(num);
+            if (routeIndex >= blockInputs.max_size()) {
+                throw InvalidParameterValue(param);
+            }
+            ensureSizeAtLeast(blockInputs, routeIndex + 1, -1);
+            blockInputs[routeIndex] = static_cast<int>(val);
         }
-    } else if (param == "direct") {
-        opFlags.set(DIRECT_IO, (val > 0.1));
     } else if (iparam == "output") {
         if (static_cast<int>(val) < 0) {
             throw(InvalidParameterValue(param));
         }
-        if (num < 0) {
+        if (!indexed) {
             outputs.push_back(static_cast<int>(val));
         } else {
             if (std::cmp_less(num, outputs.size())) {
@@ -329,14 +403,14 @@ void Sensor::set(std::string_view param, double val, units::unit unitType)
 
 double Sensor::get(std::string_view param, units::unit unitType) const
 {
+    if (const auto value = Sensor::getModelDescription().tryGet(*this, param, unitType)) {
+        return *value;
+    }
     const index_t ind = lookupOutputIndex(param);
     if (ind != kNullLocation) {
         return getOutput(ind);
     }
 
-    if (param == "terminal") {
-        return static_cast<double>(m_terminal);
-    }
     return Relay::get(param, unitType);
 }
 

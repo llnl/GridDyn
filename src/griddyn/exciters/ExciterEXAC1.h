@@ -46,12 +46,14 @@ namespace griddyn::exciters {
  */
 class ExciterEXAC1: public Exciter {
   public:
+    const ModelDescription& getModelDescription() const override;
     enum EXACFlags {
         REGULATOR_LIMITED = OBJECT_FLAG5,
         REGULATOR_LIMIT_HIGH = OBJECT_FLAG6,
     };
 
   protected:
+    index_t localStateIndex(index_t fullIndex) const;
     model_parameter Tr = 0.01;
     model_parameter Tb = 1.0;
     model_parameter Tc = 1.0;
@@ -85,11 +87,7 @@ class ExciterEXAC1: public Exciter {
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
-    void set(std::string_view param, std::string_view val) override;
-    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
-    stringVec localStateNames() const override;
-    index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
+
     void residual(const IOdata& inputs,
                   const StateData& stateData,
                   double resid[],

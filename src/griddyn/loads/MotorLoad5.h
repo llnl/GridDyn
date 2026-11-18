@@ -33,6 +33,8 @@ class MotorLoad5: public MotorLoad3 {
     double directT0pp = 0.0;
 
   public:
+    const ModelDescription& getModelDescription() const override;
+    using MotorLoad3::set;
     /** @brief constructor
 @param[in] objName  the name of the object
 */
@@ -49,8 +51,6 @@ class MotorLoad5: public MotorLoad3 {
 
   public:
     virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual StateSizes localStateSizes(const SolverMode& sMode) const override;
 
@@ -88,11 +88,7 @@ class MotorLoad5: public MotorLoad3 {
                                   MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
-    virtual void getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix) const override;
 
-    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     // TODO(phlpt): Change to algebraic update.

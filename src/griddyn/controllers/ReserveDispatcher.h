@@ -19,6 +19,8 @@ class SchedulerRamp;
  */
 class ReserveDispatcher: public CoreObject {
   public:
+    const ModelDescription& getModelDescription() const override;
+
   protected:
     double thresholdStart = kBigNum;
     double thresholdStop = kBigNum;
@@ -51,7 +53,7 @@ class ReserveDispatcher: public CoreObject {
     virtual void remove(SchedulerRamp* sched);
     virtual void remove(CoreObject* obj) override;
 
-    virtual void set(std::string_view param, std::string_view val) override;
+    using CoreObject::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 

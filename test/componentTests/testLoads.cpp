@@ -579,7 +579,7 @@ TEST_F(LoadTests, FileLoadTest1)
     auto ldT = static_cast<FileLoad*>(ld1);
     ASSERT_NE(ldT, nullptr);
     std::string fileName = makeLoadTestPath("FileLoadInfo.bin");
-    ld1->set("file", fileName);
+    ld1->set("filename", fileName);
     ldT->setFlag("step");
 
     ld1->pFlowInitializeA(timeZero, 0);

@@ -11,6 +11,7 @@
 #include "Dispatcher.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "griddyn/griddyn-config.h"
 #include <algorithm>
@@ -74,6 +75,18 @@ bool operator==(const Tsched& td1, CoreTime timeC)
 bool operator!=(const Tsched& td1, CoreTime timeC)
 {
     return (td1.time != timeC);
+}
+
+const ModelDescription& Scheduler::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<Scheduler>("Scheduler",
+                                            &Source::getModelDescription(),
+                                            {command({"min"}, units::defunit, "Min"),
+                                             command({"max"}, units::defunit, "Max"),
+                                             command({"base"}, units::defunit, "Base"),
+                                             command({"target"}, units::defunit, "Target")});
+    return description;
 }
 
 Scheduler::Scheduler(const std::string& objName, double initialValue):
@@ -251,6 +264,9 @@ void Scheduler::set(std::string_view param, std::string_view val)
 
 void Scheduler::set(std::string_view param, double val, unit unitType)
 {
+    if (isSetHandled(Scheduler::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     if (param == "min") {
         pMin = convert(val, unitType, puMW, m_Base);
         pCurr = std::clamp(pCurr, pMin, pMax);

@@ -51,6 +51,7 @@ namespace griddyn::exciters {
  */
 class ExciterIEEEX1 final: public ExciterDC2A {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit ExciterIEEEX1(const std::string& objName = "exciterIEEEX1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 
@@ -81,7 +82,6 @@ class ExciterIEEEX1 final: public ExciterDC2A {
                          const SolverMode& sMode,
                          CheckLevel level) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
-    stringVec localStateNames() const override;
 
   private:
     bool hasLeadLag() const;

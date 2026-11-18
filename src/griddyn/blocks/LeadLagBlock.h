@@ -41,6 +41,7 @@ namespace griddyn::blocks {
  */
 class LeadLagBlock: public GridBlock {
   public:
+    const ModelDescription& getModelDescription() const override;
     /** @brief Construct a unity-gain block with @f$T_a=0@f$, @f$T_b=1@f$. */
     explicit LeadLagBlock(const std::string& objName = "leadLagBlock_#");
     /**
@@ -67,7 +68,7 @@ class LeadLagBlock: public GridBlock {
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
-    void set(std::string_view param, std::string_view val) override;
+    using GridBlock::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     void blockDerivative(double input,
                          double didt,
@@ -85,7 +86,6 @@ class LeadLagBlock: public GridBlock {
                                index_t argLoc,
                                const SolverMode& solverModeValue) override;
     double step(CoreTime time, double input) override;
-    stringVec localStateNames() const override;
 
   private:
     LeadLagKernel section;

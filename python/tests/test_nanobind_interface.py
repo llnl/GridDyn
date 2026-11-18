@@ -11,11 +11,16 @@ import griddyn as gd
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PFLOW_FILE = REPO_ROOT / "test" / "test_files" / "pFlow_tests" / "two_bus_example.xml"
+CPF_FILE = REPO_ROOT / "test" / "test_files" / "pFlow_tests" / "continuation_two_bus.xml"
+CPF_Q_LIMIT_FILE = REPO_ROOT / "test" / "test_files" / "pFlow_tests" / "continuation_q_limits.xml"
+RAW_INPUTS = REPO_ROOT / "test" / "test_files" / "input_tests"
 CASE9_FILE = REPO_ROOT / "test" / "test_files" / "matlab_test_files" / "case9.m"
 DYNAMIC_FILE = REPO_ROOT / "test" / "test_files" / "pFlow_tests" / "two_bus_dynamic_example.xml"
 AREA_FILE = REPO_ROOT / "test" / "test_files" / "area_tests" / "area_test1.xml"
 RELAY_FILE = REPO_ROOT / "test" / "test_files" / "relay_tests" / "test_relay_comms.xml"
 RECORDER_FILE = REPO_ROOT / "python" / "griddyn" / "examples" / "data" / "two_bus_dynamic.xml"
+HDF5_RECORDER_FILE = REPO_ROOT / "test" / "test_files" / "recorder_tests" / "recorder_hdf5.xml"
+HDF5_SIGNATURE = b"\x89HDF\r\n\x1a\n"
 
 
 def _exported_matrix(text, output_format, matrix_name):
@@ -47,6 +52,183 @@ def test_public_exports_are_available():
     assert issubclass(gd.SolveError, gd.GridDynError)
     assert issubclass(gd.ExecutionError, gd.GridDynError)
     assert callable(gd.load)
+
+
+def test_continuation_reports_nose_and_exact_target_without_changing_simulation():
+    sim = gd.load(CPF_FILE)
+    result = sim.power_flow.continuation(load_scale=6.0)
+    assert result["success"] is True
+    assert result["status"] == "nose_found"
+    assert result["message"]
+    assert result["control_policy"] == "fixed"
+    assert result["target_lambda"] is None
+    assert result["nose_lambda"] == pytest.approx(0.8, abs=1e-5)
+    assert result["limiting_lambda"] == result["last_lambda"] == result["nose_lambda"]
+    assert result["q_limit_events"] == []
+
+    result = sim.power_flow.continuation(load_scale=6.0, stop_at=1.0)
+    assert result["success"] is False
+    assert result["status"] == "nose_before_target"
+    assert result["target_lambda"] == 1.0
+    assert result["limiting_lambda"] == result["nose_lambda"] == pytest.approx(0.8, abs=1e-5)
+
+    sim.loads["demand_load"].set("q", 0.1)
+    sim.power_flow.run()
+    base_voltage = sim.buses["demand"].voltage
+    result = sim.power_flow.continuation(
+        load_targets={"demand_load": {"p_mw": 120.0}},
+        stop_at=0.5,
+        monitor_buses=["demand", 10],
+    )
+    assert result["success"] is True
+    assert result["status"] == "target_reached"
+    assert result["limiting_lambda"] is None
+    assert result["nose_lambda"] is None
+    assert result["target_lambda"] == result["last_lambda"] == result["lambda_values"][-1] == 0.5
+    assert list(result["bus_voltages"]) == list(result["bus_angles"]) == [20, 10]
+    # At lambda=0.5 the demand is P=0.7 and Q=0.1 p.u. on a line with X=0.5 p.u.
+    expected_voltage = math.sqrt((0.9 + math.sqrt(0.31)) / 2)
+    assert result["bus_voltages"][20][-1] == pytest.approx(expected_voltage)
+    assert result["bus_angles"][20][-1] == pytest.approx(-math.asin(0.35 / expected_voltage))
+    assert result["bus_voltages"][10][-1] == 1.0
+    assert max(result["residual_norms"]) <= 1e-8
+    assert sim.buses["demand"].voltage == base_voltage
+
+
+def test_continuation_reports_generator_q_limit_and_resumes():
+    sim = gd.load(CPF_Q_LIMIT_FILE)
+    result = sim.power_flow.continuation(
+        load_targets={"reactive_load": {"q_mvar": 110.0}},
+        stop_at=0.6,
+        monitor_buses=[20],
+        enforce_q_limits=True,
+    )
+    assert result["status"] == "target_reached"
+    assert result["control_policy"] == "q_limits"
+    (event,) = result["q_limit_events"]
+    assert event["bus_id"] == 20
+    assert event["generator"] == "regulator"
+    assert event["bound"] == "upper"
+    assert event["lambda"] == pytest.approx(0.15, abs=2e-7)
+    assert event["lambda"] in result["lambda_values"]
+    assert event["q_mvar"] == pytest.approx(25.0)
+    assert result["lambda_values"][-1] == 0.6
+    assert result["bus_voltages"][20][-1] == pytest.approx((1 + math.sqrt(0.1)) / 2)
+
+
+def test_continuation_distinguishes_q_limit_turn_from_unmet_target():
+    sim = gd.load(CPF_Q_LIMIT_FILE)
+    sim.buses["regulated"].set("voltage", 0.4)
+    sim.generators["regulator"].set("qmin", -0.9)
+
+    for stop_at, success in [("nose", True), (1.0, False)]:
+        result = sim.power_flow.continuation(
+            load_scale=11.0, stop_at=stop_at, enforce_q_limits=True
+        )
+        assert result["success"] is success
+        assert result["status"] == "q_limit_turn"
+        assert result["nose_lambda"] is None
+        assert result["limiting_lambda"] == result["last_lambda"] == pytest.approx(0.63, abs=2e-7)
+        assert result["limiting_lambda"] == result["q_limit_events"][0]["lambda"]
+
+
+def test_continuation_omits_q_limit_event_when_switched_base_does_not_solve():
+    sim = gd.load(CPF_Q_LIMIT_FILE)
+    # With Qgen capped at 0.25 p.u., net Q demand is 0.75 p.u. The line can supply at most 0.5.
+    sim.loads["reactive_load"].set("q", 1.0)
+    result = sim.power_flow.continuation(load_scale=1.5, stop_at=0.0, enforce_q_limits=True)
+    assert result["success"] is False
+    assert result["status"] == "base_solve_failed"
+    assert result["last_lambda"] is None
+    assert result["limiting_lambda"] is None
+    assert result["lambda_values"] == []
+    assert result["q_limit_events"] == []
+
+
+@pytest.mark.parametrize("solver", ["dense", "sparse"])
+def test_continuation_matches_power_flow_for_a_mixed_remote_control_group(solver):
+    sim = gd.load(RAW_INPUTS / "raw_remote_voltage_local_group.raw")
+    sim.set("flags", solver)
+    sim.generators["REMOTE_Gen_1"].set("qmax", 0.24)
+    sim.generators["GEN2_Gen_1"].set("qmax", 0.65)
+    sim.power_flow.run()
+    load = sim.loads["REMOTE_load_1"]
+    base_reactive_demand = load.get("q")
+    result = sim.power_flow.continuation(
+        load_targets={load.name: {"q_mvar": 60}},
+        enforce_q_limits=True,
+        stop_at=1.0,
+        monitor_buses=[2, 3, 4],
+    )
+
+    assert result["status"] == "target_reached"
+    assert result["bus_voltages"][2] == pytest.approx([1.04] * len(result["lambda_values"]))
+    events = result["q_limit_events"]
+    assert [
+        (event["generator"], event["bus_id"], event["regulated_bus_id"]) for event in events
+    ] == [
+        ("REMOTE_Gen_1", 2, 2),
+        ("GEN2_Gen_1", 4, 2),
+    ]
+    assert [event["q_mvar"] for event in events] == pytest.approx([24, 65])
+    assert 0 < events[0]["lambda"] < events[1]["lambda"] < 1
+    assert load.get("q") == base_reactive_demand
+
+    load.set("q", 60, "Mvar")
+    sim.power_flow.run()
+    assert -sim.generators["REMOTE_Gen_1"].get("q") == pytest.approx(0.24)
+    assert -sim.generators["GEN2_Gen_1"].get("q") == pytest.approx(0.65)
+    for name in ["REMOTE", "GEN1", "GEN2"]:
+        bus = sim.buses[name]
+        assert result["bus_voltages"][bus.uid][-1] == pytest.approx(bus.voltage, abs=1e-7)
+
+
+def test_continuation_releases_remote_voltage_after_the_last_generator_binds():
+    sim = gd.load(RAW_INPUTS / "raw_remote_voltage_group.raw")
+    limits = {"GEN1_Gen_1": 0.46, "GEN1_Gen_2": 0.53, "GEN2_Gen_1": 0.96}
+    for name, qmax in limits.items():
+        sim.generators[name].set("qmax", qmax)
+    result = sim.power_flow.continuation(
+        load_targets={"REMOTE_load_1": {"q_mvar": 90}},
+        enforce_q_limits=True,
+        stop_at=1.0,
+        monitor_buses=["REMOTE"],
+    )
+
+    assert result["status"] == "target_reached"
+    events = result["q_limit_events"]
+    assert {event["generator"]: event["q_mvar"] for event in events} == pytest.approx(
+        {name: 100 * qmax for name, qmax in limits.items()}
+    )
+    assert all(event["regulated_bus_id"] == 2 and event["bound"] == "upper" for event in events)
+    assert events[0]["lambda"] < events[1]["lambda"] < events[2]["lambda"] < 1
+    last_event = result["lambda_values"].index(events[-1]["lambda"])
+    voltages = result["bus_voltages"][2]
+    assert voltages[: last_event + 1] == pytest.approx([1.04] * (last_event + 1), abs=1e-7)
+    assert voltages[-1] < 1.03
+    sim.loads["REMOTE_load_1"].set("q", 90, "Mvar")
+    sim.power_flow.run()
+    assert voltages[-1] == pytest.approx(sim.buses["REMOTE"].voltage, abs=1e-7)
+
+
+def test_continuation_keeps_the_angle_reference_at_a_remote_q_limit():
+    sim = gd.load(RAW_INPUTS / "raw_remote_voltage_swing_terminal.raw")
+    sim.generators["SLACK_REMOTE_Gen_1"].set("qmax", 0.30)
+    result = sim.power_flow.continuation(
+        load_targets={"REMOTE_load_1": {"q_mvar": 40}},
+        enforce_q_limits=True,
+        stop_at=1.0,
+        monitor_buses=[1, 2],
+    )
+
+    assert result["status"] == "q_limit_turn"
+    assert result["success"] is False
+    (event,) = result["q_limit_events"]
+    assert (event["bus_id"], event["regulated_bus_id"]) == (1, 2)
+    assert event["q_mvar"] == pytest.approx(30)
+    assert result["limiting_lambda"] == event["lambda"]
+    assert result["bus_voltages"][2][-1] == pytest.approx(1.04, abs=1e-6)
+    assert max(abs(angle) for angle in result["bus_angles"][1]) < 1e-10
 
 
 def test_power_flow_solution_checkpoint(tmp_path):
@@ -243,6 +425,94 @@ def test_recorder_samples_keep_duplicate_signal_columns(monkeypatch, tmp_path):
 
     row = sim.recorders["signals"].as_dicts()[0]
     assert row["bus1:voltage"] == pytest.approx(row["bus1:voltage_2"])
+
+
+@pytest.mark.parametrize("extension", [".csv", ".dat", ".h5", ".hdf5"])
+def test_python_can_configure_flush_and_export_recorders(tmp_path, extension):
+    sim = gd.load(HDF5_RECORDER_FILE)
+    recorder = sim.recorders["bus_signals"]
+    output = tmp_path / ("signals" + extension)
+    assert recorder.set("directory", tmp_path) is recorder
+    assert recorder.set("file", output) is recorder
+    recorder.set("autosave", 0)
+    recorder.set("compression", 2)
+    recorder.set("period", 2.0)
+    assert sim.execute("iterate 1 2") == 0
+    recorder.flush()
+    captured = output.read_bytes()
+    assert captured
+    if extension in (".h5", ".hdf5"):
+        assert captured.startswith(HDF5_SIGNATURE)
+    elif extension == ".csv":
+        assert b"magnitude" in captured and b"phase" in captured
+    else:
+        assert not captured.startswith(HDF5_SIGNATURE)
+    recorder.save_file()
+    assert output.read_bytes() == captured
+    snapshot = tmp_path / "snapshot.h5"
+    recorder.save_file(snapshot)
+    assert snapshot.read_bytes().startswith(HDF5_SIGNATURE)
+    assert output.read_bytes() == captured
+
+
+def test_recorder_write_errors_are_typed_and_keep_buffered_samples(tmp_path):
+    sim = gd.load(HDF5_RECORDER_FILE)
+    recorder = sim.recorders[0]
+    recorder.set("autosave", 0)
+    assert sim.execute("iterate 1 2") == 0
+    samples = recorder.as_dicts()
+    blocked = tmp_path / "blocked.h5"
+    blocked.mkdir()
+    recorder.set("file", blocked)
+    with pytest.raises(gd.FileLoadError):
+        recorder.flush()
+    assert recorder.as_dicts() == samples
+    blocked.rmdir()
+    recorder.flush()
+    assert blocked.read_bytes().startswith(HDF5_SIGNATURE)
+    with pytest.raises(gd.InvalidParameterError):
+        recorder.set("compression", 10)
+    with pytest.raises(gd.InvalidParameterError):
+        recorder.set("unknown_setting", "value")
+    with pytest.raises(TypeError):
+        recorder.set("period", [])
+
+
+def test_recorder_reset_can_start_an_independent_hdf5_recording(tmp_path):
+    sim = gd.load(HDF5_RECORDER_FILE)
+    sim.set("recorddirectory", str(tmp_path))
+    recorder = sim.recorders["bus_signals"]
+    assert sim.execute("iterate 1 2") == 0
+    recorder.flush()
+    original = (tmp_path / "samples.h5").read_bytes()
+
+    recorder.reset()
+    recorder.set("file", tmp_path / "branch.h5")
+    assert len(recorder) == 0
+    assert sim.execute("iterate 1 4") == 0
+    recorder.flush()
+
+    assert [row["time"] for row in recorder.as_dicts()] == [4.0]
+    assert (tmp_path / "branch.h5").read_bytes().startswith(HDF5_SIGNATURE)
+    assert (tmp_path / "samples.h5").read_bytes() == original
+
+
+def test_recorder_operations_reject_handles_from_before_simulation_reset(tmp_path):
+    sim = gd.Simulation()
+    sim.load_from_args(["--input", str(HDF5_RECORDER_FILE)])
+    sim.set("recorddirectory", str(tmp_path))
+    recorder = sim.recorders[0]
+    sim.reset()
+    for operation in (
+        lambda: recorder.set("compression", 1),
+        lambda: recorder.set("file", tmp_path / "stale.h5"),
+        recorder.flush,
+        lambda: recorder.save_file(tmp_path / "stale.h5"),
+        recorder.reset,
+    ):
+        with pytest.raises(gd.InvalidObjectError, match="previous simulation"):
+            operation()
+    assert not (tmp_path / "stale.h5").exists()
 
 
 def test_load_returns_self_for_chaining():

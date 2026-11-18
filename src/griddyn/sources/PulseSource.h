@@ -13,6 +13,7 @@ namespace griddyn::sources {
 /** @brief describe a pulsing source*/
 class PulseSource: public Source {
   public:
+    const ModelDescription& getModelDescription() const override;
     static const char invertFlag = OBJECT_FLAG3;  //!< flag location indicating an inverse waveform
     /** enumeration of the different available pulse types*/
     enum class PulseType {

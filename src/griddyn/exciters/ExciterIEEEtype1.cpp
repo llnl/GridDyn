@@ -10,6 +10,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -21,6 +22,38 @@ namespace {
     constexpr double ieeeType1LimiterRootTolerance = 0.00001;
     constexpr double initialLimitContactTolerance = 1e-7;
 }  // namespace
+
+const ModelDescription& ExciterIEEEtype1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterIEEEtype1>(
+        "ExciterIEEEtype1",
+        &Exciter::getModelDescription(),
+        {parameter({"ke"}, &ExciterIEEEtype1::Ke, units::one, "Ke gain or coefficient"),
+         parameter({"te"}, &ExciterIEEEtype1::Te, units::second, "Exciter time constant"),
+         parameter({"kf"}, &ExciterIEEEtype1::Kf, units::one, "Kf gain or coefficient"),
+         parameter({"tf"}, &ExciterIEEEtype1::Tf, units::second, "Feedback time constant"),
+         parameter(
+             {"tr"}, &ExciterIEEEtype1::Tr, units::second, "Voltage measurement time constant"),
+         parameter({"e1"}, &ExciterIEEEtype1::E1, units::one, "E1 model setting"),
+         parameter({"se1"}, &ExciterIEEEtype1::Se1, units::one, "Se1 model setting"),
+         parameter({"e2"}, &ExciterIEEEtype1::E2, units::one, "E2 model setting"),
+         parameter({"se2"}, &ExciterIEEEtype1::Se2, units::one, "Se2 model setting"),
+         parameter({"aex"}, &ExciterIEEEtype1::Aex, units::one, "Aex model setting"),
+         parameter({"bex"}, &ExciterIEEEtype1::Bex, units::one, "Bex model setting"),
+         command({"limiter"}, units::one, "Select retained regulator limiter branch"),
+         localState("hasTwoPointSaturationParameters",
+                    &ExciterIEEEtype1::hasTwoPointSaturationParameters,
+                    "Retained hasTwoPointSaturationParameters mode"),
+         state({"ef"}, units::one, 0, "Field voltage"),
+         state({"vr"}, units::one, 1, "Regulator state"),
+         state({"rf"}, units::one, 2, "rf solver state"),
+         state<ExciterIEEEtype1>(
+             {"vmeas"},
+             units::one,
+             [](const auto& model) { return model.Tr > 0.0 ? 3 : kInvalidLocation; },
+             "Measured terminal voltage")});
+    return description;
+}
 
 ExciterIEEEtype1::ExciterIEEEtype1(const std::string& objName): Exciter(objName)
 {
@@ -283,29 +316,10 @@ ChangeCode ExciterIEEEtype1::rootCheck(const IOdata& inputs,
     return ret;
 }
 
-stringVec ExciterIEEEtype1::localStateNames() const
-{
-    return (Tr > 0.0) ? stringVec{"ef", "vr", "rf", "vmeas"} : stringVec{"ef", "vr", "rf"};
-}
-void ExciterIEEEtype1::set(std::string_view param, std::string_view val)
-{
-    Exciter::set(param, val);
-}
-
 // set parameters
 void ExciterIEEEtype1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "ke") {
-        Ke = val;
-    } else if (param == "te") {
-        Te = val;
-    } else if (param == "kf") {
-        Kf = val;
-    } else if (param == "tf") {
-        Tf = val;
-    } else if (param == "tr") {
-        Tr = val;
-    } else if (param == "e1") {
+    if (param == "e1") {
         E1 = val;
         hasTwoPointSaturationParameters = true;
     } else if (param == "se1") {
@@ -317,10 +331,6 @@ void ExciterIEEEtype1::set(std::string_view param, double val, units::unit unitT
     } else if (param == "se2") {
         Se2 = val;
         hasTwoPointSaturationParameters = true;
-    } else if (param == "aex") {
-        Aex = val;
-    } else if (param == "bex") {
-        Bex = val;
     } else if (param == "limiter") {
         if (val > 0.1) {
             opFlags.set(TRIGGER_HIGH);
@@ -332,29 +342,10 @@ void ExciterIEEEtype1::set(std::string_view param, double val, units::unit unitT
             opFlags.reset(TRIGGER_HIGH);
             opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
         }
-    } else {
+    } else if (!isSetHandled(
+                   ExciterIEEEtype1::getModelDescription().trySet(*this, param, val, unitType))) {
         Exciter::set(param, val, unitType);
     }
-}
-
-double ExciterIEEEtype1::get(std::string_view param, units::unit unitType) const
-{
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "e1") {
-        return E1;
-    }
-    if (param == "se1") {
-        return Se1;
-    }
-    if (param == "e2") {
-        return E2;
-    }
-    if (param == "se2") {
-        return Se2;
-    }
-    return Exciter::get(param, unitType);
 }
 
 void ExciterIEEEtype1::configureSaturation()

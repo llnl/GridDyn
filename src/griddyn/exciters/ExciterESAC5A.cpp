@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -15,6 +16,52 @@
 #include <vector>
 
 namespace griddyn::exciters {
+
+const ModelDescription& ExciterESAC5A::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterESAC5A>(
+        "ExciterESAC5A",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"}, &ExciterESAC5A::Tr, units::second, "Voltage measurement time constant"),
+         parameter({"te"}, &ExciterESAC5A::Te, units::second, "Exciter time constant"),
+         parameter({"kf"}, &ExciterESAC5A::Kf, units::one, "Kf gain or coefficient"),
+         parameter({"tf1"}, &ExciterESAC5A::Tf1, units::second, "Tf1 time constant"),
+         parameter({"tf2"}, &ExciterESAC5A::Tf2, units::second, "Tf2 time constant"),
+         parameter({"tf3"}, &ExciterESAC5A::Tf3, units::second, "Tf3 time constant"),
+         parameter({"ke"}, &ExciterESAC5A::Ke, units::one, "Ke gain or coefficient"),
+         parameter({"e1"}, &ExciterESAC5A::E1, units::one, "E1 model setting"),
+         parameter({"se1"}, &ExciterESAC5A::Se1, units::one, "Se1 model setting"),
+         parameter({"e2"}, &ExciterESAC5A::E2, units::one, "E2 model setting"),
+         parameter({"se2"}, &ExciterESAC5A::Se2, units::one, "Se2 model setting"),
+         state({"efd", "field"}, units::one, 0, "Field voltage"),
+         state<ExciterESAC5A>(
+             {"vc", "vmeas"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().sensed, 1); },
+             "Sensed terminal voltage"),
+         state<ExciterESAC5A>(
+             {"vr", "regulator"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().regulator, 1); },
+             "Regulator state"),
+         state<ExciterESAC5A>(
+             {"xll", "leadlag"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().leadLag, 1); },
+             "Lead-lag state"),
+         state<ExciterESAC5A>(
+             {"xwf", "washout"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().washout, 1); },
+             "Washout state"),
+         state<ExciterESAC5A>(
+             {"ve", "exciter"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().field, 1); },
+             "Exciter voltage")});
+    return description;
+}
+
 ExciterESAC5A::ExciterESAC5A(const std::string& objName): Exciter(objName)
 {
     m_inputSize = exciterInputCount;
@@ -359,127 +406,4 @@ ChangeCode ExciterESAC5A::rootCheck(const IOdata& inputs,
     return ChangeCode::NO_CHANGE;
 }
 
-stringVec ExciterESAC5A::localStateNames() const
-{
-    const auto indices = layout();
-    stringVec names{"efd"};
-    for (index_t index = 0; index < indices.count; ++index) {
-        if (index == indices.sensed) {
-            names.emplace_back("vc");
-        } else if (index == indices.regulator) {
-            names.emplace_back("vr");
-        } else if (index == indices.leadLag) {
-            names.emplace_back("xll");
-        } else if (index == indices.washout) {
-            names.emplace_back("xwf");
-        } else {
-            names.emplace_back("ve");
-        }
-    }
-    return names;
-}
-
-index_t ExciterESAC5A::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "efd") || (field == "field")) {
-        return offsets.getAlgOffset(sMode);
-    }
-    const auto indices = layout();
-    index_t location = kInvalidLocation;
-    if ((field == "vc") || (field == "vmeas")) {
-        location = indices.sensed;
-    } else if ((field == "vr") || (field == "regulator")) {
-        location = indices.regulator;
-    } else if ((field == "xll") || (field == "leadlag")) {
-        location = indices.leadLag;
-    } else if ((field == "xwf") || (field == "washout")) {
-        location = indices.washout;
-    } else if ((field == "ve") || (field == "exciter")) {
-        location = indices.field;
-    }
-    return (location == kInvalidLocation) ? kInvalidLocation :
-                                            offsets.getDiffOffset(sMode) + location;
-}
-
-void ExciterESAC5A::set(std::string_view param, double val, units::unit unitType)
-{
-    if (param == "tr") {
-        Tr = val;
-    } else if (param == "te") {
-        Te = val;
-    } else if (param == "kf") {
-        Kf = val;
-    } else if (param == "tf1") {
-        Tf1 = val;
-    } else if (param == "tf2") {
-        Tf2 = val;
-    } else if (param == "tf3") {
-        Tf3 = val;
-    } else if (param == "ke") {
-        Ke = val;
-    } else if (param == "e1") {
-        E1 = val;
-    } else if (param == "se1") {
-        Se1 = val;
-    } else if (param == "e2") {
-        E2 = val;
-    } else if (param == "se2") {
-        Se2 = val;
-    } else {
-        Exciter::set(param, val, unitType);
-    }
-}
-
-double ExciterESAC5A::get(std::string_view param, units::unit unitType) const
-{
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if (param == "vrmax") {
-        return Vrmax;
-    }
-    if (param == "vrmin") {
-        return Vrmin;
-    }
-    if (param == "vref") {
-        return Vref;
-    }
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if (param == "kf") {
-        return Kf;
-    }
-    if (param == "tf1") {
-        return Tf1;
-    }
-    if (param == "tf2") {
-        return Tf2;
-    }
-    if (param == "tf3") {
-        return Tf3;
-    }
-    if (param == "ke") {
-        return Ke;
-    }
-    if (param == "e1") {
-        return E1;
-    }
-    if (param == "se1") {
-        return Se1;
-    }
-    if (param == "e2") {
-        return E2;
-    }
-    if (param == "se2") {
-        return Se2;
-    }
-    return Exciter::get(param, unitType);
-}
 }  // namespace griddyn::exciters

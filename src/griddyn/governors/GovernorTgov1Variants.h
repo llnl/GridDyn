@@ -16,13 +16,13 @@ class GovernorTgov1Variant: public Governor {
     GovernorTgov1Variant(bool deadband, bool normalizedReference, const std::string& name);
     explicit GovernorTgov1Variant(const std::string& name);
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
     using Governor::set;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
     void set(std::string_view param, double value, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     void residual(const IOdata& inputs,
                   const StateData& stateData,
                   double resid[],
@@ -42,7 +42,6 @@ class GovernorTgov1Variant: public Governor {
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
   protected:
     bool useDeadband;
@@ -63,15 +62,18 @@ class GovernorTgov1DB final: public GovernorTgov1Variant {
   public:
     explicit GovernorTgov1DB(const std::string& name = "govTgov1DB_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
 };
 class GovernorTgov1N final: public GovernorTgov1Variant {
   public:
     explicit GovernorTgov1N(const std::string& name = "govTgov1N_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
 };
 class GovernorTgov1NDB final: public GovernorTgov1Variant {
   public:
     explicit GovernorTgov1NDB(const std::string& name = "govTgov1NDB_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
 };
 }  // namespace griddyn::governors

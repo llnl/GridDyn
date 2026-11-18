@@ -7,10 +7,21 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <string>
 
 namespace griddyn {
+
+const ModelDescription& REECB1::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<REECB1>("REECB1",
+                                         &REECA1::getModelDescription(),
+                                         {command({"imax"}, units::defunit, "Set imax"),
+                                          command({"tp"}, units::defunit, "Set tp")});
+    return description;
+}
 
 REECB1::REECB1(const std::string& objName): REECA1(objName)
 {
@@ -24,7 +35,14 @@ CoreObject* REECB1::clone(CoreObject* obj) const
 
 void REECB1::set(std::string_view param, double val, units::unit unitType)
 {
+    if (isSetHandled(REECB1::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (key != param &&
+        isSetHandled(REECB1::getModelDescription().trySetLocal(*this, key, val, unitType))) {
+        return;
+    }
     if (key == "pflag" || key == "vref1" ||
         (key.size() == 3 && key[2] >= '1' && key[2] <= '4' &&
          (key.starts_with("ip") || key.starts_with("iq") || key.starts_with("vp") ||

@@ -17,6 +17,7 @@
 #include "../measurement/StateGrabber.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixDataSparse.hpp"
 #include <algorithm>
 #include <cmath>
@@ -29,6 +30,30 @@
 namespace griddyn::relays {
 using units::convert;
 using units::puA;
+const ModelDescription& Fuse::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<Fuse>("Fuse",
+                                       &Relay::getModelDescription(),
+                                       {command({"limit"}, units::defunit, "Operating limit"),
+                                        command({"i2t"}, units::defunit, "I2t"),
+                                        parameter({"terminal"},
+                                                  &Fuse::m_terminal,
+                                                  units::defunit,
+                                                  "Line terminal  (typically 1 or 2)"),
+                                        command({"minblowtime"}, units::defunit, "Minblowtime"),
+                                        state<Fuse>(
+                                            {"I2T"},
+                                            units::one,
+                                            [](const auto& model, const auto& mode) {
+                                                return model.stateSize(mode) > 0 ?
+                                                    model.offsets.getDiffOffset(mode) :
+                                                    kInvalidLocation;
+                                            },
+                                            "Solver variable I2T")});
+    return description;
+}
+
 Fuse::Fuse(const std::string& objName): Relay(objName), useI2T(extra_bool)
 {
     opFlags.set(CONTINUOUS_FLAG);
@@ -67,12 +92,13 @@ void Fuse::set(std::string_view param, std::string_view val)
 
 void Fuse::set(std::string_view param, double val, units::unit unitType)
 {
+    if (isSetHandled(Fuse::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     if (param == "limit") {
         limit = convert(val, unitType, puA, systemBasePower, Vbase);
     } else if (param == "i2t") {
         mp_I2T = convert(val, unitType, puA, systemBasePower, Vbase);
-    } else if (param == "terminal") {
-        m_terminal = static_cast<int>(val);
     } else if (param == "minblowtime") {
         if (val > 0.001) {
             minBlowTime = val;
@@ -365,20 +391,4 @@ void Fuse::guessState(const CoreTime /*time*/,
     }
 }
 
-void Fuse::getStateName(stringVec& stNames,
-                        const SolverMode& sMode,
-                        const std::string& prefix) const
-{
-    if (stateSize(sMode) > 0) {
-        auto offset = offsets.getDiffOffset(sMode);
-        if (offset >= static_cast<index_t>(stNames.size())) {
-            stNames.resize(offset + 1);
-        }
-        if (prefix.empty()) {
-            stNames[offset] = getName() + ":I2T";
-        } else {
-            stNames[offset] = prefix + "::" + getName() + ":I2T";
-        }
-    }
-}
 }  // namespace griddyn::relays

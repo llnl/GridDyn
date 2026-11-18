@@ -7,6 +7,7 @@
 #include "RawDcLine.h"
 
 #include "../GridBus.h"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixDataCompact.hpp"
 #include <cmath>
 #include <string>
@@ -15,6 +16,31 @@ namespace griddyn::links {
 using units::convert;
 using units::puMW;
 using units::unit;
+
+const ModelDescription& RawDcLine::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<RawDcLine>(
+        "RawDcLine",
+        &Link::getModelDescription(),
+        {parameter(
+             {"from_vtarget"}, &RawDcLine::fromVoltageTarget, units::one, "From voltage target"),
+         parameter({"to_vtarget"}, &RawDcLine::toVoltageTarget, units::one, "To voltage target"),
+         flag({"from_voltage_control"}, &RawDcLine::controlFromVoltage, "Control from voltage"),
+         flag({"to_voltage_control"}, &RawDcLine::controlToVoltage, "Control to voltage"),
+         command({"from_q"}, units::defunit, "Set from q"),
+         command({"to_q"}, units::defunit, "Set to q"),
+         state<RawDcLine>(
+             {"q_from"},
+             units::one,
+             [](const auto& model, const auto& mode) { return model.fromReactiveOffset(mode); },
+             "Solver variable q_from"),
+         state<RawDcLine>(
+             {"q_to"},
+             units::one,
+             [](const auto& model, const auto& mode) { return model.toReactiveOffset(mode); },
+             "Solver variable q_to")});
+    return description;
+}
 
 RawDcLine::RawDcLine(const std::string& objName): Link(objName) {}
 
@@ -34,18 +60,13 @@ index_t RawDcLine::toReactiveOffset(const SolverMode& sMode) const
 
 void RawDcLine::set(std::string_view param, double val, unit unitType)
 {
-    if (param == "from_vtarget") {
-        fromVoltageTarget = val;
-    } else if (param == "to_vtarget") {
-        toVoltageTarget = val;
-    } else if (param == "from_q") {
+    if (isSetHandled(RawDcLine::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
+    if (param == "from_q") {
         fromReactivePower = convert(val, unitType, puMW, systemBasePower);
     } else if (param == "to_q") {
         toReactivePower = convert(val, unitType, puMW, systemBasePower);
-    } else if (param == "from_voltage_control") {
-        controlFromVoltage = (val > 0.5);
-    } else if (param == "to_voltage_control") {
-        controlToVoltage = (val > 0.5);
     } else {
         Link::set(param, val, unitType);
     }
@@ -53,11 +74,8 @@ void RawDcLine::set(std::string_view param, double val, unit unitType)
 
 double RawDcLine::get(std::string_view param, unit unitType) const
 {
-    if (param == "from_vtarget") {
-        return fromVoltageTarget;
-    }
-    if (param == "to_vtarget") {
-        return toVoltageTarget;
+    if (const auto value = RawDcLine::getModelDescription().tryGet(*this, param, unitType)) {
+        return *value;
     }
     if (param == "from_q") {
         return convert(fromReactivePower, puMW, unitType, systemBasePower);
@@ -65,12 +83,7 @@ double RawDcLine::get(std::string_view param, unit unitType) const
     if (param == "to_q") {
         return convert(toReactivePower, puMW, unitType, systemBasePower);
     }
-    if (param == "from_voltage_control") {
-        return controlFromVoltage ? 1.0 : 0.0;
-    }
-    if (param == "to_voltage_control") {
-        return controlToVoltage ? 1.0 : 0.0;
-    }
+
     return Link::get(param, unitType);
 }
 
@@ -224,21 +237,6 @@ void RawDcLine::guessState(CoreTime /*time*/,
     }
     if (toOffset != kNullLocation) {
         state[toOffset] = toReactivePower;
-    }
-}
-
-void RawDcLine::getStateName(stringVec& stNames,
-                             const SolverMode& sMode,
-                             const std::string& prefix) const
-{
-    const auto fromOffset = fromReactiveOffset(sMode);
-    const auto toOffset = toReactiveOffset(sMode);
-    const std::string statePrefix = prefix + getName() + ':';
-    if (fromOffset != kNullLocation) {
-        stNames[fromOffset] = statePrefix + "q_from";
-    }
-    if (toOffset != kNullLocation) {
-        stNames[toOffset] = statePrefix + "q_to";
     }
 }
 

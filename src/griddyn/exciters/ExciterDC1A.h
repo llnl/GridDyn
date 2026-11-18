@@ -18,6 +18,7 @@ class ExciterDC1A: public ExciterIEEEtype1 {
     double Tb = 1.0;
 
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit ExciterDC1A(const std::string& objName = "exciterDC1A_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
@@ -26,11 +27,9 @@ class ExciterDC1A: public ExciterIEEEtype1 {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void set(std::string_view param, std::string_view val) override;
+    using ExciterIEEEtype1::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-
-    virtual stringVec localStateNames() const override;
 
     virtual void residual(const IOdata& inputs,
                           const StateData& stateDataValue,

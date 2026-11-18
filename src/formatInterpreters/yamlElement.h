@@ -40,6 +40,12 @@ class YamlElement {
     /** Gets the selected sequence item, or the wrapped node otherwise. */
     YAML::Node getElement() const;
 
+    /** Gets the wrapped sequence without selecting its current item. */
+    const YAML::Node& getSequence() const { return mElement; }
+
+    /** Indicates whether the wrapped node is a sequence. */
+    bool isSequence() const { return mArrayType; }
+
     /** Gets the number of entries tracked for the wrapped value.
      * Sequence values report their sequence length.
      */

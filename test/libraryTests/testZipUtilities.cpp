@@ -24,7 +24,7 @@ static std::string makeZipTestPath(std::string_view fileName)
 
 TEST(ZipUtilitiesTests, Unzip)
 {
-    std::string file = makeZipTestPath("Rectifier.fmu");
+    const std::string file = GRIDDYN_TEST_DIRECTORY "/fmi_tests/test_fmus/Rectifier.fmu";
     std::string directory = makeZipTestPath("Rectifier");
     int status = utilities::unzip(file, directory);
     EXPECT_EQ(status, 0);
@@ -34,6 +34,7 @@ TEST(ZipUtilitiesTests, Unzip)
 
 TEST(ZipUtilitiesTests, ZipRoundTrip)
 {
+    std::filesystem::create_directories(zipTestDirectory);
     // make two files with very simple text
     int fileSize1 = 1000000;
     std::vector<char> zeroData(fileSize1, '0');

@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
@@ -17,6 +18,18 @@
 #include <vector>
 
 namespace griddyn::blocks {
+const ModelDescription& BlockSequence::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<BlockSequence>("BlockSequence",
+                                                &GridBlock::getModelDescription(),
+                                                {flag({"differential_input"},
+                                                      &BlockSequence::opFlags,
+                                                      DIFFERENTIAL_INPUT_ACTUAL,
+                                                      "Differential input")});
+    return description;
+}
+
 BlockSequence::BlockSequence(const std::string& objName): GridBlock(objName)
 {
     opFlags[USE_DIRECT] = true;
@@ -271,28 +284,12 @@ ChangeCode BlockSequence::rootCheck(const IOdata& inputs,
     return ret;
 }
 
-void BlockSequence::setFlag(std::string_view flag, bool val)
-{
-    if (flag == "differential_input") {
-        opFlags.set(DIFFERENTIAL_INPUT_ACTUAL, val);
-    } else {
-        GridBlock::setFlag(flag, val);
-    }
-}
 // set parameters
 void BlockSequence::set(std::string_view param, std::string_view val)
 {
     if (param == "sequence") {
     } else {
         GridBlock::set(param, val);
-    }
-}
-
-void BlockSequence::set(std::string_view param, double val, units::unit unitType)
-{
-    if (param.empty() || param[0] == '#') {
-    } else {
-        GridBlock::set(param, val, unitType);
     }
 }
 

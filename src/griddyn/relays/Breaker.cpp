@@ -15,6 +15,7 @@
 #include "../measurement/GridGrabbers.h"
 #include "../measurement/StateGrabber.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixDataSparse.hpp"
 #include <cmath>
 #include <memory>
@@ -24,6 +25,45 @@
 namespace griddyn::relays {
 using units::convert;
 using units::puA;
+const ModelDescription& Breaker::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<Breaker>(
+        "Breaker",
+        &Relay::getModelDescription(),
+        {flag({"nondirectional"}, &Breaker::opFlags, NONDIRECTIONAL_FLAG, "Nondirectional"),
+         command({"reclosetime"}, units::defunit, "Set both reclose delays"),
+         parameter({"reclosetime1"}, &Breaker::mRecloseTime1, units::defunit, "First reclose time"),
+         parameter(
+             {"reclosetime2"}, &Breaker::mRecloseTime2, units::defunit, "Second reclose time"),
+         parameter({"maxrecloseattempts", "reclosers"},
+                   &Breaker::mMaxRecloseAttempts,
+                   units::defunit,
+                   "Total number of recloses"),
+         parameter({"minclearingtime", "cleartime"},
+                   &Breaker::mMinClearingTime,
+                   units::defunit,
+                   "Minimum clearing time for from bus breaker"),
+         command({"limit"}, units::defunit, "Operating limit"),
+         parameter({"reclosertap", "tap"},
+                   &Breaker::mRecloserTap,
+                   units::defunit,
+                   "From side tap multiplier"),
+         parameter({"terminal"}, &Breaker::m_terminal, units::defunit, "Link terminal"),
+         parameter({"recloserresettime", "resettime"},
+                   &Breaker::mRecloserResetTime,
+                   units::defunit,
+                   "Time the breaker has to be on before the recloser count resets"),
+         state<Breaker>(
+             {"trigger_proximity"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return model.mUseCti && hasDifferential(mode) ? model.offsets.getDiffOffset(mode) :
+                                                                 kInvalidLocation;
+             },
+             "Solver variable trigger_proximity")});
+    return description;
+}
+
 Breaker::Breaker(const std::string& objName): Relay(objName), mUseCti(extra_bool)
 {
     opFlags.set(CONTINUOUS_FLAG);
@@ -53,14 +93,6 @@ CoreObject* Breaker::clone(CoreObject* obj) const
     return nobj;
 }
 
-void Breaker::setFlag(std::string_view flag, bool val)
-{
-    if (flag == "nondirectional") {
-        opFlags.set(NONDIRECTIONAL_FLAG, val);
-    } else {
-        Relay::setFlag(flag, val);
-    }
-}
 /*
 std::string commDestName;
 std::uint64_t commDestId=0;
@@ -76,25 +108,14 @@ void Breaker::set(std::string_view param, std::string_view val)
 
 void Breaker::set(std::string_view param, double val, units::unit unitType)
 {
+    if (isSetHandled(Breaker::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     if (param == "reclosetime") {
         mRecloseTime1 = val;
         mRecloseTime2 = val;
-    } else if (param == "reclosetime1") {
-        mRecloseTime1 = val;
-    } else if (param == "reclosetime2") {
-        mRecloseTime2 = val;
-    } else if ((param == "maxrecloseattempts") || (param == "reclosers")) {
-        mMaxRecloseAttempts = static_cast<decltype(mMaxRecloseAttempts)>(val);
-    } else if ((param == "minclearingtime") || (param == "cleartime")) {
-        mMinClearingTime = val;
     } else if (param == "limit") {
         mLimit = convert(val, unitType, puA, systemBasePower, mVoltageBase);
-    } else if ((param == "reclosertap") || (param == "tap")) {
-        mRecloserTap = val;
-    } else if (param == "terminal") {
-        m_terminal = static_cast<index_t>(val);
-    } else if ((param == "recloserresettime") || (param == "resettime")) {
-        mRecloserResetTime = val;
     } else {
         Relay::set(param, val, unitType);
     }
@@ -374,23 +395,6 @@ void Breaker::guessState(const CoreTime /*time*/,
         auto offset = offsets.getDiffOffset(sMode);
         state[offset] = 0;
         dstateDt[offset] = 0;
-    }
-}
-
-void Breaker::getStateName(stringVec& stNames,
-                           const SolverMode& sMode,
-                           const std::string& prefix) const
-{
-    if (stateSize(sMode) > 0) {
-        auto offset = offsets.getDiffOffset(sMode);
-        if (static_cast<size_t>(offset) >= stNames.size()) {
-            stNames.resize(static_cast<size_t>(offset) + 1);
-        }
-        if (prefix.empty()) {
-            stNames[offset] = getName() + ":trigger_proximity";
-        } else {
-            stNames[offset] = prefix + "::" + getName() + ":trigger_proximity";
-        }
     }
 }
 

@@ -24,6 +24,7 @@ class ControlSystem: public GridSubModel {
     std::vector<double> blockOutputs;  //!< current vector of block outputs
 
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit ControlSystem(const std::string& objName = "control_system_#");
     virtual ~ControlSystem();
 
@@ -39,7 +40,6 @@ class ControlSystem: public GridSubModel {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
     virtual void residual(const IOdata& inputs,
                           const StateData& sD,

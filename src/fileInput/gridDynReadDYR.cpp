@@ -2928,7 +2928,7 @@ namespace {
             CoreObjectFactory::instance()->createObject("governor", "ggov1"));
         static constexpr std::array<std::string_view, 35> names{
             "rselect", "fswitch", "r",     "tpelec", "maxerr", "minerr", "kpgov",
-            "kigov",   "kdgov",   "tdgov", "vmax",   "vmin",   "tact",   "kturb",
+            "kigov",   "kdgov",   "tdgov", "pmax",   "pmin",   "tact",   "kturb",
             "wfnl",    "tb",      "tc",    "teng",   "tfload", "kpload", "kiload",
             "ldref",   "dm",      "ropen", "rclose", "kimw",   "aset",   "ka",
             "ta",      "trate",   "db",    "tsa",    "tsb",    "rup",    "rdown"};
@@ -2948,7 +2948,7 @@ namespace {
         auto* model =
             static_cast<Governor*>(CoreObjectFactory::instance()->createObject("governor", "gast"));
         static constexpr std::array<std::string_view, 9> names{
-            "r", "t1", "t2", "t3", "at", "kt", "vmax", "vmin", "dt"};
+            "r", "t1", "t2", "t3", "at", "kt", "pmax", "pmin", "dt"};
         for (std::size_t ii = 0; ii < names.size(); ++ii) {
             model->set(names[ii], params[ii + 3]);
         }

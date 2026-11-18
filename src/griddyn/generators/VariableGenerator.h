@@ -23,6 +23,7 @@ class VariableGenerator: public DynamicGenerator {
     model_parameter mp_Vcutout = -1.0;  //!<[pu] the cutout voltage
     model_parameter mp_Vmax = kBigNum;  //!< [pu] the maximum operating voltage
   public:
+    const ModelDescription& getModelDescription() const override;
     //!< @brief new submodel locations for the extra variable generator block extends the ones
     //!< defined in Generator
     enum ExtraBlockLocations { SOURCE_LOC = 5, CONTROL_BLOCK_LOC = 6 };
@@ -39,7 +40,7 @@ class VariableGenerator: public DynamicGenerator {
                                       IOdata& fieldSet) override;
 
   public:
-    virtual void set(std::string_view param, std::string_view val) override;
+    using DynamicGenerator::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 

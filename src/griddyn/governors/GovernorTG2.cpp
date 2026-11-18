@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -24,6 +25,22 @@ GovernorTG2::GovernorTG2(const std::string& objName): Governor(objName)
     opFlags.set(IGNORE_DEADBAND);
     opFlags.set(IGNORE_FILTER);
     opFlags.set(IGNORE_THROTTLE);
+}
+const ModelDescription& GovernorTG2::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorTG2>(
+        "GovernorTG2",
+        &Governor::getModelDescription(),
+        {parameter({"dbl"}, &GovernorTG2::dbL, units::one, "Lower deadband limit"),
+         parameter({"dbu"}, &GovernorTG2::dbU, units::one, "Upper deadband limit"),
+         parameter({"dbc"}, &GovernorTG2::dbC, units::one, "Deadband center"),
+         flag({"deadbandenabled", "deadband"},
+              &GovernorTG2::deadbandEnabled,
+              "Enable speed deadband"),
+         flag({"hardlimit"}, &GovernorTG2::hardLimitEnabled, "Enable hard output limit"),
+         state({"pmech", "pm"}, units::puMW, 0, "Mechanical power"),
+         state({"leadlag", "ll"}, units::one, 1, "Lead-lag state")});
+    return description;
 }
 CoreObject* GovernorTG2::clone(CoreObject* obj) const
 {
@@ -182,51 +199,17 @@ void GovernorTG2::timestep(CoreTime time,
     m_state[offsets.getAlgOffset(cLocalSolverMode)] = output(inputs, m_state[diffOffset]);
     prevTime = time;
 }
-index_t GovernorTG2::findIndex(std::string_view field, const SolverMode& mode) const
-{
-    if (field == "pm" || field == "pmech") {
-        return offsets.getAlgOffset(mode);
-    }
-    if (field == "ll" || field == "leadlag") {
-        return offsets.getDiffOffset(mode);
-    }
-    return kInvalidLocation;
-}
 void GovernorTG2::set(std::string_view param, double value, units::unit unitType)
 {
-    if (!std::isfinite(value)) {
-        throw InvalidParameterValue("TG2 parameter must be finite");
+    if (isSetHandled(GovernorTG2::getModelDescription().trySet(*this, param, value, unitType))) {
+        return;
     }
-    if (param == "dbl") {
-        dbL = value;
-    } else if (param == "dbu") {
-        dbU = value;
-    } else if (param == "dbc") {
-        dbC = value;
-    } else if (param == "deadbandenabled" || param == "deadband") {
-        deadbandEnabled = (value != 0.0);
-    } else if (param == "hardlimit") {
-        hardLimitEnabled = (value != 0.0);
-    } else {
-        Governor::set(param, value, unitType);
-    }
+    Governor::set(param, value, unitType);
 }
 double GovernorTG2::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "dbl") {
-        return dbL;
-    }
-    if (param == "dbu") {
-        return dbU;
-    }
-    if (param == "dbc") {
-        return dbC;
-    }
-    if (param == "deadbandenabled" || param == "deadband") {
-        return deadbandEnabled ? 1.0 : 0.0;
-    }
-    if (param == "hardlimit") {
-        return hardLimitEnabled ? 1.0 : 0.0;
+    if (const auto result = GovernorTG2::getModelDescription().tryGet(*this, param, unitType)) {
+        return *result;
     }
     return Governor::get(param, unitType);
 }

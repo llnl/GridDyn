@@ -70,7 +70,7 @@ void Player::cloneTo(Event* gE) const
 void Player::set(std::string_view param, double val)
 {
     if (param == "period") {
-        value = val;
+        period = val;
     } else if (param == "column") {
         column = static_cast<index_t>(val);
     } else if (param == "timeoffset") {

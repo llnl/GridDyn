@@ -22,6 +22,7 @@ namespace links {
      */
     class AcDcConverter: public Link {
       public:
+        const ModelDescription& getModelDescription() const override;
         enum InverterFlags {
             FIXED_POWER_CONTROL = OBJECT_FLAG6,
         };
@@ -137,10 +138,6 @@ namespace links {
                              id_type_t measureTerminal,
                              id_type_t fixedTerminal = 0,
                              units::unit unitType = units::defunit) override;
-
-        virtual void getStateName(stringVec& stNames,
-                                  const SolverMode& sMode,
-                                  const std::string& prefix = "") const override;
 
       private:
         /** build out the components of the converter*/

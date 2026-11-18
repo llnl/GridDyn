@@ -10,6 +10,7 @@
 #include "../Link.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <string>
 
 namespace griddyn {
@@ -17,6 +18,17 @@ using units::convert;
 using units::puHz;
 using units::puV;
 using units::unit;
+
+const ModelDescription& infiniteBus::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<infiniteBus>(
+        "infiniteBus",
+        &GridBus::getModelDescription(),
+        {command({"type"}, units::defunit, "Configure type", ModelFieldType::STRING),
+         command({"dvdt"}, units::defunit, "Set dvdt"),
+         command({"dfdt"}, units::defunit, "Set dfdt")});
+    return description;
+}
 
 infiniteBus::infiniteBus(const std::string& objName): GridBus(objName)
 {
@@ -81,6 +93,9 @@ void infiniteBus::set(std::string_view param, std::string_view val)
 
 void infiniteBus::set(std::string_view param, double val, unit unitType)
 {
+    if (isSetHandled(infiniteBus::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     if (param == "dvdt") {
         dvdt = convert(val, unitType, puV, systemBasePower, localBaseVoltage);
     } else if (param == "dfdt") {

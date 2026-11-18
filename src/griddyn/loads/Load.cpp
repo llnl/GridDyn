@@ -10,8 +10,8 @@
 #include "../measurement/ObjectGrabbers.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
-#include <array>
 #include <cmath>
 #include <complex>
 #include <iostream>
@@ -40,6 +40,27 @@ void GridLoad::constructionHelper()
     updateName();
 }
 
+const ModelDescription& GridLoad::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridLoad>(
+        "GridLoad",
+        &GridSecondary::getModelDescription(),
+        {parameter({"p", "load p"}, &GridLoad::P, puMW, "Real power at nominal voltage"),
+         parameter({"q", "load q"}, &GridLoad::Q, puMW, "Reactive power at nominal voltage"),
+         parameter({"qratio"}, &GridLoad::pfq, units::one, "Power-factor control target ratio"),
+         flag({"fixedshunt"}, &GridLoad::fixedShunt, "Fixed-shunt classification"),
+         flag({"usepowerfactor"},
+              &GridLoad::opFlags,
+              USE_POWER_FACTOR_FLAG,
+              "Power-factor control enabled"),
+         command({"pf", "powerfactor"}, units::one, "Configure power-factor control"),
+         command({"p+"}, puMW, "Increment real power"),
+         command({"q+"}, puMW, "Increment reactive power"),
+         command({"p*"}, units::one, "Scale real power"),
+         command({"q*"}, units::one, "Scale reactive power")});
+    return description;
+}
+
 CoreObject* GridLoad::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<GridLoad, GridSecondary>(this, obj);
@@ -65,18 +86,6 @@ void GridLoad::setLoad(double plevel, double qlevel, unit unitType)
     setQ(convert(qlevel, unitType, puMW, systemBasePower));
 }
 
-static constexpr auto locNumStrings = std::array<std::string_view, 3>{"p", "q", "pf"};
-
-static constexpr std::array<std::string_view, 0> locStrStrings{};
-
-static constexpr auto flagStrings = std::array<std::string_view, 1>{"usepowerfactor"};
-
-void GridLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    getParamString<GridLoad, GridComponent>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
-}
-
 void GridLoad::setFlag(std::string_view flag, bool val)
 {
     if (flag == "usepowerfactor") {
@@ -88,7 +97,7 @@ void GridLoad::setFlag(std::string_view flag, bool val)
         } else {
             opFlags.reset(USE_POWER_FACTOR_FLAG);
         }
-    } else {
+    } else if (!GridLoad::getModelDescription().trySetFlag(*this, flag, val)) {
         GridSecondary::setFlag(flag, val);
     }
 }
@@ -96,26 +105,23 @@ void GridLoad::setFlag(std::string_view flag, bool val)
 // set properties
 void GridLoad::set(std::string_view param, std::string_view val)
 {
-    if (param.empty() || param[0] == '#') {
-    } else {
+    if (!isSetHandled(GridLoad::getModelDescription().trySet(*this, param, val))) {
         GridSecondary::set(param, val);
     }
 }
 
 double GridLoad::get(std::string_view param, unit unitType) const
 {
+    const auto* field = GridLoad::getModelDescription().findLocal(param);
+    const auto canonicalName = field != nullptr ? field->name() : param;
+    if (canonicalName == "p" || canonicalName == "q") {
+        return convertPower(canonicalName == "p" ? P : Q, puMW, unitType);
+    }
+    if (const auto value = GridLoad::getModelDescription().tryGet(*this, param, unitType)) {
+        return *value;
+    }
     double val = kNullVal;
     if (param.length() == 1) {
-        switch (param[0]) {
-            case 'p':
-                val = convert(P, puMW, unitType, systemBasePower, localBaseVoltage);
-                break;
-            case 'q':
-                val = convert(Q, puMW, unitType, systemBasePower, localBaseVoltage);
-                break;
-            default:
-                break;
-        }
         return val;
     }
 
@@ -136,22 +142,25 @@ void GridLoad::set(std::string_view param, double val, unit unitType)
     if (param.empty()) {
         return;
     }
-    if (param.length() == 1) {
-        switch (param.front()) {
-            case 'p':
-                setP(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
-                break;
-            case 'q':
-                setQ(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
-                break;
-            default:
-                throw(UnrecognizedParameter(param));
+    const auto* field = GridLoad::getModelDescription().findLocal(param);
+    const auto canonicalName = field != nullptr ? field->name() : param;
+    if (canonicalName == "p" || canonicalName == "q") {
+        const auto power = convertPower(val, unitType, puMW);
+        if (canonicalName == "p") {
+            setP(power);
+        } else {
+            setQ(power);
         }
-        checkFaultChange();
         return;
     }
-    if (param.empty()) {
+    if (isSetHandled(GridLoad::getModelDescription().trySet(*this, param, val, unitType))) {
+        if (canonicalName == "qratio") {
+            opFlags.set(USE_POWER_FACTOR_FLAG);
+        }
         return;
+    }
+    if (param.length() == 1) {
+        throw(UnrecognizedParameter(param));
     }
     if (param.back() == '+')  // load increments
     {
@@ -176,10 +185,6 @@ void GridLoad::set(std::string_view param, double val, unit unitType)
         } else {
             GridSecondary::set(param, val, unitType);
         }
-    } else if (param == "load p") {
-        setP(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
-    } else if (param == "load q") {
-        setQ(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
     } else if ((param == "pf") || (param == "powerfactor")) {
         if (val != 0.0) {
             if (std::abs(val) <= 1.0) {
@@ -191,12 +196,18 @@ void GridLoad::set(std::string_view param, double val, unit unitType)
             pfq = kBigNum;
         }
         opFlags.set(USE_POWER_FACTOR_FLAG);
-    } else if (param == "qratio") {
-        pfq = val;
-        opFlags.set(USE_POWER_FACTOR_FLAG);
     } else {
         GridSecondary::set(param, val, unitType);
     }
+}
+
+double GridLoad::convertPower(double value, unit sourceUnit, unit targetUnit) const
+{
+    if (units::is_error(sourceUnit) || units::is_error(targetUnit) ||
+        std::isnan(convert(1.0, sourceUnit, targetUnit, systemBasePower, localBaseVoltage))) {
+        throw InvalidParameterValue("load power units");
+    }
+    return convert(value, sourceUnit, targetUnit, systemBasePower, localBaseVoltage);
 }
 
 void GridLoad::setP(double newP)

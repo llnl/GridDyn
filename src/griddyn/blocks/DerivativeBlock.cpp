@@ -8,12 +8,36 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactory.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <string>
 
 namespace griddyn::blocks {
+const ModelDescription& DerivativeBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<DerivativeBlock>(
+        "DerivativeBlock",
+        &GridBlock::getModelDescription(),
+        {parameter({"t1", "t"},
+                   &DerivativeBlock::mT1,
+                   units::defunit,
+                   "Delay time constant for the derivative filtering operation",
+                   [](double value) { return !(std::abs(value) < kMin_Res); }),
+         state<DerivativeBlock>(
+             {"deriv"},
+             units::defunit,
+             [](const auto& model) { return model.limiter_alg; },
+             "Derivative output"),
+         state<DerivativeBlock>(
+             {"delayI"},
+             units::defunit,
+             [](const auto& model) { return model.limiter_alg + 1; },
+             "Derivative filter state")});
+    return description;
+}
+
 DerivativeBlock::DerivativeBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(USE_STATE);
@@ -157,27 +181,4 @@ void DerivativeBlock::blockJacobianElements(double input,
 }
 
 // set parameters
-void DerivativeBlock::set(std::string_view param, std::string_view val)
-{
-    GridBlock::set(param, val);
-}
-void DerivativeBlock::set(std::string_view param, double val, units::unit unitType)
-{
-    if ((param == "t1") || (param == "t")) {
-        if (std::abs(val) < kMin_Res) {
-            throw(InvalidParameterValue(param));
-        }
-        mT1 = val;
-    } else {
-        GridBlock::set(param, val, unitType);
-    }
-}
-
-stringVec DerivativeBlock::localStateNames() const
-{
-    auto bbstates = GridBlock::localStateNames();
-    bbstates.emplace_back("deriv");
-    bbstates.emplace_back("delayI");
-    return bbstates;
-}
 }  // namespace griddyn::blocks

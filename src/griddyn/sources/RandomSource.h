@@ -17,6 +17,7 @@ namespace griddyn::sources {
 /** @brief a source generating a random output*/
 class RandomSource: public RampSource {
   public:
+    const ModelDescription& getModelDescription() const override;
     /** random source flags*/
     enum RandomSourceFlags {
         INTERPOLATE_FLAG = OBJECT_FLAG5,  //!< indicator that the output should be interpolated

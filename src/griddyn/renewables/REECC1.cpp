@@ -7,12 +7,31 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <cmath>
 #include <string>
 #include <utility>
 
 namespace griddyn {
+
+const ModelDescription& REECC1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<REECC1>(
+        "REECC1",
+        &REECA1::getModelDescription(),
+        {parameter({"t"}, &REECC1::T, units::second, "T"),
+         parameter({"socini"}, &REECC1::SOCini, units::one, "Socini"),
+         parameter({"socmax"}, &REECC1::SOCmax, units::one, "Socmax"),
+         parameter({"socmin"}, &REECC1::SOCmin, units::one, "Socmin"),
+         localState("minimumPowerConfigured",
+                    &REECC1::minimumPowerConfigured,
+                    "Minimum power configured"),
+         command({"pflag"}, units::defunit, "Set pflag"),
+         command({"pmin"}, units::defunit, "Set pmin"),
+         command({"pmax"}, units::defunit, "Set pmax")});
+    return description;
+}
 
 REECC1::REECC1(const std::string& objName): REECA1(objName)
 {
@@ -44,16 +63,15 @@ CoreObject* REECC1::clone(CoreObject* obj) const
 
 void REECC1::set(std::string_view param, double val, units::unit unitType)
 {
+    if (isSetHandled(REECC1::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "t") {
-        T = val;
-    } else if (key == "socini") {
-        SOCini = val;
-    } else if (key == "socmax") {
-        SOCmax = val;
-    } else if (key == "socmin") {
-        SOCmin = val;
-    } else if (key == "pflag") {
+    if (key != param &&
+        isSetHandled(REECC1::getModelDescription().trySetLocal(*this, key, val, unitType))) {
+        return;
+    }
+    if (key == "pflag") {
         if (val != 0.0) {
             throw InvalidParameterValue("REECC1 does not support speed-modulated active power");
         }
@@ -74,17 +92,8 @@ void REECC1::set(std::string_view param, double val, units::unit unitType)
 double REECC1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "t") {
-        return T;
-    }
-    if (key == "socini") {
-        return SOCini;
-    }
-    if (key == "socmax") {
-        return SOCmax;
-    }
-    if (key == "socmin") {
-        return SOCmin;
+    if (const auto value = REECC1::getModelDescription().tryGet(*this, key, unitType)) {
+        return *value;
     }
     return REECA1::get(param, unitType);
 }

@@ -26,6 +26,7 @@ class IsocController: public GridSubModel {
     Generator* gen = nullptr;
 
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit IsocController(const std::string& objName = "ISOC_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
@@ -38,7 +39,7 @@ class IsocController: public GridSubModel {
 
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
-    virtual void set(std::string_view param, std::string_view val) override;
+    using GridSubModel::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     /** set the upper and lower limits usable for the IsocController

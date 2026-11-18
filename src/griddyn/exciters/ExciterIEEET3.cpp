@@ -9,6 +9,7 @@
 #include "StaticExciterRectifier.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -37,6 +38,35 @@ namespace {
         return std::isfinite(value) && (std::abs(value) < 1e20);
     }
 }  // namespace
+
+const ModelDescription& ExciterIEEET3::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterIEEET3>(
+        "ExciterIEEET3",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"}, &ExciterIEEET3::Tr, units::second, "Voltage measurement time constant"),
+         parameter({"vbmax"}, &ExciterIEEET3::Vbmax, units::one, "Vbmax upper limit"),
+         parameter({"ke"}, &ExciterIEEET3::Ke, units::one, "Ke gain or coefficient"),
+         parameter({"te"}, &ExciterIEEET3::Te, units::second, "Exciter time constant"),
+         parameter({"kf"}, &ExciterIEEET3::Kf, units::one, "Kf gain or coefficient"),
+         parameter({"tf"}, &ExciterIEEET3::Tf, units::second, "Feedback time constant"),
+         parameter({"kp"}, &ExciterIEEET3::Kp, units::one, "Kp gain or coefficient"),
+         parameter({"ki"}, &ExciterIEEET3::Ki, units::one, "Ki gain or coefficient"),
+         localState("regulator_limited",
+                    &ExciterIEEET3::opFlags,
+                    ExciterIEEET3::REGULATOR_LIMITED,
+                    "Retained regulator_limited mode"),
+         localState("regulator_limit_high",
+                    &ExciterIEEET3::opFlags,
+                    ExciterIEEET3::REGULATOR_LIMIT_HIGH,
+                    "Retained regulator_limit_high mode"),
+         state({"efd", "field"}, units::one, 0, "Field voltage"),
+         state({"vmeas", "vc"}, units::one, 1, "Measured terminal voltage"),
+         state({"vr", "regulator"}, units::one, 2, "Regulator state"),
+         state({"wf", "feedback"}, units::one, 3, "Washout state"),
+         state({"efstate"}, units::one, 4, "efstate solver state")});
+    return description;
+}
 
 ExciterIEEET3::ExciterIEEET3(const std::string& objName): Exciter(objName)
 {
@@ -395,99 +425,5 @@ ChangeCode ExciterIEEET3::rootCheck(const IOdata& inputs,
     return ChangeCode::NO_CHANGE;
 }
 
-stringVec ExciterIEEET3::localStateNames() const
-{
-    return {"efd", "vmeas", "vr", "wf", "efstate"};
-}
-
-index_t ExciterIEEET3::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "efd") || (field == "field")) {
-        return offsets.getAlgOffset(sMode);
-    }
-    const auto offset = offsets.getDiffOffset(sMode);
-    if ((field == "vmeas") || (field == "vc")) {
-        return offset + voltageMeasurementState;
-    }
-    if ((field == "vr") || (field == "regulator")) {
-        return offset + regulatorState;
-    }
-    if ((field == "wf") || (field == "feedback")) {
-        return offset + feedbackState;
-    }
-    if (field == "efstate") {
-        return offset + fieldState;
-    }
-    return kInvalidLocation;
-}
-
-void ExciterIEEET3::set(std::string_view param, std::string_view val)
-{
-    Exciter::set(param, val);
-}
-
-void ExciterIEEET3::set(std::string_view param, double val, units::unit unitType)
-{
-    if (param == "tr") {
-        Tr = val;
-    } else if (param == "vbmax") {
-        Vbmax = val;
-    } else if (param == "ke") {
-        Ke = val;
-    } else if (param == "te") {
-        Te = val;
-    } else if (param == "kf") {
-        Kf = val;
-    } else if (param == "tf") {
-        Tf = val;
-    } else if (param == "kp") {
-        Kp = val;
-    } else if (param == "ki") {
-        Ki = val;
-    } else {
-        Exciter::set(param, val, unitType);
-    }
-}
-
-double ExciterIEEET3::get(std::string_view param, units::unit unitType) const
-{
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if ((param == "vrmax") || (param == "urmax")) {
-        return Vrmax;
-    }
-    if ((param == "vrmin") || (param == "urmin")) {
-        return Vrmin;
-    }
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "vbmax") {
-        return Vbmax;
-    }
-    if (param == "ke") {
-        return Ke;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if (param == "kf") {
-        return Kf;
-    }
-    if (param == "tf") {
-        return Tf;
-    }
-    if (param == "kp") {
-        return Kp;
-    }
-    if (param == "ki") {
-        return Ki;
-    }
-    return Exciter::get(param, unitType);
-}
 // NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::exciters

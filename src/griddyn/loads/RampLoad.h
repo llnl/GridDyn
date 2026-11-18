@@ -23,12 +23,13 @@ namespace loads {
         double dYpdt = 0.0;  //!< [pu] ramp in real impedance power
         double dYqdt = 0.0;  //!< [pu] ramp in imaginary constant impedance power
       public:
+        const ModelDescription& getModelDescription() const override;
         explicit RampLoad(const std::string& objName = "rampLoad_$");
         RampLoad(double rP, double qP, const std::string& objName = "rampLoad_$");
 
         virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-        virtual void set(std::string_view param, std::string_view val) override;
+        using ZipLoad::set;
         virtual void
             set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 

@@ -9,6 +9,7 @@
 #include "ZipLoad.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include <algorithm>
 #include <array>
@@ -42,6 +43,22 @@ namespace {
         return true;
     }
 }  // namespace
+
+const ModelDescription& CompositeLoad::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<CompositeLoad>(
+        "CompositeLoad",
+        &GridLoad::getModelDescription(),
+        {command({"componentfraction", "fraction"}, units::defunit, "Set componentfraction"),
+         indexedCommand({"component"},
+                        units::defunit,
+                        "Append a component load at its one-based index",
+                        ModelFieldType::STRING),
+         indexedCommand({"componentfraction", "fraction"},
+                        units::defunit,
+                        "Set or read a component fraction by one-based index")});
+    return description;
+}
 
 CompositeLoad::CompositeLoad(const std::string& objName): GridLoad(objName) {}
 
@@ -136,16 +153,6 @@ void CompositeLoad::remove(CoreObject* obj)
     GridLoad::remove(obj);
 }
 
-void CompositeLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    static constexpr auto numericStrings =
-        std::array<std::string_view, 2>{"fraction", "componentfraction"};
-    static constexpr std::array<std::string_view, 1> stringStrings{"component"};
-    static constexpr std::array<std::string_view, 0> flagStrings{};
-    getParamString<CompositeLoad, GridLoad>(
-        this, pstr, numericStrings, stringStrings, flagStrings, pstype);
-}
-
 void CompositeLoad::set(std::string_view param, std::string_view val)
 {
     index_t componentIndex = 0;
@@ -199,6 +206,9 @@ void CompositeLoad::setComponentReactiveBase(index_t index, double reactivePower
 
 void CompositeLoad::set(std::string_view param, double val, units::unit unitType)
 {
+    if (isSetHandled(CompositeLoad::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     index_t componentIndex = 0;
     if (parseIndexedParameter(param, "componentfraction", componentIndex) ||
         parseIndexedParameter(param, "fraction", componentIndex)) {
@@ -210,6 +220,9 @@ void CompositeLoad::set(std::string_view param, double val, units::unit unitType
 
 double CompositeLoad::get(std::string_view param, units::unit unitType) const
 {
+    if (const auto value = CompositeLoad::getModelDescription().tryGet(*this, param, unitType)) {
+        return *value;
+    }
     index_t componentIndex = 0;
     if (parseIndexedParameter(param, "componentfraction", componentIndex) ||
         parseIndexedParameter(param, "fraction", componentIndex)) {

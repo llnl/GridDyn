@@ -24,6 +24,7 @@ class GenModelInverter: public GenModel {
     //!< @brief default constructor
     explicit GenModelInverter(const std::string& objName = "genModel_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
 
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
@@ -34,7 +35,6 @@ class GenModelInverter: public GenModel {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual stringVec localStateNames() const override;
     // dynamics
 
     virtual void residual(const IOdata& inputs,

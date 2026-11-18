@@ -37,8 +37,7 @@ class GridLoad: public GridSecondary {
     GridLoad(double realPower, double reactivePower, const std::string& objName = "load_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-
-    virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
+    const ModelDescription& getModelDescription() const override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
@@ -85,6 +84,8 @@ class GridLoad: public GridSecondary {
 
   protected:
     // little helper functions to do some calculations
+    /** Convert power using this load's system bases. */
+    double convertPower(double value, units::unit sourceUnit, units::unit targetUnit) const;
     /** update the power factor ratio*/
     void updatepfq();
     /** check if the pfq is valid*/

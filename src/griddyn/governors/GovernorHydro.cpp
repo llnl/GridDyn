@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -34,6 +35,23 @@ GovernorHydro::GovernorHydro(const std::string& objName): Governor(objName)
     opFlags.set(IGNORE_FILTER);
     opFlags.set(IGNORE_THROTTLE);
     opFlags.set(USES_POWER_LIMITS);
+}
+
+const ModelDescription& GovernorHydro::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorHydro>(
+        "GovernorHydro",
+        &Governor::getModelDescription(),
+        {parameter({"tw", "t4"},
+                   &GovernorHydro::Tw,
+                   units::second,
+                   "Water starting time",
+                   parameterValidators::positive),
+         state({"pmech", "pm"}, units::puMW, 0, "Mechanical power"),
+         state({"leadlag", "x"}, units::one, 1, "Speed lead-lag state"),
+         state({"gate_lag", "gate"}, units::one, 2, "Gate actuator state"),
+         state({"waterway", "water"}, units::one, 3, "Waterway state")});
+    return description;
 }
 
 CoreObject* GovernorHydro::clone(CoreObject* obj) const
@@ -228,66 +246,15 @@ void GovernorHydro::timestep(CoreTime time, const IOdata& inputs, const SolverMo
     prevTime = time;
 }
 
-index_t GovernorHydro::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "pm") || (field == "pmech")) {
-        return offsets.getAlgOffset(sMode) + outputState;
-    }
-    if ((field == "leadlag") || (field == "x")) {
-        return offsets.getDiffOffset(sMode) + leadLagState;
-    }
-    if ((field == "gate") || (field == "gate_lag")) {
-        return offsets.getDiffOffset(sMode) + gateLagState;
-    }
-    if ((field == "waterway") || (field == "water")) {
-        return offsets.getDiffOffset(sMode) + waterwayState;
-    }
-    return kInvalidLocation;
-}
-
-void GovernorHydro::set(std::string_view param, std::string_view val)
-{
-    Governor::set(param, val);
-}
-
 void GovernorHydro::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "tw") || (param == "t4")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("hydro governor Tw/T4 must be positive and finite");
-        }
-        Tw = val;
-    } else if ((param == "t1") || (param == "t3")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("hydro governor time constant must be positive and finite");
-        }
-        Governor::set(param, val, unitType);
-    } else if (param == "t2") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("hydro governor lead time must be finite");
-        }
-        Governor::set(param, val, unitType);
-    } else if ((param == "pmax") || (param == "pmin")) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("hydro governor gate limit must be finite");
-        }
-        Governor::set(param, val, unitType);
-    } else {
-        Governor::set(param, val, unitType);
+    if (isSetHandled(GovernorHydro::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
     }
-}
-
-double GovernorHydro::get(std::string_view param, units::unit unitType) const
-{
-    if ((param == "tw") || (param == "t4")) {
-        return Tw;
+    if ((param == "t1" || param == "t3") && !parameterValidators::positive(val)) {
+        throw InvalidParameterValue("hydro governor time constant must be positive");
     }
-    return Governor::get(param, unitType);
-}
-
-stringVec GovernorHydro::localStateNames() const
-{
-    return {"pmech", "leadlag", "gate_lag", "waterway"};
+    Governor::set(param, val, unitType);
 }
 
 }  // namespace griddyn::governors

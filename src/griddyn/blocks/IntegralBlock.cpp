@@ -7,10 +7,24 @@
 #include "IntegralBlock.h"
 
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <string>
 namespace griddyn::blocks {
+const ModelDescription& IntegralBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<IntegralBlock>(
+        "IntegralBlock",
+        &GridBlock::getModelDescription(),
+        {parameter({"iv", "initial_value"},
+                   &IntegralBlock::iv,
+                   units::defunit,
+                   "The initial value(current value) of the integral"),
+         command({"t"}, units::defunit, "T")});
+    return description;
+}
+
 IntegralBlock::IntegralBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(DIFFERENTIAL_OUTPUT);
@@ -117,15 +131,12 @@ double IntegralBlock::step(CoreTime time, double inputA)
 }
 
 // set parameters
-void IntegralBlock::set(std::string_view param, std::string_view val)
-{
-    GridBlock::set(param, val);
-}
 void IntegralBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "iv") || (param == "initial_value")) {
-        iv = val;
-    } else if (param == "t") {
+    if (isSetHandled(IntegralBlock::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
+    if (param == "t") {
         if (val != 0) {
             K = 1.0 / val;
         }

@@ -9,6 +9,7 @@
 #include "../Generator.h"
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cassert>
@@ -21,6 +22,15 @@ GenModel6::GenModel6(const std::string& objName): GenModel5(objName)
     // changing some of the default values;
     Xqp = 0.30;
     D = 0.03;
+}
+
+const ModelDescription& GenModel6::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GenModel6>(
+        "GenModel6",
+        &GenModel5::getModelDescription(),
+        {state({"eqpp"}, units::one, 7, "Solver variable eqpp")});
+    return description;
 }
 
 CoreObject* GenModel6::clone(CoreObject* obj) const
@@ -265,10 +275,4 @@ void GenModel6::jacobianElements(const IOdata& inputs,
     md.assign(refDiff + 5, refDiff + 5, -1.0 / Tdopp - sD.cj);
 }
 
-static const stringVec genModel6Names{"id", "iq", "delta", "freq", "edp", "eqp", "edpp", "eqpp"};
-
-stringVec GenModel6::localStateNames() const
-{
-    return genModel6Names;
-}
 }  // namespace griddyn::genmodels

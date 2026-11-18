@@ -9,6 +9,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -29,6 +30,52 @@ namespace {
 }  // namespace
 
 GenModelCSVGN1::GenModelCSVGN1(const std::string& objName): GenModel(objName) {}
+
+const ModelDescription& GenModelCSVGN1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GenModelCSVGN1>(
+        "GenModelCSVGN1",
+        &GenModel::getModelDescription(),
+        {parameter({"k"}, &GenModelCSVGN1::K, units::one, "Regulator gain"),
+         parameter({"t1"}, &GenModelCSVGN1::T1, units::second, "Regulator time constant T1"),
+         parameter({"t2"}, &GenModelCSVGN1::T2, units::second, "Regulator time constant T2"),
+         parameter({"t3"}, &GenModelCSVGN1::T3, units::second, "Regulator time constant T3"),
+         parameter({"t4"}, &GenModelCSVGN1::T4, units::second, "Regulator time constant T4"),
+         parameter({"t5"}, &GenModelCSVGN1::T5, units::second, "Regulator time constant T5"),
+         parameter({"rmin"}, &GenModelCSVGN1::RMIN, units::MVAR, "Minimum reactor loading"),
+         parameter({"vmax"}, &GenModelCSVGN1::VMAX, units::one, "Maximum regulator output"),
+         parameter({"vmin"}, &GenModelCSVGN1::VMIN, units::one, "Minimum regulator output"),
+         parameter({"cbase"}, &GenModelCSVGN1::CBASE, units::MVAR, "Parallel capacitor rating"),
+         localState("voltageReference", &GenModelCSVGN1::m_voltageReference),
+         state<GenModelCSVGN1>(
+             {"regulator1"},
+             units::one,
+             [](const auto& model) {
+                 return model.stateLocations(0,
+                                             (model.T4 == 0.0 ? 1 : 0) +
+                                                 (model.T5 == 0.0 ? 1 : 0))[0];
+             },
+             "Solver variable regulator1"),
+         state<GenModelCSVGN1>(
+             {"regulator2"},
+             units::one,
+             [](const auto& model) {
+                 return model.stateLocations(0,
+                                             (model.T4 == 0.0 ? 1 : 0) +
+                                                 (model.T5 == 0.0 ? 1 : 0))[1];
+             },
+             "Solver variable regulator2"),
+         state<GenModelCSVGN1>(
+             {"thyristor"},
+             units::one,
+             [](const auto& model) {
+                 return model.stateLocations(0,
+                                             (model.T4 == 0.0 ? 1 : 0) +
+                                                 (model.T5 == 0.0 ? 1 : 0))[2];
+             },
+             "Solver variable thyristor")});
+    return description;
+}
 
 CoreObject* GenModelCSVGN1::clone(CoreObject* obj) const
 {
@@ -103,83 +150,6 @@ void GenModelCSVGN1::dynObjectInitializeB(const IOdata& inputs,
     // the shunt reactive power represented by its machine record.
     fieldSet[genModelPmechInLocation] = 0.0;
     fieldSet[genModelEftInLocation] = 0.0;
-}
-
-void GenModelCSVGN1::set(std::string_view param, std::string_view val)
-{
-    GenModel::set(param, val);
-}
-
-void GenModelCSVGN1::set(std::string_view param, double val, units::unit unitType)
-{
-    if (param == "k") {
-        K = val;
-    } else if (param == "t1") {
-        T1 = val;
-    } else if (param == "t2") {
-        T2 = val;
-    } else if (param == "t3") {
-        T3 = val;
-    } else if (param == "t4") {
-        T4 = val;
-    } else if (param == "t5") {
-        T5 = val;
-    } else if (param == "rmin") {
-        RMIN = val;
-    } else if (param == "vmax") {
-        VMAX = val;
-    } else if (param == "vmin") {
-        VMIN = val;
-    } else if (param == "cbase") {
-        CBASE = val;
-    } else {
-        GenModel::set(param, val, unitType);
-    }
-}
-
-double GenModelCSVGN1::get(std::string_view param, units::unit unitType) const
-{
-    if (param == "k") {
-        return K;
-    }
-    if (param == "t1") {
-        return T1;
-    }
-    if (param == "t2") {
-        return T2;
-    }
-    if (param == "t3") {
-        return T3;
-    }
-    if (param == "t4") {
-        return T4;
-    }
-    if (param == "t5") {
-        return T5;
-    }
-    if (param == "rmin") {
-        return RMIN;
-    }
-    if (param == "vmax") {
-        return VMAX;
-    }
-    if (param == "vmin") {
-        return VMIN;
-    }
-    if (param == "cbase") {
-        return CBASE;
-    }
-    return GenModel::get(param, unitType);
-}
-
-stringVec GenModelCSVGN1::localStateNames() const
-{
-    const auto stateLocs = stateLocations(0, (T4 == 0.0 ? 1 : 0) + (T5 == 0.0 ? 1 : 0));
-    stringVec names(3);
-    names[stateLocs[0]] = "regulator1";
-    names[stateLocs[1]] = "regulator2";
-    names[stateLocs[2]] = "thyristor";
-    return names;
 }
 
 std::array<double, 3> GenModelCSVGN1::stateValues(const double alg[], const double diff[]) const

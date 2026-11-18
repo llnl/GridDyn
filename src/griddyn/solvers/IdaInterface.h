@@ -16,7 +16,6 @@ namespace griddyn::solvers {
  */
 class IdaInterface: public SundialsInterface {
   public:
-    using SundialsInterface::set;
     count_t icCount = 0;  //!< the number of times the initical condition function was called
 
   private:
@@ -46,6 +45,8 @@ class IdaInterface: public SundialsInterface {
     virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
     void setMaxNonZeros(count_t nonZeros) override;
     virtual void initialize(CoreTime t0) override;
+    bool supportsCheckpointRestore() const noexcept override { return true; }
+    void restoreFromCheckpoint(CoreTime time) override;
     virtual void sparseReInit(SparseReinitMode sparseReInitMode) override;
     int calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, bool constraints) override;
     virtual void getCurrentData() override;
@@ -55,8 +56,9 @@ class IdaInterface: public SundialsInterface {
 
     void logSolverStats(PrintLevel logLevel, bool iconly = false) const override;
     void logErrorWeights(PrintLevel logLevel) const override;
-    virtual void set(std::string_view param, double val) override;
-    virtual double get(std::string_view param) const override;
+    [[nodiscard]] double get(std::string_view param) const override;
+    using SundialsInterface::set;
+    void set(std::string_view param, double val) override;
 
     void setConstraints() override;
 
@@ -85,6 +87,8 @@ class IdaInterface: public SundialsInterface {
                            void* userData);
 
   protected:
+    void applyIterationLimit();
+
     void loadMaskElements();
     void logInitialConditionDiagnostics(
         CoreTime t0,

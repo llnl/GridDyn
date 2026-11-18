@@ -24,6 +24,7 @@ namespace loads {
      * Swing Bus Manager*/
     class GridLabDLoad: public RampLoad {
       public:
+        const ModelDescription& getModelDescription() const override;
         GridLabDLoad(const std::string& objName = "gridlabDLoad_$");
 
         virtual ~GridLabDLoad();

@@ -14,8 +14,8 @@
 #include "../blocks/FilteredDerivativeBlock.h"
 #include "../simulation/Contingency.h"
 #include "core/CoreExceptions.h"
-#include "core/CoreObjectTemplates.hpp"
 #include "core/CoreOwningPtr.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 // #include "MatrixDataSparse.hpp"
@@ -77,6 +77,50 @@ namespace {
         return angleDelta;
     }
 }  // namespace
+
+const ModelDescription& AcBus::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<AcBus>(
+        "AcBus",
+        &GridBus::getModelDescription(),
+        {parameter({"atarget"},
+                   &AcBus::aTarget,
+                   units::rad,
+                   "An angle Target(for SLK and afix bus types)"),
+         parameter({"voltagetolerance", "vtol"}, &AcBus::Vtol, units::one, "Vtol"),
+         parameter({"angletolerance", "atol"}, &AcBus::Atol, units::rad, "Atol"),
+         parameter({"participation"},
+                   &AcBus::participation,
+                   units::one,
+                   "Overall participation factor in power regulation for an area"),
+         flag({"compute_frequency", "use_frequency"},
+              &AcBus::opFlags,
+              COMPUTE_FREQUENCY,
+              "Compute frequency"),
+         command({"type", "bustype", "pflowtype"},
+                 units::defunit,
+                 "Configure type",
+                 ModelFieldType::STRING),
+         command({"dyntype"}, units::defunit, "Configure dyntype", ModelFieldType::STRING),
+         command({"voltage", "vol", "v", "vmag", "v0", "voltage0"}, units::defunit, "Set voltage"),
+         command({"angle", "ang", "a", "theta", "angle0"}, units::defunit, "Set angle"),
+         command({"basefrequency", "basefreq"}, units::defunit, "Set basefrequency"),
+         command({"vtarget"}, units::defunit, "Set vtarget"),
+         command({"qmax"}, units::defunit, "Set qmax"),
+         command({"qmin"}, units::defunit, "Set qmin"),
+         command({"pmax"}, units::defunit, "Set pmax"),
+         command({"pmin"}, units::defunit, "Set pmin"),
+         command({"vmax"}, units::defunit, "Set vmax"),
+         command({"vmin"}, units::defunit, "Set vmin"),
+         command({"autogenp"}, units::defunit, "Set autogenp"),
+         command({"autogenq"}, units::defunit, "Set autogenq"),
+         command({"autogendelay"}, units::defunit, "Set autogendelay"),
+         command({"tw"}, units::defunit, "Set tw"),
+         command({"lowvdisconnect"}, units::defunit, "Set lowvdisconnect"),
+         state({"voltage"}, units::puV, 0, "Bus voltage magnitude"),
+         state({"angle"}, units::rad, 1, "Bus voltage angle")});
+    return description;
+}
 
 AcBus::AcBus(const std::string& objName): GridBus(objName), busController(this)
 {
@@ -1144,33 +1188,6 @@ void AcBus::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& 
     prevTime = time;
 }
 
-static constexpr auto locNumStrings = std::to_array<std::string_view>({"vtarget",
-                                                                       "atarget",
-                                                                       "p",
-                                                                       "q",
-                                                                       "pmin",
-                                                                       "pmax",
-                                                                       "qmin",
-                                                                       "qmax",
-                                                                       "vmin",
-                                                                       "vmax",
-                                                                       "participation",
-                                                                       "tw",
-                                                                       "autogenp",
-                                                                       "autogenq",
-                                                                       "autogendelay",
-                                                                       "vtol",
-                                                                       "atol"});
-static constexpr auto locStrStrings = std::array<std::string_view, 2>{"pflowtype", "dyntype"};
-
-static constexpr auto flagStrings =
-    std::to_array<std::string_view>({"compute_frequency", "use_frequency"});
-
-void AcBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    getParamString<AcBus, GridBus>(this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
-}
-
 void AcBus::setFlag(std::string_view flag, bool val)
 {
     if (flag == "compute_frequency" || flag == "use_frequency") {
@@ -1205,13 +1222,16 @@ void AcBus::setFlag(std::string_view flag, bool val)
                 fblock->parentSetFlag(SEPARATE_PROCESSING, true, this);
             }
         }
-    } else {
+    } else if (!AcBus::getModelDescription().trySetFlag(*this, flag, val)) {
         GridBus::setFlag(flag, val);
     }
 }
 
 bool AcBus::getFlag(std::string_view flag) const
 {
+    if (const auto value = AcBus::getModelDescription().tryGetFlag(*this, flag)) {
+        return *value;
+    }
     if (flag == "compute_frequency" || flag == "use_frequency") {
         return opFlags[COMPUTE_FREQUENCY];
     }
@@ -1273,6 +1293,9 @@ void AcBus::set(std::string_view param, std::string_view val)
 
 void AcBus::set(std::string_view param, double val, unit unitType)
 {
+    if (isSetHandled(AcBus::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     if ((param == "voltage") || (param == "vol") || (param == "v") || (param == "vmag") ||
         (param == "v0") || (param == "voltage0")) {
         voltage = convert(val, unitType, puV, localBaseVoltage * 1000.0);
@@ -1303,8 +1326,6 @@ void AcBus::set(std::string_view param, double val, unit unitType)
         for (auto& gen : attachedGens) {
             gen->set(param, vTarget);
         }
-    } else if (param == "atarget") {
-        aTarget = convert(val, unitType, rad);
     } else if (param == "qmax") {
         if (opFlags[POWERFLOW_INITIALIZED]) {
             if (busController.vControlObjects.size() == 1) {
@@ -1361,12 +1382,6 @@ void AcBus::set(std::string_view param, double val, unit unitType)
         opFlags.set(USE_AUTOGEN);
     } else if (param == "autogendelay") {
         busController.autogenDelay = val;
-    } else if ((param == "voltagetolerance") || (param == "vtol")) {
-        Vtol = val;
-    } else if ((param == "angletolerance") || (param == "atol")) {
-        Atol = val;
-    } else if (param == "participation") {
-        participation = val;
     } else if (param == "tw") {
         Tw = val;
         if (opFlags[COMPUTE_FREQUENCY]) {
@@ -1656,7 +1671,8 @@ Generator* AcBus::indirectVoltageControlReference() const
 {
     Generator* reference = nullptr;
     for (auto* control : busController.vControlObjects) {
-        if (!control->checkFlag(INDIRECT_VOLTAGE_CONTROL) ||
+        if (!control->isEnabled() || !control->isConnected() ||
+            !control->checkFlag(INDIRECT_VOLTAGE_CONTROL) ||
             control->checkFlag(Generator::AT_LIMIT)) {
             continue;
         }
@@ -1790,10 +1806,14 @@ void AcBus::setState(CoreTime time,
         lastAcceptedAngle = angle;
     }
 
-    if (opFlags[COMPUTE_FREQUENCY]) {
-        // fblock->setState(time, state, dstate_dt, sMode);
-    } else if ((isDynamic(sMode)) && (keyGen != nullptr)) {
-        freq = keyGen->getFreq(emptyStateData, sMode);
+    if (isDynamic(sMode)) {
+        // Read the local state just published by GridBus::setState. It also holds
+        // the other block's values when publishing a partitioned solution.
+        if (opFlags[COMPUTE_FREQUENCY] && fblock && fblock->checkFlag(DYN_INITIALIZED)) {
+            freq = fblock->getBlockOutput() + 1.0;
+        } else if (keyGen != nullptr) {
+            freq = keyGen->getFreq(emptyStateData, cLocalSolverMode);
+        }
     }
     //    assert(voltage > 0.0);
 }
@@ -2526,12 +2546,6 @@ double AcBus::computeError(const StateData& stateDataValue, const SolverMode& sM
     return err;
 }
 
-static const stringVec ST_NAMES{"voltage", "angle"};
-stringVec AcBus::localStateNames() const
-{
-    return ST_NAMES;
-}
-
 void AcBus::setOffsets(const SolverOffsets& newOffsets, const SolverMode& sMode)
 {
     lastSmode = kInvalidLocation;
@@ -3101,13 +3115,12 @@ double AcBus::getSched() const
 
 double AcBus::get(std::string_view param, unit unitType) const
 {
+    if (const auto value = AcBus::getModelDescription().tryGet(*this, param, unitType)) {
+        return *value;
+    }
     double val = kNullVal;
     if (param == "vtarget") {
         val = convert(vTarget, puV, unitType, localBaseVoltage * 1000.0);
-    } else if (param == "atarget") {
-        val = convert(aTarget, rad, unitType);
-    } else if (param == "participation") {
-        val = participation;
     } else if (param == "vmax") {
         val = convert(Vmax, puV, unitType, localBaseVoltage * 1000.0);
     } else if (param == "vmin") {

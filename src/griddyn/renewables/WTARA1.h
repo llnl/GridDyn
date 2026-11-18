@@ -12,6 +12,7 @@ namespace griddyn {
 /** Pitch dependent mechanical power source without explicit wind speed. */
 class WTARA1 final: public RenewableComponent {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit WTARA1(const std::string& name = "WTARA1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     using RenewableComponent::set;
@@ -39,7 +40,6 @@ class WTARA1 final: public RenewableComponent {
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   private:
     double Ka = 1.0, theta0 = 0.0, initialPower = 0.0;

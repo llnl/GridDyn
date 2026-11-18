@@ -7,6 +7,7 @@
 #include "GridPrimary.h"
 
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <algorithm>
 #include <cstdio>
 #include <iostream>
@@ -14,6 +15,18 @@
 #include <string>
 
 namespace griddyn {
+const ModelDescription& GridPrimary::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridPrimary>(
+        "GridPrimary",
+        &GridComponent::getModelDescription(),
+        {parameter({"zone", "zone number"},
+                   &GridPrimary::zone,
+                   units::one,
+                   "Publicly accessible loss zone indicator not used internally")});
+    return description;
+}
+
 GridPrimary::GridPrimary(const std::string& objName): GridComponent(objName) {}
 CoreObject* GridPrimary::clone(CoreObject* obj) const
 {
@@ -49,25 +62,12 @@ void GridPrimary::dynInitializeB(const IOdata& inputs,
     }
 }
 
-void GridPrimary::set(std::string_view param, std::string_view val)
-{
-    GridComponent::set(param, val);
-}
 void GridPrimary::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "zone") || (param == "zone number")) {
-        zone = static_cast<int>(val);
-    } else {
-        GridComponent::set(param, val, unitType);
+    if (isSetHandled(GridPrimary::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
     }
-}
-
-double GridPrimary::get(std::string_view param, units::unit unitType) const
-{
-    if (param == "zone") {
-        return static_cast<double>(zone);
-    }
-    return GridComponent::get(param, unitType);
+    GridComponent::set(param, val, unitType);
 }
 
 void GridPrimary::converge(CoreTime /*time*/,

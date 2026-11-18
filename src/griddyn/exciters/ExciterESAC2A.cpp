@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -31,6 +32,60 @@ namespace {
     constexpr int rectifierInverseIterations = 40;
     constexpr double initializationTolerance = 1e-7;
 }  // namespace
+
+const ModelDescription& ExciterESAC2A::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterESAC2A>(
+        "ExciterESAC2A",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"}, &ExciterESAC2A::Tr, units::second, "Voltage measurement time constant"),
+         parameter({"tb"}, &ExciterESAC2A::Tb, units::second, "Lead-lag denominator time constant"),
+         parameter({"tc"}, &ExciterESAC2A::Tc, units::second, "Lead-lag numerator time constant"),
+         parameter({"te"}, &ExciterESAC2A::Te, units::second, "Exciter time constant"),
+         parameter({"vamax"}, &ExciterESAC2A::Vamax, units::one, "Vamax upper limit"),
+         parameter({"vamin"}, &ExciterESAC2A::Vamin, units::one, "Vamin lower limit"),
+         parameter({"kb"}, &ExciterESAC2A::Kb, units::one, "Kb gain or coefficient"),
+         parameter({"vfemax"}, &ExciterESAC2A::Vfemax, units::one, "Vfemax upper limit"),
+         parameter({"kh"}, &ExciterESAC2A::Kh, units::one, "Kh gain or coefficient"),
+         parameter({"kf"}, &ExciterESAC2A::Kf, units::one, "Kf gain or coefficient"),
+         parameter({"tf"}, &ExciterESAC2A::Tf, units::second, "Feedback time constant"),
+         parameter({"kc"}, &ExciterESAC2A::Kc, units::one, "Kc gain or coefficient"),
+         parameter({"kd"}, &ExciterESAC2A::Kd, units::one, "Kd gain or coefficient"),
+         parameter({"ke"}, &ExciterESAC2A::Ke, units::one, "Ke gain or coefficient"),
+         parameter({"e1"}, &ExciterESAC2A::E1, units::one, "E1 model setting"),
+         parameter({"se1"}, &ExciterESAC2A::Se1, units::one, "Se1 model setting"),
+         parameter({"e2"}, &ExciterESAC2A::E2, units::one, "E2 model setting"),
+         parameter({"se2"}, &ExciterESAC2A::Se2, units::one, "Se2 model setting"),
+         flag({"uel_enabled"}, &ExciterESAC2A::underSelectorEnabled, "underSelectorEnabled option"),
+         flag({"oel_enabled"}, &ExciterESAC2A::overSelectorEnabled, "overSelectorEnabled option"),
+         state({"efd", "field"}, units::one, 0, "Field voltage"),
+         state<ExciterESAC2A>(
+             {"vc"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().voltage, 1); },
+             "Sensed terminal voltage"),
+         state<ExciterESAC2A>(
+             {"xll"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().lead, 1); },
+             "Lead-lag state"),
+         state<ExciterESAC2A>(
+             {"va"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().regulator, 1); },
+             "Amplifier state"),
+         state<ExciterESAC2A>(
+             {"ve"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().exciter, 1); },
+             "Exciter voltage"),
+         state<ExciterESAC2A>(
+             {"vf"},
+             units::one,
+             [](const auto& model) { return stateSlot(model.layout().feedback, 1); },
+             "Feedback state")});
+    return description;
+}
 
 ExciterESAC2A::ExciterESAC2A(const std::string& objName): Exciter(objName)
 {
@@ -490,173 +545,9 @@ ChangeCode ExciterESAC2A::rootCheck(const IOdata& inputs,
     return ChangeCode::NO_CHANGE;
 }
 
-stringVec ExciterESAC2A::localStateNames() const
-{
-    stringVec names{"efd"};
-    if (Tr > 0.0) {
-        names.emplace_back("vc");
-    }
-    if (Tb > 0.0) {
-        names.emplace_back("xll");
-    }
-    if (Ta > 0.0) {
-        names.emplace_back("va");
-    }
-    names.emplace_back("ve");
-    names.emplace_back("vf");
-    return names;
-}
-
-index_t ExciterESAC2A::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if (field == "efd" || field == "field") {
-        return offsets.getAlgOffset(sMode);
-    }
-    const auto loc = layout();
-    index_t index = kNullLocation;
-    if (field == "vc") {
-        index = loc.voltage;
-    } else if (field == "xll") {
-        index = loc.lead;
-    } else if (field == "va") {
-        index = loc.regulator;
-    } else if (field == "ve") {
-        index = loc.exciter;
-    } else if (field == "vf") {
-        index = loc.feedback;
-    }
-    return index == kNullLocation ? kInvalidLocation : offsets.getDiffOffset(sMode) + index;
-}
-
-void ExciterESAC2A::set(std::string_view param, double val, units::unit unitType)
-{
-    if (!std::isfinite(val)) {
-        throw InvalidParameterValue("ESAC2A parameters must be finite");
-    }
-    if (param == "uel_enabled") {
-        underSelectorEnabled = val != 0.0;
-    } else if (param == "oel_enabled") {
-        overSelectorEnabled = val != 0.0;
-    } else if (param == "tr") {
-        Tr = val;
-    } else if (param == "tb") {
-        Tb = val;
-    } else if (param == "tc") {
-        Tc = val;
-    } else if (param == "te") {
-        Te = val;
-    } else if (param == "vamax") {
-        Vamax = val;
-    } else if (param == "vamin") {
-        Vamin = val;
-    } else if (param == "kb") {
-        Kb = val;
-    } else if (param == "vfemax") {
-        Vfemax = val;
-    } else if (param == "kh") {
-        Kh = val;
-    } else if (param == "kf") {
-        Kf = val;
-    } else if (param == "tf") {
-        Tf = val;
-    } else if (param == "kc") {
-        Kc = val;
-    } else if (param == "kd") {
-        Kd = val;
-    } else if (param == "ke") {
-        Ke = val;
-    } else if (param == "e1") {
-        E1 = val;
-    } else if (param == "se1") {
-        Se1 = val;
-    } else if (param == "e2") {
-        E2 = val;
-    } else if (param == "se2") {
-        Se2 = val;
-    } else {
-        Exciter::set(param, val, unitType);
-    }
-}
-
-double ExciterESAC2A::get(std::string_view param, units::unit unitType) const
-{
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if (param == "vrmax") {
-        return Vrmax;
-    }
-    if (param == "vrmin") {
-        return Vrmin;
-    }
-    if (param == "uel_enabled") {
-        return underSelectorEnabled ? 1.0 : 0.0;
-    }
-    if (param == "oel_enabled") {
-        return overSelectorEnabled ? 1.0 : 0.0;
-    }
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "tb") {
-        return Tb;
-    }
-    if (param == "tc") {
-        return Tc;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if (param == "vamax") {
-        return Vamax;
-    }
-    if (param == "vamin") {
-        return Vamin;
-    }
-    if (param == "kb") {
-        return Kb;
-    }
-    if (param == "vfemax") {
-        return Vfemax;
-    }
-    if (param == "kh") {
-        return Kh;
-    }
-    if (param == "kf") {
-        return Kf;
-    }
-    if (param == "tf") {
-        return Tf;
-    }
-    if (param == "kc") {
-        return Kc;
-    }
-    if (param == "kd") {
-        return Kd;
-    }
-    if (param == "ke") {
-        return Ke;
-    }
-    if (param == "e1") {
-        return E1;
-    }
-    if (param == "se1") {
-        return Se1;
-    }
-    if (param == "e2") {
-        return E2;
-    }
-    if (param == "se2") {
-        return Se2;
-    }
-    return Exciter::get(param, unitType);
-}
-
 bool ExciterESAC2A::supportsLimiterSignal(ExciterLimiterSignal signal) const
 {
     return signal == ExciterLimiterSignal::UNDER ? underSelectorEnabled : overSelectorEnabled;
 }
+
 }  // namespace griddyn::exciters

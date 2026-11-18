@@ -9,6 +9,7 @@
 #include "StaticExciterRectifier.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -39,6 +40,71 @@ namespace {
         return std::isfinite(value) && (std::abs(value) < 1e20);
     }
 }  // namespace
+
+const ModelDescription& ExciterAC7B::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterAC7B>(
+        "ExciterAC7B",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"}, &ExciterAC7B::Tr, units::second, "Voltage measurement time constant"),
+         parameter({"kpr"}, &ExciterAC7B::Kpr, units::one, "Kpr gain or coefficient"),
+         parameter({"kir"}, &ExciterAC7B::Kir, units::one, "Kir gain or coefficient"),
+         parameter({"kdr", "kd_pid"}, &ExciterAC7B::Kdr, units::one, "Kdr gain or coefficient"),
+         parameter(
+             {"tdr", "td"}, &ExciterAC7B::Tdr, units::second, "Derivative filter time constant"),
+         parameter({"kpa"}, &ExciterAC7B::Kpa, units::one, "Kpa gain or coefficient"),
+         parameter({"kia"}, &ExciterAC7B::Kia, units::one, "Kia gain or coefficient"),
+         parameter({"vamax", "va_max"}, &ExciterAC7B::Vamax, units::one, "Vamax upper limit"),
+         parameter({"vamin", "va_min"}, &ExciterAC7B::Vamin, units::one, "Vamin lower limit"),
+         parameter({"kp"}, &ExciterAC7B::Kp, units::one, "Kp gain or coefficient"),
+         parameter({"kl"}, &ExciterAC7B::Kl, units::one, "Kl gain or coefficient"),
+         parameter({"te"}, &ExciterAC7B::Te, units::second, "Exciter time constant"),
+         parameter({"kc"}, &ExciterAC7B::Kc, units::one, "Kc gain or coefficient"),
+         parameter({"kd"}, &ExciterAC7B::Kd, units::one, "Kd gain or coefficient"),
+         parameter({"ke"}, &ExciterAC7B::Ke, units::one, "Ke gain or coefficient"),
+         parameter({"kf1"}, &ExciterAC7B::Kf1, units::one, "Kf1 gain or coefficient"),
+         parameter({"kf2"}, &ExciterAC7B::Kf2, units::one, "Kf2 gain or coefficient"),
+         parameter({"kf3"}, &ExciterAC7B::Kf3, units::one, "Kf3 gain or coefficient"),
+         parameter({"tf3"}, &ExciterAC7B::Tf3, units::second, "Tf3 time constant"),
+         parameter({"vfemax", "vemax"}, &ExciterAC7B::Vemax, units::one, "Vemax upper limit"),
+         parameter({"vemin"}, &ExciterAC7B::Vemin, units::one, "Vemin lower limit"),
+         parameter({"e1"}, &ExciterAC7B::E1, units::one, "E1 model setting"),
+         parameter({"se1"}, &ExciterAC7B::Se1, units::one, "Se1 model setting"),
+         parameter({"e2"}, &ExciterAC7B::E2, units::one, "E2 model setting"),
+         parameter({"se2"}, &ExciterAC7B::Se2, units::one, "Se2 model setting"),
+         localState("pid_limited",
+                    &ExciterAC7B::opFlags,
+                    ExciterAC7B::PID_LIMITED,
+                    "Retained pid_limited mode"),
+         localState("pid_limit_high",
+                    &ExciterAC7B::opFlags,
+                    ExciterAC7B::PID_LIMIT_HIGH,
+                    "Retained pid_limit_high mode"),
+         localState("pi_limited",
+                    &ExciterAC7B::opFlags,
+                    ExciterAC7B::PI_LIMITED,
+                    "Retained pi_limited mode"),
+         localState("pi_limit_high",
+                    &ExciterAC7B::opFlags,
+                    ExciterAC7B::PI_LIMIT_HIGH,
+                    "Retained pi_limit_high mode"),
+         localState("exciter_limited",
+                    &ExciterAC7B::opFlags,
+                    ExciterAC7B::EXCITER_LIMITED,
+                    "Retained exciter_limited mode"),
+         localState("exciter_limit_high",
+                    &ExciterAC7B::opFlags,
+                    ExciterAC7B::EXCITER_LIMIT_HIGH,
+                    "Retained exciter_limit_high mode"),
+         state({"efd", "field"}, units::one, 0, "Field voltage"),
+         state({"vmeas", "vc"}, units::one, 1, "Measured terminal voltage"),
+         state({"pidint"}, units::one, 2, "PID integral state"),
+         state({"pidder"}, units::one, 3, "PID derivative state"),
+         state({"piint"}, units::one, 4, "PI integral state"),
+         state({"xf3"}, units::one, 5, "xf3 solver state"),
+         state({"ve", "exciter"}, units::one, 6, "Exciter voltage")});
+    return description;
+}
 
 ExciterAC7B::ExciterAC7B(const std::string& objName): Exciter(objName)
 {
@@ -614,190 +680,5 @@ ChangeCode ExciterAC7B::rootCheck(const IOdata& inputs,
     return ChangeCode::NO_CHANGE;
 }
 
-stringVec ExciterAC7B::localStateNames() const
-{
-    return {"efd", "vmeas", "pidint", "pidder", "piint", "xf3", "ve"};
-}
-
-index_t ExciterAC7B::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "efd") || (field == "field")) {
-        return offsets.getAlgOffset(sMode);
-    }
-    const auto offset = offsets.getDiffOffset(sMode);
-    if ((field == "vmeas") || (field == "vc")) {
-        return offset + voltageMeasurementState;
-    }
-    if (field == "pidint") {
-        return offset + pidIntegralState;
-    }
-    if (field == "pidder") {
-        return offset + pidDerivativeState;
-    }
-    if (field == "piint") {
-        return offset + piIntegralState;
-    }
-    if (field == "xf3") {
-        return offset + feedbackState;
-    }
-    if ((field == "ve") || (field == "exciter")) {
-        return offset + exciterVoltageState;
-    }
-    return kInvalidLocation;
-}
-
-void ExciterAC7B::set(std::string_view param, std::string_view val)
-{
-    Exciter::set(param, val);
-}
-
-void ExciterAC7B::set(std::string_view param, double val, units::unit unitType)
-{
-    if (param == "tr") {
-        Tr = val;
-    } else if (param == "kpr") {
-        Kpr = val;
-    } else if (param == "kir") {
-        Kir = val;
-    } else if ((param == "kdr") || (param == "kd_pid")) {
-        Kdr = val;
-    } else if ((param == "tdr") || (param == "td")) {
-        Tdr = val;
-    } else if (param == "kpa") {
-        Kpa = val;
-    } else if (param == "kia") {
-        Kia = val;
-    } else if ((param == "vamax") || (param == "va_max")) {
-        Vamax = val;
-    } else if ((param == "vamin") || (param == "va_min")) {
-        Vamin = val;
-    } else if (param == "kp") {
-        Kp = val;
-    } else if (param == "kl") {
-        Kl = val;
-    } else if (param == "te") {
-        Te = val;
-    } else if (param == "kc") {
-        Kc = val;
-    } else if (param == "kd") {
-        Kd = val;
-    } else if (param == "ke") {
-        Ke = val;
-    } else if (param == "kf1") {
-        Kf1 = val;
-    } else if (param == "kf2") {
-        Kf2 = val;
-    } else if (param == "kf3") {
-        Kf3 = val;
-    } else if (param == "tf3") {
-        Tf3 = val;
-    } else if ((param == "vfemax") || (param == "vemax")) {
-        Vemax = val;
-    } else if (param == "vemin") {
-        Vemin = val;
-    } else if (param == "e1") {
-        E1 = val;
-    } else if (param == "se1") {
-        Se1 = val;
-    } else if (param == "e2") {
-        E2 = val;
-    } else if (param == "se2") {
-        Se2 = val;
-    } else {
-        Exciter::set(param, val, unitType);
-    }
-}
-
-double ExciterAC7B::get(std::string_view param, units::unit unitType) const
-{
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if ((param == "vrmax") || (param == "urmax")) {
-        return Vrmax;
-    }
-    if ((param == "vrmin") || (param == "urmin")) {
-        return Vrmin;
-    }
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "kpr") {
-        return Kpr;
-    }
-    if (param == "kir") {
-        return Kir;
-    }
-    if ((param == "kdr") || (param == "kd_pid")) {
-        return Kdr;
-    }
-    if ((param == "tdr") || (param == "td")) {
-        return Tdr;
-    }
-    if (param == "kpa") {
-        return Kpa;
-    }
-    if (param == "kia") {
-        return Kia;
-    }
-    if ((param == "vamax") || (param == "va_max")) {
-        return Vamax;
-    }
-    if ((param == "vamin") || (param == "va_min")) {
-        return Vamin;
-    }
-    if (param == "kp") {
-        return Kp;
-    }
-    if (param == "kl") {
-        return Kl;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if (param == "kc") {
-        return Kc;
-    }
-    if (param == "kd") {
-        return Kd;
-    }
-    if (param == "ke") {
-        return Ke;
-    }
-    if (param == "kf1") {
-        return Kf1;
-    }
-    if (param == "kf2") {
-        return Kf2;
-    }
-    if (param == "kf3") {
-        return Kf3;
-    }
-    if (param == "tf3") {
-        return Tf3;
-    }
-    if ((param == "vfemax") || (param == "vemax")) {
-        return Vemax;
-    }
-    if (param == "vemin") {
-        return Vemin;
-    }
-    if (param == "e1") {
-        return E1;
-    }
-    if (param == "se1") {
-        return Se1;
-    }
-    if (param == "e2") {
-        return E2;
-    }
-    if (param == "se2") {
-        return Se2;
-    }
-    return Exciter::get(param, unitType);
-}
 // NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::exciters

@@ -18,6 +18,7 @@
 #    include <sunlinsol/sunlinsol_klu.h>
 #endif
 
+#include <algorithm>
 #include <cassert>
 #include <cstdio>
 #include <format>
@@ -136,6 +137,9 @@ void ArkodeInterface::setMaxNonZeros(count_t nonZeroCount)
 
 void ArkodeInterface::set(std::string_view param, std::string_view val)
 {
+    if (trySetProperty(param, val)) {
+        return;
+    }
     if (param == "arkodetable" || param == "erktable") {
         auto tableName = gmlc::utilities::convertToLowerCase(val);
         if ((tableName == "default") || (tableName == "sofroniou") ||
@@ -180,7 +184,6 @@ void ArkodeInterface::set(std::string_view param, std::string_view val)
         if ((solverMem != nullptr) && !flags[INITIALIZED_FLAG]) {
             applyArkodeOptions();
         }
-    } else if (param.empty()) {
     } else {
         SundialsInterface::set(param, val);
     }
@@ -188,6 +191,12 @@ void ArkodeInterface::set(std::string_view param, std::string_view val)
 
 void ArkodeInterface::set(std::string_view param, double val)
 {
+    if (const auto* field = trySetProperty(param, val)) {
+        if (field->name == "maxiterations") {
+            applyIterationLimit();
+        }
+        return;
+    }
     bool checkStepUpdate = false;
     if (param == "step") {
         if ((maxStep < 0) || (maxStep == step)) {
@@ -213,12 +222,8 @@ void ArkodeInterface::set(std::string_view param, double val)
     } else if (param == "minstep") {
         minStep = val;
         checkStepUpdate = true;
-    } else if (param == "maxiterations") {
-        max_iterations = static_cast<count_t>(val);
-        int retval = ARKodeSetMaxNumSteps(solverMem, max_iterations);
-        checkFlag(&retval, "ARKodeSetMaxNumSteps", 1);
     } else {
-        SolverInterface::set(param, val);
+        SundialsInterface::set(param, val);
     }
 
     if (checkStepUpdate) {
@@ -236,8 +241,17 @@ void ArkodeInterface::set(std::string_view param, double val)
     }
 }
 
+void ArkodeInterface::applyIterationLimit()
+{
+    int retval = ARKodeSetMaxNumSteps(solverMem, max_iterations);
+    checkFlag(&retval, "ARKodeSetMaxNumSteps", 1);
+}
+
 double ArkodeInterface::get(std::string_view param) const
 {
+    if (const auto value = tryGetProperty(param)) {
+        return *value;
+    }
     long int val = -1;
     if ((param == "resevals") || (param == "iterationcount")) {
         ARKodeGetNumRhsEvals(solverMem, 1, &val);
@@ -398,8 +412,7 @@ void ArkodeInterface::initialize(CoreTime time0)
     retval = ARKodeSVtolerances(solverMem, tolerance / 100, abstols);
     checkFlag(&retval, "ARKodeSVtolerances", 1);
 
-    retval = ARKodeSetMaxNumSteps(solverMem, max_iterations);
-    checkFlag(&retval, "ARKodeSetMaxNumSteps", 1);
+    applyIterationLimit();
 
     if (maxStep > 0.0) {
         retval = ARKodeSetMaxStep(solverMem, maxStep);
@@ -416,6 +429,18 @@ void ArkodeInterface::initialize(CoreTime time0)
     setConstraints();
     solveTime = time0;
     flags.set(INITIALIZED_FLAG);
+}
+
+void ArkodeInterface::restoreFromCheckpoint(CoreTime time)
+{
+    if (!flags[INITIALIZED_FLAG]) {
+        throw(InvalidSolverOperation());
+    }
+    resetPerformanceStats();
+    int retval = ARKStepReInit(solverMem, arkodeFunc, nullptr, time, state);
+    checkFlag(&retval, "ARKStepReInit", 1);
+    std::fill(rootsfound.begin(), rootsfound.end(), 0);
+    solveTime = time;
 }
 
 void ArkodeInterface::sparseReInit(SparseReinitMode sparseReinitMode)

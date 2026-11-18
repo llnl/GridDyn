@@ -91,23 +91,35 @@ namespace {
                 continue;
             }
 
+            if (headerToken.back() == ')') {
+                const auto unitStartPos = headerToken.find_first_of('(');
+                if (unitStartPos != std::string::npos) {
+                    const auto unitName = gmlc::utilities::stringOps::trim(
+                        headerToken.substr(unitStartPos + 1,
+                                           headerToken.length() - 2 - unitStartPos));
+                    const auto lowerUnitName = gmlc::utilities::convertToLowerCase(unitName);
+                    auto& unit = sectionState.mUnits[headerIndex];
+                    // Legacy case files use both PU and kv. Other symbols can be case sensitive.
+                    if (lowerUnitName == "pu") {
+                        unit = units::pu;
+                    } else if (lowerUnitName == "kv") {
+                        unit = units::kV;
+                    } else {
+                        unit = units::unit_cast_from_string(unitName);
+                        if (units::is_error(unit) && lowerUnitName != unitName) {
+                            unit = units::unit_cast_from_string(lowerUnitName);
+                        }
+                    }
+                    headerToken =
+                        gmlc::utilities::stringOps::trim(headerToken.substr(0, unitStartPos));
+                }
+            }
             makeLowerCase(headerToken);
             if (headerToken == "type") {
                 sectionState.mTypeKey = headerIndex;
             }
             if ((headerToken == "ref") || (headerToken == "reference")) {
                 sectionState.mRefKey = headerIndex;
-            }
-            if (headerToken.back() == ')') {
-                const auto unitStartPos = headerToken.find_first_of('(');
-                if (unitStartPos != std::string::npos) {
-                    const std::string unitName =
-                        headerToken.substr(unitStartPos + 1,
-                                           headerToken.length() - 2 - unitStartPos);
-                    sectionState.mUnits[headerIndex] = units::unit_cast_from_string(unitName);
-                    headerToken =
-                        gmlc::utilities::stringOps::trim(headerToken.substr(0, unitStartPos));
-                }
             }
             ++headerIndex;
         }

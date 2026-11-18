@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactory.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -15,6 +16,48 @@
 #include <string>
 
 namespace griddyn::blocks {
+const ModelDescription& FilteredDerivativeBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<FilteredDerivativeBlock>(
+        "FilteredDerivativeBlock",
+        &GridBlock::getModelDescription(),
+        {parameter({"t1"},
+                   &FilteredDerivativeBlock::mT1,
+                   units::defunit,
+                   "Delay time constant for the derivative filtering operation"),
+         parameter({"t2"},
+                   &FilteredDerivativeBlock::mT2,
+                   units::defunit,
+                   "Filter on the derivative of block 1",
+                   [](double value) { return !(std::abs(value) < kMin_Res); }),
+         state<FilteredDerivativeBlock>(
+             {"deriv"},
+             units::defunit,
+             [](const auto& model) { return model.limiter_diff; },
+             "Derivative output"),
+         state<FilteredDerivativeBlock>(
+             {"filter"},
+             units::defunit,
+             [](const auto& model) { return model.limiter_diff + 1; },
+             "Derivative filter state"),
+         state<FilteredDerivativeBlock>(
+             {"limited"},
+             units::one,
+             [](const auto& model) {
+                 return model.opFlags[USE_BLOCK_LIMITS] ? 0 : kInvalidLocation;
+             },
+             "Solver variable limited"),
+         state<FilteredDerivativeBlock>(
+             {"ramp_limited"},
+             units::one,
+             [](const auto& model) {
+                 return model.opFlags[USE_RAMP_LIMITS] ? (model.opFlags[USE_BLOCK_LIMITS] ? 1 : 0) :
+                                                         kInvalidLocation;
+             },
+             "Solver variable ramp_limited")});
+    return description;
+}
+
 FilteredDerivativeBlock::FilteredDerivativeBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(USE_STATE);
@@ -154,37 +197,4 @@ void FilteredDerivativeBlock::blockJacobianElements(double input,
 }
 
 // set parameters
-void FilteredDerivativeBlock::set(std::string_view param, std::string_view val)
-{
-    GridBlock::set(param, val);
-}
-void FilteredDerivativeBlock::set(std::string_view param, double val, units::unit unitType)
-{
-    if (param == "t1") {
-        mT1 = val;
-    } else if (param == "t2") {
-        if (std::abs(val) < kMin_Res) {
-            throw(InvalidParameterValue(param));
-        }
-        mT2 = val;
-    } else {
-        GridBlock::set(param, val, unitType);
-    }
-}
-
-stringVec FilteredDerivativeBlock::localStateNames() const
-{
-    switch (limiter_diff) {
-        case 0:
-            return {"deriv", "filter"};
-        case 1:
-            if (opFlags[USE_BLOCK_LIMITS]) {
-                return {"limited", "deriv", "filter"};
-            } else {
-                return {"ramp_limited", "deriv", "filter"};
-            }
-        default:  // should be 0, 1 or 2 so this should run with 2
-            return {"limited", "ramp_limited", "deriv", "filter"};
-    }
-}
 }  // namespace griddyn::blocks

@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <algorithm>
 #include <cmath>
 #include <string>
@@ -38,6 +39,28 @@ namespace {
     constexpr double lowCurrentSlope = 0.577;  // NOLINT(modernize-use-std-numbers)
     constexpr double highCurrentSlope = 1.732;  // NOLINT(modernize-use-std-numbers)
 }  // namespace
+
+const ModelDescription& ExciterEXAC2::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterEXAC2>(
+        "ExciterEXAC2",
+        &ExciterEXAC1::getModelDescription(),
+        {parameter({"vamax"}, &ExciterEXAC2::Vamax, units::one, "Vamax upper limit"),
+         parameter({"vamin"}, &ExciterEXAC2::Vamin, units::one, "Vamin lower limit"),
+         parameter({"vlr"}, &ExciterEXAC2::Vlr, units::one, "Vlr model setting"),
+         parameter({"kl"},
+                   &ExciterEXAC2::Kl,
+                   units::one,
+                   "Kl gain or coefficient",
+                   parameterValidators::positive),
+         parameter({"kh"}, &ExciterEXAC2::Kh, units::one, "Kh gain or coefficient"),
+         parameter({"kb"},
+                   &ExciterEXAC2::Kb,
+                   units::one,
+                   "Kb gain or coefficient",
+                   parameterValidators::positive)});
+    return description;
+}
 
 ExciterEXAC2::ExciterEXAC2(const std::string& objName): ExciterEXAC1(objName) {}
 
@@ -107,68 +130,6 @@ void ExciterEXAC2::dynObjectInitializeB(const IOdata& inputs,
         ((Kd == 0.0) ? 0.0 : Kd * fieldCurrent);
     vlr0 = std::max(Vlr, feedback + (feedback / (Kl * Kb)));
     ExciterEXAC1::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
-}
-
-void ExciterEXAC2::set(std::string_view param, std::string_view val)
-{
-    ExciterEXAC1::set(param, val);
-}
-
-void ExciterEXAC2::set(std::string_view param, double val, units::unit unitType)
-{
-    const auto finite = [val](const char* label) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue(std::string("EXAC2 ") + label + " must be finite");
-        }
-    };
-    if (param == "vamax") {
-        finite("VAMAX");
-        Vamax = val;
-    } else if (param == "vamin") {
-        finite("VAMIN");
-        Vamin = val;
-    } else if (param == "vlr") {
-        finite("VLR");
-        Vlr = val;
-    } else if (param == "kl") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("EXAC2 KL must be positive and finite");
-        }
-        Kl = val;
-    } else if (param == "kh") {
-        finite("KH");
-        Kh = val;
-    } else if (param == "kb") {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("EXAC2 KB must be positive and finite");
-        }
-        Kb = val;
-    } else {
-        ExciterEXAC1::set(param, val, unitType);
-    }
-}
-
-double ExciterEXAC2::get(std::string_view param, units::unit unitType) const
-{
-    if (param == "vamax") {
-        return Vamax;
-    }
-    if (param == "vamin") {
-        return Vamin;
-    }
-    if (param == "vlr") {
-        return Vlr;
-    }
-    if (param == "kl") {
-        return Kl;
-    }
-    if (param == "kh") {
-        return Kh;
-    }
-    if (param == "kb") {
-        return Kb;
-    }
-    return ExciterEXAC1::get(param, unitType);
 }
 
 double ExciterEXAC2::regulatorTarget(const IOdata& inputs, const double state[]) const

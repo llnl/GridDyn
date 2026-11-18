@@ -22,6 +22,7 @@ class GridBus;
 /** Generator host for independently replaceable renewable dynamic components. */
 class RenewableGenerator: public Generator {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit RenewableGenerator(const std::string& name = "renGen_$");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 
@@ -98,9 +99,6 @@ class RenewableGenerator: public Generator {
                          const SolverMode& sMode,
                          CheckLevel level) override;
     count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
-    void getStateName(stringVec& stNames,
-                      const SolverMode& sMode,
-                      const std::string& prefix) const override;
 
   private:
     static constexpr std::size_t roleCount = static_cast<std::size_t>(RenewableRole::count);

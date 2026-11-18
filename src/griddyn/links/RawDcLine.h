@@ -39,6 +39,7 @@ class RawDcLine final: public Link {
     index_t toReactiveOffset(const SolverMode& sMode) const;
 
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit RawDcLine(const std::string& objName = "rawdcline_$");
 
     using Link::set;
@@ -76,9 +77,6 @@ class RawDcLine final: public Link {
                     double state[],
                     double dstateDt[],
                     const SolverMode& sMode) override;
-    void getStateName(stringVec& stNames,
-                      const SolverMode& sMode,
-                      const std::string& prefix = "") const override;
 };
 
 }  // namespace griddyn::links

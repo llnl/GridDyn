@@ -15,6 +15,7 @@ namespace griddyn::relays {
  */
 class Fuse: public Relay {
   public:
+    const ModelDescription& getModelDescription() const override;
     /** flags for fuses*/
     enum FuseFlags {
         OVERLIMIT_FLAG = OBJECT_FLAG10,  //!< flag indicating the current is over the limit
@@ -73,10 +74,6 @@ class Fuse: public Relay {
     virtual StateSizes localStateSizes(const SolverMode& sMode) const override;
 
     virtual count_t localJacobianCount(const SolverMode& sMode) const override;
-
-    virtual void getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix) const override;
 
   protected:
     virtual void conditionTriggered(index_t conditionNum, CoreTime triggerTime) override;

@@ -11,11 +11,14 @@
 @brief define the simulation object itself and several helper classes and enumerations*/
 
 // header files
+#include "simulation/Continuation.h"
 #include "simulation/GridDynActions.h"
 #include "simulation/GridSimulation.h"
 // libraries
 #include "griddyn/griddyn-config.h"
+#include <cstdint>
 #include <functional>
+#include <map>
 #include <memory>
 #include <queue>
 #include <string>
@@ -31,8 +34,16 @@ namespace griddyn {
 class Contingency;
 class ContinuationSequence;
 class SolverInterface;
+struct BinaryStateData;
 class ParameterSet;
 class GridLoad;
+
+/** Selects how much of a binary state capture is applied to a simulation. */
+enum class CheckpointRestoreLevel : std::uint8_t {
+    SOLVER_STATE_ONLY,  //!< Restore solver vectors without changing simulation time.
+    MINIMAL,  //!< Restart at the captured time and publish the solver state to the components.
+    LOCAL_STATE,  //!< Also restore declared component history from a checkpoint capture.
+};
 
 /** additional flags for the controlFlags bitset*/
 enum GridDynFlags {
@@ -110,6 +121,8 @@ enum class ContingencyMode;  // forward declare the enumeration
  */
 class GridDynSimulation: public GridSimulation {
   public:
+    const ModelDescription& getModelDescription() const override;
+    bool getFlag(std::string_view flag) const override;
     friend class powerFlowErrorRecovery;
     friend class dynamicInitialConditionRecovery;
     friend class faultResetRecovery;
@@ -274,6 +287,12 @@ class GridDynSimulation: public GridSimulation {
     @details this function will likely be changing as the continuation analysis develops further
     */
     void continuationPowerFlow(std::string_view contName);
+
+    /** Trace the fixed-control AC power-flow curve on a working copy. */
+    ContinuationResult continuationPowerFlow(const ContinuationRequest& request) const;
+
+    /** Trace the curve with a uniform target multiplier for constant-power demand. */
+    ContinuationResult continuationPowerFlow(double loadScale) const;
 
     /** @brief function to get the system constraints
       constraints allowable are >0,  <0, >=0,  <=0
@@ -616,6 +635,42 @@ class GridDynSimulation: public GridSimulation {
     */
     SolverMode getCurrentMode(const SolverMode& sMode = cEmptySolverMode) const;
 
+    /** Capture solver vectors and declared local state at an accepted simulation point. */
+    [[nodiscard]] BinaryStateData
+        checkpointCapture(const SolverMode& mode = cEmptySolverMode) const;
+
+    /** Capture an accepted point and write it as one HDF5 frame. */
+    void checkpointCapture(const std::string& fileName,
+                           const SolverMode& mode = cEmptySolverMode,
+                           bool append = false) const;
+
+    /** Restore a binary solver-state capture into this initialized simulation.
+     *
+     * MINIMAL restores the solver vectors and derivative vectors, resets the
+     * backend from those arrays at the captured time, and updates the simulation
+     * clock. It publishes the restored solver state to components and refreshes
+     * their output caches. Independent model fields and event progress are outside
+     * the capture. SOLVER_STATE_ONLY copies the vectors into the solver buffers only.
+     * LOCAL_STATE adds declared local history and requires a checkpointCapture frame
+     * and the same initialized model, configuration, and component status.
+     *
+     * If mode is empty, the captured mode is matched to an initialized solver
+     * in this simulation. Pass mode to disambiguate multiple compatible solvers.
+     */
+    void checkpointRestore(const BinaryStateData& saved,
+                           CheckpointRestoreLevel level = CheckpointRestoreLevel::MINIMAL,
+                           const SolverMode& requestedMode = cEmptySolverMode);
+
+    /** Read the last binary state frame from fileName and restore it.
+     *
+     * An empty fileName uses the configured statefile. The loaded frame is
+     * passed through the BinaryStateData overload so file and in-memory
+     * restores share validation and application behavior.
+     */
+    void checkpointRestore(const std::string& fileName,
+                           CheckpointRestoreLevel level = CheckpointRestoreLevel::MINIMAL,
+                           const SolverMode& mode = cEmptySolverMode);
+
     /** @brief makes sure the SolverInterface object is ready to run solutions
     @param[in] solver pointer to a solver to make ready
     */
@@ -782,6 +837,9 @@ class GridDynSimulation: public GridSimulation {
     bool checkEventsForDynamicReset(CoreTime cTime, const SolverMode& sMode);
 
   private:
+    int initializePowerFlow(CoreTime time0, const std::function<void()>& configureVoltageControls);
+
+    std::map<std::vector<std::string>, CoreObject*> checkpointChildren() const;
     void setupDynamicDAE();
     void setupDynamicPartitioned();
 

@@ -6,6 +6,7 @@
 
 #include "../gtestHelper.h"
 #include "core/CoreExceptions.h"
+#include "core/ModelDescription.h"
 #include "core/ObjectFactory.hpp"
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
@@ -17,6 +18,7 @@
 #include <cstdio>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <string>
 #include <utility>
@@ -256,6 +258,29 @@ TEST_F(BlockTests, TransferFunctionOutputLimitAndParameterValidation)
     EXPECT_THROW(invalidBlock.dynInitializeA(0.0, 0U), InvalidParameterValue);
 }
 
+TEST_F(BlockTests, TransferFunctionIndexedCommandsPreserveBoundsAndInheritedSettings)
+{
+    TransferFunctionBlock block;
+    block.set("a_2", 1.0);
+    block.set("b0", 2.0);
+    block.set("gain", 2.0);
+    EXPECT_THROW(block.set("b3", 1.0), InvalidParameterValue);
+    EXPECT_THROW(block.set("a2extra", 1.0), UnrecognizedParameter);
+    EXPECT_THROW(block.set("a-1", 1.0), UnrecognizedParameter);
+    EXPECT_NO_THROW(block.set("# comment", kNullVal));
+    block.dynInitializeA(0.0, 0U);
+    EXPECT_EQ(block.diffSize(cLocalSolverMode), 2);
+    IOdata fieldSet;
+    block.dynInitializeB({3.0}, {}, fieldSet);
+    EXPECT_NEAR(block.getBlockOutput(), 12.0, 1e-12);
+
+    const auto* indexed = block.getModelDescription().find("a2");
+    ASSERT_NE(indexed, nullptr);
+    EXPECT_EQ(indexed->kind(), ModelFieldKind::INDEXED_COMMAND);
+    EXPECT_EQ(indexed->name(), "a");
+    EXPECT_EQ(block.getModelDescription().find("a")->kind(), ModelFieldKind::COMMAND);
+}
+
 TEST_F(BlockTests, LeadLagKernelAndBlock)
 {
     // G(s) = 2(1 + 0.5s)/(1 + 2s).  The equilibrium state equals the input.
@@ -282,6 +307,16 @@ TEST_F(BlockTests, LeadLagKernelAndBlock)
 
 TEST_F(BlockTests, LutBlockInterpolationInitializationAndLimits)
 {
+    LutBlock inherited;
+    inherited.set("gain", 2.0);
+    inherited.set("name", "inherited LUT");
+    EXPECT_DOUBLE_EQ(inherited.get("gain"), 2.0);
+    EXPECT_EQ(inherited.getName(), "inherited LUT");
+    EXPECT_NO_THROW(inherited.set("", std::numeric_limits<double>::quiet_NaN()));
+    EXPECT_NO_THROW(inherited.set("# ignored", std::numeric_limits<double>::infinity()));
+    EXPECT_THROW(inherited.set("unknown", std::numeric_limits<double>::quiet_NaN()),
+                 InvalidParameterValue);
+
     LutBlock block;
     block.set("lut", "0,0;1,2;2,2");
     EXPECT_NEAR(block.computeValue(-1.0), 0.0, 1e-12);
@@ -510,3 +545,21 @@ TEST_P(BlockCompareTests, BlockAlgDiffJacTest)
 }
 
 #endif
+
+TEST(BlockDescriptionTests, InheritedSettingsAndClassManagedLimits)
+{
+    ControlBlock block;
+    ASSERT_TRUE(block.getModelDescription().describesExactType(block));
+    block.set("gain", 2.0);
+    block.set("t", 0.2);
+    block.set("t2", 0.1);
+    EXPECT_DOUBLE_EQ(block.get("k"), 2.0);
+    EXPECT_DOUBLE_EQ(block.get("t1"), 0.2);
+    EXPECT_DOUBLE_EQ(block.get("t2"), 0.1);
+    EXPECT_NO_THROW(block.set("# unused", kNullVal));
+
+    const auto* limit = block.getModelDescription().find("max");
+    ASSERT_NE(limit, nullptr);
+    EXPECT_EQ(limit->kind(), ModelFieldKind::COMMAND);
+    EXPECT_NO_THROW(block.set("max", 1.0));
+}

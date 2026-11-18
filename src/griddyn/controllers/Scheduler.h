@@ -25,6 +25,8 @@ class ReserveDispatcher;
  */
 class Scheduler: public Source {
   public:
+    const ModelDescription& getModelDescription() const override;
+
   protected:
     double pMax = kBigNum;  //!< [puMW] maximum set power
     double pMin = -kBigNum;  //!< [puMW] minimum set power
@@ -86,6 +88,7 @@ as well as handling spinning reserve like capacity in an object
 */
 class SchedulerRamp: public Scheduler {
   public:
+    const ModelDescription& getModelDescription() const override;
     enum RampMode {
         MID_POINT,  //!< Start the configured ramp window centered on the target time.
         JUST_IN_TIME,  //!< Start at the latest feasible time to reach the target.
@@ -197,6 +200,7 @@ class SchedulerReg: public SchedulerRamp {
                                   bool regulationEnabled) const;
 
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit SchedulerReg(const std::string& objName = "schedulerReg_#");
     SchedulerReg(double initialValue, const std::string& objName = "schedulerReg_#");
     SchedulerReg(double initialValue,
@@ -225,7 +229,7 @@ class SchedulerReg: public SchedulerRamp {
 
     void regSettings(bool active, double upFrac = -1.0, double downFrac = -1.0);
 
-    virtual void set(std::string_view param, std::string_view val) override;
+    using SchedulerRamp::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 

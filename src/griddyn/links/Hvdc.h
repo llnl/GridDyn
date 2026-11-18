@@ -13,6 +13,7 @@ namespace griddyn::links {
 /** @brief class defining a complete hvdc system including converters dc buses and dc line*/
 class Hvdc: public Subsystem {
   public:
+    const ModelDescription& getModelDescription() const override;
     /** hvdc helper flags*/
     enum HvdcFlags {
         REVERSE_FLOW = OBJECT_FLAG6,  //!< flag indicating that the flow is reverse standard

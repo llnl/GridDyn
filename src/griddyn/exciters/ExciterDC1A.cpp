@@ -9,6 +9,7 @@
 #include "../Generator.h"
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -17,6 +18,23 @@
 namespace griddyn::exciters {
 namespace {
     constexpr double initialLimitContactTolerance = 1e-7;
+}
+
+const ModelDescription& ExciterDC1A::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterDC1A>(
+        "ExciterDC1A",
+        &ExciterIEEEtype1::getModelDescription(),
+        {parameter({"tb"}, &ExciterDC1A::Tb, units::second, "Lead-lag denominator time constant"),
+         parameter({"tc"}, &ExciterDC1A::Tc, units::second, "Lead-lag numerator time constant"),
+         state({"x"}, units::one, 2, "x solver state"),
+         state({"rf"}, units::one, 3, "rf solver state"),
+         state<ExciterDC1A>(
+             {"vmeas"},
+             units::one,
+             [](const auto& model) { return model.Tr > 0.0 ? 4 : kInvalidLocation; },
+             "Measured terminal voltage")});
+    return description;
 }
 
 ExciterDC1A::ExciterDC1A(const std::string& objName): ExciterIEEEtype1(objName)
@@ -362,25 +380,10 @@ double ExciterDC1A::measuredVoltage(const IOdata& inputs, const double state[]) 
     return (Tr > 0.0) ? state[4] : inputs[VOLTAGE_IN_LOCATION];
 }
 
-static const stringVec DC1A_FIELDS{"ef", "vr", "x", "rf"};
-
-stringVec ExciterDC1A::localStateNames() const
-{
-    return (Tr > 0.0) ? stringVec{"ef", "vr", "x", "rf", "vmeas"} : DC1A_FIELDS;
-}
-void ExciterDC1A::set(std::string_view param, std::string_view val)
-{
-    ExciterIEEEtype1::set(param, val);
-}
-
 // set parameters
 void ExciterDC1A::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "tb") {
-        Tb = val;
-    } else if (param == "tc") {
-        Tc = val;
-    } else {
+    if (!isSetHandled(ExciterDC1A::getModelDescription().trySet(*this, param, val, unitType))) {
         ExciterIEEEtype1::set(param, val, unitType);
     }
 }

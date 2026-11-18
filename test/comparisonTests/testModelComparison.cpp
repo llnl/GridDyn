@@ -68,10 +68,12 @@
 #include "griddyn/stabilizers/StabilizerStab2a.h"
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <memory>
 #include <nlohmann/json.hpp>
@@ -87,6 +89,13 @@ constexpr std::string_view comparisonTestDirectory{GRIDDYN_TEST_DIRECTORY "/comp
 std::string makeComparisonTestPath(std::string_view fileName)
 {
     return std::string{comparisonTestDirectory} + std::string{fileName};
+}
+
+std::string makeReaderErrorTestPath(std::string_view fileName)
+{
+    return (std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "reader_error_tests" /
+            std::string{fileName})
+        .string();
 }
 
 std::unique_ptr<griddyn::GridDynSimulation>
@@ -558,7 +567,7 @@ TEST(DyrReaderComparisonTests, InitializesGenroeAndIeeex1WithConsistentEquations
     auto* exciter = dynamic_cast<griddyn::exciters::ExciterIEEEX1*>(generator->find("exciter"));
     ASSERT_NE(machine, nullptr);
     ASSERT_NE(exciter, nullptr);
-    EXPECT_EQ(exciter->localStateNames(), (griddyn::stringVec{"ef", "vr", "rf", "vmeas"}));
+    EXPECT_EQ(exciter->solverStateNames(), (griddyn::stringVec{"ef", "vr", "rf", "vmeas"}));
     ASSERT_EQ(simulation->dynInitialize(), 0);
     EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
@@ -566,12 +575,54 @@ TEST(DyrReaderComparisonTests, InitializesGenroeAndIeeex1WithConsistentEquations
 
 TEST(DyrReaderComparisonTests, RejectsMalformedGenroeAndUnsupportedIeeex1Switch)
 {
-    for (const auto record : {"ieee14_genroe_bad_fields.dyr", "ieee14_ieeex1_nonzero_switch.dyr"}) {
+    constexpr std::pair<const char*, const char*> cases[]{
+        {"ieee14_genroe_bad_fields.dyr", "GENROE DYR record must contain 17 fields"},
+        {"ieee14_ieeex1_nonzero_switch.dyr", "IEEEX1 nonzero Switch is unsupported"},
+    };
+    for (const auto& [fileName, diagnostic] : cases) {
+        SCOPED_TRACE(fileName);
+        const auto filePath = makeReaderErrorTestPath(fileName);
         auto simulation = std::make_unique<griddyn::GridDynSimulation>();
         griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
-        EXPECT_THROW(griddyn::loadFile(simulation.get(), makeComparisonTestPath(record)),
-                     griddyn::InvalidParameterValue)
-            << record;
+        EXPECT_THAT([&] { griddyn::loadFile(simulation.get(), filePath); },
+                    ::testing::ThrowsMessage<griddyn::InvalidParameterValue>(
+                        ::testing::HasSubstr(diagnostic)));
+    }
+}
+
+TEST(DydReaderTests, RejectsMalformedAndUnresolvedLoadTemplateBusSelectors)
+{
+    struct TemporaryDydFile {
+        std::filesystem::path path;
+
+        ~TemporaryDydFile()
+        {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    };
+    const auto timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    const TemporaryDydFile file{std::filesystem::temp_directory_path() /
+                                ("griddyn_dyd_selector_" + std::to_string(timestamp) + ".dyd")};
+    for (const auto selector : {"-1", "not-an-integer", "1.5", "18446744073709551616", "1"}) {
+        SCOPED_TRACE(selector);
+        {
+            std::ofstream output(file.path);
+            ASSERT_TRUE(output.is_open());
+            output << "models\nblwscc " << selector
+                   << " \"Bus 1\" 230.0 \"1\" : #9 0 1 1 0 0 0 0 0 0 0 0\n";
+            output.close();
+            ASSERT_TRUE(output);
+        }
+        auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+        const char* reason = std::string_view{selector} == "1" ?
+            "bus selector 1 was not found" :
+            "selector must be a nonnegative integer";
+        EXPECT_THAT([&] { griddyn::loadFile(simulation.get(), file.path.string()); },
+                    ::testing::ThrowsMessage<griddyn::InvalidParameterValue>(::testing::AllOf(
+                        ::testing::HasSubstr(file.path.string() + ":2 "),
+                        ::testing::HasSubstr(std::string{"selector "} + selector + ':'),
+                        ::testing::HasSubstr(reason))));
     }
 }
 
@@ -881,7 +932,7 @@ TEST(DyrReaderComparisonTests, MapsCmpldwType1MotorABCAndChecksCompositeDaeJacob
         EXPECT_DOUBLE_EQ(motor->get("th2t"), 1.9);
         EXPECT_DOUBLE_EQ(motor->get("tv"), 0.025);
         EXPECT_TRUE(motor->checkFlag(griddyn::USES_BUS_FREQUENCY));
-        EXPECT_EQ(motor->localStateNames(),
+        EXPECT_EQ(motor->solverStateNames(),
                   (griddyn::stringVec{"voltage_measurement", "thermal_a", "thermal_b"}));
     }
 
@@ -977,13 +1028,15 @@ TEST(DyrReaderComparisonTests, OmitsCmpldwFeederWhenFeederReactanceIsZero)
 
 TEST(DyrReaderComparisonTests, RejectsMalformedCmpldwRecords)
 {
-    for (const auto record : {"ieee14_cmpldw_bad_count.dyr"}) {
-        auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
-        EXPECT_THROW(griddyn::loadFile(simulation.get(), makeComparisonTestPath(record)),
-                     griddyn::InvalidParameterValue)
-            << record;
-    }
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    EXPECT_THAT(
+        [&] {
+            griddyn::loadFile(simulation.get(),
+                              makeReaderErrorTestPath("ieee14_cmpldw_bad_count.dyr"));
+        },
+        ::testing::ThrowsMessage<griddyn::InvalidParameterValue>(
+            ::testing::HasSubstr("CMLDBLU1 DYR record must contain 132 parameters")));
 }
 
 TEST(DyrReaderComparisonTests, RejectsDynamicCmpldwLtcUntilDelayedTapControlIsAvailable)
@@ -1019,7 +1072,8 @@ TEST(DyrReaderComparisonTests, RejectsUnsupportedModelWithRecordLocation)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
     try {
-        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_unsupported_model.dyr"));
+        griddyn::loadFile(simulation.get(),
+                          makeReaderErrorTestPath("ieee14_unsupported_model.dyr"));
         FAIL() << "unsupported DYR model was accepted";
     }
     catch (const griddyn::InvalidParameterValue& error) {
@@ -1858,9 +1912,9 @@ TEST(DynamicComparisonTests, HygovDbRemainsAtEquilibriumInsideSpeedDeadband)
     ASSERT_EQ(simulation->run(2.0), 0);
     const auto final = simulation->getState();
     ASSERT_EQ(final.size(), initial.size());
-    for (std::size_t i = 0; i < final.size(); ++i) {
-        EXPECT_TRUE(std::isfinite(final[i]));
-        EXPECT_NEAR(final[i], initial[i], 1e-5);
+    for (std::size_t stateIndex = 0; stateIndex < final.size(); ++stateIndex) {
+        EXPECT_TRUE(std::isfinite(final[stateIndex]));
+        EXPECT_NEAR(final[stateIndex], initial[stateIndex], 1e-5);
     }
 }
 
@@ -2417,9 +2471,9 @@ TEST(Stab2aReaderTests, AllBypassCombinationsRunWithDaeAndPartitionedSolvers)
                 dynamic_cast<griddyn::stabilizers::StabilizerStab2a*>(generator->find("pss"));
             ASSERT_NE(stabilizer, nullptr);
             const std::array<std::string_view, 3> names{"t2", "t3", "t5"};
-            for (unsigned int i = 0; i < names.size(); ++i) {
-                if ((bypasses & (1U << i)) != 0) {
-                    stabilizer->set(names[i], 0.0);
+            for (unsigned int parameterIndex = 0; parameterIndex < names.size(); ++parameterIndex) {
+                if ((bypasses & (1U << parameterIndex)) != 0) {
+                    stabilizer->set(names[parameterIndex], 0.0);
                 }
             }
             if (partitioned) {
@@ -2485,7 +2539,7 @@ TEST(NewControlReaderTests, PssUsesTerminalPowerWithStatorLosses)
     const auto torque =
         signals[static_cast<index_t>(griddyn::MachineControllerSignal::ELECTRICAL_TORQUE)];
     EXPECT_GT(std::abs(torque - power), 1e-5);
-    const auto names = pss->localStateNames();
+    const auto names = pss->solverStateNames();
     const auto washout = std::find(names.begin(), names.end(), "w2a");
     ASSERT_NE(washout, names.end());
     EXPECT_NEAR(pss->getStates()[std::distance(names.begin(), washout)], power, 1e-10);

@@ -35,15 +35,13 @@ class CompoundEventPlayer: public CompoundEvent {
     CompoundEventPlayer(EventInfo& gdEI, CoreObject* rootObject);
     virtual std::unique_ptr<Event> clone() const override;
 
-    virtual void cloneTo(Event* gE) const override;
+    virtual void cloneTo(Event* event) const override;
 
     // virtual void updateEvent(EventInfo &gdEI, CoreObject *rootObject) override;
 
     virtual ChangeCode trigger() override;
     virtual ChangeCode trigger(CoreTime time) override;
 
-    virtual void set(std::string_view param, double val) override;
-    virtual void set(std::string_view param, std::string_view val) override;
     void setTime(CoreTime time) override;
     void setTimeValue(CoreTime time, double val);
     void setTimeValue(const std::vector<CoreTime>& time, const std::vector<double>& val);

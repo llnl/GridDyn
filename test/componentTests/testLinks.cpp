@@ -5,6 +5,7 @@
  */
 
 #include "../gtestHelper.h"
+#include "core/CoreExceptions.h"
 #include "fileInput/fileInput.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/GridBus.h"
@@ -28,6 +29,42 @@
 using namespace griddyn;
 
 class LinkTests: public GridDynSimulationTestFixture, public ::testing::Test {};
+
+TEST_F(LinkTests, TextStatusDistinguishesEnablementFromConnectivity)
+{
+    GridComponent component;
+    for (const auto* status : {"off", "out", "disabled", "false"}) {
+        component.enable();
+        component.set("status", status);
+        EXPECT_FALSE(component.isEnabled()) << status;
+    }
+    for (const auto* status : {"on", "in", "enabled", " TRUE "}) {
+        component.disable();
+        component.set("status", status);
+        EXPECT_TRUE(component.isEnabled()) << status;
+    }
+    component.set("status", "disconnected");
+    EXPECT_FALSE(component.isConnected());
+    EXPECT_TRUE(component.isEnabled());
+    EXPECT_THROW(component.set("status", "invalid"), InvalidParameterValue);
+    component.set("status", "connected");
+    EXPECT_TRUE(component.isConnected());
+
+    GridBus busOne;
+    GridBus busTwo;
+    AcLine line(0.005, 0.2);
+    line.updateBus(&busOne, 1);
+    line.updateBus(&busTwo, 2);
+    line.set("status", "open");
+    EXPECT_FALSE(line.isConnected());
+    line.set("status", "closed");
+    EXPECT_TRUE(line.isConnected());
+    line.set("status", "false");
+    EXPECT_FALSE(line.isEnabled());
+    line.set("status", "true");
+    EXPECT_TRUE(line.isEnabled());
+    EXPECT_THROW(line.set("status", "unknown"), InvalidParameterValue);
+}
 
 TEST_F(LinkTests, NetworkCheckAggregatesUnservedIslandReports)
 {

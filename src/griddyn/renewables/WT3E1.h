@@ -14,6 +14,7 @@ namespace griddyn {
 /** PSS/E WT3E1 electrical controller for a WT3G DFIG interface. */
 class WT3E1 final: public RenewableComponent {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit WT3E1(const std::string& name = "WT3E1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     using RenewableComponent::set;
@@ -58,7 +59,6 @@ class WT3E1 final: public RenewableComponent {
                                   const StateData& stateData,
                                   MatrixData<double>& matrixData,
                                   const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   private:
     int varFlag = 0, vlrFlag = 1;

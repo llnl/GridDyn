@@ -22,19 +22,18 @@ struct MotorDPower {
 /** WECC single-phase A/C compressor performance model (Motor D core). */
 class MotorDLoad: public GridLoad {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit MotorDLoad(const std::string& objName = "motorD_$");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
-    void set(std::string_view param, std::string_view val) override;
+    using GridLoad::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
     void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     StateSizes localStateSizes(const SolverMode& sMode) const override;
     count_t localJacobianCount(const SolverMode& sMode) const override;
-    stringVec localStateNames() const override;
+
     std::pair<count_t, count_t> LocalRootCount(const SolverMode& sMode) const override;
     void rootTest(const IOdata& inputs,
                   const StateData& stateData,

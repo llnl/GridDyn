@@ -10,12 +10,39 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
 #include <string>
 
 namespace griddyn::exciters {
+
+const ModelDescription& ExciterIEEEX1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterIEEEX1>(
+        "ExciterIEEEX1",
+        &ExciterDC2A::getModelDescription(),
+        {state<ExciterIEEEX1>(
+             {"x"},
+             units::one,
+             [](const auto& model) { return model.hasLeadLag() ? 2 : kInvalidLocation; },
+             "Solver variable x"),
+         state<ExciterIEEEX1>(
+             {"rf"},
+             units::one,
+             [](const auto& model) { return model.hasLeadLag() ? 3 : 2; },
+             "Solver variable rf"),
+         state<ExciterIEEEX1>(
+             {"vmeas"},
+             units::one,
+             [](const auto& model) {
+                 return model.Tr > 0.0 ? (model.hasLeadLag() ? 4 : 3) : kInvalidLocation;
+             },
+             "Solver variable vmeas")});
+    return description;
+}
+
 ExciterIEEEX1::ExciterIEEEX1(const std::string& objName): ExciterDC2A(objName) {}
 
 CoreObject* ExciterIEEEX1::clone(CoreObject* obj) const
@@ -255,45 +282,10 @@ ChangeCode ExciterIEEEX1::rootCheck(const IOdata& inputs,
 
 double ExciterIEEEX1::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "ka") {
-        return Ka;
-    }
-    if (param == "ta") {
-        return Ta;
-    }
-    if (param == "tb") {
-        return Tb;
-    }
-    if (param == "tc") {
-        return Tc;
-    }
-    if ((param == "vrmax") || (param == "urmax")) {
-        return Vrmax;
-    }
-    if ((param == "vrmin") || (param == "urmin")) {
-        return Vrmin;
-    }
-    if (param == "ke") {
-        return Ke;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if (param == "kf") {
-        return Kf;
-    }
-    if (param == "tf") {
-        return Tf;
-    }
     if (param == "switch") {
         return 0.0;
     }
     return ExciterDC2A::get(param, unitType);
-}
-
-stringVec ExciterIEEEX1::localStateNames() const
-{
-    return hasLeadLag() ? ExciterDC2A::localStateNames() : ExciterIEEEtype1::localStateNames();
 }
 
 }  // namespace griddyn::exciters

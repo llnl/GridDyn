@@ -15,6 +15,7 @@ namespace griddyn::exciters {
 /** IEEE AC5A excitation system using the ANDES ESAC5A state equations. */
 class ExciterESAC5A final: public Exciter {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit ExciterESAC5A(const std::string& objName = "exciterESAC5A_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
@@ -52,11 +53,6 @@ class ExciterESAC5A final: public Exciter {
                          const StateData& stateData,
                          const SolverMode& sMode,
                          CheckLevel level) override;
-    stringVec localStateNames() const override;
-    index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
-    using Exciter::set;
-    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
   private:
     static constexpr index_t maximumStates = 5;

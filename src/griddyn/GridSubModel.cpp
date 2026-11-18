@@ -6,10 +6,20 @@
 
 #include "GridSubModel.h"
 
+#include "core/ModelDescription.h"
 #include "measurement/ObjectGrabbers.h"
 #include <string>
 
 namespace griddyn {
+const ModelDescription& GridSubModel::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<GridSubModel>("GridSubModel",
+                                               &GridComponent::getModelDescription(),
+                                               {});
+    return description;
+}
+
 GridSubModel::GridSubModel(const std::string& objName): GridComponent(objName)
 {
     opFlags.set(NO_POWERFLOW_OPERATIONS);
@@ -70,8 +80,25 @@ bool GridSubModel::setOutputInitializationTarget(index_t /*outputIndex*/, double
     return false;
 }
 
+void GridSubModel::set(std::string_view param, std::string_view val)
+{
+    if (!isSetHandled(GridSubModel::getModelDescription().trySet(*this, param, val))) {
+        GridComponent::set(param, val);
+    }
+}
+
+void GridSubModel::set(std::string_view param, double val, units::unit unitType)
+{
+    if (!isSetHandled(GridSubModel::getModelDescription().trySet(*this, param, val, unitType))) {
+        GridComponent::set(param, val, unitType);
+    }
+}
+
 double GridSubModel::get(std::string_view param, units::unit unitType) const
 {
+    if (const auto value = GridSubModel::getModelDescription().tryGet(*this, param, unitType)) {
+        return *value;
+    }
     auto fptr = getObjectFunction(this, param);
     if (fptr.first) {
         CoreObject* tobj = const_cast<GridSubModel*>(this);

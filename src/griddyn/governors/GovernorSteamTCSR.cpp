@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -33,6 +34,45 @@ GovernorSteamTCSR::GovernorSteamTCSR(const std::string& objName): GovernorSteamN
     offsets.local().local.algSize = 1;
     offsets.local().local.diffSize = 5;
     offsets.local().local.jacSize = 18;
+}
+
+const ModelDescription& GovernorSteamTCSR::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GovernorSteamTCSR>(
+        "GovernorSteamTCSR",
+        &GovernorSteamNR::getModelDescription(),
+        {parameter({"trh", "t5"},
+                   &GovernorSteamTCSR::Trh,
+                   units::second,
+                   "Reheater time constant",
+                   parameterValidators::positive),
+         parameter({"tco", "t6"},
+                   &GovernorSteamTCSR::Tco,
+                   units::second,
+                   "Crossover time constant",
+                   parameterValidators::positive),
+         parameter({"fch", "fhp"},
+                   &GovernorSteamTCSR::Fch,
+                   units::one,
+                   "High-pressure power fraction",
+                   parameterValidators::nonnegative),
+         parameter({"fip", "frh"},
+                   &GovernorSteamTCSR::Fip,
+                   units::one,
+                   "Intermediate-pressure power fraction",
+                   parameterValidators::nonnegative),
+         parameter({"flp", "fco"},
+                   &GovernorSteamTCSR::Flp,
+                   units::one,
+                   "Low-pressure power fraction",
+                   parameterValidators::nonnegative),
+         state({"reheater", "reheat"}, units::one, 4, "Reheater state"),
+         state({"crossover", "crossover_pipe"}, units::one, 5, "Crossover state"),
+         state({"pmech", "pm"}, units::one, 0, "Solver variable pmech"),
+         state({"valve", "integrator"}, units::one, 1, "Solver variable valve"),
+         state({"filter", "x"}, units::one, 2, "Solver variable filter"),
+         state({"steamchest", "chest"}, units::one, 3, "Solver variable steamchest")});
+    return description;
 }
 
 CoreObject* GovernorSteamTCSR::clone(CoreObject* obj) const
@@ -191,71 +231,6 @@ void GovernorSteamTCSR::jacobianElements(const IOdata& inputs,
     matrixData.assign(diff + reheatState, diff + reheatState, (-1.0 / Trh) - stateData.cj);
     matrixData.assign(diff + crossoverState, diff + reheatState, 1.0 / Tco);
     matrixData.assign(diff + crossoverState, diff + crossoverState, (-1.0 / Tco) - stateData.cj);
-}
-
-index_t GovernorSteamTCSR::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "pm") || (field == "pmech")) {
-        return offsets.getAlgOffset(sMode) + outputState;
-    }
-    if ((field == "valve") || (field == "integrator")) {
-        return offsets.getDiffOffset(sMode) + valveState;
-    }
-    if ((field == "filter") || (field == "x")) {
-        return offsets.getDiffOffset(sMode) + filterState;
-    }
-    if ((field == "steamchest") || (field == "chest")) {
-        return offsets.getDiffOffset(sMode) + chestState;
-    }
-    if ((field == "reheater") || (field == "reheat")) {
-        return offsets.getDiffOffset(sMode) + reheatState;
-    }
-    if ((field == "crossover") || (field == "crossover_pipe")) {
-        return offsets.getDiffOffset(sMode) + crossoverState;
-    }
-    return kInvalidLocation;
-}
-
-void GovernorSteamTCSR::set(std::string_view param, std::string_view val)
-{
-    GovernorSteamNR::set(param, val);
-}
-
-void GovernorSteamTCSR::set(std::string_view param, double val, units::unit unitType)
-{
-    if ((param == "trh") || (param == "t5")) {
-        Trh = val;
-    } else if ((param == "tco") || (param == "t6")) {
-        Tco = val;
-    } else if ((param == "fch") || (param == "fhp")) {
-        Fch = val;
-    } else if ((param == "fip") || (param == "frh")) {
-        Fip = val;
-    } else if ((param == "flp") || (param == "fco")) {
-        Flp = val;
-    } else {
-        GovernorSteamNR::set(param, val, unitType);
-    }
-}
-
-double GovernorSteamTCSR::get(std::string_view param, units::unit unitType) const
-{
-    if ((param == "trh") || (param == "t5")) {
-        return Trh;
-    }
-    if ((param == "tco") || (param == "t6")) {
-        return Tco;
-    }
-    if ((param == "fch") || (param == "fhp")) {
-        return Fch;
-    }
-    if ((param == "fip") || (param == "frh")) {
-        return Fip;
-    }
-    if ((param == "flp") || (param == "fco")) {
-        return Flp;
-    }
-    return GovernorSteamNR::get(param, unitType);
 }
 
 }  // namespace griddyn::governors

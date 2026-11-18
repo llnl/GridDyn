@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--xml file to test matdyn execution-->
 <griddyn name="test_txage_thermaltx" version="0.0.1">
-  <import file="powerflowWECC.raw"/>
+  <import file="../pFlow_tests/powerflowWECC.raw"/>
 
   <define name="bv" value="0.97"/>
   <define name="ba" value="-0.9854"/>

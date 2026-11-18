@@ -9,6 +9,7 @@
 #include "../Generator.h"
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
@@ -16,6 +17,17 @@
 
 namespace griddyn::genmodels {
 GenModel6type2::GenModel6type2(const std::string& objName): GenModel5type2(objName) {}
+const ModelDescription& GenModel6type2::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GenModel6type2>(
+        "GenModel6type2",
+        &GenModel5type2::getModelDescription(),
+        {state({"edp"}, units::one, 4, "Solver variable edp"),
+         state({"edpp"}, units::one, 6, "Solver variable edpp"),
+         state({"eqpp"}, units::one, 7, "Solver variable eqpp")});
+    return description;
+}
+
 CoreObject* GenModel6type2::clone(CoreObject* obj) const
 {
     auto* gd = cloneBase<GenModel6type2, GenModel5type2>(this, obj);
@@ -260,11 +272,4 @@ void GenModel6type2::jacobianElements(const IOdata& inputs,
     md.assign(refDiff + 5, refDiff + 5, -1.0 / Tdopp - sD.cj);
 }
 
-static const stringVec
-    genModel6type2Names{"id", "iq", "delta", "freq", "edp", "eqp", "edpp", "eqpp"};
-
-stringVec GenModel6type2::localStateNames() const
-{
-    return genModel6type2Names;
-}
 }  // namespace griddyn::genmodels

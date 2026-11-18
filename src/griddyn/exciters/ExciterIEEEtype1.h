@@ -35,6 +35,7 @@ class ExciterIEEEtype1: public Exciter {
     bool hasTwoPointSaturationParameters = false;
 
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit ExciterIEEEtype1(const std::string& objName = "exciterIEEEtype1_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
@@ -42,13 +43,9 @@ class ExciterIEEEtype1: public Exciter {
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
-    virtual void set(std::string_view param, std::string_view val) override;
+    using Exciter::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual double get(std::string_view param,
-                       units::unit unitType = units::defunit) const override;
-
-    virtual stringVec localStateNames() const override;
 
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,

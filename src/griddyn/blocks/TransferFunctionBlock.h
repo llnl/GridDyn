@@ -37,6 +37,8 @@ namespace griddyn::blocks {
  */
 class TransferFunctionBlock: public GridBlock {
   public:
+    const ModelDescription& getModelDescription() const override;
+
   protected:
     std::vector<double> a;  //!< denominator coefficients, ascending powers of s
     std::vector<double> b;  //!< numerator coefficients, ascending powers of s
@@ -69,7 +71,6 @@ are 0
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
     virtual void blockDerivative(double input,
                                  double didt,
@@ -93,7 +94,6 @@ are 0
                                        index_t inputLocation,
                                        const SolverMode& sMode) override;
     virtual double step(CoreTime time, double inputValue) override;
-    virtual stringVec localStateNames() const override;
 
     /**
      * @brief Evaluate the unbounded transfer function for state owned by a parent controller.

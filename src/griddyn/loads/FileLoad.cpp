@@ -8,6 +8,7 @@
 
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <string>
@@ -19,6 +20,41 @@ using gmlc::utilities::numeric_conversion;
 using gmlc::utilities::stringOps::splitline;
 using gmlc::utilities::stringOps::trailingStringInt;
 using gmlc::utilities::stringOps::trim;
+
+const ModelDescription& FileLoad::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<FileLoad>(
+        "FileLoad",
+        &RampLoad::getModelDescription(),
+        {parameter({"scalefactor", "scaling"},
+                   &FileLoad::scaleFactor,
+                   units::one,
+                   "Scaling factor on the load"),
+         parameter({"qratio"}, &FileLoad::qratio, units::one, "Qratio"),
+         flag({"absolute"}, &FileLoad::opFlags, USE_ABSOLUTE_TIME_FLAG, "Absolute"),
+         flag({"step"}, &FileLoad::opFlags, USE_STEP_CHANGE_FLAG, "Step"),
+         command({"filename", "file", "fileName"},
+                 units::defunit,
+                 "Load time series from a file",
+                 ModelFieldType::STRING),
+         command({"units"}, units::defunit, "Configure units", ModelFieldType::STRING),
+         command({"mode", "timemode"}, units::defunit, "Configure mode", ModelFieldType::STRING),
+         inverseFlag({"relative"},
+                     &FileLoad::opFlags,
+                     USE_ABSOLUTE_TIME_FLAG,
+                     "Use relative schedule times"),
+         inverseFlag({"interpolate"},
+                     &FileLoad::opFlags,
+                     USE_STEP_CHANGE_FLAG,
+                     "Interpolate between scheduled values"),
+         command(
+             {"column"}, units::defunit, "Append input column mappings", ModelFieldType::STRING),
+         indexedCommand({"column", "column_", "column#"},
+                        units::defunit,
+                        "Map columns starting at the specified index",
+                        ModelFieldType::STRING)});
+    return description;
+}
 
 FileLoad::FileLoad(const std::string& objName): RampLoad(objName) {}
 
@@ -161,21 +197,6 @@ void FileLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& s
     RampLoad::timestep(time, inputs, sMode);
 }
 
-void FileLoad::setFlag(std::string_view flag, bool val)
-{
-    if (flag == "absolute") {
-        opFlags.set(USE_ABSOLUTE_TIME_FLAG, val);
-    } else if (flag == "relative") {
-        opFlags.set(USE_ABSOLUTE_TIME_FLAG, !val);
-    } else if (flag == "step") {
-        opFlags.set(USE_STEP_CHANGE_FLAG, val);
-    } else if (flag == "interpolate") {
-        opFlags.set(USE_STEP_CHANGE_FLAG, !val);
-    } else {
-        ZipLoad::setFlag(flag, val);
-    }
-}
-
 static int columnCode(const std::string& ldc)
 {
     auto lc = convertToLowerCase(ldc);
@@ -202,7 +223,8 @@ static int columnCode(const std::string& ldc)
 
 void FileLoad::set(std::string_view param, std::string_view val)
 {
-    if ((param == "fileName") || (param == "file")) {
+    if (const auto* field = FileLoad::getModelDescription().findLocal(param);
+        field != nullptr && field->name() == "filename") {
         fileName_ = val;
         if (opFlags[POWERFLOW_INITIALIZED]) {
             count = 0;
@@ -249,13 +271,10 @@ void FileLoad::set(std::string_view param, std::string_view val)
 
 void FileLoad::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "scalefactor") || (param == "scaling")) {
-        scaleFactor = val;
-    } else if (param == "qratio") {
-        qratio = val;
-    } else {
-        ZipLoad::set(param, val, unitType);  // NOLINT
+    if (isSetHandled(FileLoad::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
     }
+    ZipLoad::set(param, val, unitType);  // NOLINT
 }
 
 count_t FileLoad::loadFile()

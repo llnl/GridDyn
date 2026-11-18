@@ -14,6 +14,7 @@ class GovernorTG2 final: public Governor {
   public:
     explicit GovernorTG2(const std::string& name = "govTG2_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
     using Governor::set;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
@@ -40,7 +41,6 @@ class GovernorTG2 final: public Governor {
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
   private:
     double dbL = -0.0001, dbU = 0.0001, dbC = 0.0;

@@ -19,13 +19,13 @@ class ZBreaker: public Link {
     bool& merged;  //!< flag indicating that the buses have been merged using the extra bool in
                    //!< CoreObject
   public:
+    const ModelDescription& getModelDescription() const override;
+    using Link::set;
     ZBreaker(const std::string& objName = "zbreaker_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // parameter set functions
 
     virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;

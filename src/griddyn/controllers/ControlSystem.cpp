@@ -9,10 +9,20 @@
 #include "../Block.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <string>
 #include <vector>
 
 namespace griddyn {
+const ModelDescription& ControlSystem::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<ControlSystem>("ControlSystem",
+                                                &GridSubModel::getModelDescription(),
+                                                {});
+    return description;
+}
+
 ControlSystem::ControlSystem(const std::string& objName): GridSubModel(objName) {}
 
 ControlSystem::~ControlSystem() = default;
@@ -68,11 +78,6 @@ void ControlSystem::set(std::string_view param, double val, units::unit unitType
     } else {
         GridSubModel::set(param, val, unitType);
     }
-}
-
-index_t ControlSystem::findIndex(std::string_view /*field*/, const SolverMode& /*sMode*/) const
-{
-    return kInvalidLocation;
 }
 
 void ControlSystem::residual(const IOdata& /*inputs*/,

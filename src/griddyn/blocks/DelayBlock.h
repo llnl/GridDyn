@@ -40,6 +40,8 @@ namespace griddyn::blocks {
  */
 class DelayBlock: public GridBlock {
   public:
+    const ModelDescription& getModelDescription() const override;
+
   protected:
     model_parameter mT1 = 0.1;  //!< Lag denominator time constant @f$T_1@f$.
   public:
@@ -67,7 +69,7 @@ class DelayBlock: public GridBlock {
                                       IOdata& fieldSet) override;
 
   public:
-    virtual void set(std::string_view param, std::string_view val) override;
+    using GridBlock::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     // virtual index_t findIndex(const std::string &field, const SolverMode &sMode) const;

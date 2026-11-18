@@ -9,6 +9,7 @@
 #include "../Generator.h"
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
@@ -17,6 +18,18 @@
 
 namespace griddyn::genmodels {
 GenModel5type2::GenModel5type2(const std::string& objName): GenModel5(objName) {}
+const ModelDescription& GenModel5type2::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GenModel5type2>(
+        "GenModel5type2",
+        &GenModel5::getModelDescription(),
+        {state({"eqpp"}, units::one, 6, "Solver variable eqpp"),
+         state({"edpp"}, units::one, 4, "Solver variable edpp"),
+         state(
+             {"edp"}, units::one, kInvalidLocation, "Not allocated by this machine formulation")});
+    return description;
+}
+
 CoreObject* GenModel5type2::clone(CoreObject* obj) const
 {
     auto* copy = cloneBase<GenModel5type2, GenModel5>(this, obj);
@@ -252,10 +265,4 @@ void GenModel5type2::jacobianElements(const IOdata& inputs,
     matrixData.assign(refDiff + 4, refDiff + 4, (-1.0 / Tdopp) - stateData.cj);
 }
 
-static const stringVec GEN_MODEL5_TYPE2_NAMES{"id", "iq", "delta", "freq", "edpp", "eqp", "eqpp"};
-
-stringVec GenModel5type2::localStateNames() const
-{
-    return GEN_MODEL5_TYPE2_NAMES;
-}
 }  // namespace griddyn::genmodels

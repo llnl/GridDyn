@@ -16,6 +16,8 @@ namespace griddyn::relays {
  */
 class DifferentialRelay: public Relay {
   public:
+    const ModelDescription& getModelDescription() const override;
+    using Relay::set;
     enum DifferentialRelayFlags {
         RELATIVE_DIFFERENTIAL_FLAG = OBJECT_FLAG10,
         LINK_MODE = OBJECT_FLAG11,
@@ -31,14 +33,9 @@ class DifferentialRelay: public Relay {
   public:
     explicit DifferentialRelay(const std::string& objName = "diffRelay_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual void setFlag(std::string_view flag, bool val = true) override;
-    virtual bool getFlag(std::string_view flag) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;
 
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
     virtual void receiveMessage(std::uint64_t sourceID,

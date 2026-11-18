@@ -7,10 +7,40 @@
 #include "SineSource.h"
 
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <cmath>
 #include <string>
 
 namespace griddyn::sources {
+const ModelDescription& SineSource::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<SineSource>(
+        "SineSource",
+        &PulseSource::getModelDescription(),
+        {command({"a", "amplitude", "amp"}, units::defunit, "Set the instantaneous sine amplitude"),
+         command({"frequency", "freq", "f"}, units::defunit, "Frequency"),
+         command({"period", "sineperiod"}, units::defunit, "Period"),
+         command({"pulseperiod"}, units::defunit, "Pulse period"),
+         command({"pulseamplitude"}, units::defunit, "Pulse amplitude"),
+         parameter({"phase"}, &SineSource::phase, units::defunit, "Sine phase offset"),
+         parameter({"dfdt"}, &SineSource::dfdt, units::defunit, "Frequency ramp rate"),
+         parameter({"dadt"}, &SineSource::dAdt, units::defunit, "The rate of change of amplitude"),
+         command({"pulsed"}, units::defunit, "Pulse the sinusoid"),
+         localState("current_amplitude", &SineSource::Amp, "Instantaneous sine amplitude"),
+         localState("current_frequency",
+                    &SineSource::frequency,
+                    "Instantaneous sine frequency",
+                    units::Hz),
+         localState("sine_period",
+                    &SineSource::sinePeriod,
+                    "Period used to advance the cycle",
+                    units::second),
+         localState(
+             "last_cycle", &SineSource::lastCycle, "Time of the last sine cycle", units::second),
+         localState("pulse_active", &SineSource::opFlags, pulsedFlag, "Pulse modulation latch")});
+    return description;
+}
+
 SineSource::SineSource(const std::string& objName, double startVal): PulseSource(objName, startVal)
 {
 }
@@ -97,12 +127,11 @@ void SineSource::updateOutput(CoreTime time)
     prevTime = time;
 }
 
-void SineSource::set(std::string_view param, std::string_view val)
-{
-    PulseSource::set(param, val);
-}
 void SineSource::set(std::string_view param, double val, units::unit unitType)
 {
+    if (isSetHandled(SineSource::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     if ((param == "a") || (param == "amplitude") || (param == "amp")) {
         Amp = val;
     } else if ((param == "frequency") || (param == "freq") || (param == "f")) {
@@ -115,12 +144,6 @@ void SineSource::set(std::string_view param, double val, units::unit unitType)
         PulseSource::set("period", val, unitType);
     } else if (param == "pulseamplitude") {
         PulseSource::set("amplitude", val, unitType);
-    } else if (param == "phase") {
-        phase = val;
-    } else if (param == "dfdt") {
-        dfdt = val;
-    } else if (param == "dadt") {
-        dAdt = val;
     } else if (param == "pulsed") {
         if (val > 0.0) {
             if (!(opFlags[pulsedFlag])) {

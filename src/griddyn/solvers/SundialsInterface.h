@@ -123,7 +123,7 @@ class SundialsInterface: public SolverInterface {
 
     virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
 
-    virtual void cloneTo(SolverInterface* si, bool fullCopy = false) const override;
+    virtual void cloneTo(SolverInterface* destination, bool fullCopy = false) const override;
     virtual double* stateData() noexcept override;
     virtual double* derivData() noexcept override;
     virtual const double* stateData() const noexcept override;
@@ -132,7 +132,7 @@ class SundialsInterface: public SolverInterface {
     virtual const double* typeData() const noexcept override;
     virtual void allocate(count_t stateCount, count_t numRoots) override;
     virtual void setMaxNonZeros(count_t nonZeroCount) override;
-    virtual double get(std::string_view param) const override;
+    [[nodiscard]] const Description& getSolverDescription() const override;
 
     /** @brief clear temporary partitioned-solver performance counters. */
     void resetPerformanceStats() noexcept;

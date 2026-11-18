@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -20,6 +21,29 @@ namespace {
     // Keep Q-limit roots clear under 10x-relative-tolerance current noise.
     constexpr double reactiveRootTolerance = 1e-4;
 }  // namespace
+const ModelDescription& ExcitationLimiterOEL4C::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExcitationLimiterOEL4C>(
+        "ExcitationLimiterOEL4C",
+        &ExcitationLimiter::getModelDescription(),
+        {parameter({"ki", "k_i"}, &ExcitationLimiterOEL4C::ki, units::one, "Ki"),
+         parameter({"kp", "k_p"}, &ExcitationLimiterOEL4C::kp, units::one, "Kp"),
+         parameter({"tdelay", "t_delay"}, &ExcitationLimiterOEL4C::delay, units::second, "Delay"),
+         parameter({"vmin", "vminpu", "v_min_pu"},
+                   &ExcitationLimiterOEL4C::minimum,
+                   units::one,
+                   "Minimum"),
+         parameter(
+             {"qref", "qrefpu", "q_ref_pu"}, &ExcitationLimiterOEL4C::qRef, units::one, "Q ref"),
+         localState("qRefSet", &ExcitationLimiterOEL4C::qRefSet, "Q ref set"),
+         localState("violating", &ExcitationLimiterOEL4C::violating, "Violating"),
+         localState("delayElapsed", &ExcitationLimiterOEL4C::delayElapsed, "Delay elapsed"),
+         localState("violationStart", &ExcitationLimiterOEL4C::violationStart, "Violation start"),
+         state({"voel"}, units::one, 0, "Solver variable voel when active"),
+         state({"integral"}, units::one, 1, "Solver variable integral when active")});
+    return description;
+}
+
 ExcitationLimiterOEL4C::ExcitationLimiterOEL4C(const std::string& objName):
     ExcitationLimiter(objName)
 {
@@ -49,40 +73,14 @@ CoreObject* ExcitationLimiterOEL4C::clone(CoreObject* obj) const
 
 void ExcitationLimiterOEL4C::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "ki" || param == "k_i") {
-        ki = val;
-    } else if (param == "kp" || param == "k_p") {
-        kp = val;
-    } else if (param == "tdelay" || param == "t_delay") {
-        delay = val;
-    } else if (param == "vmin" || param == "vminpu" || param == "v_min_pu") {
-        minimum = val;
-    } else if (param == "qref" || param == "qrefpu" || param == "q_ref_pu") {
-        qRef = val;
-        qRefSet = true;
-    } else {
-        ExcitationLimiter::set(param, val, unitType);
+    if (isSetHandled(
+            ExcitationLimiterOEL4C::getModelDescription().trySet(*this, param, val, unitType))) {
+        if (param == "qref" || param == "qrefpu" || param == "q_ref_pu") {
+            qRefSet = true;
+        }
+        return;
     }
-}
-
-double ExcitationLimiterOEL4C::get(std::string_view param, units::unit unitType) const
-{
-    if (param == "ki" || param == "k_i") {
-        return ki;
-    }
-    if (param == "kp" || param == "k_p") {
-        return kp;
-    }
-    if (param == "tdelay" || param == "t_delay") {
-        return delay;
-    }
-    if (param == "vmin" || param == "vminpu" || param == "v_min_pu") {
-        return minimum;
-    }
-    if (param == "qref" || param == "qrefpu" || param == "q_ref_pu") {
-        return qRef;
-    }
-    return ExcitationLimiter::get(param, unitType);
+    ExcitationLimiter::set(param, val, unitType);
 }
 
 void ExcitationLimiterOEL4C::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
@@ -334,8 +332,4 @@ void ExcitationLimiterOEL4C::timestep(CoreTime time,
     prevTime = time;
 }
 
-stringVec ExcitationLimiterOEL4C::localStateNames() const
-{
-    return {"voel", "integral"};
-}
 }  // namespace griddyn::limiters

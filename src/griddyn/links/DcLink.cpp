@@ -11,6 +11,7 @@
 #include "../primary/DcBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <cmath>
@@ -22,6 +23,57 @@ namespace griddyn::links {
 using units::convert;
 using units::puMW;
 using units::unit;
+const ModelDescription& DcLink::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<DcLink>(
+        "DcLink",
+        &Link::getModelDescription(),
+        {parameter({"r", "rdc"}, &DcLink::r, units::one, "The dc resistance"),
+         parameter({"l", "x", "ldc"}, &DcLink::x, units::one, "The dc inductance"),
+         parameter({"c", "cdc"}, &DcLink::c, units::one, "The dc capacitance"),
+         parameter({"length"}, &DcLink::length, units::km, "Physical line length"),
+         flag({"andes_current_balance", "current_balance"},
+              &DcLink::currentBalance,
+              "Use ANDES' nodal-current convention"),
+         command({"model", "topology"}, units::defunit, "Configure model", ModelFieldType::STRING),
+         state<DcLink>(
+             {"idc"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 if (model.stateSize(mode) <= 0) {
+                     return kInvalidLocation;
+                 }
+                 return !isDynamic(mode) || model.hasCapacitor() ?
+                     model.offsets.getAlgOffset(mode) :
+                     model.offsets.getDiffOffset(mode);
+             },
+             "Solver variable idc"),
+         state<DcLink>(
+             {"il"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return model.hasCapacitor() && isDynamic(mode) &&
+                         (model.topology == Topology::RLC_PARALLEL ||
+                          model.topology == Topology::RLC_SERIES) ?
+                     model.offsets.getDiffOffset(mode) :
+                     kInvalidLocation;
+             },
+             "Solver variable il"),
+         state<DcLink>(
+             {"vc"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 if (!model.hasCapacitor() || !isDynamic(mode)) {
+                     return kInvalidLocation;
+                 }
+                 const bool hasInductorState = model.topology == Topology::RLC_PARALLEL ||
+                     model.topology == Topology::RLC_SERIES;
+                 return stateSlot(model.offsets.getDiffOffset(mode), hasInductorState ? 1 : 0);
+             },
+             "Solver variable vc")});
+    return description;
+}
+
 DcLink::DcLink(const std::string& objName): Link(objName)
 {
     opFlags.set(DC_ONLY);
@@ -44,6 +96,7 @@ CoreObject* DcLink::clone(CoreObject* obj) const
     nobj->r = r;
     nobj->x = x;
     nobj->c = c;
+    nobj->length = length;
     nobj->topology = topology;
     nobj->currentBalance = currentBalance;
 
@@ -136,22 +189,6 @@ void DcLink::set(std::string_view param, std::string_view val)
         Link::set(param, val);
     }
 }
-void DcLink::set(std::string_view param, double val, unit unitType)
-{
-    if ((param == "r") || (param == "rdc")) {
-        r = val;
-    } else if ((param == "l") || (param == "x") || (param == "ldc")) {
-        x = val;
-        // set line admittance
-    } else if ((param == "c") || (param == "cdc")) {
-        c = val;
-    } else if ((param == "andes_current_balance") || (param == "current_balance")) {
-        currentBalance = (val > 0.5);
-    } else {
-        Link::set(param, val, unitType);
-    }
-}
-
 void DcLink::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     Link::pFlowObjectInitializeA(time0, flags);
@@ -494,28 +531,6 @@ void DcLink::guessState(const CoreTime /*time*/,
             auto offset = offsets.getAlgOffset(sMode);
             state[offset] = Idc;
         }
-    }
-}
-
-void DcLink::getStateName(stringVec& stNames,
-                          const SolverMode& sMode,
-                          const std::string& prefix) const
-{
-    if (hasCapacitor() && isDynamic(sMode)) {
-        const std::string prefix2 = prefix + getName() + ':';
-        const auto firstDiffOffset = offsets.getDiffOffset(sMode);
-        if (topology == Topology::RLC_PARALLEL || topology == Topology::RLC_SERIES) {
-            stNames[firstDiffOffset] = prefix2 + "il";
-            stNames[firstDiffOffset + 1] = prefix2 + "vc";
-        } else {
-            stNames[firstDiffOffset] = prefix2 + "vc";
-        }
-        stNames[offsets.getAlgOffset(sMode)] = prefix2 + "idc";
-    } else if (stateSize(sMode) > 0) {
-        const std::string prefix2 = prefix + getName() + ':';
-        auto offset =
-            (isDynamic(sMode)) ? offsets.getDiffOffset(sMode) : offsets.getAlgOffset(sMode);
-        stNames[offset] = prefix2 + "idc";
     }
 }
 

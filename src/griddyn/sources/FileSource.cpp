@@ -7,9 +7,26 @@
 #include "FileSource.h"
 
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <string>
 
 namespace griddyn::sources {
+const ModelDescription& FileSource::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<FileSource>(
+        "FileSource",
+        &RampSource::getModelDescription(),
+        {flag({"absolute"}, &FileSource::opFlags, USE_ABSOLUTE_TIME_FLAG, "Absolute"),
+         flag({"step"}, &FileSource::opFlags, USE_STEP_CHANGE_FLAG, "Step"),
+         command({"filename", "file", "fileName"},
+                 units::defunit,
+                 "Load time series from a file",
+                 ModelFieldType::STRING),
+         inverseFlag({"relative"}, &FileSource::opFlags, USE_ABSOLUTE_TIME_FLAG, "Relative"),
+         inverseFlag({"interpolate"}, &FileSource::opFlags, USE_STEP_CHANGE_FLAG, "Interpolate")});
+    return description;
+}
+
 FileSource::FileSource(const std::string& fileName, int column): RampSource("filesource_#")
 {
     if (!fileName.empty()) {
@@ -103,23 +120,10 @@ void FileSource::timestep(CoreTime time, const IOdata& inputs, const SolverMode&
     RampSource::timestep(time, inputs, sMode);
 }
 
-void FileSource::setFlag(std::string_view flag, bool val)
-{
-    if (flag == "absolute") {
-        opFlags.set(USE_ABSOLUTE_TIME_FLAG, val);
-    } else if (flag == "relative") {
-        opFlags.set(USE_ABSOLUTE_TIME_FLAG, !val);
-    } else if (flag == "step") {
-        opFlags.set(USE_STEP_CHANGE_FLAG, val);
-    } else if (flag == "interpolate") {
-        opFlags.set(USE_STEP_CHANGE_FLAG, !val);
-    } else {
-        RampSource::setFlag(flag, val);
-    }
-}
 void FileSource::set(std::string_view param, std::string_view val)
 {
-    if ((param == "fileName") || (param == "file")) {
+    if (const auto* field = FileSource::getModelDescription().findLocal(param);
+        field != nullptr && field->name() == "filename") {
         setFile(std::string{val}, 0);
     } else {
         Source::set(param, val);
@@ -128,6 +132,9 @@ void FileSource::set(std::string_view param, std::string_view val)
 
 void FileSource::set(std::string_view param, double val, units::unit unitType)
 {
+    if (isSetHandled(FileSource::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     {
         Source::set(param, val, unitType);
     }

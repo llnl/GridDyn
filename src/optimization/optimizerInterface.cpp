@@ -674,8 +674,6 @@ void OptimizerInterface::set(std::string_view param, double val)
         mode.offsetIndex = static_cast<index_t>(val);
     } else if (param == "maxiterations") {
         max_iterations = static_cast<count_t>(val);
-    } else if ((param == "dense") || (param == "sparse") || (param == "constantjacobian")) {
-        setFlag(param, val > 0.1);
     } else {
         HelperObject::set(param, val);
     }

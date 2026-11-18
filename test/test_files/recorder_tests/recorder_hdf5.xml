@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="hdf5_recorder">
+  <import>../pFlow_tests/two_bus_example.xml</import>
+  <recorder name="bus_signals" target="bus2" period="2">
+    <field>voltage as magnitude; angle(rad) as phase</field>
+    <file>samples.h5</file>
+    <autosave>2</autosave>
+    <compression>1</compression>
+  </recorder>
+</griddyn>

@@ -12,6 +12,7 @@
 #include "../Relay.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringConversion.h"
@@ -30,6 +31,30 @@ using units::unit;
 
 static TypeFactory<Subsystem>
     gSubsystemFactory("link", std::to_array<std::string_view>({"subsystem", "simple"}));
+
+const ModelDescription& Subsystem::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<Subsystem>(
+        "Subsystem",
+        &Link::getModelDescription(),
+        {command({"from"}, units::defunit, "Configure from", ModelFieldType::STRING),
+         command({"to"}, units::defunit, "Configure to", ModelFieldType::STRING),
+         command({"terminals"}, units::defunit, "Set terminals"),
+         command({"bus"}, units::defunit, "Append a terminal bus", ModelFieldType::STRING),
+         indexedCommand({"bus", "bus_", "bus#"},
+                        units::defunit,
+                        "Assign a terminal bus",
+                        ModelFieldType::STRING),
+         command({"connection"},
+                 units::defunit,
+                 "Append a terminal connection",
+                 ModelFieldType::STRING),
+         indexedCommand({"connection", "connection_", "connection#"},
+                        units::defunit,
+                        "Assign a terminal connection",
+                        ModelFieldType::STRING)});
+    return description;
+}
 
 Subsystem::Subsystem(const std::string& objName): Link(objName)
 {
@@ -292,6 +317,9 @@ void Subsystem::set(std::string_view param, std::string_view val)
 
 void Subsystem::set(std::string_view param, double val, unit unitType)
 {
+    if (isSetHandled(Subsystem::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     if (param == "terminals") {
         resize(static_cast<count_t>(val));
     } else {
@@ -306,6 +334,9 @@ void Subsystem::set(std::string_view param, double val, unit unitType)
 
 double Subsystem::get(std::string_view param, unit unitType) const
 {
+    if (const auto value = Subsystem::getModelDescription().tryGet(*this, param, unitType)) {
+        return *value;
+    }
     double val = subarea.get(param, unitType);
     if (val == kNullVal) {
         val = GridPrimary::get(param, unitType);

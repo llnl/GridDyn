@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/Link.h"
 #include "griddyn/blocks/DelayBlock.h"
@@ -21,6 +22,58 @@
 #include <utility>
 
 namespace griddyn::extra {
+const ModelDescription& TxThermalModel::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<TxThermalModel>(
+        "TxThermalModel",
+        &Sensor::getModelDescription(),
+        {flag({"auto"}, &TxThermalModel::opFlags, AUTO_PARAMETER_LOAD, "Auto"),
+         flag({"parameter_updates"},
+              &TxThermalModel::opFlags,
+              ENABLE_PARAMETER_UPDATES,
+              "Parameter updates"),
+         flag({"enable_alarms"}, &TxThermalModel::opFlags, ENABLE_ALARMS, "Enable alarms"),
+         command({"txtype", "cooling"}, units::defunit, "Txtype", ModelFieldType::STRING),
+         parameter({"ambient", "ambienttemp"},
+                   &TxThermalModel::mAmbientTemp,
+                   units::degC,
+                   "Ambient temperature in C"),
+         parameter({"dtempdt", "temp_rate_of_change"},
+                   &TxThermalModel::mTempRateOfChange,
+                   units::degC,
+                   "Rate of change of ambient temperature"),
+         parameter({"dths", "rated_hot_spot_rise", "dthsr"},
+                   &TxThermalModel::mRatedHotSpotRise,
+                   units::degC,
+                   "Hot spot rise temp at rated current over top oil"),
+         parameter({"dttor", "rated_top_oil_rise", "dtto"},
+                   &TxThermalModel::mRatedTopOilRise,
+                   units::degC,
+                   "Oil rise temp at rated current"),
+         parameter({"ttor", "oil_time_constant"},
+                   &TxThermalModel::mOilTimeConstant,
+                   units::second,
+                   "Oil rise time constant"),
+         parameter({"tgr", "winding_time_constant"},
+                   &TxThermalModel::mWindingTimeConstant,
+                   units::second,
+                   "Winding time constant"),
+         command({"alarmtemp", "alarmtemp1"}, units::defunit, "Alarmtemp"),
+         command({"alarmtemp2"}, units::defunit, "Alarmtemp2"),
+         command({"cutouttemp"}, units::defunit, "Cutouttemp"),
+         command({"alarmdelay"}, units::defunit, "Alarmdelay"),
+         parameter({"lr", "loss_ratio"}, &TxThermalModel::mLossRatio, units::defunit, "Loss Ratio"),
+         parameter({"m", "winding_exponent"},
+                   &TxThermalModel::mWindingExponent,
+                   units::defunit,
+                   "Winding exponent"),
+         parameter({"n", "oil_exponent"},
+                   &TxThermalModel::mOilExponent,
+                   units::defunit,
+                   "Oil exponent")});
+    return description;
+}
+
 TxThermalModel::TxThermalModel(const std::string& objName): Sensor(objName)
 {
     opFlags.reset(CONTINUOUS_FLAG);  // this is a not a continuous model
@@ -55,19 +108,6 @@ CoreObject* TxThermalModel::clone(CoreObject* obj) const
     nobj->mCutoutTemp = mCutoutTemp;
     nobj->mAlarmDelay = mAlarmDelay;
     return nobj;
-}
-
-void TxThermalModel::setFlag(std::string_view flag, bool val)
-{
-    if (flag == "auto") {
-        opFlags.set(AUTO_PARAMETER_LOAD, val);
-    } else if (flag == "parameter_updates") {
-        opFlags.set(ENABLE_PARAMETER_UPDATES, val);
-    } else if (flag == "enable_alarms") {
-        opFlags.set(ENABLE_ALARMS, val);
-    } else {
-        Sensor::setFlag(flag, val);
-    }
 }
 
 void TxThermalModel::set(std::string_view param, std::string_view val)
@@ -124,19 +164,10 @@ void TxThermalModel::set(std::string_view param, std::string_view val)
 
 void TxThermalModel::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "ambient") || (param == "ambienttemp")) {
-        mAmbientTemp = units::convert(val, unitType, units::degC);
-    } else if ((param == "dtempdt") || (param == "temp_rate_of_change")) {
-        mTempRateOfChange = units::convert(val, unitType, units::degC);
-    } else if ((param == "dths") || (param == "rated_hot_spot_rise") || (param == "dthsr")) {
-        mRatedHotSpotRise = units::convert(val, unitType, units::degC);
-    } else if ((param == "dttor") || (param == "rated_top_oil_rise") || (param == "dtto")) {
-        mRatedTopOilRise = units::convert(val, unitType, units::degC);
-    } else if ((param == "ttor") || (param == "oil_time_constant")) {
-        mOilTimeConstant = units::convert(val, unitType, units::second);
-    } else if ((param == "tgr") || (param == "winding_time_constant")) {
-        mWindingTimeConstant = units::convert(val, unitType, units::second);
-    } else if ((param == "alarmtemp") || (param == "alarmtemp1")) {
+    if (isSetHandled(TxThermalModel::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
+    if ((param == "alarmtemp") || (param == "alarmtemp1")) {
         mAlarmTemp1 = units::convert(val, unitType, units::degC);
         if (opFlags[DYN_INITIALIZED]) {
             getCondition(0)->setConditionRHS(mAlarmTemp1);
@@ -168,20 +199,9 @@ void TxThermalModel::set(std::string_view param, double val, units::unit unitTyp
             setActionTrigger(2, 2, mAlarmDelay);
             setActionTrigger(3, 2, mAlarmDelay);
         }
-    } else if ((param == "lr") || (param == "loss_ratio")) {
-        mLossRatio = val;
-    } else if ((param == "m") || (param == "winding_exponent")) {
-        mWindingExponent = val;
-    } else if ((param == "n") || (param == "oil_exponent")) {
-        mOilExponent = val;
     } else {
         Sensor::set(param, val, unitType);
     }
-}
-
-double TxThermalModel::get(std::string_view param, units::unit unitType) const
-{
-    return Sensor::get(param, unitType);
 }
 
 void TxThermalModel::add(CoreObject* /*obj*/)

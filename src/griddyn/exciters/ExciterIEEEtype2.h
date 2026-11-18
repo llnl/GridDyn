@@ -16,6 +16,7 @@ class ExciterIEEEtype2: public ExciterIEEEtype1 {
   protected:
     double Tf2 = 1.0;  // [s]    stabilizer time constant
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit ExciterIEEEtype2(const std::string& objName = "exciterIEEEtype2_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
@@ -23,13 +24,11 @@ class ExciterIEEEtype2: public ExciterIEEEtype1 {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void set(std::string_view param, std::string_view val) override;
+    using ExciterIEEEtype1::set;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
-
-    virtual stringVec localStateNames() const override;
 
     virtual void residual(const IOdata& inputs,
                           const StateData& stateData,

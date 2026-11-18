@@ -12,8 +12,10 @@ namespace griddyn {
 /** REEC_B controller with flat current limits and no speed-dependent P flag. */
 class REECB1 final: public REECA1 {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit REECB1(const std::string& name = "REECB1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    using REECA1::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
   protected:

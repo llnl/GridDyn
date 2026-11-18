@@ -18,7 +18,7 @@
 #include "../voltagecompensators/VoltageCompensatorIeeeVC.h"
 #include "IsocController.h"
 #include "core/CoreExceptions.h"
-#include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/containers/mapOps.hpp"
@@ -67,6 +67,37 @@ using units::s;
 using units::unit;
 
 // default bus object
+
+const ModelDescription& DynamicGenerator::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<DynamicGenerator>(
+        "DynamicGenerator",
+        &Generator::getModelDescription(),
+        {parameter({"eft"},
+                   &DynamicGenerator::m_Eft,
+                   units::one,
+                   "Place to store a constant the exciter field"),
+         flag({"isoc", "isochronous"}, &DynamicGenerator::opFlags, ISOCHRONOUS_OPERATION, "Isoc"),
+         command({"dynmodel"}, units::defunit, "Configure dynmodel", ModelFieldType::STRING),
+         command(
+             {"mechanical_power_source", "mechanicalpowersource", "pmech_source", "pmechsource"},
+             units::defunit,
+             "Configure mechanical power source",
+             ModelFieldType::STRING),
+         command({"xs"}, units::defunit, "Set xs"),
+         command({"rs"}, units::defunit, "Set rs"),
+         command(
+             {"mechanical_power_output", "mechanicalpoweroutput", "pmech_output", "pmechoutput"},
+             units::defunit,
+             "Set mechanical power output"),
+         command({"vref"}, units::defunit, "Set vref"),
+         command({"rating", "base", "mbase"}, units::defunit, "Set rating"),
+         command({"basepower"}, units::defunit, "Set basepower"),
+         command({"basefrequency", "basefreq"}, units::defunit, "Set basefrequency"),
+         command({"pmax"}, units::defunit, "Set pmax"),
+         command({"pmin"}, units::defunit, "Set pmin")});
+    return description;
+}
 
 DynamicGenerator::DynamicGenerator(const std::string& objName): Generator(objName) {}
 
@@ -1027,13 +1058,16 @@ void DynamicGenerator::setFlag(std::string_view flag, bool val)
                 isoc->deactivate();
             }
         }
-    } else {
+    } else if (!DynamicGenerator::getModelDescription().trySetFlag(*this, flag, val)) {
         Generator::setFlag(flag, val);
     }
 }
 
 void DynamicGenerator::set(std::string_view param, double val, unit unitType)
 {
+    if (isSetHandled(DynamicGenerator::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     if (param.length() == 1) {
         switch (param.front()) {
             case 'r':
@@ -1073,8 +1107,6 @@ void DynamicGenerator::set(std::string_view param, double val, unit unitType)
         if (genModel != nullptr) {
             genModel->set("rs", val);
         }
-    } else if (param == "eft") {
-        m_Eft = val;
     } else if ((param == "mechanical_power_output") || (param == "mechanicalpoweroutput") ||
                (param == "pmech_output") || (param == "pmechoutput")) {
         if (signalRoutesReady) {
@@ -1361,16 +1393,6 @@ void DynamicGenerator::jacobianElements(const IOdata& inputs,
     }
 }
 
-void DynamicGenerator::getStateName(stringVec& stNames,
-                                    const SolverMode& sMode,
-                                    const std::string& prefix) const
-{
-    if ((!isDynamic(sMode)) && (stateSize(sMode) > 0)) {
-        Generator::getStateName(stNames, sMode, prefix);
-    }
-    GridComponent::getStateName(stNames, sMode, prefix);  // NOLINT
-}
-
 void DynamicGenerator::rootTest(const IOdata& inputs,
                                 const StateData& stateDataValue,
                                 double roots[],
@@ -1413,18 +1435,6 @@ void DynamicGenerator::rootTrigger(CoreTime time,
             sub->rootTrigger(time, subInputs.inputs[sub->locIndex], rootMask, sMode);
         }
     }
-}
-
-index_t DynamicGenerator::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    index_t ret = kInvalidLocation;
-    for (auto* subobj : getSubObjects()) {
-        ret = subobj->findIndex(field, sMode);
-        if (ret != kInvalidLocation) {
-            break;
-        }
-    }
-    return ret;
 }
 
 CoreObject* DynamicGenerator::find(std::string_view object) const

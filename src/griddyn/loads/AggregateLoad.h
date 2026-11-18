@@ -21,6 +21,7 @@ class AggregateLoad: public ZipLoad {
   private:
     // double sumFrac = 1.0;
   public:
+    const ModelDescription& getModelDescription() const override;
     //!< default constructor
     AggregateLoad(const std::string& objName = "compositeLoad_$");
 

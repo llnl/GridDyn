@@ -72,28 +72,13 @@ class GenModelCSVGN1: public GenModel {
      */
     explicit GenModelCSVGN1(const std::string& objName = "genModelCSVGN1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
 
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
 
-    /**
-     * @brief Set a CSVGN1 parameter from its textual form.
-     * @param param Parameter name.
-     * @param val Text representation of the parameter value.
-     */
-    void set(std::string_view param, std::string_view val) override;
-    /**
-     * @brief Set a CSVGN1 parameter from a numeric value.
-     * @param param Parameter name.
-     * @param val Numeric parameter value.
-     * @param unitType Units associated with val.
-     */
-    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
-
-    stringVec localStateNames() const override;
     void derivative(const IOdata& inputs,
                     const StateData& stateDataValue,
                     double deriv[],

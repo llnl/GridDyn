@@ -25,6 +25,7 @@ namespace loads {
      * Swing Bus Manager*/
     class ApproximatingLoad: public RampLoad {
       public:
+        const ModelDescription& getModelDescription() const override;
         ApproximatingLoad(const std::string& objName = "approxLoad_$");
 
         virtual ~ApproximatingLoad();

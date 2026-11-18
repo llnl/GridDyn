@@ -24,22 +24,10 @@ endif()
 
 option(GRIDDYN_ENABLE_TCP "Enable TCP connection library" ON)
 
-option(GRIDDYN_ENABLE_DIME "Enable connection with Dime" OFF)
-
-# ------------------------------------------------------------
-# Enable ZMQ interfacing
-# ------------------------------------------------------------
-if(GRIDDYN_ENABLE_DIME)
-    set(ZMQ_NEEDED ON CACHE BOOL "ZMQ is needed" FORCE)
-endif(GRIDDYN_ENABLE_DIME)
-
-hide_variable(ZMQ_NEEDED)
-
-# If ZMQ library is enabled try to locate it and link against it
-cmake_dependent_option(GRIDDYN_ENABLE_ZMQ "Enable ZMQ networking library" OFF "NOT ZMQ_NEEDED" OFF)
+option(GRIDDYN_ENABLE_ZMQ "Enable ZMQ networking library" OFF)
 
 add_library(zmq INTERFACE)
-if(GRIDDYN_ENABLE_ZMQ OR ZMQ_NEEDED)
+if(GRIDDYN_ENABLE_ZMQ)
     include(addZeroMQ)
 
     if(NOT ZeroMQ_FOUND)
@@ -54,7 +42,7 @@ if(GRIDDYN_ENABLE_ZMQ OR ZMQ_NEEDED)
 endif()
 add_library(griddyn::zmq ALIAS zmq)
 
-if(GRIDDYN_ENABLE_ZMQ OR ZMQ_NEEDED)
+if(GRIDDYN_ENABLE_ZMQ)
     set(zmqLibrary_sources
         zmqLibrary/zmqContextManager.cpp zmqLibrary/zmqHelper.cpp zmqLibrary/zmqReactor.cpp
         zmqLibrary/zmqProxyHub.cpp zmqLibrary/zmqSocketDescriptor.cpp
@@ -81,18 +69,6 @@ if(GRIDDYN_ENABLE_ZMQ OR ZMQ_NEEDED)
 
 endif()
 
-if(GRIDDYN_ENABLE_DIME)
-    set(dimeInterface_sources dimeCollector.cpp dimeCommunicator.cpp dimeClientInterface.cpp
-                              dimeRunner.cpp dimeInterface.cpp
-    )
-
-    set(dimeInterface_headers dimeCollector.h dimeCommunicator.h dimeClientInterface.h dimeRunner.h
-                              dimeInterface.h
-    )
-    list(APPEND networking_sources ${dimeInterface_sources})
-    list(APPEND networking_headers ${dimeInterface_headers})
-endif()
-
 if(GRIDDYN_ENABLE_TCP)
     set(tcpInterface_sources tcpCommunicator.cpp tcpInterface.cpp tcpCollector.cpp)
 
@@ -109,15 +85,11 @@ target_link_libraries(networking PRIVATE griddyn)
 
 set_target_properties(networking PROPERTIES FOLDER libraries)
 
-if(GRIDDYN_ENABLE_ZMQ OR ZMQ_NEEDED)
+if(GRIDDYN_ENABLE_ZMQ)
     target_link_libraries(networking PRIVATE griddyn::zmq)
 
     source_group("ZMQLibrary" FILES ${zmqLibrary_sources} ${zmqLibrary_headers})
     source_group("zmqinterface" FILES ${zmqInterface_sources} ${zmqInterface_headers})
-endif()
-
-if(GRIDDYN_ENABLE_DIME)
-    source_group("dime" FILES ${dimeInterface_sources} ${dimeInterface_headers})
 endif()
 
 if(GRIDDYN_ENABLE_TCP)
@@ -131,7 +103,7 @@ list(APPEND optional_library_functions loadNetworkingLibrary)
 set(optional_library_key_headers ${optional_library_key_headers} PARENT_SCOPE)
 set(optional_library_functions ${optional_library_functions} PARENT_SCOPE)
 
-if(GRIDDYN_ENABLE_ZMQ OR ZMQ_NEEDED)
+if(GRIDDYN_ENABLE_ZMQ)
     list(APPEND optional_component_test_files ${CMAKE_CURRENT_SOURCE_DIR}/test/zmqTest.cpp)
     set(optional_component_test_files ${optional_component_test_files} PARENT_SCOPE)
 

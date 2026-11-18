@@ -42,6 +42,7 @@ class GenModelGENSAE final: public GenModelGENSAL {
   public:
     explicit GenModelGENSAE(const std::string& objName = "gensae_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
 
   protected:
     bool usesExponentialSaturation() const override;

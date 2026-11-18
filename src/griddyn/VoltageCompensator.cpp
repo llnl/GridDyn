@@ -7,10 +7,20 @@
 #include "VoltageCompensator.h"
 
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include <string>
 #include <vector>
 
 namespace griddyn {
+const ModelDescription& VoltageCompensator::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<VoltageCompensator>("VoltageCompensator",
+                                                     &GridSubModel::getModelDescription(),
+                                                     {});
+    return description;
+}
+
 VoltageCompensator::VoltageCompensator(const std::string& objName): GridSubModel(objName)
 {
     m_inputSize = voltageCompensatorInputCount;

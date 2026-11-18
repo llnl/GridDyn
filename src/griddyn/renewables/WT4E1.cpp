@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -47,14 +48,62 @@ namespace {
     {
         return inputData.size() > index && inputData[index] != kNullVal ? inputData[index] : 0.0;
     }
-    int flag(double value)
-    {
-        if (value != 0.0 && value != 1.0) {
-            throw InvalidParameterValue("WT4E1 flag must be zero or one");
-        }
-        return static_cast<int>(value);
-    }
 }  // namespace
+
+const ModelDescription& WT4E1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<WT4E1>(
+        "WT4E1",
+        &RenewableComponent::getModelDescription(),
+        {parameter({"tfv"}, &WT4E1::Tfv, units::second, "Tfv"),
+         parameter({"kpv"}, &WT4E1::Kpv, units::one, "Kpv"),
+         parameter({"kiv"}, &WT4E1::Kiv, units::one, "Kiv"),
+         parameter({"kpp"}, &WT4E1::Kpp, units::one, "Kpp"),
+         parameter({"kip"}, &WT4E1::Kip, units::one, "Kip"),
+         parameter({"kf"}, &WT4E1::Kf, units::one, "Kf"),
+         parameter({"tf"}, &WT4E1::Tf, units::second, "Tf"),
+         parameter({"qmx"}, &WT4E1::Qmax, units::one, "Qmax"),
+         parameter({"qmn"}, &WT4E1::Qmin, units::one, "Qmin"),
+         parameter({"ipmax"}, &WT4E1::Ipmax, units::one, "Ipmax"),
+         parameter({"trv"}, &WT4E1::Trv, units::second, "Trv"),
+         parameter({"dpmx"}, &WT4E1::dPmax, units::one, "D pmax"),
+         parameter({"dpmn"}, &WT4E1::dPmin, units::one, "D pmin"),
+         parameter({"tpower"}, &WT4E1::Tpower, units::second, "Tpower"),
+         parameter({"kqi"}, &WT4E1::Kqi, units::one, "Kqi"),
+         parameter({"vmincl"}, &WT4E1::Vmincl, units::one, "Vmincl"),
+         parameter({"vmaxcl"}, &WT4E1::Vmaxcl, units::one, "Vmaxcl"),
+         parameter({"kvi"}, &WT4E1::Kvi, units::one, "Kvi"),
+         parameter({"tv"}, &WT4E1::Tv, units::second, "Tv"),
+         parameter({"tp"}, &WT4E1::Tp, units::second, "Tp"),
+         parameter({"imaxtd"}, &WT4E1::Imax, units::one, "Imax"),
+         parameter({"iphl"}, &WT4E1::Iphl, units::one, "Iphl"),
+         parameter({"iqhl"}, &WT4E1::Iqhl, units::one, "Iqhl"),
+         parameter({"pfaflg"}, &WT4E1::pfFast, units::one, "Pf fast", parameterValidators::binary),
+         parameter(
+             {"varflg"}, &WT4E1::windVar, units::one, "Wind var", parameterValidators::binary),
+         parameter({"pqflag"},
+                   &WT4E1::pqPriority,
+                   units::one,
+                   "Pq priority",
+                   parameterValidators::binary),
+         parameter({"pssematch"},
+                   &WT4E1::psseMatch,
+                   units::one,
+                   "Psse match",
+                   parameterValidators::binary),
+         state({"Ipcmd"}, units::one, 0, "Solver variable Ipcmd when active"),
+         state({"Iqcmd"}, units::one, 1, "Solver variable Iqcmd when active"),
+         state({"Pord"}, units::one, 2, "Solver variable Pord when active"),
+         state({"Vf"}, units::one, 3, "Solver variable Vf when active"),
+         state({"Pf"}, units::one, 4, "Solver variable Pf when active"),
+         state({"Pint"}, units::one, 5, "Solver variable Pint when active"),
+         state({"Qint"}, units::one, 6, "Solver variable Qint when active"),
+         state({"Iqfilter"}, units::one, 7, "Solver variable Iqfilter when active"),
+         localState("initialP", &WT4E1::initialP, "Initial p"),
+         localState("initialQ", &WT4E1::initialQ, "Initial q"),
+         localState("vref", &WT4E1::vref, "Vref")});
+    return description;
+}
 
 WT4E1::WT4E1(const std::string& objName): RenewableComponent(objName)
 {
@@ -112,150 +161,24 @@ std::span<const RenewablePort> WT4E1::outputPorts() const
 
 void WT4E1::set(std::string_view param, double val, units::unit unitType)
 {
-    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "pfaflg") {
-        pfFast = flag(val);
-    } else if (key == "varflg") {
-        windVar = flag(val);
-    } else if (key == "pqflag") {
-        pqPriority = flag(val);
-    } else if (key == "pssematch") {
-        psseMatch = flag(val);
-    } else if (key == "tfv") {
-        Tfv = val;
-    } else if (key == "kpv") {
-        Kpv = val;
-    } else if (key == "kiv") {
-        Kiv = val;
-    } else if (key == "kpp") {
-        Kpp = val;
-    } else if (key == "kip") {
-        Kip = val;
-    } else if (key == "kf") {
-        Kf = val;
-    } else if (key == "tf") {
-        Tf = val;
-    } else if (key == "qmx") {
-        Qmax = val;
-    } else if (key == "qmn") {
-        Qmin = val;
-    } else if (key == "ipmax") {
-        Ipmax = val;
-    } else if (key == "trv") {
-        Trv = val;
-    } else if (key == "dpmx") {
-        dPmax = val;
-    } else if (key == "dpmn") {
-        dPmin = val;
-    } else if (key == "tpower") {
-        Tpower = val;
-    } else if (key == "kqi") {
-        Kqi = val;
-    } else if (key == "vmincl") {
-        Vmincl = val;
-    } else if (key == "vmaxcl") {
-        Vmaxcl = val;
-    } else if (key == "kvi") {
-        Kvi = val;
-    } else if (key == "tv") {
-        Tv = val;
-    } else if (key == "tp") {
-        Tp = val;
-    } else if (key == "imaxtd") {
-        Imax = val;
-    } else if (key == "iphl") {
-        Iphl = val;
-    } else if (key == "iqhl") {
-        Iqhl = val;
-    } else {
-        RenewableComponent::set(param, val, unitType);
+    if (isSetHandled(WT4E1::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
     }
+    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (key != param &&
+        isSetHandled(WT4E1::getModelDescription().trySetLocal(*this, key, val, unitType))) {
+        return;
+    }
+    RenewableComponent::set(param, val, unitType);
 }
 
 double WT4E1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "pfaflg") {
-        return pfFast;
+    if (const auto value = WT4E1::getModelDescription().tryGet(*this, key, unitType)) {
+        return *value;
     }
-    if (key == "varflg") {
-        return windVar;
-    }
-    if (key == "pqflag") {
-        return pqPriority;
-    }
-    if (key == "pssematch") {
-        return psseMatch;
-    }
-    if (key == "tfv") {
-        return Tfv;
-    }
-    if (key == "kpv") {
-        return Kpv;
-    }
-    if (key == "kiv") {
-        return Kiv;
-    }
-    if (key == "kpp") {
-        return Kpp;
-    }
-    if (key == "kip") {
-        return Kip;
-    }
-    if (key == "kf") {
-        return Kf;
-    }
-    if (key == "tf") {
-        return Tf;
-    }
-    if (key == "qmx") {
-        return Qmax;
-    }
-    if (key == "qmn") {
-        return Qmin;
-    }
-    if (key == "ipmax") {
-        return Ipmax;
-    }
-    if (key == "trv") {
-        return Trv;
-    }
-    if (key == "dpmx") {
-        return dPmax;
-    }
-    if (key == "dpmn") {
-        return dPmin;
-    }
-    if (key == "tpower") {
-        return Tpower;
-    }
-    if (key == "kqi") {
-        return Kqi;
-    }
-    if (key == "vmincl") {
-        return Vmincl;
-    }
-    if (key == "vmaxcl") {
-        return Vmaxcl;
-    }
-    if (key == "kvi") {
-        return Kvi;
-    }
-    if (key == "tv") {
-        return Tv;
-    }
-    if (key == "tp") {
-        return Tp;
-    }
-    if (key == "imaxtd") {
-        return Imax;
-    }
-    if (key == "iphl") {
-        return Iphl;
-    }
-    if (key == "iqhl") {
-        return Iqhl;
-    }
+
     return RenewableComponent::get(param, unitType);
 }
 
@@ -553,9 +476,5 @@ void WT4E1::outputPartialDerivatives(const IOdata& inputs,
     }
     (void)inputs;
     (void)stateData;
-}
-stringVec WT4E1::localStateNames() const
-{
-    return {"Ipcmd", "Iqcmd", "Pord", "Vf", "Pf", "Pint", "Qint", "Iqfilter"};
 }
 }  // namespace griddyn

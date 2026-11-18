@@ -21,6 +21,7 @@ the only one that adjusts the angle.  available control include stepped and cont
 */
 class AdjustableTransformer: public AcLine {
   public:
+    const ModelDescription& getModelDescription() const override;
     /** @brief  enumeration of the available control types
      */
     enum class ControlMode {
@@ -99,7 +100,6 @@ class AdjustableTransformer: public AcLine {
     //!< @brief destructor
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     void set(std::string_view param, std::string_view val) override;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
@@ -173,9 +173,6 @@ which cases the parent of the link is searched for the bus*/
                      const std::vector<int>& rootMask,
                      const SolverMode& sMode) override;
     virtual void followNetwork(int network, std::queue<GridBus*>& stk) override;
-    virtual void getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix = "") const override;
 
   protected:
     /** @brief compute the Jacobian elements based on the MW control

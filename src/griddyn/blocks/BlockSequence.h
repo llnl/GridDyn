@@ -26,6 +26,9 @@ namespace griddyn::blocks {
  */
 class BlockSequence: public GridBlock {
   public:
+    const ModelDescription& getModelDescription() const override;
+    using GridBlock::set;
+
   protected:
     enum SequenceFlags {
         DIFFERENTIAL_INPUT_ACTUAL =
@@ -55,10 +58,7 @@ class BlockSequence: public GridBlock {
     virtual void add(CoreObject* obj) override;
     virtual void add(GridBlock* blk);
 
-    virtual void setFlag(std::string_view flag, bool val) override;
     virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual void blockResidual(double input,
                                double didt,

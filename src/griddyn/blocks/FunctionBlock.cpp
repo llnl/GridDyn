@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
@@ -15,6 +16,20 @@
 #include <string>
 
 namespace griddyn::blocks {
+const ModelDescription& FunctionBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<FunctionBlock>(
+        "FunctionBlock",
+        &GridBlock::getModelDescription(),
+        {command({"function", "func"}, units::defunit, "Function", ModelFieldType::STRING),
+         parameter({"gain"}, &FunctionBlock::mGain, units::defunit, "Extra gain factor"),
+         parameter({"arg"},
+                   &FunctionBlock::mArg2,
+                   units::defunit,
+                   "Second argument for 2 argument functions")});
+    return description;
+}
+
 FunctionBlock::FunctionBlock(): GridBlock("functionBlock_#")
 {
     offsets.local().local.algSize = 2;
@@ -135,17 +150,6 @@ void FunctionBlock::set(std::string_view param, std::string_view val)
         setFunction(functionName);
     } else {
         GridBlock::set(param, val);
-    }
-}
-
-void FunctionBlock::set(std::string_view param, double val, units::unit unitType)
-{
-    if (param == "gain") {
-        mGain = val;
-    } else if (param == "arg") {
-        mArg2 = val;
-    } else {
-        GridBlock::set(param, val, unitType);
     }
 }
 

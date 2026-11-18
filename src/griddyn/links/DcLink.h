@@ -14,6 +14,8 @@ namespace griddyn::links {
  */
 class DcLink: public Link {
   public:
+    const ModelDescription& getModelDescription() const override;
+    using Link::set;
     /** DC branch topologies compatible with the ANDES dc.rlc models. */
     enum class Topology { RL, C, RC_PARALLEL, RLC_PARALLEL, RC_SERIES, RLC_SERIES };
     /*  enum DcLinkFlags
@@ -25,6 +27,7 @@ class DcLink: public Link {
     double r = 0;  //!< [puOhm]  the dc resistance
     double x = 0.0001;  //!< [puOhm]  the dc inductance
     double c = 0.0;  //!< [puF]  the dc capacitance
+    model_parameter length{0.0};  //!< [km] physical line length, when supplied by the reader
     Topology topology = Topology::RL;
     bool currentBalance = false;  //!< use ANDES' nodal-current convention
 
@@ -60,8 +63,6 @@ class DcLink: public Link {
     virtual double quickupdateP() override { return 0; }
 
     virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     // dynInitializeB dynamics
     // virtual void dynObjectInitializeA (CoreTime time0, std::uint32_t flags);
@@ -96,9 +97,7 @@ class DcLink: public Link {
                             double dstateDt[],
                             const SolverMode& sMode) override;
     // for computing all the Jacobian elements at once
-    virtual void getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix = "") const override;
+
     virtual int fixRealPower(double power,
                              id_type_t measureTerminal,
                              id_type_t fixedTerminal = 0,

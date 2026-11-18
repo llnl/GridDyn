@@ -9,6 +9,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactory.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
@@ -29,6 +30,23 @@ namespace griddyn::loads {
 //             readability-inconsistent-ifelse-braces, readability-implicit-bool-conversion,
 //             hicpp-named-parameter, readability-named-parameter)
 // setup the load object factories
+
+const ModelDescription& MotorLoad5::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<MotorLoad5>(
+        "MotorLoad5",
+        &MotorLoad3::getModelDescription(),
+        {parameter({"mtype", "type"},
+                   &MotorLoad5::motorType,
+                   units::one,
+                   "PSS/E CIM motor topology: 1 (A) or 2 (B)",
+                   [](int value) { return value == 1 || value == 2; }),
+         parameter({"r2"}, &MotorLoad5::r2, units::one, "3rd level loop resistance"),
+         parameter({"x2"}, &MotorLoad5::x2, units::one, "3 impedance loop reactance"),
+         state({"erpp"}, units::one, 5, "Solver variable erpp"),
+         state({"empp"}, units::one, 6, "Solver variable empp")});
+    return description;
+}
 
 MotorLoad5::MotorLoad5(const std::string& objName): MotorLoad3(objName)
 {
@@ -229,22 +247,6 @@ void MotorLoad5::set(std::string_view param, std::string_view val)
     }
 }
 
-void MotorLoad5::set(std::string_view param, double val, units::unit unitType)
-{
-    if ((param == "mtype") || (param == "type")) {
-        if ((std::abs(val - std::round(val)) > 1e-12) || ((val != 1.0) && (val != 2.0))) {
-            throw InvalidParameterValue("CIM motor type must be 1 (A) or 2 (B)");
-        }
-        motorType = static_cast<int>(val);
-    } else if (param == "r2") {
-        r2 = val;
-    } else if (param == "x2") {
-        x2 = val;
-    } else {
-        MotorLoad3::set(param, val, unitType);
-    }
-}
-
 double MotorLoad5::mechPower(double slip) const
 {
     return MotorLoad::mechPower(slip);
@@ -374,35 +376,6 @@ void MotorLoad5::algebraicUpdate(const IOdata& inputs,
                               Loc.destLoc[1]);
 }
 
-void MotorLoad5::getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix) const
-{
-    std::string prefix2 = prefix + getName();
-    if (isDynamic(sMode)) {
-        if (isAlgebraicOnly(sMode)) {
-            return;
-        }
-        auto offsetA = offsets.getAlgOffset(sMode);
-        auto offsetD = offsets.getDiffOffset(sMode);
-        stNames[offsetA] = prefix2 + ":ir";
-        stNames[offsetA + 1] = prefix2 + ":im";
-        stNames[offsetD] = prefix2 + ":slip";
-        stNames[offsetD + 1] = prefix2 + ":erp";
-        stNames[offsetD + 2] = prefix2 + ":emp";
-        stNames[offsetD + 3] = prefix2 + ":erpp";
-        stNames[offsetD + 4] = prefix2 + ":empp";
-    } else {
-        auto offset = offsets.getAlgOffset(sMode);
-        stNames[offset] = prefix2 + ":ir";
-        stNames[offset + 1] = prefix2 + ":im";
-        stNames[offset + 2] = prefix2 + ":slip";
-        stNames[offset + 3] = prefix2 + ":erp";
-        stNames[offset + 4] = prefix2 + ":emp";
-        stNames[offset + 5] = prefix2 + ":erpp";
-        stNames[offset + 6] = prefix2 + ":empp";
-    }
-}
 void MotorLoad5::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     StateData sD(time, m_state.data());
@@ -624,36 +597,6 @@ void MotorLoad5::jacobianElements(const IOdata& inputs,
     md.assign(refDiff + 4, refDiff + 2, -1 / T0pp + cj);
     md.assign(refDiff + 4, refDiff + 3, -systemBaseFrequency * slip);
     md.assign(refDiff + 4, refDiff + 4, 1 / T0pp - cj);
-}
-
-index_t MotorLoad5::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    index_t ret = kInvalidLocation;
-    if (field == "erpp") {
-        if (isLocal(sMode)) {
-            ret = 5;
-        } else if (isDynamic(sMode)) {
-            ret = offsets.getDiffOffset(sMode);
-            ret = (ret != kNullLocation) ? ret + 3 : ret;
-        } else {
-            ret = offsets.getAlgOffset(sMode);
-            ret = (ret != kNullLocation) ? ret + 5 : ret;
-        }
-    } else if (field == "empp") {
-        if (isLocal(sMode)) {
-            ret = 6;
-        } else if (isDynamic(sMode)) {
-            ret = offsets.getDiffOffset(sMode);
-            ret = (ret != kNullLocation) ? ret + 4 : ret;
-        } else {
-            ret = offsets.getAlgOffset(sMode);
-            ret = (ret != kNullLocation) ? ret + 6 : ret;
-        }
-    } else {
-        ret = MotorLoad3::findIndex(field, sMode);
-    }
-
-    return ret;
 }
 
 void MotorLoad5::rootTest(const IOdata& /*inputs*/,

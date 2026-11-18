@@ -27,6 +27,8 @@ class DcBus: public GridBus {
     friend class DcBusControls;
 
   public:
+    const ModelDescription& getModelDescription() const override;
+    using GridBus::set;
     enum BusFlags {
         USE_AUTOGEN = OBJECT_FLAG2,  //!< indicator if the bus is using an autogen
         SLAVE_BUS = OBJECT_FLAG3,  //!< indicator that the bus is a slave Bus
@@ -87,10 +89,6 @@ class DcBus: public GridBus {
      * @throws InvalidParameterValue for an unknown bus type
      */
     virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual void getParameterStrings(stringVec& pstr,
-                                     ParamStringType pstype = ParamStringType::all) const override;
 
     using GridBus::updateLocalCache;
     virtual void updateLocalCache(const IOdata& inputs,
@@ -156,10 +154,6 @@ class DcBus: public GridBus {
      */
     virtual int getMode(const SolverMode& sMode) const;
     virtual int propogatePower(bool makeSlack = false) override;
-
-    virtual void getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix) const override;
 
   protected:
     void computePowerAdjustments();

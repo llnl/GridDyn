@@ -6,7 +6,9 @@
 
 #include "gridOptObjects.h"
 
+#include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelDescription.h"
 #include "gmlc/utilities/stringOps.h"
 #include <cstdio>
 #include <iostream>
@@ -14,6 +16,18 @@
 #include <vector>
 
 namespace griddyn {
+const ModelDescription& GridOptObject::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridOptObject>(
+        "GridOptObject",
+        &CoreObject::getModelDescription(),
+        {command({"status"},
+                 units::defunit,
+                 "Set adapter enablement or source connectivity",
+                 ModelFieldType::STRING)});
+    return description;
+}
+
 GridOptObject::GridOptObject(const std::string& objName): CoreObject(objName) {}
 
 CoreObject* GridOptObject::clone(CoreObject* obj) const
@@ -214,29 +228,22 @@ void GridOptObject::setOffset(index_t offset,
 
 void GridOptObject::set(std::string_view param, std::string_view val)
 {
+    if (isSetHandled(GridOptObject::getModelDescription().trySetLocal(*this, param, val))) {
+        return;
+    }
     if (param == "status") {
-        const auto status = gmlc::utilities::convertToLowerCase(val);
-        if (status == "out") {
-            if (isEnabled()) {
-                disable();
+        const auto [flag, active] = parseStatus(val);
+        if (flag == "connected") {
+            auto* source = sourceObject();
+            if (source == nullptr) {
+                throw InvalidParameterValue("status requires a source object for connectivity");
             }
-        } else if (status == "in") {
-            if (!isEnabled()) {
-                enable();
-            }
+            source->set("status", active ? "connected" : "disconnected");
         } else {
-            CoreObject::set(param, val);
+            setFlag(flag, active);
         }
     } else {
         CoreObject::set(param, val);
-    }
-}
-
-void GridOptObject::set(std::string_view param, double val, units::unit unitType)
-{
-    if (param == "#") {
-    } else {
-        CoreObject::set(param, val, unitType);
     }
 }
 

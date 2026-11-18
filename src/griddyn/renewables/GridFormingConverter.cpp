@@ -7,6 +7,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -61,11 +62,6 @@ namespace {
         DD,
         COUNT
     };
-    constexpr std::array<std::string_view, COUNT> names{
-        {"fn",   "tc",   "kw",     "kv",     "m",    "d",     "ra",    "xs",   "kpvd",   "kivd",
-         "kpvq", "kivq", "kpid",   "kiid",   "kpiq", "kiiq",  "tid",   "tiq",  "wdrp",   "qdrp",
-         "tr",   "te",   "kpi",    "kii",    "kpv",  "kiv",   "pmax",  "pmin", "kpplim", "kiplim",
-         "qmax", "qmin", "kpqlim", "kiqlim", "tpm",  "dwmax", "dwmin", "mf",   "dd"}};
     constexpr std::array<double, COUNT> defaults{
         {60.0, .01,  0.0, 0.0,  10.0, 0.0,  0.0,  .2,   .5,   .02,  .5,    .02, .2,
          .01,  .2,   .01, .01,  .01,  .033, .045, .005, .005, .5,   20.0,  3.0, 10.0,
@@ -85,6 +81,106 @@ namespace {
     }};
     constexpr double piConstant = 3.14159265358979323846;
 }  // namespace
+
+const ModelDescription& GridFormingConverter::getModelDescription() const
+{
+    using Model = GridFormingConverter;
+    constexpr auto inactive = kInvalidLocation;
+    const auto variantState = [](std::string_view fieldName,
+                                 index_t cv1,
+                                 index_t cv2,
+                                 index_t forming,
+                                 std::string_view descriptionText) {
+        return state<Model>(
+            {fieldName},
+            units::one,
+            [cv1, cv2, forming](const auto& model) {
+                if (model.variant == Variant::cv1) {
+                    return cv1;
+                }
+                if (model.variant == Variant::cv2) {
+                    return cv2;
+                }
+                return forming;
+            },
+            descriptionText);
+    };
+    static const auto description = ModelDescription::define<Model>(
+        "GridFormingConverter",
+        &TerminalElectricalModel::getModelDescription(),
+        {parameter({"fn"}, &Model::parameters, 0, units::Hz, "Converter fn"),
+         parameter({"tc"}, &Model::parameters, 1, units::second, "Converter tc"),
+         parameter({"kw"}, &Model::parameters, 2, units::one, "Converter kw"),
+         parameter({"kv"}, &Model::parameters, 3, units::one, "Converter kv"),
+         parameter({"m"}, &Model::parameters, 4, units::one, "Converter m"),
+         parameter({"d"}, &Model::parameters, 5, units::one, "Converter d"),
+         parameter({"ra", "rf"}, &Model::parameters, 6, units::one, "Converter ra"),
+         parameter({"xs", "xf"}, &Model::parameters, 7, units::one, "Converter xs"),
+         parameter({"kpvd"}, &Model::parameters, 8, units::one, "Converter kpvd"),
+         parameter({"kivd"}, &Model::parameters, 9, units::one, "Converter kivd"),
+         parameter({"kpvq"}, &Model::parameters, 10, units::one, "Converter kpvq"),
+         parameter({"kivq"}, &Model::parameters, 11, units::one, "Converter kivq"),
+         parameter({"kpid"}, &Model::parameters, 12, units::one, "Converter kpid"),
+         parameter({"kiid"}, &Model::parameters, 13, units::one, "Converter kiid"),
+         parameter({"kpiq"}, &Model::parameters, 14, units::one, "Converter kpiq"),
+         parameter({"kiiq"}, &Model::parameters, 15, units::one, "Converter kiiq"),
+         parameter({"tid"}, &Model::parameters, 16, units::second, "Converter tid"),
+         parameter({"tiq"}, &Model::parameters, 17, units::second, "Converter tiq"),
+         parameter({"wdrp"}, &Model::parameters, 18, units::one, "Converter wdrp"),
+         parameter({"qdrp"}, &Model::parameters, 19, units::one, "Converter qdrp"),
+         parameter({"tr"}, &Model::parameters, 20, units::second, "Converter tr"),
+         parameter({"te"}, &Model::parameters, 21, units::second, "Converter te"),
+         parameter({"kpi"}, &Model::parameters, 22, units::one, "Converter kpi"),
+         parameter({"kii"}, &Model::parameters, 23, units::one, "Converter kii"),
+         parameter({"kpv"}, &Model::parameters, 24, units::one, "Converter kpv"),
+         parameter({"kiv"}, &Model::parameters, 25, units::one, "Converter kiv"),
+         parameter({"pmax"}, &Model::parameters, 26, units::one, "Converter pmax"),
+         parameter({"pmin"}, &Model::parameters, 27, units::one, "Converter pmin"),
+         parameter({"kpplim"}, &Model::parameters, 28, units::one, "Converter kpplim"),
+         parameter({"kiplim"}, &Model::parameters, 29, units::one, "Converter kiplim"),
+         parameter({"qmax"}, &Model::parameters, 30, units::one, "Converter qmax"),
+         parameter({"qmin"}, &Model::parameters, 31, units::one, "Converter qmin"),
+         parameter({"kpqlim"}, &Model::parameters, 32, units::one, "Converter kpqlim"),
+         parameter({"kiqlim"}, &Model::parameters, 33, units::one, "Converter kiqlim"),
+         parameter({"tpm"}, &Model::parameters, 34, units::second, "Converter tpm"),
+         parameter({"dwmax"}, &Model::parameters, 35, units::one, "Converter dwmax"),
+         parameter({"dwmin"}, &Model::parameters, 36, units::one, "Converter dwmin"),
+         parameter({"mf"}, &Model::parameters, 37, units::one, "Converter mf"),
+         parameter({"dd"}, &Model::parameters, 38, units::one, "Converter dd"),
+         parameter({"pll"}, &Model::pllName, units::defunit, "PLL measurement source"),
+         localState("initialActivePower", &Model::initialActivePower, "Initial active power"),
+         localState("initialReactivePower", &Model::initialReactivePower, "Initial reactive power"),
+         localState("initialVoltage", &Model::initialVoltage, "Initial voltage"),
+         state({"Pe"}, units::one, 0, "Electrical active power"),
+         state({"Qe"}, units::one, 1, "Electrical reactive power"),
+         variantState("dw", 2, 2, inactive, "Frequency deviation"),
+         variantState("delta", 3, 3, 2, "Internal voltage angle"),
+         variantState("PIvd", 4, 4, 9, "D-axis voltage integral"),
+         variantState("PIvq", 5, 5, 10, "Q-axis voltage integral"),
+         variantState("PIId", 6, inactive, 11, "D-axis current integral"),
+         variantState("PIIq", 7, inactive, 12, "Q-axis current integral"),
+         variantState("ud", 8, inactive, 13, "D-axis converter voltage"),
+         variantState("uq", 9, inactive, 14, "Q-axis converter voltage"),
+         variantState("Id", inactive, 6, inactive, "D-axis current"),
+         variantState("Iq", inactive, 7, inactive, "Q-axis current"),
+         variantState("Psen", inactive, inactive, 3, "Measured active power"),
+         variantState("Qsen", inactive, inactive, 4, "Measured reactive power"),
+         variantState("Psig", inactive, inactive, 5, "Active power control signal"),
+         variantState("Qsig", inactive, inactive, 6, "Reactive power control signal"),
+         variantState("PIplim", inactive, inactive, 7, "Active power limit integral"),
+         variantState("PIqlim", inactive, inactive, 8, "Reactive power limit integral"),
+         state<Model>(
+             {"INTw"},
+             units::one,
+             [](const auto& model) { return model.variant == Variant::f2 ? 15 : kInvalidLocation; },
+             "Frequency control integral"),
+         state<Model>(
+             {"vref2"},
+             units::one,
+             [](const auto& model) { return model.variant == Variant::f3 ? 15 : kInvalidLocation; },
+             "Voltage reference state")});
+    return description;
+}
 
 GridFormingConverter::GridFormingConverter(Variant variantType, const std::string& objName):
     TerminalElectricalModel(objName), variant(variantType)
@@ -131,37 +227,32 @@ std::string_view GridFormingConverter::sourceName(RenewableSignal signal) const
 
 void GridFormingConverter::set(std::string_view param, double val, units::unit unitType)
 {
+    if (isSetHandled(
+            GridFormingConverter::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    for (index_t parameterIndex = 0; parameterIndex < COUNT; ++parameterIndex) {
-        if (key == names[parameterIndex] || (key == "rf" && parameterIndex == RESISTANCE) ||
-            (key == "xf" && parameterIndex == REACTANCE)) {
-            if (!std::isfinite(val)) {
-                throw InvalidParameterValue("grid-forming converter parameter must be finite");
-            }
-            parameters[parameterIndex] = val;
-            return;
-        }
+    if (isSetHandled(
+            GridFormingConverter::getModelDescription().trySetLocal(*this, key, val, unitType))) {
+        return;
     }
     TerminalElectricalModel::set(param, val, unitType);
 }
 
 void GridFormingConverter::set(std::string_view param, std::string_view val)
 {
-    if (gmlc::utilities::convertToLowerCase(std::string{param}) == "pll") {
-        pllName = std::string{val};
-        return;
+    const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (!isSetHandled(GridFormingConverter::getModelDescription().trySetLocal(*this, key, val))) {
+        TerminalElectricalModel::set(param, val);
     }
-    GridComponent::set(param, val);
 }
 
 double GridFormingConverter::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    for (index_t parameterIndex = 0; parameterIndex < COUNT; ++parameterIndex) {
-        if (key == names[parameterIndex] || (key == "rf" && parameterIndex == RESISTANCE) ||
-            (key == "xf" && parameterIndex == REACTANCE)) {
-            return parameters[parameterIndex];
-        }
+    if (const auto value =
+            GridFormingConverter::getModelDescription().tryGet(*this, key, unitType)) {
+        return *value;
     }
     return TerminalElectricalModel::get(param, unitType);
 }
@@ -544,38 +635,6 @@ void GridFormingConverter::outputPartialDerivatives(const IOdata& /*inputs*/,
     matrixData.assign(1, alg + 1, 1.0);
 }
 
-stringVec GridFormingConverter::localStateNames() const
-{
-    if (variant == Variant::cv1) {
-        return {"Pe", "Qe", "dw", "delta", "PIvd", "PIvq", "PIId", "PIIq", "ud", "uq"};
-    }
-    if (variant == Variant::cv2) {
-        return {"Pe", "Qe", "dw", "delta", "PIvd", "PIvq", "Id", "Iq"};
-    }
-    stringVec result{"Pe",
-                     "Qe",
-                     "delta",
-                     "Psen",
-                     "Qsen",
-                     "Psig",
-                     "Qsig",
-                     "PIplim",
-                     "PIqlim",
-                     "PIvd",
-                     "PIvq",
-                     "PIId",
-                     "PIIq",
-                     "ud",
-                     "uq"};
-    if (variant == Variant::f2) {
-        result.emplace_back("INTw");
-    }
-    if (variant == Variant::f3) {
-        result.emplace_back("vref2");
-    }
-    return result;
-}
-
 #define GRID_FORMING_MODEL_IMPL(Model, kind)                                                       \
     Model::Model(const std::string& objName): GridFormingConverter(Variant::kind, objName) {}      \
     CoreObject* Model::clone(CoreObject* obj) const                                                \
@@ -590,10 +649,49 @@ stringVec GridFormingConverter::localStateNames() const
         }                                                                                          \
         return out == nullptr ? obj : out;                                                         \
     }
+const ModelDescription& REGCV1::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<REGCV1>("REGCV1",
+                                         &GridFormingConverter::getModelDescription(),
+                                         {});
+    return description;
+}
+
 GRID_FORMING_MODEL_IMPL(REGCV1, cv1)
+const ModelDescription& REGCV2::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<REGCV2>("REGCV2",
+                                         &GridFormingConverter::getModelDescription(),
+                                         {});
+    return description;
+}
+
 GRID_FORMING_MODEL_IMPL(REGCV2, cv2)
+const ModelDescription& REGF1::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<REGF1>("REGF1", &GridFormingConverter::getModelDescription(), {});
+    return description;
+}
+
 GRID_FORMING_MODEL_IMPL(REGF1, f1)
+const ModelDescription& REGF2::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<REGF2>("REGF2", &GridFormingConverter::getModelDescription(), {});
+    return description;
+}
+
 GRID_FORMING_MODEL_IMPL(REGF2, f2)
+const ModelDescription& REGF3::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<REGF3>("REGF3", &GridFormingConverter::getModelDescription(), {});
+    return description;
+}
+
 GRID_FORMING_MODEL_IMPL(REGF3, f3)
 #undef GRID_FORMING_MODEL_IMPL
 

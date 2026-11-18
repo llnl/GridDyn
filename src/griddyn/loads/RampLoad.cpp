@@ -9,6 +9,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <string>
 
@@ -19,6 +20,22 @@ using units::puA;
 using units::puMW;
 using units::puOhm;
 using units::unit;
+const ModelDescription& RampLoad::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<RampLoad>(
+        "RampLoad",
+        &ZipLoad::getModelDescription(),
+        {command({"dpdt"}, units::defunit, "Set dpdt"),
+         command({"dqdt"}, units::defunit, "Set dqdt"),
+         command({"drdt"}, units::defunit, "Set drdt"),
+         command({"dxdt"}, units::defunit, "Set dxdt"),
+         command({"didt", "dipdt", "dirdt"}, units::defunit, "Set didt"),
+         command({"diqdt"}, units::defunit, "Set diqdt"),
+         command({"dzdt", "dydt", "dzrdt", "dyrdt", "dzpdt", "dypdt"}, units::defunit, "Set dzdt"),
+         command({"dzqdt", "dyqdt"}, units::defunit, "Set dzqdt")});
+    return description;
+}
+
 RampLoad::RampLoad(const std::string& objName): ZipLoad(objName) {}
 RampLoad::RampLoad(double rP, double qP, const std::string& objName): ZipLoad(rP, qP, objName) {}
 CoreObject* RampLoad::clone(CoreObject* obj) const
@@ -40,12 +57,11 @@ CoreObject* RampLoad::clone(CoreObject* obj) const
 }
 
 // set properties
-void RampLoad::set(std::string_view param, std::string_view val)
-{
-    ZipLoad::set(param, val);
-}
 void RampLoad::set(std::string_view param, double val, unit unitType)
 {
+    if (isSetHandled(RampLoad::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     if (param.length() == 4) {
         if ((param[0] == 'd') && (param[2] == 'd') && (param[3] == 't')) {
             switch (param[1]) {

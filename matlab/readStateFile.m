@@ -3,10 +3,12 @@
 % SPDX-License-Identifier: BSD-3-Clause
 
 function res = readStateFile(filename, varargin)
-%READSTATEFILE Read GridDyn HDF5 state and diagnostic captures.
+%READSTATEFILE Read GridDyn HDF5 state, diagnostic, and recorder captures.
 %   RES.data contains vectors, sparse triplets (row,col,val,rows,columns),
-%   or UTF-8 names. RES.typecode is 0 vector, 1 matrix, 2 names.
-%   RES.source is 0 snapshot or 1 diagnostic. Codes: 0 state, 1 derivative/RHS,
+%   UTF-8 names, or raw bytes. RES.typecode is 0 vector, 1 matrix, 2 names, 3 bytes.
+%   RES.source is 0 snapshot, 1 diagnostic, or 3 recorder.
+%   Recorder codes: 0 samples, 1 channel names, 2 recorder name/description.
+%   Diagnostic codes: 0 state, 1 derivative/RHS,
 %   2 residual. Times are seconds plus exact int64 time_ns; frame, index and
 %   key retain uint64 identity. Snapshot index is its frame; block_index
 %   distinguishes a paired block. Matrices use zero-based uint64 coordinates.
@@ -58,7 +60,7 @@ try
             if ~isempty(options.Key) && ~any(records.key(ii) == uint64(options.Key)), continue; end
             if ~isempty(options.Code) && ~any(records.code(ii) == options.Code), continue; end
             kind = double(records.type(ii));
-            if ~any(kind == [0 1 2])
+            if ~any(kind == [0 1 2 3])
                 error('GridDyn:StateFileFormat', 'Unsupported record kind');
             end
             payload = [];
@@ -78,7 +80,7 @@ try
                         payload = struct('row', row, 'col', col, 'val', payload, ...
                                          'rows', records.rows(ii), 'columns', records.columns(ii));
                     end
-                else
+                elseif kind == 2
                     offsets = readRange(filename, '/indices', records.index_offset(ii), ...
                                         records.count(ii) + uint64(1), indexDataInfo.Dataspace.Size);
                     bytes = readRange(filename, '/bytes', records.byte_offset(ii), ...
@@ -95,6 +97,12 @@ try
                             payload{jj} = native2unicode(bytes(exactIndex(offsets(jj)) + 1:exactIndex(offsets(jj+1))).', 'UTF-8');
                         end
                     end
+                else
+                    if records.count(ii) ~= 0
+                        error('GridDyn:StateFileFormat', 'Invalid byte record');
+                    end
+                    payload = readRange(filename, '/bytes', records.byte_offset(ii), ...
+                                        records.byte_count(ii), byteInfo.Dataspace.Size);
                 end
             end
             at = numel(res.time) + 1;

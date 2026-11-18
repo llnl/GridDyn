@@ -16,6 +16,8 @@ set(coreObject_headers
     CoreProperties.hpp
     FactoryTemplates.hpp
     HelperObject.h
+    ModelDescription.h
+    ModelParameter.hpp
     NullObject.h
     ObjectFactory.hpp
     ObjectFactoryTemplates.hpp
@@ -29,6 +31,7 @@ set(coreObject_sources
     CoreObject.cpp
     CoreObjectList.cpp
     HelperObject.cpp
+    ModelDescription.cpp
     NullObject.cpp
     ObjectFactory.cpp
     ObjectInterpreter.cpp

@@ -32,14 +32,11 @@ class Stabilizer: public GridSubModel {
   public:
     explicit Stabilizer(const std::string& objName = "pss_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    const ModelDescription& getModelDescription() const override;
     virtual ~Stabilizer();
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
-
-    virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual void residual(const IOdata& inputs,
                           const StateData& sD,
@@ -66,8 +63,6 @@ class Stabilizer: public GridSubModel {
     {
         return MachineControllerSignal::ELECTRICAL_TORQUE;
     }
-
-    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 };
 
 }  // namespace griddyn

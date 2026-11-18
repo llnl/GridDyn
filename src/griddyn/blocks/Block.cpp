@@ -8,6 +8,7 @@
 #include "ValueLimiter.h"
 #include "blockLibrary.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewConversion.h"
@@ -46,6 +47,63 @@ static const ChildTypeFactory<blocks::TransferFunctionBlock, GridBlock>
     TRANSFER_FUNCTION_BLOCK_FACTORY(
         "block",
         std::to_array<std::string_view>({"transfer_function", "transferfunction", "tf"}));
+
+const ModelDescription& GridBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridBlock>(
+        "GridBlock",
+        &GridSubModel::getModelDescription(),
+        {parameter({"k", "gain"}, &GridBlock::K, units::defunit, "Gain"),
+         parameter({"bias", "b"}, &GridBlock::bias, units::defunit, "Bias"),
+         command({"omax", "max"}, units::defunit, "Upper output limit"),
+         command({"omin", "min"}, units::defunit, "Lower output limit"),
+         command({"limit"}, units::defunit, "Operating limit"),
+         command({"rampmax"}, units::defunit, "Upper slew rate limit"),
+         command({"rampmin"}, units::defunit, "Lower slew rate limit"),
+         command({"ramplimit"}, units::defunit, "Symmetric slew rate limit"),
+         command({"resetlevel"}, units::defunit, "Reset level"),
+         command({"use_limits"}, units::defunit, "Use limits", ModelFieldType::BOOLEAN),
+         command({"simplified"}, units::defunit, "Simplified", ModelFieldType::BOOLEAN),
+         command({"use_direct"}, units::defunit, "Use direct", ModelFieldType::BOOLEAN),
+         command(
+             {"differential_input"}, units::defunit, "Differential input", ModelFieldType::BOOLEAN),
+         command({"use_ramp_limits"}, units::defunit, "Use ramp limits", ModelFieldType::BOOLEAN),
+         localState("previous_input",
+                    &GridBlock::prevInput,
+                    "Previous input for step interpolation"),
+         namedState<GridBlock>(
+             {"output"},
+             units::defunit,
+             [](const auto& model) { return model.outputName; },
+             [](const auto& model) {
+                 return model.offsets.local().local.algSize + model.offsets.local().local.diffSize >
+                         0 ?
+                     0 :
+                     kInvalidLocation;
+             },
+             "Block output"),
+         state<GridBlock>(
+             {"ramp_limits"},
+             units::defunit,
+             [](const auto& model) {
+                 return model.limiter_alg + model.limiter_diff > 1 ? 1 : kInvalidLocation;
+             },
+             "Ramp-limited output"),
+         state<GridBlock>(
+             {"unlimited_output", "test"},
+             units::defunit,
+             [](const auto& model) {
+                 const auto count = model.limiter_alg + model.limiter_diff;
+                 return count > 0 &&
+                         model.offsets.local().local.algSize +
+                                 model.offsets.local().local.diffSize >
+                             count ?
+                     count :
+                     kInvalidLocation;
+             },
+             "Output before limiting")});
+    return description;
+}
 
 GridBlock::GridBlock(const std::string& objName): GridSubModel(objName)
 {
@@ -720,6 +778,9 @@ void GridBlock::rootTrigger(CoreTime /*time*/,
 
 void GridBlock::setFlag(std::string_view flag, bool val)
 {
+    if (GridBlock::getModelDescription().trySetFlag(*this, flag, val)) {
+        return;
+    }
     if (flag == "use_limits") {
         if (!opFlags[DYN_INITIALIZED]) {
             opFlags[HAS_LIMITS] = val;
@@ -759,19 +820,14 @@ void GridBlock::setFlag(std::string_view flag, bool val)
 }
 
 // set parameters
-void GridBlock::set(std::string_view param, std::string_view val)
-{
-    GridSubModel::set(param, val);
-}
 void GridBlock::set(std::string_view param, double val, units::unit unitType)
 {
+    if (isSetHandled(GridBlock::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     // param   = GridDynSimulation::toLower(param);
 
-    if ((param == "k") || (param == "gain")) {
-        K = val;
-    } else if ((param == "bias") || (param == "b")) {
-        bias = val;
-    } else if ((param == "omax") || (param == "max")) {
+    if ((param == "omax") || (param == "max")) {
         Omax = val;
         valLimiterUpdate();
     } else if ((param == "omin") || (param == "min")) {
@@ -806,6 +862,9 @@ void GridBlock::set(std::string_view param, double val, units::unit unitType)
 
 double GridBlock::get(std::string_view param, units::unit unitType) const
 {
+    if (const auto value = GridBlock::getModelDescription().tryGet(*this, param, unitType)) {
+        return *value;
+    }
     if (param == "maxstepsize") {
         return kBigNum;
     }
@@ -832,24 +891,6 @@ void GridBlock::rampLimiterUpdate()
             rLimiter->setLimits(rampMin, rampMax);
         }
     }
-}
-
-stringVec GridBlock::localStateNames() const
-{
-    stringVec stNames;
-    if (opFlags[USE_BLOCK_LIMITS]) {
-        stNames.emplace_back("block_limits");
-    }
-    if (opFlags[USE_RAMP_LIMITS]) {
-        stNames.emplace_back("ramp_limits");
-    }
-    if (hasValueState()) {
-        stNames.emplace_back("test");
-    }
-    if (!stNames.empty()) {
-        stNames[0] = outputName;
-    }
-    return stNames;
 }
 
 std::unique_ptr<GridBlock> make_block(const std::string& blockstr)

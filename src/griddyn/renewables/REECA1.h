@@ -15,6 +15,7 @@ namespace griddyn {
 /** REECA1/REECB1 electrical control with selectable reactive-control branches. */
 class REECA1: public RenewableComponent {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit REECA1(const std::string& name = "REECA1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     using RenewableComponent::set;
@@ -71,7 +72,6 @@ class REECA1: public RenewableComponent {
                          const StateData& stateData,
                          const SolverMode& sMode,
                          CheckLevel level) override;
-    stringVec localStateNames() const override;
 
   protected:
     virtual bool useVoltageInjection(double voltage) const { return dipMode(voltage); }

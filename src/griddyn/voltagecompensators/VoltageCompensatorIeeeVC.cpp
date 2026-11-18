@@ -8,11 +8,23 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <string>
 
 namespace griddyn::voltagecompensators {
+const ModelDescription& VoltageCompensatorIeeeVC::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<VoltageCompensatorIeeeVC>(
+        "VoltageCompensatorIeeeVC",
+        &VoltageCompensator::getModelDescription(),
+        {parameter({"rc"}, &VoltageCompensatorIeeeVC::RC, units::one, "Rc"),
+         parameter({"xc"}, &VoltageCompensatorIeeeVC::XC, units::one, "Xc"),
+         state({"vct", "voltage_compensated", "output"}, units::one, 0, "Solver variable vct")});
+    return description;
+}
+
 VoltageCompensatorIeeeVC::VoltageCompensatorIeeeVC(const std::string& objName):
     VoltageCompensator(objName)
 {
@@ -58,24 +70,11 @@ void VoltageCompensatorIeeeVC::set(std::string_view param, std::string_view val)
 
 void VoltageCompensatorIeeeVC::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "rc") {
-        RC = val;
-    } else if (param == "xc") {
-        XC = val;
-    } else {
-        GridSubModel::set(param, val, unitType);
+    if (isSetHandled(
+            VoltageCompensatorIeeeVC::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
     }
-}
-
-double VoltageCompensatorIeeeVC::get(std::string_view param, units::unit unitType) const
-{
-    if (param == "rc") {
-        return RC;
-    }
-    if (param == "xc") {
-        return XC;
-    }
-    return GridSubModel::get(param, unitType);
+    GridSubModel::set(param, val, unitType);
 }
 
 double VoltageCompensatorIeeeVC::compensatedVoltage(const IOdata& inputs) const
@@ -150,11 +149,4 @@ void VoltageCompensatorIeeeVC::jacobianElements(const IOdata& inputs,
                               -imaginaryPart * inverseMagnitude);
 }
 
-index_t VoltageCompensatorIeeeVC::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if ((field == "vct") || (field == "voltage_compensated") || (field == "output")) {
-        return getOutputLoc(sMode, 0);
-    }
-    return kInvalidLocation;
-}
 }  // namespace griddyn::voltagecompensators

@@ -639,7 +639,7 @@ TEST(RenewableModels, GridFormingVariantsInitializeAndRespond)
         IOdata fields;
         model->dynInitializeB(inputs, {0.6, 0.1}, fields);
         const auto states = model->getStates();
-        EXPECT_EQ(states.size(), model->localStateNames().size()) << name;
+        EXPECT_EQ(states.size(), model->solverStateNames().size()) << name;
         std::vector<double> residual(states.size());
         model->residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
         for (double value : residual) {
@@ -1011,7 +1011,7 @@ TEST(RenewableModels, REGCP1AngleAndCurrentJacobiansMatchResidual)
         }
         state[column] -= step;
     }
-    for (const auto [index, location] : {std::pair{0, 10}, std::pair{3, 11}, std::pair{4, 12}}) {
+    for (const auto& [index, location] : {std::pair{0, 10}, std::pair{3, 11}, std::pair{4, 12}}) {
         inputs[index] += step;
         const auto shifted = evaluate();
         for (std::size_t row = 0; row < 2; ++row) {

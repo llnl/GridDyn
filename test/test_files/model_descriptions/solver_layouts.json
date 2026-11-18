@@ -1,0 +1,1318 @@
+[
+  {
+    "category": "block",
+    "model": "GridBlock",
+    "names": ["output"],
+    "size": 1,
+    "type": "basic",
+    "zero": ""
+  },
+  {
+    "category": "block",
+    "model": "ControlBlock",
+    "names": ["output", "intermediate"],
+    "size": 2,
+    "type": "control",
+    "zero": ""
+  },
+  {
+    "category": "block",
+    "model": "ControlBlock",
+    "names": ["output", "intermediate"],
+    "size": 2,
+    "type": "control",
+    "zero": "t1"
+  },
+  {
+    "category": "block",
+    "model": "ControlBlock",
+    "names": ["output", "intermediate"],
+    "size": 2,
+    "type": "control",
+    "zero": "t2"
+  },
+  {
+    "category": "block",
+    "model": "DelayBlock",
+    "names": ["output"],
+    "size": 1,
+    "type": "delay",
+    "zero": "t1"
+  },
+  {
+    "category": "block",
+    "model": "DerivativeBlock",
+    "names": ["deriv", "delayI"],
+    "size": 2,
+    "type": "der",
+    "zero": ""
+  },
+  {
+    "category": "block",
+    "model": "FilteredDerivativeBlock",
+    "names": ["deriv", "filter"],
+    "size": 2,
+    "type": "fder",
+    "zero": ""
+  },
+  {
+    "category": "block",
+    "model": "FilteredDerivativeBlock",
+    "names": ["deriv", "filter"],
+    "size": 2,
+    "type": "fder",
+    "zero": "t1"
+  },
+  {
+    "category": "block",
+    "model": "LeadLagBlock",
+    "names": ["unlimited_output", "lag_state"],
+    "size": 2,
+    "type": "lead_lag",
+    "zero": ""
+  },
+  {
+    "category": "block",
+    "model": "LeadLagBlock",
+    "names": ["unlimited_output", "lag_state"],
+    "size": 2,
+    "type": "lead_lag",
+    "zero": "ta"
+  },
+  {
+    "category": "block",
+    "model": "PidBlock",
+    "names": ["output", "deriv_delay", "integral"],
+    "size": 3,
+    "type": "pid",
+    "zero": ""
+  },
+  {
+    "category": "block",
+    "model": "PidBlock",
+    "names": ["output", "deriv_delay", "integral"],
+    "size": 3,
+    "type": "pid",
+    "zero": "t1"
+  },
+  {
+    "category": "block",
+    "model": "TransferFunctionBlock",
+    "names": ["output", "x0"],
+    "size": 2,
+    "type": "tf",
+    "zero": ""
+  },
+  {
+    "category": "bus",
+    "model": "AcBus",
+    "names": ["voltage", "angle"],
+    "size": 2,
+    "type": "ac",
+    "zero": ""
+  },
+  {
+    "category": "bus",
+    "model": "AcBus",
+    "names": ["voltage", "angle"],
+    "size": 2,
+    "type": "ac",
+    "zero": "tw"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterAC7B",
+    "names": ["efd", "vmeas", "pidint", "pidder", "piint", "xf3", "ve"],
+    "size": 7,
+    "type": "ac7b",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterAC7B",
+    "names": ["efd", "vmeas", "pidint", "pidder", "piint", "xf3", "ve"],
+    "size": 7,
+    "type": "ac7b",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterAC7B",
+    "names": ["efd", "vmeas", "pidint", "pidder", "piint", "xf3", "ve"],
+    "size": 7,
+    "type": "ac7b",
+    "zero": "ta"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterAC8B",
+    "names": ["efd", "vmeas", "pidint", "pidder", "vr", "ve"],
+    "size": 6,
+    "type": "ac8b",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterAC8B",
+    "names": ["efd", "vmeas", "pidint", "pidder", "vr", "ve"],
+    "size": 6,
+    "type": "ac8b",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "Exciter",
+    "names": ["ef"],
+    "size": 1,
+    "type": "basic",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "Exciter",
+    "names": ["ef"],
+    "size": 1,
+    "type": "basic",
+    "zero": "ta"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterDC1A",
+    "names": ["ef", "vr", "x", "rf"],
+    "size": 4,
+    "type": "dc1a",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterDC1A",
+    "names": ["ef", "vr", "x", "rf"],
+    "size": 4,
+    "type": "dc1a",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterDC1A",
+    "names": ["ef", "vr", "x", "rf"],
+    "size": 4,
+    "type": "dc1a",
+    "zero": "ta"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterDC1A",
+    "names": ["ef", "vr", "x", "rf"],
+    "size": 4,
+    "type": "dc1a",
+    "zero": "tb"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterDC1A",
+    "names": ["ef", "vr", "x", "rf"],
+    "size": 4,
+    "type": "dc1a",
+    "zero": "tf"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterDC2A",
+    "names": ["ef", "vr", "x", "rf"],
+    "size": 4,
+    "type": "dc2a",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterDC2A",
+    "names": ["ef", "vr", "x", "rf"],
+    "size": 4,
+    "type": "dc2a",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterDC2A",
+    "names": ["ef", "vr", "x", "rf"],
+    "size": 4,
+    "type": "dc2a",
+    "zero": "ta"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterDC2A",
+    "names": ["ef", "vr", "x", "rf"],
+    "size": 4,
+    "type": "dc2a",
+    "zero": "tb"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterDC2A",
+    "names": ["ef", "vr", "x", "rf"],
+    "size": 4,
+    "type": "dc2a",
+    "zero": "tf"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESAC1A",
+    "names": ["efd", "vmeas", "ll", "va", "ve", "wf"],
+    "size": 6,
+    "type": "esac1a",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESAC1A",
+    "names": ["efd", "ll", "va", "ve", "wf"],
+    "size": 5,
+    "type": "esac1a",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESAC1A",
+    "names": ["efd", "va", "vmeas", "ll", "ve", "wf"],
+    "size": 6,
+    "type": "esac1a",
+    "zero": "ta"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESAC2A",
+    "names": ["efd", "va", "ve", "vf"],
+    "size": 4,
+    "type": "esac2a",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESAC2A",
+    "names": ["efd", "va", "ve", "vf"],
+    "size": 4,
+    "type": "esac2a",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESAC2A",
+    "names": ["efd", "ve", "vf"],
+    "size": 3,
+    "type": "esac2a",
+    "zero": "ta"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESAC2A",
+    "names": ["efd", "va", "ve", "vf"],
+    "size": 4,
+    "type": "esac2a",
+    "zero": "tb"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESAC5A",
+    "names": ["efd", "vc", "vr", "xll", "xwf", "ve"],
+    "size": 6,
+    "type": "esac5a",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESAC5A",
+    "names": ["efd", "vr", "xll", "xwf", "ve"],
+    "size": 5,
+    "type": "esac5a",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESAC6A",
+    "names": ["efd", "xa", "ve"],
+    "size": 3,
+    "type": "esac6a",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESAC6A",
+    "names": ["efd", "xa", "ve"],
+    "size": 3,
+    "type": "esac6a",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESAC6A",
+    "names": ["efd", "xa", "ve"],
+    "size": 3,
+    "type": "esac6a",
+    "zero": "tb"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESST1A",
+    "names": ["efd", "vmeas", "ll1", "ll2", "va", "rf"],
+    "size": 6,
+    "type": "esst1a",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESST1A",
+    "names": ["efd", "vmeas", "ll1", "ll2", "va", "rf"],
+    "size": 6,
+    "type": "esst1a",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESST1A",
+    "names": ["efd", "vmeas", "ll1", "ll2", "va", "rf"],
+    "size": 6,
+    "type": "esst1a",
+    "zero": "tb"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESST2A",
+    "names": ["efd", "vmeas", "va", "wf", "efstate"],
+    "size": 5,
+    "type": "esst2a",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESST2A",
+    "names": ["efd", "vmeas", "va", "wf", "efstate"],
+    "size": 5,
+    "type": "esst2a",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESST2A",
+    "names": ["efd", "vmeas", "va", "wf", "efstate"],
+    "size": 5,
+    "type": "esst2a",
+    "zero": "ta"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESST3A",
+    "names": ["efd", "vmeas", "ll", "vr", "vm"],
+    "size": 5,
+    "type": "esst3a",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESST3A",
+    "names": ["efd", "vr", "vmeas", "ll", "vm"],
+    "size": 5,
+    "type": "esst3a",
+    "zero": "ta"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESST4B",
+    "names": ["efd", "vmeas", "vrint", "va", "vmint"],
+    "size": 5,
+    "type": "esst4b",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESST4B",
+    "names": ["efd", "vrint", "va", "vmint"],
+    "size": 4,
+    "type": "esst4b",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterESST4B",
+    "names": ["efd", "vmeas", "vrint", "vmint"],
+    "size": 4,
+    "type": "esst4b",
+    "zero": "ta"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterEXAC1",
+    "names": ["efd", "vmeas", "ll", "va", "ve", "wf"],
+    "size": 6,
+    "type": "exac1",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterEXAC1",
+    "names": ["efd", "ll", "va", "ve", "wf"],
+    "size": 5,
+    "type": "exac1",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterEXAC1",
+    "names": ["efd", "va", "vmeas", "ll", "ve", "wf"],
+    "size": 6,
+    "type": "exac1",
+    "zero": "ta"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterEXAC2",
+    "names": ["efd", "vmeas", "ll", "va", "ve", "wf"],
+    "size": 6,
+    "type": "exac2",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterEXAC2",
+    "names": ["efd", "ll", "va", "ve", "wf"],
+    "size": 5,
+    "type": "exac2",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterEXAC2",
+    "names": ["efd", "va", "vmeas", "ll", "ve", "wf"],
+    "size": 6,
+    "type": "exac2",
+    "zero": "ta"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterEXAC4",
+    "names": ["efd", "vmeas", "ll", "vr"],
+    "size": 4,
+    "type": "exac4",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterEXPIC1",
+    "names": ["efd", "xa"],
+    "size": 2,
+    "type": "expic1",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterEXPIC1",
+    "names": ["efd", "xa"],
+    "size": 2,
+    "type": "expic1",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterEXPIC1",
+    "names": ["efd", "xa"],
+    "size": 2,
+    "type": "expic1",
+    "zero": "ta"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterEXST1",
+    "names": ["efd", "vmeas", "ll", "vr", "wf"],
+    "size": 5,
+    "type": "exst1",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterIEEEtype1",
+    "names": ["ef", "vr", "rf"],
+    "size": 3,
+    "type": "ieeet1",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterIEEEtype1",
+    "names": ["ef", "vr", "rf"],
+    "size": 3,
+    "type": "ieeet1",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterIEEEtype1",
+    "names": ["ef", "vr", "rf"],
+    "size": 3,
+    "type": "ieeet1",
+    "zero": "ta"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterIEEEtype1",
+    "names": ["ef", "vr", "rf"],
+    "size": 3,
+    "type": "ieeet1",
+    "zero": "tf"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterIEEEtype2",
+    "names": ["ef", "vr", "x1", "x2"],
+    "size": 4,
+    "type": "ieeet2",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterIEEEtype2",
+    "names": ["ef", "vr", "x1", "x2"],
+    "size": 4,
+    "type": "ieeet2",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterIEEEtype2",
+    "names": ["ef", "vr", "x1", "x2"],
+    "size": 4,
+    "type": "ieeet2",
+    "zero": "ta"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterIEEEtype2",
+    "names": ["ef", "vr", "x1", "x2"],
+    "size": 4,
+    "type": "ieeet2",
+    "zero": "tf"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterIEEET3",
+    "names": ["efd", "vmeas", "vr", "wf", "efstate"],
+    "size": 5,
+    "type": "ieeet3",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterIEEET3",
+    "names": ["efd", "vmeas", "vr", "wf", "efstate"],
+    "size": 5,
+    "type": "ieeet3",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterIEEEX1",
+    "names": ["ef", "vr", "x", "rf"],
+    "size": 4,
+    "type": "ieeex1",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterIEEEX1",
+    "names": ["ef", "vr", "x", "rf"],
+    "size": 4,
+    "type": "ieeex1",
+    "zero": "tr"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterIEEEX1",
+    "names": ["ef", "vr", "rf"],
+    "size": 3,
+    "type": "ieeex1",
+    "zero": "tb"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterSCRX",
+    "names": ["efd", "xll", "efdpre"],
+    "size": 3,
+    "type": "scrx",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterSCRX",
+    "names": ["efd", "xll", "efdpre"],
+    "size": 3,
+    "type": "scrx",
+    "zero": "ta"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterSEXS",
+    "names": ["ef", "x"],
+    "size": 2,
+    "type": "sexs",
+    "zero": ""
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterSEXS",
+    "names": ["ef", "x"],
+    "size": 2,
+    "type": "sexs",
+    "zero": "ta"
+  },
+  {
+    "category": "exciter",
+    "model": "ExciterSEXS",
+    "names": ["ef", "x"],
+    "size": 2,
+    "type": "sexs",
+    "zero": "tb"
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModelClassical",
+    "names": ["id", "iq", "delta", "freq"],
+    "size": 4,
+    "type": "2",
+    "zero": ""
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModel3",
+    "names": ["id", "iq", "delta", "freq", "eqp"],
+    "size": 5,
+    "type": "3",
+    "zero": ""
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModel4",
+    "names": ["id", "iq", "delta", "freq", "edp", "eqp"],
+    "size": 6,
+    "type": "4",
+    "zero": ""
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModel5",
+    "names": ["id", "iq", "delta", "freq", "edp", "eqp", "edpp"],
+    "size": 7,
+    "type": "5",
+    "zero": ""
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModel5type2",
+    "names": ["id", "iq", "delta", "freq", "edpp", "eqp", "eqpp"],
+    "size": 7,
+    "type": "5.2",
+    "zero": ""
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModel6",
+    "names": ["id", "iq", "delta", "freq", "edp", "eqp", "edpp", "eqpp"],
+    "size": 8,
+    "type": "6",
+    "zero": ""
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModel6type2",
+    "names": ["id", "iq", "delta", "freq", "edp", "eqp", "edpp", "eqpp"],
+    "size": 8,
+    "type": "6.2",
+    "zero": ""
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModel8",
+    "names": [
+      "id",
+      "iq",
+      "delta",
+      "freq",
+      "edp",
+      "eqp",
+      "edpp",
+      "eqpp",
+      "psid",
+      "psiq"
+    ],
+    "size": 10,
+    "type": "8",
+    "zero": ""
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModelCSVGN1",
+    "names": ["regulator1", "regulator2", "thyristor"],
+    "size": 3,
+    "type": "csvgn1",
+    "zero": ""
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModelCSVGN1",
+    "names": ["regulator2", "regulator1", "thyristor"],
+    "size": 3,
+    "type": "csvgn1",
+    "zero": "t4"
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModelCSVGN1",
+    "names": ["thyristor", "regulator1", "regulator2"],
+    "size": 3,
+    "type": "csvgn1",
+    "zero": "t5"
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModelCSVGN1",
+    "names": ["regulator1", "regulator2", "thyristor"],
+    "size": 3,
+    "type": "csvgn1",
+    "zero": "t1"
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModelCSVGN1",
+    "names": ["regulator1", "regulator2", "thyristor"],
+    "size": 3,
+    "type": "csvgn1",
+    "zero": "t2"
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModelGENROE",
+    "names": ["id", "iq", "delta", "freq", "e1d", "e1q", "e2q", "e2d"],
+    "size": 8,
+    "type": "genroe",
+    "zero": ""
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModelGENROU",
+    "names": ["id", "iq", "delta", "freq", "e1d", "e1q", "e2q", "e2d"],
+    "size": 8,
+    "type": "genrou",
+    "zero": ""
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModelGENSAE",
+    "names": ["id", "iq", "delta", "freq", "epq", "psikd", "psi2q"],
+    "size": 7,
+    "type": "gensae",
+    "zero": ""
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModelGENSAL",
+    "names": ["id", "iq", "delta", "freq", "epq", "psikd", "psi2q"],
+    "size": 7,
+    "type": "gensal",
+    "zero": ""
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModelGENTPJ",
+    "names": ["id", "iq", "delta", "freq", "epd", "epq", "psippd", "psippq"],
+    "size": 8,
+    "type": "gentpj",
+    "zero": ""
+  },
+  {
+    "category": "genmodel",
+    "model": "GenModelInverter",
+    "names": ["angle"],
+    "size": 1,
+    "type": "inverter",
+    "zero": ""
+  },
+  {
+    "category": "governor",
+    "model": "GovernorGast",
+    "names": ["pmech", "valve", "turbine", "temperature"],
+    "size": 4,
+    "type": "gast",
+    "zero": ""
+  },
+  {
+    "category": "governor",
+    "model": "GovernorGast",
+    "names": ["pmech", "valve", "turbine", "temperature"],
+    "size": 4,
+    "type": "gast",
+    "zero": "t1"
+  },
+  {
+    "category": "governor",
+    "model": "GovernorGast",
+    "names": ["pmech", "valve", "turbine", "temperature"],
+    "size": 4,
+    "type": "gast",
+    "zero": "t2"
+  },
+  {
+    "category": "governor",
+    "model": "GovernorGgov1",
+    "names": [
+      "pmech",
+      "pelec_f",
+      "mw_reset",
+      "gov_int",
+      "derr_f",
+      "valve",
+      "turbine",
+      "temp_ll",
+      "temp",
+      "load_int",
+      "accel_f"
+    ],
+    "size": 11,
+    "type": "ggov1",
+    "zero": ""
+  },
+  {
+    "category": "governor",
+    "model": "GovernorGgov1",
+    "names": [
+      "pmech",
+      "pelec_f",
+      "mw_reset",
+      "gov_int",
+      "derr_f",
+      "valve",
+      "turbine",
+      "temp_ll",
+      "temp",
+      "load_int",
+      "accel_f"
+    ],
+    "size": 11,
+    "type": "ggov1",
+    "zero": "t1"
+  },
+  {
+    "category": "governor",
+    "model": "GovernorGgov1",
+    "names": [
+      "pmech",
+      "pelec_f",
+      "mw_reset",
+      "gov_int",
+      "derr_f",
+      "valve",
+      "turbine",
+      "temp_ll",
+      "temp",
+      "load_int",
+      "accel_f"
+    ],
+    "size": 11,
+    "type": "ggov1",
+    "zero": "t2"
+  },
+  {
+    "category": "governor",
+    "model": "GovernorGPWSCC",
+    "names": [
+      "pmech",
+      "td_filter",
+      "pid_integral",
+      "derivative_filter",
+      "pelec_filter",
+      "valve",
+      "gate",
+      "turbine"
+    ],
+    "size": 8,
+    "type": "gpwscc",
+    "zero": ""
+  },
+  {
+    "category": "governor",
+    "model": "GovernorGPWSCC",
+    "names": [
+      "pmech",
+      "td_filter",
+      "pid_integral",
+      "derivative_filter",
+      "pelec_filter",
+      "valve",
+      "gate",
+      "turbine"
+    ],
+    "size": 8,
+    "type": "gpwscc",
+    "zero": "t1"
+  },
+  {
+    "category": "governor",
+    "model": "GovernorGPWSCC",
+    "names": [
+      "pmech",
+      "td_filter",
+      "pid_integral",
+      "derivative_filter",
+      "pelec_filter",
+      "valve",
+      "gate",
+      "turbine"
+    ],
+    "size": 8,
+    "type": "gpwscc",
+    "zero": "t2"
+  },
+  {
+    "category": "governor",
+    "model": "GovernorHydro",
+    "names": ["pmech", "leadlag", "gate_lag", "waterway"],
+    "size": 4,
+    "type": "hydro",
+    "zero": ""
+  },
+  {
+    "category": "governor",
+    "model": "GovernorHydro",
+    "names": ["pmech", "leadlag", "gate_lag", "waterway"],
+    "size": 4,
+    "type": "hydro",
+    "zero": "t2"
+  },
+  {
+    "category": "governor",
+    "model": "GovernorHygov",
+    "names": ["pmech", "filter", "gate_position", "gate", "flow"],
+    "size": 5,
+    "type": "hygov",
+    "zero": ""
+  },
+  {
+    "category": "governor",
+    "model": "GovernorHygov",
+    "names": ["pmech", "filter", "gate_position", "gate", "flow"],
+    "size": 5,
+    "type": "hygov",
+    "zero": "t2"
+  },
+  {
+    "category": "governor",
+    "model": "GovernorHygovDB",
+    "names": ["pmech", "filter", "gate_position", "gate", "flow"],
+    "size": 5,
+    "type": "hygovdb",
+    "zero": ""
+  },
+  {
+    "category": "governor",
+    "model": "GovernorHygovDB",
+    "names": ["pmech", "filter", "gate_position", "gate", "flow"],
+    "size": 5,
+    "type": "hygovdb",
+    "zero": "t2"
+  },
+  {
+    "category": "governor",
+    "model": "GovernorIeeeG1",
+    "names": ["php", "plp", "leadlag", "valve", "p4", "p5", "p6", "p7"],
+    "size": 8,
+    "type": "ieeeg1",
+    "zero": ""
+  },
+  {
+    "category": "governor",
+    "model": "GovernorIeeeG1",
+    "names": ["php", "plp", "leadlag", "valve", "p5", "p6", "p7"],
+    "size": 7,
+    "type": "ieeeg1",
+    "zero": "t4"
+  },
+  {
+    "category": "governor",
+    "model": "GovernorIeeeG1",
+    "names": ["php", "plp", "leadlag", "valve", "p4", "p6", "p7"],
+    "size": 7,
+    "type": "ieeeg1",
+    "zero": "t5"
+  },
+  {
+    "category": "governor",
+    "model": "GovernorIeeeG1",
+    "names": ["php", "plp", "valve", "p4", "p5", "p6", "p7"],
+    "size": 7,
+    "type": "ieeeg1",
+    "zero": "t1"
+  },
+  {
+    "category": "governor",
+    "model": "GovernorIeeeG1",
+    "names": ["php", "plp", "leadlag", "valve", "p4", "p5", "p6", "p7"],
+    "size": 8,
+    "type": "ieeeg1",
+    "zero": "t2"
+  },
+  {
+    "category": "governor",
+    "model": "GovernorIeeeG2",
+    "names": ["lead_lag", "simple_lag", "water_lag"],
+    "size": 4,
+    "type": "ieeeg2",
+    "zero": ""
+  },
+  {
+    "category": "governor",
+    "model": "GovernorIeeeG2",
+    "names": ["lead_lag", "simple_lag"],
+    "size": 3,
+    "type": "ieeeg2",
+    "zero": "t4"
+  },
+  {
+    "category": "governor",
+    "model": "GovernorIeeeG2",
+    "names": ["simple_lag", "water_lag"],
+    "size": 3,
+    "type": "ieeeg2",
+    "zero": "t1"
+  },
+  {
+    "category": "governor",
+    "model": "GovernorIeeeG2",
+    "names": ["lead_lag", "simple_lag", "water_lag"],
+    "size": 4,
+    "type": "ieeeg2",
+    "zero": "t2"
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerIee2st",
+    "names": ["vs", "f1", "f2", "wo", "ll1", "ll2", "ll3"],
+    "size": 7,
+    "type": "iee2st",
+    "zero": ""
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerIee2st",
+    "names": ["vs", "f1", "f2", "wo", "ll1", "ll2", "ll3"],
+    "size": 7,
+    "type": "iee2st",
+    "zero": "t5"
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerIee2st",
+    "names": ["vs", "f2", "wo", "ll1", "ll2", "ll3"],
+    "size": 6,
+    "type": "iee2st",
+    "zero": "t1"
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerIee2st",
+    "names": ["vs", "f1", "wo", "ll1", "ll2", "ll3"],
+    "size": 6,
+    "type": "iee2st",
+    "zero": "t2"
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerIEEEST",
+    "names": ["vs", "f1x", "f1y", "f2x", "f2y", "ll1", "ll2", "wo"],
+    "size": 8,
+    "type": "ieeest",
+    "zero": ""
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerIEEEST",
+    "names": ["vs", "f1x", "f1y", "f2x", "f2y", "ll1", "wo"],
+    "size": 7,
+    "type": "ieeest",
+    "zero": "t4"
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerIEEEST",
+    "names": ["vs", "f1x", "f1y", "f2x", "f2y", "ll1", "ll2", "wo"],
+    "size": 8,
+    "type": "ieeest",
+    "zero": "t5"
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerIEEEST",
+    "names": ["vs", "f1x", "f1y", "f2x", "f2y", "ll1", "ll2", "wo"],
+    "size": 8,
+    "type": "ieeest",
+    "zero": "t1"
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerIEEEST",
+    "names": ["vs", "f1x", "f1y", "f2x", "f2y", "ll2", "wo"],
+    "size": 7,
+    "type": "ieeest",
+    "zero": "t2"
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerPss2a",
+    "names": [
+      "vs",
+      "w1a",
+      "w1b",
+      "l1",
+      "w2a",
+      "w2b",
+      "l2",
+      "rtf",
+      "rtf1",
+      "rtf2",
+      "rtf3",
+      "rtf4",
+      "rtf5",
+      "ll1",
+      "ll2"
+    ],
+    "size": 15,
+    "type": "pss2a",
+    "zero": ""
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerPss2a",
+    "names": [
+      "vs",
+      "w1a",
+      "w1b",
+      "l1",
+      "w2a",
+      "w2b",
+      "l2",
+      "rtf",
+      "rtf1",
+      "rtf2",
+      "rtf3",
+      "rtf4",
+      "rtf5",
+      "ll1",
+      "ll2"
+    ],
+    "size": 15,
+    "type": "pss2a",
+    "zero": "t1"
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerPss2b",
+    "names": [
+      "vs",
+      "w1a",
+      "w1b",
+      "l1",
+      "w2a",
+      "w2b",
+      "l2",
+      "rtf",
+      "rtf1",
+      "rtf2",
+      "rtf3",
+      "rtf4",
+      "rtf5",
+      "ll1",
+      "ll2",
+      "ll3"
+    ],
+    "size": 16,
+    "type": "pss2b",
+    "zero": ""
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerPss2b",
+    "names": [
+      "vs",
+      "w1a",
+      "w1b",
+      "l1",
+      "w2a",
+      "w2b",
+      "l2",
+      "rtf",
+      "rtf1",
+      "rtf2",
+      "rtf3",
+      "rtf4",
+      "rtf5",
+      "ll1",
+      "ll2",
+      "ll3"
+    ],
+    "size": 16,
+    "type": "pss2b",
+    "zero": "t1"
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerST2CUT",
+    "names": ["vs", "l1", "l2", "wo", "ll1", "ll2", "ll3"],
+    "size": 7,
+    "type": "st2cut",
+    "zero": ""
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerST2CUT",
+    "names": ["vs", "l1", "l2", "wo", "ll1", "ll2", "ll3"],
+    "size": 7,
+    "type": "st2cut",
+    "zero": "t5"
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerStab2a",
+    "names": [
+      "vs",
+      "washout1",
+      "washout2",
+      "washout3",
+      "lowpass",
+      "outputlag1",
+      "outputlag2"
+    ],
+    "size": 7,
+    "type": "stab2a",
+    "zero": ""
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerStab2a",
+    "names": ["vs", "washout1", "washout2", "washout3", "lowpass"],
+    "size": 5,
+    "type": "stab2a",
+    "zero": "t5"
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerStab2a",
+    "names": ["vs", "lowpass", "outputlag1", "outputlag2"],
+    "size": 4,
+    "type": "stab2a",
+    "zero": "t2"
+  },
+  {
+    "category": "pss",
+    "model": "StabilizerStab3",
+    "names": ["vs", "transducer", "lowpass", "washout"],
+    "size": 4,
+    "type": "stab3",
+    "zero": ""
+  }
+]

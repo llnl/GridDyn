@@ -20,6 +20,7 @@ namespace griddyn {
  */
 class WT4G1 final: public TerminalElectricalModel {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit WT4G1(const std::string& name = "WT4G1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     using TerminalElectricalModel::set;
@@ -57,7 +58,6 @@ class WT4G1 final: public TerminalElectricalModel {
                                   const StateData& stateData,
                                   MatrixData<double>& matrixData,
                                   const SolverMode& sMode) override;
-    stringVec localStateNames() const override;
 
   private:
     double TIqcmd = 0.02, TIpCmd = 0.02;

@@ -12,6 +12,7 @@
 #include "../primary/DcBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixDataSparse.hpp"
 #include <cmath>
@@ -44,6 +45,47 @@ static std::string modeToName(AcDcConverter::Mode mode, const std::string& name)
         default:
             return bidirectionalName;
     }
+}
+
+const ModelDescription& AcDcConverter::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<AcDcConverter>(
+        "AcDcConverter",
+        &Link::getModelDescription(),
+        {parameter({"r"}, &AcDcConverter::r, units::one, "Per unit resistance"),
+         parameter({"l", "x"}, &AcDcConverter::x, units::one, "Per unit reactance"),
+         parameter({"angle", "tapangle", "alpha", "gamma"},
+                   &AcDcConverter::angle,
+                   units::rad,
+                   "Converter firing or extinction angle"),
+         command({"mode"}, units::defunit, "Configure mode", ModelFieldType::STRING),
+         command({"p", "pset"}, units::defunit, "Set p"),
+         command({"tapi", "mi", "tap"}, units::defunit, "Set tapi"),
+         command({"idcmax", "imax"}, units::defunit, "Set idcmax"),
+         command({"idcmin", "imin"}, units::defunit, "Set idcmin"),
+         command({"gammamax", "alphamax", "anglemax", "maxangle"}, units::defunit, "Set gammamax"),
+         command({"gammamin", "alphamin", "anglemin", "minangle"}, units::defunit, "Set gammamin"),
+         command({"ki", "igain", "i"}, units::defunit, "Set ki"),
+         command({"kp", "pgain"}, units::defunit, "Set kp"),
+         command({"t", "tp"}, units::defunit, "Set t"),
+         command({"controlki", "controli"}, units::defunit, "Set controlki"),
+         command({"controlkp", "controlgain"}, units::defunit, "Set controlkp"),
+         command({"tm", "td"}, units::defunit, "Set tm"),
+         state<AcDcConverter>(
+             {"Idc"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return isDynamic(mode) ? model.offsets.getAlgOffset(mode) : kInvalidLocation;
+             },
+             "Solver variable Idc"),
+         state<AcDcConverter>(
+             {"cos(firing_angle)"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return !isDynamic(mode) ? model.offsets.getAlgOffset(mode) : kInvalidLocation;
+             },
+             "Solver variable cos(firing_angle)")});
+    return description;
 }
 
 AcDcConverter::AcDcConverter(double resistanceParameter,
@@ -179,11 +221,10 @@ void AcDcConverter::set(std::string_view param, std::string_view val)
 
 void AcDcConverter::set(std::string_view param, double val, unit unitType)
 {
-    if (param == "r") {
-        r = val;
-    } else if ((param == "l") || (param == "x")) {
-        x = val;
-    } else if ((param == "p") || (param == "pset")) {
+    if (isSetHandled(AcDcConverter::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
+    if ((param == "p") || (param == "pset")) {
         Pset = convert(val, unitType, puMW, systemBasePower);
         Pset = (Pset < 0) ? dirMult * Pset : Pset;
         opFlags.set(FIXED_TARGET_POWER);
@@ -194,9 +235,6 @@ void AcDcConverter::set(std::string_view param, double val, unit unitType)
     } else if ((param == "tapi") || (param == "mi") || (param == "tap")) {
         tap = val;
         baseTap = val;
-    } else if ((param == "angle") || (param == "tapangle") || (param == "alpha") ||
-               (param == "gamma")) {
-        angle = val;
     } else if ((param == "idcmax") || (param == "imax")) {
         Idcmax = val;
         powerLevelControl->set("omax", Idcmax);
@@ -730,30 +768,6 @@ int AcDcConverter::fixPower(double /*power*/,
                             units::unit /*unitType*/)
 {
     return 0;
-}
-
-void AcDcConverter::getStateName(stringVec& stNames,
-                                 const SolverMode& sMode,
-                                 const std::string& prefix) const
-{
-    auto offset = offsets.getAlgOffset(sMode);
-
-    const std::string prefix2 = prefix + getName() + ':';
-
-    if (isDynamic(sMode)) {
-        if (offset > 0) {
-            stNames[offset] = prefix2 + "Idc";
-        }
-        firingAngleControl->getStateName(stNames, sMode, prefix2);
-        if (powerLevelControl->isEnabled()) {
-            powerLevelControl->getStateName(stNames, sMode, prefix2);
-            if (controlDelay->isEnabled()) {
-                controlDelay->getStateName(stNames, sMode, prefix2);
-            }
-        }
-    } else {
-        stNames[offset] = prefix2 + "cos(firing_angle)";
-    }
 }
 
 }  // namespace griddyn::links

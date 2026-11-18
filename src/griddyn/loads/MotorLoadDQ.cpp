@@ -9,6 +9,8 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelDescription.h"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -52,26 +54,40 @@ CoreObject* MotorLoadDQ::clone(CoreObject* obj) const
     return copied == nullptr ? obj : copied;
 }
 
-void MotorLoadDQ::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+namespace {
+    inline constexpr auto positiveValue = [](const double& v) { return std::isfinite(v) && v > 0.0; };
+    inline constexpr auto nonnegativeValue = [](const double& v) {
+        return std::isfinite(v) && v >= 0.0;
+    };
+    inline constexpr auto loadFactorValue = [](const double& v) {
+        return std::isfinite(v) && v > 0.0 && v <= 1.0;
+    };
+    inline constexpr auto initialSpeedValue = [](const double& v) {
+        return std::isfinite(v) && v >= 0.0 && v < 1.0;
+    };
+}  // namespace
+
+const ModelDescription& MotorLoadDQ::getModelDescription() const
 {
-    static constexpr std::array<std::string_view, 14> numericParameters{"rs",
-                                                                        "rr",
-                                                                        "xls",
-                                                                        "xlr",
-                                                                        "xm",
-                                                                        "h",
-                                                                        "rating",
-                                                                        "load_factor",
-                                                                        "torque_constant",
-                                                                        "torque_linear",
-                                                                        "torque_quadratic",
-                                                                        "damping",
-                                                                        "load_torque",
-                                                                        "initial_speed"};
-    static constexpr std::array<std::string_view, 1> stringParameters{"initialization"};
-    static constexpr std::array<std::string_view, 0> flagParameters{};
-    getParamString<MotorLoadDQ, GridLoad>(
-        this, pstr, numericParameters, stringParameters, flagParameters, pstype);
+    static const auto description = ModelDescription::define<MotorLoadDQ>(
+        "MotorLoadDQ",
+        &GridLoad::getModelDescription(),
+        {parameter({"rs"}, &MotorLoadDQ::mRs, units::one, "Stator resistance", positiveValue),
+         parameter({"rr"}, &MotorLoadDQ::mRr, units::one, "Rotor resistance", positiveValue),
+         parameter({"xls"}, &MotorLoadDQ::mXls, units::one, "Stator leakage reactance", positiveValue),
+         parameter({"xlr"}, &MotorLoadDQ::mXlr, units::one, "Rotor leakage reactance", positiveValue),
+         parameter({"xm"}, &MotorLoadDQ::mXm, units::one, "Magnetizing reactance", positiveValue),
+         parameter({"h"}, &MotorLoadDQ::mInertia, units::second, "Inertia constant", positiveValue),
+         parameter({"rating"}, &MotorLoadDQ::mRating, units::MW, "Motor rating; zero uses load_factor", nonnegativeValue),
+         parameter({"load_factor"}, &MotorLoadDQ::mLoadFactor, units::one, "Load factor in (0, 1]", loadFactorValue),
+         parameter({"torque_constant"}, &MotorLoadDQ::mTorqueConstant, units::one, "Constant torque coefficient", nonnegativeValue),
+         parameter({"torque_linear"}, &MotorLoadDQ::mTorqueLinear, units::one, "Linear torque coefficient", nonnegativeValue),
+         parameter({"torque_quadratic"}, &MotorLoadDQ::mTorqueQuadratic, units::one, "Quadratic torque coefficient", nonnegativeValue),
+         parameter({"damping"}, &MotorLoadDQ::mDamping, units::one, "Speed-proportional damping", nonnegativeValue),
+         parameter({"initial_speed"}, &MotorLoadDQ::mInitialSpeed, units::one, "Initial speed in [0, 1)", initialSpeedValue),
+         // load_torque also sets mTorqueSpecified, so it is handled by set() rather than bound to storage
+         command({"load_torque"}, units::one, "Load torque at rated speed")});
+    return description;
 }
 
 void MotorLoadDQ::set(std::string_view param, std::string_view val)
@@ -344,11 +360,6 @@ count_t MotorLoadDQ::localJacobianCount(const SolverMode& sMode) const
 {
     if (isDynamic(sMode) && !hasDifferential(sMode)) return 0;
     return !isDynamic(sMode) && mStarting ? 19 : 23;
-}
-
-stringVec MotorLoadDQ::localStateNames() const
-{
-    return {"psi_sd", "psi_sq", "psi_rd", "psi_rq", "speed"};
 }
 
 void MotorLoadDQ::derivative(const IOdata& inputs,

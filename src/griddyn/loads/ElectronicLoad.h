@@ -22,6 +22,7 @@ namespace griddyn::loads {
  */
 class ElectronicLoad: public GridLoad {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit ElectronicLoad(const std::string& objName = "electronicLoad_$");
 
     CoreObject* clone(CoreObject* obj = nullptr) const override;
@@ -33,8 +34,7 @@ class ElectronicLoad: public GridLoad {
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
-    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
-    void set(std::string_view param, std::string_view val) override;
+    using GridLoad::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
 

@@ -12,11 +12,12 @@
 #include <memory>
 #include <span>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace utilities {
 inline constexpr std::uint64_t hdf5NoIndex = (std::numeric_limits<std::uint64_t>::max)();
-enum class Hdf5RecordType : std::uint32_t { VECTOR = 0, MATRIX = 1, NAMES = 2 };
+enum class Hdf5RecordType : std::uint32_t { VECTOR = 0, MATRIX = 1, NAMES = 2, BYTES = 3 };
 
 /** Domain-neutral capture metadata. Domain adapters define source/code/flags/key. */
 struct Hdf5RecordInfo {
@@ -46,8 +47,11 @@ struct Hdf5RecordView {
     Hdf5RecordInfo info;
     std::span<const double> values;
     std::span<const std::string> names;
+    std::string_view bytes;
     std::function<void(std::span<double>, std::span<std::uint64_t>, std::span<std::uint64_t>)>
         matrix;
+    /** Additional contiguous ranges for a VECTOR, written after values. */
+    std::span<const std::span<const double>> valueSegments;
 };
 
 struct Hdf5SparseData {
@@ -79,6 +83,7 @@ class Hdf5DataFile {
                                    std::uint64_t count = hdf5NoIndex) const;
     Hdf5SparseData readMatrix(const Hdf5RecordInfo& record) const;
     std::vector<std::string> readNames(const Hdf5RecordInfo& record) const;
+    std::string readBytes(const Hdf5RecordInfo& record) const;
 
   private:
     class Impl;

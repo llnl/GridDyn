@@ -43,6 +43,7 @@ class AGControl: public GridSubModel {
     std::vector<SchedulerReg*> schedList;
 
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit AGControl(const std::string& objName = "AGC_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     ~AGControl() override;

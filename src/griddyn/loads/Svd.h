@@ -15,6 +15,7 @@ namespace griddyn::loads {
 /** @brief defining the interface for a static var device*/
 class Svd: public RampLoad {
   public:
+    const ModelDescription& getModelDescription() const override;
     /** flags used for Svd operation*/
     enum SvdFlags {
         CONTINUOUS_FLAG = OBJECT_FLAG6,
@@ -168,9 +169,6 @@ class Svd: public RampLoad {
                                   MatrixData<double>& matrixData,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
-    virtual void getStateName(stringVec& stNames,
-                              const SolverMode& sMode,
-                              const std::string& prefix) const override;
 
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 

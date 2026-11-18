@@ -7,11 +7,10 @@
 #pragma once
 
 #include "CoreObject.h"
-#include <span>
 #include <type_traits>
 namespace griddyn {
 /**
-* @brief template helper function for the getParameter String function
+* @brief clone an object through its existing class hierarchy
 @tparam A child class of the original object
 @tparam B class of the parent object
 * @param[in] originalObject of class A to be cloned
@@ -42,66 +41,6 @@ A* cloneBase(const A* originalObject, CoreObject* obj)
     // clone everything in the parent object and above
     originalObject->B::clone(clonedObject);
     return clonedObject;
-}
-
-/**
- * @brief template helper function for the getParameter String function
- * @param[in] cobj object to query for inherited parameter strings
- * @param[out] pstr list of available parameter strings matching the requested type
- * @param[in] numStr local parameter strings that take numeric arguments
- * @param[in] strStr local parameter strings that take string arguments
- * @param[in] flagStr local flag strings
- * @param[in] pstype requested parameter string category to return
- */
-template<class A, class B>
-void getParamString(const A* cobj,
-                    stringVec& pstr,
-                    std::span<const std::string_view> numStr,
-                    std::span<const std::string_view> strStr,
-                    std::span<const std::string_view> flagStr,
-                    ParamStringType pstype)
-{
-    static_assert(std::is_base_of<B, A>::value,
-                  "classes A and B must have parent child relationship");
-    static_assert(std::is_base_of<CoreObject, B>::value,
-                  "classes must be inherited from CoreObject");
-    static_assert(std::is_base_of<CoreObject, A>::value,
-                  "classes must be inherited from CoreObject");
-    switch (pstype) {
-        case ParamStringType::ALL:
-            pstr.reserve(pstr.size() + numStr.size());
-            pstr.insert(pstr.end(), numStr.begin(), numStr.end());
-            cobj->B::getParameterStrings(pstr, ParamStringType::NUMERIC);
-            pstr.reserve(pstr.size() + strStr.size() + 1);
-            pstr.emplace_back("#");
-            pstr.insert(pstr.end(), strStr.begin(), strStr.end());
-            cobj->B::getParameterStrings(pstr, ParamStringType::STR);
-            break;
-        case ParamStringType::LOCAL_NUM:
-            pstr.assign(numStr.begin(), numStr.end());
-            break;
-        case ParamStringType::LOCAL_STR:
-            pstr.assign(strStr.begin(), strStr.end());
-            break;
-        case ParamStringType::LOCAL_FLAGS:
-            pstr.assign(flagStr.begin(), flagStr.end());
-            break;
-        case ParamStringType::NUMERIC:
-            pstr.reserve(pstr.size() + numStr.size());
-            pstr.insert(pstr.end(), numStr.begin(), numStr.end());
-            cobj->B::getParameterStrings(pstr, ParamStringType::NUMERIC);
-            break;
-        case ParamStringType::STR:
-            pstr.reserve(pstr.size() + strStr.size());
-            pstr.insert(pstr.end(), strStr.begin(), strStr.end());
-            cobj->B::getParameterStrings(pstr, ParamStringType::STR);
-            break;
-        case ParamStringType::FLAGS:
-            pstr.reserve(pstr.size() + flagStr.size());
-            pstr.insert(pstr.end(), flagStr.begin(), flagStr.end());
-            cobj->B::getParameterStrings(pstr, ParamStringType::FLAGS);
-            break;
-    }
 }
 
 }  // namespace griddyn

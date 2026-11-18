@@ -6,6 +6,7 @@
 
 #include "../gtestHelper.h"
 #include "core/CoreExceptions.h"
+#include "core/ModelDescription.h"
 #include "fileInput/fileInput.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/comms/CommMessage.h"
@@ -14,15 +15,18 @@
 #include "griddyn/comms/ControlMessage.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include "griddyn/relays/ControlRelay.h"
+#include "griddyn/relays/DGProtectionRelay.h"
 #include "griddyn/relays/Pmu.h"
 #include "griddyn/relays/Sensor.h"
 #include "griddyn/relays/TimeOverCurrentRelay.h"
 #include "griddyn/relays/ZonalRelay.h"
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -35,6 +39,33 @@
 using namespace griddyn;
 
 class RelayTests: public GridDynSimulationTestFixture, public ::testing::Test {};
+
+TEST(ZonalRelayTests, IndexedSettersUseTheEntireSuffix)
+{
+    class InspectableRelay: public relays::ZonalRelay {
+      public:
+        using ZonalRelay::mZoneCount;
+        using ZonalRelay::mZoneDelays;
+        using ZonalRelay::mZoneLevels;
+    };
+    InspectableRelay relay;
+    relay.set("zones", 2.0);
+    relay.set("level", 0.7);
+    relay.set("delay", 0.25);
+    relay.set("level10", 7.5);
+    relay.set("delay10", 2.0);
+    EXPECT_THROW(relay.set("level10oops", 9.0), InvalidParameterValue);
+    EXPECT_THROW(relay.set("delay-1", 9.0), InvalidParameterValue);
+    EXPECT_THROW(relay.set("level999999999999999999999999", 9.0), InvalidParameterValue);
+
+    ASSERT_EQ(relay.mZoneCount, 11);
+    ASSERT_EQ(relay.mZoneLevels.size(), 11U);
+    ASSERT_EQ(relay.mZoneDelays.size(), 11U);
+    EXPECT_DOUBLE_EQ(relay.mZoneLevels.at(0), 0.7);
+    EXPECT_DOUBLE_EQ(relay.mZoneLevels.at(10), 7.5);
+    EXPECT_EQ(relay.mZoneDelays.at(0), CoreTime(0.25));
+    EXPECT_EQ(relay.mZoneDelays.at(10), CoreTime(2.0));
+}
 
 TEST(TimeOverCurrentRelayTests, IECAndIEEECharacteristics)
 {
@@ -119,6 +150,37 @@ TEST(CommMessageSerializationTests, StringAndVectorStreamsRoundTripEquivalentByt
     CommMessage fromVector;
     fromVector.fromVector(dataVector);
     EXPECT_EQ(fromVector.toDataString(), dataString);
+}
+
+TEST(CommunicatorTests, NameAndIdUseDistinctSetterTypes)
+{
+    Communicator communicator("initial", 12);
+    HelperObject& helper = communicator;
+    helper.set("name", "renamed");
+    EXPECT_EQ(helper.getName(), "renamed");
+    EXPECT_EQ(communicator.getCommID(), 12U);
+    helper.set("id", 34.0);
+    EXPECT_EQ(communicator.getCommID(), 34U);
+    EXPECT_THROW(helper.set("id", "other"), UnrecognizedParameter);
+    EXPECT_THROW(helper.set("name", 56.0), UnrecognizedParameter);
+    EXPECT_THROW(helper.set("id", -1.0), InvalidParameterValue);
+    EXPECT_THROW(helper.set("id", 0x1p64), InvalidParameterValue);
+    EXPECT_EQ(helper.getName(), "renamed");
+    EXPECT_EQ(communicator.getCommID(), 34U);
+}
+
+TEST(CommunicatorTests, NumericFlagUsesFiniteNonzeroValues)
+{
+    Communicator communicator;
+    for (const double value : {0.05, -1.0}) {
+        communicator.set("autopingenabled", 0.0);
+        EXPECT_FALSE(communicator.autoPingEnabled);
+        communicator.set("autopingenabled", value);
+        EXPECT_TRUE(communicator.autoPingEnabled);
+    }
+    EXPECT_THROW(communicator.set("autopingenabled", std::numeric_limits<double>::infinity()),
+                 InvalidParameterValue);
+    EXPECT_TRUE(communicator.autoPingEnabled);
 }
 
 TEST(CommunicatorTests, BasicNamedTransportRoutesAndCleansUp)
@@ -498,4 +560,59 @@ TEST_F(RelayTests, PmuTest1)
 
     EXPECT_GT(rocof2, 0.0);
     EXPECT_GT(rocof3, 0.0);
+}
+
+TEST(RelayDescriptionTests, ArrayBindingsAndLocalFlags)
+{
+    DGPRCT1 relay;
+    EXPECT_TRUE(relay.getModelDescription().describesExactType(relay));
+    relay.set("FL1", 57.0, units::Hz);
+    relay.set("tfl1", 100.0, units::ms);
+    relay.set("VEn", 0.01);
+    relay.set("sampled", 1.0);
+    relay.set("ts", 25.0, units::ms);
+    EXPECT_DOUBLE_EQ(relay.get("fl1", units::Hz), 57.0);
+    EXPECT_NEAR(relay.get("tfl1"), 0.1, 1e-8);
+    EXPECT_TRUE(relay.getFlag("ven"));
+    EXPECT_DOUBLE_EQ(relay.get("ven"), 1.0);
+    EXPECT_TRUE(relay.getFlag("sampled"));
+    EXPECT_FALSE(relay.getFlag("continuous"));
+    EXPECT_NEAR(relay.get("period"), 0.025, 1e-8);
+
+    const auto snapshot = ModelFieldSnapshot::capture(relay, FieldSnapshotLevel::PARAMETERS);
+    relay.set("fl1", 55.0);
+    relay.setFlag("ven", false);
+    snapshot.restore(relay);
+    EXPECT_DOUBLE_EQ(relay.get("fl1"), 57.0);
+    EXPECT_TRUE(relay.getFlag("ven"));
+}
+
+TEST(RelayDescriptionTests, SensorIndexedDispatchPreservesRoutingAndParentCommands)
+{
+    class RoutingSensor: public Sensor {
+      public:
+        int outputRoute(std::size_t index) const { return outputs.at(index); }
+        int inputRoute(std::size_t index) const { return blockInputs.at(index); }
+    };
+    RoutingSensor sensor;
+    sensor.set("output", 0.0);
+    sensor.set("output_0", 3.0);
+    sensor.set("blockinput0", 2.0);
+    sensor.set("process#2", 5.0);
+    EXPECT_EQ(sensor.outputRoute(0), 3);
+    EXPECT_EQ(sensor.inputRoute(0), 2);
+    EXPECT_EQ(sensor.inputRoute(2), 5);
+    sensor.set("output1", "input0");
+    EXPECT_EQ(sensor.outputRoute(1), 0);
+    sensor.set("terminal", 2.0);
+    EXPECT_DOUBLE_EQ(sensor.get("terminal"), 2.0);
+    sensor.set("direct", 1.0);
+    EXPECT_TRUE(sensor.getFlag("direct_io"));
+    sensor.set("sampled", 1.0);
+    EXPECT_TRUE(sensor.getFlag("sampled"));
+    sensor.set("ts", 25.0, units::ms);
+    EXPECT_NEAR(sensor.get("period"), 0.025, 1e-8);
+    EXPECT_THROW(sensor.set("output-1", 1.0), UnrecognizedParameter);
+    EXPECT_NO_THROW(sensor.set("# comment", kNullVal));
+    EXPECT_EQ(sensor.outputRoute(0), 3);
 }

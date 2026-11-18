@@ -23,6 +23,9 @@ class GridSubModel: public GridComponent {
   protected:
     double m_output = 0.0;  //!< storage location for the current output
   public:
+    const ModelDescription& getModelDescription() const override;
+    void set(std::string_view param, std::string_view val) override;
+    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     /** @brief default constructor*/
     explicit GridSubModel(const std::string& objName = "submodel_#");
 

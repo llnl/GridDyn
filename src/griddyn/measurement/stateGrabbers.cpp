@@ -86,7 +86,7 @@ StateGrabber::StateGrabber(index_t noffset, CoreObject* obj):
     offset(noffset), cobj(dynamic_cast<GridComponent*>(obj))
 {
     if (cobj != nullptr && noffset >= 0) {
-        const auto names = cobj->localStateNames();
+        const auto names = cobj->solverStateNames();
         if (static_cast<size_t>(noffset) < names.size()) {
             updateField(names[noffset]);
         }

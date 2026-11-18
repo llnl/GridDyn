@@ -10,6 +10,7 @@
 #include "../primary/DcBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <cmath>
 #include <queue>
@@ -25,6 +26,72 @@ namespace {
     constexpr index_t qshIndex = 3;
     constexpr index_t pdcIndex = 4;
 }  // namespace
+
+const ModelDescription& VSCShunt::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<VSCShunt>(
+        "VSCShunt",
+        &AcDcConverter::getModelDescription(),
+        {parameter({"v0"}, &VSCShunt::v0, units::one, "V0"),
+         parameter({"p0"}, &VSCShunt::p0, units::one, "P0"),
+         parameter({"q0"}, &VSCShunt::q0, units::one, "Q0"),
+         parameter({"vdc0"}, &VSCShunt::vdc0, units::one, "Vdc0"),
+         parameter({"k0"}, &VSCShunt::k0, units::one, "K0"),
+         parameter({"k1"}, &VSCShunt::k1, units::one, "K1"),
+         parameter({"k2"}, &VSCShunt::k2, units::one, "K2"),
+         parameter({"droop"}, &VSCShunt::droop, units::one, "Droop"),
+         parameter({"k"}, &VSCShunt::droopK, units::one, "Droop k"),
+         parameter({"vhigh"}, &VSCShunt::vhigh, units::one, "Vhigh"),
+         parameter({"vlow"}, &VSCShunt::vlow, units::one, "Vlow"),
+         parameter({"vshmax"}, &VSCShunt::vshmax, units::one, "Vshmax"),
+         parameter({"vshmin"}, &VSCShunt::vshmin, units::one, "Vshmin"),
+         parameter({"ishmax", "imax"}, &VSCShunt::ishmax, units::one, "Ishmax"),
+         command({"control"}, units::defunit, "Configure control", ModelFieldType::STRING),
+         command({"andes_current_balance", "current_balance"},
+                 units::defunit,
+                 "Set andes current balance"),
+         state<VSCShunt>(
+             {"ash"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return stateSlot(model.offsets.getAlgOffset(mode), 0);
+             },
+             "Solver variable ash"),
+         state<VSCShunt>(
+             {"vsh"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return stateSlot(model.offsets.getAlgOffset(mode), 1);
+             },
+             "Solver variable vsh"),
+         state<VSCShunt>(
+             {"psh"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return stateSlot(model.offsets.getAlgOffset(mode), 2);
+             },
+             "Solver variable psh"),
+         state<VSCShunt>(
+             {"qsh"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return stateSlot(model.offsets.getAlgOffset(mode), 3);
+             },
+             "Solver variable qsh"),
+         state<VSCShunt>(
+             {"pdc"},
+             units::one,
+             [](const auto& model, const auto& mode) {
+                 return stateSlot(model.offsets.getAlgOffset(mode), 4);
+             },
+             "Solver variable pdc"),
+         state({"Idc"}, units::one, kInvalidLocation, "Solver variable Idc"),
+         state({"cos(firing_angle)"},
+               units::one,
+               kInvalidLocation,
+               "Solver variable cos(firing_angle)")});
+    return description;
+}
 
 VSCShunt::VSCShunt(const std::string& objName): AcDcConverter(objName) {}
 
@@ -126,40 +193,15 @@ void VSCShunt::set(std::string_view param, std::string_view val)
 
 void VSCShunt::set(std::string_view param, double val, unit unitType)
 {
+    if (isSetHandled(VSCShunt::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     if (param == "control") {
         const auto controlValue = static_cast<int>(val);
         if ((controlValue < 0) || (controlValue > 3)) {
             throw(InvalidParameterValue("control"));
         }
         control = static_cast<Control>(controlValue);
-    } else if (param == "v0") {
-        v0 = val;
-    } else if (param == "p0") {
-        p0 = val;
-    } else if (param == "q0") {
-        q0 = val;
-    } else if (param == "vdc0") {
-        vdc0 = val;
-    } else if (param == "k0") {
-        k0 = val;
-    } else if (param == "k1") {
-        k1 = val;
-    } else if (param == "k2") {
-        k2 = val;
-    } else if (param == "droop") {
-        droop = val;
-    } else if (param == "k") {
-        droopK = val;
-    } else if (param == "vhigh") {
-        vhigh = val;
-    } else if (param == "vlow") {
-        vlow = val;
-    } else if (param == "vshmax") {
-        vshmax = val;
-    } else if (param == "vshmin") {
-        vshmin = val;
-    } else if ((param == "ishmax") || (param == "imax")) {
-        ishmax = val;
     } else if ((param == "andes_current_balance") || (param == "current_balance")) {
         currentBalance = (val > 0.5);
     } else {
@@ -455,19 +497,6 @@ void VSCShunt::guessState(CoreTime /*time*/,
     state[offset + pshIndex] = psh;
     state[offset + qshIndex] = qsh;
     state[offset + pdcIndex] = pdc;
-}
-
-void VSCShunt::getStateName(stringVec& stNames,
-                            const SolverMode& sMode,
-                            const std::string& prefix) const
-{
-    const auto offset = offsets.getAlgOffset(sMode);
-    const std::string statePrefix = prefix + getName() + ':';
-    stNames[offset + ashIndex] = statePrefix + "ash";
-    stNames[offset + vshIndex] = statePrefix + "vsh";
-    stNames[offset + pshIndex] = statePrefix + "psh";
-    stNames[offset + qshIndex] = statePrefix + "qsh";
-    stNames[offset + pdcIndex] = statePrefix + "pdc";
 }
 
 double VSCShunt::getRealPower(id_type_t busId) const

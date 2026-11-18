@@ -9,6 +9,7 @@
 #include "StaticExciterRectifier.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <array>
@@ -113,6 +114,82 @@ namespace {
         return std::isfinite(value) && (std::abs(value) < 1e20);
     }
 }  // namespace
+
+const ModelDescription& ExciterEXPIC1::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<ExciterEXPIC1>(
+        "ExciterEXPIC1",
+        &Exciter::getModelDescription(),
+        {parameter({"tr"}, &ExciterEXPIC1::Tr, units::second, "Voltage measurement time constant"),
+         parameter({"ta1"}, &ExciterEXPIC1::Ta1, units::second, "Ta1 time constant"),
+         parameter({"vr1"}, &ExciterEXPIC1::Vr1, units::one, "Vr1 model setting"),
+         parameter({"vr2"}, &ExciterEXPIC1::Vr2, units::one, "Vr2 model setting"),
+         parameter({"ta2"}, &ExciterEXPIC1::Ta2, units::second, "Ta2 time constant"),
+         parameter({"ta3"}, &ExciterEXPIC1::Ta3, units::second, "Ta3 time constant"),
+         parameter({"ta4"}, &ExciterEXPIC1::Ta4, units::second, "Ta4 time constant"),
+         parameter({"kf"}, &ExciterEXPIC1::Kf, units::one, "Kf gain or coefficient"),
+         parameter({"tf1"}, &ExciterEXPIC1::Tf1, units::second, "Tf1 time constant"),
+         parameter({"tf2"}, &ExciterEXPIC1::Tf2, units::second, "Tf2 time constant"),
+         parameter({"efdmax"}, &ExciterEXPIC1::Efdmax, units::one, "Efdmax upper limit"),
+         parameter({"efdmin"}, &ExciterEXPIC1::Efdmin, units::one, "Efdmin lower limit"),
+         parameter({"ke"}, &ExciterEXPIC1::Ke, units::one, "Ke gain or coefficient"),
+         parameter({"te"}, &ExciterEXPIC1::Te, units::second, "Exciter time constant"),
+         parameter({"e1"}, &ExciterEXPIC1::E1, units::one, "E1 model setting"),
+         parameter({"se1"}, &ExciterEXPIC1::Se1, units::one, "Se1 model setting"),
+         parameter({"e2"}, &ExciterEXPIC1::E2, units::one, "E2 model setting"),
+         parameter({"se2"}, &ExciterEXPIC1::Se2, units::one, "Se2 model setting"),
+         parameter({"kp"}, &ExciterEXPIC1::Kp, units::one, "Kp gain or coefficient"),
+         parameter({"ki"}, &ExciterEXPIC1::Ki, units::one, "Ki gain or coefficient"),
+         parameter({"kc"}, &ExciterEXPIC1::Kc, units::one, "Kc gain or coefficient"),
+         state<ExciterEXPIC1>(
+             {"efd", "field"},
+             units::one,
+             [](const auto& model) { return model.Te == 0.0 ? 0 : model.stateLayout().efd; },
+             "Field voltage"),
+         state<ExciterEXPIC1>(
+             {"et", "vmeas"},
+             units::one,
+             [](const auto& model) {
+                 return stateSlot(model.stateLayout().sensedVoltage, model.Te == 0.0 ? 1 : 0);
+             },
+             "et solver state"),
+         state<ExciterEXPIC1>(
+             {"xa", "va", "pi"},
+             units::one,
+             [](const auto& model) {
+                 return stateSlot(model.stateLayout().piIntegrator, model.Te == 0.0 ? 1 : 0);
+             },
+             "xa solver state"),
+         state<ExciterEXPIC1>(
+             {"vr1"},
+             units::one,
+             [](const auto& model) {
+                 return stateSlot(model.stateLayout().regulatorOne, model.Te == 0.0 ? 1 : 0);
+             },
+             "vr1 solver state"),
+         state<ExciterEXPIC1>(
+             {"vr", "regulator"},
+             units::one,
+             [](const auto& model) {
+                 return stateSlot(model.stateLayout().regulator, model.Te == 0.0 ? 1 : 0);
+             },
+             "Regulator state"),
+         state<ExciterEXPIC1>(
+             {"vf1"},
+             units::one,
+             [](const auto& model) {
+                 return stateSlot(model.stateLayout().feedbackOne, model.Te == 0.0 ? 1 : 0);
+             },
+             "vf1 solver state"),
+         state<ExciterEXPIC1>(
+             {"vf", "feedback"},
+             units::one,
+             [](const auto& model) {
+                 return stateSlot(model.stateLayout().feedback, model.Te == 0.0 ? 1 : 0);
+             },
+             "Feedback state")});
+    return description;
+}
 
 ExciterEXPIC1::ExciterEXPIC1(const std::string& objName): Exciter(objName)
 {
@@ -506,191 +583,5 @@ void ExciterEXPIC1::timestep(CoreTime time, const IOdata& inputs, const SolverMo
     prevTime = time;
 }
 
-stringVec ExciterEXPIC1::localStateNames() const
-{
-    const auto layout = stateLayout();
-    stringVec names;
-    names.reserve(static_cast<std::size_t>(layout.count) + ((Te == 0.0) ? 1U : 0U));
-    if (Te == 0.0) {
-        names.emplace_back("efd");
-    }
-    for (index_t index = 0; index < layout.count; ++index) {
-        if (index == layout.efd) {
-            names.emplace_back("efd");
-        } else if (index == layout.sensedVoltage) {
-            names.emplace_back("et");
-        } else if (index == layout.piIntegrator) {
-            names.emplace_back("xa");
-        } else if (index == layout.regulatorOne) {
-            names.emplace_back("vr1");
-        } else if (index == layout.regulator) {
-            names.emplace_back("vr");
-        } else if (index == layout.feedbackOne) {
-            names.emplace_back("vf1");
-        } else if (index == layout.feedback) {
-            names.emplace_back("vf");
-        }
-    }
-    return names;
-}
-
-index_t ExciterEXPIC1::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    const auto layout = stateLayout();
-    if ((field == "efd") || (field == "field")) {
-        return (Te == 0.0) ? offsets.getAlgOffset(sMode) :
-                             offsets.getDiffOffset(sMode) + layout.efd;
-    }
-    index_t localIndex = kInvalidLocation;
-    if ((field == "et") || (field == "vmeas")) {
-        localIndex = layout.sensedVoltage;
-    } else if ((field == "xa") || (field == "va") || (field == "pi")) {
-        localIndex = layout.piIntegrator;
-    } else if (field == "vr1") {
-        localIndex = layout.regulatorOne;
-    } else if ((field == "vr") || (field == "regulator")) {
-        localIndex = layout.regulator;
-    } else if (field == "vf1") {
-        localIndex = layout.feedbackOne;
-    } else if ((field == "vf") || (field == "feedback")) {
-        localIndex = layout.feedback;
-    }
-    return (localIndex == kInvalidLocation) ? localIndex :
-                                              offsets.getDiffOffset(sMode) + localIndex;
-}
-
-void ExciterEXPIC1::set(std::string_view param, std::string_view val)
-{
-    Exciter::set(param, val);
-}
-
-void ExciterEXPIC1::set(std::string_view param, double val, units::unit unitType)
-{
-    if (!std::isfinite(val)) {
-        throw InvalidParameterValue("EXPIC1 parameters must be finite");
-    }
-    if (param == "tr") {
-        Tr = val;
-    } else if (param == "ta1") {
-        Ta1 = val;
-    } else if (param == "vr1") {
-        Vr1 = val;
-    } else if (param == "vr2") {
-        Vr2 = val;
-    } else if (param == "ta2") {
-        Ta2 = val;
-    } else if (param == "ta3") {
-        Ta3 = val;
-    } else if (param == "ta4") {
-        Ta4 = val;
-    } else if (param == "kf") {
-        Kf = val;
-    } else if (param == "tf1") {
-        Tf1 = val;
-    } else if (param == "tf2") {
-        Tf2 = val;
-    } else if (param == "efdmax") {
-        Efdmax = val;
-    } else if (param == "efdmin") {
-        Efdmin = val;
-    } else if (param == "ke") {
-        Ke = val;
-    } else if (param == "te") {
-        Te = val;
-    } else if (param == "e1") {
-        E1 = val;
-    } else if (param == "se1") {
-        Se1 = val;
-    } else if (param == "e2") {
-        E2 = val;
-    } else if (param == "se2") {
-        Se2 = val;
-    } else if (param == "kp") {
-        Kp = val;
-    } else if (param == "ki") {
-        Ki = val;
-    } else if (param == "kc") {
-        Kc = val;
-    } else {
-        Exciter::set(param, val, unitType);
-    }
-}
-
-double ExciterEXPIC1::get(std::string_view param, units::unit unitType) const
-{
-    if (param == "ka") {
-        return Ka;
-    }
-    if ((param == "vrmax") || (param == "urmax")) {
-        return Vrmax;
-    }
-    if ((param == "vrmin") || (param == "urmin")) {
-        return Vrmin;
-    }
-    if (param == "tr") {
-        return Tr;
-    }
-    if (param == "ta1") {
-        return Ta1;
-    }
-    if (param == "vr1") {
-        return Vr1;
-    }
-    if (param == "vr2") {
-        return Vr2;
-    }
-    if (param == "ta2") {
-        return Ta2;
-    }
-    if (param == "ta3") {
-        return Ta3;
-    }
-    if (param == "ta4") {
-        return Ta4;
-    }
-    if (param == "kf") {
-        return Kf;
-    }
-    if (param == "tf1") {
-        return Tf1;
-    }
-    if (param == "tf2") {
-        return Tf2;
-    }
-    if (param == "efdmax") {
-        return Efdmax;
-    }
-    if (param == "efdmin") {
-        return Efdmin;
-    }
-    if (param == "ke") {
-        return Ke;
-    }
-    if (param == "te") {
-        return Te;
-    }
-    if (param == "e1") {
-        return E1;
-    }
-    if (param == "se1") {
-        return Se1;
-    }
-    if (param == "e2") {
-        return E2;
-    }
-    if (param == "se2") {
-        return Se2;
-    }
-    if (param == "kp") {
-        return Kp;
-    }
-    if (param == "ki") {
-        return Ki;
-    }
-    if (param == "kc") {
-        return Kc;
-    }
-    return Exciter::get(param, unitType);
-}
 // NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::exciters

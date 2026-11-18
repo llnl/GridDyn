@@ -23,6 +23,9 @@ class GridArea;
 
 class GridAreaOpt: public GridOptObject {
   public:
+    const ModelDescription& getModelDescription() const override;
+    using GridOptObject::set;
+
   protected:
     std::vector<GridAreaOpt*> areaList;
     std::vector<GridBusOpt*> busList;
@@ -112,7 +115,6 @@ class GridAreaOpt: public GridOptObject {
                         const std::string& param,
                         double val,
                         units::unit unitType = units::defunit);
-    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     // parameter get functions

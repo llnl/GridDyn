@@ -21,6 +21,7 @@ class GridSecondary: public GridComponent {
   protected:
     GridBus* bus = nullptr;  //!< reference to the bus connecting the object;
   public:
+    const ModelDescription& getModelDescription() const override;
     /** @brief default constructor*/
     explicit GridSecondary(const std::string& objName = "");
 
@@ -42,7 +43,7 @@ class GridSecondary: public GridComponent {
     virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
   public:
-    virtual void set(std::string_view param, std::string_view val) override;
+    using GridComponent::set;
 
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;

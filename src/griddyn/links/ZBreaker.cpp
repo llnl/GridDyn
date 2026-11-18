@@ -10,6 +10,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <string>
@@ -19,6 +20,13 @@ using units::unit;
 
 static TypeFactory<ZBreaker>
     gZBreakerFactory("link", std::to_array<std::string_view>({"zbreaker", "zline", "busbreaker"}));
+
+const ModelDescription& ZBreaker::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<ZBreaker>("ZBreaker", &Link::getModelDescription(), {});
+    return description;
+}
 
 ZBreaker::ZBreaker(const std::string& objName): Link(objName), merged(CoreObject::extra_bool)
 {
@@ -39,14 +47,6 @@ void ZBreaker::set(std::string_view param, std::string_view val)
     if (param.empty()) {
     } else {
         Link::set(param, val);
-    }
-}
-
-void ZBreaker::set(std::string_view param, double val, unit unitType)
-{
-    if (param.empty()) {
-    } else {
-        Link::set(param, val, unitType);
     }
 }
 

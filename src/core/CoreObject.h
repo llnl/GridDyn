@@ -29,6 +29,7 @@
 
 namespace griddyn {
 class NullObject;
+class ModelDescription;
 enum class ParamStringType {
     ALL,
     all = ALL,  // NOLINT(readability-identifier-naming)
@@ -105,6 +106,9 @@ class CoreObject {
      * @param[in] obj the object to clone to or leave nullptr for a new object.
      */
     virtual CoreObject* clone(CoreObject* obj = nullptr) const;
+
+    /** Shared descriptions of declared members, composed with described base classes. */
+    virtual const ModelDescription& getModelDescription() const;
 
     /** @brief update a name potentially containing specific codes
      names ending in # have the '#' replaced with the oid
@@ -223,8 +227,10 @@ class CoreObject {
 
     /**
      * @brief get the parameters that can be used with the set/get functions
-     * @param[out] pstr a vector of strings to append to
-     * @param[in] pstype the type of parameters to get the strings for
+     * Names come from the most-derived model description and its ancestors.
+     * @param[out] pstr vector replaced for local queries and appended to otherwise
+     * @param[in] pstype requested category; ALL separates numeric and string names with '#'
+     * Flags are requested through FLAGS or LOCAL_FLAGS.
      */
     virtual void getParameterStrings(stringVec& pstr,
                                      ParamStringType pstype = ParamStringType::ALL) const;
@@ -333,6 +339,8 @@ class CoreObject {
     friend class NullObject;
 
   protected:
+    /** Map a text status to a flag name and value. */
+    [[nodiscard]] static std::pair<std::string_view, bool> parseStatus(std::string_view value);
     /** simple function for alerting of a name change*/
     virtual void nameUpdate();
     /** simple function for alerting of a user id change*/

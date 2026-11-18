@@ -9,11 +9,28 @@
 #include "../Generator.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <algorithm>
 #include <string>
 
 namespace griddyn {
+const ModelDescription& IsocController::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<IsocController>(
+        "IsocController",
+        &GridSubModel::getModelDescription(),
+        {parameter({"deadband", "db"}, &IsocController::db, units::defunit, "Db"),
+         parameter({"upstep"}, &IsocController::upStep, units::defunit, "Up step"),
+         parameter({"downstep"}, &IsocController::downStep, units::defunit, "Down step"),
+         parameter({"upperiod"}, &IsocController::upPeriod, units::defunit, "Up period"),
+         parameter({"downperiod"}, &IsocController::downPeriod, units::defunit, "Down period"),
+         parameter({"max", "maxlevel"}, &IsocController::maxLevel, units::defunit, "Max level"),
+         parameter({"min", "minLevel"}, &IsocController::minLevel, units::defunit, "Min level"),
+         command({"m_output"}, units::defunit, "M output")});
+    return description;
+}
+
 IsocController::IsocController(const std::string& objName): GridSubModel(objName) {}
 CoreObject* IsocController::clone(CoreObject* obj) const
 {
@@ -101,27 +118,12 @@ void IsocController::timestep(CoreTime time, const IOdata& inputs, const SolverM
     }
 }
 
-void IsocController::set(std::string_view param, std::string_view val)
-{
-    GridSubModel::set(param, val);
-}
 void IsocController::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "deadband") || (param == "db")) {
-        db = val;
-    } else if (param == "upstep") {
-        upStep = val;
-    } else if (param == "downstep") {
-        downStep = val;
-    } else if (param == "upperiod") {
-        upPeriod = val;
-    } else if (param == "downperiod") {
-        downPeriod = val;
-    } else if ((param == "max") || (param == "maxlevel")) {
-        maxLevel = val;
-    } else if ((param == "min") || (param == "minLevel")) {
-        minLevel = val;
-    } else if (param == "m_output") {
+    if (isSetHandled(IsocController::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
+    if (param == "m_output") {
         m_output = val;
     } else {
         GridSubModel::set(param, val, unitType);

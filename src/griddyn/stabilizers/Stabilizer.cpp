@@ -16,6 +16,7 @@
 #include "StabilizerStab2a.h"
 #include "StabilizerStab3.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include <cmath>
 #include <string>
@@ -45,6 +46,15 @@ Stabilizer::Stabilizer(const std::string& objName):
 {
     m_inputSize = pssInputCount;
 }
+const ModelDescription& Stabilizer::getModelDescription() const
+{
+    static const auto description =
+        ModelDescription::define<Stabilizer>("Stabilizer",
+                                             &GridSubModel::getModelDescription(),
+                                             {});
+    return description;
+}
+
 CoreObject* Stabilizer::clone(CoreObject* obj) const
 {
     auto* pss = cloneBase<Stabilizer, GridSubModel>(this, obj);
@@ -72,23 +82,7 @@ void Stabilizer::residual(const IOdata& /*inputs*/,
 {
 }
 
-index_t Stabilizer::findIndex(std::string_view /*field*/, const SolverMode& /*sMode*/) const
-{
-    return kInvalidLocation;
-}
-
-void Stabilizer::set(std::string_view param, std::string_view val)
-{
-    CoreObject::set(param, val);
-}
 // set parameters
-void Stabilizer::set(std::string_view param, double val, units::unit unitType)
-{
-    {
-        CoreObject::set(param, val, unitType);
-    }
-}
-
 void Stabilizer::jacobianElements(const IOdata& /*inputs*/,
                                   const StateData& /*sD*/,
                                   MatrixData<double>& /*md*/,

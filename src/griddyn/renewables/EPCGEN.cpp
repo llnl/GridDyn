@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -37,6 +38,60 @@ namespace {
         return std::isfinite(value) && value > 0.0;
     }
 }  // namespace
+
+const ModelDescription& EPCGEN::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<EPCGEN>(
+        "EPCGEN",
+        &TerminalElectricalModel::getModelDescription(),
+        {parameter({"rsrc"}, &EPCGEN::rsrc, units::one, "Rsrc"),
+         parameter({"xsrc"}, &EPCGEN::xsrc, units::one, "Xsrc"),
+         parameter({"tfrq", "tr"}, &EPCGEN::tfrq, units::second, "Tfrq"),
+         parameter({"ofpdb"}, &EPCGEN::ofpdb, units::one, "Ofpdb"),
+         parameter({"ufpdb"}, &EPCGEN::ufpdb, units::one, "Ufpdb"),
+         parameter({"ofpdroop"}, &EPCGEN::ofpdroop, units::one, "Ofpdroop"),
+         parameter({"ufpdroop"}, &EPCGEN::ufpdroop, units::one, "Ufpdroop"),
+         parameter({"vbreak"}, &EPCGEN::vbreak, units::one, "Vbreak"),
+         parameter({"imax"}, &EPCGEN::imax, units::one, "Imax"),
+         parameter({"pmax"}, &EPCGEN::pmax, units::one, "Pmax"),
+         parameter({"pmin"}, &EPCGEN::pmin, units::one, "Pmin"),
+         parameter({"pref"},
+                   &EPCGEN::pref,
+                   units::one,
+                   "Constants from the supplied ASU EPCGEN equations.  The epsbes.p v7"),
+         parameter({"kp"}, &EPCGEN::kp, units::one, "Kp"),
+         parameter({"ki"}, &EPCGEN::ki, units::one, "Ki"),
+         parameter({"kip"}, &EPCGEN::kip, units::one, "Kip"),
+         parameter({"kiq"}, &EPCGEN::kiq, units::one, "Kiq"),
+         parameter({"rq"}, &EPCGEN::rq, units::one, "Rq"),
+         parameter({"tq"}, &EPCGEN::tq, units::second, "Tq"),
+         parameter({"tg"}, &EPCGEN::tg, units::second, "Tg"),
+         parameter({"t1"}, &EPCGEN::t1, units::second, "T1"),
+         parameter({"t2"}, &EPCGEN::t2, units::second, "T2"),
+         parameter({"td"}, &EPCGEN::td, units::second, "Td"),
+         parameter({"ted"}, &EPCGEN::ted, units::second, "Ted"),
+         parameter({"teq"}, &EPCGEN::teq, units::second, "Teq"),
+         parameter({"qmax"}, &EPCGEN::qmax, units::one, "Qmax"),
+         parameter({"qmin"}, &EPCGEN::qmin, units::one, "Qmin"),
+         parameter({"dv", "dvt"}, &EPCGEN::voltageTripDelta, units::one, "Voltage trip delta"),
+         parameter({"dt"}, &EPCGEN::voltageTripTime, units::second, "Voltage trip time"),
+         localState("initialVoltageReference",
+                    &EPCGEN::initialVoltageReference,
+                    "Initial voltage reference"),
+         localState("prevTime", &EPCGEN::prevTime, "Prev time"),
+         localState("tripped", &EPCGEN::tripped, "Tripped"),
+         state({"QPI"}, units::one, 0, "Solver variable QPI when active"),
+         state({"Vf"}, units::one, 1, "Solver variable Vf when active"),
+         state({"Pgov"}, units::one, 2, "Solver variable Pgov when active"),
+         state({"Pll"}, units::one, 3, "Solver variable Pll when active"),
+         state({"Iq"}, units::one, 4, "Solver variable Iq when active"),
+         state({"Ip"}, units::one, 5, "Solver variable Ip when active"),
+         state({"Ed"}, units::one, 6, "Solver variable Ed when active"),
+         state({"Eq"}, units::one, 7, "Solver variable Eq when active"),
+         state({"Pcorr"}, units::one, 8, "Solver variable Pcorr when active"),
+         state({"Qcorr"}, units::one, 9, "Solver variable Qcorr when active")});
+    return description;
+}
 
 EPCGEN::EPCGEN(const std::string& objName): TerminalElectricalModel(objName)
 {
@@ -99,75 +154,23 @@ std::span<const RenewablePort> EPCGEN::outputPorts() const
 
 void EPCGEN::set(std::string_view param, double val, units::unit unitType)
 {
+    if (isSetHandled(EPCGEN::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (!std::isfinite(val)) {
-        throw InvalidParameterValue("EPCGEN parameter must be finite");
+    if (key != param &&
+        isSetHandled(EPCGEN::getModelDescription().trySetLocal(*this, key, val, unitType))) {
+        return;
     }
-    if (key == "rsrc") {
-        rsrc = val;
-    } else if (key == "xsrc") {
-        xsrc = val;
-    } else if (key == "tfrq" || key == "tr") {
-        // Preserve "tr" as a legacy alias for the exposed TFRQ parameter.
-        tfrq = val;
-    } else if (key == "ofpdb") {
-        ofpdb = val;
-    } else if (key == "ufpdb") {
-        ufpdb = val;
-    } else if (key == "ofpdroop") {
-        ofpdroop = val;
-    } else if (key == "ufpdroop") {
-        ufpdroop = val;
-    } else if (key == "vbreak") {
-        vbreak = val;
-    } else if (key == "imax") {
-        imax = val;
-    } else if (key == "pmax") {
-        pmax = val;
-    } else if (key == "pmin") {
-        pmin = val;
-    } else if (key == "pref") {
-        pref = val;
-    } else if (key == "kp") {
-        kp = val;
-    } else if (key == "ki") {
-        ki = val;
-    } else if (key == "kip") {
-        kip = val;
-    } else if (key == "kiq") {
-        kiq = val;
-    } else if (key == "rq") {
-        rq = val;
-    } else if (key == "tq") {
-        tq = val;
-    } else if (key == "tg") {
-        tg = val;
-    } else if (key == "t1") {
-        t1 = val;
-    } else if (key == "t2") {
-        t2 = val;
-    } else if (key == "td") {
-        td = val;
-    } else if (key == "ted") {
-        ted = val;
-    } else if (key == "teq") {
-        teq = val;
-    } else if (key == "qmax") {
-        qmax = val;
-    } else if (key == "qmin") {
-        qmin = val;
-    } else if (key == "dv" || key == "dvt") {
-        voltageTripDelta = val;
-    } else if (key == "dt") {
-        voltageTripTime = val;
-    } else {
-        TerminalElectricalModel::set(param, val, unitType);
-    }
+    TerminalElectricalModel::set(param, val, unitType);
 }
 
 double EPCGEN::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
+    if (const auto value = EPCGEN::getModelDescription().tryGet(*this, key, unitType)) {
+        return *value;
+    }
 #define EPCGEN_GET(name, value)                                                                    \
     if (key == (name)) {                                                                           \
         return (value);                                                                            \
@@ -504,11 +507,6 @@ ChangeCode EPCGEN::rootCheck(const IOdata& inputs,
         return ChangeCode::NON_STATE_CHANGE;
     }
     return ChangeCode::NO_CHANGE;
-}
-
-stringVec EPCGEN::localStateNames() const
-{
-    return {"QPI", "Vf", "Pgov", "Pll", "Iq", "Ip", "Ed", "Eq", "Pcorr", "Qcorr"};
 }
 
 }  // namespace griddyn

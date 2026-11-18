@@ -7,6 +7,14 @@ powerflow = readStateFile(fullfile(directory, 'powerflow.h5'));
 assert(isequal(powerflow.code, 0));
 assert(powerflow.time_ns == int64(0));
 assert(powerflow.source == 0 && powerflow.typecode == 0);
+checkpoint = readStateFile(fullfile(directory, 'local-state-checkpoint.h5'));
+localState = find(checkpoint.typecode == 3);
+assert(isscalar(localState) && checkpoint.code(localState) == 3);
+assert(isa(checkpoint.data{localState}, 'uint8'));
+payload = native2unicode(checkpoint.data{localState}(:).', 'UTF-8');
+assert(~isempty(strfind(payload, '"version":1'))); %#ok<STREMP>
+assert(~isempty(strfind(payload, '9007199254740993'))); %#ok<STREMP>
+assert(any(checkpoint.typecode == 2 & checkpoint.frame == checkpoint.frame(localState)));
 diag = readStateFile(fullfile(directory, 'solver-diagnostic.h5'));
 assert(diag.time == 0.25 && diag.index == 7 && diag.source == 1);
 assert(isequal(diag.data{1}, powerflow.data{1}));
@@ -53,6 +61,15 @@ assert(all(cellfun(@isempty, meta.data)) && isequal(meta.frame, dynamic.frame));
 assert(isequal(states, [dynamic.data{1}.'; dynamic.data{3}.']));
 assert(isequal(derivatives, [dynamic.data{2}.'; dynamic.data{4}.']));
 assert(isequal(times, dynamic.time([1 3])));
+recorderPath = fullfile(directory, 'recorder.h5');
+if exist(recorderPath, 'file') == 2
+    samples = readStateFile(recorderPath, 'Source', 3, 'Code', 0);
+    channels = readStateFile(recorderPath, 'Source', 3, 'Code', 1);
+    assert(isequal(samples.time_ns, int64([0 2000000000 4000000000])));
+    assert(isequal(samples.index, uint64([0 1 2])));
+    assert(all(cellfun(@numel, samples.data) == 2));
+    assert(isequal(channels.data{1}, {'magnitude'; 'phase'}));
+end
 periodic = readStateFile(fullfile(directory, 'periodic.h5'));
 assert(numel(periodic.data) >= 4 && periodic.time_ns(end) >= int64(100000000));
 typed = readStateFile(fullfile(directory, 'typed-records.h5'));

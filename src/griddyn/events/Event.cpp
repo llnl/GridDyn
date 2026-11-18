@@ -160,8 +160,6 @@ void Event::set(std::string_view param, double val)
         value = val;
     } else if (param == "time") {
         triggerTime = val;
-    } else if (param == "armed") {
-        armed = (val > 0.1);
     } else {
         HelperObject::set(param, val);
     }

@@ -9,11 +9,40 @@
 #include "ValueLimiter.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <string>
 
 namespace griddyn::blocks {
+const ModelDescription& LeadLagBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<LeadLagBlock>(
+        "LeadLagBlock",
+        &GridBlock::getModelDescription(),
+        {command({"ta"}, units::defunit, "Lead time constant"),
+         command({"tb", "t"}, units::defunit, "Lag time constant"),
+         command({"k", "gain"}, units::defunit, "Gain"),
+         state<LeadLagBlock>(
+             {"output"},
+             units::defunit,
+             [](const auto& model) {
+                 return model.opFlags[USE_BLOCK_LIMITS] ? 0 : kInvalidLocation;
+             },
+             "Limited lead-lag output"),
+         state<LeadLagBlock>(
+             {"unlimited_output"},
+             units::defunit,
+             [](const auto& model) { return model.limiter_alg; },
+             "Lead-lag output before limiting"),
+         state<LeadLagBlock>(
+             {"lag_state"},
+             units::defunit,
+             [](const auto& model) { return model.offsets.local().local.algSize; },
+             "Lag state")});
+    return description;
+}
+
 LeadLagBlock::LeadLagBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(USE_STATE);
@@ -165,17 +194,12 @@ double LeadLagBlock::step(CoreTime time, double inputValue)
     return m_output;
 }
 
-void LeadLagBlock::set(std::string_view param, std::string_view val)
-{
-    GridBlock::set(param, val);
-}
-
 void LeadLagBlock::set(std::string_view param, double val, units::unit unitType)
 {
+    if (isSetHandled(LeadLagBlock::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
     if (param == "ta") {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("lead-lag Ta must be finite");
-        }
         section.setParameters(val, section.lagTime(), section.gain());
     } else if ((param == "tb") || (param == "t")) {
         if (!std::isfinite(val) || (val <= 0.0)) {
@@ -183,9 +207,6 @@ void LeadLagBlock::set(std::string_view param, double val, units::unit unitType)
         }
         section.setParameters(section.leadTime(), val, section.gain());
     } else if ((param == "k") || (param == "gain")) {
-        if (!std::isfinite(val)) {
-            throw InvalidParameterValue("lead-lag gain must be finite");
-        }
         GridBlock::set(param, val, unitType);
         section.setParameters(section.leadTime(), section.lagTime(), val);
     } else {
@@ -193,15 +214,4 @@ void LeadLagBlock::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-stringVec LeadLagBlock::localStateNames() const
-{
-    stringVec names(stateSize(cLocalSolverMode));
-    index_t index = 0;
-    if (opFlags[USE_BLOCK_LIMITS]) {
-        names[index++] = "output";
-    }
-    names[index++] = "unlimited_output";
-    names[index] = "lag_state";
-    return names;
-}
 }  // namespace griddyn::blocks

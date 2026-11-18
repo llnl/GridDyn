@@ -4,6 +4,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <array>
@@ -138,6 +139,24 @@ GenModelGENTPJ::GenModelGENTPJ(const std::string& objName): GenModel5(objName)
     sat.setType(utilities::Saturation::SaturationType::CUTOFF_SCALED_QUADRATIC);
     sat.setParam(S10, S12);
 }
+const ModelDescription& GenModelGENTPJ::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GenModelGENTPJ>(
+        "GenModelGENTPJ",
+        &GenModel5::getModelDescription(),
+        {parameter(
+             {"kis"}, &GenModelGENTPJ::Kis, units::one, "Saturation armature-current correction"),
+         state({"epd"}, units::one, 4, "Solver variable epd"),
+         state({"epq"}, units::one, 5, "Solver variable epq"),
+         state({"psippd"}, units::one, 6, "Solver variable psippd"),
+         state({"psippq"}, units::one, 7, "Solver variable psippq"),
+         state({"edp"}, units::one, kInvalidLocation, "Not allocated by this machine formulation"),
+         state({"eqp"}, units::one, kInvalidLocation, "Not allocated by this machine formulation"),
+         state(
+             {"edpp"}, units::one, kInvalidLocation, "Not allocated by this machine formulation")});
+    return description;
+}
+
 CoreObject* GenModelGENTPJ::clone(CoreObject* obj) const
 {
     auto* c = cloneBase<GenModelGENTPJ, GenModel5>(this, obj);
@@ -228,29 +247,6 @@ void GenModelGENTPJ::dynObjectInitializeB(const IOdata& inputs,
         (quadratureVoltage + Rs * quadratureCurrent) * quadratureCurrent;
     Vd = directVoltage;
     Vq = quadratureVoltage;
-}
-void GenModelGENTPJ::set(std::string_view param, double value, units::unit unitType)
-{
-    if (param == "kis") {
-        Kis = value;
-    } else if (param == "s10" || param == "s1") {
-        S10 = value;
-        sat.setParam(S10, S12);
-    } else if (param == "s12") {
-        S12 = value;
-        sat.setParam(S10, S12);
-    } else {
-        GenModel5::set(param, value, unitType);
-    }
-}
-double GenModelGENTPJ::get(std::string_view param, units::unit unitType) const
-{
-    if (param == "kis") return Kis;
-    return GenModel5::get(param, unitType);
-}
-stringVec GenModelGENTPJ::localStateNames() const
-{
-    return {"id", "iq", "delta", "freq", "epd", "epq", "psippd", "psippq"};
 }
 void GenModelGENTPJ::algebraicUpdate(const IOdata& inputs,
                                      const StateData& stateData,

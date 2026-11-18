@@ -43,6 +43,7 @@ namespace griddyn::exciters {
  */
 class ExciterEXST1: public Exciter {
   public:
+    const ModelDescription& getModelDescription() const override;
     enum EXST1Flags {
         INPUT_LIMITED = OBJECT_FLAG5,
         INPUT_LIMIT_HIGH = OBJECT_FLAG6,
@@ -69,12 +70,8 @@ class ExciterEXST1: public Exciter {
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
 
-    void set(std::string_view param, std::string_view val) override;
+    using Exciter::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    double get(std::string_view param, units::unit unitType = units::defunit) const override;
-
-    stringVec localStateNames() const override;
-    index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
     void residual(const IOdata& inputs,
                   const StateData& stateData,

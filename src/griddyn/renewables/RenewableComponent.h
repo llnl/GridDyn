@@ -7,6 +7,7 @@
 #pragma once
 
 #include "../GridSubModel.h"
+#include "core/ModelDescription.h"
 #include <array>
 #include <span>
 #include <string>
@@ -73,6 +74,14 @@ struct RenewablePort {
 /** Common connection contract for renewable submodels. */
 class RenewableComponent: public GridSubModel {
   public:
+    const ModelDescription& getModelDescription() const override
+    {
+        static const auto description =
+            ModelDescription::define<RenewableComponent>("RenewableComponent",
+                                                         &GridSubModel::getModelDescription(),
+                                                         {});
+        return description;
+    }
     explicit RenewableComponent(const std::string& objName = "renewableComponent_#"):
         GridSubModel(objName)
     {
@@ -88,6 +97,12 @@ class RenewableComponent: public GridSubModel {
 /** The one mandatory grid-facing role: terminal generation P/Q on machine base. */
 class TerminalElectricalModel: public RenewableComponent {
   public:
+    const ModelDescription& getModelDescription() const override
+    {
+        static const auto description = ModelDescription::define<TerminalElectricalModel>(
+            "TerminalElectricalModel", &RenewableComponent::getModelDescription(), {});
+        return description;
+    }
     explicit TerminalElectricalModel(const std::string& objName = "renewableElectrical_#"):
         RenewableComponent(objName)
     {

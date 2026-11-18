@@ -18,7 +18,7 @@
 #include "DcBus.h"
 #include "InfiniteBus.h"
 #include "core/CoreExceptions.h"
-#include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
@@ -53,6 +53,46 @@ using units::puMW;
 using units::puV;
 using units::rad;
 using units::unit;
+
+const ModelDescription& GridBus::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridBus>(
+        "GridBus",
+        &GridPrimary::getModelDescription(),
+        {stateReference<GridBus>(
+             {"angle"},
+             units::rad,
+             [](const auto& model, const auto& mode) {
+                 return model.getOutputLoc(mode, ANGLE_IN_LOCATION);
+             },
+             "Bus voltage angle"),
+         stateReference<GridBus>(
+             {"voltage"},
+             units::puV,
+             [](const auto& model, const auto& mode) {
+                 return model.getOutputLoc(mode, VOLTAGE_IN_LOCATION);
+             },
+             "Bus voltage magnitude"),
+         stateReference<GridBus>(
+             {"frequency"},
+             units::puHz,
+             [](const auto& model, const auto& mode) {
+                 return model.getOutputLoc(mode, FREQUENCY_IN_LOCATION);
+             },
+             "Bus frequency"),
+         command({"ang"}, units::rad, "Set voltage angle"),
+         command({"vol"}, units::puV, "Set voltage"),
+         command({"freq", "dadt"}, units::puHz, "Set frequency"),
+         command({"basevoltage", "base vol", "vbase", "voltagebase"},
+                 units::defunit,
+                 "Set basevoltage"),
+         command({"p", "gen p"}, units::defunit, "Set p"),
+         command({"q", "gen q"}, units::defunit, "Set q"),
+         command({"load p", "load q", "shunt g", "g"}, units::defunit, "Set load p"),
+         command({"shunt b", "b"}, units::defunit, "Set shunt b"),
+         command({"area", "area number"}, units::defunit, "Set area")});
+    return description;
+}
 
 GridBus::GridBus(const std::string& objName):
     GridPrimary(objName), outputs(3), outLocs(3, kNullLocation)
@@ -545,18 +585,6 @@ void GridBus::setAll(std::string_view objtype,
     }
 }
 
-static constexpr auto locNumStrings =
-    std::array<std::string_view, 8>{"voltage", "angle", "basevoltage", "p", "q", "g", "b", "zone"};
-static constexpr auto locStrStrings = std::array<std::string_view, 1>{"status"};
-
-static constexpr auto flagStrings = std::array<std::string_view, 1>{"connected"};
-
-void GridBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
-{
-    getParamString<GridBus, GridComponent>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
-}
-
 void GridBus::setFlag(std::string_view flag, bool val)
 {
     if (flag == "connected") {
@@ -583,15 +611,18 @@ void GridBus::set(std::string_view param, std::string_view val)
 
 void GridBus::set(std::string_view param, double val, unit unitType)
 {
-    if ((param == "voltage") || (param == "vol")) {
+    if (isSetHandled(GridBus::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
+    if (param == "angle" || param == "ang") {
+        angle = convert(val, unitType, rad);
+    } else if ((param == "voltage") || (param == "vol")) {
         if (voltage < 0.25) {
             if (opFlags[DYN_INITIALIZED]) {
                 alert(this, POTENTIAL_FAULT_CHANGE);
             }
         }
         voltage = convert(val, unitType, puV, localBaseVoltage * 1000.0);
-    } else if ((param == "angle") || (param == "ang")) {
-        angle = convert(val, unitType, rad);
     } else if ((param == "freq") || (param == "frequency") || (param == "dadt")) {
         freq = convert(val, unitType, puHz, systemBaseFrequency);
     } else if ((param == "basevoltage") || (param == "base vol") || (param == "vbase") ||
@@ -1362,10 +1393,13 @@ void GridBus::removePowerControl(GridComponent* /*obj*/) {}
 
 double GridBus::get(std::string_view param, unit unitType) const
 {
+    if (const auto value = GridBus::getModelDescription().tryGet(*this, param, unitType)) {
+        return *value;
+    }
     double val;
     if (param == "voltage") {
         val = convert(voltage, puV, unitType, localBaseVoltage * 1000.0);
-    } else if (param == "angle") {
+    } else if (param == "angle" || param == "ang") {
         val = convert(angle, rad, unitType);
     } else if (param == "vtol") {
         val = Vtol;

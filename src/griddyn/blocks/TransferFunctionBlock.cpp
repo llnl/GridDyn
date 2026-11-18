@@ -9,16 +9,46 @@
 #include "ValueLimiter.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
+#include <charconv>
 #include <cmath>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 namespace griddyn::blocks {
+const ModelDescription& TransferFunctionBlock::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<TransferFunctionBlock>(
+        "TransferFunctionBlock",
+        &GridBlock::getModelDescription(),
+        {command({"b"}, units::defunit, "Numerator coefficients", ModelFieldType::STRING),
+         command({"a"}, units::defunit, "Denominator coefficients", ModelFieldType::STRING),
+         indexedCommand({"a", "a_", "a#"}, units::defunit, "Denominator coefficient by index"),
+         indexedCommand({"b", "b_", "b#"}, units::defunit, "Numerator coefficient by index"),
+         state<TransferFunctionBlock>(
+             {"transfer_output"},
+             units::defunit,
+             [](const auto& model) {
+                 return model.limiter_alg > 0 ? model.limiter_alg : kInvalidLocation;
+             },
+             "Transfer-function output before limiting"),
+         indexedState<TransferFunctionBlock>(
+             {"x"},
+             units::defunit,
+             [](const auto& model) { return model.order(); },
+             [](const auto& model, index_t element) {
+                 return model.offsets.local().local.algSize + element;
+             },
+             "Transfer-function realization state")});
+    return description;
+}
+
 TransferFunctionBlock::TransferFunctionBlock(const std::string& objName):
     GridBlock(objName), a{1.0, 1.0}, b{1.0, 0.0}
 {
@@ -416,23 +446,17 @@ double TransferFunctionBlock::step(CoreTime time, double inputValue)
     return m_output;
 }
 
-index_t TransferFunctionBlock::findIndex(std::string_view field, const SolverMode& sMode) const
-{
-    if (field == "output") {
-        return offsets.getAlgOffset(sMode);
-    }
-    std::string prefix;
-    const int index = gmlc::utilities::stringOps::trailingStringInt(field, prefix, -1);
-    if ((index >= 0) && (prefix == "x")) {
-        if ((index >= 0) && (static_cast<index_t>(index) < order())) {
-            return offsets.getDiffOffset(sMode) + static_cast<index_t>(index);
-        }
-    }
-    return GridBlock::findIndex(field, sMode);
-}
-
 void TransferFunctionBlock::set(std::string_view param, std::string_view value)
 {
+    const auto result =
+        TransferFunctionBlock::getModelDescription().trySetLocal(*this, param, value);
+    if (isSetHandled(result)) {
+        return;
+    }
+    if (result != SetResult::COMMAND) {
+        GridBlock::set(param, value);
+        return;
+    }
     if (param == "a") {
         a = gmlc::utilities::str2vector<double>(std::string{value}, 0.0);
         if (a.empty()) {
@@ -442,54 +466,46 @@ void TransferFunctionBlock::set(std::string_view param, std::string_view value)
             throw InvalidParameterValue("transfer-function numerator order");
         }
         b.resize(a.size(), 0.0);
-        return;
-    }
-    if (param == "b") {
+    } else {
         const auto numerator = gmlc::utilities::str2vector<double>(std::string{value}, 0.0);
         if (numerator.size() > a.size()) {
             throw InvalidParameterValue("transfer-function numerator order");
         }
         b = numerator;
         b.resize(a.size(), 0.0);
-        return;
     }
-    GridBlock::set(param, value);
 }
 
 void TransferFunctionBlock::set(std::string_view param, double value, units::unit unitType)
 {
-    std::string prefix;
-    const int coefficientIndex = gmlc::utilities::stringOps::trailingStringInt(param, prefix, -1);
-    if ((coefficientIndex >= 0) && ((prefix == "a") || (prefix == "b"))) {
-        const auto index = static_cast<size_t>(coefficientIndex);
-        if (prefix == "a") {
-            if (index >= a.size()) {
-                a.resize(index + 1, 0.0);
-                b.resize(index + 1, 0.0);
-            }
-            a[index] = value;
-        } else {
-            if (index >= a.size()) {
-                throw InvalidParameterValue("transfer-function numerator order");
-            }
-            b[index] = value;
-        }
+    const auto result =
+        TransferFunctionBlock::getModelDescription().trySet(*this, param, value, unitType);
+    if (isSetHandled(result)) {
         return;
     }
-    GridBlock::set(param, value, unitType);
+    if (result != SetResult::INDEXED_COMMAND) {
+        GridBlock::set(param, value, unitType);
+        return;
+    }
+    const auto suffix = param.substr(param.find_first_of("0123456789"));
+    index_t coefficientIndex = 0;
+    std::from_chars(suffix.data(), suffix.data() + suffix.size(), coefficientIndex);
+    const auto index = static_cast<size_t>(coefficientIndex);
+    if (param.front() == 'a') {
+        if (index >= a.max_size()) {
+            throw InvalidParameterValue("transfer-function denominator order");
+        }
+        if (index >= a.size()) {
+            a.resize(index + 1, 0.0);
+            b.resize(index + 1, 0.0);
+        }
+        a[index] = value;
+    } else {
+        if (index >= a.size()) {
+            throw InvalidParameterValue("transfer-function numerator order");
+        }
+        b[index] = value;
+    }
 }
 
-stringVec TransferFunctionBlock::localStateNames() const
-{
-    auto names = GridBlock::localStateNames();
-    if (names.empty()) {
-        names.emplace_back("output");
-    } else {
-        names.emplace_back("transfer_output");
-    }
-    for (index_t index = 0; index < order(); ++index) {
-        names.emplace_back("x" + std::to_string(index));
-    }
-    return names;
-}
 }  // namespace griddyn::blocks

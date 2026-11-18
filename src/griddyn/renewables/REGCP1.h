@@ -16,6 +16,7 @@ namespace griddyn {
 /** REGCP1 converter with an optional named PLL angle reference. */
 class REGCP1 final: public REGCA1 {
   public:
+    const ModelDescription& getModelDescription() const override;
     explicit REGCP1(const std::string& name = "REGCP1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     std::span<const RenewablePort> inputPorts() const override;

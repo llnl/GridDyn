@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gridOptObjects.h"
@@ -103,6 +104,30 @@ namespace {
     }
 }  // namespace
 
+const ModelDescription& GridDynOptimization::getModelDescription() const
+{
+    static const auto description = ModelDescription::define<GridDynOptimization>(
+        "GridDynOptimization",
+        &GridDynSimulation::getModelDescription(),
+        {command({"flags"}, units::defunit, "Flags", ModelFieldType::STRING),
+         command({"defaultoptmode", "defaultopt"},
+                 units::defunit,
+                 "Defaultoptmode",
+                 ModelFieldType::STRING),
+         command({"optimizer", "optimizer_type", "optimizersolver"},
+                 units::defunit,
+                 "Optimizer",
+                 ModelFieldType::STRING),
+         command(
+             {"optimization_mode"}, units::defunit, "Optimization mode", ModelFieldType::STRING),
+         parameter({"optimtol"},
+                   &GridDynOptimization::tols,
+                   &tolerances::rtol,
+                   units::defunit,
+                   "Relative optimization tolerance")});
+    return description;
+}
+
 GridDynOptimization::GridDynOptimization(const std::string& simName):
     GridDynSimulation(simName), mOptimizationMode(DEFAULT_OPTIMIZATION)
 {
@@ -197,6 +222,9 @@ void GridDynOptimization::setupOptOffsets(const OptimizationMode& oMode, int set
 // --------------- set properties ---------------
 void GridDynOptimization::set(std::string_view param, std::string_view val)
 {
+    if (isSetHandled(GridDynOptimization::getModelDescription().trySetLocal(*this, param, val))) {
+        return;
+    }
     if (param == "flags") {
         auto flagTokens = gmlc::utilities::stringOps::splitline(val);
         gmlc::utilities::stringOps::trim(flagTokens);
@@ -261,16 +289,15 @@ void GridDynOptimization::setFlags(size_t param, int val)
 
 void GridDynOptimization::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "optimtol") {
-        tols.rtol = val;
-    } else {
-        // out = setFlags (param, val);
-        try {
-            GridDynSimulation::set(param, val, unitType);
-        }
-        catch (const UnrecognizedParameter&) {
-            setFlag(param, (val > 0.1));
-        }
+    if (isSetHandled(
+            GridDynOptimization::getModelDescription().trySet(*this, param, val, unitType))) {
+        return;
+    }
+    try {
+        GridDynSimulation::set(param, val, unitType);
+    }
+    catch (const UnrecognizedParameter&) {
+        setFlag(param, val != 0.0);
     }
 }
 

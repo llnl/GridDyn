@@ -16,6 +16,7 @@ alignment campaign and summarizes its historical inventory snapshots.
 :caption: Architecture and reusable APIs
 
 bus-models
+model-parameters
 composite-load-framework
 control-signal-routing
 renewable-generator-architecture-refinement
@@ -34,6 +35,8 @@ csvgn1-model
 epcgen-reference
 esac5a-model
 esst2a-model
+exciter-model-description
+component-model-descriptions
 governor-variants
 gpwscc-reference
 motor-dq-model

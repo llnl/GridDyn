@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="motor_dq_composite" version="0.0.1">
+  <bus name="source">
+    <type>infinite</type>
+    <voltage>1</voltage>
+  </bus>
+  <bus name="load_bus">
+    <load name="aggregate" type="loadcomposition">
+      <p>0.8</p>
+      <q>0.3</q>
+      <fraction1>0.4</fraction1>
+      <fraction2>0.6</fraction2>
+      <load name="motor" type="motor_dq" />
+      <load name="static" type="zip" />
+    </load>
+  </bus>
+  <link from="source" name="feeder" to="load_bus">
+    <r>0</r>
+    <x>0.01</x>
+  </link>
+  <basepower>100</basepower>
+  <timestart>0</timestart>
+  <timestop>0.1</timestop>
+  <timestep>0.001</timestep>
+</griddyn>

@@ -12,15 +12,23 @@
 #include <vector>
 
 namespace griddyn::solvers {
-/** @brief class implementing a Gauss Seidel solver for algebraic variables in a power system
+/** @brief fixed-step explicit (forward Euler) solver for differential equations
+ *
+ * The step size is set with the "deltat" parameter and must be positive. Each call to solve()
+ * advances at most max_iterations steps; if the limit is reached before the stop time the
+ * solver returns SOLVER_STEP_LIMIT_REACHED with the time it actually reached.
  */
 class BasicOdeSolver: public SolverInterface {
   private:
-    std::vector<double> state;  //!< state data/
-    std::vector<double> deriv;  //!< temp state data location 1
-    std::vector<double> state2;  //!< temp state data location 2
-    std::vector<double> type;  //!< type data
+    std::vector<double> state;  //!< state data
+    std::vector<double> deriv;  //!< derivative data
+    std::vector<double> type;  //!< type data (all differential)
     CoreTime deltaT = 0.005;  //!< the default time step
+
+    /** @brief take one explicit step of size min(deltaT, tStop - solveTime)
+    @return FUNCTION_EXECUTION_SUCCESS or the error code from the model evaluation
+    */
+    int advanceStep(CoreTime tStop);
 
   public:
     using SolverInterface::set;

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="motor_dq" version="0.0.1">
+  <bus name="source">
+    <type>infinite</type>
+    <angle>0.17</angle>
+    <voltage>1</voltage>
+  </bus>
+  <bus name="motor_bus">
+    <angle>0.15</angle>
+    <load name="motor" type="motor_dq">
+      <p>0.7</p>
+      <rating>100</rating>
+      <h>0.5</h>
+    </load>
+  </bus>
+  <link from="source" name="feeder" to="motor_bus">
+    <r>0.002</r>
+    <x>0.01</x>
+  </link>
+  <basepower>100</basepower>
+  <timestart>0</timestart>
+  <timestop>0.1</timestop>
+  <timestep>0.001</timestep>
+</griddyn>

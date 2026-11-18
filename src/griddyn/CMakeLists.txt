@@ -323,6 +323,7 @@ set(load_headers
     loads/MotorLoad.h
     loads/MotorLoad3.h
     loads/MotorLoad5.h
+    loads/MotorLoadDQ.h
     loads/CIMLoad.h
     loads/MotorProtectionGroups.h
     loads/WECCMotor3.h
@@ -352,6 +353,7 @@ set(load_sources
     loads/MotorLoad.cpp
     loads/MotorLoad3.cpp
     loads/MotorLoad5.cpp
+    loads/MotorLoadDQ.cpp
     loads/CIMLoad.cpp
     loads/MotorProtectionGroups.cpp
     loads/WECCMotor3.cpp

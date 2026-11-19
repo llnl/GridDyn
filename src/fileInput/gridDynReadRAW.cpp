@@ -66,29 +66,6 @@ namespace {
     };
 }  // namespace
 
-static CoreObject* getRawLinkParent(CoreObject* parentObject, Link* link)
-{
-    if ((link == nullptr) || (link->terminalCount() != 2)) {
-        return parentObject;
-    }
-
-    auto* bus1 = link->getBus(1);
-    auto* bus2 = link->getBus(2);
-    auto* area1 = (bus1 != nullptr) ? dynamic_cast<GridArea*>(bus1->getParent()) : nullptr;
-    auto* area2 = (bus2 != nullptr) ? dynamic_cast<GridArea*>(bus2->getParent()) : nullptr;
-    if ((area1 == nullptr) || (area1 != area2)) {
-        return parentObject;
-    }
-
-    for (auto* object = area1; object != nullptr;
-         object = dynamic_cast<GridArea*>(object->getParent())) {
-        if (object == parentObject) {
-            return area1;
-        }
-    }
-    return parentObject;
-}
-
 static double correctionFactor(const ImpedanceCorrectionTables& tables, int tableId, double tap)
 {
     const auto table = tables.find(tableId);
@@ -537,7 +514,7 @@ static void rawReadThreeWindingTransformer(CoreObject* parentObject,
         if (windingOutOfService) {
             leg->disable();
         }
-        addToParentWithRename(leg, getRawLinkParent(parentObject, leg));
+        addToParentWithRename(leg, getReaderLinkParent(parentObject, leg));
     }
 }
 
@@ -1318,10 +1295,10 @@ static links::RawDcLine* addRawDcCompatibilityLink(CoreObject* parentObject,
     link->updateBus(fromBus, 1);
     link->updateBus(toBus, 2);
     try {
-        getRawLinkParent(parentObject, link)->add(link);
+        getReaderLinkParent(parentObject, link)->add(link);
     }
     catch (const ObjectAddFailure&) {
-        addToParentWithRename(link, getRawLinkParent(parentObject, link));
+        addToParentWithRename(link, getReaderLinkParent(parentObject, link));
     }
 
     link->set("pset", scheduledPower, MW);
@@ -2009,7 +1986,7 @@ static void rawReadGen(Generator* gen,
                 nBus->disable();
             }
             oBus->getParent()->add(nBus);
-            getRawLinkParent(oBus->getParent(), lnk)->add(lnk);
+            getReaderLinkParent(oBus->getParent(), lnk)->add(lnk);
             // get the tap ratio
             const auto tapRatio =
                 numeric_conversion<double>(strvec[13 + generatorFieldOffset], 0.0);
@@ -2103,7 +2080,7 @@ static void rawReadBranch(CoreObject* parentObject,
 
     // check for circuit identifier
 
-    auto* linkParent = getRawLinkParent(parentObject, lnk);
+    auto* linkParent = getReaderLinkParent(parentObject, lnk);
     try {
         linkParent->add(lnk);
     }
@@ -2259,7 +2236,7 @@ static void rawReadTXadj(CoreObject* parentObject,
         adjTX->set("g2", 0.0);
         adjTX->set("b2", 0.0);
     }
-    getRawLinkParent(parentObject, adjTX)->add(adjTX);
+    getReaderLinkParent(parentObject, adjTX)->add(adjTX);
     const auto initialTapAngle = adjTX->getTapAngle();
     int code;
     if (initialTapAngle != 0) {
@@ -2477,7 +2454,7 @@ static int rawReadTxV33(CoreObject* parentObject,
     lnk->updateBus(bus1, 1);
     lnk->updateBus(bus2, 2);
 
-    auto* linkParent = getRawLinkParent(parentObject, lnk);
+    auto* linkParent = getReaderLinkParent(parentObject, lnk);
     try {
         linkParent->add(lnk);
     }
@@ -2772,7 +2749,7 @@ static int rawReadTX(CoreObject* parentObject,
     lnk->updateBus(bus1, 1);
     lnk->updateBus(bus2, 2);
 
-    auto* linkParent = getRawLinkParent(parentObject, lnk);
+    auto* linkParent = getReaderLinkParent(parentObject, lnk);
     try {
         linkParent->add(lnk);
     }

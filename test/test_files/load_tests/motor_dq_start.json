@@ -1,0 +1,29 @@
+{
+  "name": "motor_dq_start",
+  "basepower": 100,
+  "bus": [
+    { "name": "source", "type": "infinite", "voltage": 1.0 },
+    {
+      "name": "motor_bus",
+      "load": {
+        "name": "motor",
+        "type": "motor_dq",
+        "p": 0.65,
+        "rating": 80,
+        "rs": 0.018,
+        "initialization": "starting",
+        "initial_speed": 0.12,
+        "load_torque": 0.08
+      }
+    }
+  ],
+  "link": {
+    "name": "feeder",
+    "from": "source",
+    "to": "motor_bus",
+    "r": 0.002,
+    "x": 0.01
+  },
+  "timestop": 0.1,
+  "timestep": 0.001
+}

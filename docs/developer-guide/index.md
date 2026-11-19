@@ -39,6 +39,7 @@ exciter-model-description
 component-model-descriptions
 governor-variants
 gpwscc-reference
+motor-dq-model
 pss2b-esac2a-models
 scrx-esac6a-model-spec
 stab2a-model
@@ -54,6 +55,7 @@ tiocr1-dyr-compatibility
 activsg-dyr-compatibility-plan
 andes-compatibility
 fskit-retirement
+gridkit-induction-motor-assessment
 openipsl-compatibility
 powerdynamics-compatibility
 powerworld-aux-reader
@@ -73,6 +75,7 @@ wecc-model-coverage-audit
 activsg10k-three-winding-investigation
 activsg25k-dynamic-investigation
 activsg25k-dynamics-audit
+genmodel8-review
 ida-initial-condition-diagnostics
 powerflow-validation-followups
 ```

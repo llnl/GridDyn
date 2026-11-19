@@ -15,6 +15,7 @@
 #include "griddyn/loads/ZipLoad.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/simulation/GridSimulation.h"
+#include "readerHelper.h"
 #include "sqlite3.h"
 #include <algorithm>
 #include <cctype>
@@ -878,27 +879,6 @@ namespace {
         return name;
     }
 
-    CoreObject* getSavLinkParent(CoreObject* parentObject, Link* link)
-    {
-        if ((link == nullptr) || (link->terminalCount() != 2)) {
-            return parentObject;
-        }
-        auto* bus1 = link->getBus(1);
-        auto* bus2 = link->getBus(2);
-        auto* area1 = (bus1 != nullptr) ? dynamic_cast<GridArea*>(bus1->getParent()) : nullptr;
-        auto* area2 = (bus2 != nullptr) ? dynamic_cast<GridArea*>(bus2->getParent()) : nullptr;
-        if ((area1 == nullptr) || (area1 != area2)) {
-            return parentObject;
-        }
-        for (auto* area = area1; area != nullptr;
-             area = dynamic_cast<GridArea*>(area->getParent())) {
-            if (area == parentObject) {
-                return area1;
-            }
-        }
-        return parentObject;
-    }
-
     void addArea(CoreObject* parentObject,
                  const BasicReaderInfo& readerOptions,
                  const AreaData& areaData,
@@ -1071,7 +1051,7 @@ namespace {
             line->disable();
         }
         try {
-            addToParentWithRename(line, getSavLinkParent(parentObject, line));
+            addToParentWithRename(line, getReaderLinkParent(parentObject, line));
         }
         catch (const ObjectAddFailure&) {
             savError(fileName, "could not attach a PSLF transmission line");
@@ -1127,7 +1107,7 @@ namespace {
             transformer->disable();
         }
         try {
-            addToParentWithRename(transformer, getSavLinkParent(parentObject, transformer));
+            addToParentWithRename(transformer, getReaderLinkParent(parentObject, transformer));
         }
         catch (const ObjectAddFailure&) {
             savError(fileName, "could not attach a PSLF transformer");

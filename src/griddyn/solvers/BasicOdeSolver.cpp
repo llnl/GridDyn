@@ -7,13 +7,27 @@
 #include "BasicOdeSolver.h"
 
 #include "../GridDynSimulation.h"
-#include "gmlc/utilities/vectorOps.hpp"
+#include "core/CoreExceptions.h"
 #include <algorithm>
 #include <cmath>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace griddyn::solvers {
+namespace {
+    bool isStepSizeParam(std::string_view param)
+    {
+        return (param == "delta") || (param == "deltat") || (param == "step") ||
+            (param == "steptime");
+    }
+
+    bool allFinite(const std::vector<double>& values)
+    {
+        return std::all_of(values.begin(), values.end(), [](double v) { return std::isfinite(v); });
+    }
+}  // namespace
+
 BasicOdeSolver::BasicOdeSolver(const std::string& objName): SolverInterface(objName)
 {
     mode.dynamic = true;
@@ -71,7 +85,8 @@ void BasicOdeSolver::allocate(count_t stateCount, count_t numRoots)
     if (stateCount != svsize) {
         state.resize(stateCount);
         deriv.resize(stateCount);
-        state2.resize(stateCount);
+        // every variable is a differential variable for this solver
+        type.assign(stateCount, 1.0);
         svsize = stateCount;
         flags.reset(INITIALIZED_FLAG);
         flags.set(ALLOCATED_FLAG);
@@ -87,6 +102,14 @@ void BasicOdeSolver::initialize(CoreTime t0)
     flags.set(INITIALIZED_FLAG);
     solverCallCount = 0;
     solveTime = t0;
+}
+
+void BasicOdeSolver::set(std::string_view param, double val)
+{
+    if (isStepSizeParam(param) && (!(val > 0.0) || !std::isfinite(val))) {
+        throw(InvalidParameterValue(param));
+    }
+    SolverInterface::set(param, val);
 }
 
 void BasicOdeSolver::restoreFromCheckpoint(CoreTime time)
@@ -107,50 +130,68 @@ const SolverInterface::Description& BasicOdeSolver::getSolverDescription() const
     return description;
 }
 
-int BasicOdeSolver::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
+int BasicOdeSolver::advanceStep(CoreTime tStop)
 {
-    if (solveTime == tStop) {
-        tReturn = tStop;
-        return FUNCTION_EXECUTION_SUCCESS;
-    }
-    CoreTime stepDuration = (std::min)(deltaT, tStop - solveTime);
+    const CoreTime remaining = tStop - solveTime;
+    const bool lastStep = remaining <= deltaT;
+    const CoreTime timeStep = lastStep ? remaining : deltaT;
+
     if (mode.pairedOffsetIndex != kNullLocation) {
-        int ret = m_gds->dynAlgebraicSolve(solveTime, state.data(), deriv.data(), mode);
+        const int ret = m_gds->dynAlgebraicSolve(solveTime, state.data(), deriv.data(), mode);
         if (ret < FUNCTION_EXECUTION_SUCCESS) {
             return ret;
         }
     }
-    m_gds->derivativeFunction(solveTime, state.data(), deriv.data(), mode);
-    std::transform(state.begin(),
-                   state.end(),
-                   deriv.begin(),
-                   state.begin(),
-                   [stepDuration](double a, double b) { return fma(stepDuration, b, a); });
-    solveTime += stepDuration;
+    const int ret = m_gds->derivativeFunction(solveTime, state.data(), deriv.data(), mode);
+    if (ret < FUNCTION_EXECUTION_SUCCESS) {
+        return ret;
+    }
+    for (std::size_t kk = 0; kk < state.size(); ++kk) {
+        state[kk] = std::fma(timeStep, deriv[kk], state[kk]);
+    }
+    // land exactly on the stop time so repeated rounding does not leave a sliver step
+    solveTime = lastStep ? tStop : solveTime + timeStep;
 
-    count_t iterations = 0;
-    // if we are in single step mode don't go into the loop
-    if (stepMode == StepMode::NORMAL) {
-        while (solveTime < tStop && iterations < max_iterations) {
-            stepDuration = (std::min)(deltaT, tStop - solveTime);
-            if (mode.pairedOffsetIndex != kNullLocation) {
-                int ret = m_gds->dynAlgebraicSolve(solveTime, state.data(), deriv.data(), mode);
-                if (ret < FUNCTION_EXECUTION_SUCCESS) {
-                    return ret;
-                }
-            }
-            m_gds->derivativeFunction(solveTime, state.data(), deriv.data(), mode);
-            std::transform(state.begin(),
-                           state.end(),
-                           deriv.begin(),
-                           state.begin(),
-                           [stepDuration](double a, double b) { return fma(stepDuration, b, a); });
-            solveTime += stepDuration;
-            ++iterations;
+    if (!allFinite(state)) {
+        lastErrorString = "basicode solver produced a non-finite state";
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+    return FUNCTION_EXECUTION_SUCCESS;
+}
+
+int BasicOdeSolver::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
+{
+    ++solverCallCount;
+    if (!(deltaT > 0.0)) {
+        lastErrorString = "basicode solver step size must be positive";
+        tReturn = solveTime;
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+    if (tStop < solveTime) {
+        lastErrorString = "basicode solver cannot integrate backwards in time";
+        tReturn = solveTime;
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+
+    int ret = FUNCTION_EXECUTION_SUCCESS;
+    count_t steps = 0;
+    while (solveTime < tStop) {
+        if (steps >= max_iterations) {
+            ret = SOLVER_STEP_LIMIT_REACHED;
+            break;
+        }
+        ret = advanceStep(tStop);
+        if (ret < FUNCTION_EXECUTION_SUCCESS) {
+            break;
+        }
+        ++steps;
+        // in single step mode only one step is taken per call
+        if (stepMode == StepMode::SINGLE_STEP) {
+            break;
         }
     }
     tReturn = solveTime;
-    return FUNCTION_EXECUTION_SUCCESS;
+    return ret;
 }
 
 }  // namespace griddyn::solvers

@@ -24,6 +24,8 @@
 #include "MeasurementExpression.hpp"
 #include "ObjectGrabbers.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include <array>
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -42,6 +44,24 @@ static void perObjectGrabbers(std::string_view cmd,
                               std::vector<std::unique_ptr<GridGrabber>>& grabbers);
 
 namespace {
+    constexpr std::array<std::string_view, 5> busGrabberFields{"voltage",
+                                                               "angle",
+                                                               "gen",
+                                                               "load",
+                                                               "freq"};
+    constexpr std::array<std::string_view, 2> loadGrabberFields{"p", "q"};
+
+    template<class ObjectType, std::size_t FieldCount>
+    void appendObjectGrabbers(ObjectType* object,
+                              const std::array<std::string_view, FieldCount>& fields,
+                              std::vector<std::unique_ptr<GridGrabber>>& grabbers)
+    {
+        grabbers.reserve(grabbers.size() + fields.size());
+        for (const auto field : fields) {
+            grabbers.push_back(std::make_unique<ObjectGrabber<ObjectType>>(field, object));
+        }
+    }
+
     /** @brief Collect current local states or their labels from a component subtree.
      * @param object Root component; other object types produce empty outputs.
      * @param[out] values Values in traversal order, or null to skip value collection.
@@ -198,25 +218,13 @@ void autoGrabbers(CoreObject* obj, std::vector<std::unique_ptr<GridGrabber>>& gr
 {
     auto* bus = dynamic_cast<GridBus*>(obj);
     if (bus != nullptr) {
-        grabbers.reserve(grabbers.size() + 5);
-        grabbers.push_back(std::make_unique<ObjectGrabber<GridBus>>("voltage", bus));
-
-        grabbers.push_back(std::make_unique<ObjectGrabber<GridBus>>("angle", bus));
-
-        grabbers.push_back(std::make_unique<ObjectGrabber<GridBus>>("gen", bus));
-
-        grabbers.push_back(std::make_unique<ObjectGrabber<GridBus>>("load", bus));
-
-        grabbers.push_back(std::make_unique<ObjectGrabber<GridBus>>("freq", bus));
+        appendObjectGrabbers(bus, busGrabberFields, grabbers);
         return;
     }
 
     auto* load = dynamic_cast<GridLoad*>(obj);
     if (load != nullptr) {
-        grabbers.reserve(grabbers.size() + 2);
-        grabbers.push_back(std::make_unique<ObjectGrabber<GridLoad>>("p", load));
-
-        grabbers.push_back(std::make_unique<ObjectGrabber<GridLoad>>("q", load));
+        appendObjectGrabbers(load, loadGrabberFields, grabbers);
         return;
     }
 
@@ -313,26 +321,13 @@ void allGrabbers(std::string_view mode,
 {
     auto* bus = dynamic_cast<GridBus*>(obj);
     if (bus != nullptr) {
-        grabbers.reserve(grabbers.size() + 5);
-
-        grabbers.push_back(std::make_unique<ObjectGrabber<GridBus>>("voltage", bus));
-
-        grabbers.push_back(std::make_unique<ObjectGrabber<GridBus>>("angle", bus));
-
-        grabbers.push_back(std::make_unique<ObjectGrabber<GridBus>>("gen", bus));
-
-        grabbers.push_back(std::make_unique<ObjectGrabber<GridBus>>("load", bus));
-
-        grabbers.push_back(std::make_unique<ObjectGrabber<GridBus>>("freq", bus));
+        appendObjectGrabbers(bus, busGrabberFields, grabbers);
         return;
     }
 
     auto* load = dynamic_cast<GridLoad*>(obj);
     if (load != nullptr) {
-        grabbers.reserve(grabbers.size() + 2);
-        grabbers.push_back(std::make_unique<ObjectGrabber<GridLoad>>("p", load));
-
-        grabbers.push_back(std::make_unique<ObjectGrabber<GridLoad>>("q", load));
+        appendObjectGrabbers(load, loadGrabberFields, grabbers);
         return;
     }
 

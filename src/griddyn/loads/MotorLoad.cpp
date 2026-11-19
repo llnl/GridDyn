@@ -9,6 +9,7 @@
 #include "../GridBus.h"
 #include "CIMLoad.h"
 #include "MotorLoad5.h"
+#include "MotorLoadDQ.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ModelParameter.hpp"
@@ -35,6 +36,8 @@ static TypeFactory<MotorLoad5> gMlf5("load",
                                      std::to_array<std::string_view>({"motor5", "motorIV", "m5"}));
 static TypeFactory<CIM5> gCim5Factory("load", std::to_array<std::string_view>({"cim5"}));
 static TypeFactory<CIM6> gCim6Factory("load", std::to_array<std::string_view>({"cim6"}));
+static TypeFactory<MotorLoadDQ> gMotorDQFactory("load",
+                                                std::to_array<std::string_view>({"motor_dq"}));
 
 static constexpr double cSmallDiff = 1e-7;
 const ModelDescription& MotorLoad::getModelDescription() const

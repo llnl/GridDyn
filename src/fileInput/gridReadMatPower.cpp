@@ -45,29 +45,6 @@ namespace {
 
     using AreaMap = std::unordered_map<int, GridArea*>;
 
-    CoreObject* getMatPowerLinkParent(CoreObject* parentObject, Link* link)
-    {
-        if ((link == nullptr) || (link->terminalCount() != 2)) {
-            return parentObject;
-        }
-
-        auto* bus1 = link->getBus(1);
-        auto* bus2 = link->getBus(2);
-        auto* area1 = (bus1 != nullptr) ? dynamic_cast<GridArea*>(bus1->getParent()) : nullptr;
-        auto* area2 = (bus2 != nullptr) ? dynamic_cast<GridArea*>(bus2->getParent()) : nullptr;
-        if ((area1 == nullptr) || (area1 != area2)) {
-            return parentObject;
-        }
-
-        for (auto* object = area1; object != nullptr;
-             object = dynamic_cast<GridArea*>(object->getParent())) {
-            if (object == parentObject) {
-                return area1;
-            }
-        }
-        return parentObject;
-    }
-
     AreaMap createMatPowerAreas(CoreObject* parentObject,
                                 const mArray& areaData,
                                 const mArray& buses,
@@ -510,7 +487,7 @@ namespace {
             lnk->setUserID(linkIndex);
             lnk->updateBus(bus1, 1);
             lnk->updateBus(bus2, 2);
-            getMatPowerLinkParent(parentObject, lnk)->add(lnk);
+            getReaderLinkParent(parentObject, lnk)->add(lnk);
             lnk->set("r", linkData[2]);
             lnk->set("x", linkData[3]);
             lnk->set("b", linkData[4]);

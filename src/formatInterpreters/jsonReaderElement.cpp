@@ -340,7 +340,7 @@ void JsonReaderElement::moveToFirstChild()
         ++mCurrent->mElementIndex;
     }
     mParents.push_back(mCurrent);
-    mCurrent->clear();
+    mCurrent = std::make_shared<JsonElement>();
 }
 
 void JsonReaderElement::moveToFirstChild(const std::string& childName)
@@ -358,7 +358,7 @@ void JsonReaderElement::moveToFirstChild(const std::string& childName)
     }
 
     mParents.push_back(mCurrent);
-    mCurrent->clear();
+    mCurrent = std::make_shared<JsonElement>();
 }
 
 void JsonReaderElement::moveToNextSibling()

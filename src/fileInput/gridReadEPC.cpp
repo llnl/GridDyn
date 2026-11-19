@@ -56,29 +56,6 @@ using units::pu;
 using units::puMW;
 
 namespace {
-    CoreObject* getEpcLinkParent(CoreObject* parentObject, Link* link)
-    {
-        if ((link == nullptr) || (link->terminalCount() != 2)) {
-            return parentObject;
-        }
-
-        auto* bus1 = link->getBus(1);
-        auto* bus2 = link->getBus(2);
-        auto* area1 = (bus1 != nullptr) ? dynamic_cast<GridArea*>(bus1->getParent()) : nullptr;
-        auto* area2 = (bus2 != nullptr) ? dynamic_cast<GridArea*>(bus2->getParent()) : nullptr;
-        if ((area1 == nullptr) || (area1 != area2)) {
-            return parentObject;
-        }
-
-        for (auto* object = area1; object != nullptr;
-             object = dynamic_cast<GridArea*>(object->getParent())) {
-            if (object == parentObject) {
-                return area1;
-            }
-        }
-        return parentObject;
-    }
-
     using ImpedanceCorrectionTable = std::vector<std::pair<double, double>>;
     using ImpedanceCorrectionTables = std::unordered_map<int, ImpedanceCorrectionTable>;
 
@@ -217,7 +194,7 @@ namespace {
             if (status == 0) {
                 leg->disable();
             }
-            addToParentWithRename(leg, getEpcLinkParent(parentObject, leg));
+            addToParentWithRename(leg, getReaderLinkParent(parentObject, leg));
         }
     }
 
@@ -1324,7 +1301,7 @@ namespace {
         lnk->updateBus(bus1, 1);
         lnk->updateBus(bus2, 2);
 
-        addToParentWithRename(lnk, getEpcLinkParent(parentObject, lnk));
+        addToParentWithRename(lnk, getReaderLinkParent(parentObject, lnk));
         // get the branch parameters
         const int status = toIntSimple(strvec[9]);
         if (status == 0) {
@@ -1407,7 +1384,7 @@ namespace {
         lnk->updateBus(bus1, 1);
         lnk->updateBus(bus2, 2);
 
-        addToParentWithRename(lnk, getEpcLinkParent(parentObject, lnk));
+        addToParentWithRename(lnk, getReaderLinkParent(parentObject, lnk));
         // get the branch parameters
         const int status = toIntSimple(strvec[8]);
         if (status == 0) {
@@ -1528,7 +1505,7 @@ namespace {
             lnk->setDescription(std::string{longId});
         }
 
-        addToParentWithRename(lnk, getEpcLinkParent(parentObject, lnk));
+        addToParentWithRename(lnk, getReaderLinkParent(parentObject, lnk));
         // get the branch parameters
         status = toIntSimple(strvec[8]);
         if (status == 0) {

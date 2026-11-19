@@ -29,8 +29,17 @@ class GridParameter;
 class ReaderInfo;
 class CoreObject;
 class BasicReaderInfo;
+class Link;
 
-void processParamString(GridParameter& param, ReaderInfo& ReaderInformation);
+void processParamString(GridParameter& param, ReaderInfo& readerInformation);
+
+/** Select the parent for an imported link.
+ * @param parentObject Default parent and boundary of the imported network.
+ * @param link Link whose terminal buses have already been assigned.
+ * @return The buses' common immediate GridArea if the link has two terminals and
+ *         that area is within parentObject; otherwise parentObject.
+ */
+CoreObject* getReaderLinkParent(CoreObject* parentObject, const Link* link);
 
 double convertBV(std::string& baseVoltageCode);
 

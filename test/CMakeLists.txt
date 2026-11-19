@@ -21,6 +21,7 @@ endif()
 
 set(library_gtest_sources
     gtestHelperFunctions.cpp
+    libraryTests/testBasicOdeSolver.cpp
     libraryTests/testCore.cpp
     libraryTests/testModelParameters.cpp
     libraryTests/testGridParameter.cpp
@@ -55,6 +56,7 @@ set(network_component_gtest_sources
     componentTests/testAdjustableTX.cpp
     componentTests/testExponentialLoadParameters.cpp
     componentTests/testComponentDescriptions.cpp
+    componentTests/testMotorDQ.cpp
 )
 
 set(generator_component_gtest_sources
@@ -192,6 +194,11 @@ add_executable(
     ExecutableSystemTests ${executable_system_gtest_sources} gtestHelper.h exeTestHelper.h
 )
 add_executable(OptionalComponentTests ${optional_component_gtest_sources} ${gtestMain_headers})
+
+# Explicit equation-review tool; measurements are not registered as passing CTest checks.
+add_executable(GenModel8Audit EXCLUDE_FROM_ALL diagnostics/genModel8Audit.cpp)
+target_link_libraries(GenModel8Audit PRIVATE fileInput griddyn_base)
+
 if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
     add_executable(OptimizationTests ${optimization_gtest_sources} ${gtestMain_headers})
 endif()

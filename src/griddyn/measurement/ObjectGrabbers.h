@@ -61,7 +61,7 @@ class ObjectGrabber: public GridGrabber {
     ObjectGrabber(std::string_view fld = objEmptyString, X* newObj = nullptr)
     {
         if (newObj) {
-            updateObject(newObj);
+            ObjectGrabber<X>::updateObject(newObj);
         }
         if (!fld.empty()) {
             ObjectGrabber<X>::updateField(fld);

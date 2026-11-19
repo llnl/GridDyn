@@ -1,0 +1,9 @@
+bus,type,voltage
+source,infinite,1.0
+motor_bus,pq,1.0
+##
+load,bus,type,p,rating,rs,initialization,initial_speed,load_torque
+motor,motor_bus,motor_dq,0.65,80,0.018,starting,0.12,0.08
+##
+link,from,to,r,x
+feeder,source,motor_bus,0.002,0.01

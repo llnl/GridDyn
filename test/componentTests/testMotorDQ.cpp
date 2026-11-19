@@ -198,8 +198,8 @@ TEST(MotorDQTests, NativeReadersLoadConfiguredStartingMotor)
 {
     for (const auto* extension : {".json", ".yaml", ".csv"}) {
         SCOPED_TRACE(extension);
-        const auto fileName = std::string{GRIDDYN_TEST_DIRECTORY} + "/load_tests/motor_dq_start" +
-            extension;
+        const auto fileName =
+            std::string{GRIDDYN_TEST_DIRECTORY} + "/load_tests/motor_dq_start" + extension;
         GridDynSimulation simulation;
         simulation.set("basepower", 100.0);
         ASSERT_NO_THROW(loadFile(&simulation, fileName));

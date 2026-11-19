@@ -71,23 +71,26 @@ namespace {
 
 const ModelDescription& MotorLoadDQ::getModelDescription() const
 {
-    const auto motorState = [](std::string_view stateName,
-                               index_t slot,
-                               std::string_view description) {
-        return ModelField(
-            {stateName},
-            units::one,
-            description,
-            {.mLocalIndex = [slot](const CoreObject&, index_t) { return slot; },
-             .mSolverIndex = [slot](const CoreObject& object, const SolverMode& mode) {
-                 if (isDynamic(mode) && !hasDifferential(mode)) {
-                     return kInvalidLocation;
-                 }
-                 const auto& layout = static_cast<const MotorLoadDQ&>(object).getOffsets(mode);
-                 const auto baseIndex = isDynamic(mode) ? layout.diffOffset : layout.algOffset;
-                 return baseIndex == kNullLocation ? kNullLocation : stateSlot(baseIndex, slot);
-             }});
-    };
+    const auto motorState =
+        [](std::string_view stateName, index_t slot, std::string_view description) {
+            return ModelField({stateName},
+                              units::one,
+                              description,
+                              {.mLocalIndex = [slot](const CoreObject&, index_t) { return slot; },
+                               .mSolverIndex =
+                                   [slot](const CoreObject& object, const SolverMode& mode) {
+                                       if (isDynamic(mode) && !hasDifferential(mode)) {
+                                           return kInvalidLocation;
+                                       }
+                                       const auto& layout =
+                                           static_cast<const MotorLoadDQ&>(object).getOffsets(mode);
+                                       const auto baseIndex =
+                                           isDynamic(mode) ? layout.diffOffset : layout.algOffset;
+                                       return baseIndex == kNullLocation ?
+                                           kNullLocation :
+                                           stateSlot(baseIndex, slot);
+                                   }});
+        };
     static const auto description = ModelDescription::define<MotorLoadDQ>(
         "MotorLoadDQ",
         &GridLoad::getModelDescription(),
@@ -141,7 +144,9 @@ const ModelDescription& MotorLoadDQ::getModelDescription() const
          // Setting load_torque also sets the explicit torque latch.
          command({"load_torque"}, units::one, "Load torque at rated speed"),
          localState("loadTorque", &MotorLoadDQ::mLoadTorque, "Applied load torque", units::one),
-         localState("torqueSpecified", &MotorLoadDQ::mTorqueSpecified, "Explicit load torque latch"),
+         localState("torqueSpecified",
+                    &MotorLoadDQ::mTorqueSpecified,
+                    "Explicit load torque latch"),
          localState(
              "scale", &MotorLoadDQ::mScale, "Initialized motor-to-system base ratio", units::one),
          motorState("psi_sd", 0, "Stator direct-axis flux"),

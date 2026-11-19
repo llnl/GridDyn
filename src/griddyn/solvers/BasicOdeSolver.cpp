@@ -12,6 +12,7 @@
 #include <cmath>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace griddyn::solvers {
 namespace {
@@ -133,7 +134,7 @@ int BasicOdeSolver::advanceStep(CoreTime tStop)
 {
     const CoreTime remaining = tStop - solveTime;
     const bool lastStep = remaining <= deltaT;
-    const CoreTime Tstep = lastStep ? remaining : deltaT;
+    const CoreTime timeStep = lastStep ? remaining : deltaT;
 
     if (mode.pairedOffsetIndex != kNullLocation) {
         const int ret = m_gds->dynAlgebraicSolve(solveTime, state.data(), deriv.data(), mode);
@@ -146,10 +147,10 @@ int BasicOdeSolver::advanceStep(CoreTime tStop)
         return ret;
     }
     for (std::size_t kk = 0; kk < state.size(); ++kk) {
-        state[kk] = std::fma(Tstep, deriv[kk], state[kk]);
+        state[kk] = std::fma(timeStep, deriv[kk], state[kk]);
     }
     // land exactly on the stop time so repeated rounding does not leave a sliver step
-    solveTime = lastStep ? tStop : solveTime + Tstep;
+    solveTime = lastStep ? tStop : solveTime + timeStep;
 
     if (!allFinite(state)) {
         lastErrorString = "basicode solver produced a non-finite state";

@@ -12,7 +12,9 @@
 #include "griddyn/loads/CompositeLoad.h"
 #include "griddyn/loads/MotorLoadDQ.h"
 #include "griddyn/simulation/Diagnostics.h"
+#include "griddyn/simulation/GridDynSimulationFileOps.h"
 #include "utilities/MatrixDataSparse.hpp"
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <complex>
@@ -32,7 +34,7 @@ class MotorDQProbe: public MotorLoadDQ {
         loadStateSizes(cDaeSolverMode);
         setOffset(0, cDaeSolverMode);
     }
-    double frequencyBase() const { return systemBaseFrequency; }
+    [[nodiscard]] double frequencyBase() const { return systemBaseFrequency; }
 };
 
 std::unique_ptr<GridDynSimulation> readMotorCase()
@@ -65,20 +67,20 @@ TEST(MotorDQTests, MagneticAndMechanicalEnergyBalanceIncludesStatorStorage)
     const double statorReactance = motor.get("xls") + motor.get("xm");
     const double rotorReactance = motor.get("xlr") + motor.get("xm");
     const double mutual = motor.get("xm");
-    const double determinant = statorReactance * rotorReactance - mutual * mutual;
+    const double determinant = (statorReactance * rotorReactance) - (mutual * mutual);
     std::array<double, 4> current{};
     for (std::size_t axis = 0; axis < 2; ++axis) {
-        current[axis] = (rotorReactance * state[axis] - mutual * state[axis + 2]) / determinant;
+        current[axis] = ((rotorReactance * state[axis]) - (mutual * state[axis + 2])) / determinant;
         current[axis + 2] =
-            (statorReactance * state[axis + 2] - mutual * state[axis]) / determinant;
+            ((statorReactance * state[axis + 2]) - (mutual * state[axis])) / determinant;
     }
     double magneticPower = 0.0;
     for (std::size_t index = 0; index < current.size(); ++index) {
         magneticPower += current[index] * derivative[index] / motor.frequencyBase();
     }
     const double copperLoss =
-        motor.get("rs") * (current[0] * current[0] + current[1] * current[1]) +
-        motor.get("rr") * (current[2] * current[2] + current[3] * current[3]);
+        (motor.get("rs") * ((current[0] * current[0]) + (current[1] * current[1]))) +
+        (motor.get("rr") * ((current[2] * current[2]) + (current[3] * current[3])));
     const double mechanicalStorage = 2.0 * motor.get("h") * state[4] * derivative[4];
     const double shaftPower = 0.6 * state[4] * state[4] * state[4];
     const double frictionPower = 0.04 * state[4] * state[4];
@@ -159,6 +161,23 @@ TEST(MotorDQTests, NativeXmlInitializesAgainstTheSingleCageEquivalentCircuit)
     ASSERT_NE(bus, nullptr);
     auto* motor = dynamic_cast<MotorLoadDQ*>(bus->getLoad());
     ASSERT_NE(motor, nullptr);
+    stringVec parameters;
+    motor->getParameterStrings(parameters, ParamStringType::LOCAL_STR);
+    EXPECT_NE(std::ranges::find(parameters, "initialization"), parameters.end());
+    const stringVec stateNames{"psi_sd", "psi_sq", "psi_rd", "psi_rq", "speed"};
+    EXPECT_EQ(motor->solverStateNames(), stateNames);
+    const auto& powerFlowLayout = motor->getOffsets(cPflowSolverMode);
+    const auto& dynamicLayout = motor->getOffsets(cDaeSolverMode);
+    ASSERT_LT(powerFlowLayout.algOffset, kInvalidLocation);
+    ASSERT_LT(dynamicLayout.diffOffset, kInvalidLocation);
+    for (std::size_t slot = 0; slot < stateNames.size(); ++slot) {
+        const auto stateIndex = static_cast<index_t>(slot);
+        EXPECT_EQ(motor->findIndex(stateNames[slot], cPflowSolverMode),
+                  powerFlowLayout.algOffset + stateIndex);
+        EXPECT_EQ(motor->findIndex(stateNames[slot], cDaeSolverMode),
+                  dynamicLayout.diffOffset + stateIndex);
+        EXPECT_EQ(motor->findIndex(stateNames[slot], cDynAlgSolverMode), kInvalidLocation);
+    }
     const double slip = motor->get("slip");
     ASSERT_GT(slip, 0.0);
     ASSERT_LT(slip, 0.1);
@@ -175,6 +194,48 @@ TEST(MotorDQTests, NativeXmlInitializesAgainstTheSingleCageEquivalentCircuit)
     EXPECT_GT(motor->getRealPower(), 0.0);
 }
 
+TEST(MotorDQTests, NativeReadersLoadConfiguredStartingMotor)
+{
+    for (const auto* extension : {".json", ".yaml", ".csv"}) {
+        SCOPED_TRACE(extension);
+        const auto fileName = std::string{GRIDDYN_TEST_DIRECTORY} + "/load_tests/motor_dq_start" +
+            extension;
+        GridDynSimulation simulation;
+        simulation.set("basepower", 100.0);
+        ASSERT_NO_THROW(loadFile(&simulation, fileName));
+        const auto* bus = dynamic_cast<const GridBus*>(simulation.find("motor_bus"));
+        ASSERT_NE(bus, nullptr);
+        const auto* motor = dynamic_cast<const MotorLoadDQ*>(bus->getLoad());
+        ASSERT_NE(motor, nullptr);
+        EXPECT_DOUBLE_EQ(motor->get("rating"), 80.0);
+        EXPECT_DOUBLE_EQ(motor->get("rs"), 0.018);
+        EXPECT_DOUBLE_EQ(motor->get("load_torque"), 0.08);
+        ASSERT_EQ(simulation.dynInitialize(), 0);
+        EXPECT_DOUBLE_EQ(motor->get("speed"), 0.12);
+        EXPECT_DOUBLE_EQ(motor->get("scale"), 0.8);
+        EXPECT_NEAR(motor->getRealPower(), 0.0, 1e-12);
+        ASSERT_EQ(simulation.run(0.01), 0);
+        const double power = motor->getRealPower();
+        EXPECT_TRUE(std::isfinite(power));
+        EXPECT_GT(std::abs(power), 1e-6);
+    }
+}
+
+TEST(MotorDQTests, LocalCheckpointRestoresAppliedLoadTorque)
+{
+    MotorLoadDQ* motor = nullptr;
+    auto simulation = makeFixedVoltageCase(motor);
+    ASSERT_NE(motor, nullptr);
+    ASSERT_EQ(simulation->run(0.01), 0);
+    const auto mode = simulation->getCurrentMode();
+    const auto saved = simulation->checkpointCapture(mode);
+    const double savedTorque = motor->get("load_torque");
+    motor->set("load_torque", savedTorque + 0.1);
+    simulation->checkpointRestore(saved, CheckpointRestoreLevel::LOCAL_STATE, mode);
+    EXPECT_DOUBLE_EQ(motor->get("load_torque"), savedTorque);
+    EXPECT_EQ(runResidualCheck(simulation, mode, false), 0);
+}
+
 TEST(MotorDQTests, StartingBuildsFluxAndAcceleratesFromRest)
 {
     MotorLoadDQ* motor = nullptr;
@@ -188,8 +249,9 @@ TEST(MotorDQTests, StartingBuildsFluxAndAcceleratesFromRest)
     EXPECT_NEAR(static_cast<double>(simulation->getSimulationTime()), 0.2, 1e-8);
     EXPECT_GT(motor->get("speed"), 0.01);
     EXPECT_GT(motor->getRealPower(), 0.0);
-    for (double value : simulation->getState(cDaeSolverMode))
+    for (double value : simulation->getState(cDaeSolverMode)) {
         EXPECT_TRUE(std::isfinite(value));
+    }
 }
 
 TEST(MotorDQTests, VoltageSagDeceleratesAndRecoveryReaccelerates)

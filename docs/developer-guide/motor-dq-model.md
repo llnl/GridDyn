@@ -130,9 +130,11 @@ Example native XML:
 </load>
 ```
 
-The load can be nested in `loadcomposition` alongside ZIP and other loads.
-Its native registration does not add or change PSS/E/PSLF motor record
-mappings. See [Composite load component framework](composite-load-framework.md)
+Native JSON and YAML use the same `load` object with `type: motor_dq`. In a
+GridDyn CSV `load` section, put `motor_dq` in the `type` column and identify
+the parent in the `bus` column. The load can be nested in `loadcomposition`
+alongside ZIP and other loads. PSS/E and PSLF records retain their existing
+motor mappings. See [Composite load component framework](composite-load-framework.md)
 for allocation and feeder conventions.
 
 ## Numerical behavior and validation
@@ -154,12 +156,11 @@ Pmotor = d(Wmag + Wmech)/dt
 ```
 
 Tests in `test/componentTests/testMotorDQ.cpp` cover this identity at a
-perturbed state, analytic residual/P/Q Jacobians, native XML and
-equivalent-circuit initialization, energization, voltage-sag/recovery,
-partitioned evaluation, composite allocation, cloning, and invalid or
-infeasible configuration. These are internal physical and solver checks;
-an independent full-order motor trajectory remains a follow-up validation
-task.
+perturbed state, analytic residual/P/Q Jacobians, XML, JSON, YAML, and CSV
+loading, equivalent-circuit initialization, energization, voltage-sag/recovery,
+partitioned evaluation, composite allocation, cloning, local checkpoint
+restore of load torque, and invalid or infeasible configuration. Independent
+full-order motor trajectory validation remains open.
 
 Local validation on 2026-10-31 used a fresh MSVC Debug CMake build of
 `NetworkComponentTests`. All 62 network-component tests passed, including

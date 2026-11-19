@@ -40,18 +40,18 @@ CoreObject* getReaderLinkParent(CoreObject* parentObject, const Link* link)
     return parentObject;
 }
 
-void processParamString(GridParameter& param, ReaderInfo& ReaderInformation)
+void processParamString(GridParameter& param, ReaderInfo& readerInformation)
 {
     if (!param.stringType) {
         return;
     }
-    const double interpretedValue = interpretString(param.strVal, ReaderInformation);
+    const double interpretedValue = interpretString(param.strVal, readerInformation);
     if (!std::isnan(interpretedValue)) {
         param.value = interpretedValue;
         param.stringType = false;
     } else {
         // can't be interpreted as a number so do a last check for string redefinitions
-        param.strVal = ReaderInformation.checkDefines(param.strVal);
+        param.strVal = readerInformation.checkDefines(param.strVal);
     }
 }
 

@@ -31,7 +31,7 @@ class CoreObject;
 class BasicReaderInfo;
 class Link;
 
-void processParamString(GridParameter& param, ReaderInfo& ReaderInformation);
+void processParamString(GridParameter& param, ReaderInfo& readerInformation);
 
 /** Select the parent for an imported link.
  * @param parentObject Default parent and boundary of the imported network.

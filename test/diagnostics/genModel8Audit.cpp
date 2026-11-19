@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdio>
+#include <exception>
 #include <iomanip>
 #include <iostream>
 #include <vector>
@@ -20,7 +22,7 @@ using namespace griddyn;
 
 class Probe: public genmodels::GenModel8 {
   public:
-    double frequency() const { return systemBaseFrequency; }
+    [[nodiscard]] double frequency() const { return systemBaseFrequency; }
 };
 
 void configure(Probe& model, double taa)
@@ -50,13 +52,14 @@ void configure(Probe& model, double taa)
 double maxAbs(const std::vector<double>& values)
 {
     double maximum = 0.0;
-    for (const double value : values)
+    for (const double value : values) {
         maximum = std::max(maximum, std::abs(value));
+    }
     return maximum;
 }
 
 int main()
-{
+try {
     std::cout << std::setprecision(12);
     index_t sequence = 100;
     for (const double taa : {0.0, 0.02}) {
@@ -106,8 +109,9 @@ int main()
         state[7] += 0.01;
         state[8] += 0.05;
         state[9] -= 0.06;
-        for (std::size_t i = 2; i < rates.size(); ++i)
+        for (std::size_t i = 2; i < rates.size(); ++i) {
             rates[i] = 0.003 * i;
+        }
         StateData data(0.0, state.data(), rates.data(), ++sequence);
         data.cj = 2.3;
         data.stateSize = static_cast<count_t>(state.size());
@@ -146,7 +150,7 @@ int main()
                 error = std::max(error,
                                  std::abs(jacobian.at(static_cast<index_t>(row),
                                                       static_cast<index_t>(column)) -
-                                          (plus[row] - minus[row]) / (2.0 * step)));
+                                          ((plus[row] - minus[row]) / (2.0 * step))));
             }
             const StateData plusData(0.0, plusState.data(), plusRates.data(), ++sequence);
             const StateData minusData(0.0, minusState.data(), minusRates.data(), ++sequence);
@@ -158,7 +162,7 @@ int main()
                 outputError =
                     std::max(outputError,
                              std::abs(outputJacobian.at(output, static_cast<index_t>(column)) -
-                                      (plusOutput - minusOutput) / (2.0 * step)));
+                                      ((plusOutput - minusOutput) / (2.0 * step))));
             }
         }
         std::cout << "state_and_input_jacobian_max_error " << error << '\n';
@@ -166,14 +170,14 @@ int main()
 
         // Verify the stator power identity at that non-equilibrium point.
         const auto value = residual(inputs, state, std::vector<double>(10, 0.0));
-        const double vd = -inputs[0] * std::sin(state[2] - inputs[1]);
-        const double vq = inputs[0] * std::cos(state[2] - inputs[1]);
-        const double power = vd * state[0] + vq * state[1];
-        const double copper = 0.001 * (state[0] * state[0] + state[1] * state[1]);
-        const double torque = state[8] * state[1] - state[9] * state[0];
-        const double fluxTerm = (state[0] * value[8] + state[1] * value[9]) / model.frequency();
-        std::cout << "stator_power_identity_error " << power + copper - state[3] * torque - fluxTerm
-                  << '\n';
+        const double voltageD = -inputs[0] * std::sin(state[2] - inputs[1]);
+        const double voltageQ = inputs[0] * std::cos(state[2] - inputs[1]);
+        const double power = (voltageD * state[0]) + (voltageQ * state[1]);
+        const double copper = 0.001 * ((state[0] * state[0]) + (state[1] * state[1]));
+        const double torque = (state[8] * state[1]) - (state[9] * state[0]);
+        const double fluxTerm = ((state[0] * value[8]) + (state[1] * value[9])) / model.frequency();
+        std::cout << "stator_power_identity_error "
+                  << power + copper - (state[3] * torque) - fluxTerm << '\n';
 
         auto updateCurrents = [&](const IOdata& terminal, const std::vector<double>& point) {
             auto result = point;
@@ -206,4 +210,12 @@ int main()
                                singularState.end(),
                                [](double value) { return !std::isfinite(value); })
               << '\n';
+}
+catch (const std::exception& error) {
+    static_cast<void>(std::fprintf(stderr, "GenModel8 audit failed: %s\n", error.what()));
+    return 1;
+}
+catch (...) {
+    static_cast<void>(std::fputs("GenModel8 audit failed with an unknown error\n", stderr));
+    return 1;
 }

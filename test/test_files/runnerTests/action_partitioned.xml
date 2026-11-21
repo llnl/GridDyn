@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="action_partitioned">
+    <import file="../dyn_tests1/test_dynSimple1.xml" />
+    <dynamicsolvermethod>partitioned</dynamicsolvermethod>
+</griddyn>

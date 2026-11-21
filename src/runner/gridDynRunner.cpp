@@ -175,6 +175,9 @@ CoreTime GriddynRunner::Run()
                PrintLevel::SUMMARY,
                m_gds->getName() + " executed in " + std::to_string(elapsedT.count()) + " seconds");
     if (returnValue != FUNCTION_EXECUTION_SUCCESS) {
+        if (!m_gds->getLastActionError().empty()) {
+            throw ExecutionFailure(m_gds.get(), m_gds->getLastActionError());
+        }
         const std::string error = "GridDyn failed to run retval = " + std::to_string(returnValue);
         throw(ExecutionFailure(m_gds.get(), error));
     }
@@ -309,7 +312,8 @@ int GriddynRunner::loadCommandArgument(ReaderInfo& readerInformation, bool allow
         return 1;
     }
     catch (const CLI::Error& e) {
-        return e.get_exit_code();
+        const int status = app->exit(e);
+        return (status > 0) ? -status : status;
     }
     m_stopTime = std::chrono::high_resolution_clock::now();
 
@@ -331,9 +335,20 @@ std::shared_ptr<CLI::App>
     // function for loading parameters from strings
     const CLI::callback_t loadParamString = [this](const CLI::results_t& results) {
         for (const auto& str : results) {
+            const auto equals = str.find('=');
+            if (equals != std::string::npos &&
+                gmlc::utilities::convertToLowerCase(
+                    gmlc::utilities::stringOps::trim(str.substr(0, equals))) == "action") {
+                m_gds->addActions(std::string_view(str).substr(equals + 1), "--param action");
+                continue;
+            }
             const GridParameter parameterDefinition(str);
             if (parameterDefinition.valid) {
                 ObjectInfo objectInformation(parameterDefinition.field, m_gds.get());
+                if (objectInformation.mObject == nullptr) {
+                    throw CLI::ValidationError("--param",
+                                               "target not found for " + parameterDefinition.field);
+                }
                 try {
                     if (parameterDefinition.stringType) {
                         objectInformation.mObject->set(objectInformation.mField,

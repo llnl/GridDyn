@@ -121,6 +121,7 @@ set(workflow_system_gtest_sources
     systemTests/testConstraints.cpp
     systemTests/testOutputs.cpp
     systemTests/testContingency.cpp
+    systemTests/testGridDynActions.cpp
     systemTests/testCloning.cpp
     systemTests/testInputs.cpp
 )

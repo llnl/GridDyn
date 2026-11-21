@@ -7,10 +7,23 @@
 #pragma once
 
 #include "../gridDynDefinitions.hpp"
+#include <stdexcept>
 #include <string>
 #include <string_view>
 
 namespace griddyn {
+
+/** A command error with a category that callers can use without parsing its message. */
+class ActionError: public std::runtime_error {
+  public:
+    enum class Kind { SYNTAX, TARGET, UNSUPPORTED, EXECUTION };
+
+    ActionError(Kind kind, const std::string& message): std::runtime_error(message), kind_(kind) {}
+    Kind kind() const noexcept { return kind_; }
+
+  private:
+    Kind kind_;
+};
 
 /** @brief class to define action and parameters for GridDyn operations
  */
@@ -33,7 +46,7 @@ class GridDynAction {
         DYNAMIC_PART,  //!< do a dynamic calculation using the partitioned solver
         DYNAMIC_DECOUPLED,  //!< do a dynamic calculation using the decoupled mode
         STEP,  //!< perform a single STEP operation
-        RUN,  //!< RUN the script or the model based on stored parameters
+        RUN,  //!< advance the model using its configured solution method
         SAVE,  //!< SAVE the results
         CHECK,  //!< CHECK the current results in various ways
         LOAD,  //!< LOAD a state into the simulation
@@ -42,7 +55,8 @@ class GridDynAction {
         CHECKPOINT,  //!< CHECKPOINT the complete system state
         CONTINGENCY,  //!< perform a CONTINGENCY analysis
         CONTINUATION,  //!< perform a CONTINUATION analysis
-        INVALID  //!< INVALID command
+        INVALID,  //!< INVALID command
+        DYNAMIC_DEFAULT  //!< run dynamics using the simulation's configured solver method
     };
     GdAction command = GdAction::IGNORE_ACTION;  //!< the command to execute
     std::string string1;  //!< string parameter 1 of the action
@@ -66,6 +80,9 @@ class GridDynAction {
     /** @brief fill an actions parameters based on a string
     @param[in] operation  a string containing the information for a specific action*/
     void process(std::string_view operation);
+
+    /** Return the action's canonical command name. */
+    std::string_view commandName() const noexcept;
 
     /** @brief reset the action to base state*/
     void reset();

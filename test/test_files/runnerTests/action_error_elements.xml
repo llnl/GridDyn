@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="action_error_elements">
+    <import file="../pFlow_tests/continuation_two_bus.xml" />
+    <action>save powerflow gdc04-before.csv</action>
+    <action>contingency simplified</action>
+    <action>save powerflow gdc04-after.csv</action>
+</griddyn>

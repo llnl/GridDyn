@@ -74,11 +74,12 @@ The system clock is available as `sim.time`. Failures are reported with
 `ExecutionError`.
 
 For dynamic models, call `sim.time_domain.initialize()` and then
-`sim.time_domain.run_until(seconds)`. `sim.execute(action)` runs a general
-GridDyn action string and returns its status code (`0` for success, a nonzero
-value for failure). The action language can also invoke solvers; `execute()`
-remains available for commands without a dedicated Python method. For example,
-one can apply a parameter change between simulation advances:
+`sim.time_domain.run_until(seconds)`. `sim.execute(action)` runs one action.
+Successful actions return `0`. Commands that report a solver or other
+execution status return that status. Invalid syntax raises
+`InvalidParameterError`, a missing target raises `InvalidObjectError`, and
+an unsupported action raises `ExecutionError`. Actions can apply a parameter
+change between simulation advances.
 
 ```python
 sim.time_domain.run_until(1.0)
@@ -86,10 +87,14 @@ sim.execute("set bus1:voltage 1.04")
 sim.time_domain.run_until(2.0)
 ```
 
-The time-domain interface also provides `run()` to reach the configured stop
-time and `step(next_time)` to advance toward an absolute time, possibly
-stopping earlier at an event. Both `run_until()` and `step()` return the time
-actually reached. The current simulation clock is available as `sim.time`.
+The time-domain interface also provides `run()`, which executes queued
+actions from the model input or `sim.set("action", text)`. With an empty queue,
+it advances to the configured stop time. A queued script stops at the first
+error, preserving the effects of earlier commands. To resume with the next
+queued action, call `run()` again. `step(next_time)` advances toward an
+absolute time and can stop earlier at an event. Both `run_until()` and
+`step()` return the time actually reached. The current simulation clock is
+available as `sim.time`.
 `sim.reset()` reloads a default-type simulation from its original command-line
 arguments. It is available when the system was initially loaded through
 `load_from_string()` or `load_from_args()` and no other input was loaded later.

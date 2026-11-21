@@ -44,6 +44,11 @@ namespace {
 // dynamic solver and initial conditions
 int GridDynSimulation::dynInitialize(CoreTime tStart)
 {
+    return initializeDynamics(tStart, defaultDynamicSolverMethod);
+}
+
+int GridDynSimulation::initializeDynamics(CoreTime tStart, DynamicSolverMethods method)
+{
     using Clock = std::chrono::steady_clock;
     auto lastPhaseEnd = Clock::now();
     const auto logCompletedPhase = [this, &lastPhaseEnd](std::string_view phase) {
@@ -58,9 +63,8 @@ int GridDynSimulation::dynInitialize(CoreTime tStart)
     if (opFlags[DYN_INITIALIZED]) {
         offsets.unload(true);
     }
-    const SolverMode& tempSm = (defaultDynamicSolverMethod == DynamicSolverMethods::PARTITIONED) ?
-        *defDynDiffMode :
-        *defDAEMode;
+    const SolverMode& tempSm =
+        (method == DynamicSolverMethods::PARTITIONED) ? *defDynDiffMode : *defDAEMode;
 
     const int retval = makeReady(GridState::POWERFLOW_COMPLETE, tempSm);
     if (retval != FUNCTION_EXECUTION_SUCCESS || controlFlags[POWER_FLOW_ONLY]) {
@@ -69,9 +73,9 @@ int GridDynSimulation::dynInitialize(CoreTime tStart)
     logCompletedPhase("static power-flow preparation");
     configureResidualParallelism();
 
-    auto dynData = getSolverInterface(tempSm);
+    auto dynData = updateSolver(tempSm, false);
     const SolverMode& solverModeRef = dynData->getSolverMode();
-    if (defaultDynamicSolverMethod == DynamicSolverMethods::PARTITIONED) {
+    if (method == DynamicSolverMethods::PARTITIONED) {
         defDynDiffMode = &solverModeRef;
     } else {
         defDAEMode = &solverModeRef;
@@ -136,11 +140,17 @@ int GridDynSimulation::dynInitialize(CoreTime tStart)
     dynData->initialize(tStart);
     logCompletedPhase("differential solver initialization");
 
+    if (method == DynamicSolverMethods::PARTITIONED) {
+        auto algebraicSolver = updateSolver(*defDynAlgMode, false);
+        initializeSolverState(*algebraicSolver, *defDynAlgMode, tStart);
+        logCompletedPhase("algebraic solver initialization");
+    }
+
     if (state_record_period > timeZero && !stateFile.empty()) {
         currentTime = tStart;
         // Save the initialized solver vector once at tStart, then schedule
         // subsequent snapshots at each recording interval.
-        if (defaultDynamicSolverMethod != DynamicSolverMethods::PARTITIONED) {
+        if (method != DynamicSolverMethods::PARTITIONED) {
             saveStateBinary(this, stateFile, solverModeRef, false);
         }
         stateRecorder = std::make_shared<FunctionEventAdapter>(

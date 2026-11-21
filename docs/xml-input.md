@@ -113,3 +113,19 @@ GridDyn-specific extensions; they are not part of standard XML. Their syntax
 and the accepted component properties are implemented by the current reader
 and model classes, so older manuals may describe options that have since
 changed.
+
+## Scripted actions
+
+Use `<action>` elements at the simulation level to queue commands. One element
+may contain several commands separated by semicolons. The executable runs
+commands in order until completion or the first error, including a syntax
+error at the command's position. An error reports the input filename and
+failing command and exits with a nonzero status. Earlier commands keep their
+effects. Blank and comment-only actions are skipped.
+
+`dynamic <until>` uses the configured dynamic method. Set
+`<dynamicsolvermethod>partitioned</dynamicsolvermethod>` in the case or queue
+`set dynamicsolvermethod partitioned` before running partitioned dynamics.
+An explicit mode such as `dynamic dae <until>` requires its solver to be
+configured already. Cases without a dynamic method selection use the built-in
+DAE default.

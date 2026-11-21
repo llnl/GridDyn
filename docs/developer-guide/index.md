@@ -86,6 +86,7 @@ powerflow-validation-followups
 :maxdepth: 1
 :caption: Development process
 
+command-interface-worklist
 naming-migration-plan
 style
 ```

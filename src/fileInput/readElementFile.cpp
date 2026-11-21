@@ -287,6 +287,7 @@ void objSetAttributes(CoreObject* obj,
                       ReaderInfo& readerInfoRef,
                       const IgnoreListType& ignoreList)
 {
+    auto* simulation = dynamic_cast<GridDynSimulation*>(obj);
     auto att = element->getFirstAttribute();
     while (att.isValid()) {
         units::unit unitType = units::defunit;
@@ -318,7 +319,10 @@ void objSetAttributes(CoreObject* obj,
             continue;
         }
 
-        if (fieldName.contains("file") || (fieldName == "fmu")) {
+        if (simulation != nullptr && fieldName == "action") {
+            simulation->addActions(readerInfoRef.checkDefines(att.getText()),
+                                   readerInfoRef.sourceFile);
+        } else if (fieldName.contains("file") || (fieldName == "fmu")) {
             std::string strVal = att.getText();
             readerInfoRef.checkFileParam(strVal);
             GridParameter paramObject(fieldName, strVal);
@@ -358,6 +362,7 @@ void paramLoopElement(CoreObject* obj,
                       ReaderInfo& readerInfoRef,
                       const IgnoreListType& ignoreList)
 {
+    auto* simulation = dynamic_cast<GridDynSimulation*>(obj);
     element->moveToFirstChild();
     while (element->isValid()) {
         const std::string fieldName = convertToLowerCase(element->getName());
@@ -380,7 +385,16 @@ void paramLoopElement(CoreObject* obj,
         // get all the parameter fields
         auto param = getElementParam(element);
         if (param.valid) {
-            if (param.stringType) {
+            if (simulation != nullptr && param.field == "action") {
+                auto action = param.strVal;
+                if (!param.stringType) {
+                    action = element->hasAttribute(valueString) ?
+                        element->getAttributeText(valueString) :
+                        element->getText();
+                }
+                simulation->addActions(readerInfoRef.checkDefines(action),
+                                       readerInfoRef.sourceFile);
+            } else if (param.stringType) {
                 if (param.field.contains("file") || (param.field == "fmu")) {
                     readerInfoRef.checkFileParam(param.strVal);
                     setObjectParameter(component, obj, param);

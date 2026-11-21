@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace griddyn {
 
@@ -51,12 +52,15 @@ class GridDynAction {
         CHECK,  //!< CHECK the current results in various ways
         LOAD,  //!< LOAD a state into the simulation
         ADD,  //!< ADD a model to the simulation
-        ROLLBACK,  //!< ROLLBACK the simulation to a particular time point
-        CHECKPOINT,  //!< CHECKPOINT the complete system state
+        ROLLBACK,  //!< Restore a checkpoint or solver snapshot from a file
+        CHECKPOINT,  //!< Capture solver and declared component state to a file
         CONTINGENCY,  //!< perform a CONTINGENCY analysis
         CONTINUATION,  //!< perform a CONTINUATION analysis
         INVALID,  //!< INVALID command
-        DYNAMIC_DEFAULT  //!< run dynamics using the simulation's configured solver method
+        DYNAMIC_DEFAULT,  //!< run dynamics using the simulation's configured solver method
+        OPF,  //!< solve DC optimal power flow
+        ACTION_FILE,  //!< execute the actions in a script file
+        GET_ACTION  //!< read a field or list its model's declared fields
     };
     GdAction command = GdAction::IGNORE_ACTION;  //!< the command to execute
     std::string string1;  //!< string parameter 1 of the action
@@ -66,6 +70,7 @@ class GridDynAction {
     int flag{0};  //!< additional flag values for various purposes
     double val_double{kNullVal};  //!< double parameter 1 of the action
     double val_double2{kNullVal};  //!< double parameter 2 of the action
+    std::vector<index_t> monitorBuses;  //!< continuation bus user IDs, in output order
 
     /** @brief constructor*/
     GridDynAction() = default;

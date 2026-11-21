@@ -13,6 +13,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gridOptObjects.h"
 #include "griddyn/Generator.h"
+#include "griddyn/simulation/GridDynActions.h"
 #include "models/gridAreaOpt.h"
 #include "models/gridBusOpt.h"
 #include "models/gridGenOpt.h"
@@ -21,11 +22,13 @@
 
 #include <cmath>
 #include <cstdio>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 
 namespace griddyn {
 static TypeFactory<GridDynOptimization>
@@ -148,6 +151,48 @@ CoreObject* GridDynOptimization::clone(CoreObject* obj) const
     }
 
     return sim;
+}
+
+void GridDynOptimization::executeOpfAction(const GridDynAction& action)
+{
+    const std::string_view backend =
+        action.string1.empty() ? "native" : std::string_view(action.string1);
+    auto optimizer = std::dynamic_pointer_cast<NativeOptimizer>(makeOptimizer(backend));
+    if (!optimizer) {
+        throw ActionError(ActionError::Kind::UNSUPPORTED,
+                          std::format("OPF backend '{}' is unavailable", backend));
+    }
+    if (getInt("totalbuscount") == 0) {
+        throw ActionError(ActionError::Kind::EXECUTION, "OPF requires a loaded network");
+    }
+
+    const OptimizationMode mode{.flowMode = FlowModel::DC,
+                                .linMode = LinearityMode::QUADRATIC,
+                                .offsetIndex = 0,
+                                .numPeriods = 1,
+                                .period = 1.0};
+    initializeOptimizationModel(mode);
+    optimizer->setOptimizationData(this, mode);
+    const double time = static_cast<double>(getSimulationTime());
+    optimizer->initialize(time);
+    double returnTime = time;
+    const int status = optimizer->solve(time, returnTime);
+    const auto& result = optimizer->lastSolveResult();
+    if (status != FUNCTION_EXECUTION_SUCCESS || !result.successful()) {
+        const auto& detail = optimizer->getLastErrorString();
+        throw ActionError(ActionError::Kind::EXECUTION,
+                          std::format("opf {} failed: {}",
+                                      backend,
+                                      detail.empty() ? result.message : detail));
+    }
+    const bool apply = action.flag == 0;
+    if (apply && optimizer->writeBack(returnTime) != FUNCTION_EXECUTION_SUCCESS) {
+        throw ActionError(ActionError::Kind::EXECUTION, "unable to apply the optimal dispatch");
+    }
+    std::cout << std::format("opf {} optimal objective={} applied={}\n",
+                             backend,
+                             result.objectiveValue,
+                             apply);
 }
 
 void GridDynOptimization::initializeOptimizationModel(const OptimizationMode& oMode,

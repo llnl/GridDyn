@@ -1,0 +1,4 @@
+set name before_error
+
+badverb
+set name after_error

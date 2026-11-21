@@ -1,0 +1,4 @@
+# This comment contains a semicolon; set name ignored
+set	name	before_nested
+action "nested/inner actions.gds"
+set name after_nested

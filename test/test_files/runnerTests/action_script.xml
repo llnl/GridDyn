@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn>
+    <import file="../dyn_tests1/test_dynSimple1.xml"/>
+    <action>set name before_nested</action>
+    <action file="scripts/nested/inner actions.gds"/>
+    <action>set name after_nested; action "scripts/report.gds"</action>
+</griddyn>

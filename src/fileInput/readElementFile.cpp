@@ -382,6 +382,12 @@ void paramLoopElement(CoreObject* obj,
             element->moveToNextSibling();
             continue;
         }
+        if (simulation != nullptr && fieldName == "action" && element->hasAttribute("file")) {
+            simulation->addScriptFile(readerInfoRef.checkDefines(element->getAttributeText("file")),
+                                      readerInfoRef.sourceFile);
+            element->moveToNextSibling();
+            continue;
+        }
         // get all the parameter fields
         auto param = getElementParam(element);
         if (param.valid) {

@@ -138,10 +138,10 @@ Python interface documents this scope in [python-interface.md](../python-interfa
   data before mutating the destination. Persistent output needs a versioned
   manifest and a clear complete-checkpoint publication boundary.
 
-These limits also apply to the `CHECKPOINT` and `ROLLBACK` actions: the parser
-recognizes them, but the execution switch currently has no implementation.
-`LOAD state` is also an empty action branch. The direct C++ and Python APIs above
-remain the supported narrower operations.
+The [scripted checkpoint commands](../xml-input.md#checkpoint-commands) use
+these same APIs and restore boundaries. `checkpoint` writes a capture and
+`rollback` restores the last frame from an explicit file. `load state` copies
+solver buffers at the `SOLVER_STATE_ONLY` level.
 
 ## Implementation options
 

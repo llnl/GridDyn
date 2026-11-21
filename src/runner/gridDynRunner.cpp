@@ -17,6 +17,9 @@
 #include "griddyn/events/Event.h"
 #include "griddyn/measurement/Recorder.h"
 #include "griddyn/simulation/GridDynSimulationFileOps.h"
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
+#    include "optimization/gridDynOpt.h"
+#endif
 #include "utilities/GlobalWorkQueue.hpp"
 #include <algorithm>
 #include <chrono>
@@ -26,6 +29,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -334,34 +338,44 @@ std::shared_ptr<CLI::App>
 
     // function for loading parameters from strings
     const CLI::callback_t loadParamString = [this](const CLI::results_t& results) {
-        for (const auto& str : results) {
-            const auto equals = str.find('=');
-            if (equals != std::string::npos &&
-                gmlc::utilities::convertToLowerCase(
-                    gmlc::utilities::stringOps::trim(str.substr(0, equals))) == "action") {
-                m_gds->addActions(std::string_view(str).substr(equals + 1), "--param action");
-                continue;
-            }
-            const GridParameter parameterDefinition(str);
-            if (parameterDefinition.valid) {
-                ObjectInfo objectInformation(parameterDefinition.field, m_gds.get());
-                if (objectInformation.mObject == nullptr) {
-                    throw CLI::ValidationError("--param",
-                                               "target not found for " + parameterDefinition.field);
+        for (std::string_view parameters : results) {
+            while (!parameters.empty()) {
+                const auto comma = parameters.find(',');
+                const auto parameterText = parameters.substr(0, comma);
+                const auto equals = parameterText.find('=');
+                if (equals != std::string_view::npos &&
+                    gmlc::utilities::convertToLowerCase(gmlc::utilities::stringOps::trim(
+                        parameterText.substr(0, equals))) == "action") {
+                    // The rest of this argument is a script, including any commas in its operands.
+                    m_gds->addActions(parameters.substr(equals + 1), "--param action");
+                    break;
                 }
-                try {
-                    if (parameterDefinition.stringType) {
-                        objectInformation.mObject->set(objectInformation.mField,
-                                                       parameterDefinition.strVal);
-                    } else {
-                        objectInformation.mObject->set(objectInformation.mField,
-                                                       parameterDefinition.value,
-                                                       parameterDefinition.paramUnits);
+                const GridParameter parameterDefinition{std::string(parameterText)};
+                if (parameterDefinition.valid) {
+                    ObjectInfo objectInformation(parameterDefinition.field, m_gds.get());
+                    if (objectInformation.mObject == nullptr) {
+                        throw CLI::ValidationError("--param",
+                                                   "target not found for " +
+                                                       parameterDefinition.field);
+                    }
+                    try {
+                        if (parameterDefinition.stringType) {
+                            objectInformation.mObject->set(objectInformation.mField,
+                                                           parameterDefinition.strVal);
+                        } else {
+                            objectInformation.mObject->set(objectInformation.mField,
+                                                           parameterDefinition.value,
+                                                           parameterDefinition.paramUnits);
+                        }
+                    }
+                    catch (const UnrecognizedParameter&) {
+                        return false;
                     }
                 }
-                catch (const UnrecognizedParameter&) {
-                    return false;
+                if (comma == std::string_view::npos) {
+                    break;
                 }
+                parameters.remove_prefix(comma + 1);
             }
         }
         return true;
@@ -395,6 +409,28 @@ std::shared_ptr<CLI::App>
         std::cout << GRIDDYN_VERSION_STRING << '\n';
         throw(CLI::Success());
     });
+    ptr->add_flag_callback(
+        "--optimization",
+        [this]() {
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
+            if (dynamic_cast<GridDynOptimization*>(m_gds.get()) == nullptr) {
+                if (m_gds->getInt("totalbuscount") != 0) {
+                    throw CLI::ValidationError("--optimization",
+                                               "select this before loading a case");
+                }
+                auto simulation = std::make_shared<GridDynOptimization>(m_gds->getName());
+                if (GridDynSimulation::getInstance() == m_gds.get()) {
+                    GridDynSimulation::setInstance(simulation.get());
+                }
+                m_gds = std::move(simulation);
+            }
+#else
+            static_cast<void>(this);
+            throw CLI::ValidationError("--optimization",
+                                       "optimization is unavailable in this build");
+#endif
+        },
+        "load the case as an optimization simulation for DC optimal power flow");
     ptr->add_flag("--test", "Execute a test program");
     ptr->add_option_function<std::string>(
            "--powerflow-output,-o,--power_flow_output",
@@ -568,8 +604,18 @@ std::shared_ptr<CLI::App>
     ptr->add_option("--param,-P",
                     loadParamString,
                     "override simulation file parameters --param ParamName=<val>")
-        ->delimiter(',')
         ->type_size(-1);
+
+    ptr->add_option(
+           "--script",
+           [this](const CLI::results_t& files) {
+               for (const auto& file : files) {
+                   m_gds->addScriptFile(file, "--script");
+               }
+               return true;
+           },
+           "queue a script file after actions from the case and --param")
+        ->take_all();
 
     ptr->add_option("--event", "add event after all input files")
         ->type_size(-1)

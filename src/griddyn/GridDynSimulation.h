@@ -211,10 +211,12 @@ class GridDynSimulation: public GridSimulation {
     std::vector<GridComponent*>
         singleStepObjects;  //!< objects which require a state update after time step
     std::vector<GridBus*> slkBusses;  //!< vector of slack buses to aid in powerFlow adjust
+    struct ActionScript;
     struct QueuedAction {
         std::variant<GridDynAction, std::string> command;  //!< parsed action or syntax error
         std::string text;
         std::string source;
+        std::shared_ptr<const ActionScript> script;
     };
     std::deque<QueuedAction> actionQueue;  //!< queue for actions for GridDyn to execute
     std::vector<std::shared_ptr<ContinuationSequence>>
@@ -603,6 +605,9 @@ class GridDynSimulation: public GridSimulation {
     /** Queue a semicolon-separated action list, with an optional source for diagnostics. */
     void addActions(std::string_view actions, std::string_view source = {});
 
+    /** Queue a script file to read when the queue reaches it. */
+    void addScriptFile(std::string_view file, std::string_view source = {});
+
     /** @brief  add an action to the run queue
     @param[in] newAction the action to add to the queue
     */
@@ -852,9 +857,21 @@ class GridDynSimulation: public GridSimulation {
     */
     bool checkEventsForDynamicReset(CoreTime cTime, const SolverMode& sMode);
 
+    virtual void executeOpfAction(const GridDynAction& action);
+
   private:
     std::string lastActionError;
-    void queueAction(std::string_view text, std::string_view source);
+    static void queueAction(std::deque<QueuedAction>& queue,
+                            std::string_view text,
+                            std::string_view source,
+                            const std::shared_ptr<const ActionScript>& script = {});
+    static void queueActions(std::deque<QueuedAction>& queue,
+                             std::string_view actions,
+                             std::string_view source,
+                             const std::shared_ptr<const ActionScript>& script = {});
+    static QueuedAction scriptFileAction(std::string_view file, std::string_view source);
+    static void expandScript(std::deque<QueuedAction>& queue, const QueuedAction& entry);
+    int runActions(std::deque<QueuedAction>& queue, CoreTime tEnd);
     std::optional<CoreTime> actionStopTime(const GridDynAction& action) const;
     int executeAction(const GridDynAction& cmd, CoreTime endTime);
     void requireDynamicSolverMethod(DynamicSolverMethods method) const;

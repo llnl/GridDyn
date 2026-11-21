@@ -192,12 +192,12 @@ literal `NA`.
 
 ### Checkpoint commands
 
-| Command | Effect |
-| --- | --- |
-| `checkpoint <file> [solver]` | Writes an HDF5 checkpoint with solver vectors and declared component history at an accepted simulation point. Uses the current solver mode by default. An optional mode such as `dae` or `dyndiff` selects an initialized solver. Replaces the file. |
-| `rollback <file> [local|minimal]` | Restores the last HDF5 frame into a compatible initialized simulation and returns its clock to the captured time. The default `local` also restores declared component history from a `checkpoint` frame. Use `minimal` to restore solvers and publish the solver state to components, including from a `save state` snapshot. |
-| `save state <file>` / `load state <file>` | Appends an HDF5 solver snapshot or copies the last frame's vectors into initialized solver buffers. Loading leaves the clocks and component state at their current values. |
-| `save powerflow-checkpoint <file>` / `load powerflow-checkpoint <file>` | Saves or restores a readable JSON power-flow solution in an initialized model with a matching layout. |
+| Command                                                                 | Effect                                                                                                                                                                                                                                               |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `checkpoint <file> [solver]`                                            | Writes an HDF5 checkpoint with solver vectors and declared component history at an accepted simulation point. Uses the current solver mode by default. An optional mode such as `dae` or `dyndiff` selects an initialized solver. Replaces the file. |
+| `rollback <file> [local                                                 | minimal]`                                                                                                                                                                                                                                            | Restores the last HDF5 frame into a compatible initialized simulation and returns its clock to the captured time. The default `local` also restores declared component history from a `checkpoint` frame. Use `minimal` to restore solvers and publish the solver state to components, including from a `save state` snapshot. |
+| `save state <file>` / `load state <file>`                               | Appends an HDF5 solver snapshot or copies the last frame's vectors into initialized solver buffers. Loading leaves the clocks and component state at their current values.                                                                           |
+| `save powerflow-checkpoint <file>` / `load powerflow-checkpoint <file>` | Saves or restores a readable JSON power-flow solution in an initialized model with a matching layout.                                                                                                                                                |
 
 Use double quotes around a file path containing spaces. Semicolons separate
 commands in action lists. HDF5 restores require a unique matching initialized

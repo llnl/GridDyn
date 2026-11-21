@@ -96,6 +96,9 @@ TEST(GridDynActionTests, RejectsIncompleteOrUnrecognizedOperands)
                                        "action",
                                        "action \"unterminated script.gds",
                                        "action script.gds extra",
+                                       "add",
+                                       "add event # no description",
+                                       "add event \"\"",
                                        "get",
                                        "get \"\"",
                                        "get bus1:voltage \"unterminated file.txt",
@@ -106,6 +109,91 @@ TEST(GridDynActionTests, RejectsIncompleteOrUnrecognizedOperands)
     for (const auto text : cases) {
         SCOPED_TRACE(text);
         EXPECT_THROW(action.process(text), griddyn::InvalidParameterValue);
+    }
+}
+
+TEST(GridDynActionQueueTests, AddsAnEventAfterAdvancingTheSimulation)
+{
+    auto simulation = griddyn::readSimXMLFile(dynamicCase);
+    ASSERT_NE(simulation, nullptr);
+    const auto* bus = simulation->getBus(0);
+    ASSERT_NE(bus, nullptr);
+    const auto* load = bus->getLoad(0);
+    ASSERT_NE(load, nullptr);
+    simulation->addActions("run 0.1; add event @0.15 | bus1::load#0:p(MW) = 110 # later change\n"
+                           "run 0.2");
+
+    ASSERT_EQ(simulation->run(0.14), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(simulation->getSimulationTime(), griddyn::CoreTime(0.14));
+    EXPECT_EQ(simulation->getEventTime(), griddyn::CoreTime(0.15));
+    EXPECT_DOUBLE_EQ(load->get("p"), 1.5);
+
+    ASSERT_EQ(simulation->run(), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(simulation->getSimulationTime(), griddyn::CoreTime(0.2));
+    EXPECT_DOUBLE_EQ(load->get("p"), 1.1);
+}
+
+TEST(GridDynActionQueueTests, AddsRepeatingAndCompoundEventsFromDescriptions)
+{
+    auto simulation = griddyn::readSimXMLFile(dynamicCase);
+    ASSERT_NE(simulation, nullptr);
+    const auto* bus = simulation->getBus(0);
+    ASSERT_NE(bus, nullptr);
+    const auto* load = bus->getLoad(0);
+    ASSERT_NE(load, nullptr);
+    simulation->addActions("add event bus1::load3:p=1.2,1.1 @0.1,0.2+0.3; "
+                           "add event \"@0.25>bus1::load3:p=1.25;bus1::load3:q=0.05\"; run 0.5");
+
+    ASSERT_EQ(simulation->run(0.15), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_DOUBLE_EQ(load->get("p"), 1.2);
+    ASSERT_EQ(simulation->run(0.22), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_DOUBLE_EQ(load->get("p"), 1.1);
+    ASSERT_EQ(simulation->run(0.3), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_DOUBLE_EQ(load->get("p"), 1.25);
+    EXPECT_DOUBLE_EQ(load->get("q"), 0.05);
+    ASSERT_EQ(simulation->run(0.45), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_DOUBLE_EQ(load->get("p"), 1.2);
+}
+
+TEST(GridDynActionQueueTests, InvalidEventDescriptionsStopTheQueueWithoutScheduling)
+{
+    auto simulation = griddyn::readSimXMLFile(dynamicCase);
+    ASSERT_NE(simulation, nullptr);
+    ASSERT_EQ(simulation->execute("run 0.1"), FUNCTION_EXECUTION_SUCCESS);
+    const auto nextEvent = simulation->getEventTime();
+    struct TestCase {
+        std::string_view command;
+        ActionError::Kind kind;
+    };
+    constexpr TestCase cases[]{
+        {.command = "add event @0.05|bus1::load3:p=1.1", .kind = ActionError::Kind::EXECUTION},
+        {.command = "add event @0.15|bus999:p=1.1", .kind = ActionError::Kind::TARGET},
+        {.command = "add event \"@0.15|bus1::load3:p=1.1;bus999:q=0.05\"",
+         .kind = ActionError::Kind::TARGET},
+        {.command = "add event bus1::load3:p=1.1", .kind = ActionError::Kind::SYNTAX},
+        {.command = "add event @0.15|bus1::load3:p=1.1junk", .kind = ActionError::Kind::SYNTAX},
+        {.command = "add event @0.2,0.15|bus1::load3:p=1.1", .kind = ActionError::Kind::SYNTAX},
+        {.command = "add event @0.2,0.3|bus1::load3:p=1.1,1.2,1.3",
+         .kind = ActionError::Kind::SYNTAX},
+        {.command = "add recorder bus1:voltage", .kind = ActionError::Kind::UNSUPPORTED},
+    };
+    for (const auto& test : cases) {
+        SCOPED_TRACE(test.command);
+        simulation->setName("before_event");
+        simulation->add(test.command);
+        simulation->add("set name after_event");
+        try {
+            simulation->run();
+            ADD_FAILURE() << "expected the add action to fail";
+        }
+        catch (const ActionError& error) {
+            EXPECT_EQ(error.kind(), test.kind) << error.what();
+            EXPECT_TRUE(std::string_view(error.what()).contains(test.command)) << error.what();
+        }
+        EXPECT_EQ(simulation->getName(), "before_event");
+        EXPECT_EQ(simulation->getEventTime(), nextEvent);
+        ASSERT_EQ(simulation->run(), FUNCTION_EXECUTION_SUCCESS);
+        EXPECT_EQ(simulation->getName(), "after_event");
     }
 }
 
@@ -121,17 +209,17 @@ TEST(GridDynActionTests, FieldQueryErrorsStopQueuedActions)
         ActionError::Kind kind;
     };
     constexpr TestCase cases[]{
-        {"get bus999:voltage", ActionError::Kind::TARGET},
-        {"get bus1::load#0extra:p", ActionError::Kind::TARGET},
-        {"get bus1:missing_field", ActionError::Kind::TARGET},
-        {"get bus1:", ActionError::Kind::SYNTAX},
-        {"get bus1::load3:p(MW", ActionError::Kind::SYNTAX},
-        {"get bus1::load3:p()", ActionError::Kind::SYNTAX},
-        {"get bus1::load3:p(m^^2)", ActionError::Kind::SYNTAX},
-        {"get bus1::load3:p(s)", ActionError::Kind::TARGET},
-        {"get bus1:name(V)", ActionError::Kind::TARGET},
-        {"get name .", ActionError::Kind::EXECUTION},
-        {"get --help nonexistent", ActionError::Kind::TARGET},
+        {.command = "get bus999:voltage", .kind = ActionError::Kind::TARGET},
+        {.command = "get bus1::load#0extra:p", .kind = ActionError::Kind::TARGET},
+        {.command = "get bus1:missing_field", .kind = ActionError::Kind::TARGET},
+        {.command = "get bus1:", .kind = ActionError::Kind::SYNTAX},
+        {.command = "get bus1::load3:p(MW", .kind = ActionError::Kind::SYNTAX},
+        {.command = "get bus1::load3:p()", .kind = ActionError::Kind::SYNTAX},
+        {.command = "get bus1::load3:p(m^^2)", .kind = ActionError::Kind::SYNTAX},
+        {.command = "get bus1::load3:p(s)", .kind = ActionError::Kind::TARGET},
+        {.command = "get bus1:name(V)", .kind = ActionError::Kind::TARGET},
+        {.command = "get name .", .kind = ActionError::Kind::EXECUTION},
+        {.command = "get --help nonexistent", .kind = ActionError::Kind::TARGET},
     };
     for (const auto& test : cases) {
         SCOPED_TRACE(test.command);
@@ -161,7 +249,9 @@ TEST(GridDynActionTests, FieldQueriesAppendValuesInRequestedUnits)
     const auto destination = " \"" + reportFile.string() + "\"";
     const auto initialTime = simulation->getSimulationTime();
     ASSERT_EQ(simulation->execute("set name NA"), FUNCTION_EXECUTION_SUCCESS);
+    simulation->setDescription("\"Readings\"\\load\r\n\t\x01");
     simulation->add("get name" + destination);
+    simulation->add("get description" + destination);
     simulation->add("get bus1::load#0:p(MW)" + destination);
     simulation->add("get \"bus1::load3:load p(MW)\"" + destination);
     ASSERT_EQ(simulation->run(), FUNCTION_EXECUTION_SUCCESS);
@@ -172,6 +262,10 @@ TEST(GridDynActionTests, FieldQueriesAppendValuesInRequestedUnits)
     std::string name;
     ASSERT_TRUE(std::getline(report, name));
     EXPECT_EQ(name, "\"NA\"");
+    std::string description;
+    ASSERT_TRUE(std::getline(report, description));
+    constexpr std::string_view expectedDescription = R"("\"Readings\"\\load\r\n\t\u{1}")";
+    EXPECT_EQ(description, expectedDescription);
     double powerByIndex = 0.0;
     double powerByName = 0.0;
     ASSERT_TRUE(report >> powerByIndex >> powerByName);

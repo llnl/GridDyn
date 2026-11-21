@@ -793,7 +793,7 @@ void GridDynSimulation::setupOffsets(const SolverMode& sMode, OffsetOrdering off
 
 // --------------- run the simulation ---------------
 struct GridDynSimulation::ActionScript {
-    std::vector<std::filesystem::path> paths;
+    std::vector<std::filesystem::path> mPaths;
 };
 
 namespace {
@@ -817,6 +817,43 @@ namespace {
         }
         message.append("action '").append(text).append("' failed: ").append(reason);
         return message;
+    }
+
+    std::string formatActionString(std::string_view value)
+    {
+        std::string output;
+        output.reserve(value.size() + 3);
+        output.push_back('"');
+        for (const char character : value) {
+            switch (character) {
+                case '"':
+                    output.append("\\\"");
+                    break;
+                case '\\':
+                    output.append("\\\\");
+                    break;
+                case '\t':
+                    output.append("\\t");
+                    break;
+                case '\r':
+                    output.append("\\r");
+                    break;
+                case '\n':
+                    output.append("\\n");
+                    break;
+                default: {
+                    const auto byte = static_cast<unsigned char>(character);
+                    if (byte < 0x20 || byte == 0x7f) {
+                        output.append(std::format("\\u{{{:x}}}", byte));
+                    } else {
+                        output.push_back(character);
+                    }
+                    break;
+                }
+            }
+        }
+        output.append("\"\n");
+        return output;
     }
 
     std::string getActionValue(std::string_view selector, const CoreObject& root)
@@ -867,7 +904,7 @@ namespace {
         // The legacy string getter uses "NA" for unavailable fields. The built-in
         // names and readable string declarations can also hold that literal value.
         if (value == "NA" && info.mField != "name" && info.mField != "description" &&
-            !(info.mField == "parent" && object->getParent() != nullptr)) {
+            (info.mField != "parent" || object->getParent() == nullptr)) {
             const auto* field =
                 object->getModelDescription().find(info.mField, ModelFieldKind::PARAMETER);
             if (field == nullptr || !field->readable() ||
@@ -881,7 +918,7 @@ namespace {
             throw ActionError(ActionError::Kind::TARGET,
                               std::format("string field '{}' does not accept units", selector));
         }
-        return std::format("{:?}\n", value);
+        return formatActionString(value);
     }
 
     void printGetActionHelp(std::string_view selector, const CoreObject& root)
@@ -909,6 +946,67 @@ namespace {
                 }
             }
         }
+    }
+
+    std::shared_ptr<Event>
+        makeActionEvent(std::string_view description, CoreObject* root, CoreTime earliestTime)
+    {
+        EventInfo info;
+        try {
+            info.loadString(description, root);
+        }
+        catch (const InvalidParameterValue& error) {
+            throw ActionError(ActionError::Kind::SYNTAX, error.what());
+        }
+        if (!info.file.empty()) {
+            throw ActionError(
+                ActionError::Kind::UNSUPPORTED,
+                "add event requires inline values; use a case file for event playback from a file");
+        }
+        if (info.fieldList.empty() ||
+            std::ranges::any_of(info.fieldList, [](const auto& field) { return field.empty(); })) {
+            throw ActionError(ActionError::Kind::SYNTAX, "add event requires a field name");
+        }
+        if (std::ranges::any_of(info.targetObjs,
+                                [](const auto* target) { return target == nullptr; })) {
+            throw ActionError(ActionError::Kind::TARGET, "event target was not found");
+        }
+        if (std::ranges::any_of(info.units,
+                                [](const auto& unit) { return units::is_error(unit); })) {
+            throw ActionError(ActionError::Kind::SYNTAX, "invalid event units");
+        }
+
+        const auto& times = info.time;
+        const auto unorderedTime = [](CoreTime first, CoreTime second) { return first >= second; };
+        if (times.empty() || times.front() == negTime || times.back() == maxTime ||
+            std::ranges::adjacent_find(times, unorderedTime) != times.end()) {
+            throw ActionError(ActionError::Kind::SYNTAX,
+                              "add event requires strictly increasing, finite trigger times");
+        }
+        if (times.front() < earliestTime) {
+            throw ActionError(ActionError::Kind::EXECUTION,
+                              "event time precedes the current simulation or start time");
+        }
+        if (info.period < timeZero || info.period == maxTime ||
+            (info.period > timeZero && info.period <= times.back() - times.front())) {
+            throw ActionError(ActionError::Kind::SYNTAX,
+                              "event period must exceed the span of its trigger times");
+        }
+        const auto fieldCount = info.fieldList.size();
+        const auto valueCount = info.value.size();
+        if (fieldCount == 1 ?
+                (valueCount != 1 && valueCount != times.size()) :
+                (times.size() != 1 || valueCount != fieldCount || info.period > timeZero)) {
+            throw ActionError(ActionError::Kind::SYNTAX,
+                              "event times, fields, and values do not match");
+        }
+
+        auto event = makeEvent(info, root);
+        if (!event || !event->isArmed()) {
+            throw ActionError(ActionError::Kind::TARGET,
+                              "unable to arm event for the given target");
+        }
+        return std::shared_ptr<Event>{std::move(event)};
     }
 
     std::string_view continuationStatusName(ContinuationStatus status)
@@ -967,7 +1065,7 @@ int GridDynSimulation::runActions(std::deque<QueuedAction>& queue, CoreTime tEnd
             const auto actionEnd = actionStopTime(action);
             paused = tEnd != negTime && actionEnd && *actionEnd > tEnd;
             if (!paused) {
-                result = execute(action);
+                result = executeAction(action, actionEnd.value_or(stopTime));
             } else if (getSimulationTime() < tEnd) {
                 result = executeAction(action, tEnd);
             }
@@ -1025,7 +1123,7 @@ void GridDynSimulation::expandScript(std::deque<QueuedAction>& queue, const Queu
         throw ActionError(ActionError::Kind::SYNTAX, "action requires a script file");
     }
     const auto includingFile =
-        entry.script ? entry.script->paths.back() : std::filesystem::path(entry.source);
+        entry.script ? entry.script->mPaths.back() : std::filesystem::path(entry.source);
     const auto requested = includingFile.parent_path() / std::filesystem::path(file);
     std::error_code error;
     const auto path = std::filesystem::canonical(requested, error);
@@ -1039,13 +1137,13 @@ void GridDynSimulation::expandScript(std::deque<QueuedAction>& queue, const Queu
             std::error_code equivalentError;
             return ancestor == path || std::filesystem::equivalent(ancestor, path, equivalentError);
         };
-        if (std::ranges::any_of(entry.script->paths, alreadyIncluded)) {
+        if (std::ranges::any_of(entry.script->mPaths, alreadyIncluded)) {
             throw FileOperationError(
                 std::format("script include cycle involving '{}'", path.string()));
         }
-        script->paths = entry.script->paths;
+        script->mPaths = entry.script->mPaths;
     }
-    script->paths.push_back(path);
+    script->mPaths.push_back(path);
 
     std::ifstream input(path);
     if (!input) {
@@ -1272,6 +1370,15 @@ int GridDynSimulation::executeAction(const GridDynAction& cmd, CoreTime endTime)
                 }
             }
         } break;
+        case GridDynAction::GdAction::ADD:
+            if (cmd.string1 != "event") {
+                throw ActionError(ActionError::Kind::UNSUPPORTED,
+                                  std::format("unsupported add subject '{}'", cmd.string1));
+            }
+            add(makeActionEvent(cmd.string2,
+                                getRoot(),
+                                pState == GridState::STARTUP ? startTime : getSimulationTime()));
+            break;
         case GridDynAction::GdAction::SETALL:
             setAll(cmd.string1, cmd.string2, cmd.val_double);
             break;

@@ -11,6 +11,7 @@
 #include <array>
 #include <charconv>
 #include <cmath>
+#include <span>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -35,6 +36,45 @@ namespace {
         return quotedActionOperand(token, "file name");
     }
 
+    void parseGetAction(GridDynAction& action, std::span<const std::string> operands)
+    {
+        if (operands.empty() || operands.size() > 2) {
+            throw InvalidParameterValue("get expects a selector and an optional output file");
+        }
+        action.command = GridDynAction::GdAction::GET_ACTION;
+        if (operands.front() == "--help") {
+            action.flag = 1;
+            if (operands.size() == 2) {
+                action.string1 = quotedActionOperand(operands[1], "object selector");
+            }
+            return;
+        }
+        action.string1 = quotedActionOperand(operands.front(), "field selector");
+        if (operands.size() == 2) {
+            action.string2 = actionFileName(operands[1]);
+        }
+    }
+
+    void parseAddAction(GridDynAction& action, std::span<const std::string> operands)
+    {
+        if (operands.empty()) {
+            throw InvalidParameterValue("add requires a subject");
+        }
+        action.command = GridDynAction::GdAction::ADD;
+        action.string1 = gmlc::utilities::convertToLowerCase(operands.front());
+        if (action.string1 != "event") {
+            return;
+        }
+        if (operands.size() < 2) {
+            throw InvalidParameterValue("add event requires an event description");
+        }
+        action.string2 = operands[1];
+        for (const auto& token : operands.subspan(2)) {
+            action.string2.append(" ").append(token);
+        }
+        action.string2 = quotedActionOperand(action.string2, "event description");
+    }
+
     double nonnegativeActionNumber(const std::string& token, std::string_view field)
     {
         try {
@@ -53,12 +93,12 @@ namespace {
     {
         const auto* begin = token.data();
         const auto* end = begin + token.size();
-        index_t id = 0;
-        const auto result = std::from_chars(begin, end, id);
+        index_t busId = 0;
+        const auto result = std::from_chars(begin, end, busId);
         if (result.ec != std::errc{} || result.ptr != end || token.starts_with('-')) {
             throw InvalidParameterValue("continuation monitor bus ID");
         }
-        return id;
+        return busId;
     }
 }  // namespace
 
@@ -140,7 +180,7 @@ void GridDynAction::process(std::string_view operation)
     const std::string commandToken = gmlc::utilities::convertToLowerCase(ssep[0]);
     if (commandToken == "save" || commandToken == "load" || commandToken == "checkpoint" ||
         commandToken == "rollback" || commandToken == "continuation" || commandToken == "action" ||
-        commandToken == "get") {
+        commandToken == "get" || commandToken == "add") {
         ssep = gmlc::utilities::stringOps::splitlineQuotes(operation,
                                                            whitespace,
                                                            "\"",
@@ -173,21 +213,7 @@ void GridDynAction::process(std::string_view operation)
             throw(InvalidParameterValue(commandToken));
         }
     } else if (commandToken == "get") {
-        if (tokenCount < 2 || tokenCount > 3) {
-            throw InvalidParameterValue("get expects a selector and an optional output file");
-        }
-        command = GdAction::GET_ACTION;
-        flag = ssep[1] == "--help" ? 1 : 0;
-        if (flag == 1) {
-            if (tokenCount == 3) {
-                string1 = quotedActionOperand(ssep[2], "object selector");
-            }
-        } else {
-            string1 = quotedActionOperand(ssep[1], "field selector");
-            if (tokenCount == 3) {
-                string2 = actionFileName(ssep[2]);
-            }
-        }
+        parseGetAction(*this, std::span<const std::string>{ssep}.subspan(1, tokenCount - 1));
     } else if (commandToken == "setall") {
         // setall  objecttype(s) parameter(s) value(d)
         command = GdAction::SETALL;
@@ -332,16 +358,7 @@ void GridDynAction::process(std::string_view operation)
         string1 = ssep[1];
         string2 = actionFileName(ssep[2]);
     } else if (commandToken == "add") {
-        // add addstring(s)
-        if (tokenCount > 1) {
-            string1 = ssep[1];
-            for (size_t kk = 2; kk < tokenCount; ++kk) {
-                string1 += " " + ssep[kk];
-            }
-        } else {
-            throw(InvalidParameterValue("add"));
-        }
-        command = GdAction::ADD;
+        parseAddAction(*this, std::span<const std::string>{ssep}.subspan(1, tokenCount - 1));
     } else if (commandToken == "checkpoint" || commandToken == "rollback") {
         if (tokenCount < 2 || tokenCount > 3) {
             throw(InvalidParameterValue(commandToken));

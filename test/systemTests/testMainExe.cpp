@@ -258,3 +258,29 @@ TEST(MainExeTests, QueriesValuesAndListsDeclaredFields)
     EXPECT_TRUE(output.contains("Declared fields on load3")) << output;
     EXPECT_TRUE(output.contains("Real power at nominal voltage")) << output;
 }
+
+TEST(MainExeTests, AddEventMatchesCommandLineAndXmlEvents)
+{
+    ExeTestRunner mainExeRunner(GRIDDYN_TEST_MAIN_DIRECTORY, "gridDynMain");
+    ASSERT_TRUE(mainExeRunner.isActive());
+    const std::string caseFile = "\"" GRIDDYN_TEST_DIRECTORY "/dyn_tests1/test_dynSimple1.xml\"";
+    const std::string reportFile = "gdc16-event-value.txt";
+    const std::string reading = "run 0.2; get bus1::load3:p " + reportFile + '"';
+    const std::string commands[]{
+        caseFile + " --event \"@0.15|bus1::load3:p=1.1\" -P \"action=" + reading,
+        caseFile + " -P \"action=run 0.1; add event @0.15|bus1::load3:p=1.1; " + reading,
+        "\"" GRIDDYN_TEST_DIRECTORY "/runnerTests/action_event.xml\" -P \"action=" + reading,
+    };
+    for (const auto& args : commands) {
+        SCOPED_TRACE(args);
+        std::filesystem::remove(reportFile);
+        const auto output = mainExeRunner.runCaptureOutput(args);
+        EXPECT_FALSE(output.contains(" returned ")) << output;
+        std::ifstream report(reportFile);
+        double power = 0.0;
+        ASSERT_TRUE(report >> power) << output;
+        EXPECT_DOUBLE_EQ(power, 1.1);
+        report.close();
+        std::filesystem::remove(reportFile);
+    }
+}

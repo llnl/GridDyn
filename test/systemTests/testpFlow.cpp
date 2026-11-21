@@ -298,7 +298,7 @@ class TemporaryStateFile {
         std::error_code error;
         std::filesystem::remove(path, error);
     }
-    std::string quotedPath() const { return '"' + path.string() + '"'; }
+    [[nodiscard]] std::string quotedPath() const { return '"' + path.string() + '"'; }
 
     std::filesystem::path path;
 };
@@ -373,7 +373,9 @@ TEST_F(PowerflowSystemTests, ScriptedContinuationArchivesTargetAndUnmetTarget)
     }
     const auto limit = readContinuationPowerFlow(archive.path.string());
     EXPECT_EQ(limit.status, ContinuationStatus::NOSE_BEFORE_TARGET);
-    ASSERT_TRUE(limit.nose.has_value());
+    if (!limit.nose) {
+        FAIL() << "Expected a nose point before the requested target";
+    }
     EXPECT_NEAR(limit.nose->lambda, 0.8, 1e-5);
     EXPECT_EQ(gds->getName(), baseName);
     EXPECT_EQ(gds->getState(), baseState);

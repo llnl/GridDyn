@@ -190,6 +190,34 @@ Legacy string getters reserve `NA` for unavailable values. Object names,
 descriptions, parent names, and declared string parameters can contain a
 literal `NA`.
 
+### Scheduling events
+
+`add event <description>` schedules an inline event when the command runs.
+The description uses the same syntax as `--event` and XML event text. Trigger
+times are absolute simulation seconds. Use the configured start time or later
+before initialization, and the current simulation time or later during a run.
+
+```text
+run 0.1
+add event @0.15|bus1::load#0:p(MW)=110
+run 0.2
+```
+
+The time can also follow the assignment, as in `add event bus1::load#0:p=1.1 @0.15`.
+Use comma-separated times in increasing order and supply a value for each time
+or one value for all times. Append `+period` to the schedule to repeat it, with
+a period longer than the span of the series. Double-quote a description that
+contains semicolons to apply multiple assignments at one time.
+
+```text
+add event @0.2,0.3+0.5|bus1::load#0:p=1.1,1.2
+add event "@0.4|bus1::load#0:p=1.3;bus1::load#0:q=0.2"
+```
+
+Malformed descriptions and unresolved objects stop the action queue at
+`add event`. The event applies its field assignments at the trigger time.
+Use case input to configure playback from an event data file.
+
 ### Checkpoint commands
 
 | Command                                                                 | Effect                                                                                                                                                                                                                                               |

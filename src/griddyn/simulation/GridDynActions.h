@@ -51,7 +51,7 @@ class GridDynAction {
         SAVE,  //!< SAVE the results
         CHECK,  //!< CHECK the current results in various ways
         LOAD,  //!< LOAD a state into the simulation
-        ADD,  //!< ADD a model to the simulation
+        ADD,  //!< Add an object such as an event to the simulation
         ROLLBACK,  //!< Restore a checkpoint or solver snapshot from a file
         CHECKPOINT,  //!< Capture solver and declared component state to a file
         CONTINGENCY,  //!< perform a CONTINGENCY analysis

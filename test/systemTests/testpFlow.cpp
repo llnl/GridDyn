@@ -13,6 +13,7 @@
 #include "griddyn/Load.h"
 #include "griddyn/exciters/ExciterSEXS.h"
 #include "griddyn/measurement/Recorder.h"
+#include "griddyn/simulation/GridDynActions.h"
 #include "griddyn/simulation/GridDynSimulationFileOps.h"
 #include "griddyn/solvers/SolverInterface.h"
 #include "utilities/Hdf5DataFile.h"
@@ -284,19 +285,21 @@ TEST_F(PowerflowSystemTests, ContinuationHoldsLocalVoltageUntilBothGeneratorsRea
 namespace {
 class TemporaryStateFile {
   public:
-    TemporaryStateFile()
+    explicit TemporaryStateFile(std::string_view suffix = ".h5")
     {
         static std::atomic<unsigned int> sequence{0};
         const auto timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
         path = std::filesystem::temp_directory_path() /
             ("griddyn-state-" + std::to_string(timestamp) + "-" + std::to_string(sequence++) +
-             ".h5");
+             std::string(suffix));
     }
     ~TemporaryStateFile()
     {
         std::error_code error;
         std::filesystem::remove(path, error);
     }
+    std::string quotedPath() const { return '"' + path.string() + '"'; }
+
     std::filesystem::path path;
 };
 
@@ -330,6 +333,57 @@ void nameCheckpointGeneratorModels(GridDynSimulation& simulation)
 }
 }  // namespace
 
+TEST_F(PowerflowSystemTests, ScriptedContinuationArchivesTargetAndUnmetTarget)
+{
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "continuation_two_bus.xml");
+    ASSERT_NE(gds, nullptr);
+    ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    const auto* bus = gds->getBus(1);
+    ASSERT_NE(bus, nullptr);
+    const auto baseState = gds->getState();
+    const auto baseTime = gds->getSimulationTime();
+    const auto baseVoltage = bus->getVoltage();
+    const auto baseName = gds->getName();
+    const TemporaryStateFile archive(" continuation.h5");
+
+    ASSERT_EQ(gds->execute("continuation 6 target 0.5 monitor 20,10 archive " +
+                           archive.quotedPath()),
+              FUNCTION_EXECUTION_SUCCESS);
+    const auto target = readContinuationPowerFlow(archive.path.string());
+    ASSERT_EQ(target.status, ContinuationStatus::TARGET_REACHED);
+    ASSERT_FALSE(target.points.empty());
+    EXPECT_EQ(target.monitorBuses, (std::vector<index_t>{20, 10}));
+    EXPECT_DOUBLE_EQ(target.points.back().lambda, 0.5);
+    EXPECT_NEAR(target.points.back().voltages.front(),
+                std::sqrt(0.5 * (1.0 + std::sqrt(1.0 - (0.7 * 0.7)))),
+                1e-7);
+
+    gds->addActions("continuation 6 target 1 archive " + archive.quotedPath() +
+                        "; set name resumed",
+                    "studies.xml");
+    try {
+        gds->run();
+        ADD_FAILURE() << "expected an unmet continuation target";
+    }
+    catch (const ActionError& error) {
+        EXPECT_EQ(error.kind(), ActionError::Kind::EXECUTION);
+        const std::string_view message(error.what());
+        EXPECT_TRUE(message.starts_with("studies.xml: action 'continuation 6 target 1")) << message;
+        EXPECT_TRUE(message.contains("nose_before_target")) << message;
+    }
+    const auto limit = readContinuationPowerFlow(archive.path.string());
+    EXPECT_EQ(limit.status, ContinuationStatus::NOSE_BEFORE_TARGET);
+    ASSERT_TRUE(limit.nose.has_value());
+    EXPECT_NEAR(limit.nose->lambda, 0.8, 1e-5);
+    EXPECT_EQ(gds->getName(), baseName);
+    EXPECT_EQ(gds->getState(), baseState);
+    EXPECT_EQ(gds->getSimulationTime(), baseTime);
+    EXPECT_DOUBLE_EQ(bus->getVoltage(), baseVoltage);
+    EXPECT_DOUBLE_EQ(bus->getLoad()->get("p"), 0.2);
+    ASSERT_EQ(gds->run(), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(gds->getName(), "resumed");
+}
+
 TEST_F(PowerflowSystemTests, ContinuationArchiveRoundTripsAndAppendsStudies)
 {
     gds = readSimXMLFile(std::string(pFlow_test_directory) + "continuation_q_limits.xml");
@@ -342,9 +396,10 @@ TEST_F(PowerflowSystemTests, ContinuationArchiveRoundTripsAndAppendsStudies)
     ASSERT_EQ(result.status, ContinuationStatus::NOSE_FOUND);
     ASSERT_EQ(result.qLimitEvents.size(), 1);
 
-    const TemporaryStateFile file;
+    const TemporaryStateFile file(" q limits.h5");
     const auto path = file.path.string();
-    saveContinuationPowerFlow(result, path);
+    ASSERT_EQ(gds->execute("continuation 11 monitor 20,10 qlimits archive " + file.quotedPath()),
+              FUNCTION_EXECUTION_SUCCESS);
 
     ContinuationResult large;
     constexpr std::size_t busCount = 12000;
@@ -761,8 +816,7 @@ TEST_F(PowerflowSystemTests, TestIteratedPflow)
 
 TEST_F(PowerflowSystemTests, PowerFlowCheckpointRestoresSolutionAcrossIterations)
 {
-    const auto checkpoint =
-        std::filesystem::temp_directory_path() / "griddyn-pflow-checkpoint.json";
+    const TemporaryStateFile checkpoint(" powerflow.json");
     gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
     ASSERT_NE(gds, nullptr);
     ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
@@ -772,12 +826,13 @@ TEST_F(PowerflowSystemTests, PowerFlowCheckpointRestoresSolutionAcrossIterations
     ASSERT_NE(load, nullptr);
     const double voltage = bus->getVoltage();
     const double angle = bus->getAngle();
-    savePowerFlowCheckpoint(gds.get(), checkpoint.string());
+    ASSERT_EQ(gds->execute("save powerflow-checkpoint " + checkpoint.quotedPath()),
+              FUNCTION_EXECUTION_SUCCESS);
 
     load->set("p", 0.8);
     ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
     ASSERT_GT(std::abs(bus->getVoltage() - voltage), 1e-4);
-    loadPowerFlowCheckpoint(gds.get(), checkpoint.string());
+    loadPowerFlowCheckpoint(gds.get(), checkpoint.path.string());
     EXPECT_DOUBLE_EQ(bus->getVoltage(), voltage);
     EXPECT_DOUBLE_EQ(bus->getAngle(), angle);
     EXPECT_DOUBLE_EQ(load->get("p"), 0.8);
@@ -785,10 +840,10 @@ TEST_F(PowerflowSystemTests, PowerFlowCheckpointRestoresSolutionAcrossIterations
     auto second = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_example.xml");
     ASSERT_NE(second, nullptr);
     ASSERT_EQ(second->powerflow(), FUNCTION_EXECUTION_SUCCESS);
-    loadPowerFlowCheckpoint(second.get(), checkpoint.string());
+    second->add("load powerflow-checkpoint " + checkpoint.quotedPath());
+    ASSERT_EQ(second->run(), FUNCTION_EXECUTION_SUCCESS);
     EXPECT_DOUBLE_EQ(second->getBus(1)->getVoltage(), voltage);
     EXPECT_DOUBLE_EQ(second->getBus(1)->getAngle(), angle);
-    std::filesystem::remove(checkpoint);
 }
 
 TEST_F(PowerflowSystemTests, PowerFlowCheckpointRejectsInvalidFileBeforeChangingState)
@@ -1004,7 +1059,7 @@ TEST_F(PowerflowSystemTests, BinaryStateCheckpointRestoreLevels)
     ASSERT_TRUE(hasDifferential(mode));
     ASSERT_GT(solver->size(), 0U);
 
-    saveStateBinary(gds.get(), file.path.string(), mode, false);
+    ASSERT_EQ(gds->execute("save state " + file.quotedPath()), FUNCTION_EXECUTION_SUCCESS);
     const auto saved = readStateBinary(file.path.string());
     ASSERT_EQ(saved.time, captureTime);
     const auto expectedState = saved.state;
@@ -1018,7 +1073,7 @@ TEST_F(PowerflowSystemTests, BinaryStateCheckpointRestoreLevels)
 
     std::fill(solver->stateData(), solver->stateData() + solver->size(), -11.0);
     std::fill(solver->derivData(), solver->derivData() + solver->size(), -12.0);
-    gds->checkpointRestore(saved, CheckpointRestoreLevel::SOLVER_STATE_ONLY, mode);
+    ASSERT_EQ(gds->execute("load state " + file.quotedPath()), FUNCTION_EXECUTION_SUCCESS);
     EXPECT_EQ(std::vector<double>(solver->stateData(), solver->stateData() + solver->size()),
               expectedState);
     EXPECT_EQ(std::vector<double>(solver->derivData(), solver->derivData() + solver->size()),
@@ -1039,7 +1094,8 @@ TEST_F(PowerflowSystemTests, BinaryStateCheckpointRestoreLevels)
 
     std::fill(solver->stateData(), solver->stateData() + solver->size(), -21.0);
     std::fill(solver->derivData(), solver->derivData() + solver->size(), -22.0);
-    gds->checkpointRestore(file.path.string(), CheckpointRestoreLevel::MINIMAL, mode);
+    ASSERT_EQ(gds->execute("rollback " + file.quotedPath() + " minimal"),
+              FUNCTION_EXECUTION_SUCCESS);
     EXPECT_EQ(std::vector<double>(solver->stateData(), solver->stateData() + solver->size()),
               expectedState);
     EXPECT_EQ(std::vector<double>(solver->derivData(), solver->derivData() + solver->size()),
@@ -1233,7 +1289,7 @@ TEST_F(PowerflowSystemTests, LocalStateCheckpointRestoresNestedModelHistory)
 
 TEST_F(PowerflowSystemTests, FileCheckpointContinuesWithAnActiveExciterLimitAfterReload)
 {
-    TemporaryStateFile file;
+    const TemporaryStateFile file(" local checkpoint.h5");
     const auto modelFile = std::string(GRIDDYN_TEST_DIRECTORY) + "/dyn_tests2/test_2m4bDyn.xml";
     const auto prepare = [&] {
         gds = readSimXMLFile(modelFile);
@@ -1252,9 +1308,9 @@ TEST_F(PowerflowSystemTests, FileCheckpointContinuesWithAnActiveExciterLimitAfte
     const auto limiterFlag = [](const CoreObject& exciter, std::string_view name) {
         return std::get<bool>(exciter.getModelDescription().find(name)->value(exciter));
     };
-    const auto path = file.path.string();
     const CoreTime captureTime(0.65);
     const std::array sampleTimes{CoreTime(0.75), CoreTime(0.85), CoreTime(0.95)};
+    const std::array runCommands{"run 0.75", "run 0.85", "run 0.95"};
     std::vector<std::vector<double>> reference;
     double steppedReference = 0.0;
     ASSERT_NO_FATAL_FAILURE(prepare());
@@ -1267,7 +1323,14 @@ TEST_F(PowerflowSystemTests, FileCheckpointContinuesWithAnActiveExciterLimitAfte
         ASSERT_EQ(gds->run(captureTime), FUNCTION_EXECUTION_SUCCESS);
         ASSERT_TRUE(limiterFlag(*exciter, "limiter_active"));
         ASSERT_TRUE(limiterFlag(*exciter, "limiter_high"));
-        gds->checkpointCapture(path);
+        const auto expected = gds->checkpointCapture();
+        ASSERT_EQ(gds->execute("checkpoint " + file.quotedPath() + " dae"),
+                  FUNCTION_EXECUTION_SUCCESS);
+        const auto written = readStateBinary(file.path.string());
+        EXPECT_EQ(written.time, expected.time);
+        EXPECT_EQ(written.state, expected.state);
+        EXPECT_EQ(written.derivatives, expected.derivatives);
+        EXPECT_EQ(written.stateNames, expected.stateNames);
 
         for (const auto time : sampleTimes) {
             ASSERT_EQ(gds->run(time), FUNCTION_EXECUTION_SUCCESS);
@@ -1282,14 +1345,17 @@ TEST_F(PowerflowSystemTests, FileCheckpointContinuesWithAnActiveExciterLimitAfte
     ASSERT_FALSE(limiterFlag(*exciter, "limiter_active"));
     // The file restores local history. Reapply the same reference step as configuration.
     exciter->set("vref", steppedReference);
-    gds->checkpointRestore(path, CheckpointRestoreLevel::LOCAL_STATE);
+    gds->add("rollback " + file.quotedPath());
+    ASSERT_EQ(gds->run(), FUNCTION_EXECUTION_SUCCESS);
     EXPECT_EQ(gds->getSimulationTime(), captureTime);
     EXPECT_TRUE(limiterFlag(*exciter, "limiter_active"));
     EXPECT_TRUE(limiterFlag(*exciter, "limiter_high"));
 
     for (std::size_t sample = 0; sample < sampleTimes.size(); ++sample) {
         SCOPED_TRACE(sample);
-        ASSERT_EQ(gds->run(sampleTimes[sample]), FUNCTION_EXECUTION_SUCCESS);
+        gds->add(runCommands[sample]);
+        ASSERT_EQ(gds->run(), FUNCTION_EXECUTION_SUCCESS);
+        EXPECT_EQ(gds->getSimulationTime(), sampleTimes[sample]);
         const auto restarted = gds->getState(gds->getCurrentMode());
         ASSERT_EQ(restarted.size(), reference[sample].size());
         for (std::size_t ii = 0; ii < restarted.size(); ++ii) {
@@ -1297,6 +1363,60 @@ TEST_F(PowerflowSystemTests, FileCheckpointContinuesWithAnActiveExciterLimitAfte
         }
         EXPECT_TRUE(limiterFlag(*exciter, "limiter_active"));
     }
+}
+
+TEST_F(PowerflowSystemTests, ScriptedRestoreRejectsInvalidFilesAndIncompatibleModels)
+{
+    const TemporaryStateFile checkpoint;
+    const TemporaryStateFile malformed;
+    {
+        std::ofstream output(malformed.path);
+        ASSERT_TRUE(output.is_open());
+        output << "not a checkpoint";
+    }
+    const auto model = std::string(pFlow_test_directory) + "two_bus_dynamic_example.xml";
+    gds = readSimXMLFile(model);
+    ASSERT_NE(gds, nullptr);
+    disableFixtureRecorderFiles(*gds);
+    ASSERT_EQ(gds->run(CoreTime(0.05)), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(gds->execute("checkpoint " + checkpoint.quotedPath()), FUNCTION_EXECUTION_SUCCESS);
+
+    gds2 = readSimXMLFile(model);
+    ASSERT_NE(gds2, nullptr);
+    disableFixtureRecorderFiles(*gds2);
+    ASSERT_EQ(gds2->powerflow(), FUNCTION_EXECUTION_SUCCESS);
+    const auto rejectRestore = [&](const std::string& command, std::string_view reason) {
+        gds2->set("name", "waiting");
+        const auto beforeState = gds2->getState(gds2->getCurrentMode());
+        const auto beforeTime = gds2->getSimulationTime();
+        gds2->addActions(command + "; set name resumed", "restore.xml");
+        try {
+            gds2->run();
+            ADD_FAILURE() << "expected a checkpoint restore failure";
+        }
+        catch (const ActionError& error) {
+            EXPECT_EQ(error.kind(), ActionError::Kind::EXECUTION);
+            const std::string_view diagnostic(error.what());
+            EXPECT_TRUE(diagnostic.starts_with("restore.xml: action '" + command + "' failed: "))
+                << diagnostic;
+            EXPECT_TRUE(diagnostic.contains(reason)) << diagnostic;
+        }
+        EXPECT_EQ(gds2->getName(), "waiting");
+        EXPECT_EQ(gds2->getSimulationTime(), beforeTime);
+        EXPECT_EQ(gds2->getState(gds2->getCurrentMode()), beforeState);
+        ASSERT_EQ(gds2->run(), FUNCTION_EXECUTION_SUCCESS);
+        EXPECT_EQ(gds2->getName(), "resumed");
+    };
+    ASSERT_NO_FATAL_FAILURE(
+        rejectRestore("load powerflow-checkpoint " + malformed.quotedPath(), "parse error"));
+    ASSERT_NO_FATAL_FAILURE(rejectRestore("rollback " + malformed.quotedPath(), "HDF5"));
+    ASSERT_NO_FATAL_FAILURE(
+        rejectRestore("rollback " + checkpoint.quotedPath(), "no initialized solver matches"));
+
+    ASSERT_EQ(gds2->dynInitialize(), FUNCTION_EXECUTION_SUCCESS);
+    gds2->getBus(0)->setName("renamed bus");
+    ASSERT_NO_FATAL_FAILURE(rejectRestore("rollback " + checkpoint.quotedPath(),
+                                          "missing or duplicate checkpoint component"));
 }
 
 TEST_F(PowerflowSystemTests, LocalStateCheckpointRestoresBothPartitionedBlocks)
@@ -1312,7 +1432,8 @@ TEST_F(PowerflowSystemTests, LocalStateCheckpointRestoresBothPartitionedBlocks)
     auto* bus = gds->getBus(1);
     ASSERT_NE(bus, nullptr);
     bus->updateA(CoreTime(0.02));
-    gds->checkpointCapture(path, mode);
+    ASSERT_EQ(gds->execute("checkpoint " + file.quotedPath() + " dyndiff"),
+              FUNCTION_EXECUTION_SUCCESS);
     const auto saved = readStateBinary(path);
     ASSERT_EQ(saved.paired.size(), 1U);
     ASSERT_EQ(saved.state.size(), saved.stateNames.size());
@@ -1322,7 +1443,7 @@ TEST_F(PowerflowSystemTests, LocalStateCheckpointRestoresBothPartitionedBlocks)
 
     gds->checkpointRestore(path, CheckpointRestoreLevel::MINIMAL, mode);
     EXPECT_DOUBLE_EQ(bus->get("lastupdate"), 0.09);
-    gds->checkpointRestore(path, CheckpointRestoreLevel::LOCAL_STATE, mode);
+    ASSERT_EQ(gds->execute("rollback " + file.quotedPath() + " local"), FUNCTION_EXECUTION_SUCCESS);
     EXPECT_DOUBLE_EQ(bus->get("lastupdate"), 0.02);
     EXPECT_EQ(gds->getState(mode), saved.state);
     EXPECT_EQ(gds->getState(saved.paired.front().mode), saved.paired.front().state);

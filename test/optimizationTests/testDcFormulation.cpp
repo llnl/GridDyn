@@ -20,6 +20,7 @@
 #    include "optimization/highsOptimizer.h"
 #endif
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
@@ -2193,6 +2194,18 @@ TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase9LikeNativeOptimize
     EXPECT_LE(highsOptimizer.lastSolveResult().maximumConstraintViolation, 1e-7);
     EXPECT_LE(highsOptimizer.lastSolveResult().maximumBoundViolation, 1e-7);
     EXPECT_EQ(highsOptimizer.get("solution_valid"), 1.0);
+
+    ASSERT_EQ(highsGrid->execute("opf highs"), FUNCTION_EXECUTION_SUCCESS);
+    for (index_t generatorId = 1; generatorId <= 3; ++generatorId) {
+        const auto* model =
+            dynamic_cast<const griddyn::GridGenOpt*>(highsRoot->findByUserID("gen", generatorId));
+        ASSERT_NE(model, nullptr);
+        const auto* generator = dynamic_cast<const griddyn::Generator*>(model->sourceObject());
+        ASSERT_NE(generator, nullptr);
+        EXPECT_NEAR(generator->getPset(),
+                    highsOptimizer.values[model->offsets.getOffsets(mode).gOffset],
+                    1e-7);
+    }
 }
 
 TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase118LikeNativeOptimizer)
@@ -2688,6 +2701,57 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSolvesCase9AgainstPypowerRef
     EXPECT_LE(optimizer->lastSolveResult().maximumConstraintViolation, 1e-7);
     EXPECT_LE(optimizer->lastSolveResult().maximumBoundViolation, 1e-7);
     EXPECT_EQ(optimizer->get("solution_valid"), 1.0);
+
+    const std::array models{gen1, gen2, gen3};
+    std::array<griddyn::Generator*, 3> generators{};
+    std::array<double, 3> originalPset{};
+    for (std::size_t index = 0; index < generators.size(); ++index) {
+        generators[index] = dynamic_cast<griddyn::Generator*>(models[index]->sourceObject());
+        ASSERT_NE(generators[index], nullptr);
+        originalPset[index] = generators[index]->getPset();
+    }
+    ASSERT_EQ(gds->execute("opf preview"), FUNCTION_EXECUTION_SUCCESS);
+    for (std::size_t index = 0; index < generators.size(); ++index) {
+        EXPECT_DOUBLE_EQ(generators[index]->getPset(), originalPset[index]);
+    }
+    griddyn::GridDynAction unavailable(griddyn::GridDynAction::GdAction::OPF);
+#ifdef GRIDDYN_ENABLE_HIGHS
+    unavailable.string1 = "missing";
+#else
+    unavailable.string1 = "highs";
+#endif
+    try {
+        gds->execute(unavailable);
+        ADD_FAILURE() << "expected an unavailable OPF backend";
+    }
+    catch (const griddyn::ActionError& error) {
+        EXPECT_EQ(error.kind(), griddyn::ActionError::Kind::UNSUPPORTED);
+        EXPECT_TRUE(std::string_view(error.what())
+                        .contains("backend '" + unavailable.string1 + "' is unavailable"))
+            << error.what();
+    }
+    gds->add("opf");
+    ASSERT_EQ(gds->run(), FUNCTION_EXECUTION_SUCCESS);
+    const std::array expectedPset{expectedGen1, expectedGen2, expectedGen3};
+    for (std::size_t index = 0; index < generators.size(); ++index) {
+        EXPECT_NEAR(generators[index]->getPset(), expectedPset[index], 1e-7);
+    }
+
+    for (std::size_t index = 0; index < generators.size(); ++index) {
+        generators[index]->set("pmax", 0.2);
+        originalPset[index] = generators[index]->getPset();
+    }
+    try {
+        gds->execute("opf");
+        ADD_FAILURE() << "expected an infeasible dispatch";
+    }
+    catch (const griddyn::ActionError& error) {
+        EXPECT_EQ(error.kind(), griddyn::ActionError::Kind::EXECUTION);
+        EXPECT_TRUE(std::string_view(error.what()).contains("infeasible")) << error.what();
+    }
+    for (std::size_t index = 0; index < generators.size(); ++index) {
+        EXPECT_DOUBLE_EQ(generators[index]->getPset(), originalPset[index]);
+    }
 }
 
 TEST(OptimizationDcFormulationTests, NativeOptimizerSolvesCase14AgainstPypowerReference)

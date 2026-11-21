@@ -48,6 +48,8 @@ class GridDynOptimization: public GridDynSimulation, public MatPowerCostCurvePro
     const ModelDescription& getModelDescription() const override;
 
   protected:
+    void executeOpfAction(const GridDynAction& action) override;
+
     // storageSpace for SUNDIALS solverInterface
     std::vector<std::shared_ptr<OptimizerInterface>> mOptimizerData;
     GridAreaOpt* mGridAreaOpt = nullptr;

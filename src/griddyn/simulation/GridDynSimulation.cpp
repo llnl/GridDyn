@@ -15,10 +15,12 @@
 #include "../loads/GridLabDLoad.h"
 #include "../solvers/SolverInterface.h"
 #include "Contingency.h"
+#include "Continuation.h"
 #include "GridArea.h"
 #include "GridDynSimulationFileOps.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ModelDescription.h"
 #include "core/ModelParameter.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
@@ -30,17 +32,22 @@
 #endif
 #include <algorithm>
 #include <cassert>
+#include <cctype>
 #include <cmath>
 #include <compare>
 #include <cstdio>
+#include <deque>
 #include <exception>
+#include <filesystem>
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <queue>
 #include <string>
+#include <system_error>
 #include <utility>
 #include <vector>
 
@@ -785,6 +792,9 @@ void GridDynSimulation::setupOffsets(const SolverMode& sMode, OffsetOrdering off
 }
 
 // --------------- run the simulation ---------------
+struct GridDynSimulation::ActionScript {
+    std::vector<std::filesystem::path> paths;
+};
 
 namespace {
     GridDynAction parseAction(std::string_view text)
@@ -794,6 +804,131 @@ namespace {
         }
         catch (const std::logic_error& error) {
             throw ActionError(ActionError::Kind::SYNTAX, error.what());
+        }
+    }
+
+    std::string describeActionError(std::string_view text,
+                                    std::string_view reason,
+                                    std::string_view source = {})
+    {
+        std::string message;
+        if (!source.empty()) {
+            message.append(source).append(": ");
+        }
+        message.append("action '").append(text).append("' failed: ").append(reason);
+        return message;
+    }
+
+    std::string getActionValue(std::string_view selector, const CoreObject& root)
+    {
+        const auto separator = selector.find_last_of(":?");
+        const auto fieldText =
+            separator == std::string_view::npos ? selector : selector.substr(separator + 1);
+        const auto unitStart = fieldText.find_first_of("()");
+        const bool hasUnit = unitStart != std::string_view::npos;
+        if (hasUnit &&
+            (fieldText[unitStart] != '(' || !fieldText.ends_with(')') ||
+             fieldText.size() - unitStart <= 2)) {
+            throw ActionError(ActionError::Kind::SYNTAX, "expected a unit in parentheses");
+        }
+
+        const ObjectInfo info(selector, &root);
+        if (info.mField.empty()) {
+            throw ActionError(ActionError::Kind::SYNTAX, "get requires a field name");
+        }
+        if (hasUnit &&
+            (units::is_error(info.mUnitType) || units::is_default(info.mUnitType) ||
+             !std::isfinite(info.mUnitType.multiplier()))) {
+            throw ActionError(ActionError::Kind::SYNTAX,
+                              std::format("invalid unit in '{}'", selector));
+        }
+        const auto* object = info.mObject;
+        if (object == nullptr) {
+            throw ActionError(ActionError::Kind::TARGET,
+                              std::format("target '{}' was not found", selector));
+        }
+
+        double number = kNullVal;
+        try {
+            number = object->get(info.mField, info.mUnitType);
+        }
+        catch (const InvalidParameterValue& error) {
+            throw ActionError(ActionError::Kind::TARGET, error.what());
+        }
+        if (number != kNullVal) {
+            if (hasUnit && std::isnan(number)) {
+                throw ActionError(ActionError::Kind::TARGET,
+                                  std::format("incompatible unit in '{}'", selector));
+            }
+            return std::format("{}\n", number);
+        }
+
+        auto value = object->getString(info.mField);
+        // The legacy string getter uses "NA" for unavailable fields. The built-in
+        // names and readable string declarations can also hold that literal value.
+        if (value == "NA" && info.mField != "name" && info.mField != "description" &&
+            !(info.mField == "parent" && object->getParent() != nullptr)) {
+            const auto* field =
+                object->getModelDescription().find(info.mField, ModelFieldKind::PARAMETER);
+            if (field == nullptr || !field->readable() ||
+                field->valueType() != ModelFieldType::STRING) {
+                throw ActionError(ActionError::Kind::TARGET,
+                                  std::format("field '{}' is unavailable", selector));
+            }
+            value = std::get<std::string>(field->value(*object));
+        }
+        if (hasUnit) {
+            throw ActionError(ActionError::Kind::TARGET,
+                              std::format("string field '{}' does not accept units", selector));
+        }
+        return std::format("{:?}\n", value);
+    }
+
+    void printGetActionHelp(std::string_view selector, const CoreObject& root)
+    {
+        const auto* object = selector.empty() ? &root : locateObject(selector, &root);
+        if (object == nullptr) {
+            throw ActionError(ActionError::Kind::TARGET,
+                              std::format("target '{}' was not found", selector));
+        }
+        std::cout << "get <field|object:field> [file]\n"
+                     "get --help [object]\n"
+                     "Use field(unit) to request units for numeric fields.\n";
+        if (selector.empty()) {
+            return;
+        }
+        const auto& description = object->getModelDescription();
+        std::cout
+            << std::format("Declared fields on {} ({})\n", object->getName(), description.name());
+        for (const auto* layer = &description; layer != nullptr; layer = layer->parent()) {
+            for (const auto& field : layer->fields()) {
+                if (field.readable() && description.find(field.name()) == &field &&
+                    (field.kind() == ModelFieldKind::PARAMETER ||
+                     field.kind() == ModelFieldKind::FLAG)) {
+                    std::cout << std::format("  {}\t{}\n", field.name(), field.description());
+                }
+            }
+        }
+    }
+
+    std::string_view continuationStatusName(ContinuationStatus status)
+    {
+        switch (status) {
+            case ContinuationStatus::TARGET_REACHED:
+                return "target_reached";
+            case ContinuationStatus::NOSE_FOUND:
+                return "nose_found";
+            case ContinuationStatus::NOSE_BEFORE_TARGET:
+                return "nose_before_target";
+            case ContinuationStatus::Q_LIMIT_TURN:
+                return "q_limit_turn";
+            case ContinuationStatus::BASE_SOLVE_FAILED:
+                return "base_solve_failed";
+            case ContinuationStatus::STEP_LIMIT:
+                return "step_limit";
+            case ContinuationStatus::NUMERICAL_FAILURE:
+            default:
+                return "numerical_failure";
         }
     }
 }  // namespace
@@ -806,16 +941,17 @@ int GridDynSimulation::run(CoreTime tEnd)
         action.val_double = (tEnd == negTime) ? stopTime : tEnd;
         return execute(action);
     }
+    return runActions(actionQueue, tEnd);
+}
 
-    while (!actionQueue.empty()) {
-        auto entry = std::move(actionQueue.front());
-        actionQueue.pop_front();
+int GridDynSimulation::runActions(std::deque<QueuedAction>& queue, CoreTime tEnd)
+{
+    while (!queue.empty()) {
+        auto entry = std::move(queue.front());
+        queue.pop_front();
 
         const auto describeError = [&entry](std::string_view reason) {
-            if (entry.source.empty()) {
-                return std::format("action '{}' failed: {}", entry.text, reason);
-            }
-            return std::format("{}: action '{}' failed: {}", entry.source, entry.text, reason);
+            return describeActionError(entry.text, reason, entry.source);
         };
         int result = FUNCTION_EXECUTION_SUCCESS;
         bool paused = false;
@@ -824,6 +960,10 @@ int GridDynSimulation::run(CoreTime tEnd)
                 throw ActionError(ActionError::Kind::SYNTAX, *error);
             }
             const auto& action = std::get<GridDynAction>(entry.command);
+            if (action.command == GridDynAction::GdAction::ACTION_FILE) {
+                expandScript(queue, entry);
+                continue;
+            }
             const auto actionEnd = actionStopTime(action);
             paused = tEnd != negTime && actionEnd && *actionEnd > tEnd;
             if (!paused) {
@@ -845,7 +985,7 @@ int GridDynSimulation::run(CoreTime tEnd)
             return result;
         }
         if (paused) {
-            actionQueue.push_front(std::move(entry));
+            queue.push_front(std::move(entry));
             return FUNCTION_EXECUTION_SUCCESS;
         }
     }
@@ -854,39 +994,143 @@ int GridDynSimulation::run(CoreTime tEnd)
 
 void GridDynSimulation::add(std::string_view actionString)
 {
-    queueAction(actionString, {});
+    queueAction(actionQueue, actionString, {});
 }
 
 void GridDynSimulation::addActions(std::string_view actions, std::string_view source)
 {
-    for (const auto& action : gmlc::utilities::stringOps::splitline(actions, ';')) {
-        queueAction(action, source);
+    queueActions(actionQueue, actions, source);
+}
+
+void GridDynSimulation::addScriptFile(std::string_view file, std::string_view source)
+{
+    actionQueue.push_back(scriptFileAction(file, source));
+}
+
+GridDynSimulation::QueuedAction GridDynSimulation::scriptFileAction(std::string_view file,
+                                                                    std::string_view source)
+{
+    GridDynAction action(GridDynAction::GdAction::ACTION_FILE);
+    action.string1 = file;
+    return {.command = std::move(action),
+            .text = std::format("action \"{}\"", file),
+            .source = std::string(source),
+            .script = {}};
+}
+
+void GridDynSimulation::expandScript(std::deque<QueuedAction>& queue, const QueuedAction& entry)
+{
+    const auto& file = std::get<GridDynAction>(entry.command).string1;
+    if (file.empty()) {
+        throw ActionError(ActionError::Kind::SYNTAX, "action requires a script file");
+    }
+    const auto includingFile =
+        entry.script ? entry.script->paths.back() : std::filesystem::path(entry.source);
+    const auto requested = includingFile.parent_path() / std::filesystem::path(file);
+    std::error_code error;
+    const auto path = std::filesystem::canonical(requested, error);
+    if (error || !std::filesystem::is_regular_file(path, error)) {
+        throw FileOperationError(
+            std::format("unable to open script file '{}'", requested.string()));
+    }
+    auto script = std::make_shared<ActionScript>();
+    if (entry.script) {
+        const auto alreadyIncluded = [&path](const std::filesystem::path& ancestor) {
+            std::error_code equivalentError;
+            return ancestor == path || std::filesystem::equivalent(ancestor, path, equivalentError);
+        };
+        if (std::ranges::any_of(entry.script->paths, alreadyIncluded)) {
+            throw FileOperationError(
+                std::format("script include cycle involving '{}'", path.string()));
+        }
+        script->paths = entry.script->paths;
+    }
+    script->paths.push_back(path);
+
+    std::ifstream input(path);
+    if (!input) {
+        throw FileOperationError(std::format("unable to open script file '{}'", path.string()));
+    }
+    std::deque<QueuedAction> batch;
+    const auto source = path.string();
+    std::size_t lineNumber = 0;
+    for (std::string line; std::getline(input, line);) {
+        ++lineNumber;
+        if (lineNumber == 1 && line.starts_with("\xEF\xBB\xBF")) {
+            line.erase(0, 3);
+        }
+        queueActions(batch, line, std::format("{}:{}", source, lineNumber), script);
+    }
+    if (input.bad() || !input.eof()) {
+        throw FileOperationError(std::format("unable to read script file '{}'", source));
+    }
+    queue.insert(queue.begin(),
+                 std::make_move_iterator(batch.begin()),
+                 std::make_move_iterator(batch.end()));
+}
+
+void GridDynSimulation::queueActions(std::deque<QueuedAction>& queue,
+                                     std::string_view actions,
+                                     std::string_view source,
+                                     const std::shared_ptr<const ActionScript>& script)
+{
+    for (const auto& line : gmlc::utilities::stringOps::splitline(actions, '\n')) {
+        bool quoted = false;
+        std::size_t start = 0;
+        for (std::size_t pos = 0; pos < line.size(); ++pos) {
+            const char character = line[pos];
+            if (character == '"') {
+                quoted = !quoted;
+            } else if (!quoted) {
+                if (character == '#' &&
+                    (pos == start ||
+                     std::isspace(static_cast<unsigned char>(line[pos - 1])) != 0)) {
+                    break;
+                }
+                if (character == ';') {
+                    queueAction(queue,
+                                std::string_view(line).substr(start, pos - start),
+                                source,
+                                script);
+                    start = pos + 1;
+                }
+            }
+        }
+        queueAction(queue, std::string_view(line).substr(start), source, script);
     }
 }
 
-void GridDynSimulation::queueAction(std::string_view text, std::string_view source)
+void GridDynSimulation::queueAction(std::deque<QueuedAction>& queue,
+                                    std::string_view text,
+                                    std::string_view source,
+                                    const std::shared_ptr<const ActionScript>& script)
 {
     const std::string commandText = gmlc::utilities::stringOps::trim(text);
     try {
         auto action = parseAction(commandText);
         if (action.command != GridDynAction::GdAction::IGNORE_ACTION) {
-            actionQueue.push_back(
-                {.command = std::move(action), .text = commandText, .source = std::string(source)});
+            queue.push_back({.command = std::move(action),
+                             .text = commandText,
+                             .source = std::string(source),
+                             .script = script});
         }
     }
     catch (const ActionError& error) {
         // Report syntax errors in script order, after any preceding actions run.
-        actionQueue.push_back({.command = std::string(error.what()),
-                               .text = commandText,
-                               .source = std::string(source)});
+        queue.push_back({.command = std::string(error.what()),
+                         .text = commandText,
+                         .source = std::string(source),
+                         .script = script});
     }
 }
 
 void GridDynSimulation::add(GridDynAction& newAction)
 {
     if (newAction.command != GridDynAction::GdAction::IGNORE_ACTION) {
-        actionQueue.push_back(
-            {.command = newAction, .text = std::string(newAction.commandName()), .source = {}});
+        actionQueue.push_back({.command = newAction,
+                               .text = std::string(newAction.commandName()),
+                               .source = {},
+                               .script = {}});
     }
 }
 
@@ -896,15 +1140,33 @@ int GridDynSimulation::execute(std::string_view cmd)
         return execute(parseAction(cmd));
     }
     catch (const ActionError& error) {
-        std::string message{"action '"};
-        message.append(cmd).append("' failed: ").append(error.what());
-        throw ActionError(error.kind(), message);
+        throw ActionError(error.kind(), describeActionError(cmd, error.what()));
+    }
+    catch (const FileOperationError& error) {
+        std::throw_with_nested(
+            ActionError(ActionError::Kind::EXECUTION, describeActionError(cmd, error.what())));
     }
 }
 
 int GridDynSimulation::execute(const GridDynAction& cmd)
 {
+    if (cmd.command == GridDynAction::GdAction::ACTION_FILE) {
+        lastActionError.clear();
+        std::deque<QueuedAction> queue;
+        queue.push_back(scriptFileAction(cmd.string1, {}));
+        return runActions(queue, negTime);
+    }
     return executeAction(cmd, actionStopTime(cmd).value_or(stopTime));
+}
+
+void GridDynSimulation::executeOpfAction(const GridDynAction& /*action*/)
+{
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
+    throw ActionError(ActionError::Kind::UNSUPPORTED,
+                      "opf requires an optimization simulation; use --optimization in the CLI");
+#else
+    throw ActionError(ActionError::Kind::UNSUPPORTED, "OPF is unavailable in this GridDyn build");
+#endif
 }
 
 std::optional<CoreTime> GridDynSimulation::actionStopTime(const GridDynAction& action) const
@@ -989,6 +1251,27 @@ int GridDynSimulation::executeAction(const GridDynAction& cmd, CoreTime endTime)
                 objectInfo.mObject->set(objectInfo.mField, cmd.val_double, objectInfo.mUnitType);
             }
         } break;
+        case GridDynAction::GdAction::GET_ACTION: {
+            if (cmd.flag == 1) {
+                printGetActionHelp(cmd.string1, *this);
+                break;
+            }
+            const auto value = getActionValue(cmd.string1, *this);
+            if (cmd.string2.empty()) {
+                if (!(std::cout << value << std::flush)) {
+                    throw ActionError(ActionError::Kind::EXECUTION, "unable to write get output");
+                }
+            } else {
+                std::ofstream output(cmd.string2, std::ios::app);
+                output << value;
+                output.close();
+                if (!output) {
+                    throw ActionError(ActionError::Kind::EXECUTION,
+                                      std::format("unable to write get output to '{}'",
+                                                  cmd.string2));
+                }
+            }
+        } break;
         case GridDynAction::GdAction::SETALL:
             setAll(cmd.string1, cmd.string2, cmd.val_double);
             break;
@@ -1001,6 +1284,46 @@ int GridDynSimulation::executeAction(const GridDynAction& cmd, CoreTime endTime)
             break;
         case GridDynAction::GdAction::POWERFLOW:
             out = powerflow();
+            break;
+        case GridDynAction::GdAction::CONTINUATION: {
+            if (cmd.val_double == kNullVal) {
+                throw ActionError(ActionError::Kind::SYNTAX, "continuation requires a load scale");
+            }
+            ContinuationRequest request;
+            request.loadScale = cmd.val_double;
+            if (cmd.val_double2 != kNullVal) {
+                request.stopLambda = cmd.val_double2;
+            }
+            request.monitorBuses = cmd.monitorBuses;
+            request.enforceQLimits = cmd.flag != 0;
+
+            ContinuationResult result;
+            try {
+                result = continuationPowerFlow(request);
+            }
+            catch (const InvalidParameterValue& error) {
+                std::throw_with_nested(ActionError(ActionError::Kind::EXECUTION, error.what()));
+            }
+            if (!cmd.string1.empty()) {
+                saveContinuationPowerFlow(result, cmd.string1);
+            }
+            auto message = std::format("continuation {}", continuationStatusName(result.status));
+            if (!result.points.empty()) {
+                message += std::format(" lambda={}", result.points.back().lambda);
+            }
+            if (const auto limit = result.limitingLambda()) {
+                message += std::format(" limiting_lambda={}", *limit);
+            }
+            if (result.targetLambda) {
+                message += std::format(" target={}", *result.targetLambda);
+            }
+            if (!result.successful()) {
+                throw ActionError(ActionError::Kind::EXECUTION, message);
+            }
+            std::cout << message << '\n';
+        } break;
+        case GridDynAction::GdAction::OPF:
+            executeOpfAction(cmd);
             break;
         case GridDynAction::GdAction::CHECK:
             if (cmd.string1 == "powerflow") {
@@ -1192,11 +1515,47 @@ int GridDynSimulation::executeAction(const GridDynAction& cmd, CoreTime endTime)
                                                      cmd.string2);
             } else if (cmd.string1 == "powerflow") {
                 savePowerFlow(this, (cmd.string2.empty()) ? powerFlowFile : cmd.string2);
+            } else if (cmd.string1 == "powerflow-checkpoint") {
+                savePowerFlowCheckpoint(this, cmd.string2);
             } else {
                 throw ActionError(ActionError::Kind::UNSUPPORTED,
                                   std::format("unsupported save subject '{}'", cmd.string1));
             }
             break;
+        case GridDynAction::GdAction::LOAD:
+            if (cmd.string1 == "state") {
+                loadState(this, cmd.string2);
+            } else if (cmd.string1 == "powerflow-checkpoint") {
+                loadPowerFlowCheckpoint(this, cmd.string2);
+            } else {
+                throw ActionError(ActionError::Kind::UNSUPPORTED,
+                                  std::format("unsupported load subject '{}'", cmd.string1));
+            }
+            break;
+        case GridDynAction::GdAction::CHECKPOINT: {
+            if (cmd.string1.empty()) {
+                throw ActionError(ActionError::Kind::SYNTAX, "checkpoint requires a file");
+            }
+            const auto* mode =
+                cmd.string2.empty() ? &cEmptySolverMode : getSolverModePtr(cmd.string2);
+            if (mode == nullptr) {
+                throw ActionError(ActionError::Kind::TARGET,
+                                  std::format("solver mode '{}' was not found", cmd.string2));
+            }
+            checkpointCapture(cmd.string1, *mode);
+        } break;
+        case GridDynAction::GdAction::ROLLBACK: {
+            if (cmd.string1.empty()) {
+                throw ActionError(ActionError::Kind::SYNTAX, "rollback requires a file");
+            }
+            if (!cmd.string2.empty() && cmd.string2 != "local" && cmd.string2 != "minimal") {
+                throw ActionError(ActionError::Kind::SYNTAX,
+                                  "rollback level must be local or minimal");
+            }
+            const auto level = cmd.string2 == "minimal" ? CheckpointRestoreLevel::MINIMAL :
+                                                          CheckpointRestoreLevel::LOCAL_STATE;
+            checkpointRestore(cmd.string1, level);
+        } break;
         default:
             throw ActionError(ActionError::Kind::UNSUPPORTED,
                               std::format("unsupported command '{}'", cmd.commandName()));
@@ -1541,7 +1900,9 @@ double GridDynSimulation::get(std::string_view param, units::unit unitType) cons
     } else if (param == "islands" || param == "networkcount" || param == "networks") {
         val = networkCount;
     } else if (param == "iterationcount") {
-        fval = getSolverInterface(*defPowerFlowMode)->get("iterationcount");
+        if (const auto solver = getSolverInterface(*defPowerFlowMode)) {
+            fval = solver->get("iterationcount");
+        }
     } else if ((param == "jacobiancallcount") || (param == "jaccallcount")) {
         val = JacobianCallCount;
     } else if (param == "rootcount") {

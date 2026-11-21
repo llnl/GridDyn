@@ -84,6 +84,7 @@ int main(int argc, char* argv[])
                 if (returnCode < 0) {
                     return -returnCode;
                 }
+                simulation = runner->getSim();
                 runner->simInitialize();
                 runner->Run();
             } break;
@@ -96,7 +97,7 @@ int main(int argc, char* argv[])
                 if (returnCode < 0) {
                     return -returnCode;
                 }
-                simulation->countMpiObjects(true);
+                runner->getSim()->countMpiObjects(true);
             }
                 return 0;
             case ExecMode::BUILDFMU:
@@ -127,6 +128,7 @@ int main(int argc, char* argv[])
                 if (returnCode < 0) {
                     return -returnCode;
                 }
+                simulation = runner->getSim();
                 runner->simInitialize();
                 runner->Run();
 #endif

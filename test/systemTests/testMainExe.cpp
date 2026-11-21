@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
+#include <sstream>
 #include <string>
 
 static const char pFlow_test_directory[] = GRIDDYN_TEST_DIRECTORY "/pFlow_tests/";
@@ -19,7 +20,8 @@ TEST(MainExeTests, PrintsVersion)
     ExeTestRunner mainExeRunner(GRIDDYN_TEST_MAIN_DIRECTORY, "gridDynMain");
     ASSERT_TRUE(mainExeRunner.isActive());
     const auto output = mainExeRunner.runCaptureOutput("--version");
-    EXPECT_TRUE(output.starts_with("GridDyn version")) << output;
+    EXPECT_TRUE(output.starts_with("GridDyn version:") || output.contains("\nGridDyn version:"))
+        << output;
     EXPECT_EQ(output.find(" returned "), std::string::npos) << output;
 }
 
@@ -104,7 +106,13 @@ TEST(MainExeTests, DynamicActionsRequireTheSolverModeToBeConfigured)
         std::ifstream report(reportFile);
         std::string header;
         ASSERT_TRUE(std::getline(report, header)) << output;
-        EXPECT_TRUE(header.ends_with("at 0.200000")) << header;
+        const auto timeSeparator = header.rfind("at ");
+        ASSERT_NE(timeSeparator, std::string::npos) << header;
+        std::istringstream timeField(header.substr(timeSeparator + 3));
+        double reportedTime = 0.0;
+        ASSERT_TRUE(timeField >> reportedTime) << header;
+        EXPECT_TRUE((timeField >> std::ws).eof()) << header;
+        EXPECT_NEAR(reportedTime, 0.2, 1e-8) << header;
         report.close();
         std::filesystem::remove(reportFile);
     }

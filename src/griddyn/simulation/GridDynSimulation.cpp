@@ -896,7 +896,9 @@ int GridDynSimulation::execute(std::string_view cmd)
         return execute(parseAction(cmd));
     }
     catch (const ActionError& error) {
-        throw ActionError(error.kind(), std::format("action '{}' failed: {}", cmd, error.what()));
+        std::string message{"action '"};
+        message.append(cmd).append("' failed: ").append(error.what());
+        throw ActionError(error.kind(), message);
     }
 }
 

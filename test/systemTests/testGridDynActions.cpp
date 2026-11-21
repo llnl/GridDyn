@@ -404,13 +404,14 @@ TEST(GridDynActionTests, InvalidObjectSelectorsLeaveTargetsUnchanged)
     };
     for (const auto command : commands) {
         SCOPED_TRACE(command);
+        const auto expectedPrefix = std::string("action '").append(command).append("' failed: ");
         try {
             simulation->execute(command);
             ADD_FAILURE() << "expected an invalid object target";
         }
         catch (const ActionError& error) {
             EXPECT_EQ(error.kind(), ActionError::Kind::TARGET);
-            EXPECT_NE(std::string_view(error.what()).find(command), std::string_view::npos);
+            EXPECT_TRUE(std::string_view(error.what()).starts_with(expectedPrefix)) << error.what();
         }
         EXPECT_DOUBLE_EQ(bus->get("voltage"), voltage);
         EXPECT_DOUBLE_EQ(load->get("p"), power);

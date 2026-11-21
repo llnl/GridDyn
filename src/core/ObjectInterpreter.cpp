@@ -118,9 +118,10 @@ namespace {
                     if (number.starts_with('+')) {
                         number.remove_prefix(1);
                     }
-                    const auto* end = number.data() + number.size();
+                    const auto* begin = number.data();
+                    const auto* end = begin + number.size();
                     int onum = 0;
-                    const auto result = std::from_chars(number.data(), end, onum);
+                    const auto result = std::from_chars(begin, end, onum);
                     if (result.ec == std::errc{} && result.ptr == end && !number.starts_with('-')) {
                         switch (mname[rlc2]) {
                             case '$':  //$ means get by id

@@ -206,11 +206,11 @@ void GridDynAction::process(std::string_view operation)
     } else if (commandToken == "reset") {
         // reset level(i)
         if (tokenCount > 1) {
-            auto test_int = gmlc::utilities::numeric_conversion<int>(ssep[1], -435);
-            if (test_int == -435) {
+            auto testInt = gmlc::utilities::numeric_conversion<int>(ssep[1], -435);
+            if (testInt == -435) {
                 throw(InvalidParameterValue(commandToken));
             }
-            val_int1 = test_int;
+            val_int1 = testInt;
         } else {
             val_int1 = 0;
         }

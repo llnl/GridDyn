@@ -11,6 +11,7 @@
 #include "griddyn/simulation/GridDynActions.h"
 #include "griddyn/solvers/SolverInterface.h"
 #include <gtest/gtest.h>
+#include <string>
 #include <string_view>
 
 namespace {
@@ -32,17 +33,29 @@ TEST(GridDynActionTests, ParsesDynamicModeAndOptionalTimes)
     };
     constexpr double omitted = griddyn::kNullVal;
     constexpr TestCase cases[]{
-        {"dynamic", Action::DYNAMIC_DEFAULT, omitted, omitted},
-        {"dynamic 0.1", Action::DYNAMIC_DEFAULT, 0.1, omitted},
-        {"dynamic 0.1 0.02 # times in seconds", Action::DYNAMIC_DEFAULT, 0.1, 0.02},
-        {"dynamic dae", Action::DYNAMIC_DAE, omitted, omitted},
-        {"dynamic DAE 0.1", Action::DYNAMIC_DAE, 0.1, omitted},
-        {"dynamic part", Action::DYNAMIC_PART, omitted, omitted},
-        {"dynamic partitioned 0.1 0.02", Action::DYNAMIC_PART, 0.1, 0.02},
-        {"dynamic decoupled 0.1", Action::DYNAMIC_DECOUPLED, 0.1, omitted},
-        {"dynamicdae 0.1", Action::DYNAMIC_DAE, 0.1, omitted},
-        {"dynamicpart 0.1 0.02", Action::DYNAMIC_PART, 0.1, 0.02},
-        {"dynamicdecoupled 0.1 0.02", Action::DYNAMIC_DECOUPLED, 0.1, 0.02},
+        {.text = "dynamic", .mode = Action::DYNAMIC_DEFAULT, .stop = omitted, .step = omitted},
+        {.text = "dynamic 0.1", .mode = Action::DYNAMIC_DEFAULT, .stop = 0.1, .step = omitted},
+        {.text = "dynamic 0.1 0.02 # times in seconds",
+         .mode = Action::DYNAMIC_DEFAULT,
+         .stop = 0.1,
+         .step = 0.02},
+        {.text = "dynamic dae", .mode = Action::DYNAMIC_DAE, .stop = omitted, .step = omitted},
+        {.text = "dynamic DAE 0.1", .mode = Action::DYNAMIC_DAE, .stop = 0.1, .step = omitted},
+        {.text = "dynamic part", .mode = Action::DYNAMIC_PART, .stop = omitted, .step = omitted},
+        {.text = "dynamic partitioned 0.1 0.02",
+         .mode = Action::DYNAMIC_PART,
+         .stop = 0.1,
+         .step = 0.02},
+        {.text = "dynamic decoupled 0.1",
+         .mode = Action::DYNAMIC_DECOUPLED,
+         .stop = 0.1,
+         .step = omitted},
+        {.text = "dynamicdae 0.1", .mode = Action::DYNAMIC_DAE, .stop = 0.1, .step = omitted},
+        {.text = "dynamicpart 0.1 0.02", .mode = Action::DYNAMIC_PART, .stop = 0.1, .step = 0.02},
+        {.text = "dynamicdecoupled 0.1 0.02",
+         .mode = Action::DYNAMIC_DECOUPLED,
+         .stop = 0.1,
+         .step = 0.02},
     };
     for (const auto& test : cases) {
         SCOPED_TRACE(test.text);
@@ -93,7 +106,8 @@ TEST(GridDynActionTests, QueuedDynamicUsesSolverConfiguredAtExecution)
         std::string_view method;
         std::string_view solver;
     };
-    constexpr TestCase cases[]{{"dae", "dae"}, {"partitioned", "differential"}};
+    constexpr TestCase cases[]{{.method = "dae", .solver = "dae"},
+                               {.method = "partitioned", .solver = "differential"}};
     for (const auto& test : cases) {
         SCOPED_TRACE(test.method);
         auto simulation = griddyn::readSimXMLFile(dynamicCase);
@@ -148,7 +162,7 @@ TEST(GridDynActionTests, UnconfiguredPartitionedModeFailsWithoutChangingState)
         const auto state = simulation->currentProcessState();
         try {
             simulation->execute("dynamic part 0.2 0.05");
-            FAIL() << "expected an unconfigured solver error";
+            ADD_FAILURE() << "expected an unconfigured solver error";
         }
         catch (const ActionError& error) {
             EXPECT_EQ(error.kind(), ActionError::Kind::TARGET);
@@ -342,13 +356,13 @@ TEST(GridDynActionTests, ReportsDirectCommandErrorCategories)
         ActionError::Kind kind;
     };
     constexpr TestCase cases[]{
-        {"contingency", ActionError::Kind::SYNTAX},
-        {"set missing:voltage 1.02", ActionError::Kind::TARGET},
-        {"set @missing:voltage 1.02", ActionError::Kind::TARGET},
-        {"set :voltage 1.02", ActionError::Kind::TARGET},
-        {"setsolver dae ida", ActionError::Kind::UNSUPPORTED},
-        {"print voltage destination", ActionError::Kind::UNSUPPORTED},
-        {"continuation", ActionError::Kind::UNSUPPORTED},
+        {.command = "contingency", .kind = ActionError::Kind::SYNTAX},
+        {.command = "set missing:voltage 1.02", .kind = ActionError::Kind::TARGET},
+        {.command = "set @missing:voltage 1.02", .kind = ActionError::Kind::TARGET},
+        {.command = "set :voltage 1.02", .kind = ActionError::Kind::TARGET},
+        {.command = "setsolver dae ida", .kind = ActionError::Kind::UNSUPPORTED},
+        {.command = "print voltage destination", .kind = ActionError::Kind::UNSUPPORTED},
+        {.command = "continuation", .kind = ActionError::Kind::UNSUPPORTED},
     };
     for (const auto& test : cases) {
         SCOPED_TRACE(test.command);
@@ -392,7 +406,7 @@ TEST(GridDynActionTests, InvalidObjectSelectorsLeaveTargetsUnchanged)
         SCOPED_TRACE(command);
         try {
             simulation->execute(command);
-            FAIL() << "expected an invalid object target";
+            ADD_FAILURE() << "expected an invalid object target";
         }
         catch (const ActionError& error) {
             EXPECT_EQ(error.kind(), ActionError::Kind::TARGET);
@@ -415,7 +429,7 @@ TEST(GridDynActionQueueTests, InvalidNestedTargetStopsBeforeValidUnitAssignment)
 
     try {
         simulation->run();
-        FAIL() << "expected an invalid nested target";
+        ADD_FAILURE() << "expected an invalid nested target";
     }
     catch (const ActionError& error) {
         EXPECT_EQ(error.kind(), ActionError::Kind::TARGET);

@@ -386,9 +386,12 @@ void paramLoopElement(CoreObject* obj,
         auto param = getElementParam(element);
         if (param.valid) {
             if (simulation != nullptr && param.field == "action") {
-                const auto action = param.stringType   ? param.strVal :
-                    element->hasAttribute(valueString) ? element->getAttributeText(valueString) :
-                                                         element->getText();
+                auto action = param.strVal;
+                if (!param.stringType) {
+                    action = element->hasAttribute(valueString) ?
+                        element->getAttributeText(valueString) :
+                        element->getText();
+                }
                 simulation->addActions(readerInfoRef.checkDefines(action),
                                        readerInfoRef.sourceFile);
             } else if (param.stringType) {

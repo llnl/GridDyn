@@ -856,11 +856,12 @@ class GridDynSimulation: public GridSimulation {
     std::string lastActionError;
     void queueAction(std::string_view text, std::string_view source);
     std::optional<CoreTime> actionStopTime(const GridDynAction& action) const;
-    int executeAction(const GridDynAction& action, CoreTime endTime);
+    int executeAction(const GridDynAction& cmd, CoreTime endTime);
     void requireDynamicSolverMethod(DynamicSolverMethods method) const;
     void registerDynamicSolver(const SolverMode& mode);
     std::shared_ptr<SolverInterface> updateSolver(const SolverMode& sMode, bool initialize);
-    int initializeDynamics(CoreTime time, DynamicSolverMethods method);
+    int initializeDynamics(CoreTime tStart, DynamicSolverMethods method);
+    void initializeSolverState(SolverInterface& solver, const SolverMode& mode, CoreTime time);
     int initializePowerFlow(CoreTime time0, const std::function<void()>& configureVoltageControls);
 
     std::map<std::vector<std::string>, CoreObject*> checkpointChildren() const;

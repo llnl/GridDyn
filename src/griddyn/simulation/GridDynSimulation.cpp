@@ -790,7 +790,7 @@ namespace {
     GridDynAction parseAction(std::string_view text)
     {
         try {
-            return GridDynAction(text);
+            return {text};
         }
         catch (const std::logic_error& error) {
             throw ActionError(ActionError::Kind::SYNTAX, error.what());
@@ -870,19 +870,23 @@ void GridDynSimulation::queueAction(std::string_view text, std::string_view sour
     try {
         auto action = parseAction(commandText);
         if (action.command != GridDynAction::GdAction::IGNORE_ACTION) {
-            actionQueue.push_back({std::move(action), commandText, std::string(source)});
+            actionQueue.push_back(
+                {.command = std::move(action), .text = commandText, .source = std::string(source)});
         }
     }
     catch (const ActionError& error) {
         // Report syntax errors in script order, after any preceding actions run.
-        actionQueue.push_back({std::string(error.what()), commandText, std::string(source)});
+        actionQueue.push_back({.command = std::string(error.what()),
+                               .text = commandText,
+                               .source = std::string(source)});
     }
 }
 
 void GridDynSimulation::add(GridDynAction& newAction)
 {
     if (newAction.command != GridDynAction::GdAction::IGNORE_ACTION) {
-        actionQueue.push_back({newAction, std::string(newAction.commandName()), {}});
+        actionQueue.push_back(
+            {.command = newAction, .text = std::string(newAction.commandName()), .source = {}});
     }
 }
 
@@ -1895,10 +1899,10 @@ std::shared_ptr<SolverInterface> GridDynSimulation::getSolverInterface(index_t i
 std::shared_ptr<SolverInterface> GridDynSimulation::getSolverInterface(std::string_view solverName)
 {
     if (solverName == "powerflow") {
-        return defPowerFlowMode ? getSolverInterface(*defPowerFlowMode) : nullptr;
+        return defPowerFlowMode != nullptr ? getSolverInterface(*defPowerFlowMode) : nullptr;
     }
     if ((solverName == "dynamic") || (solverName == "dae")) {
-        return defDAEMode ? getSolverInterface(*defDAEMode) : nullptr;
+        return defDAEMode != nullptr ? getSolverInterface(*defDAEMode) : nullptr;
     }
     if ((solverName == "algebraic") || (solverName == "dynalg")) {
         if (defDynAlgMode != nullptr) {
@@ -1971,18 +1975,23 @@ std::shared_ptr<SolverInterface> GridDynSimulation::updateSolver(const SolverMod
         guessState(currentTime, solverData->stateData(), nullptr, solverModeValue);
         solverData->initialize(currentTime);
     } else if (pState >= GridState::DYNAMIC_INITIALIZED) {
-        const auto stateCount = stateSize(solverModeValue);
-        solverData->allocate(stateCount, rootSize(solverModeValue));
-        checkOffsets(solverModeValue);
-
-        guessState(currentTime,
-                   solverData->stateData(),
-                   (hasDifferential(sMode)) ? solverData->derivData() : nullptr,
-                   solverModeValue);
-
-        solverData->initialize(currentTime);
+        initializeSolverState(*solverData, solverModeValue, currentTime);
     }
     return solverData;
+}
+
+void GridDynSimulation::initializeSolverState(SolverInterface& solver,
+                                              const SolverMode& mode,
+                                              CoreTime time)
+{
+    const auto stateCount = stateSize(mode);
+    solver.allocate(stateCount, rootSize(mode));
+    checkOffsets(mode);
+    guessState(time,
+               solver.stateData(),
+               hasDifferential(mode) ? solver.derivData() : nullptr,
+               mode);
+    solver.initialize(time);
 }
 
 void GridDynSimulation::parameterDerivatives(CoreTime time,

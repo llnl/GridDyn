@@ -140,6 +140,12 @@ int GridDynSimulation::initializeDynamics(CoreTime tStart, DynamicSolverMethods 
     dynData->initialize(tStart);
     logCompletedPhase("differential solver initialization");
 
+    if (method == DynamicSolverMethods::PARTITIONED) {
+        auto algebraicSolver = updateSolver(*defDynAlgMode, false);
+        initializeSolverState(*algebraicSolver, *defDynAlgMode, tStart);
+        logCompletedPhase("algebraic solver initialization");
+    }
+
     if (state_record_period > timeZero && !stateFile.empty()) {
         currentTime = tStart;
         // Save the initialized solver vector once at tStart, then schedule

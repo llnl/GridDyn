@@ -46,16 +46,17 @@ TEST(MainExeTests, ReportsScriptErrorsAndStopsBeforeLaterActions)
         const char* command;
     };
     constexpr TestCase cases[]{
-        {"\"" GRIDDYN_TEST_DIRECTORY "/runnerTests/action_error_list.xml\"",
-         "action_error_list.xml",
-         "badverb"},
-        {"\"" GRIDDYN_TEST_DIRECTORY "/runnerTests/action_error_elements.xml\"",
-         "action_error_elements.xml",
-         "contingency simplified"},
-        {"\"" GRIDDYN_TEST_DIRECTORY "/pFlow_tests/continuation_two_bus.xml\" "
-         "-P \"action=save powerflow gdc04-before.csv; check powerflow .; save powerflow gdc04-after.csv\"",
-         "--param action",
-         "check powerflow ."},
+        {.arguments = "\"" GRIDDYN_TEST_DIRECTORY "/runnerTests/action_error_list.xml\"",
+         .source = "action_error_list.xml",
+         .command = "badverb"},
+        {.arguments = "\"" GRIDDYN_TEST_DIRECTORY "/runnerTests/action_error_elements.xml\"",
+         .source = "action_error_elements.xml",
+         .command = "contingency simplified"},
+        {.arguments =
+             "\"" GRIDDYN_TEST_DIRECTORY "/pFlow_tests/continuation_two_bus.xml\" "
+             "-P \"action=save powerflow gdc04-before.csv; check powerflow .; save powerflow gdc04-after.csv\"",
+         .source = "--param action",
+         .command = "check powerflow ."},
     };
     for (const auto& test : cases) {
         SCOPED_TRACE(test.arguments);

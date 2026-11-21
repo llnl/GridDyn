@@ -14,6 +14,7 @@
 #include <memory>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 namespace griddyn {
 void readConfigurationFields(std::shared_ptr<ReaderElement>& sim, ReaderInfo& ReaderInfoRef);
@@ -52,6 +53,12 @@ CoreObject* loadElementFile(CoreObject* parentObject, const std::string& fileNam
     }
 
     std::filesystem::path mainPath(fileName);
+    struct RestoreSourceFile {
+        std::string& current;
+        std::string previous;
+        ~RestoreSourceFile() { current = std::move(previous); }
+    };
+    const RestoreSourceFile source{ri->sourceFile, std::exchange(ri->sourceFile, fileName)};
 
     ri->addDirectory(std::filesystem::current_path().string());
     ri->addDirectory(mainPath.parent_path().string());

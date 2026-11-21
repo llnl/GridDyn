@@ -133,7 +133,7 @@ std::string ExeTestRunner::runCaptureOutput(const std::string& args) const
     if (!active) {
         return "invalid executable";
     }
-    std::string rstr = exeString + " " + args + " > " + outFile;
+    std::string rstr = exeString + " " + args + " > \"" + outFile + "\" 2>&1";
     // printf ("string %s\n", rstr.c_str ());
     // NOLINTNEXTLINE(bugprone-command-processor,cert-env33-c)
     auto out = system(rstr.c_str());

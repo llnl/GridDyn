@@ -26,6 +26,7 @@
 #include <filesystem>
 #include <iostream>
 #include <memory>
+#include <stdexcept>
 
 namespace griddyn::helicsLib {
 HelicsRunner::HelicsRunner()
@@ -116,13 +117,20 @@ CoreTime HelicsRunner::Step(CoreTime time)
         }
 
         try {
-            m_gds->run(helicsToGdTime(time_granted));
+            const int status = m_gds->run(helicsToGdTime(time_granted));
+            if (status != FUNCTION_EXECUTION_SUCCESS) {
+                const auto& error = m_gds->getLastActionError();
+                throw std::runtime_error(error.empty() ? "GridDyn failed to run with status " +
+                                                 std::to_string(status) :
+                                                         error);
+            }
         }
         catch (const std::runtime_error& re) {
             std::cerr << "execution error in GridDyn" << re.what() << '\n';
-            fed_->localError(m_gds->getErrorCode(), re.what());
+            const int errorCode = m_gds->getErrorCode();
+            fed_->localError(errorCode == 0 ? FUNCTION_EXECUTION_FAILURE : errorCode, re.what());
 
-            throw(re);
+            throw;
         }
     }
     return m_gds->getSimulationTime();

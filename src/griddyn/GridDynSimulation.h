@@ -17,12 +17,14 @@
 // libraries
 #include "griddyn/griddyn-config.h"
 #include <cstdint>
+#include <deque>
 #include <functional>
 #include <map>
 #include <memory>
-#include <queue>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <variant>
 #include <vector>
 namespace griddyn {
 #define SINGLE (1)
@@ -209,7 +211,12 @@ class GridDynSimulation: public GridSimulation {
     std::vector<GridComponent*>
         singleStepObjects;  //!< objects which require a state update after time step
     std::vector<GridBus*> slkBusses;  //!< vector of slack buses to aid in powerFlow adjust
-    std::queue<GridDynAction> actionQueue;  //!< queue for actions for GridDyn to execute
+    struct QueuedAction {
+        std::variant<GridDynAction, std::string> command;  //!< parsed action or syntax error
+        std::string text;
+        std::string source;
+    };
+    std::deque<QueuedAction> actionQueue;  //!< queue for actions for GridDyn to execute
     std::vector<std::shared_ptr<ContinuationSequence>>
         continList;  //!< set of continuation sequences to run
     std::vector<std::function<int()>>
@@ -310,10 +317,16 @@ class GridDynSimulation: public GridSimulation {
         return ((opFlags[HAS_CONSTRAINTS]) || (controlFlags[VOLTAGE_CONSTRAINTS_FLAG]));
     }
 
-    /**@brief run the simulation until the specified time
-    @param[in] tEnd  the simulation time to stop defaults to the time given in system parameters
+    /**@brief Run the queued actions, or advance the model if no actions are queued.
+    A time-limited action pauses at the caller's limit and resumes on the next run.
+    Failure stops the queue after consuming the failed action.
+    @param[in] tEnd The caller's time limit. With no limit and an empty queue, use the
+    simulation's configured stop time.
     @return int indicating success (0) or failure (non-zero)*/
     int run(CoreTime tEnd = negTime) override;
+
+    /** Diagnostic for a nonzero status returned by the last queue execution. */
+    const std::string& getLastActionError() const noexcept { return lastActionError; }
 
     /**@brief initialize the simulation for power flow at the specified time
     @param[in] time0 the time of the initialization default to 0
@@ -342,7 +355,7 @@ class GridDynSimulation: public GridSimulation {
     @return int indicating success (0) or failure (non-zero)*/
     virtual int eventDrivenPowerflow(CoreTime tEnd = negTime, CoreTime tStep = negTime);
 
-    /** @brief execute a specific command
+    /** @brief Execute a specific command. A `run` command advances the model directly.
     *@param[in] cmd  the command to execute
     @return the return code from the execution (typically 0 upon success)
     */
@@ -586,6 +599,9 @@ class GridDynSimulation: public GridSimulation {
     @param[in] actionString a string containing the action to add
     */
     void add(std::string_view actionString);
+
+    /** Queue a semicolon-separated action list, with an optional source for diagnostics. */
+    void addActions(std::string_view actions, std::string_view source = {});
 
     /** @brief  add an action to the run queue
     @param[in] newAction the action to add to the queue
@@ -837,6 +853,14 @@ class GridDynSimulation: public GridSimulation {
     bool checkEventsForDynamicReset(CoreTime cTime, const SolverMode& sMode);
 
   private:
+    std::string lastActionError;
+    void queueAction(std::string_view text, std::string_view source);
+    std::optional<CoreTime> actionStopTime(const GridDynAction& action) const;
+    int executeAction(const GridDynAction& action, CoreTime endTime);
+    void requireDynamicSolverMethod(DynamicSolverMethods method) const;
+    void registerDynamicSolver(const SolverMode& mode);
+    std::shared_ptr<SolverInterface> updateSolver(const SolverMode& sMode, bool initialize);
+    int initializeDynamics(CoreTime time, DynamicSolverMethods method);
     int initializePowerFlow(CoreTime time0, const std::function<void()>& configureVoltageControls);
 
     std::map<std::vector<std::string>, CoreObject*> checkpointChildren() const;

@@ -33,6 +33,8 @@
 #include <cmath>
 #include <compare>
 #include <cstdio>
+#include <exception>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -784,43 +786,197 @@ void GridDynSimulation::setupOffsets(const SolverMode& sMode, OffsetOrdering off
 
 // --------------- run the simulation ---------------
 
+namespace {
+    GridDynAction parseAction(std::string_view text)
+    {
+        try {
+            return GridDynAction(text);
+        }
+        catch (const std::logic_error& error) {
+            throw ActionError(ActionError::Kind::SYNTAX, error.what());
+        }
+    }
+}  // namespace
+
 int GridDynSimulation::run(CoreTime tEnd)
 {
-    if (tEnd == negTime) {
-        tEnd = stopTime;
+    lastActionError.clear();
+    if (actionQueue.empty()) {
+        GridDynAction action(GridDynAction::GdAction::RUN);
+        action.val_double = (tEnd == negTime) ? stopTime : tEnd;
+        return execute(action);
     }
-    GridDynAction gda;
-    gda.command = GridDynAction::GdAction::RUN;
-    gda.val_double = tEnd;
-    return execute(gda);
+
+    while (!actionQueue.empty()) {
+        auto entry = std::move(actionQueue.front());
+        actionQueue.pop_front();
+
+        const auto describeError = [&entry](std::string_view reason) {
+            if (entry.source.empty()) {
+                return std::format("action '{}' failed: {}", entry.text, reason);
+            }
+            return std::format("{}: action '{}' failed: {}", entry.source, entry.text, reason);
+        };
+        int result = FUNCTION_EXECUTION_SUCCESS;
+        bool paused = false;
+        try {
+            if (const auto* error = std::get_if<std::string>(&entry.command)) {
+                throw ActionError(ActionError::Kind::SYNTAX, *error);
+            }
+            const auto& action = std::get<GridDynAction>(entry.command);
+            const auto actionEnd = actionStopTime(action);
+            paused = tEnd != negTime && actionEnd && *actionEnd > tEnd;
+            if (!paused) {
+                result = execute(action);
+            } else if (getSimulationTime() < tEnd) {
+                result = executeAction(action, tEnd);
+            }
+        }
+        catch (const ActionError& error) {
+            throw ActionError(error.kind(), describeError(error.what()));
+        }
+        catch (const std::exception& error) {
+            std::throw_with_nested(
+                ActionError(ActionError::Kind::EXECUTION, describeError(error.what())));
+        }
+
+        if (result != FUNCTION_EXECUTION_SUCCESS) {
+            lastActionError = describeError(std::format("status {}", result));
+            return result;
+        }
+        if (paused) {
+            actionQueue.push_front(std::move(entry));
+            return FUNCTION_EXECUTION_SUCCESS;
+        }
+    }
+    return FUNCTION_EXECUTION_SUCCESS;
 }
 
 void GridDynSimulation::add(std::string_view actionString)
 {
-    actionQueue.emplace(std::string{actionString});
+    queueAction(actionString, {});
+}
+
+void GridDynSimulation::addActions(std::string_view actions, std::string_view source)
+{
+    for (const auto& action : gmlc::utilities::stringOps::splitline(actions, ';')) {
+        queueAction(action, source);
+    }
+}
+
+void GridDynSimulation::queueAction(std::string_view text, std::string_view source)
+{
+    const std::string commandText = gmlc::utilities::stringOps::trim(text);
+    try {
+        auto action = parseAction(commandText);
+        if (action.command != GridDynAction::GdAction::IGNORE_ACTION) {
+            actionQueue.push_back({std::move(action), commandText, std::string(source)});
+        }
+    }
+    catch (const ActionError& error) {
+        // Report syntax errors in script order, after any preceding actions run.
+        actionQueue.push_back({std::string(error.what()), commandText, std::string(source)});
+    }
 }
 
 void GridDynSimulation::add(GridDynAction& newAction)
 {
-    actionQueue.push(newAction);
+    if (newAction.command != GridDynAction::GdAction::IGNORE_ACTION) {
+        actionQueue.push_back({newAction, std::string(newAction.commandName()), {}});
+    }
 }
 
 int GridDynSimulation::execute(std::string_view cmd)
 {
-    const GridDynAction gda(std::string{cmd});
-    return execute(gda);
+    try {
+        return execute(parseAction(cmd));
+    }
+    catch (const ActionError& error) {
+        throw ActionError(error.kind(), std::format("action '{}' failed: {}", cmd, error.what()));
+    }
 }
 
-// NOLINTNEXTLINE(misc-no-recursion)
 int GridDynSimulation::execute(const GridDynAction& cmd)
 {
-    int out = FUNCTION_EXECUTION_SUCCESS;
-    switch (cmd.command) {
-        case GridDynAction::GdAction::IGNORE_ACTION:
+    return executeAction(cmd, actionStopTime(cmd).value_or(stopTime));
+}
+
+std::optional<CoreTime> GridDynSimulation::actionStopTime(const GridDynAction& action) const
+{
+    using Action = GridDynAction::GdAction;
+    switch (action.command) {
+        case Action::RUN:
+            if (controlFlags[POWER_FLOW_ONLY]) {
+                return std::nullopt;
+            }
+            [[fallthrough]];
+        case Action::DYNAMIC_DEFAULT:
+        case Action::DYNAMIC_DAE:
+        case Action::DYNAMIC_PART:
+        case Action::DYNAMIC_DECOUPLED:
+        case Action::EVENTMODE:
+            return (action.val_double != kNullVal) ? CoreTime(action.val_double) : stopTime;
+        case Action::ITERATE:
+            return (action.val_double2 != kNullVal) ? CoreTime(action.val_double2) : stopTime;
+        case Action::STEP:
+            return (action.val_double != kNullVal) ? CoreTime(action.val_double) : stepTime;
         default:
+            return std::nullopt;
+    }
+}
+
+void GridDynSimulation::requireDynamicSolverMethod(DynamicSolverMethods method) const
+{
+    if (method == DynamicSolverMethods::DECOUPLED) {
+        throw ActionError(ActionError::Kind::UNSUPPORTED, "decoupled dynamics is unsupported");
+    }
+    if (method == DynamicSolverMethods::PARTITIONED) {
+        if (!getSolverInterface(*defDynAlgMode) || !getSolverInterface(*defDynDiffMode)) {
+            throw ActionError(ActionError::Kind::TARGET,
+                              "partitioned dynamics requires configured algebraic and differential "
+                              "solvers; set dynamicsolvermethod partitioned before running");
+        }
+        if (controlFlags[DAE_INITIALIZATION_FOR_PARTITIONED] &&
+            pState <= GridState::DYNAMIC_INITIALIZED && !getSolverInterface(*defDAEMode)) {
+            throw ActionError(ActionError::Kind::TARGET,
+                              "partitioned DAE initialization requires a configured DAE solver");
+        }
+    } else if (!getSolverInterface(*defDAEMode) &&
+               (defaultDynamicSolverMethod != DynamicSolverMethods::DAE ||
+                pState >= GridState::DYNAMIC_INITIALIZED)) {
+        throw ActionError(ActionError::Kind::TARGET,
+                          "DAE dynamics requires a configured solver; set defdae or "
+                          "dynamicsolvermethod dae before running");
+    }
+}
+
+int GridDynSimulation::executeAction(const GridDynAction& cmd, CoreTime endTime)
+{
+    auto command = cmd.command;
+    if (command == GridDynAction::GdAction::DYNAMIC_DEFAULT) {
+        switch (defaultDynamicSolverMethod) {
+            case DynamicSolverMethods::PARTITIONED:
+                command = GridDynAction::GdAction::DYNAMIC_PART;
+                break;
+            case DynamicSolverMethods::DECOUPLED:
+                command = GridDynAction::GdAction::DYNAMIC_DECOUPLED;
+                break;
+            case DynamicSolverMethods::DAE:
+            default:
+                command = GridDynAction::GdAction::DYNAMIC_DAE;
+                break;
+        }
+    }
+    int out = FUNCTION_EXECUTION_SUCCESS;
+    switch (command) {
+        case GridDynAction::GdAction::IGNORE_ACTION:
             break;
         case GridDynAction::GdAction::SET_ACTION: {
             ObjectInfo objectInfo(cmd.string1, this);
+            if (objectInfo.mObject == nullptr) {
+                throw ActionError(ActionError::Kind::TARGET,
+                                  std::format("target '{}' was not found", cmd.string1));
+            }
             if (cmd.val_double == kNullVal) {
                 objectInfo.mObject->set(objectInfo.mField, cmd.string2);
             } else {
@@ -831,9 +987,11 @@ int GridDynSimulation::execute(const GridDynAction& cmd)
             setAll(cmd.string1, cmd.string2, cmd.val_double);
             break;
         case GridDynAction::GdAction::SETSOLVER:
+            if (cmd.string2.empty() || cmd.val_double == kNullVal) {
+                throw ActionError(ActionError::Kind::UNSUPPORTED,
+                                  "solver selection is unsupported");
+            }
             solverSet(cmd.string1, cmd.string2, cmd.val_double);
-            break;
-        case GridDynAction::GdAction::PRINT:
             break;
         case GridDynAction::GdAction::POWERFLOW:
             out = powerflow();
@@ -859,6 +1017,9 @@ int GridDynSimulation::execute(const GridDynAction& cmd)
                         out = -3;
                     }
                 }
+            } else {
+                throw ActionError(ActionError::Kind::UNSUPPORTED,
+                                  std::format("unsupported check subject '{}'", cmd.string1));
             }
             break;
         case GridDynAction::GdAction::CONTINGENCY: {
@@ -877,9 +1038,6 @@ int GridDynSimulation::execute(const GridDynAction& cmd)
         }
 
         break;
-        case GridDynAction::GdAction::CONTINUATION:
-            out = FUNCTION_EXECUTION_FAILURE;
-            break;
         case GridDynAction::GdAction::INITIALIZE: {
             const CoreTime startTimeValue =
                 (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : startTime;
@@ -901,45 +1059,26 @@ int GridDynSimulation::execute(const GridDynAction& cmd)
         case GridDynAction::GdAction::ITERATE: {
             const CoreTime timeStepValue =
                 (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stepTime;
-            const CoreTime endTimeValue =
-                (cmd.val_double2 != kNullVal) ? CoreTime(cmd.val_double2) : stopTime;
-            out = eventDrivenPowerflow(endTimeValue, timeStepValue);
+            out = eventDrivenPowerflow(endTime, timeStepValue);
         } break;
         case GridDynAction::GdAction::EVENTMODE: {
-            const CoreTime endTimeValue =
-                (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stopTime;
             if (cmd.val_double2 != kNullVal) {
                 const CoreTime timeStepValue = cmd.val_double2;
-                out = eventDrivenPowerflow(endTimeValue, timeStepValue);
+                out = eventDrivenPowerflow(endTime, timeStepValue);
             } else {
-                out = eventDrivenPowerflow(endTimeValue);
+                out = eventDrivenPowerflow(endTime);
             }
         }
 
         break;
-        case GridDynAction::GdAction::DYNAMIC_DAE: {
-            const CoreTime endTimeValue =
-                (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stopTime;
-            if (pState < GridState::DYNAMIC_INITIALIZED) {
-                out = dynInitialize();
-                if (out != FUNCTION_EXECUTION_SUCCESS) {
-                    return out;
-                }
-            }
-
-            if (!hasDynamics()) {
-                logging::warning(this, "No Differential states halting computation");
-                return out;
-            }
-            out = dynamicDAE(endTimeValue);
-        } break;
+        case GridDynAction::GdAction::DYNAMIC_DAE:
         case GridDynAction::GdAction::DYNAMIC_PART: {
-            const double endTimeValue =
-                (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stopTime;
-            const double timeStepValue =
-                (cmd.val_double2 != kNullVal) ? CoreTime(cmd.val_double2) : stepTime;
+            const auto method = command == GridDynAction::GdAction::DYNAMIC_DAE ?
+                DynamicSolverMethods::DAE :
+                DynamicSolverMethods::PARTITIONED;
+            requireDynamicSolverMethod(method);
             if (pState < GridState::DYNAMIC_INITIALIZED) {
-                out = dynInitialize();
+                out = initializeDynamics(negTime, method);
                 if (out != FUNCTION_EXECUTION_SUCCESS) {
                     return out;
                 }
@@ -949,29 +1088,22 @@ int GridDynSimulation::execute(const GridDynAction& cmd)
                 logging::warning(this, "No Differential states halting computation");
                 return out;
             }
-            out = dynamicPartitioned(endTimeValue, timeStepValue);
-        } break;
-        case GridDynAction::GdAction::DYNAMIC_DECOUPLED: {
-            const double endTimeValue =
-                (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stopTime;
-            const double timeStepValue =
-                (cmd.val_double2 != kNullVal) ? CoreTime(cmd.val_double2) : stepTime;
-            if (pState < GridState::DYNAMIC_INITIALIZED) {
-                out = dynInitialize();
-                if (out != FUNCTION_EXECUTION_SUCCESS) {
-                    return out;
-                }
+            if (method == DynamicSolverMethods::DAE) {
+                out = dynamicDAE(endTime);
+            } else {
+                const CoreTime interval =
+                    (cmd.val_double2 != kNullVal) ? CoreTime(cmd.val_double2) : stepTime;
+                out = dynamicPartitioned(endTime, interval);
             }
-
-            out = dynamicDecoupled(endTimeValue, timeStepValue);
         } break;
+        case GridDynAction::GdAction::DYNAMIC_DECOUPLED:
+            throw ActionError(ActionError::Kind::UNSUPPORTED, "decoupled dynamics is unsupported");
         case GridDynAction::GdAction::STEP: {
-            const CoreTime timeStepValue =
-                (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stepTime;
+            requireDynamicSolverMethod(DynamicSolverMethods::DAE);
             CoreTime timeActual =
                 (cmd.val_double2 != kNullVal) ? CoreTime(cmd.val_double2) : stopTime;
             if (pState < GridState::DYNAMIC_INITIALIZED) {
-                out = dynInitialize();
+                out = initializeDynamics(negTime, DynamicSolverMethods::DAE);
                 if (out != FUNCTION_EXECUTION_SUCCESS) {
                     return out;
                 }
@@ -981,66 +1113,59 @@ int GridDynSimulation::execute(const GridDynAction& cmd)
                 logging::warning(this, "No Differential states halting computation");
                 return out;
             }
-            out = step(timeStepValue, timeActual);
+            if (!getSolverInterface(*defDAEMode)->isInitialized()) {
+                out = reInitDyn(*defDAEMode);
+                if (out != FUNCTION_EXECUTION_SUCCESS) {
+                    return out;
+                }
+            }
+            out = step(endTime, timeActual);
         } break;
         case GridDynAction::GdAction::RUN:
-            if (actionQueue.empty()) {
-                const CoreTime endTimeValue =
-                    (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stopTime;
-                if (controlFlags[IDA_INTEGRATION_DIAGNOSTICS_FLAG]) {
-                    logging::logTo(this,
-                                   this,
-                                   PrintLevel::SUMMARY,
-                                   "IDA run dispatch: state={}, current_time={}, returned_time={}, "
-                                   "stop_time={}, differential_states={}, roots_disabled={}",
-                                   static_cast<int>(pState),
-                                   static_cast<double>(currentTime),
-                                   static_cast<double>(timeReturn),
-                                   static_cast<double>(endTimeValue),
-                                   diffSize(*defDAEMode),
-                                   static_cast<bool>(controlFlags[ROOTS_DISABLED]));
+            if (controlFlags[IDA_INTEGRATION_DIAGNOSTICS_FLAG]) {
+                logging::logTo(this,
+                               this,
+                               PrintLevel::SUMMARY,
+                               "IDA run dispatch: state={}, current_time={}, returned_time={}, "
+                               "stop_time={}, differential_states={}, roots_disabled={}",
+                               static_cast<int>(pState),
+                               static_cast<double>(currentTime),
+                               static_cast<double>(timeReturn),
+                               static_cast<double>(endTime),
+                               diffSize(*defDAEMode),
+                               static_cast<bool>(controlFlags[ROOTS_DISABLED]));
+            }
+            if (controlFlags[POWER_FLOW_ONLY]) {
+                return powerflow();
+            }
+            requireDynamicSolverMethod(defaultDynamicSolverMethod);
+            if (pState < GridState::DYNAMIC_INITIALIZED) {
+                out = dynInitialize(currentTime);
+                if (out != FUNCTION_EXECUTION_SUCCESS) {
+                    return out;
                 }
-                if (controlFlags[POWER_FLOW_ONLY]) {
-                    out = powerflow();
-                } else {
-                    if (pState < GridState::DYNAMIC_INITIALIZED) {
-                        out = dynInitialize(currentTime);
-                        if (out != FUNCTION_EXECUTION_SUCCESS) {
-                            return out;
-                        }
-                    }
+            }
 
-                    if (hasDynamics()) {
-                        switch (defaultDynamicSolverMethod) {
-                            case DynamicSolverMethods::DAE:
-                            default:
-                                out = dynamicDAE(endTimeValue);
-                                break;
-                            case DynamicSolverMethods::PARTITIONED:
-                                out = dynamicPartitioned(endTimeValue, stepTime);
-                                break;
-                            case DynamicSolverMethods::DECOUPLED:
-                                out = dynamicDecoupled(endTimeValue, stepTime);
-                                break;
-                        }
-                    } else {
-                        logging::summary(this,
-                                         "No Differential states reverting to stepped power flow");
-                        out = eventDrivenPowerflow(endTimeValue, stepTime);
-                    }
-
-                    if (getSimulationTime() >= stopTime) {
-                        saveRecorders();
-                    }
+            if (hasDynamics()) {
+                switch (defaultDynamicSolverMethod) {
+                    case DynamicSolverMethods::DAE:
+                    default:
+                        out = dynamicDAE(endTime);
+                        break;
+                    case DynamicSolverMethods::PARTITIONED:
+                        out = dynamicPartitioned(endTime, stepTime);
+                        break;
+                    case DynamicSolverMethods::DECOUPLED:
+                        throw ActionError(ActionError::Kind::UNSUPPORTED,
+                                          "decoupled dynamics is unsupported");
                 }
             } else {
-                while (!actionQueue.empty()) {
-                    out = execute(actionQueue.front());
-                    actionQueue.pop();
-                    if (out != FUNCTION_EXECUTION_SUCCESS) {
-                        return out;
-                    }
-                }
+                logging::summary(this, "No Differential states reverting to stepped power flow");
+                out = eventDrivenPowerflow(endTime, stepTime);
+            }
+
+            if (getSimulationTime() >= stopTime) {
+                saveRecorders();
             }
             break;
         case GridDynAction::GdAction::RESET:
@@ -1061,17 +1186,14 @@ int GridDynSimulation::execute(const GridDynAction& cmd)
                                                      cmd.string2);
             } else if (cmd.string1 == "powerflow") {
                 savePowerFlow(this, (cmd.string2.empty()) ? powerFlowFile : cmd.string2);
-            } else if ((cmd.string1 == "voltage") || (cmd.string1 == "jacstate")) {
+            } else {
+                throw ActionError(ActionError::Kind::UNSUPPORTED,
+                                  std::format("unsupported save subject '{}'", cmd.string1));
             }
             break;
-        case GridDynAction::GdAction::LOAD:
-            if ((cmd.string1 == "state") || (cmd.string1 == "powerflow")) {
-            }
-            break;
-        case GridDynAction::GdAction::ADD:
-        case GridDynAction::GdAction::ROLLBACK:
-        case GridDynAction::GdAction::CHECKPOINT:
-            break;
+        default:
+            throw ActionError(ActionError::Kind::UNSUPPORTED,
+                              std::format("unsupported command '{}'", cmd.commandName()));
     }
     return out;
 }
@@ -1128,11 +1250,7 @@ void GridDynSimulation::set(std::string_view param, std::string_view val)
     } else if (param == "defdyndiff") {
         setDefaultMode(SolutionModes::DIFFERENTIAL_MODE, getSolverMode(std::string{val}));
     } else if (param == "action") {
-        auto actions = gmlc::utilities::stringOps::splitline(val, ';');
-        gmlc::utilities::stringOps::trim(actions);
-        for (auto& actionString : actions) {
-            add(actionString);
-        }
+        addActions(val);
     } else if (param == "ordering") {
         auto order = gmlc::utilities::convertToLowerCase(val);
         if (order == "mixed") {
@@ -1153,8 +1271,11 @@ void GridDynSimulation::set(std::string_view param, std::string_view val)
     } else if (param == "dynamicsolvermethod") {
         auto method = gmlc::utilities::convertToLowerCase(val);
         if (method == "dae") {
+            registerDynamicSolver(*defDAEMode);
             defaultDynamicSolverMethod = DynamicSolverMethods::DAE;
         } else if (method == "partitioned") {
+            registerDynamicSolver(*defDynAlgMode);
+            registerDynamicSolver(*defDynDiffMode);
             defaultDynamicSolverMethod = DynamicSolverMethods::PARTITIONED;
         } else if (method == "decoupled") {
             defaultDynamicSolverMethod = DynamicSolverMethods::DECOUPLED;
@@ -1266,7 +1387,11 @@ void GridDynSimulation::setDefaultMode(SolutionModes mode, const SolverMode& sMo
 
 void GridDynSimulation::setFlag(std::string_view flag, bool val)
 {
+    const bool useDaeInitialization = controlFlags[DAE_INITIALIZATION_FOR_PARTITIONED];
     if (GridDynSimulation::getModelDescription().trySetFlag(*this, flag, val)) {
+        if (!useDaeInitialization && controlFlags[DAE_INITIALIZATION_FOR_PARTITIONED]) {
+            registerDynamicSolver(*defDAEMode);
+        }
         return;
     }
     if (flag == "threads") {
@@ -1322,6 +1447,10 @@ void GridDynSimulation::set(std::string_view param, double val, units::unit unit
 void GridDynSimulation::solverSet(std::string_view solverName, std::string_view field, double val)
 {
     auto solverData = getSolverInterface(solverName);
+    if (!solverData) {
+        throw ActionError(ActionError::Kind::TARGET,
+                          std::format("solver '{}' was not found", solverName));
+    }
     solverData->set(field, val);
 }
 
@@ -1330,6 +1459,10 @@ void GridDynSimulation::solverSet(std::string_view solverName,
                                   std::string_view val)
 {
     auto solverData = getSolverInterface(solverName);
+    if (!solverData) {
+        throw ActionError(ActionError::Kind::TARGET,
+                          std::format("solver '{}' was not found", solverName));
+    }
     solverData->set(field, val);
 }
 
@@ -1761,13 +1894,11 @@ std::shared_ptr<SolverInterface> GridDynSimulation::getSolverInterface(index_t i
 
 std::shared_ptr<SolverInterface> GridDynSimulation::getSolverInterface(std::string_view solverName)
 {
-    // just run through the list of SolverInterface objects and find the first one that matches the
-    // name
     if (solverName == "powerflow") {
-        return getSolverInterface(*defPowerFlowMode);
+        return defPowerFlowMode ? getSolverInterface(*defPowerFlowMode) : nullptr;
     }
     if ((solverName == "dynamic") || (solverName == "dae")) {
-        return getSolverInterface(*defDAEMode);
+        return defDAEMode ? getSolverInterface(*defDAEMode) : nullptr;
     }
     if ((solverName == "algebraic") || (solverName == "dynalg")) {
         if (defDynAlgMode != nullptr) {
@@ -1790,6 +1921,19 @@ std::shared_ptr<SolverInterface> GridDynSimulation::getSolverInterface(std::stri
 }
 
 std::shared_ptr<SolverInterface> GridDynSimulation::updateSolver(const SolverMode& sMode)
+{
+    return updateSolver(sMode, true);
+}
+
+void GridDynSimulation::registerDynamicSolver(const SolverMode& mode)
+{
+    if (!getSolverInterface(mode.offsetIndex)) {
+        updateSolver(mode, false);
+    }
+}
+
+std::shared_ptr<SolverInterface> GridDynSimulation::updateSolver(const SolverMode& sMode,
+                                                                 bool initialize)
 {
     auto kIndex = sMode.offsetIndex;
     SolverMode solverModeValue = sMode;
@@ -1817,6 +1961,9 @@ std::shared_ptr<SolverInterface> GridDynSimulation::updateSolver(const SolverMod
                         controlFlags[IDA_INITIAL_CONDITION_STOP_ON_FAILURE]);
     solverData->setFlag("ida_integration_diagnostics",
                         controlFlags[IDA_INTEGRATION_DIAGNOSTICS_FLAG]);
+    if (!initialize) {
+        return solverData;
+    }
     if ((pState >= GridState::INITIALIZED) && (!isDynamic(solverModeValue))) {
         const auto stateCount = stateSize(solverModeValue);
         solverData->allocate(stateCount, rootSize(solverModeValue));

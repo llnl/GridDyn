@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="action_error_list">
+    <import file="../pFlow_tests/continuation_two_bus.xml" />
+    <action>save powerflow gdc04-before.csv; badverb; save powerflow gdc04-after.csv</action>
+</griddyn>

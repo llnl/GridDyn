@@ -60,6 +60,7 @@ using ignoreListType = std::unordered_set<std::string>;
  */
 class ReaderInfo: public BasicReaderInfo {
   public:
+    std::string sourceFile;  //!< current structured input file, including nested imports
     std::vector<std::shared_ptr<Collector>> collectors;  //!< stores the active recorders
     std::vector<std::shared_ptr<Event>> events;  //!< store the captured events
     bool keepdefines = false;

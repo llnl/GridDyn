@@ -54,6 +54,32 @@ def test_public_exports_are_available():
     assert callable(gd.load)
 
 
+def test_direct_actions_report_error_categories():
+    sim = gd.load(CPF_FILE)
+    with pytest.raises(gd.InvalidParameterError, match="action 'badverb'"):
+        sim.execute("badverb")
+    with pytest.raises(gd.InvalidObjectError, match="missing:voltage"):
+        sim.execute("set missing:voltage 1.02")
+    with pytest.raises(gd.ExecutionError, match="unsupported command 'continuation'"):
+        sim.execute("continuation")
+    assert sim.execute("check powerflow .") != 0
+
+
+def test_script_errors_stop_at_the_failing_command():
+    sim = gd.load(DYNAMIC_FILE)
+    sim.set("action", "set name before; badverb; set name after")
+    with pytest.raises(gd.InvalidParameterError, match="action 'badverb'"):
+        sim.time_domain.run()
+    assert sim.get_string("name") == "before"
+
+    sim.set("action", "check powerflow .; set name finished")
+    with pytest.raises(gd.SolveError, match="action 'check powerflow .' failed: status"):
+        sim.time_domain.run_until(0.2)
+    assert sim.get_string("name") == "after"
+    sim.time_domain.run()
+    assert sim.get_string("name") == "finished"
+
+
 def test_continuation_reports_nose_and_exact_target_without_changing_simulation():
     sim = gd.load(CPF_FILE)
     result = sim.power_flow.continuation(load_scale=6.0)

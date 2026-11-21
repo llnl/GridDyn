@@ -7,9 +7,18 @@
 #include "ObjectInterpreter.h"
 
 #include "gmlc/utilities/stringConversion.h"
+#include <charconv>
 #include <string>
 
 namespace griddyn {
+namespace {
+    CoreObject* locateObjectImpl(std::string_view selector,
+                                 const CoreObject* rootObj,
+                                 bool rootSearch,
+                                 bool directFind,
+                                 bool allowFieldSuffix);
+}  // namespace
+
 ObjectInfo::ObjectInfo(std::string_view istring, const CoreObject* obj)
 {
     loadInfo(istring, obj);
@@ -19,7 +28,7 @@ void ObjectInfo::loadInfo(std::string_view istring, const CoreObject* obj)
     // get the object which to grab from
     size_t rlc = istring.find_last_of(":?");
     if (rlc != std::string::npos) {
-        mObject = locateObject(istring.substr(0, rlc), obj);
+        mObject = locateObjectImpl(istring.substr(0, rlc), obj, true, true, false);
 
         mField = std::string{istring.substr(rlc + 1, std::string::npos)};
     } else {
@@ -40,76 +49,101 @@ void ObjectInfo::loadInfo(std::string_view istring, const CoreObject* obj)
     gmlc::utilities::stringOps::trimString(mField);
 }
 
-// NOLINTNEXTLINE(misc-no-recursion)
 CoreObject* locateObject(std::string_view istring,
                          const CoreObject* rootObj,
                          bool rootSearch,
                          bool directFind)
 {
-    CoreObject* obj = nullptr;
-    std::string_view mname = istring;
-    std::string secName = "_";
-    // get the object which to grab from
-    auto rlc = istring.find_first_of(":/?");
-    char sep = ' ';
-    if (rlc != std::string::npos) {
-        mname = istring.substr(0, rlc);
-        secName = std::string{istring.substr(rlc + 1)};
-        sep = istring[rlc];
-    }
+    return locateObjectImpl(istring, rootObj, rootSearch, directFind, true);
+}
 
-    if (mname == rootObj->getName()) {
-        obj = const_cast<CoreObject*>(rootObj);
-    } else if ((mname[0] == '@') || (mname[0] == '/')) {
-        // implies searching the parent object as well
-        mname.remove_prefix(1);
-        obj = rootObj->find(mname);
-        if (obj == nullptr) {
-            obj = rootObj->getParent()->find(mname);
+namespace {
+    // NOLINTNEXTLINE(misc-no-recursion)
+    CoreObject* locateObjectImpl(std::string_view selector,
+                                 const CoreObject* rootObj,
+                                 bool rootSearch,
+                                 bool directFind,
+                                 bool allowFieldSuffix)
+    {
+        if (rootObj == nullptr || selector.empty()) {
+            return nullptr;
         }
-    } else {
-        if ((mname != istring) || directFind) {
-            obj = rootObj->find(mname);
-        }
-        if (obj == nullptr) {
-            auto rlc2 = mname.find_last_of("#$!");
-            if (rlc2 != std::string::npos) {
-                auto type = gmlc::utilities::convertToLowerCase(std::string{mname.substr(0, rlc2)});
-                if (type.empty()) {
-                    type = "subobject";
-                }
-                auto num = std::string{mname.substr(rlc2 + 1)};
-                auto onum = gmlc::utilities::numeric_conversion<int>(num, -1);
-                if (onum >= 0) {
-                    switch (mname[rlc2]) {
-                        case '$':  //$ means get by id
-                            obj = rootObj->findByUserID(type, onum);
-                            break;
-                        case '!':
-                        case '#':
-                            obj = rootObj->getSubObject(type, onum);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            } else if (rootSearch) {
-                auto* rootObject2 = rootObj->getRoot();
-                obj = rootObject2->find(mname);
+        const auto separator = selector.find_first_of(":/?");
+        auto mname = selector.substr(0, separator);
+        std::string_view remainder;
+        bool hasChild = false;
+        if (separator != std::string_view::npos) {
+            const auto suffix = selector.substr(separator);
+            if (suffix.starts_with("::")) {
+                hasChild = true;
+                remainder = suffix.substr(2);
+            } else if (suffix.starts_with('/')) {
+                hasChild = true;
+                remainder = suffix.substr(1);
+            } else if (!allowFieldSuffix) {
+                // ObjectInfo has already removed the field from the selector.
+                return nullptr;
             }
         }
-    }
+        if (mname.empty()) {
+            return nullptr;
+        }
 
-    if ((sep == '/') && (obj != nullptr)) {
-        // we have a '/' so go into the sub model
-        obj = locateObject(secName, obj, false);
-    } else if ((secName[0] == ':') && (obj != nullptr)) {
-        // we have a double colon so go deeper in the object using the
-        // found object as the base
-        obj = locateObject(secName.substr(1), obj, false);
+        CoreObject* obj = nullptr;
+        if (mname == rootObj->getName()) {
+            obj = const_cast<CoreObject*>(rootObj);
+        } else if (mname.starts_with('@')) {
+            // implies searching the parent object as well
+            mname.remove_prefix(1);
+            if (mname.empty()) {
+                return nullptr;
+            }
+            obj = rootObj->find(mname);
+            if (const auto* parent = rootObj->getParent(); obj == nullptr && parent != nullptr) {
+                obj = parent->find(mname);
+            }
+        } else {
+            if ((mname != selector) || directFind) {
+                obj = rootObj->find(mname);
+            }
+            if (obj == nullptr) {
+                auto rlc2 = mname.find_last_of("#$!");
+                if (rlc2 != std::string::npos) {
+                    auto type =
+                        gmlc::utilities::convertToLowerCase(std::string{mname.substr(0, rlc2)});
+                    if (type.empty()) {
+                        type = "subobject";
+                    }
+                    auto number = mname.substr(rlc2 + 1);
+                    if (number.starts_with('+')) {
+                        number.remove_prefix(1);
+                    }
+                    const auto* end = number.data() + number.size();
+                    int onum = 0;
+                    const auto result = std::from_chars(number.data(), end, onum);
+                    if (result.ec == std::errc{} && result.ptr == end && !number.starts_with('-')) {
+                        switch (mname[rlc2]) {
+                            case '$':  //$ means get by id
+                                obj = rootObj->findByUserID(type, onum);
+                                break;
+                            case '!':
+                            case '#':
+                                obj = rootObj->getSubObject(type, onum);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                } else if (rootSearch) {
+                    auto* rootObject2 = rootObj->getRoot();
+                    obj = rootObject2->find(mname);
+                }
+            }
+        }
+
+        return hasChild ? locateObjectImpl(remainder, obj, false, true, allowFieldSuffix) : obj;
     }
-    return obj;
-}
+}  // namespace
 
 CoreObject* findMatchingObject(CoreObject* obj, CoreObject* root)
 {

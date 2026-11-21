@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
                     return 0;
                 }
                 if (returnCode < 0) {
-                    return returnCode;
+                    return -returnCode;
                 }
                 runner->simInitialize();
                 runner->Run();
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
                     return 0;
                 }
                 if (returnCode < 0) {
-                    return returnCode;
+                    return -returnCode;
                 }
                 simulation->countMpiObjects(true);
             }
@@ -107,8 +107,8 @@ int main(int argc, char* argv[])
                                 std::string("Building FMI through FMI builder"));
                 auto builder = std::make_unique<fmi::fmuBuilder>(simulation);
                 auto returnCode = builder->Initialize(argc, argv);
-                if (returnCode < 0) {
-                    return returnCode;
+                if (returnCode != 0) {
+                    return returnCode > 0 ? 0 : -returnCode;
                 }
                 builder->makeFmu();
             }
@@ -125,15 +125,10 @@ int main(int argc, char* argv[])
                     return 0;
                 }
                 if (returnCode < 0) {
-                    return returnCode;
+                    return -returnCode;
                 }
-                try {
-                    runner->simInitialize();
-                    runner->Run();
-                }
-                catch (const griddyn::ExecutionFailure& e) {
-                    simulation->log(nullptr, griddyn::PrintLevel::ERROR, std::string(e.what()));
-                }
+                runner->simInitialize();
+                runner->Run();
 #endif
             } break;
             case ExecMode::BUILDGDZ:

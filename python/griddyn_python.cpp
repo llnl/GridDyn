@@ -1514,8 +1514,9 @@ class PyTimeDomainRoutine {
         auto sim = simulationFromRunner(runner_);
         nb::gil_scoped_release release;
         const auto result = sim->run(griddyn::CoreTime(time));
-        if (result < 0) {
-            throw SolveError("simulation run failed");
+        if (result != FUNCTION_EXECUTION_SUCCESS) {
+            const auto& actionError = sim->getLastActionError();
+            throw SolveError(actionError.empty() ? "simulation run failed" : actionError);
         }
         return static_cast<double>(sim->getSimulationTime());
     }
@@ -2129,6 +2130,19 @@ void translateGridDynException(const std::exception_ptr& ptr, void* /*payload*/)
     try {
         if (ptr) {
             std::rethrow_exception(ptr);
+        }
+    }
+    catch (const griddyn::ActionError& exc) {
+        switch (exc.kind()) {
+            case griddyn::ActionError::Kind::SYNTAX:
+                setPythonError(pyInvalidParameterError, exc.what());
+                break;
+            case griddyn::ActionError::Kind::TARGET:
+                setPythonError(pyInvalidObjectError, exc.what());
+                break;
+            default:
+                setPythonError(pyExecutionError, exc.what());
+                break;
         }
     }
     catch (const griddyn::UnrecognizedObjectException& exc) {

@@ -267,7 +267,7 @@ TEST(MainExeTests, AddEventMatchesCommandLineAndXmlEvents)
     const std::string reportFile = "gdc16-event-value.txt";
     const std::string reading = "run 0.2; get bus1::load3:p " + reportFile + '"';
     const std::string commands[]{
-        caseFile + " --event \"@0.15|bus1::load3:p=1.1\" -P \"action=" + reading,
+        caseFile + R"( --event "@0.15|bus1::load3:p=1.1" -P "action=)" + reading,
         caseFile + " -P \"action=run 0.1; add event @0.15|bus1::load3:p=1.1; " + reading,
         "\"" GRIDDYN_TEST_DIRECTORY "/runnerTests/action_event.xml\" -P \"action=" + reading,
     };

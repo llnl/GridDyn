@@ -16,13 +16,13 @@
 #include "core/FactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
-#include <charconv>
 #include <cmath>
+#include <cstddef>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <string_view>
-#include <system_error>
 #include <vector>
 
 namespace griddyn {
@@ -363,11 +363,15 @@ namespace {
     double readEventNumber(std::string_view text, std::string_view operand)
     {
         const auto token = trim(text);
-        const auto* begin = token.data() + (token.starts_with('+') ? 1 : 0);
-        const auto* end = token.data() + token.size();
+        std::size_t consumed = 0;
         double number = 0.0;
-        const auto result = std::from_chars(begin, end, number);
-        if (result.ec != std::errc{} || result.ptr != end || !std::isfinite(number)) {
+        try {
+            number = std::stod(token, &consumed);
+        }
+        catch (const std::logic_error&) {
+            throw InvalidParameterValue(operand);
+        }
+        if (consumed != token.size() || !std::isfinite(number)) {
             throw InvalidParameterValue(operand);
         }
         return number;

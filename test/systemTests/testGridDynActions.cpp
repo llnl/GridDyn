@@ -172,6 +172,8 @@ TEST(GridDynActionQueueTests, InvalidEventDescriptionsStopTheQueueWithoutSchedul
          .kind = ActionError::Kind::TARGET},
         {.command = "add event bus1::load3:p=1.1", .kind = ActionError::Kind::SYNTAX},
         {.command = "add event @0.15|bus1::load3:p=1.1junk", .kind = ActionError::Kind::SYNTAX},
+        {.command = "add event @0.15|bus1::load3:p=nan", .kind = ActionError::Kind::SYNTAX},
+        {.command = "add event @1e400|bus1::load3:p=1.1", .kind = ActionError::Kind::SYNTAX},
         {.command = "add event @0.2,0.15|bus1::load3:p=1.1", .kind = ActionError::Kind::SYNTAX},
         {.command = "add event @0.2,0.3|bus1::load3:p=1.1,1.2,1.3",
          .kind = ActionError::Kind::SYNTAX},

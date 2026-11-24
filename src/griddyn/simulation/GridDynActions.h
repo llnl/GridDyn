@@ -14,6 +14,12 @@
 
 namespace griddyn {
 
+namespace action_detail {
+    /** Split one physical script line into commands using the action parser's quote and comment
+     * rules. */
+    std::vector<std::string_view> splitLine(std::string_view line);
+}  // namespace action_detail
+
 /** A command error with a category that callers can use without parsing its message. */
 class ActionError: public std::runtime_error {
   public:
@@ -65,6 +71,7 @@ class GridDynAction {
     GdAction command = GdAction::IGNORE_ACTION;  //!< the command to execute
     std::string string1;  //!< string parameter 1 of the action
     std::string string2;  //!< string parameter 2 of the action
+    std::string setting;  //!< string value for a solver setting
     int val_int1{-1};  //!< integer parameter of action
     int val_int2{-1};  //!< second integer parameter of the action
     int flag{0};  //!< additional flag values for various purposes

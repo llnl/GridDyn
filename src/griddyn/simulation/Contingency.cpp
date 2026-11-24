@@ -12,6 +12,7 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include <algorithm>
 #include <array>
+#include <iomanip>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -43,6 +44,43 @@ namespace {
             }
         }
         return {};
+    }
+
+    void writeCsvText(std::ostream& output, std::string_view text, bool quote = false)
+    {
+        output << ',';
+        if (quote || text.find_first_of(",\"\r\n") != std::string_view::npos) {
+            output << std::quoted(text, '"', '"');
+        } else {
+            output << ' ' << text;
+        }
+    }
+
+    bool convergenceFailed(const Contingency& contingency)
+    {
+        return std::ranges::any_of(contingency.Violations, [](const auto& violation) {
+            return violation.violationCode == CONVERGENCE_FAILURE;
+        });
+    }
+
+    void writeContingencySummary(std::ostream& output, const Contingency& contingency, bool failed)
+    {
+        if (failed) {
+            // The failed solve provides none of the six numerical summary values.
+            output << ",,,,,,";
+        } else {
+            output << ", " << contingency.lowV;
+            output << ", " << contingency.islands;
+            output << ", " << contingency.preEventLoad - contingency.contingencyLoad;
+            output << ", " << contingency.preContingencyLoad - contingency.contingencyLoad;
+            output << ", " << contingency.preEventGen - contingency.contingencyGen;
+            output << ", " << contingency.preContingencyGen - contingency.contingencyGen;
+        }
+        std::string violations;
+        for (const auto& violation : contingency.Violations) {
+            violations.append(violation.to_string()).append(";");
+        }
+        writeCsvText(output, violations, true);
     }
 
     using ContingencyModeEntry = std::pair<std::string_view, ContingencyMode>;
@@ -94,6 +132,9 @@ std::string Violation::to_string() const
         gmlc::utilities::stringOps::appendInteger(violationString, violationCode);
         violationString += ")]";
     }
+    if (violationCode == CONVERGENCE_FAILURE) {
+        return violationString;
+    }
     violationString += std::to_string(level) + "vs. " + std::to_string(limit) + " " +
         std::to_string(percentViolation) + "% violation";
     return violationString;
@@ -133,9 +174,18 @@ void Contingency::execute()
     auto contSim =
         std::unique_ptr<GridDynSimulation>(static_cast<GridDynSimulation*>(gds->clone()));
     contSim->set("printlevel", 0);
+    Violations.clear();
+    busVoltages.clear();
+    busAngles.clear();
+    Lineflows.clear();
     int res = FUNCTION_EXECUTION_SUCCESS;
-    preEventLoad = contSim->getLoadReal();
-    preEventGen = contSim->getGenerationReal();
+    // Clone construction does not copy the bus power caches of a solved case.
+    const auto* baseline =
+        gds->currentProcessState() >= GridDynSimulation::GridState::POWERFLOW_COMPLETE ?
+        gds :
+        contSim.get();
+    preEventLoad = baseline->getLoadReal();
+    preEventGen = baseline->getGenerationReal();
     int stage = 0;
     for (auto& eventStageList : eventList) {
         for (auto& eventPtr : eventStageList) {
@@ -147,12 +197,18 @@ void Contingency::execute()
             eventPtr->updateObject(
                 gds, ObjectUpdateMode::MATCH);  // map the event back to the original simulation
         }
-        contSim->pFlowInitialize();
+        res = contSim->pFlowInitialize();
+        if (res != FUNCTION_EXECUTION_SUCCESS) {
+            break;
+        }
         if (stage == 0) {
             preContingencyLoad = contSim->getLoadReal();
             preContingencyGen = contSim->getGenerationReal();
         }
         res = contSim->powerflow();
+        if (res != FUNCTION_EXECUTION_SUCCESS) {
+            break;
+        }
         ++stage;
     }
 
@@ -164,7 +220,8 @@ void Contingency::execute()
         contSim->getVoltage(busVoltages);
         contSim->getAngle(busAngles);
         contSim->getLinkRealPower(Lineflows);
-        lowV = *std::min_element(busVoltages.begin(), busVoltages.end());
+        lowV =
+            busVoltages.empty() ? 0.0 : *std::min_element(busVoltages.begin(), busVoltages.end());
     } else {
         Violations.emplace_back(contSim->getName(), CONVERGENCE_FAILURE);
     }
@@ -212,7 +269,9 @@ void Contingency::merge(const Contingency& other, index_t stage)
     gmlc::utilities::ensureSizeAtLeast(eventList, static_cast<std::size_t>(stage) + 1);
     for (const auto& eventStageList : other.eventList) {
         for (const auto& eventPtr : eventStageList) {
-            eventList[stage].push_back(eventPtr);
+            if (eventPtr) {
+                eventList[stage].push_back(eventPtr->clone());
+            }
         }
     }
 }
@@ -223,6 +282,9 @@ bool Contingency::mergeIfUnique(const Contingency& other, index_t stage)
     bool newEvent = false;
     for (const auto& eventStageList : other.eventList) {
         for (const auto& eventPtr : eventStageList) {
+            if (!eventPtr) {
+                continue;
+            }
             bool matched = false;
             for (const auto& compEV : eventList[stage]) {
                 if (!compEV) {
@@ -234,7 +296,7 @@ bool Contingency::mergeIfUnique(const Contingency& other, index_t stage)
             }
             if (!matched) {
                 newEvent = true;
-                eventList[stage].push_back(eventPtr);
+                eventList[stage].push_back(eventPtr->clone());
             }
         }
     }
@@ -255,94 +317,74 @@ std::string Contingency::generateHeader() const
         stringVec busNames;
         gds->getBusName(busNames);
         for (const auto& busName : busNames) {
-            stream << ", " << busName << ":V";
+            writeCsvText(stream, busName + ":V");
         }
         for (const auto& busName : busNames) {
-            stream << ", " << busName << ":A";
+            writeCsvText(stream, busName + ":A");
         }
         stringVec linkNames;
         gds->getLinkName(linkNames);
         for (const auto& linkName : linkNames) {
-            stream << ", " << linkName << ":flow";
+            writeCsvText(stream, linkName + ":flow");
         }
     }
     stream << ", min Voltage, islands, loadLossEvent, loadLoss, genLossEvent, genLoss, violations";
     return stream.str();
 }
 
-const char COMMA_QUOTE[] = R"(, ")";
-
 std::string Contingency::generateContingencyString() const
 {
     std::stringstream stream;
-    stream << id << ", " << name << COMMA_QUOTE;
-    for (const auto& eventPtr : eventList[0]) {
-        if (eventPtr) {
-            stream << eventPtr->to_string() << ';';
+    std::string events;
+    for (const auto& stage : eventList) {
+        for (const auto& eventPtr : stage) {
+            if (eventPtr) {
+                events.append(eventPtr->to_string()).append(";");
+            }
         }
     }
-    stream << '"';
+    stream << id;
+    writeCsvText(stream, name);
+    writeCsvText(stream, events, true);
     return stream.str();
 }
 
 std::string Contingency::generateFullOutputLine() const
 {
     std::stringstream stream;
-    stream << id << ", " << name << COMMA_QUOTE;
-    for (const auto& eventPtr : eventList[0]) {
-        if (eventPtr) {
-            stream << eventPtr->to_string() << ';';
+    stream << generateContingencyString();
+    const bool failed = convergenceFailed(*this);
+    if (failed) {
+        // Pad using the same bus and branch lists used in the header.
+        stringVec names;
+        const auto busCount = gds->getBusName(names);
+        const auto linkCount = gds->getLinkName(names);
+        for (count_t column = 0; column < (2 * busCount) + linkCount; ++column) {
+            stream << ',';
+        }
+    } else {
+        stream.precision(4);
+        for (const auto voltage : busVoltages) {
+            stream << ", " << voltage;
+        }
+        stream.precision(5);
+        for (const auto angle : busAngles) {
+            stream << ", " << angle;
+        }
+        stream.precision(4);
+        for (const auto flow : Lineflows) {
+            stream << ", " << flow;
         }
     }
-    stream << '"';
-
-    stream.precision(4);
-    for (const auto& busVoltage : busVoltages) {
-        stream << ", " << busVoltage;
-    }
-    stream.precision(5);
-    for (const auto& busAngle : busAngles) {
-        stream << ", " << busAngle;
-    }
-    stream.precision(4);
-
-    for (const auto& lineFlow : Lineflows) {
-        stream << ", " << lineFlow;
-    }
-    stream << ", " << lowV;
-    stream << ", " << islands;
-    stream << ", " << preEventLoad - contingencyLoad;
-    stream << ", " << preContingencyLoad - contingencyLoad;
-    stream << ", " << preEventGen - contingencyGen;
-    stream << ", " << preContingencyGen - contingencyGen;
-    stream << COMMA_QUOTE;
-    for (const auto& violation : Violations) {
-        stream << violation.to_string() << ';';
-    }
-    stream << '"';
+    writeContingencySummary(stream, *this, failed);
     return stream.str();
 }
 
 std::string Contingency::generateViolationsOutputLine() const
 {
     std::stringstream stream;
-    stream << id << ", " << name << COMMA_QUOTE;
-    for (const auto& eventPtr : eventList[0]) {
-        if (eventPtr) {
-            stream << eventPtr->to_string() << ';';
-        }
-    }
-    stream << ", " << lowV;
-    stream << ", " << islands;
-    stream << ", " << preEventLoad - contingencyLoad;
-    stream << ", " << preContingencyLoad - contingencyLoad;
-    stream << ", " << preEventGen - contingencyGen;
-    stream << ", " << preContingencyGen - contingencyGen;
-    stream << COMMA_QUOTE;
-    for (const auto& violation : Violations) {
-        stream << violation.to_string() << ';';
-    }
-    stream << '"';
+    stream << generateContingencyString();
+    writeContingencySummary(stream, *this, convergenceFailed(*this));
     return stream.str();
 }
 

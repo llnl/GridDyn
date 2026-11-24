@@ -66,6 +66,14 @@ namespace {
         return output;
     }
 
+    void finishOutputFile(std::ofstream& output, const std::string& fileName)
+    {
+        output.close();
+        if (!output) {
+            throw FileOperationError("unable to write file " + fileName);
+        }
+    }
+
     std::string
         formatCsvBusRecord(int areaNumber, int busNumber, const GridBus& bus, double basePower)
     {
@@ -145,9 +153,8 @@ void savePowerFlow(GridDynSimulation* gds, const std::string& fileName)
     if (fileName.empty()) {
         auto powerFlowFile = gds->getString("powerflowfile");
         if (powerFlowFile.empty()) {
-            auto sourceFile = gds->getString("sourcefile");
-            filePath = std::filesystem::path(sourceFile);
-            filePath = std::filesystem::path(filePath.filename().string() + ".csv");
+            const auto sourceFile = std::filesystem::path(gds->getString("sourcefile")).filename();
+            filePath = (sourceFile.empty() ? gds->getName() : sourceFile.string()) + ".csv";
         } else {
             filePath = std::filesystem::path(powerFlowFile);
         }
@@ -155,17 +162,17 @@ void savePowerFlow(GridDynSimulation* gds, const std::string& fileName)
 
     const std::string ext = convertToLowerCase(filePath.extension().string());
 
-    // get rid of the . on the extension if it has one
+    const auto destination = filePath.string();
     if (ext == ".xml") {
-        savePowerFlowXML(gds, fileName);
+        savePowerFlowXML(gds, destination);
     } else if (ext == ".csv") {
-        savePowerFlowCSV(gds, fileName);
+        savePowerFlowCSV(gds, destination);
     } else if (ext == ".cdf") {
-        savePowerFlowCdf(gds, fileName);
+        savePowerFlowCdf(gds, destination);
     } else if ((ext == ".txt") || (ext == ".out")) {
-        savePowerFlowTXT(gds, fileName);
+        savePowerFlowTXT(gds, destination);
     } else {
-        savePowerFlowBinary(gds, fileName);
+        throw FileOperationError("unsupported power-flow results format for '" + destination + "'");
     }
 }
 
@@ -201,6 +208,7 @@ void savePowerFlowCSV(GridDynSimulation* gds, const std::string& fileName)
         ++busIndex;
         bus = gds->getBus(busIndex);
     }
+    finishOutputFile(output, fileName);
     gds->log(gds, PrintLevel::NORMAL, "saving csv powerflow to " + fileName);
 }
 
@@ -288,6 +296,7 @@ void savePowerFlowTXT(GridDynSimulation* gds, const std::string& fileName)
                                       gds->getLoadReactive() * basePower,
                                       gds->getLoss() * basePower)
            << '\n';
+    finishOutputFile(output, fileName);
     gds->log(gds, PrintLevel::NORMAL, "saving txt powerflow to " + fileName);
 }
 
@@ -578,6 +587,7 @@ void savePowerFlowCdf(GridDynSimulation* gds, const std::string& fileName)
     output << "TIE LINES FOLLOWS                0 ITEMS\n";
     output << "-999\n";
     output << "END OF DATA";
+    finishOutputFile(output, fileName);
 }
 
 void savePowerFlowXML(GridDynSimulation* gds, const std::string& fileName)
@@ -2103,69 +2113,41 @@ void saveContingencyOutput(const std::vector<std::shared_ptr<Contingency>>& cont
                            const std::string& fileName,
                            int count)
 {
-    if (contList.empty()) {
+    const auto first =
+        std::ranges::find_if(contList, [](const auto& entry) { return entry != nullptr; });
+    if (first == contList.end()) {
         return;
     }
-    std::ofstream bFile(fileName.c_str(), std::ios::out);
-    int index = 0;
-    while (!contList[index]) {
-        ++index;
-    }
-    while (!contList[index]->isFinished()) {
-        contList[index]->wait();
-    }
-    const bool simplified = contList[index]->simplifiedOutput;
 
-    bFile << contList[index]->generateHeader() << "\n";
+    std::ofstream file;
+    if (!fileName.empty()) {
+        file = makeOutputFile(fileName);
+    }
+    std::ostream& output = fileName.empty() ? std::cout : file;
+    (*first)->wait();
+    output << (*first)->generateHeader() << '\n';
 
-    std::vector<std::shared_ptr<Contingency>> timedoutList;
-    int ccnt{0};
-    for (const auto& cont : contList) {
-        if (!cont) {
+    int written = 0;
+    for (const auto& contingency : contList) {
+        if (!contingency) {
             continue;
         }
-        while (!cont->isFinished()) {
-            auto res = cont->wait_for(std::chrono::milliseconds(5000));
-            if (res == std::future_status::timeout) {
-                timedoutList.push_back(cont);
-                break;
-            }
-        }
-        if (!cont->isFinished()) {
-            continue;
-        }
-        if (simplified) {
-            bFile << cont->generateViolationsOutputLine() << "\n";
-        } else {
-            bFile << cont->generateFullOutputLine() << "\n";
-        }
-
-        ++ccnt;
-        if (count > 0 && ccnt > count) {
+        if (count > 0 && written == count) {
             break;
         }
+        contingency->wait();
+        const auto row = contingency->simplifiedOutput ?
+            contingency->generateViolationsOutputLine() :
+            contingency->generateFullOutputLine();
+        output << row << '\n';
+        ++written;
     }
-    if (ccnt < count && !timedoutList.empty()) {
-        for (auto& cont : timedoutList) {
-            while (!cont->isFinished()) {
-                auto res = cont->wait_for(std::chrono::milliseconds(30000));
-                if (res == std::future_status::timeout) {
-                    std::cout << cont->generateContingencyString()
-                              << " ERROR contingency timed out\n";
-                    continue;
-                }
-            }
-            if (simplified) {
-                bFile << cont->generateViolationsOutputLine() << "\n";
-            } else {
-                bFile << cont->generateFullOutputLine() << "\n";
-            }
-
-            ++ccnt;
-            if (count > 0 && ccnt > count) {
-                break;
-            }
+    if (fileName.empty()) {
+        if (!(output << std::flush)) {
+            throw FileOperationError("unable to write contingency output");
         }
+    } else {
+        finishOutputFile(file, fileName);
     }
 }
 

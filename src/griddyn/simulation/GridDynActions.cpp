@@ -8,6 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "gmlc/utilities/stringConversion.h"
+#include <algorithm>
 #include <array>
 #include <charconv>
 #include <cmath>
@@ -15,92 +16,232 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace griddyn {
-using gmlc::utilities::makeLowerCase;
 
 namespace {
-    std::string quotedActionOperand(std::string_view token, std::string_view operand)
+    constexpr std::string_view whitespace = " \t\r\n\v\f";
+
+    bool isSpace(char character)
     {
-        if (token.size() >= 2 && token.starts_with('"') && token.ends_with('"')) {
-            token = token.substr(1, token.size() - 2);
-        }
-        if (token.empty() || token.contains('"')) {
-            throw InvalidParameterValue(operand);
-        }
-        return std::string{token};
+        return whitespace.contains(character);
     }
 
-    std::string actionFileName(std::string_view token)
+    bool isQuotedEscape(std::string_view input, std::size_t pos)
     {
-        return quotedActionOperand(token, "file name");
+        return input[pos] == '\\' && pos + 1 < input.size() &&
+            (input[pos + 1] == '"' || input[pos + 1] == '\\');
     }
 
-    void parseGetAction(GridDynAction& action, std::span<const std::string> operands)
+    struct ActionToken {
+        std::string mValue;
+        bool mQuoted = false;
+    };
+
+    std::vector<ActionToken> tokenize(std::string_view input)
     {
-        if (operands.empty() || operands.size() > 2) {
-            throw InvalidParameterValue("get expects a selector and an optional output file");
-        }
-        action.command = GridDynAction::GdAction::GET_ACTION;
-        if (operands.front() == "--help") {
-            action.flag = 1;
-            if (operands.size() == 2) {
-                action.string1 = quotedActionOperand(operands[1], "object selector");
+        std::vector<ActionToken> tokens;
+        auto pos = input.find_first_not_of(whitespace);
+        while (pos != std::string_view::npos && input[pos] != '#') {
+            auto& token = tokens.emplace_back();
+            token.mQuoted = input[pos] == '"';
+            if (token.mQuoted) {
+                ++pos;
+                while (pos < input.size() && input[pos] != '"') {
+                    if (isQuotedEscape(input, pos)) {
+                        ++pos;
+                    }
+                    token.mValue += input[pos++];
+                }
+                if (pos == input.size()) {
+                    throw InvalidParameterValue("quoted action operand");
+                }
+                ++pos;
+                if (pos < input.size() && !isSpace(input[pos])) {
+                    throw InvalidParameterValue("quoted action operand");
+                }
+            } else {
+                const auto end = input.find_first_of(whitespace, pos);
+                const auto word = input.substr(pos, end - pos);
+                if (word.find_first_of("\";") != std::string_view::npos) {
+                    throw InvalidParameterValue("action operand");
+                }
+                token.mValue = word;
+                pos = end;
             }
-            return;
+            if (pos != std::string_view::npos) {
+                pos = input.find_first_not_of(whitespace, pos);
+            }
         }
-        action.string1 = quotedActionOperand(operands.front(), "field selector");
-        if (operands.size() == 2) {
-            action.string2 = actionFileName(operands[1]);
-        }
+        return tokens;
     }
 
-    void parseAddAction(GridDynAction& action, std::span<const std::string> operands)
+    std::string requiredOperand(const ActionToken& token, std::string_view name)
     {
-        if (operands.empty()) {
-            throw InvalidParameterValue("add requires a subject");
+        if (token.mValue.empty()) {
+            throw InvalidParameterValue(name);
         }
-        action.command = GridDynAction::GdAction::ADD;
-        action.string1 = gmlc::utilities::convertToLowerCase(operands.front());
-        if (action.string1 != "event") {
-            return;
-        }
-        if (operands.size() < 2) {
-            throw InvalidParameterValue("add event requires an event description");
-        }
-        action.string2 = operands[1];
-        for (const auto& token : operands.subspan(2)) {
-            action.string2.append(" ").append(token);
-        }
-        action.string2 = quotedActionOperand(action.string2, "event description");
+        return token.mValue;
     }
 
-    double nonnegativeActionNumber(const std::string& token, std::string_view field)
+    double optionalNumber(const ActionToken& token, std::string_view name)
     {
+        if (token.mQuoted) {
+            return kNullVal;
+        }
+        std::size_t end = 0;
+        double value = 0.0;
         try {
-            const auto value = gmlc::utilities::numeric_conversionComplete<double>(token, kNullVal);
-            if (value != kNullVal && std::isfinite(value) && value >= 0.0) {
-                return value;
-            }
+            value = std::stod(token.mValue, &end);
         }
         catch (const std::out_of_range&) {
-            throw InvalidParameterValue(field);
+            throw InvalidParameterValue(name);
         }
-        throw InvalidParameterValue(field);
+        catch (const std::invalid_argument&) {
+            return kNullVal;
+        }
+        if (end != token.mValue.size()) {
+            return kNullVal;
+        }
+        if (!std::isfinite(value) || value == kNullVal) {
+            throw InvalidParameterValue(name);
+        }
+        return value;
     }
 
-    index_t monitorBusId(std::string_view token)
+    double actionNumber(const ActionToken& token, std::string_view name)
     {
+        const auto value = optionalNumber(token, name);
+        if (value == kNullVal) {
+            throw InvalidParameterValue(name);
+        }
+        return value;
+    }
+
+    double actionTime(const ActionToken& token, std::string_view name, bool interval = false)
+    {
+        const auto value = actionNumber(token, name);
+        if (value <= static_cast<double>(negTime) || value >= static_cast<double>(maxTime) ||
+            (interval && CoreTime(value) <= timeZero)) {
+            throw InvalidParameterValue(name);
+        }
+        return value;
+    }
+
+    double nonnegativeActionNumber(const ActionToken& token, std::string_view name)
+    {
+        const auto value = actionNumber(token, name);
+        if (value < 0.0) {
+            throw InvalidParameterValue(name);
+        }
+        return value;
+    }
+
+    template<class Integer>
+    Integer actionInteger(std::string_view token, std::string_view name)
+    {
+        if (token.starts_with('+') && token.size() > 1 && !token.substr(1).starts_with('-')) {
+            token.remove_prefix(1);
+        }
+        Integer value = 0;
         const auto* begin = token.data();
         const auto* end = begin + token.size();
-        index_t busId = 0;
-        const auto result = std::from_chars(begin, end, busId);
-        if (result.ec != std::errc{} || result.ptr != end || token.starts_with('-')) {
-            throw InvalidParameterValue("continuation monitor bus ID");
+        const auto result = std::from_chars(begin, end, value);
+        if (result.ec != std::errc{} || result.ptr != end) {
+            throw InvalidParameterValue(name);
         }
-        return busId;
+        return value;
+    }
+
+    constexpr auto actionNames = std::to_array<std::string_view>({"ignore",
+                                                                  "set",
+                                                                  "setsolver",
+                                                                  "setall",
+                                                                  "print",
+                                                                  "initialize",
+                                                                  "powerflow",
+                                                                  "reset",
+                                                                  "iterate",
+                                                                  "eventmode",
+                                                                  "dynamicdae",
+                                                                  "dynamicpart",
+                                                                  "dynamicdecoupled",
+                                                                  "step",
+                                                                  "run",
+                                                                  "save",
+                                                                  "check",
+                                                                  "load",
+                                                                  "add",
+                                                                  "rollback",
+                                                                  "checkpoint",
+                                                                  "contingency",
+                                                                  "continuation",
+                                                                  "invalid",
+                                                                  "dynamic",
+                                                                  "opf",
+                                                                  "action",
+                                                                  "get"});
+    using Action = GridDynAction::GdAction;
+    static_assert(actionNames.size() == static_cast<size_t>(Action::GET_ACTION) + 1);
+
+    void parseContinuation(GridDynAction& action, std::span<const ActionToken> operands)
+    {
+        action.val_double = nonnegativeActionNumber(operands.front(), "continuation load scale");
+        for (std::size_t pos = 1; pos < operands.size(); ++pos) {
+            const auto option = gmlc::utilities::convertToLowerCase(operands[pos].mValue);
+            const bool hasValue = pos + 1 < operands.size();
+            if (option == "qlimits" && action.flag == 0) {
+                action.flag = 1;
+            } else if (option == "target" && hasValue && action.val_double2 == kNullVal) {
+                action.val_double2 =
+                    nonnegativeActionNumber(operands[++pos], "continuation target lambda");
+            } else if (option == "archive" && hasValue && action.string1.empty()) {
+                action.string1 = requiredOperand(operands[++pos], "file name");
+            } else if (option == "monitor" && hasValue && action.monitorBuses.empty()) {
+                const auto& ids = operands[++pos].mValue;
+                if (ids.empty() || ids.starts_with(',') || ids.ends_with(',') ||
+                    ids.contains(",,")) {
+                    throw InvalidParameterValue("continuation monitor bus ID");
+                }
+                for (const auto& bus : gmlc::utilities::stringOps::splitline(ids, ',')) {
+                    if (bus.starts_with('-')) {
+                        throw InvalidParameterValue("continuation monitor bus ID");
+                    }
+                    action.monitorBuses.push_back(
+                        actionInteger<index_t>(bus, "continuation monitor bus ID"));
+                }
+            } else {
+                throw InvalidParameterValue("continuation option " + option);
+            }
+        }
     }
 }  // namespace
+
+std::vector<std::string_view> action_detail::splitLine(std::string_view line)
+{
+    std::vector<std::string_view> commands;
+    bool quoted = false;
+    std::size_t start = 0;
+    std::size_t pos = 0;
+    for (; pos < line.size(); ++pos) {
+        if (quoted && isQuotedEscape(line, pos)) {
+            ++pos;
+        } else if (line[pos] == '"') {
+            quoted = !quoted;
+        } else if (!quoted) {
+            if (line[pos] == '#' && (pos == start || isSpace(line[pos - 1]))) {
+                break;
+            }
+            if (line[pos] == ';') {
+                commands.push_back(line.substr(start, pos - start));
+                start = pos + 1;
+            }
+        }
+    }
+    commands.push_back(line.substr(start, pos - start));
+    return commands;
+}
 
 GridDynAction::GridDynAction(GdAction action) noexcept: command(action) {}
 
@@ -111,37 +252,8 @@ GridDynAction::GridDynAction(std::string_view operation)
 
 std::string_view GridDynAction::commandName() const noexcept
 {
-    constexpr std::array<std::string_view, 28> names{"ignore",
-                                                     "set",
-                                                     "setsolver",
-                                                     "setall",
-                                                     "print",
-                                                     "initialize",
-                                                     "powerflow",
-                                                     "reset",
-                                                     "iterate",
-                                                     "eventmode",
-                                                     "dynamicdae",
-                                                     "dynamicpart",
-                                                     "dynamicdecoupled",
-                                                     "step",
-                                                     "run",
-                                                     "save",
-                                                     "check",
-                                                     "load",
-                                                     "add",
-                                                     "rollback",
-                                                     "checkpoint",
-                                                     "contingency",
-                                                     "continuation",
-                                                     "invalid",
-                                                     "dynamic",
-                                                     "opf",
-                                                     "action",
-                                                     "get"};
-    static_assert(names.size() == static_cast<size_t>(GdAction::GET_ACTION) + 1);
-    const auto index = static_cast<size_t>(command);
-    return index < names.size() ? names[index] : "invalid";
+    const auto index = static_cast<std::size_t>(command);
+    return index < actionNames.size() ? actionNames[index] : "invalid";
 }
 
 void GridDynAction::reset()
@@ -149,6 +261,7 @@ void GridDynAction::reset()
     command = GdAction::IGNORE_ACTION;
     string1.clear();
     string2.clear();
+    setting.clear();
     val_double = kNullVal;
     val_double2 = kNullVal;
     val_int1 = -1;
@@ -159,284 +272,230 @@ void GridDynAction::reset()
 
 void GridDynAction::process(std::string_view operation)
 {
-    /* (s) string,  (d) double,  (i) int, (X)* optional, (s|d|i), string or double or int*/
-    using gmlc::utilities::stringOps::delimiter_compression;
-    constexpr std::string_view whitespace = " \t\r\n";
-    const auto countTokens = [](const auto& tokens) {
-        size_t count = 0;
-        while (count < tokens.size() && !tokens[count].starts_with('#')) {
-            ++count;
-        }
-        return count;
-    };
-    auto ssep =
-        gmlc::utilities::stringOps::splitline(operation, whitespace, delimiter_compression::on);
-    auto tokenCount = countTokens(ssep);
     reset();
-    if (tokenCount == 0) {
-        // check if there was no command
+    const auto tokens = tokenize(operation);
+    if (tokens.empty()) {
         return;
     }
-    const std::string commandToken = gmlc::utilities::convertToLowerCase(ssep[0]);
-    if (commandToken == "save" || commandToken == "load" || commandToken == "checkpoint" ||
-        commandToken == "rollback" || commandToken == "continuation" || commandToken == "action" ||
-        commandToken == "get" || commandToken == "add") {
-        ssep = gmlc::utilities::stringOps::splitlineQuotes(operation,
-                                                           whitespace,
-                                                           "\"",
-                                                           delimiter_compression::on);
-        tokenCount = countTokens(ssep);
+    const auto commandToken = gmlc::utilities::convertToLowerCase(tokens.front().mValue);
+    const auto index = static_cast<std::size_t>(std::ranges::find(actionNames, commandToken) -
+                                                actionNames.begin());
+    if (tokens.front().mQuoted || index == actionNames.size() || commandToken == "invalid") {
+        throw UnrecognizedParameter(commandToken);
     }
-    const auto parseStopAndStep = [&](size_t stopIndex) {
-        if (tokenCount > stopIndex) {
-            val_double = gmlc::utilities::numeric_conversion<double>(ssep[stopIndex], kNullVal);
-        }
-        if (tokenCount > stopIndex + 1) {
-            val_double2 =
-                gmlc::utilities::numeric_conversion<double>(ssep[stopIndex + 1], kNullVal);
+    command = static_cast<GdAction>(index);
+    auto args = std::span<const ActionToken>{tokens}.subspan(1);
+    const auto arity = [&](std::size_t minimum, std::size_t maximum) {
+        if (args.size() < minimum || args.size() > maximum) {
+            throw InvalidParameterValue(commandToken);
         }
     };
+    const auto parseStopAndInterval = [&](std::size_t maxArgs) {
+        arity(0, maxArgs);
+        if (!args.empty()) {
+            val_double = actionTime(args[0], "stop time");
+        }
+        if (args.size() > 1) {
+            val_double2 = actionTime(args[1], "interval", true);
+        }
+    };
+    const auto keyword = [&](std::size_t index) {
+        return gmlc::utilities::convertToLowerCase(args[index].mValue);
+    };
 
-    if (commandToken == "ignore") {
-        // ignore XXXXXX
-        command = GdAction::IGNORE_ACTION;
-    } else if (commandToken == "set") {
-        // set parameter(s) value(d)
-        if (tokenCount >= 3) {
-            command = GdAction::SET_ACTION;
-            string1 = ssep[1];
-            val_double = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
+    switch (command) {
+        case GdAction::IGNORE_ACTION:
+            break;
+        case GdAction::POWERFLOW:
+            arity(0, 0);
+            break;
+        case GdAction::SET_ACTION:
+            arity(2, 2);
+            string1 = requiredOperand(args[0], "field selector");
+            val_double = optionalNumber(args[1], "set value");
             if (val_double == kNullVal) {
-                string2 = ssep[2];
+                string2 = args[1].mValue;
             }
-        } else {
-            throw(InvalidParameterValue(commandToken));
-        }
-    } else if (commandToken == "get") {
-        parseGetAction(*this, std::span<const std::string>{ssep}.subspan(1, tokenCount - 1));
-    } else if (commandToken == "setall") {
-        // setall  objecttype(s) parameter(s) value(d)
-        command = GdAction::SETALL;
-        if (tokenCount >= 4) {
-            const auto test = gmlc::utilities::numeric_conversion<double>(ssep[3], kNullVal);
-            if (test == kNullVal) {
-                throw(InvalidParameterValue(commandToken));
-            }
-            string1 = ssep[1];
-            string2 = ssep[2];
-            val_double = test;
-        } else {
-            throw(InvalidParameterValue(commandToken));
-        }
-    } else if (commandToken == "setsolver") {
-        // Retain the selection operands for the unsupported action.
-        command = GdAction::SETSOLVER;
-        if (tokenCount >= 3) {
-            string1 = ssep[1];
-            string2 = ssep[2];
-        } else {
-            throw(InvalidParameterValue(commandToken));
-        }
-    } else if (commandToken == "print") {
-        // print parameter(s) setstring(s)
-        command = GdAction::PRINT;
-        if (tokenCount >= 3) {
-            string1 = ssep[1];
-            string2 = ssep[2];
-        } else {
-            throw(InvalidParameterValue(commandToken));
-        }
-    } else if (commandToken == "powerflow") {
-        // powerflow
-        command = GdAction::POWERFLOW;
-    } else if (commandToken == "step") {
-        // step solutionType*
-        command = GdAction::STEP;
-        if (tokenCount > 1) {
-            string1 = ssep[1];
-        }
-    } else if (commandToken == "eventmode") {
-        // eventmode tstop*  tstep*
-        command = GdAction::EVENTMODE;
-        if (tokenCount > 1) {
-            val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
-            if (tokenCount > 2) {
-                val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
-            }
-        }
-    } else if (commandToken == "initialize") {
-        // initialize
-        command = GdAction::INITIALIZE;
-    } else if (commandToken == "dynamic") {
-        // dynamic [dae|part|partitioned|decoupled] [stoptime [steptime]]
-        command = GdAction::DYNAMIC_DEFAULT;
-        if (tokenCount > 1) {
-            makeLowerCase(ssep[1]);
-            if (ssep[1] == "dae") {
-                command = GdAction::DYNAMIC_DAE;
-                if (tokenCount > 2) {
-                    val_double = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
-                }
-            } else if ((ssep[1] == "part") || (ssep[1] == "partitioned")) {
-                command = GdAction::DYNAMIC_PART;
-                parseStopAndStep(2);
-            } else if (ssep[1] == "decoupled") {
-                command = GdAction::DYNAMIC_DECOUPLED;
-                parseStopAndStep(2);
-            } else {
-                val_double = gmlc::utilities::numeric_conversionComplete<double>(ssep[1], kNullVal);
-                if (val_double == kNullVal) {
-                    throw(InvalidParameterValue(commandToken));
-                }
-                if (tokenCount > 2) {
-                    val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
-                }
-            }
-        }
-    } else if (commandToken == "dynamicdae") {
-        // dynamicdae stoptime(d)*
-        command = GdAction::DYNAMIC_DAE;
-
-        if (tokenCount > 1) {
-            val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
-        }
-    } else if (commandToken == "dynamicpart") {
-        // dynamicpart stoptime(d)* steptime(d)*
-        command = GdAction::DYNAMIC_PART;
-        parseStopAndStep(1);
-    } else if (commandToken == "dynamicdecoupled") {
-        // dynamicdecoupled stop(d)* step(d)*
-        command = GdAction::DYNAMIC_DECOUPLED;
-        parseStopAndStep(1);
-    } else if (commandToken == "reset") {
-        // reset level(i)
-        if (tokenCount > 1) {
-            auto testInt = gmlc::utilities::numeric_conversion<int>(ssep[1], -435);
-            if (testInt == -435) {
-                throw(InvalidParameterValue(commandToken));
-            }
-            val_int1 = testInt;
-        } else {
-            val_int1 = 0;
-        }
-        command = GdAction::RESET;
-    } else if (commandToken == "iterate") {
-        // iterate interval(d)* stoptime(d)*
-        command = GdAction::ITERATE;
-        if (tokenCount > 1) {
-            val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
-            if (tokenCount > 2) {
-                val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
-            }
-        }
-    } else if (commandToken == "check") {
-        // check
-        command = GdAction::CHECK;
-        if (tokenCount > 1) {
-            string1 = ssep[1];
-            if (tokenCount > 2) {
-                string2 = ssep[2];
-            }
-        }
-    } else if (commandToken == "run") {
-        // run time(d)*
-        if (tokenCount > 1) {
-            const auto test = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
-            if (test == kNullVal) {
-                throw(InvalidParameterValue("time"));
-            }
-            val_double = test;
-        } else {
-            val_double = kNullVal;
-        }
-        command = GdAction::RUN;
-    } else if (commandToken == "save" || commandToken == "load") {
-        if (tokenCount != 3) {
-            throw(InvalidParameterValue(commandToken));
-        }
-        command = (commandToken == "save") ? GdAction::SAVE : GdAction::LOAD;
-        string1 = ssep[1];
-        string2 = actionFileName(ssep[2]);
-    } else if (commandToken == "add") {
-        parseAddAction(*this, std::span<const std::string>{ssep}.subspan(1, tokenCount - 1));
-    } else if (commandToken == "checkpoint" || commandToken == "rollback") {
-        if (tokenCount < 2 || tokenCount > 3) {
-            throw(InvalidParameterValue(commandToken));
-        }
-        command = (commandToken == "checkpoint") ? GdAction::CHECKPOINT : GdAction::ROLLBACK;
-        string1 = actionFileName(ssep[1]);
-        if (tokenCount == 3) {
-            string2 = ssep[2];
-        }
-    } else if (commandToken == "contingency") {
-        // contingency mode|fileName output_file|method start count
-        if (tokenCount < 2) {
-            throw(InvalidParameterValue(commandToken));
-        }
-        const bool simplified = (ssep[1] == "simplified");
-        const size_t modeIndex = simplified ? 2 : 1;
-        if (tokenCount <= modeIndex) {
-            throw(InvalidParameterValue(commandToken));
-        }
-        command = GdAction::CONTINGENCY;
-        flag = simplified ? 1 : 0;
-        string1 = ssep[modeIndex];
-        if (tokenCount > modeIndex + 1) {
-            string2 = ssep[modeIndex + 1];
-        }
-        if (tokenCount > modeIndex + 2) {
-            val_int1 = gmlc::utilities::numeric_conversion<int>(ssep[modeIndex + 2], 0);
-        } else {
-            val_int1 = 0;
-        }
-        if (tokenCount > modeIndex + 3) {
-            val_int2 = gmlc::utilities::numeric_conversion<int>(ssep[modeIndex + 3], 0);
-        } else {
-            val_int2 = 0;
-        }
-    } else if (commandToken == "continuation") {
-        if (tokenCount < 2) {
-            throw InvalidParameterValue("continuation load scale");
-        }
-        command = GdAction::CONTINUATION;
-        val_double = nonnegativeActionNumber(ssep[1], "continuation load scale");
-        for (size_t pos = 2; pos < tokenCount; ++pos) {
-            const auto& option = ssep[pos];
-            if (option == "qlimits" && flag == 0) {
+            break;
+        case GdAction::GET_ACTION:
+            arity(1, 2);
+            if (!args[0].mQuoted && keyword(0) == "--help") {
                 flag = 1;
-            } else if (option == "target" && pos + 1 < tokenCount && val_double2 == kNullVal) {
-                val_double2 = nonnegativeActionNumber(ssep[++pos], "continuation target lambda");
-            } else if (option == "archive" && pos + 1 < tokenCount && string1.empty()) {
-                string1 = actionFileName(ssep[++pos]);
-            } else if (option == "monitor" && pos + 1 < tokenCount && monitorBuses.empty()) {
-                for (const auto& bus : gmlc::utilities::stringOps::splitline(ssep[++pos], ',')) {
-                    monitorBuses.push_back(monitorBusId(bus));
+                if (args.size() == 2) {
+                    string1 = requiredOperand(args[1], "object selector");
                 }
             } else {
-                throw InvalidParameterValue("continuation option " + option);
+                string1 = requiredOperand(args[0], "field selector");
+                if (args.size() == 2) {
+                    string2 = requiredOperand(args[1], "file name");
+                }
             }
-        }
-    } else if (commandToken == "action") {
-        if (tokenCount != 2) {
-            throw InvalidParameterValue("action script file");
-        }
-        command = GdAction::ACTION_FILE;
-        string1 = actionFileName(ssep[1]);
-    } else if (commandToken == "opf") {
-        command = GdAction::OPF;
-        std::size_t pos = 1;
-        if (pos < tokenCount && (ssep[pos] == "native" || ssep[pos] == "highs")) {
-            string1 = ssep[pos++];
-        }
-        if (pos < tokenCount && ssep[pos] == "preview") {
-            flag = 1;
-            ++pos;
-        }
-        if (pos != tokenCount) {
-            throw InvalidParameterValue("opf expects native or highs followed by optional preview");
-        }
-    } else {
-        throw(UnrecognizedParameter(commandToken));
+            break;
+        case GdAction::SETALL:
+            arity(3, 3);
+            string1 = keyword(0);
+            string2 = requiredOperand(args[1], "field selector");
+            val_double = actionNumber(args[2], "setall value");
+            break;
+        case GdAction::SETSOLVER:
+            arity(2, 3);
+            string1 = requiredOperand(args[0], "solver or mode");
+            string2 = requiredOperand(args[1], "solver or field");
+            if (args.size() == 3) {
+                flag = 1;
+                val_double = optionalNumber(args[2], "solver setting");
+                if (val_double == kNullVal) {
+                    setting = args[2].mValue;
+                }
+            }
+            break;
+        case GdAction::PRINT:
+            arity(2, 2);
+            string1 = args[0].mValue;
+            string2 = args[1].mValue;
+            break;
+        case GdAction::INITIALIZE:
+        case GdAction::RUN:
+        case GdAction::DYNAMIC_DAE:
+            parseStopAndInterval(1);
+            break;
+        case GdAction::DYNAMIC_DEFAULT:
+            if (!args.empty()) {
+                const auto mode = keyword(0);
+                if (mode == "dae") {
+                    command = GdAction::DYNAMIC_DAE;
+                } else if (mode == "part" || mode == "partitioned") {
+                    command = GdAction::DYNAMIC_PART;
+                } else if (mode == "decoupled") {
+                    command = GdAction::DYNAMIC_DECOUPLED;
+                }
+                if (command != GdAction::DYNAMIC_DEFAULT) {
+                    args = args.subspan(1);
+                }
+            }
+            parseStopAndInterval(command == GdAction::DYNAMIC_DAE ? 1 : 2);
+            break;
+        case GdAction::DYNAMIC_PART:
+        case GdAction::DYNAMIC_DECOUPLED:
+        case GdAction::EVENTMODE:
+            parseStopAndInterval(2);
+            break;
+        case GdAction::ITERATE:
+            arity(0, 2);
+            if (!args.empty()) {
+                val_double = actionTime(args[0], "interval", true);
+            }
+            if (args.size() == 2) {
+                val_double2 = actionTime(args[1], "stop time");
+            }
+            break;
+        case GdAction::STEP:
+            if (!args.empty() && keyword(0) == "dae") {
+                string1 = "dae";
+                args = args.subspan(1);
+            }
+            arity(0, 1);
+            if (!args.empty()) {
+                val_double = actionTime(args[0], "step interval", true);
+            }
+            break;
+        case GdAction::RESET:
+            arity(0, 1);
+            val_int1 = args.empty() ? 0 : actionInteger<int>(args[0].mValue, "reset level");
+            if (val_int1 < 0 || val_int1 > 4) {
+                throw InvalidParameterValue("reset level (0 through 4)");
+            }
+            break;
+        case GdAction::CHECK:
+            arity(1, 3);
+            string1 = keyword(0);
+            args = args.subspan(1);
+            if (!args.empty() && !args[0].mQuoted && keyword(0) == "--assert") {
+                flag = 1;
+                args = args.subspan(1);
+            }
+            arity(0, 1);
+            if (!args.empty()) {
+                string2 = requiredOperand(args[0], "file name");
+            }
+            break;
+        case GdAction::SAVE:
+        case GdAction::LOAD:
+            arity(1, 2);
+            string1 = keyword(0);
+            if (command == GdAction::LOAD || string1 == "powerflow-checkpoint") {
+                arity(2, 2);
+            }
+            if (args.size() == 2) {
+                string2 = requiredOperand(args[1], "file name");
+            }
+            break;
+        case GdAction::ADD:
+            arity(1, tokens.size());
+            string1 = keyword(0);
+            if (string1 == "event") {
+                arity(2, tokens.size());
+                string2 = requiredOperand(args[1], "event description");
+                for (const auto& token : args.subspan(2)) {
+                    string2.append(" ").append(token.mValue);
+                }
+            }
+            break;
+        case GdAction::CHECKPOINT:
+        case GdAction::ROLLBACK:
+            arity(1, 2);
+            string1 = requiredOperand(args[0], "file name");
+            if (args.size() == 2) {
+                string2 = keyword(1);
+            }
+            break;
+        case GdAction::CONTINGENCY:
+            if (!args.empty() && keyword(0) == "simplified") {
+                flag = 1;
+                args = args.subspan(1);
+            }
+            arity(1, 4);
+            string1 = requiredOperand(args[0], "contingency mode");
+            if (args.size() > 1) {
+                string2 = requiredOperand(args[1], "contingency output");
+            }
+            if (args.size() > 2) {
+                val_int1 = actionInteger<int>(args[2].mValue, "contingency start");
+                if (val_int1 < 0 || (args.size() == 3 && val_int1 == 0)) {
+                    throw InvalidParameterValue(args.size() == 3 ? "contingency count" :
+                                                                   "contingency start");
+                }
+            }
+            if (args.size() > 3) {
+                val_int2 = actionInteger<int>(args[3].mValue, "contingency count");
+                if (val_int2 <= 0) {
+                    throw InvalidParameterValue("contingency count");
+                }
+            }
+            break;
+        case GdAction::CONTINUATION:
+            if (args.empty()) {
+                throw InvalidParameterValue("continuation load scale");
+            }
+            parseContinuation(*this, args);
+            break;
+        case GdAction::ACTION_FILE:
+            arity(1, 1);
+            string1 = requiredOperand(args[0], "action script file");
+            break;
+        case GdAction::OPF:
+            if (!args.empty() && (keyword(0) == "native" || keyword(0) == "highs")) {
+                string1 = keyword(0);
+                args = args.subspan(1);
+            }
+            if (!args.empty() && keyword(0) == "preview") {
+                flag = 1;
+                args = args.subspan(1);
+            }
+            arity(0, 0);
+            break;
+        case GdAction::INVALID:
+            break;
     }
 }
 

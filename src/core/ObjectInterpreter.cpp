@@ -8,6 +8,7 @@
 
 #include "gmlc/utilities/stringConversion.h"
 #include <charconv>
+#include <cmath>
 #include <string>
 
 namespace griddyn {
@@ -36,13 +37,30 @@ void ObjectInfo::loadInfo(std::string_view istring, const CoreObject* obj)
         mField = std::string{istring};
     }
 
-    rlc = mField.find_first_of('(');
-    if (rlc != std::string::npos) {
-        const size_t rlc2 = mField.find_last_of(')');
-        mUnitType =
-            units::unit_cast(units::unit_from_string(mField.substr(rlc + 1, rlc2 - rlc - 1)));
+    gmlc::utilities::stringOps::trimString(mField);
+    rlc = mField.find_first_of("()");
+    mUnitType = units::defunit;
+    mValidUnits = true;
+    if (rlc != std::string::npos && mField[rlc] == '(') {
+        std::size_t balance = 1;
+        std::size_t close = rlc + 1;
+        for (; close < mField.size(); ++close) {
+            if (mField[close] == '(') {
+                ++balance;
+            } else if (mField[close] == ')' && --balance == 0) {
+                break;
+            }
+        }
+        mValidUnits = close == mField.size() - 1 && close > rlc + 1 && balance == 0;
+        if (mValidUnits) {
+            mUnitType =
+                units::unit_cast(units::unit_from_string(mField.substr(rlc + 1, close - rlc - 1)));
+            mValidUnits = !units::is_error(mUnitType) && !units::is_default(mUnitType) &&
+                std::isfinite(mUnitType.multiplier());
+        }
         mField = gmlc::utilities::convertToLowerCase(mField.substr(0, rlc));
     } else {
+        mValidUnits = rlc == std::string::npos;
         mField = gmlc::utilities::convertToLowerCase(mField);
     }
 

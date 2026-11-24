@@ -20,6 +20,7 @@ class ObjectInfo {
     CoreObject* mObject = nullptr;  //!< pointer to the object being referenced
     std::string mField;  //!< the field referenced
     units::unit mUnitType = units::defunit;  //!< the units corresponding to the reference
+    bool mValidUnits = true;  //!< whether an explicit unit suffix was well formed
 
     /** @brief default constructor*/
     ObjectInfo() = default;

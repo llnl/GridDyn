@@ -424,6 +424,9 @@ namespace {
             throw InvalidParameterValue("event assignment");
         }
         const ObjectInfo target(trim(assignment.substr(0, equals)), rootObj);
+        if (!target.mValidUnits) {
+            throw InvalidParameterValue("event field unit");
+        }
         info.targetObjs.push_back(target.mObject);
         info.units.push_back(target.mUnitType);
         info.fieldList.push_back(target.mField);

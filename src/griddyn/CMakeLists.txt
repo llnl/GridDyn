@@ -424,6 +424,7 @@ set(simulation_sources
     ${simulation_headers}
     simulation/gridDynContinuation.cpp
     simulation/GridDynSimulation.cpp
+    simulation/GridDynSimulationActions.cpp
     simulation/Contingency.cpp
     simulation/gridDynPowerFlow.cpp
     simulation/gridDynDynamic.cpp

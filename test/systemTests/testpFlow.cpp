@@ -41,6 +41,12 @@
 #include <utility>
 #include <vector>
 
+#if defined(__unix__) || defined(__APPLE__)
+#    include <csignal>
+#    include <exception>
+#    include <sys/resource.h>
+#endif
+
 using namespace griddyn;
 using gmlc::utilities::countDiffs;
 
@@ -357,6 +363,18 @@ TEST_F(PowerflowSystemTests, ScriptedContinuationArchivesTargetAndUnmetTarget)
     EXPECT_NEAR(target.points.back().voltages.front(),
                 std::sqrt(0.5 * (1.0 + std::sqrt(1.0 - (0.7 * 0.7)))),
                 1e-7);
+
+    GridDynAction typed(GridDynAction::GdAction::CONTINUATION);
+    typed.val_double = 6.0;
+    typed.val_double2 = 0.5;
+    typed.monitorBuses = {20, 10};
+    typed.string1 = archive.path.string();
+    ASSERT_EQ(gds->execute(typed), FUNCTION_EXECUTION_SUCCESS);
+    const auto typedResult = readContinuationPowerFlow(archive.path.string());
+    EXPECT_EQ(typedResult.status, target.status);
+    EXPECT_EQ(typedResult.monitorBuses, target.monitorBuses);
+    ASSERT_FALSE(typedResult.points.empty());
+    EXPECT_DOUBLE_EQ(typedResult.points.back().lambda, target.points.back().lambda);
 
     gds->addActions("continuation 6 target 1 archive " + archive.quotedPath() +
                         "; set name resumed",
@@ -952,7 +970,11 @@ TEST_F(PowerflowSystemTests, BinaryStatePowerFlowRoundTrip)
     exportMatlabStateFixture(jacState.path, "jac-state.h5");
     EXPECT_THROW(readStateBinary(jacState.path.string()), FileOperationError);
     TemporaryStateFile jacobian;
-    saveJacobian(gds.get(), jacobian.path.string(), mode);
+    ASSERT_EQ(gds->execute("save JACOBIAN " + jacobian.quotedPath()), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_THROW(gds->execute("save jacobian ."), ActionError);
+    utilities::Hdf5DataFile jacobianInput(jacobian.path.string(),
+                                          utilities::Hdf5DataFile::OpenMode::READ_ONLY);
+    EXPECT_GE(jacobianInput.recordCount(), 2U);
     exportMatlabStateFixture(jacobian.path, "jacobian.h5");
     writeVector(CoreTime(0.25),
                 RESIDUAL_INFORMATION,
@@ -1045,6 +1067,104 @@ TEST_F(PowerflowSystemTests, BinaryStateDynamicRoundTripAndAppend)
     EXPECT_TRUE(
         std::equal(expectedDerivative.begin(), expectedDerivative.end(), solver->derivData()));
 }
+
+TEST_F(PowerflowSystemTests, SaveRecorderFlushesConfiguredSamples)
+{
+    TemporaryStateFile file(" recorder.csv");
+    gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_dynamic_example.xml");
+    ASSERT_NE(gds, nullptr);
+    ASSERT_FALSE(gds->getCollectors().empty());
+    auto* recorder = dynamic_cast<Recorder*>(gds->getCollectors().front().get());
+    ASSERT_NE(recorder, nullptr);
+    recorder->set("file", file.path.string());
+    ASSERT_EQ(gds->execute("run 0.15"), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(gds->execute("SAVE RECORDER"), FUNCTION_EXECUTION_SUCCESS);
+
+    std::ifstream data(file.path);
+    std::string row;
+    ASSERT_TRUE(std::getline(data, row));
+    EXPECT_TRUE(row.starts_with("#"));
+    ASSERT_TRUE(std::getline(data, row));
+    EXPECT_TRUE(row.starts_with("\"time\""));
+    ASSERT_TRUE(std::getline(data, row));
+    ASSERT_TRUE(std::getline(data, row));
+    EXPECT_TRUE(row.contains(','));
+    recorder->set("file", file.path.parent_path().string());
+    EXPECT_THROW(gds->execute("save recorder"), ActionError);
+    recorder->set("file", "");
+}
+
+#if defined(__unix__) || defined(__APPLE__)
+TEST_F(PowerflowSystemTests, SaveRecorderStopsOnPartialWriteAndCanRetry)
+{
+    for (const auto* extension : {".csv", ".dat"}) {
+        SCOPED_TRACE(extension);
+        TemporaryStateFile file(extension);
+        gds = readSimXMLFile(std::string(pFlow_test_directory) + "two_bus_dynamic_example.xml");
+        ASSERT_NE(gds, nullptr);
+        ASSERT_FALSE(gds->getCollectors().empty());
+        auto* recorder = dynamic_cast<Recorder*>(gds->getCollectors().front().get());
+        ASSERT_NE(recorder, nullptr);
+        recorder->set("file", file.path.string());
+        ASSERT_EQ(gds->execute("run 0.15"), FUNCTION_EXECUTION_SUCCESS);
+        ASSERT_EQ(gds->execute("save recorder"), FUNCTION_EXECUTION_SUCCESS);
+        const auto originalSize = std::filesystem::file_size(file.path);
+        const auto savedSamples = recorder->getTime().size();
+        ASSERT_EQ(gds->execute("run 0.35"), FUNCTION_EXECUTION_SUCCESS);
+        ASSERT_GT(recorder->getTime().size(), savedSamples);
+        gds->addActions("save recorder; set name continued_after_save");
+
+        // The file can still open for appending. The write can transfer at
+        // most four more bytes before the OS rejects it.
+        const auto byteLimit = static_cast<rlim_t>(originalSize) + rlim_t{4};
+        struct rlimit previousLimit{};
+        ASSERT_EQ(getrlimit(RLIMIT_FSIZE, &previousLimit), 0);
+        if (previousLimit.rlim_max < byteLimit) {
+            GTEST_SKIP() << "file size hard limit is too low for the recorder fixture";
+        }
+        const auto previousHandler = std::signal(SIGXFSZ, SIG_IGN);
+        ASSERT_NE(previousHandler, SIG_ERR);
+        const struct rlimit limit{.rlim_cur = byteLimit, .rlim_max = previousLimit.rlim_max};
+        const int limited = setrlimit(RLIMIT_FSIZE, &limit);
+        std::exception_ptr failure;
+        if (limited == 0) {
+            try {
+                gds->run();
+            }
+            catch (...) {
+                failure = std::current_exception();
+            }
+        }
+        const int restored = setrlimit(RLIMIT_FSIZE, &previousLimit);
+        const auto restoredHandler = std::signal(SIGXFSZ, previousHandler);
+        ASSERT_EQ(restored, 0);
+        ASSERT_NE(restoredHandler, SIG_ERR);
+        ASSERT_EQ(limited, 0);
+
+        ASSERT_TRUE(failure);
+        try {
+            std::rethrow_exception(failure);
+        }
+        catch (const ActionError& error) {
+            EXPECT_EQ(error.kind(), ActionError::Kind::EXECUTION);
+            const std::string_view message(error.what());
+            EXPECT_TRUE(message.contains("action 'save recorder' failed"));
+            EXPECT_TRUE(message.contains("unable to write recorder file"));
+            EXPECT_TRUE(message.contains(file.path.string()));
+        }
+        EXPECT_NE(gds->getName(), "continued_after_save");
+        EXPECT_EQ(std::filesystem::file_size(file.path), originalSize);
+
+        ASSERT_EQ(gds->execute("save recorder"), FUNCTION_EXECUTION_SUCCESS);
+        ASSERT_EQ(gds->run(), FUNCTION_EXECUTION_SUCCESS);
+        EXPECT_EQ(gds->getName(), "continued_after_save");
+        const gmlc::utilities::TimeSeriesMulti<double, CoreTime> saved(file.path.string());
+        EXPECT_EQ(saved.time(), recorder->getTime());
+        EXPECT_EQ(saved.size(), recorder->getTime().size());
+        recorder->set("file", "");
+    }
+}
+#endif
 
 TEST_F(PowerflowSystemTests, BinaryStateCheckpointRestoreLevels)
 {

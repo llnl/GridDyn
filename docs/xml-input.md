@@ -144,8 +144,13 @@ gridDynMain case.xml --script "study actions.gds"
 A script is a text file with one command per line. Separate multiple commands on
 a line with semicolons. Blank lines, tabs between operands, and `#` comments
 are supported. A comment starts at the beginning of a command or after
-whitespace and runs to the end of the line. Use double quotes for filenames
-with spaces or semicolons.
+whitespace and runs to the end of the line. An embedded hash such as in
+`bus#1` stays part of the selector. Double-quote text with spaces,
+semicolons, or a leading hash. Inside quotes, use `\"` for a literal
+double quote and `\\` for a literal backslash. Other backslashes are
+preserved. Command keywords are case-insensitive. Object names, solver names,
+and paths retain their case. Numeric operands must be complete finite numbers.
+Quote a string that would otherwise be read as a number.
 
 ```text
 set timestop 0.5
@@ -163,6 +168,71 @@ checkpoint and report paths resolve from the working directory.
 A script error reports the filename, line number, and command. Missing scripts
 and include cycles fail when execution reaches the reference. The executable
 stops at the first failure. An empty script completes without advancing time.
+
+### Setup and time advancement
+
+- `setsolver <role> <name-or-index>` selects an already registered solver.
+  The roles are `powerflow`, `dae`, `algebraic` (`dynalg`), and
+  `differential` (`dyndiff`). Use `setsolver <name> <field> <value>` to
+  change a numeric or string solver setting. Configure solver methods with
+  `set dynamicsolvermethod dae` or `set dynamicsolvermethod partitioned`
+  before selecting or running their solvers.
+- `initialize [time]` prepares power flow on a freshly loaded simulation.
+  Run `powerflow` to solve that operating point. An `initialize [time]`
+  after that solve prepares dynamics. Calling `initialize` again without a
+  time is harmless. The executable performs its normal initialization before
+  executing actions, so use the case settings to set its initial time.
+- `reset [level]` resets component state at the current simulation time.
+  The levels are 0 (minimal, the default), 1 (voltage), 2 (angle),
+  3 (voltage and angle), and 4 (full component reset).
+- `run [until]` and `dynamic [mode] [until]` use absolute simulation times
+  in seconds, defaulting to the configured stop time. Partitioned dynamics
+  accepts an additional positive interval after the stop time. `run` uses
+  event-driven power flow for a case without differential states. Explicit
+  `dynamic` and `step` require differential states.
+- `step [dae] [interval]` advances DAE dynamics by a relative interval in
+  seconds, defaulting to the configured step time. A state-changing event may
+  end the step early. The simulation clock reflects the time actually reached.
+- `eventmode [until] [interval]` and `iterate [interval] [until]` run
+  event-driven power flow. They preserve the two existing operand orders.
+  The stop time is absolute, and the interval must be positive. Omitted
+  operands use the configured stop time or interval.
+- `setall <type> <field> <number>` accepts `field(unit)` and searches nested
+  areas. Types are `area`, `bus`, `link`, `relay`, `gen` (`generator`),
+  `load`, `secondary` (generators and loads), and `all` (areas and primary
+  objects). Models that lack the field are skipped. The action fails if
+  no assignment succeeds or if a model rejects an assignment to a supported
+  field. Earlier assignments stay in effect.
+
+### Results and checks
+
+- `save recorder` flushes the configured collector destinations.
+  A write failure stops the script and leaves unsaved samples available
+  to retry. For regular CSV and legacy binary files, a failed append
+  attempts to restore the previous file length.
+  `save state [file]` appends an HDF5 solver snapshot. With no file, it uses
+  the configured state destination. `save jacobian [file]` writes an HDF5
+  Jacobian to the given path or `jacobian_<simulation-name>.bin`.
+- `save powerflow [file]` writes solved results in CSV, text (`.txt` or
+  `.out`), XML, or CDF format. It uses the configured power-flow destination
+  or appends `.csv` to the source filename when the path is omitted. A case
+  built in memory defaults to `<simulation-name>.csv`.
+  For a network-case export, use the executable's `--powerflow-output` option.
+- `check powerflow [file]` reports violations on standard output or appends
+  them to a file. A successful report may contain violations. Use
+  `check powerflow --assert [file]` to write the report and fail at that
+  command if any violations were found.
+- `contingency [simplified] <mode> [file [count]]` runs the first `count`
+  scenarios, or all scenarios if the range is omitted. Use
+  `contingency [simplified] <mode> <file> <start> <count>` for an exact range
+  with a zero-based start and positive count. Modes include `line`, `gen`,
+  `load`, `bus`, `n-1`, `n-1-1`, `n-2`, `n-2-line`, and
+  `n-3-line`. The default CSV includes bus and branch results.
+  `simplified` omits those columns. A failed scenario leaves its numerical
+  result fields blank and records the convergence failure under
+  `violations`. The report still includes the other scenarios.
+  With no file, the CSV goes to standard output. A `file:/` prefix is also
+  accepted for file destinations.
 
 ### Field queries
 

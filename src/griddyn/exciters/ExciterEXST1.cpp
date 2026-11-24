@@ -114,7 +114,7 @@ void ExciterEXST1::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flag
     offsets.local().local.algSize = 1;
     offsets.local().local.diffSize = 4;
     offsets.local().local.algRoots = 2;
-    offsets.local().local.jacSize = 26;
+    offsets.local().local.jacSize = 28;
 }
 
 void ExciterEXST1::dynObjectInitializeB(const IOdata& inputs,
@@ -152,7 +152,8 @@ void ExciterEXST1::dynObjectInitializeB(const IOdata& inputs,
 
     const double setpointInput = inputs[exciterVsetInLocation] - 1.0;
     vBias = state[voltageMeasurementState] + initialInput - Vref - setpointInput -
-        inputs[exciterVssInLocation];
+        inputs[exciterVssInLocation] -
+        ((inputs.size() > exciterVuelInLocation) ? inputs[exciterVuelInLocation] : 0.0);
     if (initialInput >= Vimax) {
         vBias += 10.0 * limiterRootTolerance;
     } else if (initialInput <= Vimin) {
@@ -165,7 +166,10 @@ void ExciterEXST1::dynObjectInitializeB(const IOdata& inputs,
 
 double ExciterEXST1::referenceInput(const IOdata& inputs) const
 {
-    return Vref + vBias + inputs[exciterVsetInLocation] - 1.0 + inputs[exciterVssInLocation];
+    // OpenIPSL EXST1 sums VUEL with the voltage error and stabilizer before VIM limits.
+    const double uel =
+        (inputs.size() > exciterVuelInLocation) ? inputs[exciterVuelInLocation] : 0.0;
+    return Vref + vBias + inputs[exciterVsetInLocation] - 1.0 + inputs[exciterVssInLocation] + uel;
 }
 
 double ExciterEXST1::washoutOutput(const double state[]) const
@@ -315,6 +319,11 @@ void ExciterEXST1::jacobianElements(const IOdata& inputs,
         matrixData.assignCheckCol(refDiff + leadLagState,
                                   inputLocs[exciterVssInLocation],
                                   1.0 / Tb);
+        if (inputLocs.size() > exciterVuelInLocation) {
+            matrixData.assignCheckCol(refDiff + leadLagState,
+                                      inputLocs[exciterVuelInLocation],
+                                      1.0 / Tb);
+        }
     }
 
     const double leadRatio = Tc / Tb;
@@ -338,6 +347,11 @@ void ExciterEXST1::jacobianElements(const IOdata& inputs,
         matrixData.assignCheckCol(refDiff + regulatorState,
                                   inputLocs[exciterVssInLocation],
                                   limitedInputGain);
+        if (inputLocs.size() > exciterVuelInLocation) {
+            matrixData.assignCheckCol(refDiff + regulatorState,
+                                      inputLocs[exciterVuelInLocation],
+                                      limitedInputGain);
+        }
     }
 
     matrixData.assign(refDiff + washoutState, refDiff + regulatorState, 1.0 / Tf);

@@ -50,6 +50,10 @@ namespace governors {
         gFgov6("governor", std::to_array<std::string_view>({"ieeeg1"}));
     static ChildTypeFactory<GovernorIeeeG2, Governor>
         gFgovIeeeG2("governor", std::to_array<std::string_view>({"ieeeg2"}));
+    static ChildTypeFactory<GovernorIeeeG3, Governor>
+        gFgovIeeeG3("governor", std::to_array<std::string_view>({"ieeeg3"}));
+    static ChildTypeFactory<GovernorWpidHy, Governor>
+        gFgovWpidHy("governor", std::to_array<std::string_view>({"wpidhy"}));
     static ChildTypeFactory<GovernorGgov1, Governor>
         gFgov7("governor", std::to_array<std::string_view>({"ggov1"}));
     static ChildTypeFactory<GovernorGast, Governor>
@@ -178,7 +182,8 @@ void Governor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 
 void Governor::setInitialLimitPolicy(std::uint32_t flags)
 {
-    strictInitialLimitChecking = CHECK_CONTROLFLAG(flags, STRICT_GOVERNOR_LIMITS);
+    strictInitialLimitChecking =
+        CHECK_CONTROLFLAG(flags, static_cast<std::uint32_t>(STRICT_GOVERNOR_LIMITS));
     initialSetpointOverdrive = 0.0;
 }
 

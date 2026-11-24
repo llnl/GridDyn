@@ -242,6 +242,9 @@ set(gov_headers
     governors/GovernorGPWSCC.h
     governors/GovernorIeeeG1.h
     governors/GovernorIeeeG2.h
+    governors/GovernorIeeeG3.h
+    governors/GovernorWpidHy.h
+    governors/GovernorSignalHelper.h
     governors/GovernorIeeeSimple.h
     governors/GovernorReheat.h
     governors/GovernorSteamNR.h
@@ -263,6 +266,8 @@ set(gov_sources
     governors/GovernorGPWSCC.cpp
     governors/GovernorIeeeG1.cpp
     governors/GovernorIeeeG2.cpp
+    governors/GovernorIeeeG3.cpp
+    governors/GovernorWpidHy.cpp
     governors/GovernorIeeeSimple.cpp
     governors/GovernorReheat.cpp
     governors/GovernorSteamNR.cpp

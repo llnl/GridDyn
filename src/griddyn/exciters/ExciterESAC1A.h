@@ -36,6 +36,7 @@ class ExciterESAC1A final: public ExciterEXAC1 {
     const ModelDescription& getModelDescription() const override;
     explicit ExciterESAC1A(const std::string& objName = "exciterESAC1A_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    bool supportsLimiterSignal(ExciterLimiterSignal /*signal*/) const override { return false; }
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
   protected:

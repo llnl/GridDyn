@@ -21,6 +21,7 @@
 #include "griddyn/governors/GovernorHygovDB.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorIeeeG2.h"
+#include "griddyn/governors/GovernorIeeeG3.h"
 #include "griddyn/governors/GovernorIeeeSimple.h"
 #include "griddyn/governors/GovernorReheat.h"
 #include "griddyn/governors/GovernorSteamNR.h"
@@ -28,6 +29,7 @@
 #include "griddyn/governors/GovernorTG2.h"
 #include "griddyn/governors/GovernorTgov1.h"
 #include "griddyn/governors/GovernorTgov1Variants.h"
+#include "griddyn/governors/GovernorWpidHy.h"
 #include "griddyn/simulation/Diagnostics.h"
 #include "utilities/MatrixDataSparse.hpp"
 #include <algorithm>
@@ -439,6 +441,184 @@ void expectGovernorEquationConsistency(Governor& governor,
     }
 }
 }  // namespace
+
+TEST(GovernorModelTests, IeeeG3UsesHydraulicPartialDerivatives)
+{
+    governors::GovernorIeeeG3 governor;
+    governor.set("a23", 1.25);
+    governor.dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 0.75};
+    IOdata fieldSet;
+    governor.dynInitializeB(inputs, {0.75}, fieldSet);
+    ASSERT_EQ(governor.getStates().size(), 5U);
+    EXPECT_EQ(governor.solverStateNames(),
+              (stringVec{"pmech", "gate", "washout", "pilot", "water"}));
+    EXPECT_NEAR(governor.getStates()[1], 0.6, 1e-14);
+    std::vector<double> residual(5);
+    governor.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    for (double value : residual) {
+        EXPECT_NEAR(value, 0.0, 1e-13);
+    }
+
+    // Gate, washout lag, pilot error, water lag. Independent TGTypeIII
+    // realization gives Pm=(1.25-3)*0.65+3*0.6 and water'=0.1.
+    const std::vector<double> state{0.75, 0.65, 0.6, 0.01, 0.6};
+    std::vector<double> dstate(5);
+    std::vector<double> derivative(5);
+    std::vector<double> update(5);
+    governor.setState(0.0, state.data(), dstate.data(), cLocalSolverMode);
+    inputs[0] = 0.99;
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[1], 0.05, 1e-13);
+    EXPECT_NEAR(derivative[2], 0.01, 1e-13);
+    EXPECT_NEAR(derivative[3], -0.5, 1e-13);
+    EXPECT_NEAR(derivative[4], 0.1, 1e-13);
+    governor.algebraicUpdate(inputs, emptyStateData, update.data(), cLocalSolverMode, 1.0);
+    EXPECT_NEAR(update[0], 0.6625, 1e-13);
+    expectGovernorEquationConsistency(governor, inputs, state);
+    expectGovernorDaeJacobian(governor, inputs, state, 0.0);
+}
+
+TEST(GovernorModelTests, IeeeG3PreservesGateWindupAndZeroTimeBypasses)
+{
+    governors::GovernorIeeeG3 governor;
+    governor.set("tp", 0.0);
+    governor.set("tr", 0.0);
+    governor.set("tw", 0.0);
+    governor.dynInitializeA(0.0, 0);
+    IOdata fieldSet;
+    governor.dynInitializeB({1.0, 0.8}, {0.8}, fieldSet);
+    ASSERT_EQ(governor.getStates().size(), 2U);
+    EXPECT_EQ(governor.solverStateNames(), (stringVec{"pmech", "gate"}));
+    const std::vector<double> state{1.0, 1.2};
+    std::vector<double> dstate(2);
+    std::vector<double> derivative(2);
+    std::vector<double> update(2);
+    governor.setState(0.0, state.data(), dstate.data(), cLocalSolverMode);
+    governor.derivative({0.8, 0.8}, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(derivative[1], governor.get("uo"));
+    governor.algebraicUpdate({0.8, 0.8}, emptyStateData, update.data(), cLocalSolverMode, 1.0);
+    EXPECT_DOUBLE_EQ(update[0], 1.0);
+    governor.derivative({1.2, 0.8}, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(derivative[1], governor.get("uc"));
+    expectGovernorEquationConsistency(governor, {1.2, 0.8}, state);
+    expectGovernorEquationConsistency(governor, {0.999, 0.8}, {0.8, 0.82});
+}
+
+TEST(GovernorModelTests, WpidHyUsesSignedElectricalFeedbackAndPidServo)
+{
+    governors::GovernorWpidHy governor;
+    governor.set("reg", -0.05);
+    governor.set("kd", 0.1);
+    governor.dynInitializeA(0.0, 0);
+    IOdata fieldSet;
+    IOdata inputs{1.0, 0.77, 0.77};
+    governor.dynInitializeB(inputs, {0.75}, fieldSet);
+    ASSERT_EQ(governor.getStates().size(), 9U);
+    EXPECT_DOUBLE_EQ(fieldSet[govpSetInLocation], 0.77);
+    EXPECT_NEAR(governor.getStates()[7], 0.75, 1e-14);
+    std::vector<double> residual(9);
+    std::vector<double> derivative(9);
+    std::vector<double> update(9);
+    std::vector<double> dstate(9);
+    governor.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    for (double value : residual) {
+        EXPECT_NEAR(value, 0.0, 1e-13);
+    }
+    inputs[2] = 0.87;
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[1], -0.005, 1e-14);
+
+    inputs = {0.99, 0.77, 0.87};
+    // Independent block outputs: error=.012, PID=.096, servo velocity=.15
+    // limited to .1,
+    // curve(.6)=.5833333, hydro output=3*.62-2*.5833333, damping=-2*(-.01).
+    const std::vector<double> state{0.75, 0.002, 0.012, 0.006, 0.08, 0.04, 0.025, 0.6, 0.62};
+    governor.setState(0.0, state.data(), dstate.data(), cLocalSolverMode);
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[1], -0.007, 1e-13);
+    EXPECT_NEAR(derivative[2], 0.006, 1e-13);
+    EXPECT_NEAR(derivative[3], 0.6, 1e-13);
+    EXPECT_NEAR(derivative[4], 0.64, 1e-12);
+    EXPECT_NEAR(derivative[5], 1.6, 1e-13);
+    EXPECT_NEAR(derivative[6], 0.15, 1e-13);
+    EXPECT_NEAR(derivative[7], 0.1, 1e-13);
+    EXPECT_NEAR(derivative[8], (0.5833333333333333 - 0.62) * 2.0 / 2.3, 1e-13);
+    governor.algebraicUpdate(inputs, emptyStateData, update.data(), cLocalSolverMode, 1.0);
+    EXPECT_NEAR(update[0], 0.7133333333333333, 1e-13);
+    expectGovernorEquationConsistency(governor, inputs, state);
+    for (const double gate : {0.05, 0.2, 0.6, 0.9, 1.2}) {
+        auto trial = state;
+        trial[7] = gate;
+        expectGovernorEquationConsistency(governor, inputs, trial);
+    }
+}
+
+TEST(GovernorModelTests, HydroModelsRegisterCloneAndRejectInvalidParameters)
+{
+    for (const auto* name : {"ieeeg3", "wpidhy"}) {
+        std::unique_ptr<CoreObject> object(
+            CoreObjectFactory::instance()->createObject("governor", name));
+        auto* governor = dynamic_cast<Governor*>(object.get());
+        ASSERT_NE(governor, nullptr);
+        governor->set("tw", 1.7);
+        auto saved = ModelFieldSnapshot::capture(*governor, FieldSnapshotLevel::PARAMETERS);
+        governor->set("tw", 2.7);
+        saved.restore(*governor);
+        EXPECT_DOUBLE_EQ(governor->get("tw"), 1.7);
+        std::unique_ptr<CoreObject> copy(governor->clone());
+        ASSERT_NE(copy, nullptr);
+        EXPECT_DOUBLE_EQ(copy->get("tw"), 1.7);
+    }
+    governors::GovernorIeeeG3 singular;
+    singular.set("a11", 0.0);
+    EXPECT_THROW(singular.dynInitializeA(0.0, 0), InvalidParameterValue);
+    governors::GovernorWpidHy singularPid;
+    singularPid.set("ta", 0.0);
+    EXPECT_THROW(singularPid.dynInitializeA(0.0, 0), InvalidParameterValue);
+    governors::GovernorWpidHy invalidCurve;
+    invalidCurve.set("g1", 0.0);
+    invalidCurve.set("g2", 0.0);
+    invalidCurve.set("p1", 0.0);
+    invalidCurve.set("p2", 0.0);
+    EXPECT_THROW(invalidCurve.dynInitializeA(0.0, 0), InvalidParameterValue);
+}
+
+TEST(GovernorModelTests, HydroExplicitStepsMatchAnalyticWaterLag)
+{
+    governors::GovernorIeeeG3 ieeeG3;
+    ieeeG3.dynInitializeA(0.0, 0);
+    IOdata fieldSet;
+    ieeeG3.dynInitializeB({1.0, 0.6}, {0.6}, fieldSet);
+    const std::vector<double> g3State{0.0, 0.6, 0.6, 0.0, 0.4};
+    std::vector<double> dstate(9);
+    ieeeG3.setState(0.0, g3State.data(), dstate.data(), cLocalSolverMode);
+    ieeeG3.timestep(0.5, {1.0, 0.6}, cLocalSolverMode);
+    EXPECT_NEAR(ieeeG3.getOutput(), 0.6 - (0.6 * std::exp(-1.0)), 1e-8);
+
+    governors::GovernorWpidHy pid;
+    pid.dynInitializeA(0.0, 0);
+    // Different terminal power and mechanical command must initialize at rest.
+    pid.dynInitializeB({1.0, 0.8, 0.77}, {0.75}, fieldSet);
+    std::vector<double> residual(9);
+    pid.residual({1.0, 0.8, 0.77}, emptyStateData, residual.data(), cLocalSolverMode);
+    for (double value : residual) {
+        EXPECT_NEAR(value, 0.0, 1e-13);
+    }
+    const std::vector<double> pidState{0.0, 0, 0, 0, 0, 0, 0, 0.6, 0.4};
+    pid.setState(0.0, pidState.data(), dstate.data(), cLocalSolverMode);
+    pid.timestep(0.4, {1.0, 0.8, 0.77}, cLocalSolverMode);
+    const double power = 0.5833333333333333;
+    const double water = power + ((0.4 - power) * std::exp(-0.4 / 1.15));
+    EXPECT_NEAR(pid.getOutput(), (3.0 * water) - (2.0 * power), 1e-8);
+    governors::GovernorWpidHy inferred;
+    inferred.dynInitializeA(0.0, 0);
+    inferred.dynInitializeB({1.0, kNullVal, 0.77}, {0.8}, fieldSet);
+    inferred.residual({1.0, 0.8, 0.77}, emptyStateData, residual.data(), cLocalSolverMode);
+    for (double value : residual) {
+        EXPECT_NEAR(value, 0.0, 1e-13);
+    }
+}
 
 TEST(GovernorModelTests, IeeeSimpleAutoAdjustedLimitIsTheRuntimeBoundary)
 {

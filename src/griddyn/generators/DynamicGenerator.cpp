@@ -1830,12 +1830,12 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
             }
         }
     }
-    if (!isDifferentialOnly(sMode)) {
-        signalFrame.derivatives[governorElectricalPower] =
-            signalFrame
-                .derivatives[machineSignalBase +
-                             static_cast<index_t>(MachineControllerSignal::ELECTRICAL_POWER)];
-    }
+    // Machine producers omit columns owned by the paired solver. Preserve
+    // the remaining derivatives (e.g. rotor angle) for electrical feedback
+    // governors in differential-only mode as well.
+    signalFrame.derivatives[governorElectricalPower] =
+        signalFrame.derivatives[machineSignalBase +
+                                static_cast<index_t>(MachineControllerSignal::ELECTRICAL_POWER)];
 
     for (auto model : {EXCITER_LOC,
                        GOVERNOR_LOC,

@@ -5,6 +5,7 @@
  */
 
 #include "../gtestHelper.h"
+#include "core/CoreExceptions.h"
 #include "griddyn/Generator.h"
 #include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
@@ -19,6 +20,9 @@
 #include "griddyn/governors/GovernorGPWSCC.h"
 #include "griddyn/governors/GovernorGgov1.h"
 #include "griddyn/governors/GovernorIeeeG2.h"
+#include "griddyn/governors/GovernorIeeeG3.h"
+#include "griddyn/governors/GovernorWpidHy.h"
+#include "griddyn/limiters/ExcitationLimiterMNLEX2.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include "griddyn/links/DcLink.h"
@@ -78,6 +82,122 @@ void expectInternalLinksBelongToArea(griddyn::GridArea* area)
 }
 
 }  // namespace
+
+TEST(ExampleReaderTests, MapsHydroAndMnlex2InPsseDyrOrder)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dyrPath = std::filesystem::temp_directory_path() / "griddyn_hydro_mnlex2.dyr";
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup()
+        {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } cleanup{dyrPath};
+    {
+        std::ofstream output(dyrPath);
+        ASSERT_TRUE(output.is_open());
+        output
+            << "1 'GENROU' 1 6.5 .06 .2 .05 4 0 1.8 1.75 .6 .8 .23 .15 .09 .38 0 0 0 /\n"
+               "2 'GENROU' 1 6.5 .06 .2 .05 4 0 1.8 1.75 .6 .8 .23 .15 .09 .38 0 0 0 /\n"
+               "1 'IEEEG3' 1 .2 .04 .11 -.12 1.3 .01 .05 .35 5 1.2 .5 1.4 1.6 1.1 /\n"
+               "2 'WPIDHY' 1 .7 -.05 2 .4 .1 .03 .12 .15 -.16 1.02 .02 2.3 1.2 .01 .2 .08 .3 .25 .75 .8 1.1 /\n"
+               "1 'MNLEX2' 1 .1 .7 .3 .5 .09 2.5 3 /\n";
+    }
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation, epcPath.string());
+    ASSERT_NO_THROW(griddyn::loadFile(simulation, dyrPath.string()));
+    auto* bus1 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    auto* bus2 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+    ASSERT_NE(bus1, nullptr);
+    ASSERT_NE(bus2, nullptr);
+    auto* ieeeG3 =
+        dynamic_cast<griddyn::governors::GovernorIeeeG3*>(bus1->getGen(0)->find("governor"));
+    auto* pid =
+        dynamic_cast<griddyn::governors::GovernorWpidHy*>(bus2->getGen(0)->find("governor"));
+    ASSERT_NE(ieeeG3, nullptr);
+    ASSERT_NE(pid, nullptr);
+    const std::pair<std::string_view, double> expectedG3[]{{"tg", .2},
+                                                           {"tp", .04},
+                                                           {"uo", .11},
+                                                           {"uc", -.12},
+                                                           {"pmax", 1.3},
+                                                           {"pmin", .01},
+                                                           {"rperm", .05},
+                                                           {"rtemp", .35},
+                                                           {"tr", 5},
+                                                           {"tw", 1.2},
+                                                           {"a11", .5},
+                                                           {"a13", 1.4},
+                                                           {"a21", 1.6},
+                                                           {"a23", 1.1}};
+    const std::pair<std::string_view, double> expectedPid[]{
+        {"treg", .7},    {"reg", -.05}, {"kp", 2},       {"ki", .4},       {"kd", .1},
+        {"ta", .03},     {"tb", .12},   {"velmax", .15}, {"velmin", -.16}, {"gatmax", 1.02},
+        {"gatmin", .02}, {"tw", 2.3},   {"pmax", 1.2},   {"pmin", .01},    {"d", .2},
+        {"g0", .08},     {"g1", .3},    {"p1", .25},     {"g2", .75},      {"p2", .8},
+        {"p3", 1.1}};
+    for (const auto& [name, value] : expectedG3) {
+        EXPECT_DOUBLE_EQ(ieeeG3->get(name), value) << name;
+    }
+    for (const auto& [name, value] : expectedPid) {
+        EXPECT_DOUBLE_EQ(pid->get(name), value) << name;
+    }
+    griddyn::limiters::ExcitationLimiterMNLEX2* uel = nullptr;
+    for (auto* sub : bus1->getGen(0)->getSubObjects()) {
+        if (auto* limiter = dynamic_cast<griddyn::limiters::ExcitationLimiterMNLEX2*>(sub)) {
+            uel = limiter;
+        }
+    }
+    ASSERT_NE(uel, nullptr);
+    const std::pair<std::string_view, double> expectedUel[]{{"kf2", .1},
+                                                            {"tf2", .7},
+                                                            {"km", .3},
+                                                            {"tm", .5},
+                                                            {"melmax", .09},
+                                                            {"q0", 2.5},
+                                                            {"radius", 3}};
+    for (const auto& [name, value] : expectedUel) {
+        EXPECT_DOUBLE_EQ(uel->get(name), value) << name;
+    }
+}
+
+TEST(ExampleReaderTests, RejectsMalformedHydroAndMnlex2Records)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dyrPath = std::filesystem::temp_directory_path() / "griddyn_invalid_hydro.dyr";
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup()
+        {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } cleanup{dyrPath};
+    for (const auto* record :
+         {"1 'IEEEG3' 1 .2 .04 .1 -.1 1 0 .05 .35 5 1 .5 1 1.5 /",
+          "1 'IEEEG3' 1 .2 .04 .1 -.1 1 0 .05 .35 5 1 .5 1 1.5 1 99 /",
+          "1 'IEEEG3' 1 .2 .04 .1 -.1 1 0 .05 .35 5 1 .5 bad 1.5 1 /",
+          "1 'WPIDHY' 1 1 .05 2 .5 0 .025 .1 .1 -.132 1 0 2.3 1 0 2 .08 .3 .25 .75 .75 /",
+          "1 'WPIDHY' 1 nan .05 2 .5 0 .025 .1 .1 -.132 1 0 2.3 1 0 2 .08 .3 .25 .75 .75 1 /",
+          "1 'MNLEX2' 1 .1 1 .3 .5 .1 2.5 /",
+          "1 'MNLEX2' 1 .1 1 .3 .5 .1 2.5 inf /",
+          "999999 'MNLEX2' 1 .1 1 .3 .5 .1 2.5 3 /"}) {
+        SCOPED_TRACE(record);
+        auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+        griddyn::loadFile(simulation, epcPath.string());
+        {
+            std::ofstream output(dyrPath);
+            output << "1 'GENROU' 1 6.5 .06 .2 .05 4 0 1.8 1.75 .6 .8 .23 .15 .09 .38 0 0 0 /\n"
+                   << record << '\n';
+        }
+        EXPECT_THROW(griddyn::loadFile(simulation, dyrPath.string()),
+                     griddyn::InvalidParameterValue);
+    }
+}
 
 TEST(ExampleReaderTests, LoadTopLevelExamples)
 {

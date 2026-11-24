@@ -83,6 +83,10 @@ class ExciterESST1A final: public Exciter {
   public:
     explicit ExciterESST1A(const std::string& objName = "exciterESST1A_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    bool supportsLimiterSignal(ExciterLimiterSignal signal) const override
+    {
+        return signal == ExciterLimiterSignal::UNDER && uelSelector == 1;
+    }
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,

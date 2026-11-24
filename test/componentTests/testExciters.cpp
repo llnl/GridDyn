@@ -6,6 +6,7 @@
 
 #include "../gtestHelper.h"
 #include "core/CoreExceptions.h"
+#include "core/ModelDescription.h"
 #include "core/ObjectFactory.hpp"
 #include "core/coreDefinitions.hpp"
 #include "fileInput/fileInput.h"
@@ -15,6 +16,7 @@
 #include "griddyn/exciters/ExciterAC8B.h"
 #include "griddyn/exciters/ExciterDC1A.h"
 #include "griddyn/exciters/ExciterDC2A.h"
+#include "griddyn/exciters/ExciterESAC1A.h"
 #include "griddyn/exciters/ExciterESAC5A.h"
 #include "griddyn/exciters/ExciterESAC6A.h"
 #include "griddyn/exciters/ExciterESST1A.h"
@@ -364,6 +366,50 @@ void expectExciterRootMarginsStableUnderInputNoise(Exciter& exciter, std::string
 }
 
 }  // namespace
+
+TEST(ExciterModelTests, ImportedMnlex2ExcitersSumUelBeforeRegulator)
+{
+    EXPECT_FALSE(exciters::ExciterEXAC2().supportsLimiterSignal(ExciterLimiterSignal::UNDER));
+    EXPECT_FALSE(exciters::ExciterESAC1A().supportsLimiterSignal(ExciterLimiterSignal::UNDER));
+    std::array<std::unique_ptr<Exciter>, 3> models{std::make_unique<exciters::ExciterEXST1>(),
+                                                   std::make_unique<exciters::ExciterEXAC1>(),
+                                                   std::make_unique<exciters::ExciterESST1A>()};
+    for (auto& model : models) {
+        SCOPED_TRACE(model->getModelDescription().name());
+        EXPECT_TRUE(model->supportsLimiterSignal(ExciterLimiterSignal::UNDER));
+        EXPECT_FALSE(model->supportsLimiterSignal(ExciterLimiterSignal::OVER));
+        model->dynInitializeA(0.0, 0);
+        IOdata inputs(exciterInputCount, 0.0);
+        inputs[exciterVoltageInLocation] = 1.0;
+        inputs[exciterVsetInLocation] = 1.0;
+        inputs[exciterXadIfdInLocation] = 0.2;
+        inputs[exciterVuelInLocation] = 0.01;
+        IOdata fieldSet(4, 0.0);
+        model->dynInitializeB(inputs, {0.5}, fieldSet);
+        const auto state = model->getStates();
+        std::vector<double> residual(state.size());
+        model->residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+        for (double value : residual) {
+            EXPECT_NEAR(value, 0.0, 1e-8);
+        }
+        std::vector<double> withUel(state.size());
+        std::vector<double> withSetpoint(state.size());
+        auto uelInputs = inputs;
+        auto setpointInputs = inputs;
+        uelInputs[exciterVuelInLocation] += 0.005;
+        setpointInputs[exciterVsetInLocation] += 0.005;
+        model->residual(uelInputs, emptyStateData, withUel.data(), cLocalSolverMode);
+        model->residual(setpointInputs, emptyStateData, withSetpoint.data(), cLocalSolverMode);
+        bool acts = false;
+        for (std::size_t i = 0; i < state.size(); ++i) {
+            EXPECT_NEAR(withUel[i], withSetpoint[i], 1e-10);
+            acts = acts || std::abs(withUel[i] - residual[i]) > 1e-8;
+        }
+        EXPECT_TRUE(acts);
+        expectExciterJacobian(*model, uelInputs, state);
+        expectExciterDaeJacobian(*model, uelInputs, state, 0.7);
+    }
+}
 
 TEST_F(ExciterTests, RootExciterTest)
 {

@@ -30,7 +30,10 @@
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorIeeeG2.h"
+#include "griddyn/governors/GovernorIeeeG3.h"
 #include "griddyn/governors/GovernorReheat.h"
+#include "griddyn/governors/GovernorWpidHy.h"
+#include "griddyn/limiters/ExcitationLimiterMNLEX2.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include "griddyn/loads/CompositeLoad.h"
@@ -140,6 +143,9 @@ namespace {
     void loadGPWSCC(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEG1(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEG2(CoreObject* parentObject, stringVec& tokens);
+    void loadIEEEG3(CoreObject* parentObject, stringVec& tokens);
+    void loadWPIDHY(CoreObject* parentObject, stringVec& tokens);
+    void loadMNLEX2(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEVC(CoreObject* parentObject, stringVec& tokens);
     void loadIEESGO(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEST(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
@@ -443,6 +449,12 @@ namespace detail {
             loadIEEEG1(parentObject, lineTokens);
         } else if (type == "'IEEEG2'") {
             loadIEEEG2(parentObject, lineTokens);
+        } else if (type == "'IEEEG3'") {
+            loadIEEEG3(parentObject, lineTokens);
+        } else if (type == "'WPIDHY'") {
+            loadWPIDHY(parentObject, lineTokens);
+        } else if (type == "'MNLEX2'") {
+            loadMNLEX2(parentObject, lineTokens);
         } else if (type == "'IEEEVC'") {
             loadIEEEVC(parentObject, lineTokens);
         } else if (type == "'IEESGO'") {
@@ -3085,6 +3097,75 @@ namespace {
             governor->set(names[index], params[index + 3U]);
         }
         generator->add(governor.release());
+    }
+
+    template<class Model, std::size_t N>
+    void loadGeneratorController(CoreObject* parentObject,
+                                 const stringVec& tokens,
+                                 std::string_view name,
+                                 const std::array<std::string_view, N>& fields)
+    {
+        if (tokens.size() != N + 3U) {
+            throw InvalidParameterValue(std::string{name} + " DYR record requires " +
+                                        std::to_string(N) + " parameters");
+        }
+        auto* generator =
+            dynamic_cast<DynamicGenerator*>(requireDyrGenerator(parentObject, tokens, name));
+        if (generator == nullptr) {
+            throw InvalidParameterValue(std::string{name} + " requires a dynamic generator");
+        }
+        auto model = std::make_unique<Model>();
+        for (std::size_t index = 0; index < N; ++index) {
+            const auto value = gmlc::utilities::numeric_conversionComplete<double>(
+                std::string_view{tokens[index + 3]}, std::numeric_limits<double>::quiet_NaN());
+            if (!std::isfinite(value)) {
+                throw InvalidParameterValue(std::string{name} + " invalid parameter " +
+                                            std::string{fields[index]});
+            }
+            model->set(fields[index], value);
+        }
+        generator->add(model.release());
+    }
+
+    void loadIEEEG3(CoreObject* parentObject, stringVec& tokens)
+    {
+        // PSS/E order; a11/a13/a21/a23 are turbine partial derivatives.
+        // The PSLF IEEEG3_GE Kturb/Aturb/Bturb/Spare suffix is a different schema.
+        static constexpr std::array<std::string_view, 14> fields{"tg",
+                                                                 "tp",
+                                                                 "uo",
+                                                                 "uc",
+                                                                 "pmax",
+                                                                 "pmin",
+                                                                 "rperm",
+                                                                 "rtemp",
+                                                                 "tr",
+                                                                 "tw",
+                                                                 "a11",
+                                                                 "a13",
+                                                                 "a21",
+                                                                 "a23"};
+        loadGeneratorController<governors::GovernorIeeeG3>(parentObject, tokens, "IEEEG3", fields);
+    }
+
+    void loadWPIDHY(CoreObject* parentObject, stringVec& tokens)
+    {
+        // PSS/E DYR puts TB before velocity limits and TW after gate limits.
+        // OpenIPSL's declaration order puts TW earlier; do not use that order here.
+        static constexpr std::array<std::string_view, 21> fields{
+            "treg", "reg",  "kp",   "ki", "kd", "ta", "tb", "velmax", "velmin", "gatmax", "gatmin",
+            "tw",   "pmax", "pmin", "d",  "g0", "g1", "p1", "g2",     "p2",     "p3"};
+        loadGeneratorController<governors::GovernorWpidHy>(parentObject, tokens, "WPIDHY", fields);
+    }
+
+    void loadMNLEX2(CoreObject* parentObject, stringVec& tokens)
+    {
+        static constexpr std::array<std::string_view, 7> fields{
+            "kf2", "tf2", "km", "tm", "melmax", "q0", "radius"};
+        loadGeneratorController<limiters::ExcitationLimiterMNLEX2>(parentObject,
+                                                                   tokens,
+                                                                   "MNLEX2",
+                                                                   fields);
     }
 
     void loadIEEEVC(CoreObject* parentObject, stringVec& tokens)

@@ -47,8 +47,9 @@ target_include_directories(
     formatInterpreter SYSTEM PRIVATE $<TARGET_PROPERTY:yaml-cpp,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-target_link_libraries(formatInterpreter PUBLIC pugixml::pugixml utilities yaml-cpp
-                                               tomlplusplus::tomlplusplus)
+target_link_libraries(
+    formatInterpreter PUBLIC pugixml::pugixml utilities yaml-cpp tomlplusplus::tomlplusplus
+)
 set_target_properties(formatInterpreter PROPERTIES FOLDER libraries)
 
 install(FILES ${elementReader_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/griddyn

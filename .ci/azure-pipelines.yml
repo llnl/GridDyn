@@ -117,7 +117,7 @@ jobs:
             ThirdParty/sundials
             ThirdParty/hdf5
             ThirdParty/pugixml
-            ThirdParty/toml
+            ThirdParty/tomlplusplus
             ThirdParty/yaml-cpp
             ThirdParty/suitesparse-cmake
           )

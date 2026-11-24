@@ -42,13 +42,13 @@ add_library(formatInterpreter STATIC ${elementReader_files} ${elementReader_head
 
 target_include_directories(
     formatInterpreter PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
-                              $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty/toml/include>
 )
 target_include_directories(
     formatInterpreter SYSTEM PRIVATE $<TARGET_PROPERTY:yaml-cpp,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-target_link_libraries(formatInterpreter PUBLIC pugixml::pugixml utilities yaml-cpp)
+target_link_libraries(formatInterpreter PUBLIC pugixml::pugixml utilities yaml-cpp
+                                               tomlplusplus::tomlplusplus)
 set_target_properties(formatInterpreter PROPERTIES FOLDER libraries)
 
 install(FILES ${elementReader_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/griddyn

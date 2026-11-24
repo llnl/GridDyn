@@ -9,8 +9,7 @@
 #include "readerElement.h"
 #include <memory>
 #include <string>
-#include <toml11/parser.hpp>
-#include <toml11/types.hpp>
+#include <toml++/toml.hpp>
 #include <vector>
 
 class TomlElement;
@@ -18,8 +17,7 @@ class TomlElement;
 /** ReaderElement adapter for TOML documents.
  *
  * Tables and arrays are exposed through the common child and sibling
- * navigation interface. Table order is retained by the underlying ordered
- * TOML value.
+ * navigation interface. Table entries are traversed in source order.
  */
 class TomlReaderElement: public ReaderElement {
   public:
@@ -73,7 +71,7 @@ class TomlReaderElement: public ReaderElement {
     virtual void restore() override;
 
   private:
-    std::shared_ptr<toml::ordered_value> mDoc = nullptr;  //!< document root
+    std::shared_ptr<const toml::table> mDoc = nullptr;  //!< document root
     std::vector<std::shared_ptr<TomlElement>> mParents;
     std::shared_ptr<TomlElement> mCurrent = nullptr;
     int mIteratorCount = 0;

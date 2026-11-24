@@ -41,6 +41,7 @@ set(file_reader_gtest_sources
     readerTests/testXML.cpp
     readerTests/testJsonReader.cpp
     readerTests/testXmlElementReader.cpp
+    readerTests/testTomlElementReader.cpp
     readerTests/testYamlElementReader.cpp
 )
 

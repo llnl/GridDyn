@@ -471,8 +471,10 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/pugixml/CMakeLists.txt")
     submod_update(ThirdParty/pugixml)
 endif()
 
-if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/toml/include/toml11/types.hpp")
-    submod_update(ThirdParty/toml)
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/tomlplusplus/CMakeLists.txt"
+   OR NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/tomlplusplus/include/toml++/toml.hpp"
+)
+    submod_update(ThirdParty/tomlplusplus)
 endif()
 
 if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/yaml-cpp/CMakeLists.txt")
@@ -667,6 +669,11 @@ endif()
 if(TARGET pugixml)
     set_target_properties(pugixml PROPERTIES FOLDER Extern)
 endif()
+
+# ------------------------------------------------------------
+# create tomlplusplus target
+# ------------------------------------------------------------
+include(addTomlplusplus)
 
 # ------------------------------------------------------------
 # create yaml-cpp target

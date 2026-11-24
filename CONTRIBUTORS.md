@@ -1,7 +1,7 @@
 # Contributors
 
-This file describes the contributors to the HELICS library and the software used as part of this project
-If you would like to contribute to the HELICS project see [CONTRIBUTING](CONTRIBUTING.md)
+This file describes the contributors to GridDyn and the software used as part of this project.
+If you would like to contribute to GridDyn, see [CONTRIBUTING](CONTRIBUTING.md).
 
 ## Individual contributors
 
@@ -56,9 +56,9 @@ GridDyn uses the header-only nlohmann/json library for parsing and generating JS
 
 CLI11 is a command line parser and was used as a replacement for boost::program_options. The modifications used in Griddyn were merged to the CLI11 library and are now fully integrated in the upstream repository as of the 1.9 release of CLI11. The project was created by [Henry Schreiner](https://github.com/henryiii). Release 1.9 the CLI11 single file header is included with a HELICS install. CLI11 is available under a [3-Clause BSD](https://github.com/CLIUtils/CLI11/blob/master/LICENSE) license.
 
-### [toml11](https://github.com/ToruNiina/toml11)
+### [tomlplusplus](https://github.com/marzer/tomlplusplus)
 
-toml11 is a C\++11 header-only TOML parser/encoder depending only on the C++ standard library. Compatible with the latest version of TOML v0.5.0. toml11 is licensed under the [MIT](https://github.com/ToruNiina/toml11/blob/master/LICENSE) license. HELICS includes it through a submodule of a library [fork](https://github.com/GMLC-TDC/toml11) until the changes can be merged upstream.
+GridDyn uses [tomlplusplus by Mark Gillard](https://github.com/marzer/tomlplusplus) as a C++17 header-only TOML parser through the pinned `ThirdParty/tomlplusplus` submodule. The upstream [MIT license](ThirdParty/tomlplusplus/LICENSE) is installed as `share/griddyn/licenses/TOMLPLUSPLUS-LICENSE` with the headers and applications. GridDyn disables the upstream compiled library, C++ modules, development executables, header regeneration, and unreleased TOML features.
 
 ### [HELICS](https://github.com/GMLC-TDC/HELICS)
 

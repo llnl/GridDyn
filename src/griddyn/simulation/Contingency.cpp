@@ -359,7 +359,7 @@ std::string Contingency::generateFullOutputLine() const
         stringVec names;
         const auto busCount = gds->getBusName(names);
         const auto linkCount = gds->getLinkName(names);
-        for (count_t column = 0; column < 2 * busCount + linkCount; ++column) {
+        for (count_t column = 0; column < (2 * busCount) + linkCount; ++column) {
             stream << ',';
         }
     } else {

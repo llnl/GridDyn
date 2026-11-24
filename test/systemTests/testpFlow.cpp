@@ -1116,7 +1116,7 @@ TEST_F(PowerflowSystemTests, SaveRecorderStopsOnPartialWriteAndCanRetry)
 
         // The file can still open for appending. The write can transfer at
         // most four more bytes before the OS rejects it.
-        const auto byteLimit = static_cast<rlim_t>(originalSize + 4);
+        const auto byteLimit = static_cast<rlim_t>(originalSize) + rlim_t{4};
         struct rlimit previousLimit{};
         ASSERT_EQ(getrlimit(RLIMIT_FSIZE, &previousLimit), 0);
         if (previousLimit.rlim_max < byteLimit) {

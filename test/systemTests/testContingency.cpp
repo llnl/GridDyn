@@ -51,7 +51,7 @@ static void expectParallelLineSolution(const std::vector<std::string>& row,
 {
     // Solve the lossless two-bus equations for the surviving x = 0.2 link.
     constexpr double transfer = 0.9 * 0.2;
-    const auto voltage = std::sqrt(0.5 * (1.0 + std::sqrt(1.0 - 4.0 * transfer * transfer)));
+    const auto voltage = std::sqrt(0.5 * (1.0 + std::sqrt(1.0 - (4.0 * transfer * transfer))));
     if (summaryStart > 3) {
         EXPECT_DOUBLE_EQ(std::stod(row[3]), 1.0);
         EXPECT_NEAR(std::stod(row[4]), voltage, 5e-5);

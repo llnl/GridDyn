@@ -278,11 +278,12 @@ void GridDynAction::process(std::string_view operation)
         return;
     }
     const auto commandToken = gmlc::utilities::convertToLowerCase(tokens.front().mValue);
-    const auto match = std::ranges::find(actionNames, commandToken);
-    if (tokens.front().mQuoted || match == actionNames.end() || commandToken == "invalid") {
+    const auto index = static_cast<std::size_t>(std::ranges::find(actionNames, commandToken) -
+                                                actionNames.begin());
+    if (tokens.front().mQuoted || index == actionNames.size() || commandToken == "invalid") {
         throw UnrecognizedParameter(commandToken);
     }
-    command = static_cast<GdAction>(match - actionNames.begin());
+    command = static_cast<GdAction>(index);
     auto args = std::span<const ActionToken>{tokens}.subspan(1);
     const auto arity = [&](std::size_t minimum, std::size_t maximum) {
         if (args.size() < minimum || args.size() > maximum) {

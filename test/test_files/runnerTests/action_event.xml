@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn>
+    <import file="../dyn_tests1/test_dynSimple1.xml"/>
+    <event>@0.15|bus1::load3:p=1.1</event>
+</griddyn>

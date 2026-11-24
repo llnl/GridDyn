@@ -1,0 +1,2 @@
+run 0.2 # Continue to the requested time; set name ignored
+set bus1::load3:p 1.75; set name inside_nested

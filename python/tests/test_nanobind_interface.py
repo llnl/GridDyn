@@ -60,8 +60,10 @@ def test_direct_actions_report_error_categories():
         sim.execute("badverb")
     with pytest.raises(gd.InvalidObjectError, match="missing:voltage"):
         sim.execute("set missing:voltage 1.02")
-    with pytest.raises(gd.ExecutionError, match="unsupported command 'continuation'"):
+    with pytest.raises(gd.InvalidParameterError, match="action 'continuation'.*load scale"):
         sim.execute("continuation")
+    with pytest.raises(gd.ExecutionError, match="unsupported command 'print'"):
+        sim.execute("print name stdout")
     assert sim.execute("check powerflow .") != 0
 
 

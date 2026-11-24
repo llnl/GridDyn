@@ -16,17 +16,19 @@
 #include "core/FactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
+#include <cmath>
+#include <cstddef>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <vector>
 
 namespace griddyn {
-using gmlc::utilities::str2vector;
+using gmlc::utilities::stringOps::splitline;
 using gmlc::utilities::stringOps::trailingStringInt;
 using gmlc::utilities::stringOps::trim;
-using gmlc::utilities::stringOps::trimString;
 
 static ClassFactory<Event> gEventFactory(std::vector<std::string>{"event", "simple", "single"},
                                          "event");
@@ -357,78 +359,108 @@ EventInfo::EventInfo(std::string_view eventString, CoreObject* rootObj)
     loadString(eventString, rootObj);
 }
 
-// @time1[,time2,time3,... + period] |[rootobj::obj1:]field(units) const =
-// val1,[val2,val3,...];[rootobj::obj1:]field(units) const = val1,[val2,val3,...];  or
-// [rootobj::obj:]field(units) = val1,[val2,val3,...] @time1[,time2,time3,...|+ period] or
-// NOLINTNEXTLINE(misc-no-recursion)
-void EventInfo::loadString(std::string_view eventString, CoreObject* rootObj)
-{
-    if (eventString.find_first_of(';') != std::string::npos) {
-        auto svector = gmlc::utilities::stringOps::splitlineBracket(std::string{eventString}, ";");
-        if (svector.size() > 1) {
-            for (const auto& estring : svector) {
-                if (!estring.empty()) {
-                    loadString(estring, rootObj);
-                }
+namespace {
+    double readEventNumber(std::string_view text, std::string_view operand)
+    {
+        const auto token = trim(text);
+        std::size_t consumed = 0;
+        double number = 0.0;
+        try {
+            number = std::stod(token, &consumed);
+        }
+        catch (const std::logic_error&) {
+            throw InvalidParameterValue(operand);
+        }
+        if (consumed != token.size() || !std::isfinite(number)) {
+            throw InvalidParameterValue(operand);
+        }
+        return number;
+    }
+
+    void readEventTimes(EventInfo& info, std::string_view schedule)
+    {
+        auto times = splitline(schedule, ',');
+        if (times.empty()) {
+            throw InvalidParameterValue("event time");
+        }
+        auto& last = times.back();
+        last = trim(last);
+        for (auto separator = last.find('+', 1); separator != std::string::npos;
+             separator = last.find('+', separator + 1)) {
+            if (last[separator - 1] != 'e' && last[separator - 1] != 'E') {
+                info.period =
+                    readEventNumber(std::string_view(last).substr(separator + 1), "event period");
+                last.resize(separator);
+                break;
             }
+        }
+        for (const auto& time : times) {
+            info.time.emplace_back(readEventNumber(time, "event time"));
+        }
+    }
+
+    void readEventAssignment(EventInfo& info, std::string_view text, CoreObject* rootObj)
+    {
+        const auto entry = trim(text);
+        if (entry.empty()) {
             return;
         }
-    }
-    std::string objString;
-    auto posA = eventString.find_first_of('@');
-    if (posA == std::string::npos) {
-        objString = std::string{eventString};
-    } else {
-        auto posT = eventString.find_first_of('|', posA + 2);
-        std::string tstring = (posT != std::string::npos) ?
-            std::string{eventString.substr(posA + 1, posT - posA - 1)} :
-            std::string{eventString.substr(posA + 1, std::string::npos)};
-        trimString(tstring);
-        auto cstr = tstring.find_first_of(',');
-        if (cstr == std::string::npos) {
-            cstr = tstring.find_first_of('+');
-            if (cstr == std::string::npos) {
-                time.emplace_back(std::stod(tstring));
-            } else {
-                time.emplace_back(std::stod(tstring.substr(0, cstr)));
-                period = std::stod(tstring.substr(cstr + 1, std::string::npos));
+        std::string_view assignment(entry);
+        const auto timeMarker = assignment.find('@');
+        if (timeMarker == 0) {
+            const auto separator = assignment.find_first_of("|>", 1);
+            if (separator == std::string_view::npos) {
+                throw InvalidParameterValue("event time separator");
+            }
+            readEventTimes(info, assignment.substr(1, separator - 1));
+            assignment.remove_prefix(separator + 1);
+        } else if (timeMarker != std::string_view::npos) {
+            readEventTimes(info, assignment.substr(timeMarker + 1));
+            assignment = assignment.substr(0, timeMarker);
+        }
+
+        const auto equals = assignment.find('=');
+        if (equals == std::string_view::npos) {
+            throw InvalidParameterValue("event assignment");
+        }
+        const ObjectInfo target(trim(assignment.substr(0, equals)), rootObj);
+        info.targetObjs.push_back(target.mObject);
+        info.units.push_back(target.mUnitType);
+        info.fieldList.push_back(target.mField);
+
+        const auto values = trim(assignment.substr(equals + 1));
+        if (values.starts_with('{')) {
+            const auto close = values.find('}');
+            if (close == std::string::npos || close == 1) {
+                throw InvalidParameterValue("event file");
+            }
+            info.file = values.substr(1, close - 1);
+            info.columns.push_back(trailingStringInt(info.file, info.file, 0));
+            const auto period = trim(std::string_view(values).substr(close + 1));
+            if (!period.empty()) {
+                if (!period.starts_with('+')) {
+                    throw InvalidParameterValue("event period");
+                }
+                info.period = readEventNumber(std::string_view(period).substr(1), "event period");
             }
         } else {
-            time = str2vector<CoreTime>(tstring, negTime, ",");
+            const auto samples = splitline(values, ',');
+            if (samples.empty()) {
+                throw InvalidParameterValue("event value");
+            }
+            for (const auto& value : samples) {
+                info.value.push_back(readEventNumber(value, "event value"));
+            }
         }
-        objString = (posA > 2) ? eventString.substr(0, posA - 1) :
-                                 eventString.substr(posT + 1, std::string::npos);
     }
-    trimString(objString);
-    auto posE = objString.find_first_of('=');
-    std::string vstring = objString.substr(posE + 1, std::string::npos);
-    trimString(vstring);
-    objString = objString.substr(0, posE);
-    // break down the object specification
-    const ObjectInfo fdata(objString, rootObj);
+}  // namespace
 
-    targetObjs.push_back(fdata.mObject);
-    units.push_back(fdata.mUnitType);
-    fieldList.push_back(fdata.mField);
-
-    auto posFile = vstring.find_first_of('{');
-    if (posFile != std::string::npos) {  // now we get into file based event
-        auto posEndFile = vstring.find_first_of('}', posFile);
-        file = vstring.substr(posE + 1, posEndFile - posFile - 1);
-
-        const int col = trailingStringInt(file, file, 0);
-        columns.push_back(col);
-        auto posPlus = vstring.find_first_of('+', posEndFile);
-        if (posPlus != std::string::npos) {
-            period = std::stod(vstring.substr(posPlus + 1, std::string::npos));
-        }
-    } else {
-        auto cstr = vstring.find_first_of(',');
-        if (cstr == std::string::npos) {
-            value.push_back(std::stod(vstring));
-        } else {
-            value = str2vector(vstring, -1.0, ",");
-        }
+// @time[,time,...][+period]|object:field(units)=value[,value,...]
+// or object:field(units)=value[,value,...] @time[,time,...][+period]
+void EventInfo::loadString(std::string_view eventString, CoreObject* rootObj)
+{
+    for (const auto& entry : gmlc::utilities::stringOps::splitlineBracket(eventString, ";")) {
+        readEventAssignment(*this, entry, rootObj);
     }
 }
 

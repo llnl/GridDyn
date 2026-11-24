@@ -10,20 +10,93 @@
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/Hdf5DataFile.h"
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <filesystem>
+#include <format>
+#include <fstream>
+#include <iomanip>
 #include <limits>
 #include <memory>
+#include <ostream>
 #include <span>
 #include <string>
+#include <system_error>
 #include <utility>
 #include <vector>
 
 namespace griddyn {
 using gmlc::utilities::fsize_t;
+
+namespace {
+    using RecorderSamples = gmlc::utilities::TimeSeriesMulti<double, CoreTime>;
+
+    void writeRecorderText(std::ostream& output,
+                           const RecorderSamples& samples,
+                           fsize_t firstSample,
+                           int precision,
+                           bool append)
+    {
+        if (!append) {
+            const auto description =
+                gmlc::utilities::stringOps::characterReplace(samples.description, '\n', "\n#");
+            output << "# " << description << "\n\"time\"";
+            for (const auto& field : samples.getFields()) {
+                output << R"(, ")" << field << '"';
+            }
+            output << '\n';
+        }
+        const int valuePrecision = (precision < 1) ? 8 : precision;
+        for (fsize_t row = firstSample; row < samples.size(); ++row) {
+            output << std::setprecision(5) << samples.time()[row];
+            for (fsize_t col = 0; col < samples.columns(); ++col) {
+                output << ',' << std::setprecision(valuePrecision) << samples.data(col, row);
+            }
+            output << '\n';
+        }
+    }
+
+    void writeRecorderBinary(std::ostream& output,
+                             const RecorderSamples& samples,
+                             fsize_t firstSample,
+                             bool append)
+    {
+        // Match the legacy reader's layout. Each block contains its dimensions
+        // followed by the times and values in column order.
+        const auto writeValue = [&output](const auto& value) {
+            output.write(reinterpret_cast<const char*>(&value), sizeof(value));
+        };
+        const auto sampleCount = samples.size() - firstSample;
+        if (!append) {
+            writeValue(fsize_t{1});
+            const auto descriptionLength = static_cast<fsize_t>(samples.description.size());
+            writeValue(descriptionLength);
+            output.write(samples.description.data(), descriptionLength);
+        }
+        writeValue(sampleCount);
+        writeValue(samples.columns() + fsize_t{1});
+        if (!append) {
+            for (const auto& field : samples.getFields()) {
+                const auto length = static_cast<unsigned char>(std::min(field.size(), size_t{255}));
+                writeValue(length);
+                output.write(field.data(), length);
+            }
+        }
+        for (const auto time : std::span(samples.time()).subspan(firstSample, sampleCount)) {
+            writeValue(static_cast<double>(time));
+        }
+        if (sampleCount != 0) {
+            for (fsize_t col = 0; col < samples.columns(); ++col) {
+                const auto values = std::span(samples.data(col)).subspan(firstSample, sampleCount);
+                output.write(reinterpret_cast<const char*>(values.data()),
+                             static_cast<std::streamsize>(values.size_bytes()));
+            }
+        }
+    }
+}  // namespace
 
 Recorder::Recorder(CoreTime time0, CoreTime period): Collector(time0, period) {}
 Recorder::Recorder(const std::string& name): Collector(name) {}
@@ -149,12 +222,13 @@ void Recorder::saveFile(const std::string& fileName)
                              savefileName.extension().string());
         const bool binaryFile = extension != ".csv" && extension != ".txt";
         const bool hdf5File = extension == ".h5" || extension == ".hdf5";
-        // check to make sure the directories exist if not create them
-        auto tmp = savefileName.parent_path();
-        if (!tmp.empty()) {
-            if (!std::filesystem::exists(tmp)) {
-                std::filesystem::create_directories(tmp);
-            }
+        // Create missing directories and let the writer report other path errors.
+        const auto parent = savefileName.parent_path();
+        std::error_code directoryError;
+        if (!parent.empty() &&
+            std::filesystem::status(parent, directoryError).type() ==
+                std::filesystem::file_type::not_found) {
+            std::filesystem::create_directories(parent);
         }
         // recheck the columns if necessary
         if (mRecheck) {
@@ -175,29 +249,42 @@ void Recorder::saveFile(const std::string& fileName)
         }
         const bool append = configuredSink && (mLastSaveTime > negTime);
 
-        // Explicit filenames export the current buffer as an independent snapshot.
-        // For the configured sink, append only rows not saved by an earlier flush.
-        gmlc::utilities::TimeSeriesMulti<double, CoreTime> pending;
-        auto* dataset = &mDataset;
-        if (append && mSavedSamples > 0) {
-            pending.setCols(mDataset.columns());
-            pending.setFields(mDataset.getFields());
-            pending.reserve(mDataset.size() - static_cast<fsize_t>(mSavedSamples));
-            std::vector<double> row(mDataset.columns());
-            for (size_t index = mSavedSamples; index < mDataset.size(); ++index) {
-                for (fsize_t column = 0; column < mDataset.columns(); ++column) {
-                    row[column] = mDataset.data(column, static_cast<fsize_t>(index));
-                }
-                pending.addData(mDataset.time()[index], row);
-            }
-            dataset = &pending;
+        if (append && mUnsafeAppend) {
+            throw FileOperationError(
+                std::format("recorder output '{}' has an incomplete append; change the destination "
+                            "or reset the recorder before writing again",
+                            savefileName.string()));
         }
-
-        // create the file based on extension
+        // A failed append can leave part of a row or binary block in the file.
+        std::error_code sizeError;
+        const auto previousSize = append ? std::filesystem::file_size(savefileName, sizeError) : 0;
+        const auto mode = (append ? std::ios::app : std::ios::trunc) |
+            (binaryFile ? std::ios::binary : std::ios::out);
+        std::ofstream output(savefileName, mode);
+        if (!output) {
+            throw gmlc::utilities::openFileError();
+        }
+        const auto firstSample = append ? static_cast<fsize_t>(mSavedSamples) : fsize_t{0};
         if (binaryFile) {
-            dataset->writeBinaryFile(savefileName.string(), append);
+            writeRecorderBinary(output, mDataset, firstSample, append);
         } else {
-            dataset->writeTextFile(savefileName.string(), mPrecision, append);
+            writeRecorderText(output, mDataset, firstSample, mPrecision, append);
+        }
+        output.close();
+        if (!output) {
+            std::error_code rollbackError;
+            if (append && !sizeError) {
+                std::filesystem::resize_file(savefileName, previousSize, rollbackError);
+            }
+            if (rollbackError) {
+                mUnsafeAppend = true;
+                throw FileOperationError(std::format(
+                    "unable to write recorder file '{}' or restore its previous size: {}",
+                    savefileName.string(),
+                    rollbackError.message()));
+            }
+            throw FileOperationError(
+                std::format("unable to write recorder file '{}'", savefileName.string()));
         }
         if (configuredSink) {
             mLastSaveTime = mLastTriggerTime;
@@ -212,6 +299,7 @@ void Recorder::resetOutput()
 {
     mHdf5Samples = 0;
     mHdf5Started = false;
+    mUnsafeAppend = false;
     mLastSaveTime = negTime;
     mSavedSamples = 0;
 }

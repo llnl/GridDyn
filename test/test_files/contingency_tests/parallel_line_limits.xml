@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="parallel_contingency">
+    <basepower>100</basepower>
+    <flags>no_powerflow_error_recovery</flags>
+    <bus name="source" id="10" type="SLK" voltage="1" angle="0">
+        <generator name="supply" />
+    </bus>
+    <bus name="demand" id="20" type="PQ">
+        <load name="demand_load" p="0.9" q="0">
+            <flags>no_pqvoltage_limit</flags>
+        </load>
+    </bus>
+    <!-- At 1 pu the weak link cannot supply the 0.9 pu constant-power load alone. -->
+    <link name="strong" from="source" to="demand" r="0" x="0.2" />
+    <link name="weak, backup" from="source" to="demand" r="0" x="1" />
+</griddyn>

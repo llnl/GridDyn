@@ -765,6 +765,12 @@ int GridDynSimulation::step()
 
 int GridDynSimulation::step(CoreTime nextStep, CoreTime& timeActual)
 {
+    bool endedAtEvent = false;
+    return advanceDaeStep(nextStep, timeActual, endedAtEvent);
+}
+
+int GridDynSimulation::advanceDaeStep(CoreTime nextStep, CoreTime& timeActual, bool& endedAtEvent)
+{
     if (currentTime >= nextStep) {
         if (EvQ->getNextTime() <= currentTime) {
             EvQ->executeEvents(currentTime);
@@ -811,8 +817,13 @@ int GridDynSimulation::step(CoreTime nextStep, CoreTime& timeActual)
         {  // the most likely cause of this is numerical instability in recorders and events
             timeReturn = tStop;
         } else {
-            retval = runDynamicSolverStep(dynData, nextStopTime, timeReturn);
+            retval = runDynamicSolverStep(dynData, tStop, timeReturn);
             currentTime = timeReturn;
+            if (retval < FUNCTION_EXECUTION_SUCCESS && retval != SOLVER_STEP_LIMIT_REACHED) {
+                timeActual = currentTime;
+                pState = GridState::DYNAMIC_PARTIAL;
+                return retval;
+            }
         }
 
         while (timeReturn + tols.timeTol < tStop) {
@@ -824,11 +835,14 @@ int GridDynSimulation::step(CoreTime nextStep, CoreTime& timeActual)
                     return 1;
                 }
             }  // this step does a reset of IDA if necessary
-            tStop = std::min(stopTime,
-                             EvQ->getNextTime());  // update the stopping time just in case the
-                                                   // events have changed
-            retval = runDynamicSolverStep(dynData, nextStopTime, timeReturn);
+            tStop = std::min(nextStep, EvQ->getNextTime());
+            retval = runDynamicSolverStep(dynData, tStop, timeReturn);
             currentTime = timeReturn;
+            if (retval < FUNCTION_EXECUTION_SUCCESS && retval != SOLVER_STEP_LIMIT_REACHED) {
+                timeActual = currentTime;
+                pState = GridState::DYNAMIC_PARTIAL;
+                return retval;
+            }
             // CSW Changed this from 2e-3 to 1e-7: need to rethink this in light of rootfinding
             if (timeReturn < lastTimeStop + tols.timeTol) {
                 timeActual = currentTime;
@@ -838,10 +852,18 @@ int GridDynSimulation::step(CoreTime nextStep, CoreTime& timeActual)
         currentTime = tStop;
         // transmit the current state to the various objects for updates and recorders
         setState(currentTime, dynData->stateData(), dynData->derivData(), solverModeRef);
+        updateLocalCache();
 
         const auto eventResult = EvQ->executeEvents(currentTime);
-        if (eventResult > ChangeCode::NO_CHANGE) {
-            dynamicCheckAndReset(solverModeRef);
+        if (eventResult > ChangeCode::NON_STATE_CHANGE) {
+            dynamicCheckAndReset(solverModeRef, eventResult);
+            retval = generateDaeDynamicInitialConditions(solverModeRef);
+            if (retval != FUNCTION_EXECUTION_SUCCESS) {
+                timeActual = currentTime;
+                pState = GridState::DYNAMIC_PARTIAL;
+                return retval;
+            }
+            endedAtEvent = true;
             break;
         }
         nextStopTime = EvQ->getNextTime();

@@ -1579,7 +1579,7 @@ count_t GridArea::getLinkName(stringVec& names, index_t start) const
         cnt += area->getLinkName(names, static_cast<std::size_t>(start) + cnt);
     }
     auto lsize = static_cast<index_t>(m_Links.size());
-    ensureSizeAtLeast(names, static_cast<std::size_t>(start) + lsize);
+    ensureSizeAtLeast(names, static_cast<std::size_t>(start) + cnt + lsize);
     auto nmloc = names.begin() + start + cnt;
     for (auto* link : m_Links) {
         *nmloc = link->getName();

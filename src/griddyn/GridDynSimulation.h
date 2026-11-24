@@ -217,6 +217,7 @@ class GridDynSimulation: public GridSimulation {
         std::string text;
         std::string source;
         std::shared_ptr<const ActionScript> script;
+        std::optional<CoreTime> stepEnd{};
     };
     std::deque<QueuedAction> actionQueue;  //!< queue for actions for GridDyn to execute
     std::vector<std::shared_ptr<ContinuationSequence>>
@@ -873,7 +874,8 @@ class GridDynSimulation: public GridSimulation {
     static void expandScript(std::deque<QueuedAction>& queue, const QueuedAction& entry);
     int runActions(std::deque<QueuedAction>& queue, CoreTime tEnd);
     std::optional<CoreTime> actionStopTime(const GridDynAction& action) const;
-    int executeAction(const GridDynAction& cmd, CoreTime endTime);
+    int executeAction(const GridDynAction& cmd, CoreTime endTime, bool* endedAtEvent = nullptr);
+    int advanceDaeStep(CoreTime nextStep, CoreTime& timeActual, bool& endedAtEvent);
     void requireDynamicSolverMethod(DynamicSolverMethods method) const;
     void registerDynamicSolver(const SolverMode& mode);
     std::shared_ptr<SolverInterface> updateSolver(const SolverMode& sMode, bool initialize);

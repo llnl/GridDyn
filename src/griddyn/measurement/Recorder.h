@@ -98,6 +98,7 @@ class Recorder: public Collector {
   private:
     std::uint64_t mHdf5Samples = 0;
     bool mHdf5Started = false;
+    bool mUnsafeAppend = false;  //!< a failed append could not be rolled back
 
     void resetOutput();
     void saveHdf5(const std::string& fileName, bool configuredSink);

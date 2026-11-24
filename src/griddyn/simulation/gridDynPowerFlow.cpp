@@ -507,7 +507,11 @@ int GridDynSimulation::eventDrivenPowerflow(CoreTime tEnd, CoreTime tStep)
         tStep = stepTime;
     }
     if (!opFlags[DYN_INITIALIZED]) {
-        dynInitialize(currentTime);
+        const int initialization =
+            dynInitialize(pState == GridState::STARTUP ? startTime : currentTime);
+        if (initialization != FUNCTION_EXECUTION_SUCCESS) {
+            return initialization;
+        }
     }
     auto ret = EvQ->executeEvents(currentTime);
     if (ret != ChangeCode::NO_CHANGE) {

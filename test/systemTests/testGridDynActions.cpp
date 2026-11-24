@@ -8,11 +8,15 @@
 #include "core/CoreExceptions.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/Load.h"
+#include "griddyn/Relay.h"
+#include "griddyn/links/AcLine.h"
+#include "griddyn/primary/AcBus.h"
 #include "griddyn/simulation/GridDynActions.h"
 #include "griddyn/solvers/SolverInterface.h"
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
+#include <memory>
 #include <string>
 #include <string_view>
 
@@ -29,43 +33,49 @@ constexpr char scriptDirectory[] = GRIDDYN_TEST_DIRECTORY "/runnerTests/scripts/
 TEST(GridDynActionTests, ParsesDynamicModeAndOptionalTimes)
 {
     struct TestCase {
-        std::string_view text;
-        Action mode;
-        double stop;
-        double step;
+        std::string_view mText;
+        Action mMode;
+        double mStop;
+        double mStep;
     };
     constexpr double omitted = griddyn::kNullVal;
     constexpr TestCase cases[]{
-        {.text = "dynamic", .mode = Action::DYNAMIC_DEFAULT, .stop = omitted, .step = omitted},
-        {.text = "dynamic 0.1", .mode = Action::DYNAMIC_DEFAULT, .stop = 0.1, .step = omitted},
-        {.text = "dynamic 0.1 0.02 # times in seconds",
-         .mode = Action::DYNAMIC_DEFAULT,
-         .stop = 0.1,
-         .step = 0.02},
-        {.text = "dynamic dae", .mode = Action::DYNAMIC_DAE, .stop = omitted, .step = omitted},
-        {.text = "dynamic DAE 0.1", .mode = Action::DYNAMIC_DAE, .stop = 0.1, .step = omitted},
-        {.text = "dynamic part", .mode = Action::DYNAMIC_PART, .stop = omitted, .step = omitted},
-        {.text = "dynamic partitioned 0.1 0.02",
-         .mode = Action::DYNAMIC_PART,
-         .stop = 0.1,
-         .step = 0.02},
-        {.text = "dynamic decoupled 0.1",
-         .mode = Action::DYNAMIC_DECOUPLED,
-         .stop = 0.1,
-         .step = omitted},
-        {.text = "dynamicdae 0.1", .mode = Action::DYNAMIC_DAE, .stop = 0.1, .step = omitted},
-        {.text = "dynamicpart 0.1 0.02", .mode = Action::DYNAMIC_PART, .stop = 0.1, .step = 0.02},
-        {.text = "dynamicdecoupled 0.1 0.02",
-         .mode = Action::DYNAMIC_DECOUPLED,
-         .stop = 0.1,
-         .step = 0.02},
+        {.mText = "dynamic", .mMode = Action::DYNAMIC_DEFAULT, .mStop = omitted, .mStep = omitted},
+        {.mText = "dynamic 0.1", .mMode = Action::DYNAMIC_DEFAULT, .mStop = 0.1, .mStep = omitted},
+        {.mText = "dynamic 0.1 0.02 # times in seconds",
+         .mMode = Action::DYNAMIC_DEFAULT,
+         .mStop = 0.1,
+         .mStep = 0.02},
+        {.mText = "dynamic dae", .mMode = Action::DYNAMIC_DAE, .mStop = omitted, .mStep = omitted},
+        {.mText = "dynamic DAE 0.1", .mMode = Action::DYNAMIC_DAE, .mStop = 0.1, .mStep = omitted},
+        {.mText = "dynamic part",
+         .mMode = Action::DYNAMIC_PART,
+         .mStop = omitted,
+         .mStep = omitted},
+        {.mText = "dynamic partitioned 0.1 0.02",
+         .mMode = Action::DYNAMIC_PART,
+         .mStop = 0.1,
+         .mStep = 0.02},
+        {.mText = "dynamic decoupled 0.1",
+         .mMode = Action::DYNAMIC_DECOUPLED,
+         .mStop = 0.1,
+         .mStep = omitted},
+        {.mText = "dynamicdae 0.1", .mMode = Action::DYNAMIC_DAE, .mStop = 0.1, .mStep = omitted},
+        {.mText = "dynamicpart 0.1 0.02",
+         .mMode = Action::DYNAMIC_PART,
+         .mStop = 0.1,
+         .mStep = 0.02},
+        {.mText = "dynamicdecoupled 0.1 0.02",
+         .mMode = Action::DYNAMIC_DECOUPLED,
+         .mStop = 0.1,
+         .mStep = 0.02},
     };
     for (const auto& test : cases) {
-        SCOPED_TRACE(test.text);
-        const GridDynAction action(test.text);
-        EXPECT_EQ(action.command, test.mode);
-        EXPECT_DOUBLE_EQ(action.val_double, test.stop);
-        EXPECT_DOUBLE_EQ(action.val_double2, test.step);
+        SCOPED_TRACE(test.mText);
+        const GridDynAction action(test.mText);
+        EXPECT_EQ(action.command, test.mMode);
+        EXPECT_DOUBLE_EQ(action.val_double, test.mStop);
+        EXPECT_DOUBLE_EQ(action.val_double2, test.mStep);
     }
 }
 
@@ -162,35 +172,36 @@ TEST(GridDynActionQueueTests, InvalidEventDescriptionsStopTheQueueWithoutSchedul
     ASSERT_EQ(simulation->execute("run 0.1"), FUNCTION_EXECUTION_SUCCESS);
     const auto nextEvent = simulation->getEventTime();
     struct TestCase {
-        std::string_view command;
-        ActionError::Kind kind;
+        std::string_view mCommand;
+        ActionError::Kind mKind;
     };
     constexpr TestCase cases[]{
-        {.command = "add event @0.05|bus1::load3:p=1.1", .kind = ActionError::Kind::EXECUTION},
-        {.command = "add event @0.15|bus999:p=1.1", .kind = ActionError::Kind::TARGET},
-        {.command = "add event \"@0.15|bus1::load3:p=1.1;bus999:q=0.05\"",
-         .kind = ActionError::Kind::TARGET},
-        {.command = "add event bus1::load3:p=1.1", .kind = ActionError::Kind::SYNTAX},
-        {.command = "add event @0.15|bus1::load3:p=1.1junk", .kind = ActionError::Kind::SYNTAX},
-        {.command = "add event @0.15|bus1::load3:p=nan", .kind = ActionError::Kind::SYNTAX},
-        {.command = "add event @1e400|bus1::load3:p=1.1", .kind = ActionError::Kind::SYNTAX},
-        {.command = "add event @0.2,0.15|bus1::load3:p=1.1", .kind = ActionError::Kind::SYNTAX},
-        {.command = "add event @0.2,0.3|bus1::load3:p=1.1,1.2,1.3",
-         .kind = ActionError::Kind::SYNTAX},
-        {.command = "add recorder bus1:voltage", .kind = ActionError::Kind::UNSUPPORTED},
+        {.mCommand = "add event @0.05|bus1::load3:p=1.1", .mKind = ActionError::Kind::EXECUTION},
+        {.mCommand = "add event @0.15|bus999:p=1.1", .mKind = ActionError::Kind::TARGET},
+        {.mCommand = "add event \"@0.15|bus1::load3:p=1.1;bus999:q=0.05\"",
+         .mKind = ActionError::Kind::TARGET},
+        {.mCommand = "add event bus1::load3:p=1.1", .mKind = ActionError::Kind::SYNTAX},
+        {.mCommand = "add event @0.15|bus1::load3:p=1.1junk", .mKind = ActionError::Kind::SYNTAX},
+        {.mCommand = "add event @0.15|bus1::load3:p(MW=110", .mKind = ActionError::Kind::SYNTAX},
+        {.mCommand = "add event @0.15|bus1::load3:p=nan", .mKind = ActionError::Kind::SYNTAX},
+        {.mCommand = "add event @1e400|bus1::load3:p=1.1", .mKind = ActionError::Kind::SYNTAX},
+        {.mCommand = "add event @0.2,0.15|bus1::load3:p=1.1", .mKind = ActionError::Kind::SYNTAX},
+        {.mCommand = "add event @0.2,0.3|bus1::load3:p=1.1,1.2,1.3",
+         .mKind = ActionError::Kind::SYNTAX},
+        {.mCommand = "add recorder bus1:voltage", .mKind = ActionError::Kind::UNSUPPORTED},
     };
     for (const auto& test : cases) {
-        SCOPED_TRACE(test.command);
+        SCOPED_TRACE(test.mCommand);
         simulation->setName("before_event");
-        simulation->add(test.command);
+        simulation->add(test.mCommand);
         simulation->add("set name after_event");
         try {
             simulation->run();
             ADD_FAILURE() << "expected the add action to fail";
         }
         catch (const ActionError& error) {
-            EXPECT_EQ(error.kind(), test.kind) << error.what();
-            EXPECT_TRUE(std::string_view(error.what()).contains(test.command)) << error.what();
+            EXPECT_EQ(error.kind(), test.mKind) << error.what();
+            EXPECT_TRUE(std::string_view(error.what()).contains(test.mCommand)) << error.what();
         }
         EXPECT_EQ(simulation->getName(), "before_event");
         EXPECT_EQ(simulation->getEventTime(), nextEvent);
@@ -207,34 +218,34 @@ TEST(GridDynActionTests, FieldQueryErrorsStopQueuedActions)
     auto simulation = griddyn::readSimXMLFile(dynamicCase);
     ASSERT_NE(simulation, nullptr);
     struct TestCase {
-        std::string_view command;
-        ActionError::Kind kind;
+        std::string_view mCommand;
+        ActionError::Kind mKind;
     };
     constexpr TestCase cases[]{
-        {.command = "get bus999:voltage", .kind = ActionError::Kind::TARGET},
-        {.command = "get bus1::load#0extra:p", .kind = ActionError::Kind::TARGET},
-        {.command = "get bus1:missing_field", .kind = ActionError::Kind::TARGET},
-        {.command = "get bus1:", .kind = ActionError::Kind::SYNTAX},
-        {.command = "get bus1::load3:p(MW", .kind = ActionError::Kind::SYNTAX},
-        {.command = "get bus1::load3:p()", .kind = ActionError::Kind::SYNTAX},
-        {.command = "get bus1::load3:p(m^^2)", .kind = ActionError::Kind::SYNTAX},
-        {.command = "get bus1::load3:p(s)", .kind = ActionError::Kind::TARGET},
-        {.command = "get bus1:name(V)", .kind = ActionError::Kind::TARGET},
-        {.command = "get name .", .kind = ActionError::Kind::EXECUTION},
-        {.command = "get --help nonexistent", .kind = ActionError::Kind::TARGET},
+        {.mCommand = "get bus999:voltage", .mKind = ActionError::Kind::TARGET},
+        {.mCommand = "get bus1::load#0extra:p", .mKind = ActionError::Kind::TARGET},
+        {.mCommand = "get bus1:missing_field", .mKind = ActionError::Kind::TARGET},
+        {.mCommand = "get bus1:", .mKind = ActionError::Kind::SYNTAX},
+        {.mCommand = "get bus1::load3:p(MW", .mKind = ActionError::Kind::SYNTAX},
+        {.mCommand = "get bus1::load3:p()", .mKind = ActionError::Kind::SYNTAX},
+        {.mCommand = "get bus1::load3:p(m^^2)", .mKind = ActionError::Kind::SYNTAX},
+        {.mCommand = "get bus1::load3:p(s)", .mKind = ActionError::Kind::TARGET},
+        {.mCommand = "get bus1:name(V)", .mKind = ActionError::Kind::TARGET},
+        {.mCommand = "get name .", .mKind = ActionError::Kind::EXECUTION},
+        {.mCommand = "get --help nonexistent", .mKind = ActionError::Kind::TARGET},
     };
     for (const auto& test : cases) {
-        SCOPED_TRACE(test.command);
+        SCOPED_TRACE(test.mCommand);
         simulation->setName("before_query");
-        simulation->add(test.command);
+        simulation->add(test.mCommand);
         simulation->add("set name after_query");
         try {
             simulation->run();
             ADD_FAILURE() << "expected query failure";
         }
         catch (const ActionError& error) {
-            EXPECT_EQ(error.kind(), test.kind) << error.what();
-            EXPECT_TRUE(std::string_view(error.what()).contains(test.command)) << error.what();
+            EXPECT_EQ(error.kind(), test.mKind) << error.what();
+            EXPECT_TRUE(std::string_view(error.what()).contains(test.mCommand)) << error.what();
         }
         EXPECT_EQ(simulation->getName(), "before_query");
         ASSERT_EQ(simulation->run(), FUNCTION_EXECUTION_SUCCESS);
@@ -386,28 +397,28 @@ TEST(GridDynActionTests, ReprocessingClearsContingencyFlag)
     EXPECT_EQ(action.flag, 0);
     EXPECT_EQ(action.string1, "gen");
     EXPECT_TRUE(action.string2.empty());
-    EXPECT_EQ(action.val_int1, 0);
-    EXPECT_EQ(action.val_int2, 0);
+    EXPECT_EQ(action.val_int1, -1);
+    EXPECT_EQ(action.val_int2, -1);
 }
 
 TEST(GridDynActionTests, QueuedDynamicUsesSolverConfiguredAtExecution)
 {
     struct TestCase {
-        std::string_view method;
-        std::string_view solver;
+        std::string_view mMethod;
+        std::string_view mSolver;
     };
-    constexpr TestCase cases[]{{.method = "dae", .solver = "dae"},
-                               {.method = "partitioned", .solver = "differential"}};
+    constexpr TestCase cases[]{{.mMethod = "dae", .mSolver = "dae"},
+                               {.mMethod = "partitioned", .mSolver = "differential"}};
     for (const auto& test : cases) {
-        SCOPED_TRACE(test.method);
+        SCOPED_TRACE(test.mMethod);
         auto simulation = griddyn::readSimXMLFile(dynamicCase);
         ASSERT_NE(simulation, nullptr);
         simulation->add("dynamic 0.1");
-        simulation->set("dynamicsolvermethod", test.method);
+        simulation->set("dynamicsolvermethod", test.mMethod);
 
         ASSERT_EQ(simulation->run(), FUNCTION_EXECUTION_SUCCESS);
         EXPECT_NEAR(static_cast<double>(simulation->getSimulationTime()), 0.1, 1e-8);
-        const auto solver = simulation->getSolverInterface(test.solver);
+        const auto solver = simulation->getSolverInterface(test.mSolver);
         ASSERT_NE(solver, nullptr);
         EXPECT_GT(solver->get("solvercount"), 0.0);
 
@@ -601,10 +612,10 @@ TEST(GridDynActionQueueTests, FailureAndExceptionLeaveFollowingActionsForRetry)
     EXPECT_EQ(simulation->getName(), "test1");
     try {
         simulation->run();
-        FAIL() << "expected an execution error";
+        FAIL() << "expected an invalid solver method error";
     }
     catch (const ActionError& error) {
-        EXPECT_EQ(error.kind(), ActionError::Kind::EXECUTION);
+        EXPECT_EQ(error.kind(), ActionError::Kind::SYNTAX);
         EXPECT_NE(std::string_view(error.what()).find("set dynamicsolvermethod unknown"),
                   std::string_view::npos);
     }
@@ -642,31 +653,31 @@ TEST(GridDynActionTests, ReportsDirectCommandErrorCategories)
 {
     griddyn::GridDynSimulation simulation;
     struct TestCase {
-        std::string_view command;
-        ActionError::Kind kind;
+        std::string_view mCommand;
+        ActionError::Kind mKind;
     };
     constexpr TestCase cases[]{
-        {.command = "contingency", .kind = ActionError::Kind::SYNTAX},
-        {.command = "set missing:voltage 1.02", .kind = ActionError::Kind::TARGET},
-        {.command = "set @missing:voltage 1.02", .kind = ActionError::Kind::TARGET},
-        {.command = "set :voltage 1.02", .kind = ActionError::Kind::TARGET},
-        {.command = "setsolver dae ida", .kind = ActionError::Kind::UNSUPPORTED},
-        {.command = "checkpoint capture.h5 missing", .kind = ActionError::Kind::TARGET},
-        {.command = "rollback capture.h5 everything", .kind = ActionError::Kind::SYNTAX},
-        {.command = "load unknown capture.h5", .kind = ActionError::Kind::UNSUPPORTED},
-        {.command = "print voltage destination", .kind = ActionError::Kind::UNSUPPORTED},
-        {.command = "continuation", .kind = ActionError::Kind::SYNTAX},
-        {.command = "opf", .kind = ActionError::Kind::UNSUPPORTED},
+        {.mCommand = "contingency", .mKind = ActionError::Kind::SYNTAX},
+        {.mCommand = "set missing:voltage 1.02", .mKind = ActionError::Kind::TARGET},
+        {.mCommand = "set @missing:voltage 1.02", .mKind = ActionError::Kind::TARGET},
+        {.mCommand = "set :voltage 1.02", .mKind = ActionError::Kind::TARGET},
+        {.mCommand = "setsolver dae missing", .mKind = ActionError::Kind::TARGET},
+        {.mCommand = "checkpoint capture.h5 missing", .mKind = ActionError::Kind::TARGET},
+        {.mCommand = "rollback capture.h5 everything", .mKind = ActionError::Kind::SYNTAX},
+        {.mCommand = "load unknown capture.h5", .mKind = ActionError::Kind::UNSUPPORTED},
+        {.mCommand = "print voltage destination", .mKind = ActionError::Kind::UNSUPPORTED},
+        {.mCommand = "continuation", .mKind = ActionError::Kind::SYNTAX},
+        {.mCommand = "opf", .mKind = ActionError::Kind::UNSUPPORTED},
     };
     for (const auto& test : cases) {
-        SCOPED_TRACE(test.command);
+        SCOPED_TRACE(test.mCommand);
         try {
-            simulation.execute(test.command);
+            simulation.execute(test.mCommand);
             FAIL() << "expected a command error";
         }
         catch (const ActionError& error) {
-            EXPECT_EQ(error.kind(), test.kind);
-            EXPECT_NE(std::string_view(error.what()).find(test.command), std::string_view::npos);
+            EXPECT_EQ(error.kind(), test.mKind);
+            EXPECT_NE(std::string_view(error.what()).find(test.mCommand), std::string_view::npos);
         }
     }
 }
@@ -741,7 +752,7 @@ TEST(GridDynActionQueueTests, InvalidNestedTargetStopsBeforeValidUnitAssignment)
     EXPECT_DOUBLE_EQ(load->get("p", units::MW), 50.0);
 }
 
-TEST(GridDynActionTests, RejectsMissingSolversAndUnsupportedTextSelection)
+TEST(GridDynActionTests, RejectsMissingSolversInBothSolverCommandForms)
 {
     griddyn::GridDynSimulation simulation;
     simulation.solverSet("powerflow", "printlevel", 2.0);
@@ -778,10 +789,10 @@ TEST(GridDynActionTests, RejectsMissingSolversAndUnsupportedTextSelection)
         SCOPED_TRACE(command);
         try {
             simulation.execute(command);
-            FAIL() << "expected an unsupported solver selection";
+            FAIL() << "expected a missing solver target";
         }
         catch (const ActionError& error) {
-            EXPECT_EQ(error.kind(), ActionError::Kind::UNSUPPORTED);
+            EXPECT_EQ(error.kind(), ActionError::Kind::TARGET);
             EXPECT_NE(std::string_view(error.what()).find(command), std::string_view::npos);
         }
     }
@@ -791,4 +802,352 @@ TEST(GridDynActionTests, RejectsMissingSolversAndUnsupportedTextSelection)
 
     simulation.solverSet("powerflow", "printlevel", "none");
     EXPECT_DOUBLE_EQ(powerflow->get("printlevel"), 0.0);
+}
+
+TEST(GridDynActionTests, AppliesCommonLexicalRulesAcrossVerbs)
+{
+    struct TestCase {
+        std::string_view mText;
+        Action mCommand;
+    };
+    constexpr TestCase cases[]{
+        {.mText = "\t# Comment", .mCommand = Action::IGNORE_ACTION},
+        {.mText = "IGNORE extra text", .mCommand = Action::IGNORE_ACTION},
+        {.mText = "SeT\tbus#0/load#0:p(MW)\t+25 # note", .mCommand = Action::SET_ACTION},
+        {.mText = "setall GEN p(MW) 25", .mCommand = Action::SETALL},
+        {.mText = "setsolver DAE SolverA", .mCommand = Action::SETSOLVER},
+        {.mText = "print voltage stdout", .mCommand = Action::PRINT},
+        {.mText = "initialize 0.1", .mCommand = Action::INITIALIZE},
+        {.mText = "powerflow", .mCommand = Action::POWERFLOW},
+        {.mText = "reset +1", .mCommand = Action::RESET},
+        {.mText = "iterate 0.05 2", .mCommand = Action::ITERATE},
+        {.mText = "eventmode 2 0.05", .mCommand = Action::EVENTMODE},
+        {.mText = "step DAE 0.1", .mCommand = Action::STEP},
+        {.mText = "run 2", .mCommand = Action::RUN},
+        {.mText = "save RECORDER", .mCommand = Action::SAVE},
+        {.mText = R"(load state "State A.h5")", .mCommand = Action::LOAD},
+        {.mText = R"(check POWERFLOW --ASSERT "# Readings.txt")", .mCommand = Action::CHECK},
+        {.mText = R"(add EVENT "@0.1|bus1::load#0:p=1")", .mCommand = Action::ADD},
+        {.mText = R"(checkpoint "Frame #1.h5" DAE)", .mCommand = Action::CHECKPOINT},
+        {.mText = "rollback capture.h5 MINIMAL", .mCommand = Action::ROLLBACK},
+        {.mText = R"(contingency SIMPLIFIED LINE "Study A.csv" 2)",
+         .mCommand = Action::CONTINGENCY},
+        {.mText = "continuation 2 QLIMITS", .mCommand = Action::CONTINUATION},
+        {.mText = "opf NATIVE PREVIEW", .mCommand = Action::OPF},
+        {.mText = R"(action "Path With Spaces.gds")", .mCommand = Action::ACTION_FILE},
+        {.mText = R"cmd(get "bus1::load3:load p(MW)")cmd", .mCommand = Action::GET_ACTION},
+    };
+    for (const auto& test : cases) {
+        SCOPED_TRACE(test.mText);
+        EXPECT_EQ(GridDynAction(test.mText).command, test.mCommand);
+    }
+    const GridDynAction pathAction(R"(get time "C:\Data\Study A.txt")");
+    constexpr std::string_view expectedPath = R"(C:\Data\Study A.txt)";
+    EXPECT_EQ(pathAction.string2, expectedPath);
+    EXPECT_EQ(GridDynAction("set name 25xyz").string2, "25xyz");
+    EXPECT_EQ(GridDynAction(R"(set name "25")").string2, "25");
+
+    constexpr std::string_view rejected[]{"set name value extra",
+                                          "setall load p 25xyz",
+                                          "setsolver dae a b c",
+                                          "print",
+                                          "powerflow extra",
+                                          "initialize nan",
+                                          "initialize 1 2",
+                                          "reset 99999999999999",
+                                          "reset 1suffix",
+                                          "reset -1",
+                                          "reset 5",
+                                          "iterate junk 2s",
+                                          "iterate 0 2",
+                                          "eventmode 2 0.0000000001",
+                                          "eventmode 2 -1",
+                                          "dynamic dae 2 1",
+                                          "dynamicpart 2 inf",
+                                          "dynamicdae 1e20",
+                                          "step partitioned",
+                                          "step 0",
+                                          "run 0.1s",
+                                          "run 1 2",
+                                          "check",
+                                          "check powerflow report extra",
+                                          "contingency line file.csv -1 2",
+                                          "contingency line file.csv 0 0",
+                                          "contingency line file.csv 2x",
+                                          "save state file extra",
+                                          R"(get name "file"extra)"};
+    for (const auto text : rejected) {
+        SCOPED_TRACE(text);
+        EXPECT_THROW(GridDynAction{std::string_view{text}}, griddyn::InvalidParameterValue);
+    }
+}
+
+TEST(GridDynActionQueueTests, PreservesQuotedTextAndRejectsPartialNumbersInPlace)
+{
+    auto simulation = griddyn::readSimXMLFile(dynamicCase);
+    ASSERT_NE(simulation, nullptr);
+    auto* load = simulation->getBus(0)->getLoad();
+    ASSERT_NE(load, nullptr);
+    simulation->addActions(R"(SET description "A \"quote\"; # text";)"
+                           "\nset bus1::load#0:p 25xyz; set bus1::load#0:p(MW) 25");
+
+    EXPECT_THROW(simulation->run(), ActionError);
+    EXPECT_EQ(simulation->getDescription(), R"(A "quote"; # text)");
+    EXPECT_DOUBLE_EQ(load->get("p"), 1.5);
+    EXPECT_THROW(simulation->execute("set bus1::load#0:p(MW 25"), ActionError);
+    ASSERT_EQ(simulation->run(), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_DOUBLE_EQ(load->get("p"), 0.25);
+}
+
+TEST(GridDynActionTests, SelectsConfiguredSolversAndEditsTheirSettings)
+{
+    auto simulation = griddyn::readSimXMLFile(dynamicCase);
+    ASSERT_NE(simulation, nullptr);
+    ASSERT_EQ(simulation->execute("set dynamicsolvermethod dae"), FUNCTION_EXECUTION_SUCCESS);
+    const auto original = simulation->getSolverInterface("dae");
+    ASSERT_NE(original, nullptr);
+    const std::shared_ptr<griddyn::SolverInterface> alternate =
+        griddyn::makeSolver("ida", "AlternateDae");
+    ASSERT_NE(alternate, nullptr);
+    auto mode = griddyn::cDaeSolverMode;
+    mode.offsetIndex = kNullLocation;
+    alternate->setSimulationData(mode);
+    simulation->add(alternate);
+    ASSERT_EQ(simulation->execute("setsolver DAE AlternateDae"), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation->getSolverInterface("dae"), alternate);
+    ASSERT_EQ(simulation->execute("setsolver AlternateDae printlevel 2"),
+              FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_DOUBLE_EQ(alternate->get("printlevel"), 2.0);
+    ASSERT_EQ(simulation->execute("setsolver AlternateDae printlevel none"),
+              FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_DOUBLE_EQ(alternate->get("printlevel"), 0.0);
+    EXPECT_THROW(simulation->execute("setsolver DAEE AlternateDae"), ActionError);
+    EXPECT_THROW(simulation->execute("setsolver powerflow AlternateDae"), ActionError);
+    EXPECT_THROW(simulation->execute("setsolver AlternateDae nofield 5"), ActionError);
+    EXPECT_THROW(simulation->execute("setsolver AlternateDae printlevel nonsense"), ActionError);
+
+    const auto originalIndex = std::to_string(original->getSolverMode().offsetIndex);
+    ASSERT_EQ(simulation->execute("setsolver dae " + originalIndex), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(simulation->getSolverInterface("dae"), original);
+    const auto selection =
+        "setsolver dae " + std::to_string(alternate->getSolverMode().offsetIndex);
+    ASSERT_EQ(simulation->execute(selection), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(simulation->getSolverInterface("dae"), alternate);
+    ASSERT_EQ(simulation->execute("dynamic dae 0.2"), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_TRUE(alternate->isInitialized());
+    EXPECT_EQ(simulation->getSimulationTime(), griddyn::CoreTime(0.2));
+}
+
+TEST(GridDynActionTests, InitializesByStateAndResetsModelValues)
+{
+    auto simulation = griddyn::readSimXMLFile(dynamicCase);
+    ASSERT_NE(simulation, nullptr);
+    using GridState = griddyn::GridDynSimulation::GridState;
+    ASSERT_EQ(simulation->currentProcessState(), GridState::STARTUP);
+    ASSERT_EQ(simulation->execute("initialize 0.05"), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(simulation->currentProcessState(), GridState::INITIALIZED);
+    EXPECT_EQ(simulation->getSimulationTime(), griddyn::CoreTime(0.05));
+    EXPECT_THROW(simulation->execute("initialize 0.1"), ActionError);
+    ASSERT_EQ(simulation->execute("powerflow"), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation->execute("set dynamicsolvermethod decoupled"), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_THROW(simulation->execute("initialize"), ActionError);
+    EXPECT_EQ(simulation->currentProcessState(), GridState::POWERFLOW_COMPLETE);
+    ASSERT_EQ(simulation->execute("set dynamicsolvermethod dae"), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation->execute("initialize 0.1"), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(simulation->currentProcessState(), GridState::DYNAMIC_INITIALIZED);
+    EXPECT_EQ(simulation->getSimulationTime(), griddyn::CoreTime(0.1));
+    ASSERT_EQ(simulation->execute("initialize"), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_THROW(simulation->execute("initialize 0.15"), ActionError);
+
+    ASSERT_EQ(simulation->execute("reset"), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(simulation->currentProcessState(), GridState::DYNAMIC_INITIALIZED);
+    EXPECT_EQ(simulation->getSimulationTime(), griddyn::CoreTime(0.1));
+
+    auto staticSimulation = griddyn::readSimXMLFile(staticCase);
+    ASSERT_NE(staticSimulation, nullptr);
+    auto* demand = staticSimulation->getBus(1);
+    ASSERT_NE(demand, nullptr);
+    struct ResetCase {
+        int mLevel;
+        double mVoltage;
+        double mAngle;
+    };
+    constexpr ResetCase levels[]{
+        {.mLevel = 0, .mVoltage = 0.8, .mAngle = 0.15},
+        {.mLevel = 1, .mVoltage = 1.0, .mAngle = 0.15},
+        {.mLevel = 2, .mVoltage = 0.8, .mAngle = 0.0},
+        {.mLevel = 3, .mVoltage = 1.0, .mAngle = 0.0},
+        {.mLevel = 4, .mVoltage = 1.0, .mAngle = 0.0},
+    };
+    for (const auto& level : levels) {
+        SCOPED_TRACE(level.mLevel);
+        demand->setVoltageAngle(0.8, 0.15);
+        ASSERT_EQ(staticSimulation->execute("reset " + std::to_string(level.mLevel)),
+                  FUNCTION_EXECUTION_SUCCESS);
+        EXPECT_DOUBLE_EQ(demand->getVoltage(), level.mVoltage);
+        EXPECT_DOUBLE_EQ(demand->getAngle(), level.mAngle);
+    }
+}
+
+TEST(GridDynActionQueueTests, RelativeStepsStopAtEventsAndResumeAtTheOriginalBound)
+{
+    auto simulation = griddyn::readSimXMLFile(dynamicCase);
+    ASSERT_NE(simulation, nullptr);
+    ASSERT_EQ(simulation->execute("dynamic dae 0.2"), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_THROW(simulation->execute("run 0.19"), ActionError);
+    ASSERT_EQ(simulation->execute("set timestep 0.1"), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation->execute("step DAE"), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(simulation->getSimulationTime(), griddyn::CoreTime(0.3));
+    ASSERT_EQ(simulation->execute("add event @0.35|bus1::load3:p=1.2"), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation->execute("step 0.1"), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(simulation->getSimulationTime(), griddyn::CoreTime(0.35));
+    EXPECT_DOUBLE_EQ(simulation->getBus(0)->getLoad()->get("p"), 1.2);
+
+    simulation->addActions("step 0.1; set name completed");
+    ASSERT_EQ(simulation->run(0.4), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(simulation->getSimulationTime(), griddyn::CoreTime(0.4));
+    EXPECT_NE(simulation->getName(), "completed");
+    ASSERT_EQ(simulation->run(), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(simulation->getSimulationTime(), griddyn::CoreTime(0.45));
+    EXPECT_EQ(simulation->getName(), "completed");
+
+    simulation->addActions("add event @0.5|bus1::load3:p=1.3; step 0.1; set name at_bound");
+    ASSERT_EQ(simulation->run(0.5), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(simulation->getSimulationTime(), griddyn::CoreTime(0.5));
+    EXPECT_EQ(simulation->getName(), "at_bound");
+}
+
+TEST(GridDynActionTests, StaticRunAdvancesWithEventsAndExplicitDynamicsRequiresStates)
+{
+    auto simulation = griddyn::readSimXMLFile(staticCase);
+    ASSERT_NE(simulation, nullptr);
+    ASSERT_EQ(simulation->execute("add event @0.15|demand::demand_load:p=0.3"),
+              FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation->execute("run 0.2"), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(simulation->getSimulationTime(), griddyn::CoreTime(0.2));
+    EXPECT_DOUBLE_EQ(simulation->getBus(1)->getLoad()->get("p"), 0.3);
+    EXPECT_THROW(simulation->execute("dynamic dae 0.3"), ActionError);
+    EXPECT_THROW(simulation->execute("step 0.1"), ActionError);
+    EXPECT_EQ(simulation->getSimulationTime(), griddyn::CoreTime(0.2));
+}
+
+TEST(GridDynActionTests, BulkSetTraversesNestedAreasAndValidatesMatches)
+{
+    class RestrictedLoad final: public griddyn::GridLoad {
+      public:
+        using GridLoad::set;
+
+        void set(std::string_view field, double value, units::unit unit) override
+        {
+            if (field == "p") {
+                if (value < 0.0) {
+                    throw griddyn::InvalidParameterValue(field);
+                }
+                throw griddyn::UnrecognizedParameter(field);
+            }
+            GridLoad::set(field, value, unit);
+        }
+    };
+
+    griddyn::GridDynSimulation simulation;
+    auto* area = new griddyn::GridArea("nested");
+    simulation.add(area);
+    auto* nestedBus = new griddyn::AcBus("nestedBus");
+    area->add(nestedBus);
+    nestedBus->add(new griddyn::GridLoad("demand"));
+    auto* rootBus = new griddyn::AcBus("rootBus");
+    simulation.add(rootBus);
+    rootBus->add(new griddyn::GridLoad("demand"));
+    nestedBus->add(new RestrictedLoad());
+    auto* link = new griddyn::AcLine("nestedLink");
+    area->add(link);
+    auto* relay = new griddyn::Relay("nestedRelay");
+    area->add(relay);
+
+    ASSERT_EQ(simulation.execute("setall BUS voltage 1.02"), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation.execute("setall LOAD p(MW) 25"), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation.execute("setall LINK r 0.04"), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation.execute("setall RELAY enabled 0"), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_DOUBLE_EQ(link->get("r"), 0.04);
+    EXPECT_FALSE(relay->isEnabled());
+    EXPECT_DOUBLE_EQ(rootBus->getLoad()->get("p", units::MW), 25.0);
+    EXPECT_DOUBLE_EQ(nestedBus->getLoad()->get("p", units::MW), 25.0);
+    EXPECT_DOUBLE_EQ(rootBus->getVoltage(), 1.02);
+    EXPECT_DOUBLE_EQ(nestedBus->getVoltage(), 1.02);
+    EXPECT_THROW(simulation.execute("setall load nonexistent 1"), ActionError);
+    EXPECT_THROW(simulation.execute("setall generator p 1"), ActionError);
+    EXPECT_THROW(simulation.execute("setall invalid p 1"), ActionError);
+    EXPECT_DOUBLE_EQ(nestedBus->getLoad()->get("p", units::MW), 25.0);
+    EXPECT_THROW(simulation.execute("setall load p -0.15"), ActionError);
+    EXPECT_DOUBLE_EQ(rootBus->getLoad()->get("p"), -0.15);
+    EXPECT_DOUBLE_EQ(nestedBus->getLoad()->get("p"), -0.15);
+}
+
+TEST(GridDynActionQueueTests, CheckReportsViolationsAndAssertionsStopTheQueue)
+{
+    auto simulation = griddyn::readSimXMLFile(staticCase);
+    ASSERT_NE(simulation, nullptr);
+    const auto report = std::filesystem::temp_directory_path() / "gdc13 powerflow report.txt";
+    std::filesystem::remove(report);
+    const auto destination = " \"" + report.string() + '"';
+    ASSERT_EQ(simulation->execute("powerflow"), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation->execute("check powerflow --assert" + destination),
+              FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation->execute("set demand:vmin 1.05"), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation->execute("check POWERFLOW" + destination), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_THROW(simulation->execute("check unknown"), ActionError);
+
+    simulation->addActions("check powerflow --assert; set name continued");
+    EXPECT_THROW(simulation->run(), ActionError);
+    EXPECT_NE(simulation->getName(), "continued");
+    ASSERT_EQ(simulation->run(), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(simulation->getName(), "continued");
+
+    std::ifstream contents(report);
+    std::string expected;
+    ASSERT_TRUE(std::getline(contents, expected));
+    EXPECT_TRUE(expected.starts_with("Violations for continuation_two_bus at "));
+    ASSERT_TRUE(std::getline(contents, expected));
+    EXPECT_TRUE(expected.starts_with("Violations for continuation_two_bus at "));
+    ASSERT_TRUE(std::getline(contents, expected));
+    EXPECT_TRUE(expected.starts_with("demand["));
+    contents.close();
+    std::filesystem::remove(report);
+}
+
+TEST(GridDynActionTests, DistinguishesResultFilesFromUnsupportedSaveFormats)
+{
+    auto simulation = griddyn::readSimXMLFile(staticCase);
+    ASSERT_NE(simulation, nullptr);
+    ASSERT_EQ(simulation->execute("powerflow"), FUNCTION_EXECUTION_SUCCESS);
+    const auto result = std::filesystem::temp_directory_path() / "gdc11 results.CSV";
+    std::filesystem::remove(result);
+    const auto destination = '"' + result.string() + '"';
+    ASSERT_EQ(simulation->execute("SAVE POWERFLOW " + destination), FUNCTION_EXECUTION_SUCCESS);
+
+    std::ifstream contents(result);
+    std::string line;
+    ASSERT_TRUE(std::getline(contents, line));
+    EXPECT_TRUE(line.starts_with("basepower=100"));
+    ASSERT_TRUE(std::getline(contents, line));
+    EXPECT_TRUE(line.contains("voltage(pu)"));
+    ASSERT_TRUE(std::getline(contents, line));
+    EXPECT_TRUE(line.contains("source"));
+    contents.close();
+    std::filesystem::remove(result);
+    simulation->set("powerflowfile", result.string());
+    ASSERT_EQ(simulation->execute("save powerflow"), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_TRUE(std::filesystem::exists(result));
+    std::filesystem::remove(result);
+
+    const auto unsupported = std::filesystem::temp_directory_path() / "gdc11 result.raw";
+    EXPECT_THROW(simulation->execute("save powerflow \"" + unsupported.string() + '"'),
+                 ActionError);
+    EXPECT_FALSE(std::filesystem::exists(unsupported));
+    EXPECT_THROW(simulation->execute("save recorder ignored.csv"), ActionError);
+    EXPECT_THROW(simulation->execute("save jacstate unused.h5"), ActionError);
+    EXPECT_THROW(simulation->execute("save voltage unused.csv"), ActionError);
+    EXPECT_THROW(simulation->execute("save powerflow \"no-such-gdc11-dir/results.csv\""),
+                 ActionError);
+    EXPECT_THROW(simulation->execute(GridDynAction(Action::INVALID)), ActionError);
 }

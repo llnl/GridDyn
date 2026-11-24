@@ -236,7 +236,7 @@ void ExciterEXAC1::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
     offsets.local().local.diffSize =
         (hasVoltageTransducer ? 1 : 0) + (leadLagEnabled ? 1 : 0) + (dynamicRegulator ? 3 : 2);
     offsets.local().local.algRoots = dynamicRegulator ? 1 : 0;
-    offsets.local().local.jacSize = dynamicRegulator ? 34 : 40;
+    offsets.local().local.jacSize = dynamicRegulator ? 37 : 43;
 }
 
 void ExciterEXAC1::dynObjectInitializeB(const IOdata& inputs,
@@ -311,7 +311,11 @@ void ExciterEXAC1::dynObjectInitializeB(const IOdata& inputs,
     m_state[0] = fieldVoltage;
     const double setpointInput = inputs[exciterVsetInLocation] - 1.0;
     vBias = voltage + referenceOffset(state[washoutIndex]) - Vref - setpointInput -
-        inputs[exciterVssInLocation];
+        inputs[exciterVssInLocation] -
+        ((supportsLimiterSignal(ExciterLimiterSignal::UNDER) &&
+          inputs.size() > exciterVuelInLocation) ?
+             inputs[exciterVuelInLocation] :
+             0.0);
     if (initialRegulator >= regulatorUpperLimit() - limitTolerance) {
         const double correction = std::max(0.0, regulatorUpperLimit() - originalUpperLimit);
         const double guard = 10.0 * limitRootTolerance + std::abs(Ka) * 1e-5;
@@ -343,7 +347,11 @@ bool ExciterEXAC1::adjustRegulatorInitialUpperLimit(double initialValue)
 
 double ExciterEXAC1::referenceInput(const IOdata& inputs) const
 {
-    return Vref + vBias + inputs[exciterVsetInLocation] - 1.0 + inputs[exciterVssInLocation];
+    const double uel = (supportsLimiterSignal(ExciterLimiterSignal::UNDER) &&
+                        inputs.size() > exciterVuelInLocation) ?
+        inputs[exciterVuelInLocation] :
+        0.0;
+    return Vref + vBias + inputs[exciterVsetInLocation] - 1.0 + inputs[exciterVssInLocation] + uel;
 }
 
 double ExciterEXAC1::vfe(const IOdata& inputs, const double state[]) const
@@ -707,6 +715,12 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
                 matrixData.assignCheckCol(algOffset + 1,
                                           inputLocs[exciterVssInLocation],
                                           Ka * leadInputGain);
+                if (supportsLimiterSignal(ExciterLimiterSignal::UNDER) &&
+                    inputLocs.size() > exciterVuelInLocation) {
+                    matrixData.assignCheckCol(algOffset + 1,
+                                              inputLocs[exciterVuelInLocation],
+                                              Ka * leadInputGain);
+                }
                 matrixData.assignCheckCol(algOffset + 1,
                                           inputLocs[exciterXadIfdInLocation],
                                           -Ka * leadInputGain * feedbackGain * Kd);
@@ -765,6 +779,12 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
         matrixData.assignCheckCol(diffOffset + leadLagIndex,
                                   inputLocs[exciterVssInLocation],
                                   leadLagInputGain);
+        if (supportsLimiterSignal(ExciterLimiterSignal::UNDER) &&
+            inputLocs.size() > exciterVuelInLocation) {
+            matrixData.assignCheckCol(diffOffset + leadLagIndex,
+                                      inputLocs[exciterVuelInLocation],
+                                      leadLagInputGain);
+        }
         matrixData.assignCheckCol(diffOffset + leadLagIndex,
                                   inputLocs[exciterXadIfdInLocation],
                                   -feedbackGain * Kd * leadLagInputGain);
@@ -802,6 +822,12 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
         matrixData.assignCheckCol(diffOffset + regulatorIndex,
                                   inputLocs[exciterVssInLocation],
                                   Ka * leadInputGain / Ta);
+        if (supportsLimiterSignal(ExciterLimiterSignal::UNDER) &&
+            inputLocs.size() > exciterVuelInLocation) {
+            matrixData.assignCheckCol(diffOffset + regulatorIndex,
+                                      inputLocs[exciterVuelInLocation],
+                                      Ka * leadInputGain / Ta);
+        }
         matrixData.assignCheckCol(diffOffset + regulatorIndex,
                                   inputLocs[exciterXadIfdInLocation],
                                   -Ka * leadInputGain * feedbackGain * Kd / Ta);

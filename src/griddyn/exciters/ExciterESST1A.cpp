@@ -119,7 +119,7 @@ void ExciterESST1A::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags
     }
     offsets.local().local.algSize = 1;
     offsets.local().local.diffSize = 5;
-    offsets.local().local.jacSize = 36;
+    offsets.local().local.jacSize = 39;
     offsets.local().local.algRoots = 1;
 }
 
@@ -144,7 +144,8 @@ ExciterESST1A::Signals ExciterESST1A::evaluate(const IOdata& inputs, const doubl
         ((vosSelector == 2) ? inputs[exciterVssInLocation] : 0.0);
     result.feedback = (Kf * result.fieldDrive / Tf) - state[feedbackState];
     result.input = Vref + vBias + ((vosSelector == 1) ? inputs[exciterVssInLocation] : 0.0) -
-        result.measuredVoltage - result.feedback + inputs[exciterVsetInLocation] - 1.0;
+        result.measuredVoltage - result.feedback + inputs[exciterVsetInLocation] - 1.0 +
+        inputs[exciterVuelInLocation];
     result.limitedInput =
         std::clamp(result.input, static_cast<double>(Vimin), static_cast<double>(Vimax));
     result.inputLimited = (result.input <= Vimin) || (result.input >= Vimax);
@@ -202,9 +203,10 @@ void ExciterESST1A::dynObjectInitializeB(const IOdata& inputs,
     state[amplifierState] = amplifierVoltage;
     state[feedbackState] = Kf * fieldVoltage / Tf;
     vBias = initialInput + state[voltageMeasurementState] - Vref -
-        ((vosSelector == 1) ? stabilizer : 0.0) - inputs[exciterVsetInLocation] + 1.0;
+        ((vosSelector == 1) ? stabilizer : 0.0) - inputs[exciterVsetInLocation] + 1.0 -
+        inputs[exciterVuelInLocation];
     const double correction = std::max(0.0, Vamax - originalAmplifierUpperLimit);
-    const double guard = 10.0 * limiterRootTolerance + std::abs(Ka) * 1e-5;
+    const double guard = (10.0 * limiterRootTolerance) + (std::abs(Ka) * 1e-5);
     double inputOverdrive = 0.0;
     if (amplifierVoltage >= Vamax) {
         inputOverdrive = std::max(0.2 * correction, guard) / Ka;
@@ -357,6 +359,9 @@ void ExciterESST1A::jacobianElements(const IOdata& inputs,
                                   setpointLoc,
                                   inputSetpointDerivative / Tb);
         matrixData.assignCheckCol(diffRow + firstLeadLagState,
+                                  inputLocs[exciterVuelInLocation],
+                                  inputSetpointDerivative / Tb);
+        matrixData.assignCheckCol(diffRow + firstLeadLagState,
                                   stabilizerLoc,
                                   inputStabilizerDerivative / Tb);
         if (Tr <= 0.0) {
@@ -387,6 +392,9 @@ void ExciterESST1A::jacobianElements(const IOdata& inputs,
                                   leadOneInputGain * inputFieldCurrentDerivative / Tb1);
         matrixData.assignCheckCol(diffRow + secondLeadLagState,
                                   setpointLoc,
+                                  leadOneInputGain * inputSetpointDerivative / Tb1);
+        matrixData.assignCheckCol(diffRow + secondLeadLagState,
+                                  inputLocs[exciterVuelInLocation],
                                   leadOneInputGain * inputSetpointDerivative / Tb1);
         matrixData.assignCheckCol(diffRow + secondLeadLagState,
                                   stabilizerLoc,
@@ -425,6 +433,10 @@ void ExciterESST1A::jacobianElements(const IOdata& inputs,
                                       inputFieldCurrentDerivative / Ta);
         matrixData.assignCheckCol(diffRow + amplifierState,
                                   setpointLoc,
+                                  Ka * leadTwoInputGain * leadOneInputGain *
+                                      inputSetpointDerivative / Ta);
+        matrixData.assignCheckCol(diffRow + amplifierState,
+                                  inputLocs[exciterVuelInLocation],
                                   Ka * leadTwoInputGain * leadOneInputGain *
                                       inputSetpointDerivative / Ta);
         matrixData.assignCheckCol(diffRow + amplifierState,

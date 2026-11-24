@@ -197,9 +197,11 @@ the same machine base as the model parameters. The algebraic `VUEL` output is
 clamped to `[0, melmax]`, and the Jacobian uses the active clamp slope; this
 prevents solver overshoot in the internal `MEL` state from appearing on the
 generator route. The saturation implementation uses conditional integration
-at the bounds; OpenIPSL's `SimpleLagLim` uses its own state reinitialization
-rule. Their trajectories near a saturation transition have not yet been
-compared.
+at the bounds, matching current OpenIPSL's default `LagLimWindupGuard`
+(`useWindupGuard=true`). The older optional `SimpleLagLim` branch is not
+implemented. Independent saturation-transition trajectories remain pending.
+PSS/E DYR import and additive UEL routes through EXST1, EXAC1, and ESST1A
+with UEL=1 are described in [model notes](ieeeg3-wpidhy-mnlex2-models.md).
 
 `ExcitationLimiterOEL4C` follows the reactive-power timer and limited PI
 structure of [Dynawo OEL4C](https://github.com/dynawo/dynawo/blob/master/dynawo/sources/Models/Modelica/Dynawo/Electrical/Controls/Machines/OverExcitationLimiters/Standard/Oel4c.mo).

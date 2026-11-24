@@ -49,8 +49,10 @@
 #include "griddyn/governors/GovernorGgov1.h"
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
+#include "griddyn/governors/GovernorIeeeG3.h"
 #include "griddyn/governors/GovernorReheat.h"
 #include "griddyn/governors/GovernorTgov1.h"
+#include "griddyn/governors/GovernorWpidHy.h"
 #include "griddyn/limiters/ExcitationLimiterMNLEX2.h"
 #include "griddyn/limiters/ExcitationLimiterOEL4C.h"
 #include "griddyn/links/AcLine.h"
@@ -1401,6 +1403,79 @@ TEST(DynamicComparisonTests, Mnlex2ActivatesAndRemainsBoundedAfterReactiveLimitS
     ASSERT_FALSE(finalState.empty());
     for (double stateValue : finalState) {
         EXPECT_TRUE(std::isfinite(stateValue));
+    }
+}
+
+TEST(DyrReaderComparisonTests, HydroGovernorsCoupleToMachineAndSurviveCommandStep)
+{
+    auto simulation = loadComparisonDynamicCase("ieee14_genrou.dyr", {"ieee14_hydro.dyr"});
+    auto* bus2 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+    auto* bus3 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 3));
+    ASSERT_NE(bus2, nullptr);
+    ASSERT_NE(bus3, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus2->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* ieeeG3 = dynamic_cast<griddyn::governors::GovernorIeeeG3*>(generator->find("governor"));
+    auto* pid =
+        dynamic_cast<griddyn::governors::GovernorWpidHy*>(bus3->getGen(0)->find("governor"));
+    ASSERT_NE(ieeeG3, nullptr);
+    ASSERT_NE(pid, nullptr);
+    auto event = std::make_shared<griddyn::Event>(0.1);
+    ASSERT_TRUE(event->setTarget(generator, "pset"));
+    event->setValue(0.45);
+    simulation->add(event);
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    for (const auto& mode :
+         {griddyn::cDaeSolverMode, griddyn::cDynDiffSolverMode, griddyn::cDynAlgSolverMode}) {
+        EXPECT_EQ(runJacobianCheck(simulation, mode, false), 0);
+    }
+    const auto initial = ieeeG3->getStates();
+    ASSERT_EQ(simulation->run(1.0), 0);
+    EXPECT_GT(std::abs(ieeeG3->getStates()[1] - initial[1]), 1e-6);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    for (double value : simulation->getState(griddyn::cDaeSolverMode)) {
+        EXPECT_TRUE(std::isfinite(value));
+    }
+}
+
+TEST(DyrReaderComparisonTests, Mnlex2DyrActsThroughCorpusExciterRoutes)
+{
+    for (const auto* name : {"exst1", "exac1", "esst1a"}) {
+        SCOPED_TRACE(name);
+        auto simulation = loadComparisonDynamicCase("ieee14_genrou.dyr", {"ieee14_mnlex2.dyr"});
+        auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+        ASSERT_NE(bus, nullptr);
+        auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+        ASSERT_NE(generator, nullptr);
+        griddyn::Exciter* exciter = nullptr;
+        if (std::string_view{name} == "exst1") {
+            exciter = new griddyn::exciters::ExciterEXST1();
+        } else if (std::string_view{name} == "exac1") {
+            exciter = new griddyn::exciters::ExciterEXAC1();
+        } else {
+            exciter = new griddyn::exciters::ExciterESST1A();
+        }
+        generator->add(exciter);
+        auto* uel =
+            dynamic_cast<griddyn::limiters::ExcitationLimiterMNLEX2*>(generator->find("uel"));
+        ASSERT_NE(uel, nullptr);
+        auto event = std::make_shared<griddyn::Event>(0.1);
+        ASSERT_TRUE(event->setTarget(uel, "q0"));
+        event->setValue(20.0);
+        simulation->add(event);
+        ASSERT_EQ(simulation->dynInitialize(), 0);
+        EXPECT_NEAR(uel->getOutput(), 0.0, 1e-12);
+        EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+        for (const auto& mode :
+             {griddyn::cDaeSolverMode, griddyn::cDynDiffSolverMode, griddyn::cDynAlgSolverMode}) {
+            EXPECT_EQ(runJacobianCheck(simulation, mode, false), 0);
+        }
+        const double initialField = exciter->getOutput();
+        ASSERT_EQ(simulation->run(0.5), 0);
+        EXPECT_NEAR(uel->getOutput(), uel->get("melmax"), 1e-8);
+        EXPECT_GT(exciter->getOutput(), initialField);
+        EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
     }
 }
 

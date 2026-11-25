@@ -10,8 +10,7 @@
 #include <string>
 
 namespace {
-const std::string fixture{GRIDDYN_TEST_DIRECTORY
-                          "/element_reader_tests/tomlElementReader_test.toml"};
+constexpr char fixture[] = GRIDDYN_TEST_DIRECTORY "/element_reader_tests/tomlElementReader_test.toml";
 }  // namespace
 
 TEST(TomlElementReaderTests, LoadsFileAndPreservesAttributeSourceOrder)
@@ -214,7 +213,7 @@ TEST(TomlElementReaderTests, ReportsParseAndFileErrorsAndCanRecover)
     EXPECT_FALSE(reader.isValid());
     reader.moveToParent();
     EXPECT_FALSE(reader.isValid());
-    EXPECT_FALSE(reader.loadFile(fixture + ".missing"));
+    EXPECT_FALSE(reader.loadFile(std::string{fixture} + ".missing"));
     EXPECT_FALSE(reader.loadFile(std::string{GRIDDYN_TEST_DIRECTORY} +
                                  "/element_reader_tests/tomlElementReader_invalid.toml"));
     ASSERT_TRUE(reader.parse("value = 0xFF\ntext = '''two\nlines'''"));

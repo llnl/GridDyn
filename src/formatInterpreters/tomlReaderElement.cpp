@@ -81,7 +81,7 @@ std::vector<TableEntry> orderedEntries(const toml::table& table)
 const toml::node* findEntry(const TomlValue& value, const std::string& name)
 {
     const auto* table = value.as_table();
-    return table ? table->get(name) : nullptr;
+    return (table != nullptr) ? table->get(name) : nullptr;
 }
 }  // namespace
 

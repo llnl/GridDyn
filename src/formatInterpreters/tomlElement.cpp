@@ -48,7 +48,7 @@ const toml::node& TomlElement::getElement() const
     }
     // An empty table represents an unavailable cursor value.
     static const toml::table emptyTable;
-    return mElement ? *mElement : emptyTable;
+    return (mElement != nullptr) ? *mElement : emptyTable;
 }
 
 std::size_t TomlElement::count() const
@@ -62,7 +62,7 @@ bool TomlElement::isNull() const
         const auto& arr = *mElement->as_array();
         return (mArrayIndex >= arr.size()) || isTomlNodeEmpty(arr[mArrayIndex]);
     }
-    return !mElement || isTomlNodeEmpty(*mElement);
+    return (mElement == nullptr) || isTomlNodeEmpty(*mElement);
 }
 
 void TomlElement::clear()

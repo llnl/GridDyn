@@ -104,6 +104,18 @@ jobs:
       timeoutInMinutes: 90
       buildGenerator: Ninja
 
+  - ${{ if or(parameters.compareWindowsBuilds, eq(variables['Build.SourceBranch'], 'refs/heads/codex/windows-ninja-six-workers')) }}:
+      - template: azure-windows.yml
+        parameters:
+          jobName: Windows_VSlatest_Ninja_6
+          displayName: Windows VSlatest Ninja parallel 6
+          imageName: windows-latest
+          extraFlags: ${{ variables['griddyn.windows_latest_flags'] }}
+          timeoutInMinutes: 90
+          buildGenerator: Ninja
+          buildParallel: 6
+          artifactName: installer-windows-latest-ninja-6
+
   - ${{ if or(parameters.compareWindowsBuilds, eq(variables['Build.SourceBranch'], 'refs/heads/codex/windows-ninja-benchmark')) }}:
       - template: azure-windows.yml
         parameters:

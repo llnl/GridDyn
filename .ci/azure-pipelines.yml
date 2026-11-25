@@ -85,122 +85,17 @@ jobs:
   #     - template: azure-build.yml
   #     - template: azure-test.yml
 
-  - job: Windows
-    strategy:
-      matrix:
-        VSlatest-64bit:
-          imageName: "windows-latest"
-          vsArch: "x64"
-          extraFlags: "-DGRIDDYN_ENABLE_FMI=OFF -DGRIDDYN_BUILD_CXX_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON"
-        VS2022-64bit:
-          imageName: "windows-2022"
-          vsArch: "x64"
-          extraFlags: "-DGRIDDYN_ENABLE_FMI=ON"
-    pool:
-      vmImage: $(imageName)
-    variables:
-      BOOST_ROOT: $(Pipeline.Workspace)/ci-libs/boost
-      BOOST_URL: https://sourceforge.net/projects/boost/files/boost/1.90.0/boost_1_90_0.tar.bz2/download
+  - template: azure-windows.yml
+    parameters:
+      jobName: Windows_VSlatest_64bit
+      displayName: Windows VSlatest-64bit
+      imageName: windows-latest
+      extraFlags: "-DGRIDDYN_ENABLE_FMI=OFF -DGRIDDYN_BUILD_CXX_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON"
+      timeoutInMinutes: 90
 
-    steps:
-      # -----------------------
-      # Install dependencies
-      # -----------------------
-      - bash: |
-          submodules=(
-            ThirdParty/containers
-            ThirdParty/concurrency
-            ThirdParty/utilities
-            ThirdParty/spdlog
-            ThirdParty/googletest
-            ThirdParty/units
-            ThirdParty/sundials
-            ThirdParty/hdf5
-            ThirdParty/pugixml
-            ThirdParty/toml
-            ThirdParty/yaml-cpp
-            ThirdParty/suitesparse-cmake
-          )
-          if [[ " $EXTRAFLAGS " == *" -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON "* ]]; then
-            submodules+=(ThirdParty/highs)
-          fi
-          git submodule update --init --checkout --depth 1 --jobs 4 -- "${submodules[@]}"
-        displayName: Fetch pinned submodules
-        workingDirectory: $(Build.SourcesDirectory)
-
-      - task: Cache@2
-        inputs:
-          path: $(BOOST_ROOT)
-          key: '"boost-1.90.0"'
-          cacheHitVar: BOOST_CACHE_RESTORED
-        # A cache restore failure should fall through to the dependency install.
-        continueOnError: true
-        displayName: Restore Boost cache
-
-      - bash: |
-          cd "$(mktemp -d)"
-          curl --location --output "download.tar.bz2" "$BOOST_URL"
-          tar xfj "download.tar.bz2"
-          mkdir -p "$BOOST_ROOT"
-          cp -r boost_*/* "$BOOST_ROOT"
-        condition: ne(variables.BOOST_CACHE_RESTORED, 'true')
-        displayName: Install Boost
-
-      - bash: choco install nsis --yes --limit-output
-        condition: eq( variables['Agent.OS'], 'Windows_NT' )
-        displayName: Install NSIS
-
-      # -----------------------
-      # Configure GRIDDYN
-      # -----------------------
-      - bash: |
-          echo "BOOST_ROOT=$BOOST_ROOT"
-          env
-        displayName: Show environment info
-      - task: CMake@1
-        inputs:
-          cmakeArgs: >-
-            -A $(vsArch)
-            -DBOOST_INSTALL_PATH=$(BOOST_ROOT)
-            -DGRIDDYN_ENABLE_PACKAGE_BUILD=ON
-            -DGRIDDYN_BUILD_TESTS=ON
-            -DGRIDDYN_HDF5_USE_MSVC_PROBE_PRESETS=ON
-            -DGRIDDYN_SUITESPARSE_FORCE_SUBPROJECT=ON
-            $(extraFlags) ..
-        displayName: "Configure GridDyn"
-        condition: eq( variables['Agent.OS'], 'Windows_NT' )
-
-      # -----------------------
-      # Build GridDyn
-      # -----------------------
-      - bash: cmake --build . --config Release
-        displayName: "Build GridDyn"
-        workingDirectory: build
-
-      # -----------------------
-      # Package GridDyn
-      # -----------------------
-      - bash: |
-          cpack_dir="$(which cmake)"
-          cpack_dir="${cpack_dir%/cmake}"
-          "${cpack_dir}/cpack" -G "NSIS" -C Release -B "$PWD/installer-output"
-        displayName: "Package GridDyn"
-        workingDirectory: build
-
-      - task: CopyFiles@2
-        inputs:
-          sourceFolder: "$(Build.SourcesDirectory)/build/installer-output"
-          contents: "*.exe"
-          TargetFolder: "$(Build.ArtifactStagingDirectory)"
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          pathtoPublish: "$(Build.ArtifactStagingDirectory)"
-          artifactName: "installer-$(imageName)"
-
-      # -----------------------
-      # Test GridDyn
-      # -----------------------
-      - bash: ctest --output-on-failure --timeout 480 -C Release -L "Continuous"
-        displayName: "Test GridDyn"
-        workingDirectory: build
+  - template: azure-windows.yml
+    parameters:
+      jobName: Windows_VS2022_64bit
+      displayName: Windows VS2022-64bit
+      imageName: windows-2022
+      extraFlags: "-DGRIDDYN_ENABLE_FMI=ON"

@@ -1,0 +1,17 @@
+# Copyright (c) 2014-2026, Lawrence Livermore National Security
+# SPDX-License-Identifier: BSD-3-Clause
+
+[network]
+zname = "demo"
+enabled = true
+disabled = false
+rating = 12.5
+count = 2
+numeric_text = "230"
+bad_number = "not-a-number"
+zbuses = [{ name = "bus1" }, { name = "bus2" }]
+labels = ["alpha", "beta"]
+numbers = [1, 2.5, "3"]
+
+[network.achild]
+name = "last"

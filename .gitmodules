@@ -32,9 +32,6 @@
 [submodule "ThirdParty/pugixml"]
 	path = ThirdParty/pugixml
 	url = https://github.com/zeux/pugixml
-[submodule "ThirdParty/toml"]
-	path = ThirdParty/toml
-	url = ../../ToruNiina/toml11
 [submodule "ThirdParty/yaml-cpp"]
 	path = ThirdParty/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp.git
@@ -44,3 +41,6 @@
 [submodule "ThirdParty/hdf5"]
 	path = ThirdParty/hdf5
 	url = https://github.com/HDFGroup/hdf5.git
+[submodule "ThirdParty/tomlplusplus"]
+	path = ThirdParty/tomlplusplus
+	url = https://github.com/marzer/tomlplusplus.git

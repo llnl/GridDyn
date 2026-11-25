@@ -12,55 +12,62 @@
 static constexpr char nullStr[] = "";
 
 namespace {
-bool isTomlNodeEmpty(const toml::ordered_value& value)
+bool isTomlNodeEmpty(const toml::node& value)
 {
-    return value.is_empty() || ((value.is_table() || value.is_array()) && value.size() == 0);
+    if (const auto* table = value.as_table()) {
+        return table->empty();
+    }
+    if (const auto* array = value.as_array()) {
+        return array->empty();
+    }
+    return false;
 }
 }  // namespace
 
-TomlElement::TomlElement(toml::ordered_value vElement, std::string newName):
-    mName(std::move(newName)), mElement(std::move(vElement))
+TomlElement::TomlElement(const toml::node& vElement, std::string newName):
+    mName(std::move(newName)), mElement(&vElement)
 {
     mElementIndex = 0;
 
-    if (mElement.is_array()) {
+    if (const auto* arr = mElement->as_array()) {
         mArrayType = true;
         mArrayIndex = 0;
-        const auto& arr = mElement.as_array();
-        while ((mArrayIndex < arr.size()) && (isTomlNodeEmpty(arr[mArrayIndex]))) {
+        while ((mArrayIndex < arr->size()) && (isTomlNodeEmpty((*arr)[mArrayIndex]))) {
             ++mArrayIndex;
         }
     }
 }
 
-const toml::ordered_value& TomlElement::getElement() const
+const toml::node& TomlElement::getElement() const
 {
     if (mArrayType) {
-        const auto& arr = mElement.as_array(std::nothrow);
+        const auto& arr = *mElement->as_array();
         if (mArrayIndex < arr.size()) {
             return arr[mArrayIndex];
         }
     }
-    return mElement;
+    // An empty table represents an unavailable cursor value.
+    static const toml::table emptyTable;
+    return (mElement != nullptr) ? *mElement : emptyTable;
 }
 
 std::size_t TomlElement::count() const
 {
-    return (mArrayType) ? mElement.as_array(std::nothrow).size() : std::size_t{1};
+    return (mArrayType) ? mElement->as_array()->size() : std::size_t{1};
 }
 
 bool TomlElement::isNull() const
 {
     if (mArrayType) {
-        const auto& arr = mElement.as_array(std::nothrow);
+        const auto& arr = *mElement->as_array();
         return (mArrayIndex >= arr.size()) || isTomlNodeEmpty(arr[mArrayIndex]);
     }
-    return isTomlNodeEmpty(mElement);
+    return (mElement == nullptr) || isTomlNodeEmpty(*mElement);
 }
 
 void TomlElement::clear()
 {
-    mElement = toml::ordered_value{};
+    mElement = nullptr;
     mElementIndex = 0;
     mArrayIndex = 0;
     mArrayType = false;

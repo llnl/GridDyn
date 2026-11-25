@@ -8,16 +8,16 @@
 
 #include <cstddef>
 #include <string>
-#include <toml11/types.hpp>
+#include <toml++/toml.hpp>
 
 /** Internal value wrapper used by TomlReaderElement.
  *
- * It retains an ordered TOML value, its reader-visible name, and the indices
- * used while traversing table children and array entries.
+ * It references a node in the reader's shared document and retains its
+ * reader-visible name and traversal indices.
  */
 class TomlElement {
   public:
-    /** Position of this value among its parent's table entries. */
+    /** Position of the current child among this table's entries. */
     std::size_t mElementIndex = 0;
 
     /** Reader-visible name of this value. */
@@ -30,10 +30,10 @@ class TomlElement {
     TomlElement() = default;
 
     /** Wraps a TOML value and assigns its reader-visible name.
-     * @param[in] vElement ordered TOML value to retain
+     * @param[in] vElement TOML node owned by the reader's shared document
      * @param[in] newName name exposed by the reader
      */
-    TomlElement(toml::ordered_value vElement, std::string newName);
+    TomlElement(const toml::node& vElement, std::string newName);
 
     /** Resets the wrapped value, name, and traversal indices. */
     void clear();
@@ -41,7 +41,7 @@ class TomlElement {
     /** Gets the selected array item, or the wrapped value when it is not an
      * array.
      */
-    const toml::ordered_value& getElement() const;
+    const toml::node& getElement() const;
 
     /** Gets the array length, or one for a non-array value. */
     std::size_t count() const;
@@ -50,6 +50,6 @@ class TomlElement {
     bool isNull() const;
 
   private:
-    toml::ordered_value mElement;
+    const toml::node* mElement = nullptr;
     bool mArrayType = false;
 };

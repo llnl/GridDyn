@@ -10,6 +10,18 @@ parameters:
   - name: timeoutInMinutes
     type: number
     default: 60
+  - name: buildGenerator
+    type: string
+    default: MSBuild
+    values:
+      - MSBuild
+      - Ninja
+  - name: buildParallel
+    type: number
+    default: 4
+  - name: artifactName
+    type: string
+    default: ""
 
 jobs:
   - job: ${{ parameters.jobName }}
@@ -18,9 +30,13 @@ jobs:
     pool:
       vmImage: ${{ parameters.imageName }}
     variables:
-      imageName: ${{ parameters.imageName }}
       vsArch: x64
       extraFlags: ${{ parameters.extraFlags }}
+      cmakeFlags: >-
+        -DGRIDDYN_ENABLE_PACKAGE_BUILD=ON
+        -DGRIDDYN_BUILD_TESTS=ON
+        -DGRIDDYN_HDF5_USE_MSVC_PROBE_PRESETS=ON
+        -DGRIDDYN_SUITESPARSE_FORCE_SUBPROJECT=ON
       BOOST_ROOT: $(Pipeline.Workspace)/ci-libs/boost
       BOOST_URL: https://sourceforge.net/projects/boost/files/boost/1.90.0/boost_1_90_0.tar.bz2/download
 
@@ -79,25 +95,43 @@ jobs:
           echo "BOOST_ROOT=$BOOST_ROOT"
           env
         displayName: Show environment info
-      - task: CMake@1
-        inputs:
-          cmakeArgs: >-
-            -A $(vsArch)
-            -DBOOST_INSTALL_PATH=$(BOOST_ROOT)
-            -DGRIDDYN_ENABLE_PACKAGE_BUILD=ON
-            -DGRIDDYN_BUILD_TESTS=ON
-            -DGRIDDYN_HDF5_USE_MSVC_PROBE_PRESETS=ON
-            -DGRIDDYN_SUITESPARSE_FORCE_SUBPROJECT=ON
-            $(extraFlags) ..
-        displayName: "Configure GridDyn"
-        condition: eq( variables['Agent.OS'], 'Windows_NT' )
+      - ${{ if eq(parameters.buildGenerator, 'Ninja') }}:
+          - pwsh: |
+              $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+              $installation = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+              if ($LASTEXITCODE -ne 0 -or !$installation) {
+                  throw 'No Visual Studio installation with x64 MSVC was found.'
+              }
+              $vsDevCmd = Join-Path $installation 'Common7\Tools\VsDevCmd.bat'
+              Write-Host "##vso[task.setvariable variable=VS_DEVCMD]$vsDevCmd"
+            displayName: Find x64 MSVC tools
 
-      # -----------------------
-      # Build GridDyn
-      # -----------------------
-      - bash: cmake --build . --config Release
-        displayName: "Build GridDyn"
-        workingDirectory: build
+          - script: |
+              call "$(VS_DEVCMD)" -no_logo -arch=$(vsArch) -host_arch=x64
+              if errorlevel 1 exit /b 1
+              cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl "-DBOOST_INSTALL_PATH=$(BOOST_ROOT)" $(cmakeFlags) $(extraFlags)
+            displayName: "Configure GridDyn"
+            workingDirectory: $(Build.SourcesDirectory)
+
+          - script: |
+              call "$(VS_DEVCMD)" -no_logo -arch=$(vsArch) -host_arch=x64
+              if errorlevel 1 exit /b 1
+              cmake --build . --parallel ${{ parameters.buildParallel }}
+            displayName: "Build GridDyn"
+            workingDirectory: build
+
+      - ${{ else }}:
+          - task: CMake@1
+            inputs:
+              cmakeArgs: >-
+                -A $(vsArch)
+                -DBOOST_INSTALL_PATH=$(BOOST_ROOT)
+                $(cmakeFlags) $(extraFlags) ..
+            displayName: "Configure GridDyn"
+
+          - bash: cmake --build . --config Release --parallel ${{ parameters.buildParallel }}
+            displayName: "Build GridDyn"
+            workingDirectory: build
 
       # -----------------------
       # Package GridDyn
@@ -118,7 +152,7 @@ jobs:
       - task: PublishBuildArtifacts@1
         inputs:
           pathtoPublish: "$(Build.ArtifactStagingDirectory)"
-          artifactName: "installer-$(imageName)"
+          artifactName: ${{ coalesce(parameters.artifactName, format('installer-{0}', parameters.imageName)) }}
 
       # -----------------------
       # Test GridDyn

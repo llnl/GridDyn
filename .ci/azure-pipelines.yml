@@ -1,8 +1,18 @@
+parameters:
+  - name: compareWindowsBuilds
+    displayName: Compare Windows Ninja and MSBuild timings
+    type: boolean
+    default: false
+
 variables:
   griddyn.std: 14
   griddyn.build_type: Release
   griddyn.options:
   CMAKE_BUILD_PARALLEL_LEVEL: 4
+  griddyn.windows_latest_flags: >-
+    -DGRIDDYN_ENABLE_FMI=OFF
+    -DGRIDDYN_BUILD_CXX_SHARED_LIBRARY=ON
+    -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON
 
 jobs:
   - job: macOS_latest
@@ -90,8 +100,40 @@ jobs:
       jobName: Windows_VSlatest_64bit
       displayName: Windows VSlatest-64bit
       imageName: windows-latest
-      extraFlags: "-DGRIDDYN_ENABLE_FMI=OFF -DGRIDDYN_BUILD_CXX_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON"
+      extraFlags: ${{ variables['griddyn.windows_latest_flags'] }}
       timeoutInMinutes: 90
+      buildGenerator: Ninja
+
+  - ${{ if or(parameters.compareWindowsBuilds, eq(variables['Build.SourceBranch'], 'refs/heads/codex/windows-ninja-benchmark')) }}:
+      - template: azure-windows.yml
+        parameters:
+          jobName: Windows_VSlatest_Ninja_2
+          displayName: Windows VSlatest Ninja parallel 2
+          imageName: windows-latest
+          extraFlags: ${{ variables['griddyn.windows_latest_flags'] }}
+          timeoutInMinutes: 90
+          buildGenerator: Ninja
+          buildParallel: 2
+          artifactName: installer-windows-latest-ninja-2
+
+      - template: azure-windows.yml
+        parameters:
+          jobName: Windows_VSlatest_MSBuild_4
+          displayName: Windows VSlatest MSBuild parallel 4
+          imageName: windows-latest
+          extraFlags: ${{ variables['griddyn.windows_latest_flags'] }}
+          timeoutInMinutes: 90
+          artifactName: installer-windows-latest-msbuild-4
+
+      - template: azure-windows.yml
+        parameters:
+          jobName: Windows_VSlatest_MSBuild_2
+          displayName: Windows VSlatest MSBuild parallel 2
+          imageName: windows-latest
+          extraFlags: ${{ variables['griddyn.windows_latest_flags'] }}
+          timeoutInMinutes: 90
+          buildParallel: 2
+          artifactName: installer-windows-latest-msbuild-2
 
   - template: azure-windows.yml
     parameters:

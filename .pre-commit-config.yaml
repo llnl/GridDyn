@@ -38,6 +38,7 @@ repos:
         args: ["--allow-multiple-documents"]
         exclude: ^test/test_files/reader_error_tests/malformed\.yaml$
       - id: check-toml
+        exclude: ^test/test_files/element_reader_tests/tomlElementReader_invalid\.toml$
       - id: check-xml
         exclude: ^test/test_files/reader_error_tests/test_bad_xml\.xml$
       - id: end-of-file-fixer

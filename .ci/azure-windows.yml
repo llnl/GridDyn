@@ -102,12 +102,23 @@ jobs:
       - pwsh: |
           $package = 'nsis-3.13'
           $archive = Join-Path '$(Agent.TempDirectory)' "$package.zip"
-          $uri = 'https://downloads.sourceforge.net/project/nsis/NSIS%203/3.13/nsis-3.13.zip?viasf=1'
           $hash = 'ba63dffc4410ee89193e1cb5a41989991bd77c61068da17e3156d136b7b0b3d8'
-          Invoke-WebRequest -Uri $uri -OutFile $archive -MaximumRetryCount 3 -RetryIntervalSec 5
-          if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $hash) {
-              throw 'The NSIS download does not match its pinned SHA-256.'
+          $sources = @(
+              'https://github.com/egoist/mygo/releases/download/nsis-3.13/nsis-3.13.zip'
+              'https://downloads.sourceforge.net/project/nsis/NSIS%203/3.13/nsis-3.13.zip?viasf=1'
+          )
+          $verified = $false
+          foreach ($source in $sources) {
+              try {
+                  Invoke-WebRequest -Uri $source -OutFile $archive -MaximumRetryCount 2 -RetryIntervalSec 5
+                  $verified = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -eq $hash
+                  if ($verified) { break }
+                  Write-Warning "The archive from $source did not match the official NSIS SHA-256."
+              } catch {
+                  Write-Warning "Could not download NSIS from $source. $($_.Exception.Message)"
+              }
           }
+          if (!$verified) { throw 'Could not download the pinned NSIS archive.' }
           Expand-Archive -LiteralPath $archive -DestinationPath '$(Agent.TempDirectory)'
           $toolDirectory = Join-Path '$(Agent.TempDirectory)' $package
           & (Join-Path $toolDirectory 'makensis.exe') /VERSION

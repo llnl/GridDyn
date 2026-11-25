@@ -179,6 +179,7 @@ if(NOT MSVC)
 endif()
 
 add_subdirectory("${sundials_SOURCE_DIR}" "${sundials_BINARY_DIR}")
+griddyn_apply_dependency_compiler_launcher("${sundials_BINARY_DIR}")
 
 griddyn_hide_cache_variables_by_prefix(
     SUNDIALS_

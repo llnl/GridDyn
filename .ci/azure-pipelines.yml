@@ -3,6 +3,10 @@ parameters:
     displayName: Compare Windows Ninja and MSBuild timings
     type: boolean
     default: false
+  - name: compareWindowsDependencyCache
+    displayName: Compare cold and warm Windows dependency caches
+    type: boolean
+    default: false
 
 variables:
   griddyn.std: 14
@@ -103,6 +107,31 @@ jobs:
       extraFlags: ${{ variables['griddyn.windows_latest_flags'] }}
       timeoutInMinutes: 90
       buildGenerator: Ninja
+
+  - ${{ if or(parameters.compareWindowsDependencyCache, eq(variables['Build.SourceBranch'], 'refs/heads/codex/windows-sccache-benchmark')) }}:
+      - template: azure-windows.yml
+        parameters:
+          jobName: Windows_VSlatest_Cache_Cold
+          displayName: Windows VSlatest cold dependency cache
+          imageName: windows-latest
+          extraFlags: ${{ variables['griddyn.windows_latest_flags'] }}
+          timeoutInMinutes: 90
+          buildGenerator: Ninja
+          dependencyCache: Cold
+          artifactName: installer-windows-latest-cache-cold
+
+      - template: azure-windows.yml
+        parameters:
+          jobName: Windows_VSlatest_Cache_Warm
+          displayName: Windows VSlatest warm dependency cache
+          imageName: windows-latest
+          extraFlags: ${{ variables['griddyn.windows_latest_flags'] }}
+          timeoutInMinutes: 90
+          buildGenerator: Ninja
+          dependencyCache: Warm
+          dependsOn:
+            - Windows_VSlatest_Cache_Cold
+          artifactName: installer-windows-latest-cache-warm
 
   - ${{ if or(parameters.compareWindowsBuilds, eq(variables['Build.SourceBranch'], 'refs/heads/codex/windows-ninja-six-workers')) }}:
       - template: azure-windows.yml

@@ -22,16 +22,31 @@ parameters:
   - name: artifactName
     type: string
     default: ""
+  - name: dependsOn
+    type: object
+    default: []
+  - name: dependencyCache
+    type: string
+    default: "Off"
+    values:
+      - "Off"
+      - Cold
+      - Warm
 
 jobs:
   - job: ${{ parameters.jobName }}
     displayName: ${{ parameters.displayName }}
+    dependsOn: ${{ parameters.dependsOn }}
     timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
     pool:
       vmImage: ${{ parameters.imageName }}
     variables:
       vsArch: x64
       extraFlags: ${{ parameters.extraFlags }}
+      dependencyLauncherFlag: ""
+      ${{ if ne(parameters.dependencyCache, 'Off') }}:
+        SCCACHE_DIR: $(Pipeline.Workspace)/sccache-dependencies
+        SCCACHE_IDLE_TIMEOUT: "0"
       cmakeFlags: >-
         -DGRIDDYN_ENABLE_PACKAGE_BUILD=ON
         -DGRIDDYN_BUILD_TESTS=ON
@@ -88,6 +103,39 @@ jobs:
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
         displayName: Install NSIS
 
+      - ${{ if ne(parameters.dependencyCache, 'Off') }}:
+          - pwsh: |
+              $release = 'v0.20.1'
+              $package = "sccache-$release-x86_64-pc-windows-msvc"
+              $archive = Join-Path '$(Agent.TempDirectory)' "$package.zip"
+              $hash = 'ca500a01139e9af8d5f5a5e69b6a0dd941ed79ed3399a91cc35bba484fe732fa'
+              Invoke-WebRequest -Uri "https://github.com/mozilla/sccache/releases/download/$release/$package.zip" -OutFile $archive
+              if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $hash) {
+                  throw 'The sccache download does not match its pinned SHA-256.'
+              }
+              Expand-Archive -LiteralPath $archive -DestinationPath '$(Agent.TempDirectory)'
+              $toolDirectory = Join-Path '$(Agent.TempDirectory)' $package
+              & (Join-Path $toolDirectory 'sccache.exe') --version
+              Write-Host "##vso[task.prependpath]$toolDirectory"
+              Write-Host '##vso[task.setvariable variable=dependencyLauncherFlag]-DGRIDDYN_DEPENDENCY_COMPILER_LAUNCHER=sccache'
+              New-Item -ItemType Directory -Force -Path '$(SCCACHE_DIR)' | Out-Null
+            displayName: Install sccache
+
+          - task: Cache@2
+            inputs:
+              path: $(SCCACHE_DIR)
+              key: '"sccache-windows-dependencies" | "$(Build.BuildId)"'
+              cacheHitVar: DEPENDENCY_CACHE_RESTORED
+            displayName: Restore dependency compiler cache
+
+          - pwsh: |
+              $expected = '${{ parameters.dependencyCache }}' -eq 'Warm'
+              $actual = $env:DEPENDENCY_CACHE_RESTORED
+              if ($actual -ne $expected.ToString()) {
+                  throw "Expected ${{ parameters.dependencyCache }} compiler cache restore status $expected. Got '$actual'."
+              }
+            displayName: Verify dependency cache state
+
       # -----------------------
       # Configure GRIDDYN
       # -----------------------
@@ -109,7 +157,7 @@ jobs:
           - script: |
               call "$(VS_DEVCMD)" -no_logo -arch=$(vsArch) -host_arch=x64
               if errorlevel 1 exit /b 1
-              cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl "-DBOOST_INSTALL_PATH=$(BOOST_ROOT)" $(cmakeFlags) $(extraFlags)
+              cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl "-DBOOST_INSTALL_PATH=$(BOOST_ROOT)" $(cmakeFlags) $(extraFlags) $(dependencyLauncherFlag)
             displayName: "Configure GridDyn"
             workingDirectory: $(Build.SourcesDirectory)
 
@@ -132,6 +180,13 @@ jobs:
           - bash: cmake --build . --config Release --parallel ${{ parameters.buildParallel }}
             displayName: "Build GridDyn"
             workingDirectory: build
+
+      - ${{ if ne(parameters.dependencyCache, 'Off') }}:
+          - pwsh: |
+              sccache --show-stats
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+              sccache --stop-server
+            displayName: Report compiler cache statistics
 
       # -----------------------
       # Package GridDyn

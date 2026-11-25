@@ -86,6 +86,7 @@ function(griddyn_add_hdf5)
     endif()
 
     add_subdirectory("${hdf5_SOURCE_DIR}" "${hdf5_BINARY_DIR}" EXCLUDE_FROM_ALL)
+    griddyn_apply_dependency_compiler_launcher("${hdf5_BINARY_DIR}")
 
     if(NOT TARGET hdf5-static)
         message(FATAL_ERROR "The HDF5 submodule did not create the expected hdf5-static target.")

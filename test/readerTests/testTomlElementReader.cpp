@@ -10,7 +10,8 @@
 #include <string>
 
 namespace {
-constexpr char fixture[] = GRIDDYN_TEST_DIRECTORY "/element_reader_tests/tomlElementReader_test.toml";
+constexpr char fixture[] =
+    GRIDDYN_TEST_DIRECTORY "/element_reader_tests/tomlElementReader_test.toml";
 }  // namespace
 
 TEST(TomlElementReaderTests, LoadsFileAndPreservesAttributeSourceOrder)

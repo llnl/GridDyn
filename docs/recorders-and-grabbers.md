@@ -162,7 +162,7 @@ disables it, and integer levels 1-9 select lossless shuffle/deflate. Reset the
 recorder before changing compression after its HDF5 session has started. Other
 output formats do not use this setting.
 
-HDF5 output uses the same [storage schema](developer-guide/binary-state-output.md)
+HDF5 output uses the same [storage schema](https://github.com/LLNL/GridDyn/blob/main/docs/developer-guide/binary-state-output.md)
 as snapshots and diagnostics. Source 3 identifies recorder records: code 0 is a
 sample vector, code 1 contains channel names, and code 2 contains the recorder
 name and description. Sample `time_ns` preserves exact signed integer

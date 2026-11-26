@@ -138,7 +138,7 @@ Python interface documents this scope in [python-interface.md](../python-interfa
   data before mutating the destination. Persistent output needs a versioned
   manifest and a clear complete-checkpoint publication boundary.
 
-The [scripted checkpoint commands](../xml-input.md#checkpoint-commands) use
+The [scripted checkpoint commands](../command-interface.md#checkpoint-commands) use
 these same APIs and restore boundaries. `checkpoint` writes a capture and
 `rollback` restores the last frame from an explicit file. `load state` copies
 solver buffers at the `SOLVER_STATE_ONLY` level.

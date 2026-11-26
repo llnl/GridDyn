@@ -55,7 +55,7 @@ load legacy binary PSS/E saved cases.
 For a PowerWorld network, use `gd.load("network.aux")` or
 `gd.load("network.data", format="aux")`. The AUX reader imports power-flow
 network data; PowerWorld dynamics and scripts are outside its current scope.
-See the [AUX reader guide](developer-guide/powerworld-aux-reader.md) for
+See the [AUX reader guide](https://github.com/LLNL/GridDyn/blob/main/docs/developer-guide/powerworld-aux-reader.md) for
 supported objects and limitations.
 
 `Simulation` owns the loaded system. Use it to load input, inspect or edit
@@ -80,6 +80,9 @@ execution status return that status. Invalid syntax raises
 `InvalidParameterError`, a missing target raises `InvalidObjectError`, and
 an unsupported action raises `ExecutionError`. Actions can apply a parameter
 change between simulation advances.
+
+See the [command reference](command-interface.md) for verbs, selectors, file
+formats, and queue behavior shared by Python and the executable.
 
 ```python
 sim.time_domain.run_until(1.0)
@@ -267,7 +270,7 @@ not a dynamic or full-simulation checkpoint.
 
 This API is intentionally separate from the per-object `ModelFieldSnapshot`
 and the HDF5 solver-vector snapshots. The current capture and restore boundaries
-are summarized in the [checkpointing developer guide](developer-guide/checkpointing.md).
+are summarized in the [checkpointing developer guide](https://github.com/LLNL/GridDyn/blob/main/docs/developer-guide/checkpointing.md).
 
 ## Continuation power flow
 

@@ -10,12 +10,16 @@ then follow the [quick start](quickStart.md) or the detailed
 [Python interface guide](python-interface.md). Source-build instructions and
 the C++ documentation workflow are in [Building GridDyn](building.md).
 For GridDyn-specific network files, see [GridDyn XML inputs](xml-input.md).
+For actions in XML, scripts, C++, and Python, see the
+[command interface](command-interface.md).
 For measurement configuration, start with
 [Recorders and grabbers](recorders-and-grabbers.md), then consult the
 [expression reference](grabber-expressions.md) and
 [field and selector reference](grabber-fields.md).
 Release history is available in the
 [GridDyn changelog](https://github.com/LLNL/GridDyn/blob/main/CHANGELOG.md).
+Implementation references and engineering notes are in the
+[developer guide](https://github.com/LLNL/GridDyn/tree/main/docs/developer-guide).
 
 ```{toctree}
 :maxdepth: 2
@@ -25,6 +29,7 @@ overview
 installation
 quickStart
 xml-input
+command-interface
 recorders-and-grabbers
 grabber-expressions
 grabber-fields
@@ -38,7 +43,6 @@ building
 :caption: Maintainer notes
 
 documentation-release-plan
-developer-guide/index
 ```
 
 The Doxygen API reference is generated from the C++ source separately. Its

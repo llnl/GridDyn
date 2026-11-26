@@ -1,5 +1,6 @@
 import ast
 import copy
+import csv
 import importlib.util
 import json
 import math
@@ -80,6 +81,35 @@ def test_script_errors_stop_at_the_failing_command():
     assert sim.get_string("name") == "after"
     sim.time_domain.run()
     assert sim.get_string("name") == "finished"
+
+
+@pytest.mark.parametrize("queued", [False, True], ids=["direct", "queued-script"])
+def test_command_reference_study(tmp_path, monkeypatch, queued):
+    script = REPO_ROOT / "test" / "test_files" / "runnerTests" / "action_study.gds"
+    monkeypatch.chdir(tmp_path)
+    sim = gd.load(CPF_FILE)
+    if queued:
+        sim.set("action", f'action "{script.as_posix()}"')
+        assert sim.time_domain.run() == pytest.approx(0.2)
+    else:
+        for command in script.read_text(encoding="utf-8").splitlines():
+            assert sim.execute(command) == 0
+
+    expected_voltage = math.sqrt((1.0 + math.sqrt(0.91)) / 2.0)
+    assert sim.time == pytest.approx(0.2)
+    assert sim.buses["demand"].voltage == pytest.approx(expected_voltage)
+    readings = (tmp_path / "study-readings.txt").read_text(encoding="utf-8").splitlines()
+    assert [float(value) for value in readings] == pytest.approx(
+        [200.0, 30.0, expected_voltage]
+    )
+    with (tmp_path / "study-results.csv").open(encoding="utf-8", newline="") as results:
+        assert results.readline().startswith("basepower=100")
+        demand = next(
+            row for row in csv.DictReader(results, skipinitialspace=True)
+            if row["Bus name"] == "demand"
+        )
+    assert float(demand["Pload(MW)"]) == pytest.approx(30.0)
+    assert float(demand["voltage(pu)"]) == pytest.approx(expected_voltage, abs=1e-6)
 
 
 def test_continuation_reports_nose_and_exact_target_without_changing_simulation():

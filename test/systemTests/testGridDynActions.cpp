@@ -13,6 +13,7 @@
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/simulation/GridDynActions.h"
 #include "griddyn/solvers/SolverInterface.h"
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
@@ -1150,4 +1151,52 @@ TEST(GridDynActionTests, DistinguishesResultFilesFromUnsupportedSaveFormats)
     EXPECT_THROW(simulation->execute("save powerflow \"no-such-gdc11-dir/results.csv\""),
                  ActionError);
     EXPECT_THROW(simulation->execute(GridDynAction(Action::INVALID)), ActionError);
+}
+
+TEST(GridDynActionTests, DirectActionsConfigureSolveInspectAndSave)
+{
+    auto simulation = griddyn::readSimXMLFile(staticCase);
+    ASSERT_NE(simulation, nullptr);
+    const auto directory = std::filesystem::temp_directory_path();
+    const auto readingsPath = directory / "gdc18 direct readings.txt";
+    const auto resultsPath = directory / "gdc18 direct results.csv";
+    std::filesystem::remove(readingsPath);
+    std::filesystem::remove(resultsPath);
+    const auto readings = '"' + readingsPath.generic_string() + '"';
+    ASSERT_EQ(simulation->execute("set demand::demand_load:p(MW) 30"), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation->execute("powerflow"), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation->execute("iterate 0.05 0.2"), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation->execute("get time(ms) " + readings), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation->execute("get demand::demand_load:p(MW) " + readings),
+              FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation->execute("get demand:voltage " + readings), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(simulation->execute("save powerflow \"" + resultsPath.generic_string() + '"'),
+              FUNCTION_EXECUTION_SUCCESS);
+
+    const auto expectedVoltage = std::sqrt((1.0 + std::sqrt(0.91)) / 2.0);
+    EXPECT_EQ(simulation->getSimulationTime(), griddyn::CoreTime(0.2));
+    EXPECT_NEAR(simulation->getBus(1)->getVoltage(), expectedVoltage, 1e-6);
+    std::ifstream values(readingsPath);
+    double timeMs = 0.0;
+    double loadMw = 0.0;
+    double voltage = 0.0;
+    ASSERT_TRUE(values >> timeMs >> loadMw >> voltage);
+    EXPECT_NEAR(timeMs, 200.0, 1e-5);
+    EXPECT_DOUBLE_EQ(loadMw, 30.0);
+    EXPECT_NEAR(voltage, expectedVoltage, 1e-6);
+    values.close();
+    std::filesystem::remove(readingsPath);
+
+    std::ifstream results(resultsPath);
+    std::string line;
+    ASSERT_TRUE(std::getline(results, line));
+    EXPECT_TRUE(line.starts_with("basepower=100"));
+    ASSERT_TRUE(std::getline(results, line));
+    EXPECT_TRUE(line.contains("Pload(MW)"));
+    ASSERT_TRUE(std::getline(results, line));
+    ASSERT_TRUE(std::getline(results, line));
+    EXPECT_TRUE(line.contains(R"("demand")"));
+    EXPECT_TRUE(line.contains(", 30.00000,"));
+    results.close();
+    std::filesystem::remove(resultsPath);
 }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn>
+    <import file="../pFlow_tests/continuation_two_bus.xml"/>
+    <action>set demand::demand_load:p(MW) 30; powerflow; iterate 0.05 0.2</action>
+    <action>get time(ms) study-readings.txt</action>
+    <action>get demand::demand_load:p(MW) study-readings.txt</action>
+    <action>get demand:voltage study-readings.txt</action>
+    <action>save powerflow study-results.csv</action>
+</griddyn>

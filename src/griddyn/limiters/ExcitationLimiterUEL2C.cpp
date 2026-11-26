@@ -243,8 +243,9 @@ detail::Evaluation<9> ExcitationLimiterUEL2C::evaluate(const IOdata& inputs,
             (index == limiterExciterFeedbackInLocation && kfb == 0.0)) {
             continue;
         }
-        if (inputs.size() <= index || !std::isfinite(inputs[index]) ||
-            std::abs(inputs[index]) > 1e20) {
+        const auto inputIndex = static_cast<IOdata::size_type>(index);
+        if (inputs.size() <= inputIndex || !std::isfinite(inputs[inputIndex]) ||
+            std::abs(inputs[inputIndex]) > 1e20) {
             throw InvalidParameterValue(
                 "UEL2C requires compatible machine and excitation feedback signals");
         }

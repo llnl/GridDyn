@@ -131,7 +131,7 @@ index_t ExcitationLimiterOEL3C::measurementLocation() const
 
 double ExcitationLimiterOEL3C::measurement(const IOdata& inputs) const
 {
-    const auto index = measurementLocation();
+    const auto index = static_cast<IOdata::size_type>(measurementLocation());
     if (inputs.size() <= index || !std::isfinite(inputs[index]) || std::abs(inputs[index]) > 1e20) {
         throw InvalidParameterValue("OEL3C selected Ifd/Efd/VFE measurement is unavailable");
     }

@@ -538,6 +538,7 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
     if (initializeExciterFeedback) {
         const auto exciterInputs =
             signalRoutes[EXCITER_LOC].values({.hostInputs = signalFrame.values,
+                                              .hostInputLocs = nullptr,
                                               .stateData = emptyStateData,
                                               .solverMode = cLocalSolverMode});
         localDesiredOutput[0] = m_Eft;

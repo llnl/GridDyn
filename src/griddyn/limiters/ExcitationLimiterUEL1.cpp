@@ -131,8 +131,9 @@ detail::Signal<3> ExcitationLimiterUEL1::characteristic(const IOdata& inputs) co
         if (index == limiterStabilizingFeedbackInLocation && kuf == 0.0) {
             continue;
         }
-        if (inputs.size() <= index || !std::isfinite(inputs[index]) ||
-            std::abs(inputs[index]) > 1e20) {
+        const auto inputIndex = static_cast<IOdata::size_type>(index);
+        if (inputs.size() <= inputIndex || !std::isfinite(inputs[inputIndex]) ||
+            std::abs(inputs[inputIndex]) > 1e20) {
             throw InvalidParameterValue(
                 "UEL1 requires compatible machine and excitation feedback signals");
         }

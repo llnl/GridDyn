@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <string>
 
 namespace griddyn::limiters::detail {
@@ -58,7 +59,7 @@ template<count_t N>
 Signal<N> add(Signal<N> left, const Signal<N>& right)
 {
     left.mValue += right.mValue;
-    for (index_t index = 0; index < left.mSlope.size(); ++index) {
+    for (std::size_t index = 0; index < left.mSlope.size(); ++index) {
         left.mSlope[index] += right.mSlope[index];
     }
     return left;
@@ -74,7 +75,7 @@ template<count_t N>
 Signal<N> multiply(const Signal<N>& left, const Signal<N>& right)
 {
     auto result = constant<N>(left.mValue * right.mValue);
-    for (index_t index = 0; index < result.mSlope.size(); ++index) {
+    for (std::size_t index = 0; index < result.mSlope.size(); ++index) {
         result.mSlope[index] =
             left.mSlope[index] * right.mValue + left.mValue * right.mSlope[index];
     }

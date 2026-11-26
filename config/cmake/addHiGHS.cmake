@@ -46,6 +46,7 @@ set(ZLIB OFF)
 set(HIGHS_COVERAGE OFF)
 
 add_subdirectory("${highs_SOURCE_DIR}" "${highs_BINARY_DIR}")
+griddyn_apply_dependency_compiler_launcher("${highs_BINARY_DIR}")
 
 griddyn_hide_cache_variables_by_prefix(HIGHS HIPO HIPDLP_ CUPDLP_)
 griddyn_hide_cache_variables(

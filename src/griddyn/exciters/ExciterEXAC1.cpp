@@ -315,6 +315,10 @@ void ExciterEXAC1::dynObjectInitializeB(const IOdata& inputs,
         ((supportsLimiterSignal(ExciterLimiterSignal::UNDER) &&
           inputs.size() > exciterVuelInLocation) ?
              inputs[exciterVuelInLocation] :
+             0.0) +
+        ((supportsLimiterSignal(ExciterLimiterSignal::OVER) &&
+          inputs.size() > exciterVoelInLocation) ?
+             inputs[exciterVoelInLocation] :
              0.0);
     if (initialRegulator >= regulatorUpperLimit() - limitTolerance) {
         const double correction = std::max(0.0, regulatorUpperLimit() - originalUpperLimit);
@@ -351,7 +355,12 @@ double ExciterEXAC1::referenceInput(const IOdata& inputs) const
                         inputs.size() > exciterVuelInLocation) ?
         inputs[exciterVuelInLocation] :
         0.0;
-    return Vref + vBias + inputs[exciterVsetInLocation] - 1.0 + inputs[exciterVssInLocation] + uel;
+    const double oel = (supportsLimiterSignal(ExciterLimiterSignal::OVER) &&
+                        inputs.size() > exciterVoelInLocation) ?
+        inputs[exciterVoelInLocation] :
+        0.0;
+    return Vref + vBias + inputs[exciterVsetInLocation] - 1.0 + inputs[exciterVssInLocation] + uel -
+        oel;
 }
 
 double ExciterEXAC1::vfe(const IOdata& inputs, const double state[]) const
@@ -721,6 +730,12 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
                                               inputLocs[exciterVuelInLocation],
                                               Ka * leadInputGain);
                 }
+                if (supportsLimiterSignal(ExciterLimiterSignal::OVER) &&
+                    inputLocs.size() > exciterVoelInLocation) {
+                    matrixData.assignCheckCol(algOffset + 1,
+                                              inputLocs[exciterVoelInLocation],
+                                              -(Ka * leadInputGain));
+                }
                 matrixData.assignCheckCol(algOffset + 1,
                                           inputLocs[exciterXadIfdInLocation],
                                           -Ka * leadInputGain * feedbackGain * Kd);
@@ -785,6 +800,12 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
                                       inputLocs[exciterVuelInLocation],
                                       leadLagInputGain);
         }
+        if (supportsLimiterSignal(ExciterLimiterSignal::OVER) &&
+            inputLocs.size() > exciterVoelInLocation) {
+            matrixData.assignCheckCol(diffOffset + leadLagIndex,
+                                      inputLocs[exciterVoelInLocation],
+                                      -leadLagInputGain);
+        }
         matrixData.assignCheckCol(diffOffset + leadLagIndex,
                                   inputLocs[exciterXadIfdInLocation],
                                   -feedbackGain * Kd * leadLagInputGain);
@@ -827,6 +848,12 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
             matrixData.assignCheckCol(diffOffset + regulatorIndex,
                                       inputLocs[exciterVuelInLocation],
                                       Ka * leadInputGain / Ta);
+        }
+        if (supportsLimiterSignal(ExciterLimiterSignal::OVER) &&
+            inputLocs.size() > exciterVoelInLocation) {
+            matrixData.assignCheckCol(diffOffset + regulatorIndex,
+                                      inputLocs[exciterVoelInLocation],
+                                      -(Ka * leadInputGain / Ta));
         }
         matrixData.assignCheckCol(diffOffset + regulatorIndex,
                                   inputLocs[exciterXadIfdInLocation],
@@ -1032,4 +1059,42 @@ index_t ExciterEXAC1::localStateIndex(index_t fullIndex) const
 }
 
 // NOLINTEND(readability-math-missing-parentheses)
+
+bool ExciterEXAC1::providesLimiterFeedback(ExciterFeedbackSignal signal) const
+{
+    return signal == ExciterFeedbackSignal::STABILIZING ||
+        signal == ExciterFeedbackSignal::FIELD_CURRENT;
+}
+
+ExciterFeedbackData ExciterEXAC1::getLimiterFeedback(ExciterFeedbackSignal signal,
+                                                     const IOdata& inputs,
+                                                     const StateData& data,
+                                                     const SolverMode& mode) const
+{
+    if (!providesLimiterFeedback(signal)) {
+        return {};
+    }
+    const auto loc = offsets.getLocations(data, mode, this);
+    const auto index = stateIndex(exciterState, Tr > 0.0, hasLeadLag(), hasDynamicRegulator());
+    const auto washout = stateIndex(washoutState, Tr > 0.0, hasLeadLag(), hasDynamicRegulator());
+    const double exciterVoltage = loc.diffStateLoc[index];
+    const double slope = Ke + saturation.evaluate(exciterVoltage).derivative;
+    const double factor = signal == ExciterFeedbackSignal::STABILIZING ? Kf / Tf : 1.0;
+    ExciterFeedbackData result;
+    result.value = factor * vfe(inputs, loc.diffStateLoc);
+    if (signal == ExciterFeedbackSignal::STABILIZING) {
+        result.value -= factor * loc.diffStateLoc[washout];
+    }
+    if (!isAlgebraicOnly(mode)) {
+        result.stateDerivatives.push_back(
+            {.location = loc.diffOffset + index, .value = factor * slope});
+        if (signal == ExciterFeedbackSignal::STABILIZING) {
+            result.stateDerivatives.push_back(
+                {.location = loc.diffOffset + washout, .value = -factor});
+        }
+    }
+    result.inputDerivatives[exciterXadIfdInLocation] = factor * Kd;
+    return result;
+}
+
 }  // namespace griddyn::exciters

@@ -447,4 +447,28 @@ void ExciterEXST1::set(std::string_view param, double val, units::unit unitType)
 }
 
 // NOLINTEND(readability-math-missing-parentheses)
+
+bool ExciterEXST1::providesLimiterFeedback(ExciterFeedbackSignal signal) const
+{
+    return signal == ExciterFeedbackSignal::STABILIZING;
+}
+
+ExciterFeedbackData ExciterEXST1::getLimiterFeedback(ExciterFeedbackSignal signal,
+                                                     const IOdata& /*inputs*/,
+                                                     const StateData& data,
+                                                     const SolverMode& mode) const
+{
+    if (!providesLimiterFeedback(signal)) {
+        return {};
+    }
+    const auto loc = offsets.getLocations(data, mode, this);
+    ExciterFeedbackData result;
+    result.value = (Kf / Tf) * (loc.diffStateLoc[regulatorState] - loc.diffStateLoc[washoutState]);
+    if (!isAlgebraicOnly(mode)) {
+        result.stateDerivatives = {{.location = loc.diffOffset + regulatorState, .value = Kf / Tf},
+                                   {.location = loc.diffOffset + washoutState, .value = -Kf / Tf}};
+    }
+    return result;
+}
+
 }  // namespace griddyn::exciters

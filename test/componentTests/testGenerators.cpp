@@ -314,7 +314,7 @@ TEST(ExcitationLimiterTests, Oel4cDelaySignedOutputAndTimerReset)
     EXPECT_DOUBLE_EQ(jacobian.at(1, 12), 1.0);
     inputs[limiterIqInLocation] = 0.0;
     limiter.timestep(0.3, inputs, cLocalSolverMode);
-    EXPECT_NEAR(limiter.getOutput(), 0.03, 1e-12);
+    EXPECT_DOUBLE_EQ(limiter.getOutput(), 0.0);
     inputs[limiterIqInLocation] = -0.4;
     limiter.timestep(0.4, inputs, cLocalSolverMode);
     EXPECT_NEAR(limiter.getOutput(), 0.03, 1e-12);
@@ -330,7 +330,7 @@ TEST(ExcitationLimiterTests, AdditionalWeccLimiterProfilesRegisterAndProvideCons
     ASSERT_NE(uel1Factory, nullptr);
     EXPECT_THROW(uel1Factory->setRole(ExcitationLimiter::Role::OVER), InvalidParameterValue);
     uel1Factory->set("kuf", 0.2);
-    EXPECT_THROW(uel1Factory->dynInitializeA(0.0, 0), InvalidParameterValue);
+    EXPECT_NO_THROW(uel1Factory->dynInitializeA(0.0, 0));
 
     limiters::ExcitationLimiterUEL1 uel1;
     uel1.set("kur", 0.1);
@@ -421,14 +421,14 @@ TEST(ExcitationLimiterTests, AdditionalWeccLimiterProfilesRegisterAndProvideCons
     EXPECT_DOUBLE_EQ(uel2cJacobian.at(0, 1), 1.0);
     EXPECT_DOUBLE_EQ(uel2cJacobian.at(0, 12), 1.0);
     EXPECT_NEAR(uel2cJacobian.at(0, 13), 0.15, 1e-12);
-    std::array<double, 2> uel2cRates{};
-    std::array<double, 2> uel2cResidual{};
+    std::array<double, 10> uel2cRates{};
+    std::array<double, 10> uel2cResidual{};
     StateData uel2cResidualData(0.0, states.data(), uel2cRates.data());
     uel2cResidualData.stateSize = static_cast<count_t>(states.size());
     uel2c.residual(inputs, uel2cResidualData, uel2cResidual.data(), cDaeSolverMode);
     perturbedInputs = inputs;
     perturbedInputs[limiterIqInLocation] += finiteDifferenceStep;
-    std::array<double, 2> perturbedUel2cResidual{};
+    std::array<double, 10> perturbedUel2cResidual{};
     uel2c.residual(perturbedInputs,
                    uel2cResidualData,
                    perturbedUel2cResidual.data(),
@@ -459,7 +459,7 @@ TEST(ExcitationLimiterTests, AdditionalWeccLimiterProfilesRegisterAndProvideCons
     auto* oel3cFactory = dynamic_cast<limiters::ExcitationLimiterOEL3C*>(oel3cObject.get());
     ASSERT_NE(oel3cFactory, nullptr);
     EXPECT_THROW(oel3cFactory->setRole(ExcitationLimiter::Role::UNDER), InvalidParameterValue);
-    EXPECT_THROW(oel3cFactory->set("oelinput", 1.0), InvalidParameterValue);
+    EXPECT_NO_THROW(oel3cFactory->set("oelinput", 1.0));
 
     limiters::ExcitationLimiterOEL3C oel3c;
     oel3c.set("itfpu", 1.0);
@@ -473,7 +473,9 @@ TEST(ExcitationLimiterTests, AdditionalWeccLimiterProfilesRegisterAndProvideCons
     inputs.assign(excitationLimiterInputCount, 0.0);
     inputs[limiterFieldCurrentInLocation] = 1.2;
     oel3c.dynInitializeB(inputs, {}, fieldSet);
-    EXPECT_NEAR(oel3c.getOutput(), 0.22, 1e-12);
+    EXPECT_DOUBLE_EQ(oel3c.getOutput(), 0.0);
+    oel3c.timestep(0.1, inputs, cLocalSolverMode);
+    EXPECT_NEAR(oel3c.getOutput(), 0.264, 1e-12);
     oel3c.setOffset(0, cDaeSolverMode);
     states = oel3c.getStates();
     StateData oel3cState(0.0, states.data());
@@ -520,10 +522,10 @@ TEST(ExcitationLimiterTests, AdditionalWeccLimiterProfilesRegisterAndProvideCons
     MatrixDataSparse<double> filteredJacobian;
     filteredOel3c.jacobianElements(
         inputs, filteredState, filteredJacobian, inputLocs, cDaeSolverMode);
-    EXPECT_NEAR(filteredJacobian.at(0, 1), 1.0 / 1.05, 1e-12);
+    EXPECT_DOUBLE_EQ(filteredJacobian.at(0, 1), 0.0);
     EXPECT_DOUBLE_EQ(filteredJacobian.at(1, 1), -50.0);
     EXPECT_DOUBLE_EQ(filteredJacobian.at(1, 10), 50.0);
-    EXPECT_NEAR(filteredJacobian.at(2, 1), -1.0 / 25.2, 1e-12);
+    EXPECT_NEAR(filteredJacobian.at(2, 1), -1.0 / 24.0, 1e-12);
 }
 
 TEST(ExcitationLimiterTests, Oel4cSaturationStopsIntegration)

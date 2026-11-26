@@ -581,4 +581,19 @@ bool ExciterSCRX::supportsLimiterSignal(ExciterLimiterSignal /*signal*/) const
     return true;
 }
 
+bool ExciterSCRX::providesLimiterFeedback(ExciterFeedbackSignal signal) const
+{
+    return signal == ExciterFeedbackSignal::STABILIZING;
+}
+
+ExciterFeedbackData ExciterSCRX::getLimiterFeedback(ExciterFeedbackSignal signal,
+                                                    const IOdata& /*inputs*/,
+                                                    const StateData& /*data*/,
+                                                    const SolverMode& /*mode*/) const
+{
+    // SCRX contains no excitation-system stabilizing-feedback block.
+    return providesLimiterFeedback(signal) ? ExciterFeedbackData{.value = 0.0} :
+                                             ExciterFeedbackData{};
+}
+
 }  // namespace griddyn::exciters

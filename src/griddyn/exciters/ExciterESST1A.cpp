@@ -541,4 +541,31 @@ ChangeCode ExciterESST1A::rootCheck(const IOdata& inputs,
     return ChangeCode::JACOBIAN_CHANGE;
 }
 
+bool ExciterESST1A::providesLimiterFeedback(ExciterFeedbackSignal signal) const
+{
+    return signal == ExciterFeedbackSignal::STABILIZING;
+}
+
+ExciterFeedbackData ExciterESST1A::getLimiterFeedback(ExciterFeedbackSignal signal,
+                                                      const IOdata& inputs,
+                                                      const StateData& data,
+                                                      const SolverMode& mode) const
+{
+    if (!providesLimiterFeedback(signal)) {
+        return {};
+    }
+    const auto loc = offsets.getLocations(data, mode, this);
+    const auto signals = evaluate(inputs, loc.diffStateLoc);
+    ExciterFeedbackData result;
+    result.value = signals.feedback;
+    if (!isAlgebraicOnly(mode)) {
+        result.stateDerivatives = {{.location = loc.diffOffset + amplifierState, .value = Kf / Tf},
+                                   {.location = loc.diffOffset + feedbackState, .value = -1.0}};
+    }
+    result.inputDerivatives[exciterXadIfdInLocation] =
+        signals.currentLimited ? -Klr * Kf / Tf : 0.0;
+    result.inputDerivatives[exciterVssInLocation] = vosSelector == 2 ? Kf / Tf : 0.0;
+    return result;
+}
+
 }  // namespace griddyn::exciters

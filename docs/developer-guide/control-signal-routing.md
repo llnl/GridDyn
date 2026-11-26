@@ -123,6 +123,11 @@ input buffers for implicit callbacks, explicit stepping, and controller
 initialization. Machine-model initialization retains its separate power-flow
 target contract.
 
+The DYR and compact DYD `COMP` records attach the existing IEEEVC voltage
+compensator with `Rc=0`, `Xc=-Xe`. Its machine-current route and compensated
+exciter voltage use this same signal frame; no additional model states or
+routes are required. See [COMP mapping notes](comp-model.md).
+
 The frame carries current values, direct solver locations, and sparse
 derivatives for computed machine signals. `ControlSignalRouting::addInput`
 binds a model port to a frame slot, including optional gain and offset.
@@ -203,61 +208,22 @@ implemented. Independent saturation-transition trajectories remain pending.
 PSS/E DYR import and additive UEL routes through EXST1, EXAC1, and ESST1A
 with UEL=1 are described in [model notes](ieeeg3-wpidhy-mnlex2-models.md).
 
-`ExcitationLimiterOEL4C` follows the reactive-power timer and limited PI
-structure of [Dynawo OEL4C](https://github.com/dynawo/dynawo/blob/master/dynawo/sources/Models/Modelica/Dynawo/Electrical/Controls/Machines/OverExcitationLimiters/Standard/Oel4c.mo).
-It uses `Qref-Q`, a resettable `tdelay`, `kp`, `ki`, and negative `vmin`.
-The published block emits a nonpositive correction; GridDyn routes its
-positive magnitude because SCRX subtracts `VOEL`. The PI integrator can
-retain an action after Q falls below the threshold, as in the source block.
-The delay has a one-shot solver root and resets when Q returns below the
-reference. A discontinuous parameter event starts the timer at GridDyn's
-algebraic-root probe time, which can be one probe step after the
-event; this timing still needs comparison with an external implementation.
-`qref` is a fixed GridDyn parameter rather than a separately routed input.
-It must use the same machine-base reactive-power units as `Id*Vq-Iq*Vd`;
-cases using another MVA base need conversion before setting it.
-Its saturation uses conditional integration; Dynawo's small hysteresis
-margin is not replicated. External trajectory parity and DYR/DYD import
-remain open, so this is a native partial OEL4C implementation.
+`ExcitationLimiterUEL1`, `ExcitationLimiterUEL2C`,
+`ExcitationLimiterOEL3C`, and `ExcitationLimiterOEL4C` now implement the
+expanded IEEE block-diagram paths and explicit positional DYR/DYD schemas.
+UEL1 includes excitation-system feedback and combined PI limits. UEL2C
+includes ten-pair curves, voltage bias, all measurement/reference filters,
+fixed/adjustable gain, both feedback paths, and limited output lead-lags.
+OEL3C selects Ifd/Efd/VFE and implements the powered reference, signed pickup
+and recovery, and integrator-dependent proportional switch. OEL4C releases
+on positive reactive-power error without another pickup delay.
 
-Three additional optional models use the same five limiter inputs and the
-existing `VUEL` / `VOEL` exciter routes. They add no host-specific signal ports.
-All three are native partial implementations and are available through the
-GridDyn XML `<limiter type="...">` factory. None currently has a PSS/E DYR or
-PSLF DYD importer mapping.
-
-`ExcitationLimiterUEL1` implements the UEL1 circular characteristic
-`VUC = min(|KUC*Vt - j*It|, VUCmax)`,
-`VUR = min(KUR*|Vt|, VURmax)`, followed by the PI,
-lead-lag, and output limits. It derives the characteristic from the routed
-machine `Id`, `Iq`, `Vd`, and `Vq` signals. The model accepts only `KUF=0`
-because no AVR stabilizing-feedback signal is in the current limiter port
-contract. It also requires the sum-point positive `VUEL` convention, including
-a nonnegative output minimum; it is not compatible with a takeover-gate
-exciter input. See the [UEL1 model reference](https://www.powerworld.com/WebHelp/Content/TransientModels_HTML/Under%20Excitation%20Limiter%20UEL1.htm).
-
-`ExcitationLimiterUEL2C` currently provides a fixed-profile subset: it
-calculates machine-base `P=Id*Vd+Iq*Vq` and `Q=Id*Vq-Iq*Vd`, applies the
-selected voltage powers `K1` and `K2` (each 0, 1, or 2), interpolates a
-user-supplied piecewise-linear `P/Q` curve, then applies a limited PI output.
-Configure at least two strictly increasing pairs with `p0`/`q0` through
-`p6`/`q6`; initialization rejects an unset curve. Values beyond its endpoints
-hold the endpoint value. This subset does not yet model the standard's voltage
-bias logic, input filters (`Tup`, `Tuq`, `Tuv`), reactive-reference filter,
-adjustable-gain switch, `KUF`/`KFB` feedback paths, or either output lead-lag
-stage. The full parameter set and block diagram are listed in the
-[UEL2C model reference](https://www.powerworld.com/WebHelp/Content/TransientModels_HTML/Under%20Excitation%20Limiter%20UEL2C.htm).
-
-`ExcitationLimiterOEL3C` provides a field-current-only summing-point profile.
-It filters routed machine `XadIfd` when `TF>0`, evaluates the positive pickup
-error `max((KSCALE*Ifd/ITFpu)^K1 - 1, 0)` for `K1=1` or `2`, then forms the
-limited proportional/integral action. The internal standard-style correction
-is nonpositive; the routed `VOEL` is its positive magnitude to match SCRX's
-existing summing point. `OELInput` must be 0 (`Ifd`). The alternate Efd/VFE
-inputs and the standard's switch-dependent `IFref` feedback are not modeled;
-integral action holds after pickup clears because this subset has no reference
-switch or reset logic. The full reference includes these model parameters
-and the block diagram: [OEL3C model reference](https://www.powerworld.com/WebHelp/Content/TransientModels_HTML/Over%20Excitation%20Limiter%20OEL3C.htm).
+The limiter port retains its first five machine inputs and adds Efd, VF,
+VFE, and VFB. Required signals are checked against the actual exciter;
+nonzero KFB requires the still-unimplemented ST7C-specific VFB host export.
+See [UEL/OEL equations, signal compatibility, positional schemas, and
+validation limits](uel-oel-models.md). Native paths and GridDyn's explicit
+reader layouts do not establish universal vendor-format or trajectory parity.
 
 Example XML configuration (curve values must come from the case data):
 
@@ -323,12 +289,12 @@ initialization; replace that submodel after resetting routes.
   and GENROU/GENSAL–SCRX Jacobians in full and partitioned solver modes with
   both existing limiters attached. MNLEX2 lower and upper bounds and OEL4C
   inactive and saturated branches have direct residual, derivative, and
-  Jacobian checks. The added UEL1, UEL2C, and OEL3C unit tests check active
-  outputs and output caps under constant explicit inputs, compare selected
-  analytic residual slopes with finite differences, and exercise UEL1
-  lead-lags, UEL2C voltage scaling, and OEL3C's filtered and unfiltered input
-  paths. These are model-level checks; network disturbance trajectories and
-  independent reference-model parity for these three additions remain open.
+  Jacobian checks. Expanded model tests cover the UEL1/UEL2C feedback,
+  filter, PI, and lead-lag derivatives, and all OEL3C input selectors.
+  DYR/DYD fixtures check initialized and active host Jacobians in DAE and
+  paired solver modes, including exciter VF/VFE feedback and filtered or
+  bypassed OEL3C measurements. Network disturbance trajectories and
+  independent reference-model parity remain open.
 - Benchmark a representative large case before making performance claims;
   routing removes repeated source selection but still uses callable readers.
   `DynamicGenerator` reuses its sparse input maps, computes machine-signal

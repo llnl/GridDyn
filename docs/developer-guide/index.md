@@ -37,6 +37,7 @@ esac5a-model
 esst2a-model
 exciter-model-description
 component-model-descriptions
+comp-model
 governor-variants
 gpwscc-reference
 motor-dq-model
@@ -44,6 +45,7 @@ pss2b-esac2a-models
 scrx-esac6a-model-spec
 stab2a-model
 tiocr1-dyr-compatibility
+uel-oel-models
 ```
 
 ## Input and compatibility assessments

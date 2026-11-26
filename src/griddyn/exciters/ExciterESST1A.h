@@ -83,6 +83,11 @@ class ExciterESST1A final: public Exciter {
   public:
     explicit ExciterESST1A(const std::string& objName = "exciterESST1A_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    bool providesLimiterFeedback(ExciterFeedbackSignal signal) const override;
+    ExciterFeedbackData getLimiterFeedback(ExciterFeedbackSignal signal,
+                                           const IOdata& inputs,
+                                           const StateData& data,
+                                           const SolverMode& mode) const override;
     bool supportsLimiterSignal(ExciterLimiterSignal signal) const override
     {
         return signal == ExciterLimiterSignal::UNDER && uelSelector == 1;

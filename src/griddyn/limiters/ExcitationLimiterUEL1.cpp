@@ -14,10 +14,6 @@
 #include <string>
 
 namespace griddyn::limiters {
-namespace {
-    constexpr double signalTolerance = 1e-14;
-}
-
 const ModelDescription& ExcitationLimiterUEL1::getModelDescription() const
 {
     static const auto description = ModelDescription::define<ExcitationLimiterUEL1>(
@@ -52,12 +48,13 @@ const ModelDescription& ExcitationLimiterUEL1::getModelDescription() const
     return description;
 }
 
-ExcitationLimiterUEL1::ExcitationLimiterUEL1(const std::string& objName): ExcitationLimiter(objName)
+ExcitationLimiterUEL1::ExcitationLimiterUEL1(const std::string& objName):
+    detail::LimiterDynamics<3>(objName)
 {
     setRole(Role::UNDER);
     offsets.local().local.algSize = 1;
     offsets.local().local.diffSize = 3;
-    offsets.local().local.jacSize = 24;
+    offsets.local().local.jacSize = 52;
 }
 
 CoreObject* ExcitationLimiterUEL1::clone(CoreObject* obj) const
@@ -86,270 +83,133 @@ CoreObject* ExcitationLimiterUEL1::clone(CoreObject* obj) const
 
 void ExcitationLimiterUEL1::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(
-            ExcitationLimiterUEL1::getModelDescription().trySet(*this, param, val, unitType))) {
-        return;
+    if (!isSetHandled(getModelDescription().trySet(*this, param, val, unitType))) {
+        ExcitationLimiter::set(param, val, unitType);
     }
-    ExcitationLimiter::set(param, val, unitType);
 }
 
 void ExcitationLimiterUEL1::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
-    if (!std::isfinite(kur) || !std::isfinite(kuc) || !std::isfinite(vurMax) ||
-        !std::isfinite(vucMax) || !std::isfinite(kuI) || !std::isfinite(kuL) ||
-        !std::isfinite(vuiMax) || !std::isfinite(vuiMin) || !std::isfinite(tu1) ||
-        !std::isfinite(tu2) || !std::isfinite(tu3) || !std::isfinite(tu4) ||
-        !std::isfinite(vulMax) || !std::isfinite(vulMin) || !std::isfinite(kuf) || kur <= 0.0 ||
-        kuc < 0.0 || vurMax <= 0.0 || vucMax <= 0.0 || kuI < 0.0 || kuL < 0.0 || vuiMin > vuiMax ||
-        vulMin < 0.0 || vulMin > vulMax || tu1 < 0.0 || tu2 < 0.0 || tu3 < 0.0 || tu4 < 0.0 ||
-        (tu2 == 0.0 && tu1 != 0.0) || (tu4 == 0.0 && tu3 != 0.0) ||
-        std::abs(kuf) > signalTolerance) {
-        throw InvalidParameterValue(
-            "UEL1 parameters (KUF must be zero until AVR feedback is routed)");
+    for (const double value : {kur,
+                               kuc,
+                               vurMax,
+                               vucMax,
+                               kuI,
+                               kuL,
+                               vuiMax,
+                               vuiMin,
+                               tu1,
+                               tu2,
+                               tu3,
+                               tu4,
+                               vulMax,
+                               vulMin,
+                               kuf}) {
+        if (!std::isfinite(value)) {
+            throw InvalidParameterValue("UEL1 nonfinite parameter");
+        }
     }
-    offsets.local().local.algSize = 1;
-    offsets.local().local.diffSize = 3;
-    offsets.local().local.jacSize = 24;
+    if (kur <= 0.0 || kuc < 0.0 || vurMax <= 0.0 || vucMax <= 0.0 || kuI < 0.0 || kuL < 0.0 ||
+        (kuI == 0.0 && kuL == 0.0) || vuiMin > 0.0 || vuiMax < 0.0 || vulMin > 0.0 ||
+        vulMax < 0.0 || tu1 < 0.0 || tu2 < 0.0 || tu3 < 0.0 || tu4 < 0.0 ||
+        (tu2 == 0.0 && tu1 != 0.0) || (tu4 == 0.0 && tu3 != 0.0)) {
+        throw InvalidParameterValue("UEL1 gains, time constants, or signed limits");
+    }
     prevTime = time0;
 }
 
-ExcitationLimiterUEL1::Characteristic
-    ExcitationLimiterUEL1::characteristic(const IOdata& inputs) const
+detail::Signal<3> ExcitationLimiterUEL1::characteristic(const IOdata& inputs) const
 {
-    if (inputs.size() < excitationLimiterInputCount) {
+    if (inputs.size() < limiterMachineInputCount) {
         throw InvalidParameterValue("UEL1 input vector");
     }
-    for (auto index :
-         {limiterIdInLocation, limiterIqInLocation, limiterVdInLocation, limiterVqInLocation}) {
-        if (!std::isfinite(inputs[index]) || std::abs(inputs[index]) > 1e20) {
-            throw InvalidParameterValue("UEL1 requires compatible machine current and voltage");
+    for (auto index : {limiterIdInLocation,
+                       limiterIqInLocation,
+                       limiterVdInLocation,
+                       limiterVqInLocation,
+                       limiterStabilizingFeedbackInLocation}) {
+        if (index == limiterStabilizingFeedbackInLocation && kuf == 0.0) {
+            continue;
+        }
+        if (inputs.size() <= index || !std::isfinite(inputs[index]) ||
+            std::abs(inputs[index]) > 1e20) {
+            throw InvalidParameterValue(
+                "UEL1 requires compatible machine and excitation feedback signals");
         }
     }
-    const double idCurrent = inputs[limiterIdInLocation];
-    const double quadratureCurrent = inputs[limiterIqInLocation];
-    const double directVoltage = inputs[limiterVdInLocation];
-    const double quadratureVoltage = inputs[limiterVqInLocation];
-    const double voltage = std::hypot(directVoltage, quadratureVoltage);
-    if (voltage <= signalTolerance) {
-        throw InvalidParameterValue("UEL1 requires nonzero terminal voltage");
+    const auto directCurrent = detail::input<3>(inputs, limiterIdInLocation);
+    const auto quadratureCurrent = detail::input<3>(inputs, limiterIqInLocation);
+    const auto directVoltage = detail::input<3>(inputs, limiterVdInLocation);
+    const auto quadratureVoltage = detail::input<3>(inputs, limiterVqInLocation);
+    // VUC = |KUC*VT-j*IT| in GridDyn's machine dq convention.
+    const auto characteristicVoltage = detail::clamp(
+        detail::magnitude(detail::add(detail::scale(directVoltage, kuc), quadratureCurrent),
+                          detail::subtract(detail::scale(quadratureVoltage, kuc), directCurrent)),
+        0.0,
+        vucMax);
+    const auto referenceVoltage =
+        detail::clamp(detail::scale(detail::magnitude(directVoltage, quadratureVoltage), kur),
+                      0.0,
+                      vurMax);
+    auto error = detail::subtract(characteristicVoltage, referenceVoltage);
+    if (kuf != 0.0) {
+        error = detail::subtract(
+            error,
+            detail::scale(detail::input<3>(inputs, limiterStabilizingFeedbackInLocation), kuf));
     }
+    return error;
+}
 
-    // VUC = |KUC*VT - j*IT| and VUR = |KUR*VT|, using GridDyn's d-q
-    // sign convention for machine terminal current and voltage.
-    const double ucReal = (kuc * directVoltage) + quadratureCurrent;
-    const double ucImag = (kuc * quadratureVoltage) - idCurrent;
-    const double ucRaw = std::hypot(ucReal, ucImag);
-    const double urRaw = kur * voltage;
-    const double limitedUcVoltage = std::min(ucRaw, vucMax);
-    const double limitedUrVoltage = std::min(urRaw, vurMax);
-    Characteristic result;
-    result.error = limitedUcVoltage - limitedUrVoltage;
-
-    const bool ucActive = ucRaw < vucMax && ucRaw > signalTolerance;
-    const bool urActive = urRaw < vurMax;
-    if (ucActive) {
-        result.derivatives[limiterIdInLocation] = -ucImag / ucRaw;
-        result.derivatives[limiterIqInLocation] = ucReal / ucRaw;
-        result.derivatives[limiterVdInLocation] = kuc * ucReal / ucRaw;
-        result.derivatives[limiterVqInLocation] = kuc * ucImag / ucRaw;
+detail::Evaluation<3> ExcitationLimiterUEL1::evaluate(const IOdata& inputs,
+                                                      const double states[]) const
+{
+    detail::Evaluation<3> result;
+    const auto error = characteristic(inputs);
+    const auto integral = detail::state<3>(states[0], 0);
+    const auto rawPI = detail::add(detail::scale(error, kuL), integral);
+    const auto limitedPI = detail::clamp(rawPI, vuiMin, vuiMax);
+    // The limits apply to the PI output, not just to its integral state.
+    result.mRates[0] = detail::limitedRate(detail::scale(error, kuI), rawPI.mValue, vuiMin, vuiMax);
+    const auto lag1 = detail::state<3>(states[1], 1);
+    const double alpha1 = tu2 > 0.0 ? tu1 / tu2 : 1.0;
+    const auto first =
+        detail::add(detail::scale(limitedPI, alpha1), detail::scale(lag1, 1.0 - alpha1));
+    if (tu2 > 0.0) {
+        result.mRates[1] = detail::scale(detail::subtract(limitedPI, lag1), 1.0 / tu2);
     }
-    if (urActive) {
-        result.derivatives[limiterVdInLocation] -= kur * directVoltage / voltage;
-        result.derivatives[limiterVqInLocation] -= kur * quadratureVoltage / voltage;
+    const auto lag2 = detail::state<3>(states[2], 2);
+    const double alpha2 = tu4 > 0.0 ? tu3 / tu4 : 1.0;
+    if (tu4 > 0.0) {
+        result.mRates[2] = detail::scale(detail::subtract(first, lag2), 1.0 / tu4);
     }
+    result.mOutput =
+        detail::clamp(detail::add(detail::scale(first, alpha2), detail::scale(lag2, 1.0 - alpha2)),
+                      vulMin,
+                      vulMax);
     return result;
-}
-
-ExcitationLimiterUEL1::Control ExcitationLimiterUEL1::control(const IOdata& inputs,
-                                                              double integral,
-                                                              double lag1,
-                                                              double lag2) const
-{
-    const auto measurement = characteristic(inputs);
-    const double piSignal = (kuL * measurement.error) + integral;
-    const double alpha1 = (tu2 > 0.0) ? tu1 / tu2 : 1.0;
-    const double first = (alpha1 * piSignal) + ((1.0 - alpha1) * lag1);
-    const double alpha2 = (tu4 > 0.0) ? tu3 / tu4 : 1.0;
-    const double raw = (alpha2 * first) + ((1.0 - alpha2) * lag2);
-    const double action = std::clamp(raw, vulMin, vulMax);
-    const double slope = (raw > vulMin && raw < vulMax) ? 1.0 : 0.0;
-    return {.action = action,
-            .errorGain = slope * alpha2 * alpha1 * kuL,
-            .integralGain = slope * alpha2 * alpha1,
-            .firstLagGain = slope * alpha2 * (1.0 - alpha1),
-            .secondLagGain = slope * (1.0 - alpha2)};
-}
-
-double ExcitationLimiterUEL1::integralRate(double integral, double error) const
-{
-    const double rate = kuI * error;
-    if ((integral <= vuiMin && rate < 0.0) || (integral >= vuiMax && rate > 0.0)) {
-        return 0.0;
-    }
-    return rate;
 }
 
 void ExcitationLimiterUEL1::dynObjectInitializeB(const IOdata& inputs,
                                                  const IOdata& /*desiredOutput*/,
                                                  IOdata& fieldSet)
 {
-    const double error = characteristic(inputs).error;
     m_state[1] = 0.0;
-    m_state[2] = kuL * error;
+    m_state[2] = std::clamp(kuL * characteristic(inputs).mValue, vuiMin, vuiMax);
     m_state[3] = m_state[2];
-    m_state[0] = control(inputs, m_state[1], m_state[2], m_state[3]).action;
+    m_state[0] = evaluate(inputs, m_state.data() + 1).mOutput.mValue;
     fieldSet = {m_state[0]};
-}
-
-void ExcitationLimiterUEL1::residual(const IOdata& inputs,
-                                     const StateData& stateData,
-                                     double resid[],
-                                     const SolverMode& sMode)
-{
-    const auto loc = offsets.getLocations(stateData, resid, sMode, this);
-    const auto measured = characteristic(inputs);
-    const auto output =
-        control(inputs, loc.diffStateLoc[0], loc.diffStateLoc[1], loc.diffStateLoc[2]);
-    const double piSignal = (kuL * measured.error) + loc.diffStateLoc[0];
-    const double alpha1 = (tu2 > 0.0) ? tu1 / tu2 : 1.0;
-    const double first = (alpha1 * piSignal) + ((1.0 - alpha1) * loc.diffStateLoc[1]);
-    if (hasAlgebraic(sMode)) {
-        loc.destLoc[0] = output.action - loc.algStateLoc[0];
-    }
-    if (hasDifferential(sMode)) {
-        loc.destDiffLoc[0] = integralRate(loc.diffStateLoc[0], measured.error) - loc.dstateLoc[0];
-        loc.destDiffLoc[1] = (tu2 > 0.0) ?
-            ((piSignal - loc.diffStateLoc[1]) / tu2) - loc.dstateLoc[1] :
-            -loc.dstateLoc[1];
-        loc.destDiffLoc[2] = (tu4 > 0.0) ?
-            ((first - loc.diffStateLoc[2]) / tu4) - loc.dstateLoc[2] :
-            -loc.dstateLoc[2];
-    }
-}
-
-void ExcitationLimiterUEL1::derivative(const IOdata& inputs,
-                                       const StateData& stateData,
-                                       double deriv[],
-                                       const SolverMode& sMode)
-{
-    if (!hasDifferential(sMode)) {
-        return;
-    }
-    const auto loc = offsets.getLocations(stateData, deriv, sMode, this);
-    const auto measured = characteristic(inputs);
-    const double piSignal = (kuL * measured.error) + loc.diffStateLoc[0];
-    const double alpha1 = (tu2 > 0.0) ? tu1 / tu2 : 1.0;
-    const double first = (alpha1 * piSignal) + ((1.0 - alpha1) * loc.diffStateLoc[1]);
-    loc.destDiffLoc[0] = integralRate(loc.diffStateLoc[0], measured.error);
-    loc.destDiffLoc[1] = (tu2 > 0.0) ? (piSignal - loc.diffStateLoc[1]) / tu2 : 0.0;
-    loc.destDiffLoc[2] = (tu4 > 0.0) ? (first - loc.diffStateLoc[2]) / tu4 : 0.0;
-}
-
-void ExcitationLimiterUEL1::algebraicUpdate(const IOdata& inputs,
-                                            const StateData& stateData,
-                                            double update[],
-                                            const SolverMode& sMode,
-                                            double /*alpha*/)
-{
-    if (!hasAlgebraic(sMode)) {
-        return;
-    }
-    const auto loc = offsets.getLocations(stateData, update, sMode, this);
-    loc.destLoc[0] =
-        control(inputs, loc.diffStateLoc[0], loc.diffStateLoc[1], loc.diffStateLoc[2]).action;
-}
-
-void ExcitationLimiterUEL1::jacobianElements(const IOdata& inputs,
-                                             const StateData& stateData,
-                                             MatrixData<double>& matrixData,
-                                             const IOlocs& inputLocs,
-                                             const SolverMode& sMode)
-{
-    const auto loc = offsets.getLocations(stateData, sMode, this);
-    const auto measured = characteristic(inputs);
-    const auto output =
-        control(inputs, loc.diffStateLoc[0], loc.diffStateLoc[1], loc.diffStateLoc[2]);
-    const double integral = loc.diffStateLoc[0];
-    const double error = measured.error;
-    const double rate = kuI * error;
-    const bool blockedAtMinimum = integral <= vuiMin && rate < 0.0;
-    const bool blockedAtMaximum = integral >= vuiMax && rate > 0.0;
-    const bool integrate = !blockedAtMinimum && !blockedAtMaximum;
-    const double alpha1 = (tu2 > 0.0) ? tu1 / tu2 : 1.0;
-    if (hasAlgebraic(sMode)) {
-        matrixData.assign(loc.algOffset, loc.algOffset, -1.0);
-        if (!isAlgebraicOnly(sMode)) {
-            matrixData.assign(loc.algOffset, loc.diffOffset, output.integralGain);
-            matrixData.assign(loc.algOffset, loc.diffOffset + 1, output.firstLagGain);
-            matrixData.assign(loc.algOffset, loc.diffOffset + 2, output.secondLagGain);
-            for (index_t input = 0; input < excitationLimiterInputCount; ++input) {
-                if (output.errorGain * measured.derivatives[input] != 0.0) {
-                    matrixData.assignCheckCol(loc.algOffset,
-                                              inputLocs[input],
-                                              output.errorGain * measured.derivatives[input]);
-                }
-            }
-        }
-    }
-    if (!hasDifferential(sMode)) {
-        return;
-    }
-
-    matrixData.assign(loc.diffOffset, loc.diffOffset, -stateData.cj);
-    if (integrate) {
-        for (index_t input = 0; input < excitationLimiterInputCount; ++input) {
-            matrixData.assignCheckCol(loc.diffOffset,
-                                      inputLocs[input],
-                                      kuI * measured.derivatives[input]);
-        }
-    }
-    if (tu2 > 0.0) {
-        matrixData.assign(loc.diffOffset + 1, loc.diffOffset, 1.0 / tu2);
-        matrixData.assign(loc.diffOffset + 1, loc.diffOffset + 1, (-1.0 / tu2) - stateData.cj);
-        for (index_t input = 0; input < excitationLimiterInputCount; ++input) {
-            matrixData.assignCheckCol(loc.diffOffset + 1,
-                                      inputLocs[input],
-                                      kuL * measured.derivatives[input] / tu2);
-        }
-    } else {
-        matrixData.assign(loc.diffOffset + 1, loc.diffOffset + 1, -stateData.cj);
-    }
-    if (tu4 > 0.0) {
-        matrixData.assign(loc.diffOffset + 2, loc.diffOffset, alpha1 / tu4);
-        matrixData.assign(loc.diffOffset + 2, loc.diffOffset + 1, (1.0 - alpha1) / tu4);
-        matrixData.assign(loc.diffOffset + 2, loc.diffOffset + 2, (-1.0 / tu4) - stateData.cj);
-        for (index_t input = 0; input < excitationLimiterInputCount; ++input) {
-            matrixData.assignCheckCol(loc.diffOffset + 2,
-                                      inputLocs[input],
-                                      alpha1 * kuL * measured.derivatives[input] / tu4);
-        }
-    } else {
-        matrixData.assign(loc.diffOffset + 2, loc.diffOffset + 2, -stateData.cj);
-    }
 }
 
 void ExcitationLimiterUEL1::timestep(CoreTime time,
                                      const IOdata& inputs,
-                                     const SolverMode& /*sMode*/)
+                                     const SolverMode& /*mode*/)
 {
+    const auto result = evaluate(inputs, m_state.data() + 1);
     const double step = time - prevTime;
-    const double error = characteristic(inputs).error;
-    const double oldIntegral = m_state[1];
-    const double oldLag1 = m_state[2];
-    const double oldLag2 = m_state[3];
-    const double piSignal = (kuL * error) + oldIntegral;
-    const double alpha1 = (tu2 > 0.0) ? tu1 / tu2 : 1.0;
-    const double first = (alpha1 * piSignal) + ((1.0 - alpha1) * oldLag1);
-    m_state[1] =
-        std::clamp(oldIntegral + (step * integralRate(oldIntegral, error)), vuiMin, vuiMax);
-    if (tu2 > 0.0) {
-        m_state[2] += step * (piSignal - oldLag1) / tu2;
+    for (index_t index = 0; index < 3; ++index) {
+        m_state[index + 1] += step * result.mRates[index].mValue;
     }
-    if (tu4 > 0.0) {
-        m_state[3] += step * (first - oldLag2) / tu4;
-    }
-    m_state[0] = control(inputs, m_state[1], m_state[2], m_state[3]).action;
+    m_state[0] = evaluate(inputs, m_state.data() + 1).mOutput.mValue;
     prevTime = time;
 }
-
 }  // namespace griddyn::limiters

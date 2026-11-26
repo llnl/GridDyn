@@ -87,7 +87,7 @@ void ExcitationLimiterOEL4C::dynObjectInitializeA(CoreTime time0, std::uint32_t 
 {
     if (!qRefSet || !std::isfinite(ki) || !std::isfinite(kp) || !std::isfinite(delay) ||
         !std::isfinite(minimum) || !std::isfinite(qRef) || ki < 0.0 || kp < 0.0 || delay < 0.0 ||
-        minimum >= 0.0) {
+        minimum > 0.0 || (ki == 0.0 && kp == 0.0)) {
         throw InvalidParameterValue("OEL4C gains, delay, minimum, or Q reference");
     }
     offsets.local().local.algSize = 1;
@@ -102,7 +102,7 @@ void ExcitationLimiterOEL4C::dynObjectInitializeA(CoreTime time0, std::uint32_t 
 
 ExcitationLimiterOEL4C::ReactivePower ExcitationLimiterOEL4C::reactivePower(const IOdata& inputs)
 {
-    if (inputs.size() < excitationLimiterInputCount) {
+    if (inputs.size() < limiterMachineInputCount) {
         throw InvalidParameterValue("OEL4C input vector");
     }
     for (auto index :
@@ -135,8 +135,12 @@ void ExcitationLimiterOEL4C::updateTimer(bool violation, CoreTime time)
 
 double ExcitationLimiterOEL4C::piInput(double reactivePowerValue, CoreTime time) const
 {
-    if (reactivePowerValue <= qRef || !violating ||
-        (!delayElapsed && time < violationStart + delay)) {
+    if (reactivePowerValue <= qRef) {
+        // IEEE OEL4C passes positive error immediately to release accumulated
+        // limitation. Only a negative pickup error is delayed.
+        return qRef - reactivePowerValue;
+    }
+    if (!violating || (!delayElapsed && time < violationStart + delay)) {
         return 0.0;
     }
     return qRef - reactivePowerValue;

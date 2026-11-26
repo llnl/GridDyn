@@ -6,6 +6,7 @@
 
 #include "../gtestHelper.h"
 #include "core/CoreExceptions.h"
+#include "griddyn/GenModel.h"
 #include "griddyn/Generator.h"
 #include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
@@ -15,6 +16,7 @@
 #include "griddyn/exciters/ExciterDC2A.h"
 #include "griddyn/exciters/ExciterESAC1A.h"
 #include "griddyn/exciters/ExciterESAC6A.h"
+#include "griddyn/exciters/ExciterEXST1.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/generators/RenewableGenerator.h"
 #include "griddyn/governors/GovernorGPWSCC.h"
@@ -23,6 +25,10 @@
 #include "griddyn/governors/GovernorIeeeG3.h"
 #include "griddyn/governors/GovernorWpidHy.h"
 #include "griddyn/limiters/ExcitationLimiterMNLEX2.h"
+#include "griddyn/limiters/ExcitationLimiterOEL3C.h"
+#include "griddyn/limiters/ExcitationLimiterOEL4C.h"
+#include "griddyn/limiters/ExcitationLimiterUEL1.h"
+#include "griddyn/limiters/ExcitationLimiterUEL2C.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include "griddyn/links/DcLink.h"
@@ -30,12 +36,15 @@
 #include "griddyn/primary/DcBus.h"
 #include "griddyn/relays/Pmu.h"
 #include "griddyn/renewables/WTPTA1.h"
+#include "griddyn/solvers/SolverInterface.h"
 #include "griddyn/stabilizers/StabilizerIee2st.h"
 #include "griddyn/stabilizers/StabilizerPss2a.h"
 #include "griddyn/stabilizers/StabilizerStab3.h"
 #include "griddyn/voltagecompensators/VoltageCompensatorIeeeVC.h"
 #include <algorithm>
 #include <array>
+#include <cmath>
+#include <complex>
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
@@ -583,6 +592,153 @@ TEST(ExampleReaderTests, LoadEpcDyrDynamicModels)
         auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
         ASSERT_NE(generator, nullptr) << "dynamic generator at bus " << busId;
         EXPECT_NE(generator->find("genmodel"), nullptr) << "GENROU at bus " << busId;
+    }
+}
+
+TEST(ExampleReaderTests, MapsCompFromDyrAndDydUsingExistingIeeeVC)
+{
+    const auto directory = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests";
+    const std::array<std::pair<int, double>, 3> cases{{{1, .10253}, {2, -.06}, {3, 0.0}}};
+    for (const auto* fileName : {"ieee14_comp.dyr", "ieee14_comp.dyd"}) {
+        SCOPED_TRACE(fileName);
+        auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+        griddyn::loadFile(simulation, (directory / "ieee14.raw").string());
+        griddyn::loadFile(simulation, (directory / "ieee14_genrou.dyr").string());
+        griddyn::loadFile(simulation, (directory / "ieee14_exst1.dyr").string());
+        for (const auto& [busId, reactance] : cases) {
+            auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", busId));
+            ASSERT_NE(bus, nullptr);
+            bus->getGen(0)->set("mbase", 125.0 * busId, units::MW);
+        }
+        ASSERT_NO_THROW(griddyn::loadFile(simulation, (directory / fileName).string()));
+        ASSERT_EQ(simulation->dynInitialize(), 0);
+        for (const auto& [busId, reactance] : cases) {
+            SCOPED_TRACE(busId);
+            auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", busId));
+            auto* generator = bus->getGen(0);
+            auto* compensator =
+                dynamic_cast<griddyn::voltagecompensators::VoltageCompensatorIeeeVC*>(
+                    generator->find("voltagecompensator"));
+            ASSERT_NE(compensator, nullptr);
+            EXPECT_DOUBLE_EQ(compensator->get("rc"), 0.0);
+            EXPECT_DOUBLE_EQ(compensator->get("xc"), -reactance);
+
+            // Independent phasor calculation from initialized machine-base P/Q.
+            // Query the machine directly: the host's callback buffers are not
+            // populated until the first solver callback after initialization.
+            const double voltage = bus->getVoltage();
+            EXPECT_DOUBLE_EQ(generator->get("mbase", units::MW), 125.0 * busId);
+            auto* machine = dynamic_cast<griddyn::GenModel*>(generator->find("genmodel"));
+            ASSERT_NE(machine, nullptr);
+            const griddyn::IOdata inputs{voltage, bus->getAngle(), 1.0};
+            const double realPower = machine->getOutput(inputs,
+                                                        griddyn::emptyStateData,
+                                                        griddyn::cLocalSolverMode,
+                                                        griddyn::POUT_LOCATION);
+            const double reactivePower = machine->getOutput(inputs,
+                                                            griddyn::emptyStateData,
+                                                            griddyn::cLocalSolverMode,
+                                                            griddyn::QOUT_LOCATION);
+            const std::complex<double> current{-realPower / voltage, -reactivePower / voltage};
+            const double expected =
+                std::abs(voltage - (std::complex<double>{0.0, reactance} * current));
+            EXPECT_NEAR(compensator->getOutput(), expected, 1e-10)
+                << "voltage " << voltage << " machine current " << current;
+        }
+        // Equilibrium verifies that the exciter reference includes compensation.
+        EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+        for (const auto& mode :
+             {griddyn::cDaeSolverMode, griddyn::cDynDiffSolverMode, griddyn::cDynAlgSolverMode}) {
+            EXPECT_EQ(runJacobianCheck(simulation, mode, false), 0);
+        }
+    }
+}
+
+TEST(ExampleReaderTests, RejectsMalformedCompRecords)
+{
+    const auto directory = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests";
+    struct CompRecord {
+        int bus;
+        std::string_view machine;
+        std::string_view payload;
+    };
+    const std::array cases{CompRecord{.bus = 1, .machine = "1", .payload = ""},
+                           CompRecord{.bus = 1, .machine = "1", .payload = "0.1 0.2"},
+                           CompRecord{.bus = 1, .machine = "1", .payload = "0.1junk"},
+                           CompRecord{.bus = 1, .machine = "1", .payload = "nan"},
+                           CompRecord{.bus = 1, .machine = "1", .payload = "inf"},
+                           CompRecord{.bus = 1, .machine = "1", .payload = "1e400"},
+                           CompRecord{.bus = 1, .machine = "1", .payload = "Xe=0.1"},
+                           CompRecord{.bus = 1, .machine = "1", .payload = "0.1 mva=200"},
+                           CompRecord{.bus = 999999, .machine = "1", .payload = "0.1"},
+                           CompRecord{.bus = 1, .machine = "Z", .payload = "0.1"},
+                           CompRecord{.bus = 5, .machine = "1", .payload = "0.1"}};
+    for (const auto* extension : {".dyr", ".dyd"}) {
+        const auto path = std::filesystem::temp_directory_path() /
+            (std::string{"griddyn_invalid_comp"} + extension);
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup()
+            {
+                std::error_code error;
+                std::filesystem::remove(path, error);
+            }
+        } cleanup{path};
+        for (const auto& record : cases) {
+            SCOPED_TRACE(extension);
+            SCOPED_TRACE(record.payload);
+            auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+            griddyn::loadFile(simulation, (directory / "ieee14.raw").string());
+            griddyn::loadFile(simulation, (directory / "ieee14_genrou.dyr").string());
+            {
+                std::ofstream output(path);
+                ASSERT_TRUE(output.is_open());
+                if (std::string_view{extension} == ".dyr") {
+                    output << record.bus << " 'COMP' " << record.machine << ' ' << record.payload
+                           << " /\n";
+                } else {
+                    output << "comp " << record.bus << R"( "Missing bus name" 69 ")"
+                           << record.machine << "\" : " << record.payload << " /\n";
+                }
+            }
+            try {
+                griddyn::loadFile(simulation, path.string());
+                FAIL() << "Malformed COMP record was accepted";
+            }
+            catch (const griddyn::InvalidParameterValue& error) {
+                const std::string message{error.what()};
+                EXPECT_NE(message.find("COMP"), std::string::npos);
+                EXPECT_NE(message.find(path.filename().string()), std::string::npos);
+                EXPECT_NE(message.find("bus " + std::to_string(record.bus)), std::string::npos);
+                EXPECT_NE(message.find("machine " + std::string{record.machine}), std::string::npos)
+                    << message;
+            }
+            auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+            ASSERT_NE(bus, nullptr);
+            EXPECT_EQ(bus->getGen(0)->find("voltagecompensator"), nullptr);
+        }
+    }
+}
+
+TEST(ExampleReaderTests, RejectsCompForStaticGenerator)
+{
+    const auto directory = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests";
+    for (const auto* fileName : {"ieee14_comp.dyr", "ieee14_comp.dyd"}) {
+        auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+        auto* bus = new griddyn::GridBus("Bus 1");
+        bus->setUserID(1);
+        simulation->add(bus);
+        auto* generator = new griddyn::Generator("Bus 1_Gen_1");
+        bus->add(generator);
+        try {
+            griddyn::loadFile(simulation, (directory / fileName).string());
+            FAIL() << "COMP was attached to a static generator";
+        }
+        catch (const griddyn::InvalidParameterValue& error) {
+            EXPECT_NE(std::string{error.what()}.find("COMP requires a dynamic generator"),
+                      std::string::npos);
+        }
+        EXPECT_EQ(generator->find("voltagecompensator"), nullptr);
     }
 }
 
@@ -1719,4 +1875,197 @@ TEST(ExampleReaderTests, ExportActivsG500ToRawRoundTripPreservesPowerFlow)
     }
 
     std::filesystem::remove(exported);
+}
+
+TEST(ExampleReaderTests, MapsExpandedUelOelModelsFromDyrAndDyd)
+{
+    const auto directory = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests";
+    for (const auto* name : {"ieee14_uel_oel.dyr", "ieee14_uel_oel.dyd"}) {
+        SCOPED_TRACE(name);
+        auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+        griddyn::loadFile(simulation, (directory / "ieee14.raw").string());
+        griddyn::loadFile(simulation, (directory / "ieee14_genrou.dyr").string());
+        griddyn::loadFile(simulation, (directory / "ieee14_exst1.dyr").string());
+        griddyn::loadFile(simulation, (directory / "ieee14_scrx.dyr").string());
+        griddyn::loadFile(simulation, (directory / "ieee14_exac1.dyr").string());
+        auto* bus1 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+        auto* bus2 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+        auto* bus3 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 3));
+        ASSERT_NE(bus1, nullptr);
+        ASSERT_NE(bus2, nullptr);
+        ASSERT_NE(bus3, nullptr);
+        bus1->getGen(0)->set("mbase", 250.0, units::MVAR);
+        const double expectedQref = bus1->getGen(0)->get("qmax", units::MVAR) / 250.0;
+        ASSERT_NO_THROW(griddyn::loadFile(simulation, (directory / name).string()));
+        auto* oel4c =
+            dynamic_cast<griddyn::limiters::ExcitationLimiterOEL4C*>(bus1->getGen(0)->find("oel"));
+        auto* oel3c =
+            dynamic_cast<griddyn::limiters::ExcitationLimiterOEL3C*>(bus2->getGen(0)->find("oel"));
+        auto* uel1 =
+            dynamic_cast<griddyn::limiters::ExcitationLimiterUEL1*>(bus2->getGen(0)->find("uel"));
+        auto* uel2c =
+            dynamic_cast<griddyn::limiters::ExcitationLimiterUEL2C*>(bus3->getGen(0)->find("uel"));
+        ASSERT_NE(oel4c, nullptr);
+        ASSERT_NE(oel3c, nullptr);
+        ASSERT_NE(uel1, nullptr);
+        ASSERT_NE(uel2c, nullptr);
+        EXPECT_DOUBLE_EQ(oel4c->get("qref"), expectedQref);
+        EXPECT_DOUBLE_EQ(oel3c->get("oelinput"), 2.0);
+        EXPECT_DOUBLE_EQ(uel1->get("kuf"), 0.4);
+        EXPECT_DOUBLE_EQ(uel2c->get("sw1"), 2.0);
+        EXPECT_DOUBLE_EQ(uel2c->get("tqref"), 0.07);
+        EXPECT_DOUBLE_EQ(uel2c->get("q2"), -0.2);
+        bus3->getGen(0)->add(new griddyn::exciters::ExciterEXST1());
+        ASSERT_EQ(simulation->dynInitialize(), 0);
+        EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+        for (const auto& mode :
+             {griddyn::cDaeSolverMode, griddyn::cDynDiffSolverMode, griddyn::cDynAlgSolverMode}) {
+            EXPECT_EQ(runJacobianCheck(simulation, mode, false), 0);
+        }
+        EXPECT_EQ(simulation->run(0.05), 0);
+        // Move the controls into their unsaturated active regions so the host
+        // check includes VF/VFE feedback through the exciter and machine.
+        uel1->set("kur", 0.1);
+        uel1->set("kuc", 0.0);
+        uel1->set("kul", 0.2);
+        for (const auto& mode : {griddyn::cDaeSolverMode, griddyn::cDynDiffSolverMode}) {
+            auto solver = simulation->getSolverInterface(mode);
+            simulation->getSolverReady(solver);
+            const auto& activeMode = solver->getSolverMode();
+            auto* states = solver->stateData();
+            const auto uel1Offset = uel1->getOffsets(activeMode).diffOffset;
+            states[uel1Offset] = 0.2;
+            states[uel1Offset + 1] = 0.15;
+            states[uel1Offset + 2] = 0.1;
+            const auto uel2Offset = uel2c->getOffsets(activeMode).diffOffset;
+            states[uel2Offset] = 0.03;
+            states[uel2Offset + 4] = states[uel2Offset + 2] + 0.2;
+            states[uel2Offset + 7] = 0.15;
+            states[uel2Offset + 8] = 0.1;
+            const auto oel3Offset = oel3c->getOffsets(activeMode).diffOffset;
+            states[oel3Offset] = 1.2;
+            states[oel3Offset + 1] = -0.2;
+            griddyn::StateData activeData(simulation->getSimulationTime(), states);
+            activeData.stateSize = solver->size();
+            oel3c->rootCheck({}, activeData, activeMode, griddyn::CheckLevel::FULL_CHECK);
+        }
+        for (const auto selector : {0, 1, 2}) {
+            oel3c->set("oelinput", selector);
+            for (const auto filterTime : {0.0, 0.02}) {
+                oel3c->set("tf", filterTime);
+                for (const auto& mode : {griddyn::cDaeSolverMode,
+                                         griddyn::cDynDiffSolverMode,
+                                         griddyn::cDynAlgSolverMode}) {
+                    EXPECT_EQ(runJacobianCheck(simulation, mode, false), 0)
+                        << "OELInput " << selector << " TF " << filterTime;
+                }
+            }
+        }
+    }
+}
+
+TEST(ExampleReaderTests, Oel3cImplicitPickupAndRecoverySwitchThroughZero)
+{
+    const auto directory = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests";
+    for (const auto selector : {0, 1, 2}) {
+        SCOPED_TRACE(selector);
+        auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+        for (const auto* name : {"ieee14.raw", "ieee14_genrou.dyr", "ieee14_exac1.dyr"}) {
+            griddyn::loadFile(simulation, (directory / name).string());
+        }
+        auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+        ASSERT_NE(bus, nullptr);
+        auto* limiter = new griddyn::limiters::ExcitationLimiterOEL3C();
+        limiter->set("oelinput", selector);
+        limiter->set("itfpu", 0.01);
+        limiter->set("k1", 2.0);
+        limiter->set("koel", 0.02);
+        limiter->set("toel", 1.0);
+        limiter->set("kpoel", 0.1);
+        bus->getGen(0)->add(limiter);
+        ASSERT_EQ(simulation->dynInitialize(), 0);
+        ASSERT_EQ(simulation->run(0.1), 0);
+        EXPECT_LT(limiter->getStates()[2], 0.0);
+        EXPECT_GT(limiter->getOutput(), 0.0);
+        EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+        // Release the overload, cross the proportional-switch root, and
+        // continue integration on the inactive side of zero.
+        limiter->set("itfpu", 10.0);
+        ASSERT_EQ(simulation->run(0.3), 0);
+        EXPECT_GT(limiter->getStates()[2], 0.0);
+        EXPECT_NEAR(limiter->getOutput(), 0.0, 1e-10);
+        EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    }
+}
+
+TEST(ExampleReaderTests, RejectsMalformedUelOelRecordsBeforeReplacingControllers)
+{
+    const auto directory = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests";
+    struct Record {
+        std::string_view model;
+        std::string_view payload;
+    };
+    const std::array cases{
+        Record{.model = "OEL4C", .payload = "0.1 0.2 1 1"},
+        Record{.model = "OEL4C", .payload = "0.1junk 0.2 1 1 -1"},
+        Record{.model = "OEL4C", .payload = "0.1 0.2 1 1 -1 extra=1"},
+        Record{.model = "OEL4C", .payload = "0.1 0.2 nan 1 -1"},
+        Record{.model = "OEL4C", .payload = "0.1 0.2 1e400 1 -1"},
+        Record{.model = "OEL4C", .payload = "0.1 -0.2 1 1 -1"},
+        Record{.model = "OEL3C", .payload = "3 1.05 1 0.02 2 1 24 1 .66 -1 0 -1"},
+        Record{.model = "OEL3C", .payload = "0 1.05 1 0.02 1.5 1 24 1 .66 -1 0 -1"},
+        Record{.model = "UEL1", .payload = "1.95 1.38 .4 5.8 5.8 .3 40 18 0 .02 0 .03 .2 18 0"},
+        Record{
+            .model = "UEL2C",
+            .payload =
+                ".2 .15 .1 1 1 2 .5 .07 .8 .4 3 .5 .8 1 0 .02 .1 .03 .2 1 0 1 0 0 .1 1.2 0 -.7 1 -.6"},
+        Record{
+            .model = "UEL2C",
+            .payload =
+                ".2 .15 .1 1 1 2 .5 .07 .8 .4 2 .5 .8 1 0 .02 .1 .03 .2 1 0 1 0 0 .1 1.2 0 -.7 0 -.6"},
+        Record{
+            .model = "UEL2C",
+            .payload =
+                ".2 .15 .1 1 1 2 .5 .07 .8 .4 2 .5 .8 1 0 .02 .1 .03 .2 1 0 1 0 0 .1 1.2 0 -.7 1"}};
+    for (const auto* extension : {".dyr", ".dyd"}) {
+        const auto path = std::filesystem::temp_directory_path() /
+            (std::string{"griddyn_invalid_uel_oel"} + extension);
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup()
+            {
+                std::error_code error;
+                std::filesystem::remove(path, error);
+            }
+        } cleanup{path};
+        for (const auto& record : cases) {
+            SCOPED_TRACE(record.model);
+            SCOPED_TRACE(extension);
+            auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+            griddyn::loadFile(simulation, (directory / "ieee14.raw").string());
+            griddyn::loadFile(simulation, (directory / "ieee14_genrou.dyr").string());
+            auto* targetBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+            ASSERT_NE(targetBus, nullptr);
+            auto* existingOel = new griddyn::ExcitationLimiter();
+            auto* existingUel = new griddyn::ExcitationLimiter();
+            existingUel->setRole(griddyn::ExcitationLimiter::Role::UNDER);
+            targetBus->getGen(0)->add(existingOel);
+            targetBus->getGen(0)->add(existingUel);
+            {
+                std::ofstream output(path);
+                ASSERT_TRUE(output.is_open());
+                if (std::string_view{extension} == ".dyr") {
+                    output << "1 '" << record.model << "' 1 " << record.payload << " /\n";
+                } else {
+                    output << record.model << R"( 1 "Bus 1" 69 "1" : )" << record.payload << " /\n";
+                }
+            }
+            EXPECT_THROW(griddyn::loadFile(simulation, path.string()),
+                         griddyn::InvalidParameterValue);
+            auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+            ASSERT_NE(bus, nullptr);
+            EXPECT_EQ(bus->getGen(0)->find("oel"), existingOel);
+            EXPECT_EQ(bus->getGen(0)->find("uel"), existingUel);
+        }
+    }
 }

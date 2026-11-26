@@ -55,6 +55,7 @@ set(generator_headers
     Generator.h
     ControlSignalRouting.h
     ExcitationLimiter.h
+    limiters/LimiterDynamics.h
     limiters/ExcitationLimiterMNLEX2.h
     limiters/ExcitationLimiterOEL3C.h
     limiters/ExcitationLimiterOEL4C.h

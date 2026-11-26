@@ -92,6 +92,40 @@ void expectInternalLinksBelongToArea(griddyn::GridArea* area)
 
 }  // namespace
 
+TEST(ExampleReaderTests, ReportsMissingFilesAcrossFormats)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    const auto unavailable = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "nonexistent-case";
+    ASSERT_FALSE(std::filesystem::exists(unavailable));
+    for (const auto* format : {"aux",
+                               "cdf",
+                               "csv",
+                               "dyd",
+                               "dyr",
+                               "epc",
+                               "gdz",
+                               "json",
+                               "m",
+                               "psp",
+                               "py",
+                               "raw",
+                               "sav",
+                               "xml",
+                               "yaml"}) {
+        SCOPED_TRACE(format);
+        try {
+            griddyn::loadFile(simulation, unavailable.string(), nullptr, format);
+            ADD_FAILURE() << "Loading a missing file must fail";
+        }
+        catch (const griddyn::FileOperationError& error) {
+            EXPECT_EQ(error.what(), "file does not exist: " + unavailable.string());
+        }
+    }
+    griddyn::ReaderInfo readerInfo;
+    EXPECT_THROW(griddyn::loadCsv(simulation.get(), unavailable.string(), readerInfo),
+                 griddyn::FileOperationError);
+}
+
 TEST(ExampleReaderTests, MapsHydroAndMnlex2InPsseDyrOrder)
 {
     const auto epcPath =

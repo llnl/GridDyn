@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "core/CoreExceptions.h"
 #include "core/CoreObject.h"
 #include "formatInterpreters/readerElement.h"
 #include "griddyn/simulation/GridSimulation.h"
@@ -42,6 +43,16 @@ CoreObject* loadElementFile(CoreObject* parentObject, const std::string& fileNam
         readerConfig::warnCount = 0;
     }
 
+    LEVELPRINT(READER_SUMMARY_PRINT, "loading file " << fileName);
+    auto doc = std::make_shared<RX>(fileName);
+    if (!doc->isValid()) {
+        if (parentObject != nullptr) {
+            throw FileOperationError("unable to read input file '" + fileName + "'");
+        }
+        WARNPRINT(READER_WARN_ALL, "Unable to open File: " << fileName);
+        return nullptr;
+    }
+
     // May need to create a ReaderInfo object this to ensure it gets deleted even under exception
     std::unique_ptr<ReaderInfo> rip = (ri == nullptr) ? std::make_unique<ReaderInfo>() : nullptr;
     ReaderInfo::scopeID riScope = 0;
@@ -63,18 +74,6 @@ CoreObject* loadElementFile(CoreObject* parentObject, const std::string& fileNam
     ri->addDirectory(std::filesystem::current_path().string());
     ri->addDirectory(mainPath.parent_path().string());
 
-    // read xml file from location
-    LEVELPRINT(READER_SUMMARY_PRINT, "loading file " << fileName);
-
-    auto doc = std::make_shared<RX>(fileName);
-
-    if (!doc->isValid()) {
-        WARNPRINT(READER_WARN_ALL, "Unable to open File: " << fileName);
-        if (dynamic_cast<GridSimulation*>(parentObject)) {
-            dynamic_cast<GridSimulation*>(parentObject)->setErrorCode(GS_INVALID_FILE_ERROR);
-        }
-        return nullptr;
-    }
     auto sim = std::static_pointer_cast<ReaderElement>(doc);
     if (rootSimFile) {
         readConfigurationFields(sim, *ri);

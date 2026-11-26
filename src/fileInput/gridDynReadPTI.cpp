@@ -57,7 +57,7 @@ void loadPti(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& readerOptions)
 {
-    std::ifstream file(fileName.c_str(), std::ios::in);
+    auto file = openInputFile(fileName);
     std::string line;  // line storage
     std::string temp1;  // temporary storage for substrings
     std::vector<GridBus*> busList;

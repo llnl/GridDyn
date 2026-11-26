@@ -7,6 +7,7 @@
 #pragma once
 
 #include "griddyn/gridDynDefinitions.hpp"
+#include <iosfwd>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -30,6 +31,9 @@ class ReaderInfo;
 class CoreObject;
 class BasicReaderInfo;
 class Link;
+
+void validateInputFile(const std::string& fileName);
+std::ifstream openInputFile(const std::string& fileName);
 
 void processParamString(GridParameter& param, ReaderInfo& readerInformation);
 

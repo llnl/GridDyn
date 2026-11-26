@@ -8,9 +8,23 @@
 
 #include <string>
 namespace griddyn {
-CoreObjectException::CoreObjectException(const CoreObject* obj) noexcept: throwingObject(obj) {}
-std::string CoreObjectException::who() const noexcept
+CoreObjectException::CoreObjectException(const CoreObject* obj)
 {
-    return fullObjectName(throwingObject);
+    updateObject(obj);
+}
+
+std::string CoreObjectException::who() const
+{
+    return objectName;
+}
+
+std::string CoreObjectException::diagnostic() const
+{
+    return objectName.empty() ? what() : std::string(what()) + " [" + objectName + "]";
+}
+
+void CoreObjectException::updateObject(const CoreObject* obj)
+{
+    objectName = (obj != nullptr) ? fullObjectName(obj) : std::string{};
 }
 }  // namespace griddyn

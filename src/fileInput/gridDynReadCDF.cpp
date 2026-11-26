@@ -41,14 +41,10 @@ void loadCdf(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& readerOptions)
 {
-    std::ifstream file(fileName.c_str(), std::ios::in);
+    auto file = openInputFile(fileName);
     std::string line;  // line storage
     std::string temp1;  // temporary storage for substrings
 
-    if (!(file.is_open())) {
-        std::cerr << "Unable to open file " << fileName << '\n';
-        //    return;
-    }
     std::vector<GridBus*> busList;
     index_t index;
     double base = 100;

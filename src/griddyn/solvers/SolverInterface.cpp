@@ -257,8 +257,13 @@ bool SolverInterface::supportsCheckpointRestore() const noexcept
 }
 void SolverInterface::restoreFromCheckpoint(CoreTime time)
 {
-    if (!isInitialized() || !supportsCheckpointRestore()) {
-        throw(InvalidSolverOperation());
+    if (!isInitialized()) {
+        throw InvalidSolverOperation(SOLVER_INVALID_STATE_ERROR,
+                                     "cannot restore checkpoint before solver initialization");
+    }
+    if (!supportsCheckpointRestore()) {
+        throw InvalidSolverOperation(SOLVER_INVALID_STATE_ERROR,
+                                     "solver does not support checkpoint restore");
     }
     solveTime = time;
 }
@@ -699,7 +704,7 @@ void SolverInterface::checkFlag(void* flagvalue,
                                funcname,
                                *errflag);
             }
-            throw(SolverException(*errflag));
+            throw SolverException(*errflag, std::string(funcname) + " failed");
         }
     }
     // TODO(phlpt): Handle the missing opt == 2 / nullptr case if needed.

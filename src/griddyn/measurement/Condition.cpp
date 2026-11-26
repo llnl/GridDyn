@@ -209,12 +209,12 @@ void Condition::updateObject(CoreObject* obj, ObjectUpdateMode mode)
         try {
             mConditionRHS->updateObject(obj, mode);
         }
-        catch (ObjectUpdateFailException& oe) {
+        catch (const ObjectUpdateFailException&) {
             if ((mConditionLHS) && (keyObject != nullptr)) {
                 // now rollback A
                 mConditionLHS->updateObject(keyObject->getRoot(), ObjectUpdateMode::MATCH);
             }
-            throw oe;
+            throw;
         }
     }
 }

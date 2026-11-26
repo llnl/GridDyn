@@ -66,6 +66,29 @@ using units::rad;
 using units::s;
 using units::unit;
 
+namespace {
+    template<class SetParameter>
+    bool trySetSubModelParameter(GridComponent& object, SetParameter&& setParameter)
+    {
+        constexpr std::string_view localOnlyFlag = "no_gridcomponent_set";
+        struct RestoreFlag {
+            CoreObject& object;
+            std::string_view flag;
+            bool wasSet;
+            ~RestoreFlag() { object.setFlag(flag, wasSet); }
+        } restore{object, localOnlyFlag, object.checkFlag(NO_GRIDCOMPONENT_SET)};
+
+        object.setFlag(localOnlyFlag);
+        try {
+            setParameter(object);
+            return true;
+        }
+        catch (const UnrecognizedParameter&) {
+            return false;
+        }
+    }
+}  // namespace
+
 // default bus object
 
 const ModelDescription& DynamicGenerator::getModelDescription() const
@@ -929,7 +952,7 @@ void DynamicGenerator::set(std::string_view param, std::string_view val)
     if (param == "dynmodel") {
         auto dmodel = dynModelFromString(std::string{val});
         if (dmodel == DynModel::INVALID) {
-            throw(InvalidParameterValue(val));
+            throw InvalidParameterValue("dynmodel '" + std::string(val) + "'");
         }
         buildDynModel(dmodel);
     } else if ((param == "mechanical_power_source") || (param == "mechanicalpowersource") ||
@@ -939,23 +962,14 @@ void DynamicGenerator::set(std::string_view param, std::string_view val)
         try {
             Generator::set(param, val);
         }
-        catch (const std::invalid_argument& ia) {
-            bool setSuccess = false;
+        catch (const UnrecognizedParameter&) {
             for (auto* subobj : getSubObjects()) {
-                subobj->setFlag("no_gridcomponent_set");
-                try {
-                    subobj->set(param, val);
-                    subobj->setFlag("no_gridcomponent_set", false);
-                    setSuccess = true;
-                    break;
-                }
-                catch (const std::invalid_argument&) {
-                    subobj->setFlag("no_gridcomponent_set", false);
+                if (trySetSubModelParameter(*subobj,
+                                            [&](CoreObject& model) { model.set(param, val); })) {
+                    return;
                 }
             }
-            if (!setSuccess) {
-                throw ia;
-            }
+            throw;
         }
     }
 }
@@ -1226,17 +1240,13 @@ void DynamicGenerator::set(std::string_view param, double val, unit unitType)
         }
         catch (const UnrecognizedParameter&) {
             for (auto* subobj : getSubObjects()) {
-                subobj->setFlag("no_gridcomponent_set");
-                try {
-                    subobj->set(param, val, unitType);
-                    subobj->setFlag("no_gridcomponent_set", false);
+                if (trySetSubModelParameter(*subobj, [&](CoreObject& model) {
+                        model.set(param, val, unitType);
+                    })) {
                     return;
                 }
-                catch (const UnrecognizedParameter&) {
-                    subobj->setFlag("no_gridcomponent_set", false);
-                }
             }
-            throw(UnrecognizedParameter(param));
+            throw;
         }
     }
 }

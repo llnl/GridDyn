@@ -15,15 +15,18 @@
 namespace griddyn {
 /** exception class for use in griddyn*/
 class CoreObjectException: public std::exception {
-  protected:
-    const CoreObject* throwingObject;  ///< the object that threw the exception
+  private:
+    std::string objectName;
+
   public:
-    explicit CoreObjectException(const CoreObject* obj) noexcept;
+    explicit CoreObjectException(const CoreObject* obj);
     virtual const char* what() const noexcept override { return "core object exception"; }
-    /** return the full name of the object that threw the exception*/
-    std::string who() const noexcept;
+    /** Return the object name captured when the exception was constructed or updated. */
+    std::string who() const;
+    /** Return the exception message with its object context, when available. */
+    std::string diagnostic() const;
     /** change the object for use with a cascading object*/
-    void updateObject(const CoreObject* newobj) { throwingObject = newobj; }
+    void updateObject(const CoreObject* newobj);
 };
 
 /** exception for use when an object is added to another object but the object
@@ -31,36 +34,42 @@ is not of a type that can be added
 */
 class UnrecognizedObjectException: public CoreObjectException {
   public:
-    explicit UnrecognizedObjectException(CoreObject* obj) noexcept: CoreObjectException(obj) {}
+    explicit UnrecognizedObjectException(const CoreObject* obj): CoreObjectException(obj) {}
     virtual const char* what() const noexcept override { return "unrecognized object"; }
 };
 
 class ObjectAddFailure: public CoreObjectException {
   public:
-    explicit ObjectAddFailure(CoreObject* obj) noexcept: CoreObjectException(obj) {}
+    explicit ObjectAddFailure(const CoreObject* obj): CoreObjectException(obj) {}
     virtual const char* what() const noexcept override { return "failure to add object"; }
 };
 
 class ObjectRemoveFailure: public CoreObjectException {
   public:
-    explicit ObjectRemoveFailure(CoreObject* obj) noexcept: CoreObjectException(obj) {}
+    explicit ObjectRemoveFailure(const CoreObject* obj): CoreObjectException(obj) {}
     virtual const char* what() const noexcept override { return "failure to remove object"; }
 };
 
 class UnrecognizedParameter: public std::invalid_argument {
   public:
-    UnrecognizedParameter() noexcept: std::invalid_argument("unrecognized parameter") {}
+    UnrecognizedParameter(): UnrecognizedParameter(std::string_view{}) {}
     explicit UnrecognizedParameter(std::string_view param):
-        std::invalid_argument(std::string("unrecognized Parameter:") + std::string(param))
+        std::invalid_argument(param.empty() ? "unrecognized parameter" :
+                                              "unrecognized parameter '" + std::string(param) + "'")
     {
     }
 };
 
 class InvalidParameterValue: public std::invalid_argument {
   public:
-    InvalidParameterValue() noexcept: std::invalid_argument("invalid parameter entry") {}
-    explicit InvalidParameterValue(std::string_view param):
-        std::invalid_argument(std::string("invalid parameter value for ") + std::string(param))
+    InvalidParameterValue(): InvalidParameterValue(std::string_view{}) {}
+    explicit InvalidParameterValue(std::string_view detail):
+        std::invalid_argument(detail.empty() ? "invalid parameter value" :
+                                               "invalid parameter value: " + std::string(detail))
+    {
+    }
+    InvalidParameterValue(std::string_view context, const InvalidParameterValue& cause):
+        std::invalid_argument(std::string(context) + ": " + cause.what())
     {
     }
 };
@@ -78,7 +87,7 @@ class ExecutionFailure: public CoreObjectException {
 };
 class CloneFailure: public CoreObjectException {
   public:
-    explicit CloneFailure(const CoreObject* obj) noexcept: CoreObjectException(obj) {}
+    explicit CloneFailure(const CoreObject* obj): CoreObjectException(obj) {}
     virtual const char* what() const noexcept override { return "clone failure"; }
 };
 

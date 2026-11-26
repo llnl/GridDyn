@@ -779,7 +779,7 @@ TEST_F(MeasurementFiles, FailedFlushCanBeHandledWithoutATargetObject)
     recorder.set("file", directory.string());
     recorder.add(scalarGrabber(1.0));
     recorder.trigger(0.0);
-    EXPECT_THROW(recorder.flush(), gmlc::utilities::openFileError);
+    EXPECT_THROW(recorder.flush(), FileOperationError);
     recorder.set("file", "");
 }
 
@@ -1045,7 +1045,7 @@ TEST_F(MeasurementFiles, FailedAutosaveRetainsSamplesForRetry)
     recorder.set("autosave", 2.0);
     recorder.add(scalarGrabber(4.0));
     recorder.trigger(0.0);
-    EXPECT_THROW(recorder.trigger(1.0), gmlc::utilities::openFileError);
+    EXPECT_THROW(recorder.trigger(1.0), FileOperationError);
     EXPECT_EQ(recorder.getTime().size(), 2U);
     recorder.set("file", (directory / "samples.dat").string());
     recorder.flush();
@@ -1235,7 +1235,7 @@ TEST_F(MeasurementFiles, Hdf5FailedAutosaveRetainsSamplesForRetry)
     recorder.set("autosave", 2.0);
     recorder.add(scalarGrabber(4.0));
     recorder.trigger(0.0);
-    EXPECT_THROW(recorder.trigger(1.0), std::runtime_error);
+    EXPECT_THROW(recorder.trigger(1.0), FileOperationError);
     EXPECT_EQ(recorder.getTime().size(), 2U);
     ASSERT_TRUE(std::filesystem::remove(path));
     recorder.flush();

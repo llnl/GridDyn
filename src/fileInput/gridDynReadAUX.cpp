@@ -17,6 +17,7 @@
 #include "griddyn/loads/Svd.h"
 #include "griddyn/loads/ZipLoad.h"
 #include "griddyn/primary/AcBus.h"
+#include "readerHelper.h"
 #ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
 #    include "optimization/gridDynOpt.h"
 #endif
@@ -261,10 +262,7 @@ namespace {
                      const AuxRowHandler& handleRow,
                      const AuxSubdataHandler& handleSubdata = {})
     {
-        std::ifstream input(fileName);
-        if (!input) {
-            throw FileOperationError("unable to open PowerWorld AUX file: " + fileName);
-        }
+        auto input = openInputFile(fileName);
         std::string line;
         std::string header;
         AuxSection section;

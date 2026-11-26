@@ -41,25 +41,24 @@ class SolverException: public std::exception {
     std::string message;
 
   public:
-    explicit SolverException(int ecode = 0):
-        errorCode(ecode), message(std::format("solver Exception:error code={}", errorCode))
+    explicit SolverException(int ecode = 0, std::string_view detail = "solver operation failed"):
+        errorCode(ecode), message(std::format("{} (error code {})", detail, errorCode))
     {
     }
     virtual const char* what() const noexcept override { return message.c_str(); }
-    /** return the full name of the object that threw the exception*/
+    /** Return the solver error code. */
     int code() const noexcept { return errorCode; }
 };
 
 /** error class for throwing an invalid solver operation exception from a solver
  */
 class InvalidSolverOperation: public SolverException {
-  protected:
   public:
-    explicit InvalidSolverOperation(int ecode = 0): SolverException(ecode)
+    explicit InvalidSolverOperation(int ecode = 0,
+                                    std::string_view detail = "invalid solver operation"):
+        SolverException(ecode, detail)
     {
-        message = std::format("invalid solver operation:error code={}", errorCode);
     }
-    virtual const char* what() const noexcept override { return message.c_str(); }
 };
 
 // solver return codes from the solve and initIC functions

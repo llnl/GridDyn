@@ -34,6 +34,11 @@
 #include <vector>
 
 namespace griddyn {
+namespace {
+    // The worker enters the same virtual Run or Step operation as a synchronous caller.
+    thread_local const GriddynRunner* asyncRunner = nullptr;
+}  // namespace
+
 GriddynRunner::GriddynRunner() = default;
 
 GriddynRunner::GriddynRunner(std::shared_ptr<GridDynSimulation> sim): m_gds(std::move(sim)) {}
@@ -159,7 +164,7 @@ int GriddynRunner::Reset(ReaderInfo& readerInformation)
 
 CoreTime GriddynRunner::Run()
 {
-    if (!isReady()) {
+    if (asyncRunner != this && !isReady()) {
         throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
 
@@ -182,8 +187,8 @@ CoreTime GriddynRunner::Run()
         if (!m_gds->getLastActionError().empty()) {
             throw ExecutionFailure(m_gds.get(), m_gds->getLastActionError());
         }
-        const std::string error = "GridDyn failed to run retval = " + std::to_string(returnValue);
-        throw(ExecutionFailure(m_gds.get(), error));
+        throw ExecutionFailure(m_gds.get(),
+                               "GridDyn failed to run with status " + std::to_string(returnValue));
     }
 
     std::vector<GridBus*> buses;
@@ -205,31 +210,26 @@ void GriddynRunner::RunAsync()
     if (!isReady()) {
         throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
-    mAsyncReturn = std::async(std::launch::async, [this] { return Run(); });
+    mAsyncStartTime = getSim()->getSimulationTime();
+    mAsyncReturn = std::async(std::launch::async, [this] {
+        asyncRunner = this;
+        return Run();
+    });
 }
 
 CoreTime GriddynRunner::Step(CoreTime nextStep)
 {
-    if (!isReady()) {
+    if (asyncRunner != this && !isReady()) {
         throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
     CoreTime actual = nextStep;
     if (m_gds) {
-        if (mEventMode) {
-            const int returnValue = m_gds->eventDrivenPowerflow(nextStep);
-            actual = nextStep;
-            if (returnValue < FUNCTION_EXECUTION_SUCCESS) {
-                const std::string error =
-                    "GridDyn failed to advance retval = " + std::to_string(returnValue);
-                throw(std::runtime_error(error));
-            }
-        } else {
-            const int returnValue = m_gds->step(nextStep, actual);
-            if (returnValue < FUNCTION_EXECUTION_SUCCESS) {
-                const std::string error =
-                    "GridDyn failed to advance retval = " + std::to_string(returnValue);
-                throw(std::runtime_error(error));
-            }
+        const int returnValue =
+            mEventMode ? m_gds->eventDrivenPowerflow(nextStep) : m_gds->step(nextStep, actual);
+        if (returnValue < FUNCTION_EXECUTION_SUCCESS) {
+            throw ExecutionFailure(m_gds.get(),
+                                   "GridDyn failed to advance with status " +
+                                       std::to_string(returnValue));
         }
     }
 
@@ -241,7 +241,11 @@ void GriddynRunner::StepAsync(CoreTime time)
     if (!isReady()) {
         throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
-    mAsyncReturn = std::async(std::launch::async, [this, time] { return Step(time); });
+    mAsyncStartTime = getSim()->getSimulationTime();
+    mAsyncReturn = std::async(std::launch::async, [this, time] {
+        asyncRunner = this;
+        return Step(time);
+    });
 }
 
 std::shared_ptr<GridDynSimulation>& GriddynRunner::getSim()
@@ -261,8 +265,12 @@ bool GriddynRunner::isReady() const
 
 int GriddynRunner::getStatus(CoreTime& timeReturn)
 {
-    timeReturn = m_gds->getSimulationTime();
-    return (isReady()) ? static_cast<int>(m_gds->currentProcessState()) : GRIDDYN_PENDING;
+    if (!isReady()) {
+        timeReturn = mAsyncStartTime;
+        return GRIDDYN_PENDING;
+    }
+    timeReturn = mAsyncReturn.valid() ? mAsyncReturn.get() : getSim()->getSimulationTime();
+    return static_cast<int>(m_gds->currentProcessState());
 }
 
 CoreTime GriddynRunner::getNextEvent() const
@@ -592,13 +600,11 @@ std::shared_ptr<CLI::App>
         ->delimiter(',');
 
     ptr->add_option("input,--input", loadFileCallback, "main input file")
-        ->check(CLI::ExistingFile)
         ->required()
         ->type_size(-1);
     ptr->add_option("--import,-i",
                     loadFileCallback,
                     "add import files loaded after the main input file")
-        ->check(CLI::ExistingFile)
         ->type_size(-1);
 
     ptr->add_option("--param,-P",

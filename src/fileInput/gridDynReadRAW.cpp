@@ -155,7 +155,7 @@ static ImpedanceCorrectionTables readImpedanceCorrectionTables(const std::string
                                                                int rawVersion)
 {
     ImpedanceCorrectionTables tables;
-    std::ifstream file(fileName, std::ios::in);
+    auto file = openInputFile(fileName);
     std::string line;
     bool inCorrectionSection = false;
     int currentTableId = 0;
@@ -224,7 +224,7 @@ static std::unordered_map<int, GridArea*>
                            const BasicReaderInfo& readerOptions)
 {
     std::unordered_map<int, GridArea*> areas;
-    std::ifstream file(fileName, std::ios::in);
+    auto file = openInputFile(fileName);
     std::string line;
     bool inAreaSection = false;
 
@@ -775,7 +775,7 @@ void loadRaw(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& readerOptions)
 {
-    std::ifstream file(fileName.c_str(), std::ios::in);
+    auto file = openInputFile(fileName);
     std::string line;  // line storage
     std::string temp1;  // temporary storage for substrings
     std::vector<GridBus*> busList;
@@ -2094,9 +2094,9 @@ static void rawReadBranch(CoreObject* parentObject,
             try {
                 linkParent->add(lnk);
             }
-            catch (const ObjectAddFailure& e) {
+            catch (const ObjectAddFailure&) {
                 if (parallel > 'z') {
-                    throw e;
+                    throw;
                 }
             }
         }
@@ -2468,9 +2468,9 @@ static int rawReadTxV33(CoreObject* parentObject,
             try {
                 linkParent->add(lnk);
             }
-            catch (const ObjectAddFailure& e) {
+            catch (const ObjectAddFailure&) {
                 if (suffix > 'z') {
-                    throw e;
+                    throw;
                 }
             }
         }
@@ -2763,9 +2763,9 @@ static int rawReadTX(CoreObject* parentObject,
             try {
                 linkParent->add(lnk);
             }
-            catch (const ObjectAddFailure& e) {
+            catch (const ObjectAddFailure&) {
                 if (suffix > 'z') {
-                    throw e;
+                    throw;
                 }
             }
         }

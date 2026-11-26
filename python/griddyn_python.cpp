@@ -19,6 +19,7 @@
 #include "griddyn/relays/Sensor.h"
 #include "griddyn/simulation/GridDynSimulationFileOps.h"
 #include "griddyn/simulation/GridSimulation.h"
+#include "griddyn/solvers/SolverInterface.h"
 #include "runner/gridDynRunner.h"
 #include "units/units.hpp"
 #ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
@@ -1531,15 +1532,6 @@ class PyTimeDomainRoutine {
     std::shared_ptr<griddyn::GriddynRunner> runner_;
 };
 
-std::string withObjectContext(const griddyn::CoreObjectException& exc)
-{
-    auto who = exc.who();
-    if (who.empty()) {
-        return exc.what();
-    }
-    return std::string(exc.what()) + " [" + who + "]";
-}
-
 struct PyOptimizationState {
     bool modelInitialized = false;
     std::string optimizer;
@@ -1848,9 +1840,6 @@ class PySimulation {
         }
 #endif
         auto filePath = pathToString(path);
-        if (!std::filesystem::exists(filePath)) {
-            throw FileLoadError("file does not exist: " + filePath);
-        }
         auto sim = simulation();
         runnerResetAvailable_ = false;
         nb::gil_scoped_release release;
@@ -2146,13 +2135,13 @@ void translateGridDynException(const std::exception_ptr& ptr, void* /*payload*/)
         }
     }
     catch (const griddyn::UnrecognizedObjectException& exc) {
-        setPythonError(pyInvalidObjectError, withObjectContext(exc));
+        setPythonError(pyInvalidObjectError, exc.diagnostic());
     }
     catch (const griddyn::ObjectAddFailure& exc) {
-        setPythonError(pyExecutionError, withObjectContext(exc));
+        setPythonError(pyExecutionError, exc.diagnostic());
     }
     catch (const griddyn::ObjectRemoveFailure& exc) {
-        setPythonError(pyExecutionError, withObjectContext(exc));
+        setPythonError(pyExecutionError, exc.diagnostic());
     }
     catch (const griddyn::UnrecognizedParameter& exc) {
         setPythonError(pyInvalidParameterError, exc.what());
@@ -2164,10 +2153,13 @@ void translateGridDynException(const std::exception_ptr& ptr, void* /*payload*/)
         setPythonError(pyFileLoadError, exc.what());
     }
     catch (const griddyn::ExecutionFailure& exc) {
-        setPythonError(pyExecutionError, withObjectContext(exc));
+        setPythonError(pyExecutionError, exc.diagnostic());
     }
     catch (const griddyn::CoreObjectException& exc) {
-        setPythonError(pyGridDynError, withObjectContext(exc));
+        setPythonError(pyGridDynError, exc.diagnostic());
+    }
+    catch (const griddyn::SolverException& exc) {
+        setPythonError(pySolveError, exc.what());
     }
     catch (const std::invalid_argument& exc) {
         setPythonError(pyInvalidParameterError, exc.what());

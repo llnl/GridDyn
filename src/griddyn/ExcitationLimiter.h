@@ -18,7 +18,12 @@ inline constexpr index_t limiterIdInLocation = 1;
 inline constexpr index_t limiterIqInLocation = 2;
 inline constexpr index_t limiterVdInLocation = 3;
 inline constexpr index_t limiterVqInLocation = 4;
-inline constexpr count_t excitationLimiterInputCount = 5;
+inline constexpr count_t limiterMachineInputCount = 5;
+inline constexpr index_t limiterFieldVoltageInLocation = 5;
+inline constexpr index_t limiterStabilizingFeedbackInLocation = 6;
+inline constexpr index_t limiterExciterFieldCurrentInLocation = 7;
+inline constexpr index_t limiterExciterFeedbackInLocation = 8;
+inline constexpr count_t excitationLimiterInputCount = 9;
 
 /** A generic, instantaneous limiter action; this is not a WECC OEL/UEL model. */
 class ExcitationLimiter: public GridSubModel {
@@ -30,6 +35,8 @@ class ExcitationLimiter: public GridSubModel {
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     Role role() const { return limiterRole; }
     virtual bool supportsRole(Role /*role*/) const { return true; }
+    /** Extra exciter quantities required by this model's configured parameters. */
+    virtual bool requiresExciterInput(index_t /*input*/) const { return false; }
     void setRole(Role role);
     void set(std::string_view param, std::string_view val) override;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;

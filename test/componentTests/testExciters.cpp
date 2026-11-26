@@ -377,7 +377,8 @@ TEST(ExciterModelTests, ImportedMnlex2ExcitersSumUelBeforeRegulator)
     for (auto& model : models) {
         SCOPED_TRACE(model->getModelDescription().name());
         EXPECT_TRUE(model->supportsLimiterSignal(ExciterLimiterSignal::UNDER));
-        EXPECT_FALSE(model->supportsLimiterSignal(ExciterLimiterSignal::OVER));
+        EXPECT_EQ(model->supportsLimiterSignal(ExciterLimiterSignal::OVER),
+                  dynamic_cast<exciters::ExciterEXAC1*>(model.get()) != nullptr);
         model->dynInitializeA(0.0, 0);
         IOdata inputs(exciterInputCount, 0.0);
         inputs[exciterVoltageInLocation] = 1.0;
@@ -1330,7 +1331,7 @@ TEST(ExciterModelTests, Esac6aMatchesGridKitPerturbedEquations)
     exciter.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
     EXPECT_NEAR(residual[0], 0.176, 1e-12);
     EXPECT_TRUE(exciter.supportsLimiterSignal(ExciterLimiterSignal::UNDER));
-    EXPECT_FALSE(exciter.supportsLimiterSignal(ExciterLimiterSignal::OVER));
+    EXPECT_TRUE(exciter.supportsLimiterSignal(ExciterLimiterSignal::OVER));
     inputs[exciterVuelInLocation] = 0.01;
     exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
     EXPECT_NEAR(derivative[2], -28.92, 1e-12);

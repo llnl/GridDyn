@@ -83,9 +83,14 @@ class ExciterEXAC1: public Exciter {
   public:
     explicit ExciterEXAC1(const std::string& objName = "exciterEXAC1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    bool providesLimiterFeedback(ExciterFeedbackSignal signal) const override;
+    ExciterFeedbackData getLimiterFeedback(ExciterFeedbackSignal signal,
+                                           const IOdata& inputs,
+                                           const StateData& data,
+                                           const SolverMode& mode) const override;
     bool supportsLimiterSignal(ExciterLimiterSignal signal) const override
     {
-        return signal == ExciterLimiterSignal::UNDER;
+        return signal == ExciterLimiterSignal::UNDER || signal == ExciterLimiterSignal::OVER;
     }
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,

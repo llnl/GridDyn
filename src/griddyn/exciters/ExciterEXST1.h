@@ -64,6 +64,11 @@ class ExciterEXST1: public Exciter {
   public:
     explicit ExciterEXST1(const std::string& objName = "exciterEXST1_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    bool providesLimiterFeedback(ExciterFeedbackSignal signal) const override;
+    ExciterFeedbackData getLimiterFeedback(ExciterFeedbackSignal signal,
+                                           const IOdata& inputs,
+                                           const StateData& data,
+                                           const SolverMode& mode) const override;
     bool supportsLimiterSignal(ExciterLimiterSignal signal) const override
     {
         return signal == ExciterLimiterSignal::UNDER;

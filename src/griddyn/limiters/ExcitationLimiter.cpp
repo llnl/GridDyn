@@ -132,7 +132,7 @@ void ExcitationLimiter::dynObjectInitializeA(CoreTime time0, std::uint32_t /*fla
 
 ExcitationLimiter::Evaluation ExcitationLimiter::evaluate(const IOdata& inputs) const
 {
-    if (inputs.size() < excitationLimiterInputCount) {
+    if (inputs.size() < limiterMachineInputCount) {
         throw InvalidParameterValue("excitation limiter input vector");
     }
     Evaluation result;

@@ -73,6 +73,7 @@ set(generator_component_gtest_sources
     componentTests/testRenewableModels.cpp
     componentTests/testDistributedModels.cpp
     componentTests/testExciters.cpp
+    componentTests/testExcitationLimiters.cpp
     componentTests/testSolverStateDescriptions.cpp
     componentTests/testExciterDescription.cpp
     componentTests/testVoltageCompensators.cpp

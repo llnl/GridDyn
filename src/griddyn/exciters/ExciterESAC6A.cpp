@@ -337,6 +337,7 @@ ExciterESAC6A::ModelEvaluation ExciterESAC6A::evaluateModel(const IOdata& inputs
         addSignals(constantSignal(Vref + vBias - 1.0), inputSignal(inputs, exciterVsetInLocation));
     reference = addSignals(reference, inputSignal(inputs, exciterVssInLocation));
     reference = addSignals(reference, inputSignal(inputs, exciterVuelInLocation));
+    reference = subtract(reference, inputSignal(inputs, exciterVoelInLocation));
     const Signal error = subtract(reference, measuredVoltage);
 
     if (Tr > 0.0) {
@@ -483,7 +484,7 @@ void ExciterESAC6A::dynObjectInitializeB(const IOdata& inputs,
     const double error = leadLagOutput / Ka;
     vBias = error + inputs[exciterVoltageInLocation] - Vref -
         (inputs[exciterVsetInLocation] - 1.0) - inputs[exciterVssInLocation] -
-        inputs[exciterVuelInLocation];
+        inputs[exciterVuelInLocation] + inputs[exciterVoelInLocation];
     const double regulatorMargin =
         std::max(0.2 * std::max(0.0, Vamax - originalUpperLimit), 10.0 * limiterRootTolerance);
     if (leadLagOutput >= Vamax) {
@@ -703,7 +704,35 @@ void ExciterESAC6A::set(std::string_view param, double val, units::unit unitType
 // NOLINTEND(readability-math-missing-parentheses)
 bool ExciterESAC6A::supportsLimiterSignal(ExciterLimiterSignal signal) const
 {
-    return signal == ExciterLimiterSignal::UNDER;
+    return signal == ExciterLimiterSignal::UNDER || signal == ExciterLimiterSignal::OVER;
+}
+
+bool ExciterESAC6A::providesLimiterFeedback(ExciterFeedbackSignal signal) const
+{
+    return signal == ExciterFeedbackSignal::FIELD_CURRENT;
+}
+
+ExciterFeedbackData ExciterESAC6A::getLimiterFeedback(ExciterFeedbackSignal signal,
+                                                      const IOdata& inputs,
+                                                      const StateData& data,
+                                                      const SolverMode& mode) const
+{
+    if (!providesLimiterFeedback(signal)) {
+        return {};
+    }
+    const auto loc = offsets.getLocations(data, mode, this);
+    const auto layout = stateLayout();
+    const double exciterVoltage = loc.diffStateLoc[layout.exciter];
+    const auto sat = saturation.evaluate(exciterVoltage);
+    ExciterFeedbackData result;
+    result.value = (exciterVoltage * (Ke + sat.value)) +
+        (Kd != 0.0 ? Kd * inputs[exciterXadIfdInLocation] : 0.0);
+    if (!isAlgebraicOnly(mode)) {
+        result.stateDerivatives = {{.location = loc.diffOffset + layout.exciter,
+                                    .value = Ke + sat.value + (exciterVoltage * sat.derivative)}};
+    }
+    result.inputDerivatives[exciterXadIfdInLocation] = Kd;
+    return result;
 }
 
 }  // namespace griddyn::exciters

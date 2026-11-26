@@ -43,6 +43,14 @@ inline constexpr int exciterVoelInLocation = exciterVuelInLocation + 1;
 inline constexpr count_t exciterInputCount = exciterVoelInLocation + 1;
 
 enum class ExciterLimiterSignal { UNDER, OVER };
+enum class ExciterFeedbackSignal { STABILIZING, FIELD_CURRENT, UEL_FEEDBACK };
+
+/** Internal exciter quantity and derivatives before host signal expansion. */
+struct ExciterFeedbackData {
+    double value = kNullVal;
+    std::vector<MachineSignalDerivative> stateDerivatives;
+    std::array<double, exciterInputCount> inputDerivatives{};
+};
 
 /** class defining the interface for an exciter as well a trivial implementation of such
  */
@@ -107,6 +115,11 @@ class Exciter: public GridSubModel {
     virtual const std::vector<stringVec>& outputNames() const override;
     /** Whether this exciter implements the named external limiter action. */
     virtual bool supportsLimiterSignal(ExciterLimiterSignal signal) const;
+    virtual bool providesLimiterFeedback(ExciterFeedbackSignal signal) const;
+    virtual ExciterFeedbackData getLimiterFeedback(ExciterFeedbackSignal signal,
+                                                   const IOdata& inputs,
+                                                   const StateData& stateData,
+                                                   const SolverMode& mode) const;
 
   protected:
     // Keep limiter roots outside the solver's near-zero band at an exactly

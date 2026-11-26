@@ -81,7 +81,7 @@ void ExcitationLimiterMNLEX2::dynObjectInitializeA(CoreTime time0, std::uint32_t
 
 ExcitationLimiterMNLEX2::Circle ExcitationLimiterMNLEX2::circleError(const IOdata& inputs) const
 {
-    if (inputs.size() < excitationLimiterInputCount) {
+    if (inputs.size() < limiterMachineInputCount) {
         throw InvalidParameterValue("MNLEX2 input vector");
     }
     for (auto index :

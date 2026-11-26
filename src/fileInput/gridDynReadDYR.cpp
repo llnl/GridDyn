@@ -34,6 +34,10 @@
 #include "griddyn/governors/GovernorReheat.h"
 #include "griddyn/governors/GovernorWpidHy.h"
 #include "griddyn/limiters/ExcitationLimiterMNLEX2.h"
+#include "griddyn/limiters/ExcitationLimiterOEL3C.h"
+#include "griddyn/limiters/ExcitationLimiterOEL4C.h"
+#include "griddyn/limiters/ExcitationLimiterUEL1.h"
+#include "griddyn/limiters/ExcitationLimiterUEL2C.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include "griddyn/loads/CompositeLoad.h"
@@ -77,6 +81,7 @@
 #include <cmath>
 #include <complex>
 #include <cstddef>
+#include <cstdlib>
 #include <format>
 #include <fstream>
 #include <limits>
@@ -146,7 +151,12 @@ namespace {
     void loadIEEEG3(CoreObject* parentObject, stringVec& tokens);
     void loadWPIDHY(CoreObject* parentObject, stringVec& tokens);
     void loadMNLEX2(CoreObject* parentObject, stringVec& tokens);
+    void loadOEL3C(CoreObject* parentObject, stringVec& tokens);
+    void loadOEL4C(CoreObject* parentObject, stringVec& tokens);
+    void loadUEL1(CoreObject* parentObject, stringVec& tokens);
+    void loadUEL2C(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEVC(CoreObject* parentObject, stringVec& tokens);
+    void loadCOMP(CoreObject* parentObject, stringVec& tokens);
     void loadIEESGO(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEST(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
     void loadIEE2ST(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
@@ -455,8 +465,18 @@ namespace detail {
             loadWPIDHY(parentObject, lineTokens);
         } else if (type == "'MNLEX2'") {
             loadMNLEX2(parentObject, lineTokens);
+        } else if (type == "'OEL3C'") {
+            loadOEL3C(parentObject, lineTokens);
+        } else if (type == "'OEL4C'") {
+            loadOEL4C(parentObject, lineTokens);
+        } else if (type == "'UEL1'") {
+            loadUEL1(parentObject, lineTokens);
+        } else if (type == "'UEL2C'") {
+            loadUEL2C(parentObject, lineTokens);
         } else if (type == "'IEEEVC'") {
             loadIEEEVC(parentObject, lineTokens);
+        } else if (type == "'COMP'") {
+            loadCOMP(parentObject, lineTokens);
         } else if (type == "'IEESGO'") {
             loadIEESGO(parentObject, lineTokens);
         } else if (type == "'IEEEST'") {
@@ -3166,6 +3186,145 @@ namespace {
                                                                    tokens,
                                                                    "MNLEX2",
                                                                    fields);
+    }
+
+    double limiterDyrParameter(const stringVec& tokens, std::size_t index, std::string_view name)
+    {
+        char* end = nullptr;
+        const double value = std::strtod(tokens[index].c_str(), &end);
+        if (end == tokens[index].c_str() || *end != '\0' || !std::isfinite(value)) {
+            throw InvalidParameterValue(std::string{name} + " nonfinite or nonnumeric parameter " +
+                                        std::to_string(index - 2));
+        }
+        return value;
+    }
+
+    template<class Model, std::size_t N>
+    void loadExcitationLimiter(CoreObject* parentObject,
+                               const stringVec& tokens,
+                               std::string_view name,
+                               const std::array<std::string_view, N>& fields,
+                               bool hasCurve = false)
+    {
+        const auto curveFields = tokens.size() >= N + 3 ? tokens.size() - N - 3 : 0;
+        if ((!hasCurve && tokens.size() != N + 3) ||
+            (hasCurve && (curveFields < 4 || curveFields > 20 || curveFields % 2 != 0))) {
+            throw InvalidParameterValue(std::string{name} + " invalid positional parameter count");
+        }
+        auto* generator =
+            dynamic_cast<DynamicGenerator*>(requireDyrGenerator(parentObject, tokens, name));
+        if (generator == nullptr) {
+            throw InvalidParameterValue(std::string{name} + " requires a dynamic generator");
+        }
+        auto model = std::make_unique<Model>();
+        for (std::size_t index = 0; index < N; ++index) {
+            model->set(fields[index], limiterDyrParameter(tokens, index + 3, name));
+        }
+        for (std::size_t index = 0; index < curveFields; ++index) {
+            model->set(std::string(index % 2 == 0 ? "p" : "q") + std::to_string(index / 2),
+                       limiterDyrParameter(tokens, index + N + 3, name));
+        }
+        if (name == "OEL4C" && limiterDyrParameter(tokens, 3, name) == 0.0) {
+            // PowerWorld's Qref=0 convention selects power-flow Qmax.
+            // Retrieve physical Mvar before converting to the machine base.
+            const double base = generator->get("mbase", units::MVAR);
+            const double qmax = generator->get("qmax", units::MVAR);
+            if (!std::isfinite(base) || base <= 0.0 || !std::isfinite(qmax) ||
+                std::abs(qmax) > 1e20) {
+                throw InvalidParameterValue(
+                    "OEL4C Qref=0 requires finite power-flow Qmax and machine MVA base");
+            }
+            model->set("qref", qmax / base);
+        }
+        // Validate model parameters before replacing an existing limiter.
+        model->dynInitializeA(0.0, 0);
+        generator->add(model.release());
+    }
+
+    void loadOEL3C(CoreObject* parentObject, stringVec& tokens)
+    {
+        static constexpr std::array<std::string_view, 12> fields{"oelinput",
+                                                                 "itfpu",
+                                                                 "kscale",
+                                                                 "tf",
+                                                                 "k1",
+                                                                 "koel",
+                                                                 "toel",
+                                                                 "kpoel",
+                                                                 "voelmax1",
+                                                                 "voelmin1",
+                                                                 "voelmax2",
+                                                                 "voelmin2"};
+        loadExcitationLimiter<limiters::ExcitationLimiterOEL3C>(parentObject,
+                                                                tokens,
+                                                                "OEL3C",
+                                                                fields);
+    }
+
+    void loadOEL4C(CoreObject* parentObject, stringVec& tokens)
+    {
+        static constexpr std::array<std::string_view, 5> fields{
+            "qref", "tdelay", "kp", "ki", "vmin"};
+        loadExcitationLimiter<limiters::ExcitationLimiterOEL4C>(parentObject,
+                                                                tokens,
+                                                                "OEL4C",
+                                                                fields);
+    }
+
+    void loadUEL1(CoreObject* parentObject, stringVec& tokens)
+    {
+        static constexpr std::array<std::string_view, 15> fields{"kur",
+                                                                 "kuc",
+                                                                 "kuf",
+                                                                 "vurmax",
+                                                                 "vucmax",
+                                                                 "kui",
+                                                                 "kul",
+                                                                 "vuimax",
+                                                                 "vuimin",
+                                                                 "tu1",
+                                                                 "tu2",
+                                                                 "tu3",
+                                                                 "tu4",
+                                                                 "vulmax",
+                                                                 "vulmin"};
+        loadExcitationLimiter<limiters::ExcitationLimiterUEL1>(parentObject,
+                                                               tokens,
+                                                               "UEL1",
+                                                               fields);
+    }
+
+    void loadUEL2C(CoreObject* parentObject, stringVec& tokens)
+    {
+        static constexpr std::array<std::string_view, 26> fields{
+            "tup",  "tuq",     "tuv",     "vbias",   "k1",      "k2",     "kuf", "tqref", "kfix",
+            "tadj", "sw1",     "kui",     "kul",     "vuimax",  "vuimin", "tu1", "tu2",   "tu3",
+            "tu4",  "vulmax1", "vulmin1", "vulmax2", "vulmin2", "kfb",    "tul", "xq"};
+        loadExcitationLimiter<limiters::ExcitationLimiterUEL2C>(
+            parentObject, tokens, "UEL2C", fields, true);
+    }
+
+    void loadCOMP(CoreObject* parentObject, stringVec& tokens)
+    {
+        // BUS, 'COMP', ID, Xe. Vc=Abs(Vt-j*Xe*It), so IEEEVC uses Rc=0, Xc=-Xe.
+        if (tokens.size() != 4U) {
+            throw InvalidParameterValue("COMP requires exactly one Xe parameter");
+        }
+        char* conversionEnd = nullptr;
+        const auto reactance = std::strtod(tokens[3].c_str(), &conversionEnd);
+        if (conversionEnd == tokens[3].c_str() ||
+            conversionEnd != tokens[3].c_str() + tokens[3].size() || !std::isfinite(reactance)) {
+            throw InvalidParameterValue("COMP Xe must be a finite number");
+        }
+        auto* generator =
+            dynamic_cast<DynamicGenerator*>(requireDyrGenerator(parentObject, tokens, "COMP"));
+        if (generator == nullptr) {
+            throw InvalidParameterValue("COMP requires a dynamic generator");
+        }
+        auto compensator = std::make_unique<voltagecompensators::VoltageCompensatorIeeeVC>();
+        compensator->set("rc", 0.0);
+        compensator->set("xc", -reactance);
+        generator->add(compensator.release());
     }
 
     void loadIEEEVC(CoreObject* parentObject, stringVec& tokens)

@@ -315,6 +315,22 @@ void DynamicGenerator::compileSignalRoutes()
          (ext == nullptr || !ext->supportsLimiterSignal(ExciterLimiterSignal::UNDER)))) {
         throw InvalidParameterValue("exciter does not support the attached OEL/UEL action");
     }
+    for (auto* limiter : {oel, uel}) {
+        if (limiter == nullptr || !limiter->isEnabled()) {
+            continue;
+        }
+        for (auto entry :
+             {std::pair{limiterStabilizingFeedbackInLocation, ExciterFeedbackSignal::STABILIZING},
+              std::pair{limiterExciterFieldCurrentInLocation, ExciterFeedbackSignal::FIELD_CURRENT},
+              std::pair{limiterExciterFeedbackInLocation, ExciterFeedbackSignal::UEL_FEEDBACK}}) {
+            if (limiter->requiresExciterInput(entry.first) &&
+                (ext == nullptr || !ext->isEnabled() ||
+                 !ext->providesLimiterFeedback(entry.second))) {
+                throw InvalidParameterValue(
+                    "exciter does not provide the attached limiter's required VF/VFE/VFB signal");
+            }
+        }
+    }
     signalFrame.values[stabilizerOutput] = 0.0;
     signalFrame.values[overExcitationAction] = 0.0;
     signalFrame.values[underExcitationAction] = 0.0;
@@ -398,8 +414,24 @@ void DynamicGenerator::compileSignalRoutes()
              limiterVqInLocation,
              machineSignalBase + static_cast<index_t>(MachineControllerSignal::VQ),
              "machine Vq");
+        bind(model, limiterFieldVoltageInLocation, fieldVoltage, "generator field voltage");
+        bind(model, limiterStabilizingFeedbackInLocation, exciterStabilizingFeedback, "exciter VF");
+        bind(model, limiterExciterFieldCurrentInLocation, exciterFieldCurrent, "exciter VFE");
+        bind(model, limiterExciterFeedbackInLocation, exciterUelFeedback, "exciter VFB");
     }
     signalRoutesReady = true;
+}
+
+void DynamicGenerator::updateExciterFeedbackValues(const StateData& data, const SolverMode& mode)
+{
+    writeModelInputs(EXCITER_LOC, data, mode);
+    for (auto entry : {std::pair{exciterStabilizingFeedback, ExciterFeedbackSignal::STABILIZING},
+                       std::pair{exciterFieldCurrent, ExciterFeedbackSignal::FIELD_CURRENT},
+                       std::pair{exciterUelFeedback, ExciterFeedbackSignal::UEL_FEEDBACK}}) {
+        signalFrame.values[entry.first] = ext != nullptr && ext->isEnabled() ?
+            ext->getLimiterFeedback(entry.second, subInputs.inputs[EXCITER_LOC], data, mode).value :
+            kNullVal;
+    }
 }
 
 void DynamicGenerator::writeModelInputs(SubModelLocations model,
@@ -491,6 +523,28 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
         machineSignals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_POWER)];
     signalFrame.values[overExcitationAction] = 0.0;
     signalFrame.values[underExcitationAction] = 0.0;
+    signalFrame.values[exciterStabilizingFeedback] = 0.0;
+    signalFrame.values[exciterFieldCurrent] = 0.0;
+    signalFrame.values[exciterUelFeedback] = 0.0;
+    bool initializeExciterFeedback = false;
+    for (auto* limiter : {oel, uel}) {
+        if (limiter != nullptr && limiter->isEnabled()) {
+            initializeExciterFeedback = initializeExciterFeedback ||
+                limiter->requiresExciterInput(limiterStabilizingFeedbackInLocation) ||
+                limiter->requiresExciterInput(limiterExciterFieldCurrentInLocation) ||
+                limiter->requiresExciterInput(limiterExciterFeedbackInLocation);
+        }
+    }
+    if (initializeExciterFeedback) {
+        const auto exciterInputs =
+            signalRoutes[EXCITER_LOC].values({.hostInputs = signalFrame.values,
+                                              .hostInputLocs = nullptr,
+                                              .stateData = emptyStateData,
+                                              .solverMode = cLocalSolverMode});
+        localDesiredOutput[0] = m_Eft;
+        ext->dynInitializeB(exciterInputs, localDesiredOutput, computedFieldSet);
+        updateExciterFeedbackValues(emptyStateData, cLocalSolverMode);
+    }
     for (auto model : {OEL_LOC, UEL_LOC}) {
         auto* limiter = (model == OEL_LOC) ? oel : uel;
         if (limiter != nullptr && limiter->isEnabled()) {
@@ -1600,7 +1654,23 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
     }
     signalFrame.values[mechanicalPower] = pmech;
     signalFrame.values[voltageSetpoint] = vSetControlUpdate(inputs, stateDataValue, sMode);
-    signalFrame.values[fieldVoltage] = subInputs.inputs[GEN_MODEL_LOC][genModelEftInLocation];
+    if (ext != nullptr && ext->isEnabled()) {
+        StateData outputData = stateDataValue;
+        const SolverMode* outputMode = &sMode;
+        if (isDifferentialOnly(sMode) && sMode.pairedOffsetIndex != kNullLocation &&
+            stateDataValue.algState != nullptr) {
+            const auto& pairedMode = offsets.getSolverMode(sMode.pairedOffsetIndex);
+            if (pairedMode.algebraic && ext->algSize(pairedMode) > 0) {
+                outputMode = &pairedMode;
+                outputData.state = stateDataValue.algState;
+            }
+        }
+        signalFrame.values[fieldVoltage] =
+            ext->getOutput(subInputs.inputs[EXCITER_LOC], outputData, *outputMode);
+    } else {
+        signalFrame.values[fieldVoltage] = m_Eft;
+    }
+
     writeModelInputs(GEN_MODEL_LOC, stateDataValue, sMode);
     const auto machineSignals =
         genModel->getMachineControllerSignals(subInputs.inputs[GEN_MODEL_LOC],
@@ -1613,24 +1683,6 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
         machineSignals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_POWER)];
     signalFrame.values[overExcitationAction] = 0.0;
     signalFrame.values[underExcitationAction] = 0.0;
-    for (auto model : {OEL_LOC, UEL_LOC}) {
-        auto* limiter = (model == OEL_LOC) ? oel : uel;
-        if (limiter != nullptr && limiter->isEnabled()) {
-            writeModelInputs(model, stateDataValue, sMode);
-            const SolverMode* outputMode = &sMode;
-            StateData outputStateData = stateDataValue;
-            if (isDifferentialOnly(sMode) && sMode.pairedOffsetIndex != kNullLocation &&
-                stateDataValue.algState != nullptr) {
-                const auto& pairedMode = offsets.getSolverMode(sMode.pairedOffsetIndex);
-                if (pairedMode.algebraic && limiter->algSize(pairedMode) > 0) {
-                    outputMode = &pairedMode;
-                    outputStateData.state = stateDataValue.algState;
-                }
-            }
-            signalFrame.values[(model == OEL_LOC) ? overExcitationAction : underExcitationAction] =
-                limiter->getOutput(subInputs.inputs[model], outputStateData, *outputMode);
-        }
-    }
     writeModelInputs(GOVERNOR_LOC, stateDataValue, sMode);
     signalFrame.values[exciterVoltage] = signalFrame.values[terminalVoltage];
     if ((voltageCompensator != nullptr) && voltageCompensator->isEnabled()) {
@@ -1660,6 +1712,25 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
             boundStabilizer->getOutput(subInputs.inputs[PSS_LOC], outputStateData, *outputMode);
     } else {
         signalFrame.values[stabilizerOutput] = 0.0;
+    }
+    updateExciterFeedbackValues(stateDataValue, sMode);
+    for (auto model : {OEL_LOC, UEL_LOC}) {
+        auto* limiter = (model == OEL_LOC) ? oel : uel;
+        if (limiter != nullptr && limiter->isEnabled()) {
+            writeModelInputs(model, stateDataValue, sMode);
+            const SolverMode* outputMode = &sMode;
+            StateData outputStateData = stateDataValue;
+            if (isDifferentialOnly(sMode) && sMode.pairedOffsetIndex != kNullLocation &&
+                stateDataValue.algState != nullptr) {
+                const auto& pairedMode = offsets.getSolverMode(sMode.pairedOffsetIndex);
+                if (pairedMode.algebraic && limiter->algSize(pairedMode) > 0) {
+                    outputMode = &pairedMode;
+                    outputStateData.state = stateDataValue.algState;
+                }
+            }
+            signalFrame.values[(model == OEL_LOC) ? overExcitationAction : underExcitationAction] =
+                limiter->getOutput(subInputs.inputs[model], outputStateData, *outputMode);
+        }
     }
     writeModelInputs(EXCITER_LOC, stateDataValue, sMode);
     double eft = m_Eft;
@@ -1786,6 +1857,53 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
             }
             sourceLocations[(model == OEL_LOC) ? overExcitationAction : underExcitationAction] =
                 location;
+        }
+    }
+
+    if (ext != nullptr && ext->isEnabled()) {
+        const std::array<index_t, exciterInputCount> inputSources{exciterVoltage,
+                                                                  voltageSetpoint,
+                                                                  mechanicalPower,
+                                                                  controllerOmega,
+                                                                  machineSignalBase,
+                                                                  machineSignalBase + 1,
+                                                                  machineSignalBase + 2,
+                                                                  machineSignalBase + 3,
+                                                                  machineSignalBase + 4,
+                                                                  machineSignalBase + 5,
+                                                                  machineSignalBase + 6,
+                                                                  stabilizerOutput,
+                                                                  underExcitationAction,
+                                                                  overExcitationAction};
+        for (auto entry :
+             {std::pair{exciterStabilizingFeedback, ExciterFeedbackSignal::STABILIZING},
+              std::pair{exciterFieldCurrent, ExciterFeedbackSignal::FIELD_CURRENT},
+              std::pair{exciterUelFeedback, ExciterFeedbackSignal::UEL_FEEDBACK}}) {
+            const auto feedback = ext->getLimiterFeedback(entry.second,
+                                                          subInputs.inputs[EXCITER_LOC],
+                                                          stateDataValue,
+                                                          sMode);
+            auto& derivatives = signalFrame.derivatives[entry.first];
+            for (const auto& derivative : feedback.stateDerivatives) {
+                if (derivative.location != kNullLocation && derivative.value != 0.0) {
+                    derivatives.push_back(
+                        {.location = derivative.location, .value = derivative.value});
+                }
+            }
+            for (index_t input = 0; input < exciterInputCount; ++input) {
+                const double factor = feedback.inputDerivatives[input];
+                if (factor == 0.0) {
+                    continue;
+                }
+                const auto source = inputSources[input];
+                if (sourceLocations[source] != kNullLocation) {
+                    derivatives.push_back({.location = sourceLocations[source], .value = factor});
+                }
+                for (const auto& derivative : signalFrame.derivatives[source]) {
+                    derivatives.push_back(
+                        {.location = derivative.location, .value = factor * derivative.value});
+                }
+            }
         }
     }
 

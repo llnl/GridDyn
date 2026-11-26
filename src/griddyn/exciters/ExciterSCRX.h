@@ -18,6 +18,11 @@ class ExciterSCRX final: public Exciter {
     const ModelDescription& getModelDescription() const override;
     explicit ExciterSCRX(const std::string& objName = "exciterSCRX_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    bool providesLimiterFeedback(ExciterFeedbackSignal signal) const override;
+    ExciterFeedbackData getLimiterFeedback(ExciterFeedbackSignal signal,
+                                           const IOdata& inputs,
+                                           const StateData& data,
+                                           const SolverMode& mode) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,

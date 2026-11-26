@@ -92,7 +92,8 @@ namespace {
             "ieeest", "iee2st", "pss2a",  "pss2b",   "stab3",   "sexs",   "ieeeg2", "ieeevc",
             "regca1", "regcp1", "reeca1", "reeca1e", "reeca1g", "reecb1", "repca1", "regcv1",
             "regcv2", "regf1",  "regf2",  "regf3",   "wtdta1",  "wtara1", "wtpta1", "wttqa1",
-            "wtds",   "wt3g1",  "wt3e1",  "wt4g1",   "wt4e1",   "epcgen", "gpwscc", "stab2a"};
+            "wtds",   "wt3g1",  "wt3e1",  "wt4g1",   "wt4e1",   "epcgen", "gpwscc", "stab2a",
+            "comp",   "oel3c",  "oel4c",  "uel1",    "uel2c"};
         const auto normalized = gmlc::utilities::convertToLowerCase(modelName);
         return std::ranges::any_of(directModels, [normalized](const char* directModel) {
             return normalized == directModel;
@@ -912,6 +913,14 @@ namespace {
             if (token.empty() || token == "/" || token.starts_with('#')) {
                 continue;
             }
+            if ((canonicalModelName == "comp" || canonicalModelName == "oel3c" ||
+                 canonicalModelName == "oel4c" || canonicalModelName == "uel1" ||
+                 canonicalModelName == "uel2c") &&
+                token.contains('=')) {
+                // These documented compact payloads are strictly positional.
+                payload.mHasUnsupportedField = true;
+                break;
+            }
             const auto lowerToken = gmlc::utilities::convertToLowerCase(token);
             if (lowerToken.starts_with("mwcap=")) {
                 if (canonicalModelName == "gpwscc") {
@@ -1305,7 +1314,8 @@ namespace {
         if (directModel && !busResolved) {
             std::string message = context.mFileName + ":" + std::to_string(record.mLineNumber) +
                 " " + displayModelName + " cannot match DYD bus " + record.mHeader[1] + " named '" +
-                record.mHeader[2] + "' to the static network";
+                record.mHeader[2] + "' to the static network for machine " +
+                gmlc::utilities::stringOps::removeQuotes(record.mHeader[4]);
             if (network != nullptr) {
                 std::vector<GridBus*> buses;
                 network->getBusVector(buses);

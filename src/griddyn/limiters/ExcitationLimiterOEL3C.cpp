@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cmath>
 #include <string>
+#include <vector>
 
 namespace griddyn::limiters {
 
@@ -39,7 +40,11 @@ const ModelDescription& ExcitationLimiterOEL3C::getModelDescription() const
              {"voelmax2", "voel_max2"}, &ExcitationLimiterOEL3C::voelMax2, units::one, "Voel max2"),
          parameter(
              {"voelmin2", "voel_min2"}, &ExcitationLimiterOEL3C::voelMin2, units::one, "Voel min2"),
-         command({"oelinput", "oel_input"}, units::defunit, "Set oelinput"),
+         parameter({"oelinput", "oel_input"},
+                   &ExcitationLimiterOEL3C::oelInput,
+                   units::one,
+                   "OEL input selector",
+                   [](int value) { return value >= 0 && value <= 2; }),
          state({"voel"}, units::one, 0, "Solver variable voel when active"),
          state({"field_current_filter"},
                units::one,
@@ -51,12 +56,13 @@ const ModelDescription& ExcitationLimiterOEL3C::getModelDescription() const
 }
 
 ExcitationLimiterOEL3C::ExcitationLimiterOEL3C(const std::string& objName):
-    ExcitationLimiter(objName)
+    detail::LimiterDynamics<2>(objName)
 {
     setRole(Role::OVER);
     offsets.local().local.algSize = 1;
     offsets.local().local.diffSize = 2;
-    offsets.local().local.jacSize = 12;
+    offsets.local().local.algRoots = 1;
+    offsets.local().local.jacSize = 36;
 }
 
 CoreObject* ExcitationLimiterOEL3C::clone(CoreObject* obj) const
@@ -67,6 +73,7 @@ CoreObject* ExcitationLimiterOEL3C::clone(CoreObject* obj) const
         result->kscale = kscale;
         result->tf = tf;
         result->k1 = k1;
+        result->oelInput = oelInput;
         result->koel = koel;
         result->toel = toel;
         result->kpoel = kpoel;
@@ -81,218 +88,149 @@ CoreObject* ExcitationLimiterOEL3C::clone(CoreObject* obj) const
 
 void ExcitationLimiterOEL3C::set(std::string_view param, double val, units::unit unitType)
 {
-    if (isSetHandled(
-            ExcitationLimiterOEL3C::getModelDescription().trySet(*this, param, val, unitType))) {
-        return;
-    }
-    if (param == "oelinput" || param == "oel_input") {
-        if (val != 0.0) {
-            throw InvalidParameterValue(
-                "OEL3C currently supports OELInput=0 (machine field current)");
-        }
-    } else {
+    if (!isSetHandled(getModelDescription().trySet(*this, param, val, unitType))) {
         ExcitationLimiter::set(param, val, unitType);
     }
 }
 
 double ExcitationLimiterOEL3C::get(std::string_view param, units::unit unitType) const
 {
-    if (const auto value =
-            ExcitationLimiterOEL3C::getModelDescription().tryGet(*this, param, unitType)) {
+    if (const auto value = getModelDescription().tryGet(*this, param, unitType)) {
         return *value;
     }
-    if (param == "oelinput" || param == "oel_input") {
-        return 0.0;
-    }
-
     return ExcitationLimiter::get(param, unitType);
 }
 
 void ExcitationLimiterOEL3C::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
-    if (!std::isfinite(itfpu) || !std::isfinite(kscale) || !std::isfinite(tf) ||
-        !std::isfinite(koel) || !std::isfinite(toel) || !std::isfinite(kpoel) ||
-        !std::isfinite(voelMax1) || !std::isfinite(voelMin1) || !std::isfinite(voelMax2) ||
-        !std::isfinite(voelMin2) || itfpu <= 0.0 || kscale <= 0.0 || tf < 0.0 || koel <= 0.0 ||
-        toel <= 0.0 || kpoel < 0.0 || voelMin1 > voelMax1 || voelMin1 > 0.0 ||
-        voelMin2 > voelMax2 || voelMax2 > 0.0 || voelMin2 > 0.0) {
-        throw InvalidParameterValue("OEL3C parameters and signed VOEL limits");
+    for (const double value :
+         {itfpu, kscale, tf, koel, toel, kpoel, voelMax1, voelMin1, voelMax2, voelMin2}) {
+        if (!std::isfinite(value)) {
+            throw InvalidParameterValue("OEL3C nonfinite parameter");
+        }
     }
-    offsets.local().local.algSize = 1;
-    offsets.local().local.diffSize = 2;
-    offsets.local().local.jacSize = 12;
+    if (itfpu <= 0.0 || kscale <= 0.0 || tf < 0.0 || koel <= 0.0 || toel <= 0.0 || kpoel < 0.0 ||
+        voelMax1 < 0.0 || voelMin1 > 0.0 || voelMax2 < 0.0 || voelMin2 > 0.0) {
+        throw InvalidParameterValue("OEL3C gains, time constants, or signed limits");
+    }
+    offsets.local().local.algRoots = 1;
+    proportionalActive = false;
     prevTime = time0;
 }
 
-double ExcitationLimiterOEL3C::fieldCurrent(const IOdata& inputs)
+index_t ExcitationLimiterOEL3C::measurementLocation() const
 {
-    if (inputs.size() < excitationLimiterInputCount ||
-        !std::isfinite(inputs[limiterFieldCurrentInLocation]) ||
-        std::abs(inputs[limiterFieldCurrentInLocation]) > 1e20) {
-        throw InvalidParameterValue("OEL3C requires a compatible machine field-current signal");
+    if (oelInput == 0) {
+        return limiterFieldCurrentInLocation;
     }
-    return inputs[limiterFieldCurrentInLocation];
+    if (oelInput == 1) {
+        return limiterFieldVoltageInLocation;
+    }
+    return limiterExciterFieldCurrentInLocation;
 }
 
-ExcitationLimiterOEL3C::Evaluation ExcitationLimiterOEL3C::evaluate(double scaledFieldCurrent,
-                                                                    double integral) const
+double ExcitationLimiterOEL3C::measurement(const IOdata& inputs) const
 {
-    const double normalized = std::max(scaledFieldCurrent, 0.0) / itfpu;
-    Evaluation result;
-    if (normalized > 1.0) {
-        result.error = std::pow(normalized, k1) - 1.0;
-        result.errorSlope = static_cast<double>(k1) * std::pow(normalized, k1 - 1) / itfpu;
+    const auto index = static_cast<IOdata::size_type>(measurementLocation());
+    if (inputs.size() <= index || !std::isfinite(inputs[index]) || std::abs(inputs[index]) > 1e20) {
+        throw InvalidParameterValue("OEL3C selected Ifd/Efd/VFE measurement is unavailable");
     }
-    // IEEE's internal VOEL correction is nonpositive; generator routes carry
-    // the positive magnitude consumed by the exciter's summing point.
-    const double raw = (-kpoel * result.error) + integral;
-    const bool unsaturated = raw > voelMin2 && raw < voelMax2;
-    const double internal = std::clamp(raw, voelMin2, voelMax2);
-    result.action = -internal;
-    if (unsaturated) {
-        result.actionErrorSlope = kpoel;
-        result.actionIntegralSlope = -1.0;
+    return inputs[index];
+}
+
+detail::Evaluation<2> ExcitationLimiterOEL3C::evaluate(const IOdata& inputs,
+                                                       const double states[]) const
+{
+    measurement(inputs);
+    detail::Evaluation<2> result;
+    const auto index = measurementLocation();
+    const auto measured = tf > 0.0 ? detail::state<2>(states[0], 0) :
+                                     detail::scale(detail::input<2>(inputs, index), kscale);
+    if (tf > 0.0) {
+        result.mRates[0] =
+            detail::scale(detail::subtract(detail::scale(detail::input<2>(inputs, index), kscale),
+                                           measured),
+                          1.0 / tf);
     }
+    // IEEE applies K1 to both the rated pickup and the scaled measurement.
+    // Retaining negative error lets the integrator recover after pickup clears.
+    const auto error = detail::scale(detail::subtract(detail::constant<2>(std::pow(itfpu, k1)),
+                                                      detail::power(measured, k1)),
+                                     koel);
+    const auto integral = detail::state<2>(states[1], 1);
+    result.mRates[1] =
+        detail::limitedRate(detail::scale(error, 1.0 / toel), integral.mValue, voelMin1, voelMax1);
+    // Keep the selected SW1 branch fixed during a solver step. The root
+    // handler changes it when VIOEL crosses zero, then the solver can
+    // reinitialize the discontinuous proportional output consistently.
+    const auto proportional =
+        proportionalActive ? detail::scale(error, kpoel) : detail::constant<2>(0.0);
+    result.mOutput =
+        detail::scale(detail::clamp(detail::add(integral, proportional), voelMin2, voelMax2), -1.0);
     return result;
-}
-
-double ExcitationLimiterOEL3C::integralRate(double integral, double error) const
-{
-    const double rate = (-koel / toel) * error;
-    if ((integral <= voelMin1 && rate < 0.0) || (integral >= voelMax1 && rate > 0.0)) {
-        return 0.0;
-    }
-    return rate;
 }
 
 void ExcitationLimiterOEL3C::dynObjectInitializeB(const IOdata& inputs,
                                                   const IOdata& /*desiredOutput*/,
                                                   IOdata& fieldSet)
 {
-    m_state[1] = kscale * fieldCurrent(inputs);
-    m_state[2] = 0.0;
-    m_state[0] = evaluate(m_state[1], m_state[2]).action;
+    m_state[1] = kscale * measurement(inputs);
+    m_state[2] = std::pow(m_state[1], k1) <= std::pow(itfpu, k1) ? voelMax1 : 0.0;
+    proportionalActive = m_state[2] < 0.0;
+    m_state[0] = evaluate(inputs, m_state.data() + 1).mOutput.mValue;
     fieldSet = {m_state[0]};
-}
-
-void ExcitationLimiterOEL3C::residual(const IOdata& inputs,
-                                      const StateData& stateData,
-                                      double resid[],
-                                      const SolverMode& sMode)
-{
-    const auto loc = offsets.getLocations(stateData, resid, sMode, this);
-    const double measured = (tf > 0.0) ? loc.diffStateLoc[0] : kscale * fieldCurrent(inputs);
-    const auto result = evaluate(measured, loc.diffStateLoc[1]);
-    if (hasAlgebraic(sMode)) {
-        loc.destLoc[0] = result.action - loc.algStateLoc[0];
-    }
-    if (hasDifferential(sMode)) {
-        loc.destDiffLoc[0] = (tf > 0.0) ?
-            (((kscale * fieldCurrent(inputs)) - loc.diffStateLoc[0]) / tf) - loc.dstateLoc[0] :
-            -loc.dstateLoc[0];
-        loc.destDiffLoc[1] = integralRate(loc.diffStateLoc[1], result.error) - loc.dstateLoc[1];
-    }
-}
-
-void ExcitationLimiterOEL3C::derivative(const IOdata& inputs,
-                                        const StateData& stateData,
-                                        double deriv[],
-                                        const SolverMode& sMode)
-{
-    if (!hasDifferential(sMode)) {
-        return;
-    }
-    const auto loc = offsets.getLocations(stateData, deriv, sMode, this);
-    const double measured = (tf > 0.0) ? loc.diffStateLoc[0] : kscale * fieldCurrent(inputs);
-    const auto result = evaluate(measured, loc.diffStateLoc[1]);
-    loc.destDiffLoc[0] =
-        (tf > 0.0) ? ((kscale * fieldCurrent(inputs)) - loc.diffStateLoc[0]) / tf : 0.0;
-    loc.destDiffLoc[1] = integralRate(loc.diffStateLoc[1], result.error);
-}
-
-void ExcitationLimiterOEL3C::algebraicUpdate(const IOdata& inputs,
-                                             const StateData& stateData,
-                                             double update[],
-                                             const SolverMode& sMode,
-                                             double /*alpha*/)
-{
-    if (!hasAlgebraic(sMode)) {
-        return;
-    }
-    const auto loc = offsets.getLocations(stateData, update, sMode, this);
-    const double measured = (tf > 0.0) ? loc.diffStateLoc[0] : kscale * fieldCurrent(inputs);
-    loc.destLoc[0] = evaluate(measured, loc.diffStateLoc[1]).action;
-}
-
-void ExcitationLimiterOEL3C::jacobianElements(const IOdata& inputs,
-                                              const StateData& stateData,
-                                              MatrixData<double>& matrixData,
-                                              const IOlocs& inputLocs,
-                                              const SolverMode& sMode)
-{
-    const auto loc = offsets.getLocations(stateData, sMode, this);
-    const auto result = evaluate(tf > 0.0 ? loc.diffStateLoc[0] : kscale * fieldCurrent(inputs),
-                                 loc.diffStateLoc[1]);
-    const double rate = (-koel / toel) * result.error;
-    const bool blockedAtMinimum = loc.diffStateLoc[1] <= voelMin1 && rate < 0.0;
-    const bool blockedAtMaximum = loc.diffStateLoc[1] >= voelMax1 && rate > 0.0;
-    const bool integrate = !blockedAtMinimum && !blockedAtMaximum;
-    if (hasAlgebraic(sMode)) {
-        matrixData.assign(loc.algOffset, loc.algOffset, -1.0);
-        if (!isAlgebraicOnly(sMode)) {
-            if (result.actionIntegralSlope != 0.0) {
-                matrixData.assign(loc.algOffset, loc.diffOffset + 1, result.actionIntegralSlope);
-            }
-            if (tf > 0.0 && result.actionErrorSlope * result.errorSlope != 0.0) {
-                matrixData.assign(loc.algOffset,
-                                  loc.diffOffset,
-                                  result.actionErrorSlope * result.errorSlope);
-            } else if (tf == 0.0 && result.actionErrorSlope * result.errorSlope != 0.0) {
-                matrixData.assignCheckCol(loc.algOffset,
-                                          inputLocs[limiterFieldCurrentInLocation],
-                                          result.actionErrorSlope * result.errorSlope * kscale);
-            }
-        }
-    }
-    if (!hasDifferential(sMode)) {
-        return;
-    }
-    matrixData.assign(loc.diffOffset, loc.diffOffset, (tf > 0.0 ? -1.0 / tf : 0.0) - stateData.cj);
-    if (tf > 0.0 && inputLocs[limiterFieldCurrentInLocation] != kNullLocation) {
-        matrixData.assignCheckCol(loc.diffOffset,
-                                  inputLocs[limiterFieldCurrentInLocation],
-                                  kscale / tf);
-    }
-    matrixData.assign(loc.diffOffset + 1, loc.diffOffset + 1, -stateData.cj);
-    if (integrate && result.errorSlope != 0.0) {
-        const double rateSlope = (-koel / toel) * result.errorSlope;
-        if (tf > 0.0) {
-            matrixData.assign(loc.diffOffset + 1, loc.diffOffset, rateSlope);
-        } else if (inputLocs[limiterFieldCurrentInLocation] != kNullLocation) {
-            matrixData.assignCheckCol(loc.diffOffset + 1,
-                                      inputLocs[limiterFieldCurrentInLocation],
-                                      rateSlope * kscale);
-        }
-    }
 }
 
 void ExcitationLimiterOEL3C::timestep(CoreTime time,
                                       const IOdata& inputs,
-                                      const SolverMode& /*sMode*/)
+                                      const SolverMode& /*mode*/)
 {
+    const auto result = evaluate(inputs, m_state.data() + 1);
     const double step = time - prevTime;
-    const double field = kscale * fieldCurrent(inputs);
-    if (tf > 0.0) {
-        m_state[1] += (step * (field - m_state[1])) / tf;
-    } else {
-        m_state[1] = field;
-    }
-    const auto result = evaluate(m_state[1], m_state[2]);
-    m_state[2] = std::clamp(m_state[2] + (step * integralRate(m_state[2], result.error)),
-                            voelMin1,
-                            voelMax1);
-    m_state[0] = evaluate(m_state[1], m_state[2]).action;
+    m_state[1] += step * result.mRates[0].mValue;
+    m_state[2] = std::clamp(m_state[2] + (step * result.mRates[1].mValue), voelMin1, voelMax1);
+    proportionalActive = m_state[2] < 0.0;
+    m_state[0] = evaluate(inputs, m_state.data() + 1).mOutput.mValue;
     prevTime = time;
+}
+
+void ExcitationLimiterOEL3C::rootTest(const IOdata& /*inputs*/,
+                                      const StateData& data,
+                                      double roots[],
+                                      const SolverMode& mode)
+{
+    const auto root = offsets.getRootOffset(mode);
+    if (root != kNullLocation) {
+        const auto loc = offsets.getLocations(data, mode, this);
+        // Rearm on the far side of zero to avoid repeated roots at an inactive
+        // initialized switch.
+        roots[root] = loc.diffStateLoc[1] + (proportionalActive ? -1e-8 : 1e-8);
+    }
+}
+
+void ExcitationLimiterOEL3C::rootTrigger(CoreTime /*time*/,
+                                         const IOdata& /*inputs*/,
+                                         const std::vector<int>& rootMask,
+                                         const SolverMode& mode)
+{
+    const auto root = offsets.getRootOffset(mode);
+    if (root != kNullLocation && rootMask[root] != 0) {
+        proportionalActive = rootMask[root] < 0;
+    }
+}
+
+ChangeCode ExcitationLimiterOEL3C::rootCheck(const IOdata& /*inputs*/,
+                                             const StateData& data,
+                                             const SolverMode& mode,
+                                             CheckLevel /*level*/)
+{
+    const auto loc = offsets.getLocations(data, mode, this);
+    const bool active = loc.diffStateLoc[1] < 0.0;
+    if (active != proportionalActive) {
+        proportionalActive = active;
+        return ChangeCode::JACOBIAN_CHANGE;
+    }
+    return ChangeCode::NO_CHANGE;
 }
 
 }  // namespace griddyn::limiters

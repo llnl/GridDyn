@@ -150,7 +150,8 @@ void Exciter::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
 
 void Exciter::setInitialLimitPolicy(std::uint32_t flags)
 {
-    strictInitialLimitChecking = CHECK_CONTROLFLAG(flags, STRICT_EXCITER_LIMITS);
+    strictInitialLimitChecking =
+        CHECK_CONTROLFLAG(flags, static_cast<std::uint32_t>(STRICT_EXCITER_LIMITS));
     // A new dynamic initialization must select its limiter branch from the
     // new operating point, rather than inherit a branch from a prior run.
     opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
@@ -389,6 +390,19 @@ const std::vector<stringVec>& Exciter::outputNames() const
 bool Exciter::supportsLimiterSignal(ExciterLimiterSignal /*signal*/) const
 {
     return false;
+}
+
+bool Exciter::providesLimiterFeedback(ExciterFeedbackSignal /*signal*/) const
+{
+    return false;
+}
+
+ExciterFeedbackData Exciter::getLimiterFeedback(ExciterFeedbackSignal /*signal*/,
+                                                const IOdata& /*inputs*/,
+                                                const StateData& /*stateData*/,
+                                                const SolverMode& /*mode*/) const
+{
+    return {};
 }
 
 }  // namespace griddyn

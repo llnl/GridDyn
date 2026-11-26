@@ -422,7 +422,8 @@ TEST(ComponentDescriptionTests, LimiterCurvesAndConfiguredThresholds)
     curve.set("q1", 0.0);
     snapshot.restore(curve);
     EXPECT_DOUBLE_EQ(curve.get("q1"), -0.1);
-    EXPECT_THROW(curve.set("p7", 1.0), UnrecognizedParameter);
+    EXPECT_NO_THROW(curve.set("p7", 1.0));
+    EXPECT_THROW(curve.set("p10", 1.0), UnrecognizedParameter);
 
     ExcitationLimiter generic;
     generic.set("threshold", 0.9);
@@ -540,17 +541,34 @@ TEST(ComponentDescriptionTests, InverseFlagBindingsAgreeAcrossModelsAndRestoreTh
         std::string_view inverse;
     };
     std::vector<FlagPair> pairs;
-    pairs.push_back({std::make_unique<loads::FileLoad>(), "absolute", "relative"});
-    pairs.push_back({std::make_unique<loads::FileLoad>(), "step", "interpolate"});
-    pairs.push_back({std::make_unique<sources::FileSource>(), "absolute", "relative"});
-    pairs.push_back({std::make_unique<sources::FileSource>(), "step", "interpolate"});
-    pairs.push_back({std::make_unique<blocks::DeadbandBlock>(), "shifted", "unshifted"});
-    pairs.push_back({std::make_unique<loads::ThreePhaseLoad>(), "use_abs_angle", "ignore_phase"});
-    pairs.push_back({std::make_unique<relays::DifferentialRelay>(), "relative", "absolute"});
-    pairs.push_back({std::make_unique<sources::CommSource>(), "no_reply_message", "reply_message"});
-    pairs.push_back({std::make_unique<GridDynSimulation>(), "dense", "sparse"});
+    pairs.push_back({.model = std::make_unique<loads::FileLoad>(),
+                     .direct = "absolute",
+                     .inverse = "relative"});
+    pairs.push_back(
+        {.model = std::make_unique<loads::FileLoad>(), .direct = "step", .inverse = "interpolate"});
+    pairs.push_back({.model = std::make_unique<sources::FileSource>(),
+                     .direct = "absolute",
+                     .inverse = "relative"});
+    pairs.push_back({.model = std::make_unique<sources::FileSource>(),
+                     .direct = "step",
+                     .inverse = "interpolate"});
+    pairs.push_back({.model = std::make_unique<blocks::DeadbandBlock>(),
+                     .direct = "shifted",
+                     .inverse = "unshifted"});
+    pairs.push_back({.model = std::make_unique<loads::ThreePhaseLoad>(),
+                     .direct = "use_abs_angle",
+                     .inverse = "ignore_phase"});
+    pairs.push_back({.model = std::make_unique<relays::DifferentialRelay>(),
+                     .direct = "relative",
+                     .inverse = "absolute"});
+    pairs.push_back({.model = std::make_unique<sources::CommSource>(),
+                     .direct = "no_reply_message",
+                     .inverse = "reply_message"});
+    pairs.push_back(
+        {.model = std::make_unique<GridDynSimulation>(), .direct = "dense", .inverse = "sparse"});
 #ifdef GRIDDYN_ENABLE_EXTRA_MODELS
-    pairs.push_back({std::make_unique<extra::TxLifeSpan>(), "iec", "ieee"});
+    pairs.push_back(
+        {.model = std::make_unique<extra::TxLifeSpan>(), .direct = "iec", .inverse = "ieee"});
 #endif
     for (auto& pair : pairs) {
         auto& model = *pair.model;
@@ -611,9 +629,12 @@ TEST(ComponentDescriptionTests, InheritedEnumerationUsesEachNativeDescription)
                                 ParamStringType::LOCAL_FLAGS}) {
             stringVec names{"existing"};
             model->getParameterStrings(names, type);
-            const auto declared = type == ParamStringType::LOCAL_NUM ? description.numericNames() :
-                type == ParamStringType::LOCAL_STR                   ? description.stringNames() :
-                                                                       description.flagNames();
+            auto declared = description.flagNames();
+            if (type == ParamStringType::LOCAL_NUM) {
+                declared = description.numericNames();
+            } else if (type == ParamStringType::LOCAL_STR) {
+                declared = description.stringNames();
+            }
             EXPECT_EQ(names, (stringVec{declared.begin(), declared.end()}));
         }
         stringVec names;

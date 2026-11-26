@@ -99,6 +99,9 @@ class DynamicGenerator: public Generator {
         governorElectricalPower,
         overExcitationAction,
         underExcitationAction,
+        exciterStabilizingFeedback,
+        exciterFieldCurrent,
+        exciterUelFeedback,
         machineSignalBase,
         signalSourceCount = machineSignalBase + machineControllerSignalCount,
     };
@@ -278,6 +281,7 @@ class DynamicGenerator: public Generator {
     void resolveMechanicalPowerSource();
 
     void compileSignalRoutes();
+    void updateExciterFeedbackValues(const StateData& data, const SolverMode& mode);
     void writeModelInputs(SubModelLocations model,
                           const StateData& stateDataValue,
                           const SolverMode& sMode);

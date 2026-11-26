@@ -160,7 +160,7 @@ endmacro()
 
 # Apply the optional launcher only to the targets created by a vendored dependency.
 set(GRIDDYN_DEPENDENCY_COMPILER_LAUNCHER ""
-    CACHE STRING "Compiler launcher for bundled HiGHS, HDF5, and SUNDIALS"
+    CACHE STRING "Compiler launcher for selected bundled dependencies"
 )
 mark_as_advanced(GRIDDYN_DEPENDENCY_COMPILER_LAUNCHER)
 

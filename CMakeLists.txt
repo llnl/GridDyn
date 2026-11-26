@@ -683,6 +683,7 @@ set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
 set(YAML_CPP_INSTALL ON CACHE BOOL "" FORCE)
 add_subdirectory(ThirdParty/yaml-cpp EXCLUDE_FROM_ALL)
+griddyn_apply_dependency_compiler_launcher("${CMAKE_CURRENT_BINARY_DIR}/ThirdParty/yaml-cpp")
 griddyn_hide_cache_variables_by_prefix(YAML_)
 
 if(TARGET yaml-cpp)

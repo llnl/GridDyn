@@ -90,8 +90,13 @@ jobs:
       jobName: Windows_VSlatest_64bit
       displayName: Windows VSlatest-64bit
       imageName: windows-latest
-      extraFlags: "-DGRIDDYN_ENABLE_FMI=OFF -DGRIDDYN_BUILD_CXX_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON"
+      extraFlags: >-
+        -DGRIDDYN_ENABLE_FMI=OFF
+        -DGRIDDYN_BUILD_CXX_SHARED_LIBRARY=ON
+        -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON
       timeoutInMinutes: 90
+      buildGenerator: Ninja
+      enableDependencyCache: true
 
   - template: azure-windows.yml
     parameters:

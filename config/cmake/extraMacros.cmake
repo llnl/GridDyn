@@ -157,3 +157,34 @@ macro(
         set(${option} "${${option}_ISSET}")
     endif()
 endmacro()
+
+# Apply the optional launcher only to the targets created by a vendored dependency.
+set(GRIDDYN_DEPENDENCY_COMPILER_LAUNCHER ""
+    CACHE STRING "Compiler launcher for bundled HiGHS, HDF5, and SUNDIALS"
+)
+mark_as_advanced(GRIDDYN_DEPENDENCY_COMPILER_LAUNCHER)
+
+function(griddyn_apply_dependency_compiler_launcher directory)
+    if(NOT GRIDDYN_DEPENDENCY_COMPILER_LAUNCHER)
+        return()
+    endif()
+
+    get_property(targets DIRECTORY "${directory}" PROPERTY BUILDSYSTEM_TARGETS)
+    foreach(target IN LISTS targets)
+        get_target_property(target_type "${target}" TYPE)
+        if(target_type MATCHES
+           "^(EXECUTABLE|OBJECT_LIBRARY|STATIC_LIBRARY|SHARED_LIBRARY|MODULE_LIBRARY)$"
+        )
+            set_target_properties(
+                "${target}"
+                PROPERTIES C_COMPILER_LAUNCHER "${GRIDDYN_DEPENDENCY_COMPILER_LAUNCHER}"
+                           CXX_COMPILER_LAUNCHER "${GRIDDYN_DEPENDENCY_COMPILER_LAUNCHER}"
+            )
+        endif()
+    endforeach()
+
+    get_property(subdirectories DIRECTORY "${directory}" PROPERTY SUBDIRECTORIES)
+    foreach(subdirectory IN LISTS subdirectories)
+        griddyn_apply_dependency_compiler_launcher("${subdirectory}")
+    endforeach()
+endfunction()

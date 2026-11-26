@@ -10,6 +10,15 @@ parameters:
   - name: timeoutInMinutes
     type: number
     default: 60
+  - name: buildGenerator
+    type: string
+    default: MSBuild
+    values:
+      - MSBuild
+      - Ninja
+  - name: enableDependencyCache
+    type: boolean
+    default: false
 
 jobs:
   - job: ${{ parameters.jobName }}
@@ -18,9 +27,21 @@ jobs:
     pool:
       vmImage: ${{ parameters.imageName }}
     variables:
-      imageName: ${{ parameters.imageName }}
       vsArch: x64
       extraFlags: ${{ parameters.extraFlags }}
+      dependencyLauncherFlag: ""
+      ${{ if parameters.enableDependencyCache }}:
+        DEPENDENCY_CACHE_ENABLED: "false"
+        DEPENDENCY_CACHE_FINGERPRINT: "disabled"
+        SCCACHE_DIR: $(Pipeline.Workspace)/sccache-dependencies
+        SCCACHE_IDLE_TIMEOUT: "0"
+        SCCACHE_IGNORE_SERVER_IO_ERROR: "1"
+        SCCACHE_RELEASE: v0.20.1
+      cmakeFlags: >-
+        -DGRIDDYN_ENABLE_PACKAGE_BUILD=ON
+        -DGRIDDYN_BUILD_TESTS=ON
+        -DGRIDDYN_HDF5_USE_MSVC_PROBE_PRESETS=ON
+        -DGRIDDYN_SUITESPARSE_FORCE_SUBPROJECT=ON
       BOOST_ROOT: $(Pipeline.Workspace)/ci-libs/boost
       BOOST_URL: https://sourceforge.net/projects/boost/files/boost/1.90.0/boost_1_90_0.tar.bz2/download
 
@@ -68,9 +89,56 @@ jobs:
         condition: ne(variables.BOOST_CACHE_RESTORED, 'true')
         displayName: Install Boost
 
-      - bash: choco install nsis --yes --limit-output
-        condition: eq( variables['Agent.OS'], 'Windows_NT' )
+      - pwsh: |
+          $package = 'nsis-3.13'
+          $archive = Join-Path '$(Agent.TempDirectory)' "$package.zip"
+          $hash = 'ba63dffc4410ee89193e1cb5a41989991bd77c61068da17e3156d136b7b0b3d8'
+          $sources = @(
+              'https://github.com/egoist/mygo/releases/download/nsis-3.13/nsis-3.13.zip'
+              'https://downloads.sourceforge.net/project/nsis/NSIS%203/3.13/nsis-3.13.zip?viasf=1'
+          )
+          $verified = $false
+          foreach ($source in $sources) {
+              try {
+                  Invoke-WebRequest -Uri $source -OutFile $archive -MaximumRetryCount 2 -RetryIntervalSec 5
+                  $verified = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -eq $hash
+                  if ($verified) { break }
+                  Write-Warning "The archive from $source did not match the official NSIS SHA-256."
+              } catch {
+                  Write-Warning "Could not download NSIS from $source. $($_.Exception.Message)"
+              }
+          }
+          if (!$verified) { throw 'Could not download the pinned NSIS archive.' }
+          Expand-Archive -LiteralPath $archive -DestinationPath '$(Agent.TempDirectory)'
+          $toolDirectory = Join-Path '$(Agent.TempDirectory)' $package
+          & (Join-Path $toolDirectory 'makensis.exe') /VERSION
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Write-Host "##vso[task.prependpath]$toolDirectory"
         displayName: Install NSIS
+
+      - ${{ if parameters.enableDependencyCache }}:
+          - pwsh: |
+              $release = $env:SCCACHE_RELEASE
+              $package = "sccache-$release-x86_64-pc-windows-msvc"
+              $archive = Join-Path '$(Agent.TempDirectory)' "$package.zip"
+              $hash = 'ca500a01139e9af8d5f5a5e69b6a0dd941ed79ed3399a91cc35bba484fe732fa'
+              try {
+                  Invoke-WebRequest -Uri "https://github.com/mozilla/sccache/releases/download/$release/$package.zip" -OutFile $archive -MaximumRetryCount 2 -RetryIntervalSec 5
+                  if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $hash) {
+                      throw 'The sccache download does not match its pinned SHA-256.'
+                  }
+                  Expand-Archive -LiteralPath $archive -DestinationPath '$(Agent.TempDirectory)'
+                  $toolDirectory = Join-Path '$(Agent.TempDirectory)' $package
+                  Get-Item -LiteralPath (Join-Path $toolDirectory 'sccache.exe') -ErrorAction Stop | Out-Null
+                  New-Item -ItemType Directory -Force -Path $env:SCCACHE_DIR | Out-Null
+                  Write-Host "Using sccache $release for the bundled dependencies."
+                  Write-Host "##vso[task.prependpath]$toolDirectory"
+                  Write-Host '##vso[task.setvariable variable=dependencyLauncherFlag]-DGRIDDYN_DEPENDENCY_COMPILER_LAUNCHER=sccache'
+                  Write-Host '##vso[task.setvariable variable=DEPENDENCY_CACHE_ENABLED]true'
+              } catch {
+                  Write-Warning "Building without a compiler cache. $($_.Exception.Message)"
+              }
+            displayName: Install sccache
 
       # -----------------------
       # Configure GRIDDYN
@@ -79,25 +147,96 @@ jobs:
           echo "BOOST_ROOT=$BOOST_ROOT"
           env
         displayName: Show environment info
-      - task: CMake@1
-        inputs:
-          cmakeArgs: >-
-            -A $(vsArch)
-            -DBOOST_INSTALL_PATH=$(BOOST_ROOT)
-            -DGRIDDYN_ENABLE_PACKAGE_BUILD=ON
-            -DGRIDDYN_BUILD_TESTS=ON
-            -DGRIDDYN_HDF5_USE_MSVC_PROBE_PRESETS=ON
-            -DGRIDDYN_SUITESPARSE_FORCE_SUBPROJECT=ON
-            $(extraFlags) ..
-        displayName: "Configure GridDyn"
-        condition: eq( variables['Agent.OS'], 'Windows_NT' )
+      - ${{ if eq(parameters.buildGenerator, 'Ninja') }}:
+          - pwsh: |
+              $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+              $installation = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+              if ($LASTEXITCODE -ne 0 -or !$installation) {
+                  throw 'No Visual Studio installation with x64 MSVC was found.'
+              }
+              $vsDevCmd = Join-Path $installation 'Common7\Tools\VsDevCmd.bat'
+              Write-Host "##vso[task.setvariable variable=VS_DEVCMD]$vsDevCmd"
+            displayName: Find x64 MSVC tools
 
-      # -----------------------
-      # Build GridDyn
-      # -----------------------
-      - bash: cmake --build . --config Release
-        displayName: "Build GridDyn"
-        workingDirectory: build
+          - script: |
+              call "$(VS_DEVCMD)" -no_logo -arch=$(vsArch) -host_arch=x64
+              if errorlevel 1 exit /b 1
+              echo ##vso[task.setvariable variable=GRIDDYN_WINDOWS_SDK]%WindowsSDKVersion:\=%
+              cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl "-DBOOST_INSTALL_PATH=$(BOOST_ROOT)" $(cmakeFlags) $(extraFlags) $(dependencyLauncherFlag)
+            displayName: "Configure GridDyn"
+            workingDirectory: $(Build.SourcesDirectory)
+
+          - ${{ if parameters.enableDependencyCache }}:
+              - pwsh: |
+                  # Git trees cover submodule pins, bundled sources, and dependency build recipes.
+                  $gitInputs = @(git rev-parse HEAD:ThirdParty HEAD:config/cmake HEAD:CMakeLists.txt)
+                  if ($LASTEXITCODE -ne 0 -or $gitInputs.Count -ne 3 -or !$env:GRIDDYN_WINDOWS_SDK) {
+                      Write-Warning 'Dependency revisions or Windows SDK version unavailable. Skipping Azure cache restore.'
+                      exit 0
+                  }
+                  $compilerFile = Get-ChildItem -Path 'build/CMakeFiles/*/CMakeCXXCompiler.cmake' -File | Select-Object -First 1
+                  if (!$compilerFile) {
+                      Write-Warning 'CMake compiler metadata unavailable. Skipping Azure cache restore.'
+                      exit 0
+                  }
+                  $compiler = Select-String -LiteralPath $compilerFile.FullName -Pattern '^set\(CMAKE_CXX_COMPILER_VERSION "([^"]+)"\)$'
+                  if (!$compiler) {
+                      Write-Warning 'MSVC version unavailable. Skipping Azure cache restore.'
+                      exit 0
+                  }
+                  $inputs = $gitInputs + @(
+                      $compiler.Matches[0].Groups[1].Value
+                      $compilerFile.Directory.Name
+                      $env:GRIDDYN_WINDOWS_SDK
+                      $env:VSARCH
+                      $env:CMAKEFLAGS
+                      $env:EXTRAFLAGS
+                      $env:BOOST_URL
+                      $env:SCCACHE_RELEASE
+                  )
+                  $bytes = [System.Text.Encoding]::UTF8.GetBytes($inputs -join "`n")
+                  $fingerprint = [System.Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData($bytes))
+                  Write-Host "##vso[task.setvariable variable=DEPENDENCY_CACHE_FINGERPRINT]$fingerprint"
+                displayName: Fingerprint the dependency compiler cache
+                condition: and(succeeded(), eq(variables['DEPENDENCY_CACHE_ENABLED'], 'true'))
+                workingDirectory: $(Build.SourcesDirectory)
+
+              - task: Cache@2
+                inputs:
+                  path: $(SCCACHE_DIR)
+                  key: '"sccache-windows-dependencies-release-v1" | "$(DEPENDENCY_CACHE_FINGERPRINT)"'
+                displayName: Restore dependency compiler cache
+                condition: and(succeeded(), ne(variables['DEPENDENCY_CACHE_FINGERPRINT'], 'disabled'))
+                continueOnError: true
+
+          - script: |
+              call "$(VS_DEVCMD)" -no_logo -arch=$(vsArch) -host_arch=x64
+              if errorlevel 1 exit /b 1
+              cmake --build .
+            displayName: "Build GridDyn"
+            workingDirectory: build
+
+      - ${{ else }}:
+          - task: CMake@1
+            inputs:
+              cmakeArgs: >-
+                -A $(vsArch)
+                -DBOOST_INSTALL_PATH=$(BOOST_ROOT)
+                $(cmakeFlags) $(extraFlags) ..
+            displayName: "Configure GridDyn"
+
+          - bash: cmake --build . --config Release
+            displayName: "Build GridDyn"
+            workingDirectory: build
+
+      - ${{ if parameters.enableDependencyCache }}:
+          - pwsh: |
+              sccache --show-stats
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+              sccache --stop-server
+            displayName: Report compiler cache statistics
+            condition: and(succeeded(), eq(variables['DEPENDENCY_CACHE_ENABLED'], 'true'))
+            continueOnError: true
 
       # -----------------------
       # Package GridDyn
@@ -118,7 +257,7 @@ jobs:
       - task: PublishBuildArtifacts@1
         inputs:
           pathtoPublish: "$(Build.ArtifactStagingDirectory)"
-          artifactName: "installer-$(imageName)"
+          artifactName: installer-${{ parameters.imageName }}
 
       # -----------------------
       # Test GridDyn

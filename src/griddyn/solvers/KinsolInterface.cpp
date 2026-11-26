@@ -149,7 +149,7 @@ void KinsolInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
 void KinsolInterface::initialize(CoreTime /*t0*/)
 {
     if (!flags[ALLOCATED_FLAG]) {
-throw InvalidSolverOperation(SOLVER_INITIAL_SETUP_ERROR,
+        throw InvalidSolverOperation(SOLVER_INITIAL_SETUP_ERROR,
                                      "cannot initialize solver before allocating state");
     }
     resetPerformanceStats();
@@ -250,7 +250,7 @@ throw InvalidSolverOperation(SOLVER_INITIAL_SETUP_ERROR,
 void KinsolInterface::restoreFromCheckpoint(CoreTime time)
 {
     if (!flags[INITIALIZED_FLAG]) {
-throw InvalidSolverOperation(SOLVER_INVALID_STATE_ERROR,
+        throw InvalidSolverOperation(SOLVER_INVALID_STATE_ERROR,
                                      "cannot restore checkpoint before solver initialization");
     }
     resetPerformanceStats();

@@ -97,7 +97,7 @@ void BasicOdeSolver::allocate(count_t stateCount, count_t numRoots)
 void BasicOdeSolver::initialize(CoreTime t0)
 {
     if (!flags[ALLOCATED_FLAG]) {
-throw InvalidSolverOperation(SOLVER_INITIAL_SETUP_ERROR,
+        throw InvalidSolverOperation(SOLVER_INITIAL_SETUP_ERROR,
                                      "cannot initialize solver before allocating state");
     }
     flags.set(INITIALIZED_FLAG);
@@ -116,7 +116,7 @@ void BasicOdeSolver::set(std::string_view param, double val)
 void BasicOdeSolver::restoreFromCheckpoint(CoreTime time)
 {
     if (!isInitialized()) {
-throw InvalidSolverOperation(SOLVER_INVALID_STATE_ERROR,
+        throw InvalidSolverOperation(SOLVER_INVALID_STATE_ERROR,
                                      "cannot restore checkpoint before solver initialization");
     }
     solveTime = time;

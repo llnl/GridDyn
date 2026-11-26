@@ -6,7 +6,6 @@
 
 #include "core/CoreExceptions.h"
 #include "fileInput.h"
-#include "readerHelper.h"
 #include "griddyn/Generator.h"
 #include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
@@ -18,6 +17,7 @@
 #include "griddyn/loads/Svd.h"
 #include "griddyn/loads/ZipLoad.h"
 #include "griddyn/primary/AcBus.h"
+#include "readerHelper.h"
 #ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
 #    include "optimization/gridDynOpt.h"
 #endif

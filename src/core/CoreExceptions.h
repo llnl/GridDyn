@@ -52,7 +52,7 @@ class ObjectRemoveFailure: public CoreObjectException {
 
 class UnrecognizedParameter: public std::invalid_argument {
   public:
-UnrecognizedParameter(): UnrecognizedParameter(std::string_view{}) {}
+    UnrecognizedParameter(): UnrecognizedParameter(std::string_view{}) {}
     explicit UnrecognizedParameter(std::string_view param):
         std::invalid_argument(param.empty() ? "unrecognized parameter" :
                                               "unrecognized parameter '" + std::string(param) + "'")
@@ -65,7 +65,7 @@ class InvalidParameterValue: public std::invalid_argument {
     InvalidParameterValue(): InvalidParameterValue(std::string_view{}) {}
     explicit InvalidParameterValue(std::string_view detail):
         std::invalid_argument(detail.empty() ? "invalid parameter value" :
-                                              "invalid parameter value: " + std::string(detail))
+                                               "invalid parameter value: " + std::string(detail))
     {
     }
     InvalidParameterValue(std::string_view context, const InvalidParameterValue& cause):

@@ -391,7 +391,9 @@ def test_load_uses_pathlike_protocol(tmp_path):
         sim.load(Path(missing_file))
 
 
-@pytest.mark.parametrize("filename, content", [("missing.raw", None), ("invalid.xml", "<simulation")])
+@pytest.mark.parametrize(
+    "filename, content", [("missing.raw", None), ("invalid.xml", "<simulation")]
+)
 def test_load_and_cli_arguments_report_the_same_file_error(tmp_path, filename, content):
     path = tmp_path / filename
     if content is not None:

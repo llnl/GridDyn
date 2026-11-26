@@ -10,7 +10,6 @@
 #include "core/CoreObject.h"
 #include "core/coreDefinitions.hpp"
 #include "fileInput.h"
-#include "readerHelper.h"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gridDynReadDyrModels.h"
@@ -19,6 +18,7 @@
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/loads/LoadTemplateAdapters.h"
 #include "loadModelReaderHelper.h"
+#include "readerHelper.h"
 #include <algorithm>
 #include <array>
 #include <cctype>

@@ -964,8 +964,8 @@ void DynamicGenerator::set(std::string_view param, std::string_view val)
         }
         catch (const UnrecognizedParameter&) {
             for (auto* subobj : getSubObjects()) {
-                if (trySetSubModelParameter(
-                        *subobj, [&](CoreObject& model) { model.set(param, val); })) {
+                if (trySetSubModelParameter(*subobj,
+                                            [&](CoreObject& model) { model.set(param, val); })) {
                     return;
                 }
             }
@@ -1240,8 +1240,9 @@ void DynamicGenerator::set(std::string_view param, double val, unit unitType)
         }
         catch (const UnrecognizedParameter&) {
             for (auto* subobj : getSubObjects()) {
-                if (trySetSubModelParameter(
-                        *subobj, [&](CoreObject& model) { model.set(param, val, unitType); })) {
+                if (trySetSubModelParameter(*subobj, [&](CoreObject& model) {
+                        model.set(param, val, unitType);
+                    })) {
                     return;
                 }
             }

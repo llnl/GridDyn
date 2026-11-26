@@ -97,8 +97,8 @@ void validateInputFile(const std::string& fileName)
         throw FileOperationError("file does not exist: " + fileName);
     }
     if (error) {
-        throw FileOperationError("unable to access input file '" + fileName + "': " +
-                                 error.message());
+        throw FileOperationError("unable to access input file '" + fileName +
+                                 "': " + error.message());
     }
     if (!std::filesystem::is_regular_file(status)) {
         throw FileOperationError("input path is not a regular file: " + fileName);

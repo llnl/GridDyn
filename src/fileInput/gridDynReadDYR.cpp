@@ -11,7 +11,6 @@
 #include "core/ObjectFactory.hpp"
 #include "core/coreDefinitions.hpp"
 #include "fileInput.h"
-#include "readerHelper.h"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewConversion.h"
@@ -76,6 +75,7 @@
 #include "griddyn/stabilizers/StabilizerStab3.h"
 #include "griddyn/voltagecompensators/VoltageCompensatorIeeeVC.h"
 #include "loadModelReaderHelper.h"
+#include "readerHelper.h"
 #include <algorithm>
 #include <array>
 #include <charconv>

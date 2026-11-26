@@ -271,7 +271,7 @@ void IdaInterface::logErrorWeights(PrintLevel logLevel) const
 void IdaInterface::initialize(CoreTime t0)
 {
     if (!flags[ALLOCATED_FLAG]) {
-throw InvalidSolverOperation(SOLVER_INITIAL_SETUP_ERROR,
+        throw InvalidSolverOperation(SOLVER_INITIAL_SETUP_ERROR,
                                      "cannot initialize solver before allocating state");
     }
     auto jsize = m_gds->jacSize(mode);
@@ -369,7 +369,7 @@ throw InvalidSolverOperation(SOLVER_INITIAL_SETUP_ERROR,
 void IdaInterface::restoreFromCheckpoint(CoreTime time)
 {
     if (!flags[INITIALIZED_FLAG]) {
-throw InvalidSolverOperation(SOLVER_INVALID_STATE_ERROR,
+        throw InvalidSolverOperation(SOLVER_INVALID_STATE_ERROR,
                                      "cannot restore checkpoint before solver initialization");
     }
     resetPerformanceStats();

@@ -208,7 +208,7 @@ void braidSolver::allocate(count_t stateCount, count_t numRoots)
 void braidSolver::initialize(CoreTime t0)
 {
     if (!flags[ALLOCATED_FLAG]) {
-throw InvalidSolverOperation(SOLVER_INITIAL_SETUP_ERROR,
+        throw InvalidSolverOperation(SOLVER_INITIAL_SETUP_ERROR,
                                      "cannot initialize solver before allocating state");
     }
     flags.set(INITIALIZED_FLAG);

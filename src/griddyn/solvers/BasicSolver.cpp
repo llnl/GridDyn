@@ -96,8 +96,8 @@ namespace solvers {
     void BasicSolver::initialize(CoreTime /*time0*/)
     {
         if (!flags[ALLOCATED_FLAG]) {
-throw InvalidSolverOperation(SOLVER_INITIAL_SETUP_ERROR,
-                                     "cannot initialize solver before allocating state");
+            throw InvalidSolverOperation(SOLVER_INITIAL_SETUP_ERROR,
+                                         "cannot initialize solver before allocating state");
         }
         flags.set(INITIALIZED_FLAG);
         solverCallCount = 0;

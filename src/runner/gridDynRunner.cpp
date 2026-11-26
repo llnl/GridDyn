@@ -37,7 +37,7 @@ namespace griddyn {
 namespace {
     // The worker enters the same virtual Run or Step operation as a synchronous caller.
     thread_local const GriddynRunner* asyncRunner = nullptr;
-}
+}  // namespace
 
 GriddynRunner::GriddynRunner() = default;
 
@@ -224,11 +224,12 @@ CoreTime GriddynRunner::Step(CoreTime nextStep)
     }
     CoreTime actual = nextStep;
     if (m_gds) {
-        const int returnValue = mEventMode ? m_gds->eventDrivenPowerflow(nextStep) :
-                                            m_gds->step(nextStep, actual);
+        const int returnValue =
+            mEventMode ? m_gds->eventDrivenPowerflow(nextStep) : m_gds->step(nextStep, actual);
         if (returnValue < FUNCTION_EXECUTION_SUCCESS) {
-            throw ExecutionFailure(
-                m_gds.get(), "GridDyn failed to advance with status " + std::to_string(returnValue));
+            throw ExecutionFailure(m_gds.get(),
+                                   "GridDyn failed to advance with status " +
+                                       std::to_string(returnValue));
         }
     }
 

@@ -97,8 +97,21 @@ TEST(ExampleReaderTests, ReportsMissingFilesAcrossFormats)
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
     const auto unavailable = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "nonexistent-case";
     ASSERT_FALSE(std::filesystem::exists(unavailable));
-    for (const auto* format : {"aux", "cdf", "csv", "dyd", "dyr", "epc", "gdz", "json",
-                               "m", "psp", "py", "raw", "sav", "xml", "yaml"}) {
+    for (const auto* format : {"aux",
+                               "cdf",
+                               "csv",
+                               "dyd",
+                               "dyr",
+                               "epc",
+                               "gdz",
+                               "json",
+                               "m",
+                               "psp",
+                               "py",
+                               "raw",
+                               "sav",
+                               "xml",
+                               "yaml"}) {
         SCOPED_TRACE(format);
         try {
             griddyn::loadFile(simulation, unavailable.string(), nullptr, format);

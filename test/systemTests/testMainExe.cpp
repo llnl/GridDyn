@@ -26,6 +26,15 @@ TEST(MainExeTests, PrintsVersion)
     EXPECT_EQ(output.find(" returned "), std::string::npos) << output;
 }
 
+TEST(MainExeTests, ReportsMissingInputFile)
+{
+    ExeTestRunner mainExeRunner(GRIDDYN_TEST_MAIN_DIRECTORY, "gridDynMain");
+    ASSERT_TRUE(mainExeRunner.isActive());
+    const auto output = mainExeRunner.runCaptureOutput("--input nonexistent-case.raw");
+    EXPECT_TRUE(output.contains("file does not exist: nonexistent-case.raw")) << output;
+    EXPECT_TRUE(output.contains(" returned ")) << output;
+}
+
 TEST(MainExeTests, HelpSucceedsAndBadOptionsFail)
 {
     ExeTestRunner mainExeRunner(GRIDDYN_TEST_MAIN_DIRECTORY, "gridDynMain");

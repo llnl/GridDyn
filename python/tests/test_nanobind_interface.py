@@ -391,6 +391,20 @@ def test_load_uses_pathlike_protocol(tmp_path):
         sim.load(Path(missing_file))
 
 
+@pytest.mark.parametrize("filename, content", [("missing.raw", None), ("invalid.xml", "<simulation")])
+def test_load_and_cli_arguments_report_the_same_file_error(tmp_path, filename, content):
+    path = tmp_path / filename
+    if content is not None:
+        path.write_text(content, encoding="utf-8")
+
+    with pytest.raises(gd.FileLoadError) as direct:
+        gd.Simulation().load(path)
+    with pytest.raises(gd.FileLoadError) as command_line:
+        gd.Simulation().load_from_args(["--input", str(path)])
+    assert str(path) in str(direct.value)
+    assert str(direct.value) == str(command_line.value)
+
+
 def test_load_rejects_unknown_or_missing_format(tmp_path):
     unknown_format = tmp_path / "network.unknown"
     no_extension = tmp_path / "network"

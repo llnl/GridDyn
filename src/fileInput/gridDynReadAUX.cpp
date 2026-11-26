@@ -6,6 +6,7 @@
 
 #include "core/CoreExceptions.h"
 #include "fileInput.h"
+#include "readerHelper.h"
 #include "griddyn/Generator.h"
 #include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
@@ -261,10 +262,7 @@ namespace {
                      const AuxRowHandler& handleRow,
                      const AuxSubdataHandler& handleSubdata = {})
     {
-        std::ifstream input(fileName);
-        if (!input) {
-            throw FileOperationError("unable to open PowerWorld AUX file: " + fileName);
-        }
+        auto input = openInputFile(fileName);
         std::string line;
         std::string header;
         AuxSection section;

@@ -23,6 +23,7 @@
 #include <memory>
 #include <ostream>
 #include <span>
+#include <stdexcept>
 #include <string>
 #include <system_error>
 #include <utility>
@@ -228,7 +229,12 @@ void Recorder::saveFile(const std::string& fileName)
         if (!parent.empty() &&
             std::filesystem::status(parent, directoryError).type() ==
                 std::filesystem::file_type::not_found) {
-            std::filesystem::create_directories(parent);
+            std::filesystem::create_directories(parent, directoryError);
+            if (directoryError) {
+                throw FileOperationError(std::format("unable to create recorder directory '{}': {}",
+                                                     parent.string(),
+                                                     directoryError.message()));
+            }
         }
         // recheck the columns if necessary
         if (mRecheck) {
@@ -240,7 +246,14 @@ void Recorder::saveFile(const std::string& fileName)
                 mDataset.setCols(static_cast<fsize_t>(mData.size()));
                 fillDatasetFields();
             }
-            saveHdf5(savefileName.string(), configuredSink);
+            try {
+                saveHdf5(savefileName.string(), configuredSink);
+            }
+            catch (const std::runtime_error& error) {
+                throw FileOperationError(std::format("unable to write recorder file '{}': {}",
+                                                     savefileName.string(),
+                                                     error.what()));
+            }
             if (configuredSink) {
                 mLastSaveTime = mLastTriggerTime;
                 mSavedSamples = mDataset.size();
@@ -262,7 +275,8 @@ void Recorder::saveFile(const std::string& fileName)
             (binaryFile ? std::ios::binary : std::ios::out);
         std::ofstream output(savefileName, mode);
         if (!output) {
-            throw gmlc::utilities::openFileError();
+            throw FileOperationError(
+                std::format("unable to open recorder file '{}'", savefileName.string()));
         }
         const auto firstSample = append ? static_cast<fsize_t>(mSavedSamples) : fsize_t{0};
         if (binaryFile) {
@@ -291,7 +305,7 @@ void Recorder::saveFile(const std::string& fileName)
             mSavedSamples = mDataset.size();
         }
     } else {
-        throw(InvalidFileName());
+        throw InvalidFileName("no recorder output file specified");
     }
 }
 

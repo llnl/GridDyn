@@ -85,11 +85,17 @@ std::unique_ptr<GridDynSimulation> readSimXMLFile(const std::string& fileName,
 
 void addFlags(BasicReaderInfo& bri, const std::string& flags);
 
+/** Load a case or model file into the destination.
+ * @throws FileOperationError when the file cannot be accessed or its format is unsupported.
+ */
 void loadFile(std::unique_ptr<GridDynSimulation>& gds,
               const std::string& fileName,
               ReaderInfo* readerInf = nullptr,
               const std::string& ext = "");
 
+/** Load a case or model file into the destination.
+ * @throws FileOperationError when the file cannot be accessed or its format is unsupported.
+ */
 void loadFile(CoreObject* parentObject,
               const std::string& fileName,
               ReaderInfo* readerInf = nullptr,

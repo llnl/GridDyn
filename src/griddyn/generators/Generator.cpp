@@ -513,7 +513,7 @@ void Generator::set(std::string_view param, std::string_view val)
         } else if (val == "min") {
             P = Pmin;
         } else {
-            throw(InvalidParameterValue(val));
+            throw InvalidParameterValue("p '" + std::string(val) + "' (expected min or max)");
         }
     } else if (param == "q") {
         if (val == "max") {
@@ -521,7 +521,7 @@ void Generator::set(std::string_view param, std::string_view val)
         } else if (val == "min") {
             Q = Qmin;
         } else {
-            throw(InvalidParameterValue(val));
+            throw InvalidParameterValue("q '" + std::string(val) + "' (expected min or max)");
         }
     } else {
         GridSecondary::set(param, val);

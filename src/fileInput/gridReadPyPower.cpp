@@ -81,7 +81,7 @@ void loadPyPower(CoreObject* parentObject,
                  const std::string& fileName,
                  const BasicReaderInfo& readerOptions)
 {
-    const std::ifstream input(fileName);
+    const auto input = openInputFile(fileName);
     std::stringstream inputStream;
     inputStream << input.rdbuf();
     const std::string pyPowerText = inputStream.str();

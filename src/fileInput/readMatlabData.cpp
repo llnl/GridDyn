@@ -22,7 +22,7 @@ void loadMatlabFile(CoreObject* parentObject,
                     const std::string& fileName,
                     const BasicReaderInfo& readerOptions)
 {
-    std::ifstream infile(fileName.c_str(), std::ios::in);
+    auto infile = openInputFile(fileName);
     std::stringstream stringStream;
     stringStream << infile.rdbuf();
     std::string fileText = stringStream.str();

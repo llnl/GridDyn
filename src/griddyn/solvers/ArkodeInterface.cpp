@@ -384,7 +384,8 @@ static const std::map<int, std::string> arkodeRetCodes{
 void ArkodeInterface::initialize(CoreTime time0)
 {
     if (!flags[ALLOCATED_FLAG]) {
-        throw(InvalidSolverOperation());
+throw InvalidSolverOperation(SOLVER_INITIAL_SETUP_ERROR,
+                                     "cannot initialize solver before allocating state");
     }
     // dynInitializeB CVode - Sundials
 
@@ -434,7 +435,8 @@ void ArkodeInterface::initialize(CoreTime time0)
 void ArkodeInterface::restoreFromCheckpoint(CoreTime time)
 {
     if (!flags[INITIALIZED_FLAG]) {
-        throw(InvalidSolverOperation());
+throw InvalidSolverOperation(SOLVER_INVALID_STATE_ERROR,
+                                     "cannot restore checkpoint before solver initialization");
     }
     resetPerformanceStats();
     int retval = ARKStepReInit(solverMem, arkodeFunc, nullptr, time, state);

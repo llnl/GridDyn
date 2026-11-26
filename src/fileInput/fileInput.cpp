@@ -15,8 +15,10 @@
 #include "griddyn/GridDynSimulation.h"
 #include "readElement.h"
 #include "readElementFile.h"
+#include "readerHelper.h"
 #include <array>
 #include <filesystem>
+#include <fstream>
 #include <functional>
 #include <memory>
 #include <string>
@@ -86,6 +88,32 @@ namespace readerConfig {
     }
 
 }  // namespace readerConfig
+
+void validateInputFile(const std::string& fileName)
+{
+    std::error_code error;
+    const auto status = std::filesystem::status(fileName, error);
+    if (status.type() == std::filesystem::file_type::not_found) {
+        throw FileOperationError("file does not exist: " + fileName);
+    }
+    if (error) {
+        throw FileOperationError("unable to access input file '" + fileName + "': " +
+                                 error.message());
+    }
+    if (!std::filesystem::is_regular_file(status)) {
+        throw FileOperationError("input path is not a regular file: " + fileName);
+    }
+}
+
+std::ifstream openInputFile(const std::string& fileName)
+{
+    validateInputFile(fileName);
+    std::ifstream input(fileName);
+    if (!input) {
+        throw FileOperationError("unable to open input file '" + fileName + "'");
+    }
+    return input;
+}
 
 int setObjectParameter(const std::string& label, CoreObject* obj, GridParameter& param) noexcept
 {
@@ -170,6 +198,7 @@ void loadFile(CoreObject* parentObject,
               ReaderInfo* readerInf,
               std::string ext)
 {
+    validateInputFile(fileName);
     if (ext.empty()) {
         const std::filesystem::path sourcePath(fileName);
         ext = sourcePath.extension().string();

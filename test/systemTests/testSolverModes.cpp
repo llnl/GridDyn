@@ -21,6 +21,24 @@ using namespace griddyn;
 
 class SolverModeTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
+TEST_F(SolverModeTests, UnallocatedSolversReportTheSameInitializationFailure)
+{
+    solvers::BasicSolver algebraic;
+    solvers::BasicOdeSolver differential;
+    for (SolverInterface* solver : {static_cast<SolverInterface*>(&algebraic),
+                                    static_cast<SolverInterface*>(&differential)}) {
+        try {
+            solver->initialize(0.0);
+            ADD_FAILURE() << "Initializing an unallocated solver must fail";
+        }
+        catch (const InvalidSolverOperation& error) {
+            EXPECT_EQ(error.code(), SOLVER_INITIAL_SETUP_ERROR);
+            EXPECT_STREQ(error.what(),
+                         "cannot initialize solver before allocating state (error code -38)");
+        }
+    }
+}
+
 TEST_F(SolverModeTests, PackedFlagDescriptionsExposeCanonicalNamesAndAliases)
 {
     const auto fields = SolverInterface::flagDescriptions();

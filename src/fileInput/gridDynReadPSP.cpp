@@ -64,7 +64,7 @@ void loadPsp(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& readerOptions)
 {
-    std::ifstream file(fileName.c_str(), std::ios::in);
+    auto file = openInputFile(fileName);
     std::string line;  // line storage
     std::string line2;  // line 2 storage for transformers
     std::string temp;  // temporary storage for substrings

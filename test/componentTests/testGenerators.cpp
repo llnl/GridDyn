@@ -37,6 +37,22 @@ using namespace griddyn;
 
 class GeneratorTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
+TEST(DynamicGeneratorModelTests, PreservesParameterErrorsAndRestoresSubmodelFlag)
+{
+    DynamicGenerator generator;
+    EXPECT_THROW(generator.set("p", "invalid"), InvalidParameterValue);
+    EXPECT_THROW(generator.set("unknown_parameter", "invalid"), UnrecognizedParameter);
+
+    auto* exciter = new exciters::ExciterSCRX();
+    generator.add(exciter);
+    EXPECT_THROW(generator.set("cswitch", 1.5), InvalidParameterValue);
+    EXPECT_FALSE(exciter->checkFlag(NO_GRIDCOMPONENT_SET));
+
+    exciter->setFlag("no_gridcomponent_set", true);
+    EXPECT_NO_THROW(generator.set("cswitch", "bus"));
+    EXPECT_TRUE(exciter->checkFlag(NO_GRIDCOMPONENT_SET));
+}
+
 class InspectableDynamicGenerator: public DynamicGenerator {
   public:
     using DynamicGenerator::DynamicGenerator;

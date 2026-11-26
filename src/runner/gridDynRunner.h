@@ -90,9 +90,11 @@ class GriddynRunner {
     virtual void StepAsync(CoreTime time);
 
     /** get the current execution status of the simulation
-    @param[out] timeReturn the current simulation time
+    @param[out] timeReturn the simulation time, or its value when the pending operation started
     @return GRIDDYN_PENDING if an asynchronous operation is ongoing otherwise returns the current
-    state of the simulation*/
+    state of the simulation
+    @throws The exception from a failed asynchronous operation on its first completed poll.
+    */
     virtual int getStatus(CoreTime& timeReturn);
     /**
      * Get the next GridDyn Event time
@@ -135,6 +137,7 @@ class GriddynRunner {
   protected:
     std::string mExecutablePath;  //!< the executable path from command line arguments
   private:
+    CoreTime mAsyncStartTime{0.0};  //!< simulation time before starting the pending operation
     std::future<CoreTime> mAsyncReturn;  //!< future code for the asynchronous operations
     int mArgcValue{0};
     char** mArgValues = nullptr;

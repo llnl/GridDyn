@@ -58,7 +58,8 @@ namespace {
                     sqlite3_close(mDatabase);
                     mDatabase = nullptr;
                 }
-                savError(displayName, "file is not a readable SQLite database (" + message + ")");
+                throw FileOperationError("unable to open PSLF SQLite file '" + displayName +
+                                         "': " + message);
             }
         }
 

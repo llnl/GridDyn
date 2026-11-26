@@ -173,6 +173,10 @@ int main(int argc, char* argv[])
 
         return 0;
     }
+    catch (const griddyn::CoreObjectException& error) {
+        std::cerr << "GridDyn execution failed: " << error.diagnostic() << '\n';
+        return -5;
+    }
     catch (const std::exception& error) {
         std::cerr << "GridDyn execution failed: " << error.what() << '\n';
         return -5;

@@ -413,11 +413,7 @@ void loadCsv(CoreObject* parentObject,
              const std::string& objectName)
 {
     auto cof = CoreObjectFactory::instance();
-    std::ifstream file(fileName, std::ios::in);
-    if (!(file.is_open())) {
-        std::cerr << "Unable to open file " << fileName << '\n';
-        return;
-    }
+    auto file = openInputFile(fileName);
     std::string line;  // line storage
     int lineNumber = 0;
     CsvSectionState sectionState;

@@ -5,16 +5,47 @@
  */
 
 #include "../gtestHelper.h"
+#include "core/CoreExceptions.h"
 #include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/Load.h"
 #include "griddyn/events/Event.h"
 #include "runner/gridDynRunner.h"
 #include <algorithm>
+#include <chrono>
 #include <gtest/gtest.h>
 #include <memory>
 #include <string>
+#include <string_view>
+#include <thread>
 #include <vector>
+
+TEST(GridDynRunnerTests, AsyncStatusRethrowsTheOriginalFailure)
+{
+    auto simulation = std::shared_ptr<griddyn::GridDynSimulation>(
+        griddyn::readSimXMLFile(GRIDDYN_TEST_DIRECTORY "/pFlow_tests/continuation_two_bus.xml"));
+    ASSERT_NE(simulation, nullptr);
+    simulation->addActions("check powerflow .");
+    griddyn::GriddynRunner runner(simulation);
+    runner.RunAsync();
+
+    using namespace std::chrono_literals;
+    const auto deadline = std::chrono::steady_clock::now() + 5s;
+    while (!runner.isReady() && std::chrono::steady_clock::now() < deadline) {
+        std::this_thread::sleep_for(1ms);
+    }
+    ASSERT_TRUE(runner.isReady());
+    griddyn::CoreTime time{0.0};
+    try {
+        runner.getStatus(time);
+        ADD_FAILURE() << "The action failure must propagate through getStatus";
+    }
+    catch (const griddyn::ExecutionFailure& error) {
+        EXPECT_TRUE(std::string_view(error.what()).contains("check powerflow .")) << error.what();
+        EXPECT_EQ(error.who(), simulation->getName());
+    }
+    EXPECT_NO_THROW(runner.getStatus(time));
+}
 
 namespace {
 

@@ -263,7 +263,7 @@ namespace {
     ImpedanceCorrectionTables readImpedanceCorrectionTables(const std::string& fileName)
     {
         ImpedanceCorrectionTables tables;
-        std::ifstream file(fileName, std::ios::in);
+        auto file = openInputFile(fileName);
         std::string line;
         while (nextLine(file, line)) {
             if (!line.starts_with("z table data")) {
@@ -306,7 +306,7 @@ namespace {
                                                               const BasicReaderInfo& bri)
     {
         std::unordered_map<int, GridArea*> areas;
-        std::ifstream file(fileName, std::ios::in);
+        auto file = openInputFile(fileName);
         std::string line;
         while (nextLine(file, line)) {
             const auto tokens = split(line, " \t");
@@ -460,7 +460,7 @@ void loadEpc(CoreObject* parentObject,
     GridSimulation::resetObjectCounters();
     const auto& bri = readerOptions;
     const auto preparseData = preparseEpcFile(parentObject, fileName, bri);
-    std::ifstream file(fileName.c_str(), std::ios::in);
+    auto file = openInputFile(fileName);
 
     std::string temp1;  // temporary storage for substrings
     std::vector<GridBus*> busList;

@@ -10,6 +10,7 @@
 #include "core/CoreObject.h"
 #include "core/coreDefinitions.hpp"
 #include "fileInput.h"
+#include "readerHelper.h"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gridDynReadDyrModels.h"
@@ -1059,8 +1060,7 @@ namespace {
             message.append(std::to_string(recordLineNumber));
             message.append(" ").append(displayModelName).append(" selector ");
             message.append(header.size() > 1U ? header[1] : "<missing>");
-            message.append(": ").append(error.what());
-            throw InvalidParameterValue(message);
+            throw InvalidParameterValue(message, error);
         }
         return true;
     }
@@ -1132,8 +1132,7 @@ namespace {
             message.append(std::to_string(recordLineNumber));
             message.append(" WTGT_A bus ").append(lineTokens[0]).append(" machine ");
             message.append(lineTokens.size() > 2U ? lineTokens[2] : "<missing>");
-            message.append(": ").append(error.what());
-            throw InvalidParameterValue(message);
+            throw InvalidParameterValue(message, error);
         }
         return true;
     }
@@ -1206,8 +1205,7 @@ namespace {
             message.append(std::to_string(recordLineNumber));
             message.append(" WT3T bus ").append(lineTokens[0]).append(" machine ");
             message.append(lineTokens.size() > 2U ? lineTokens[2] : "<missing>");
-            message.append(": ").append(error.what());
-            throw InvalidParameterValue(message);
+            throw InvalidParameterValue(message, error);
         }
         return true;
     }
@@ -1252,8 +1250,7 @@ namespace {
             message.append(lineTokens.empty() ? "<missing>" : lineTokens[0]);
             message.append(" machine ");
             message.append(lineTokens.size() > 2U ? lineTokens[2] : "<missing>");
-            message.append(": ").append(error.what());
-            throw InvalidParameterValue(message);
+            throw InvalidParameterValue(message, error);
         }
     }
 
@@ -1472,11 +1469,7 @@ void loadDyd(CoreObject* parentObject,
     const auto* simulation = dynamic_cast<const GridDynSimulation*>(parentObject->getRoot());
     const bool disableStabilizers =
         (simulation != nullptr) && simulation->isFlagSet(DISABLE_STABILIZERS_FOR_DIAGNOSTICS);
-    std::ifstream file(fileName.c_str(), std::ios::in);
-    if (!file.is_open()) {
-        parentObject->log(parentObject, PrintLevel::ERROR, "Unable to open file " + fileName);
-        return;
-    }
+    auto file = openInputFile(fileName);
 
     warnIfStaticNetworkMissing(parentObject, "DYD", fileName);
     const auto inputLines = readDydInputLines(file);

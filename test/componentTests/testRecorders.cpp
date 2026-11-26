@@ -5,12 +5,15 @@
  */
 
 #include "../gtestHelper.h"
+#include "core/CoreExceptions.h"
 #include "fileInput/fileInput.h"
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
 #include "griddyn/events/Event.h"
 #include "griddyn/measurement/Collector.h"
+#include "griddyn/measurement/Recorder.h"
 #include <cmath>
 #include <cstdio>
+#include <filesystem>
 #include <gtest/gtest.h>
 #include <string>
 #include <vector>
@@ -24,6 +27,24 @@ using namespace griddyn;
 using namespace gmlc::utilities;
 
 class RecorderTests: public GridDynSimulationTestFixture, public ::testing::Test {};
+
+TEST_F(RecorderTests, UnwritableOutputReportsTheDestinationAcrossFormats)
+{
+    Recorder recorder;
+    const std::filesystem::path existingFile{RECORDER_TEST_DIRECTORY "recorder_test.xml"};
+    ASSERT_TRUE(std::filesystem::is_regular_file(existingFile));
+    for (const char* name : {"samples.csv", "samples.dat", "samples.h5"}) {
+        const auto destination = (existingFile / name).string();
+        SCOPED_TRACE(destination);
+        try {
+            recorder.saveFile(destination);
+            ADD_FAILURE() << "Writing into a regular file must fail";
+        }
+        catch (const FileOperationError& error) {
+            EXPECT_NE(std::string(error.what()).find(destination), std::string::npos);
+        }
+    }
+}
 
 TEST_F(RecorderTests, TsMultiTests)
 {

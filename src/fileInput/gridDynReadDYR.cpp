@@ -11,6 +11,7 @@
 #include "core/ObjectFactory.hpp"
 #include "core/coreDefinitions.hpp"
 #include "fileInput.h"
+#include "readerHelper.h"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewConversion.h"
@@ -652,18 +653,13 @@ void loadDyr(CoreObject* parentObject,
     const bool disableStabilizers =
         (simulation != nullptr) && simulation->isFlagSet(DISABLE_STABILIZERS_FOR_DIAGNOSTICS);
     count_t zeroGainStabilizers = 0;
-    std::ifstream file(fileName.c_str(), std::ios::in);
+    auto file = openInputFile(fileName);
     std::string line;  // line storage
     std::string continuedLine;
     std::size_t lineNumber = 0;
     std::map<std::string, UnsupportedDyrModelSummary> unsupportedModels;
 
-    if (!(file.is_open())) {
-        parentObject->log(parentObject, PrintLevel::ERROR, "Unable to open file " + fileName);
-        //    return;
-    } else {
-        warnIfStaticNetworkMissing(parentObject, "DYR", fileName);
-    }
+    warnIfStaticNetworkMissing(parentObject, "DYR", fileName);
     while (std::getline(file, line)) {
         ++lineNumber;
         gmlc::utilities::stringOps::trimString(line);
@@ -715,8 +711,7 @@ void loadDyr(CoreObject* parentObject,
             message.append(" ").append(modelName).append(" bus ").append(lineTokens[0]);
             message.append(" machine ");
             message.append(lineTokens.size() > 2U ? lineTokens[2] : "<missing>");
-            message.append(": ").append(error.what());
-            throw InvalidParameterValue(message);
+            throw InvalidParameterValue(message, error);
         }
     }
     if (!unsupportedModels.empty()) {

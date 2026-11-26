@@ -30,6 +30,21 @@ using namespace griddyn;
 
 class AreaTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
+TEST(CoreObjectExceptionTests, RetainsObjectContextAfterUnwinding)
+{
+    try {
+        const GridArea area("test_area");
+        throw ExecutionFailure(&area, "operation failed");
+    }
+    catch (const ExecutionFailure& error) {
+        EXPECT_EQ(error.who(), "test_area");
+        EXPECT_EQ(error.diagnostic(), "operation failed [test_area]");
+    }
+    const ExecutionFailure withoutObject(nullptr, "operation failed");
+    EXPECT_TRUE(withoutObject.who().empty());
+    EXPECT_EQ(withoutObject.diagnostic(), "operation failed");
+}
+
 class FixedFlowLink: public Link {
   public:
     double p1{0.0};

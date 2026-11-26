@@ -592,8 +592,11 @@ ExciterFeedbackData ExciterSCRX::getLimiterFeedback(ExciterFeedbackSignal signal
                                                     const SolverMode& /*mode*/) const
 {
     // SCRX contains no excitation-system stabilizing-feedback block.
-    return providesLimiterFeedback(signal) ? ExciterFeedbackData{.value = 0.0} :
-                                             ExciterFeedbackData{};
+    ExciterFeedbackData result;
+    if (providesLimiterFeedback(signal)) {
+        result.value = 0.0;
+    }
+    return result;
 }
 
 }  // namespace griddyn::exciters

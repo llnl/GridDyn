@@ -99,13 +99,12 @@ def test_command_reference_study(tmp_path, monkeypatch, queued):
     assert sim.time == pytest.approx(0.2)
     assert sim.buses["demand"].voltage == pytest.approx(expected_voltage)
     readings = (tmp_path / "study-readings.txt").read_text(encoding="utf-8").splitlines()
-    assert [float(value) for value in readings] == pytest.approx(
-        [200.0, 30.0, expected_voltage]
-    )
+    assert [float(value) for value in readings] == pytest.approx([200.0, 30.0, expected_voltage])
     with (tmp_path / "study-results.csv").open(encoding="utf-8", newline="") as results:
         assert results.readline().startswith("basepower=100")
         demand = next(
-            row for row in csv.DictReader(results, skipinitialspace=True)
+            row
+            for row in csv.DictReader(results, skipinitialspace=True)
             if row["Bus name"] == "demand"
         )
     assert float(demand["Pload(MW)"]) == pytest.approx(30.0)

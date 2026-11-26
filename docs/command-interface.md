@@ -5,12 +5,12 @@ The same text commands work in C++, Python, XML, and the executable.
 
 ## Entry points
 
-| Entry point | How to invoke actions |
-| --- | --- |
-| C++ | `simulation.execute(text)` runs one action. `add(text)` queues one, `addActions(text)` queues a list, and `addScriptFile(path)` queues a script. `run()` drains the queue. |
-| Python | `sim.execute(text)` runs one action. `sim.set("action", text)` queues a list. `sim.time_domain.run()` drains the queue. |
-| XML | Place `<action>…</action>` at the simulation level. Each element may hold a list. `<action file="study.gds"/>` queues a file. |
-| Executable | `-P "action=…"` queues a list. `--script study.gds` queues a script. Repeat `--script` to run files in order. |
+| Entry point | How to invoke actions                                                                                                                                                      |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C++         | `simulation.execute(text)` runs one action. `add(text)` queues one, `addActions(text)` queues a list, and `addScriptFile(path)` queues a script. `run()` drains the queue. |
+| Python      | `sim.execute(text)` runs one action. `sim.set("action", text)` queues a list. `sim.time_domain.run()` drains the queue.                                                    |
+| XML         | Place `<action>…</action>` at the simulation level. Each element may hold a list. `<action file="study.gds"/>` queues a file.                                              |
+| Executable  | `-P "action=…"` queues a list. `--script study.gds` queues a script. Repeat `--script` to run files in order.                                                              |
 
 The executable loads and initializes the case before draining the queue.
 It runs XML actions first, then actions from `--param`, then `--script` files.
@@ -54,22 +54,22 @@ the script filename and line number for commands read from a script.
 
 ## Setup and time advancement
 
-| Command | Effect |
-| --- | --- |
-| `set <field-selector> <value>` | Set a numeric or string field. The model determines its valid values and units. |
-| `setall <type> <field> <number>` | Apply a numeric assignment through nested areas. The field can include a unit. Supported types are `area`, `bus`, `link`, `relay`, `gen` or `generator`, `load`, `secondary` (generators and loads), and `all` (areas and primary objects). Models without the field are skipped. The action fails if no assignment succeeds or a model rejects the value. Earlier successful assignments keep their effects. |
-| `setsolver <role> <name-or-index>` | Select an already registered solver by name or index. Roles are `powerflow`, `dae`, `algebraic` or `dynalg`, and `differential` or `dyndiff`. |
-| `setsolver <name> <field> <value>` | Change a numeric or string setting on a registered solver. |
-| `initialize [time]` | Prepare power flow on a fresh case. After `powerflow` has solved the case, prepare dynamics. The default is the configured start time, bounded by the current time when initializing dynamics. A call without a time is a no-op when that stage is already initialized. |
-| `powerflow` | Solve the steady-state operating point at the current time, with initialization as needed. |
-| `reset [level]` | Reset component state at the current time. Levels are 0 for minimal (default), 1 for voltage, 2 for angle, 3 for voltage and angle, and 4 for full component reset. |
-| `run [until]` | Advance using the selected dynamic method. A case without differential states uses event-driven power flow. Under `--powerflow-only`, `run` solves power flow. |
-| `dynamic [until [interval]]` | Advance using the selected dynamic method, which defaults to DAE. The interval is accepted for partitioned dynamics. |
-| `dynamic dae [until]` | Advance with DAE. Alias `dynamicdae [until]`. |
-| `dynamic part [until [interval]]` | Advance with partitioned dynamics. `partitioned` is an alias for `part`, and `dynamicpart [until [interval]]` is the standalone alias. |
-| `step [dae] [interval]` | Advance DAE by a relative interval. A state-changing event may end the step early. |
-| `eventmode [until [interval]]` | Advance by event-driven power flow. |
-| `iterate [interval [until]]` | Advance by event-driven power flow using interval-first operand order. |
+| Command                            | Effect                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `set <field-selector> <value>`     | Set a numeric or string field. The model determines its valid values and units.                                                                                                                                                                                                                                                                                                                               |
+| `setall <type> <field> <number>`   | Apply a numeric assignment through nested areas. The field can include a unit. Supported types are `area`, `bus`, `link`, `relay`, `gen` or `generator`, `load`, `secondary` (generators and loads), and `all` (areas and primary objects). Models without the field are skipped. The action fails if no assignment succeeds or a model rejects the value. Earlier successful assignments keep their effects. |
+| `setsolver <role> <name-or-index>` | Select an already registered solver by name or index. Roles are `powerflow`, `dae`, `algebraic` or `dynalg`, and `differential` or `dyndiff`.                                                                                                                                                                                                                                                                 |
+| `setsolver <name> <field> <value>` | Change a numeric or string setting on a registered solver.                                                                                                                                                                                                                                                                                                                                                    |
+| `initialize [time]`                | Prepare power flow on a fresh case. After `powerflow` has solved the case, prepare dynamics. The default is the configured start time, bounded by the current time when initializing dynamics. A call without a time is a no-op when that stage is already initialized.                                                                                                                                       |
+| `powerflow`                        | Solve the steady-state operating point at the current time, with initialization as needed.                                                                                                                                                                                                                                                                                                                    |
+| `reset [level]`                    | Reset component state at the current time. Levels are 0 for minimal (default), 1 for voltage, 2 for angle, 3 for voltage and angle, and 4 for full component reset.                                                                                                                                                                                                                                           |
+| `run [until]`                      | Advance using the selected dynamic method. A case without differential states uses event-driven power flow. Under `--powerflow-only`, `run` solves power flow.                                                                                                                                                                                                                                                |
+| `dynamic [until [interval]]`       | Advance using the selected dynamic method, which defaults to DAE. The interval is accepted for partitioned dynamics.                                                                                                                                                                                                                                                                                          |
+| `dynamic dae [until]`              | Advance with DAE. Alias `dynamicdae [until]`.                                                                                                                                                                                                                                                                                                                                                                 |
+| `dynamic part [until [interval]]`  | Advance with partitioned dynamics. `partitioned` is an alias for `part`, and `dynamicpart [until [interval]]` is the standalone alias.                                                                                                                                                                                                                                                                        |
+| `step [dae] [interval]`            | Advance DAE by a relative interval. A state-changing event may end the step early.                                                                                                                                                                                                                                                                                                                            |
+| `eventmode [until [interval]]`     | Advance by event-driven power flow.                                                                                                                                                                                                                                                                                                                                                                           |
+| `iterate [interval [until]]`       | Advance by event-driven power flow using interval-first operand order.                                                                                                                                                                                                                                                                                                                                        |
 
 Time operands are in seconds. `until` values are absolute, default to
 `timestop`, and cannot precede the current time or the applicable start time.
@@ -128,24 +128,24 @@ file-based playback in the case input.
 
 ## Results and checks
 
-| Command | Output |
-| --- | --- |
-| `check powerflow [file]` | Report violations on standard output or append them to a file. The report may contain violations and still succeed. |
-| `check powerflow --assert [file]` | Write the same report, then fail the action if any violations were found. |
-| `save powerflow [file]` | Write solved results as CSV, text (`.txt` or `.out`), XML, or CDF. With no path, use `powerflowfile`, the source filename plus `.csv`, or `<simulation-name>.csv` for an in-memory case. Use the executable's `--powerflow-output` option with `.raw`, `.m`, or `.py` for a network-case export. |
-| `save recorder` | Flush configured recorder destinations. A failed write leaves pending samples available for retry. A failed append to a regular CSV or legacy binary file attempts to restore the previous length. |
-| `save jacobian [file]` | Write an HDF5 Jacobian from the current initialized solver to the given path or `jacobian_<simulation-name>.bin`. |
+| Command                           | Output                                                                                                                                                                                                                                                                                           |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `check powerflow [file]`          | Report violations on standard output or append them to a file. The report may contain violations and still succeed.                                                                                                                                                                              |
+| `check powerflow --assert [file]` | Write the same report, then fail the action if any violations were found.                                                                                                                                                                                                                        |
+| `save powerflow [file]`           | Write solved results as CSV, text (`.txt` or `.out`), XML, or CDF. With no path, use `powerflowfile`, the source filename plus `.csv`, or `<simulation-name>.csv` for an in-memory case. Use the executable's `--powerflow-output` option with `.raw`, `.m`, or `.py` for a network-case export. |
+| `save recorder`                   | Flush configured recorder destinations. A failed write leaves pending samples available for retry. A failed append to a regular CSV or legacy binary file attempts to restore the previous length.                                                                                               |
+| `save jacobian [file]`            | Write an HDF5 Jacobian from the current initialized solver to the given path or `jacobian_<simulation-name>.bin`.                                                                                                                                                                                |
 
 ### Checkpoint commands
 
-| Command | Effect |
-| --- | --- |
-| `checkpoint <file> [solver]` | Replace the file with an HDF5 checkpoint containing solver vectors and declared component history. The optional solver selects an initialized mode such as `dae` or `dyndiff`. The default is the current mode. |
-| `rollback <file> [level]` | Restore the last frame and set the simulation clock to the captured time. Level `local` (default) restores declared component history as well. Level `minimal` publishes the restored solver state to components and can use a `save state` snapshot. |
-| `save state [file]` | Append an HDF5 solver snapshot. With no path, use the configured `statefile`. |
-| `load state <file>` | Copy the last frame's vectors into compatible initialized solver buffers. The clock and component state stay at their current values. |
-| `save powerflow-checkpoint <file>` | Write a JSON power-flow solution. |
-| `load powerflow-checkpoint <file>` | Restore a JSON power-flow solution into an initialized, compatible model. |
+| Command                            | Effect                                                                                                                                                                                                                                                |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `checkpoint <file> [solver]`       | Replace the file with an HDF5 checkpoint containing solver vectors and declared component history. The optional solver selects an initialized mode such as `dae` or `dyndiff`. The default is the current mode.                                       |
+| `rollback <file> [level]`          | Restore the last frame and set the simulation clock to the captured time. Level `local` (default) restores declared component history as well. Level `minimal` publishes the restored solver state to components and can use a `save state` snapshot. |
+| `save state [file]`                | Append an HDF5 solver snapshot. With no path, use the configured `statefile`.                                                                                                                                                                         |
+| `load state <file>`                | Copy the last frame's vectors into compatible initialized solver buffers. The clock and component state stay at their current values.                                                                                                                 |
+| `save powerflow-checkpoint <file>` | Write a JSON power-flow solution.                                                                                                                                                                                                                     |
+| `load powerflow-checkpoint <file>` | Restore a JSON power-flow solution into an initialized, compatible model.                                                                                                                                                                             |
 
 Checkpoint solver mode aliases include `ac`, `acflow`, and `pflow` for power
 flow, `dynamic` for DAE, `algebraic_only` for `dynalg`, and
@@ -179,12 +179,12 @@ prefix.
 case. The scale is the constant-power load multiplier at lambda 1.
 The optional operands may appear in any order and each can appear once.
 
-| Operand | Effect |
-| --- | --- |
-| `target <lambda>` | Stop at a nonnegative loading parameter. The default is to trace to the first loading limit. |
+| Operand                 | Effect                                                                                                     |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `target <lambda>`       | Stop at a nonnegative loading parameter. The default is to trace to the first loading limit.               |
 | `monitor <id>,<id>,...` | Record voltage and angle for the listed bus user IDs in that order. Per-bus traces require a monitor list. |
-| `qlimits` | Enforce generator reactive-power limits. |
-| `archive <file>` | Append to an HDF5 continuation archive, including any available partial trace on failure. |
+| `qlimits`               | Enforce generator reactive-power limits.                                                                   |
+| `archive <file>`        | Append to an HDF5 continuation archive, including any available partial trace on failure.                  |
 
 The command reports its continuation status and available loading
 parameters. An unmet target or numerical failure stops the queue.

@@ -37,13 +37,13 @@ an independent model.
 
 Internal exciter signals are exported with analytic state/input derivatives:
 
-| Exciter | VF | VFE | External limiter summing inputs |
-| --- | --- | --- | --- |
-| EXAC1 | Existing excitation washout output | Existing field feedback including saturation and Ifd loading | UEL and OEL |
-| EXST1 | Existing regulator washout output | Unavailable | UEL |
-| ESST1A | Existing field-drive derivative feedback | Unavailable | UEL with UEL=1 |
-| SCRX | Zero, because this exciter has no excitation-stabilizer block | Unavailable | UEL and OEL |
-| ESAC6A | Unavailable | Existing exciter-field feedback including saturation and Ifd loading | UEL and OEL |
+| Exciter | VF                                                            | VFE                                                                  | External limiter summing inputs |
+| ------- | ------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------- |
+| EXAC1   | Existing excitation washout output                            | Existing field feedback including saturation and Ifd loading         | UEL and OEL                     |
+| EXST1   | Existing regulator washout output                             | Unavailable                                                          | UEL                             |
+| ESST1A  | Existing field-drive derivative feedback                      | Unavailable                                                          | UEL with UEL=1                  |
+| SCRX    | Zero, because this exciter has no excitation-stabilizer block | Unavailable                                                          | UEL and OEL                     |
+| ESAC6A  | Unavailable                                                   | Existing exciter-field feedback including saturation and Ifd loading | UEL and OEL                     |
 
 Other exciter subclasses may inherit a signal export, but their external
 limiter input support is still checked separately. EXAC2 does not gain a

@@ -35,15 +35,16 @@ enum class ModelFieldKind : std::uint8_t {
     STATE_REFERENCE
 };
 
+/** Native value type of a declared field. */
 enum class ModelFieldType : std::uint8_t {
-    REAL,
-    INTEGER,
-    UNSIGNED_INTEGER,
-    BOOLEAN,
-    STRING,
-    TIME,
-    REAL_VECTOR,
-    FLAGS
+    REAL,  //!< Double-precision scalar.
+    INTEGER,  //!< Signed 64-bit integer.
+    UNSIGNED_INTEGER,  //!< Unsigned 64-bit integer.
+    BOOLEAN,  //!< Individual logical value.
+    STRING,  //!< Owned text.
+    TIME,  //!< CoreTime with exact nanosecond resolution.
+    REAL_VECTOR,  //!< Ordered double-precision values.
+    FLAGS  //!< Packed 64-bit flags.
 };
 
 /** Native values used by field snapshots. Clocks retain exact nanoseconds. */
@@ -94,21 +95,29 @@ enum class SetResult : std::uint8_t {
  */
 class ModelField {
   public:
+    /** Deferred assignment created after validating one stored value. */
     using Assignment = std::function<void()>;
     /** Index in the object's local state vector; kInvalidLocation means inactive. */
     using StateIndex = std::function<index_t(const CoreObject&, index_t)>;
+    /** Number of elements exposed by a state family on the given object. */
     using StateCount = std::function<count_t(const CoreObject&)>;
+    /** Canonical name of an element in a state family. */
     using StateName = std::function<std::string(const CoreObject&, index_t)>;
+    /** Resolve a state reference directly in an active solver layout. */
     using SolverIndex = std::function<index_t(const CoreObject&, const SolverMode&)>;
+    /** Read the member as a native-unit value. */
     using Reader = std::function<ModelFieldValue(const CoreObject&)>;
+    /** Apply a converted setter value and retain the supplied name for diagnostics. */
     using Writer = std::function<void(CoreObject&, const ModelFieldValue&, std::string_view)>;
+    /** Validate a saved value and return its deferred assignment. */
     using Restorer = std::function<Assignment(CoreObject&, const ModelFieldValue&)>;
 
+    /** Optional callbacks for locating and naming solver-managed state. */
     struct StateBinding {
-        StateIndex mLocalIndex{};
-        SolverIndex mSolverIndex{};
-        StateCount mCount{};
-        StateName mName{};
+        StateIndex mLocalIndex{};  //!< Object-local slot lookup.
+        SolverIndex mSolverIndex{};  //!< Direct lookup in the active solver layout.
+        StateCount mCount{};  //!< Dynamic size of an indexed family.
+        StateName mName{};  //!< Canonical names of its elements.
     };
 
     /** Low-level constructor used by the member-binding templates. */
@@ -120,45 +129,62 @@ class ModelField {
                Reader reader = {},
                Writer writer = {},
                Restorer restorer = {});
+    /** Define a solver state or reference with optional lookup callbacks. */
     ModelField(std::initializer_list<std::string_view> names,
                units::unit unitType,
                std::string_view description,
                StateBinding binding,
                ModelFieldKind kind = ModelFieldKind::STATE);
 
+    /** Canonical name or primary prefix of an indexed declaration. */
     [[nodiscard]] std::string_view name() const { return mNames.front(); }
+    /** Canonical name followed by aliases, or prefixes for an indexed declaration. */
     [[nodiscard]] std::span<const std::string> names() const { return mNames; }
+    /** Human-readable field description. */
     [[nodiscard]] std::string_view description() const { return mDescription; }
+    /** Units of the native member value. */
     [[nodiscard]] units::unit unitType() const { return mUnits; }
+    /** Role of the field in model dispatch or state lookup. */
     [[nodiscard]] ModelFieldKind kind() const { return mKind; }
+    /** Representation of the field value. */
     [[nodiscard]] ModelFieldType valueType() const { return mValueType; }
+    /** Whether the declaration specifies units for a non-flag field. */
     [[nodiscard]] bool hasUnits() const
     {
         return mKind != ModelFieldKind::FLAG && !units::is_default(mUnits);
     }
+    /** Whether a native value can be read through this declaration. */
     [[nodiscard]] bool readable() const { return static_cast<bool>(mRead); }
+    /** Whether the declaration describes a setter or a class-handled command. */
     [[nodiscard]] bool editable() const
     {
         return mKind == ModelFieldKind::PARAMETER || mKind == ModelFieldKind::FLAG ||
             mKind == ModelFieldKind::COMMAND || mKind == ModelFieldKind::INDEXED_COMMAND;
     }
+    /** Whether a name matches the declaration or an alias, including indexed suffixes. */
     [[nodiscard]] bool matches(std::string_view name) const;
     /** No value means metadata only; a bound inactive state returns kInvalidLocation. */
     [[nodiscard]] std::optional<index_t> stateIndex(const CoreObject& object,
                                                     index_t element = 0) const;
+    /** Whether a callback can resolve a local slot or an active solver index. */
     [[nodiscard]] bool hasStateBinding() const
     {
         return mState && (mState->mLocalIndex || mState->mSolverIndex);
     }
+    /** Whether the declaration describes a solver-owned state, family or reference. */
     [[nodiscard]] bool isState() const
     {
         return mKind == ModelFieldKind::STATE || mKind == ModelFieldKind::INDEXED_STATE ||
             mKind == ModelFieldKind::STATE_REFERENCE;
     }
+    /** Number of names in the state family, or one for a scalar declaration. */
     [[nodiscard]] count_t stateCount(const CoreObject& object) const;
+    /** Canonical name of the selected scalar or indexed state. */
     [[nodiscard]] std::string stateName(const CoreObject& object, index_t element = 0) const;
+    /** Match a state name or alias and return its element within the declaration. */
     [[nodiscard]] std::optional<index_t> stateElement(const CoreObject& object,
                                                       std::string_view name) const;
+    /** Resolve directly in the active mode when a solver-index callback exists. */
     [[nodiscard]] std::optional<index_t> solverStateIndex(const CoreObject& object,
                                                           const SolverMode& mode) const;
     /** Read the existing member in its declared/native units. */
@@ -194,11 +220,16 @@ class ModelDescription {
 
     ModelDescription(const ModelDescription&) = delete;
     ModelDescription& operator=(const ModelDescription&) = delete;
+    /** Transfer ownership of a description and its field table. */
     ModelDescription(ModelDescription&&) noexcept = default;
+    /** Replace a description by transferring the source field table. */
     ModelDescription& operator=(ModelDescription&&) noexcept = default;
 
+    /** Name of the class that declares this table. */
     [[nodiscard]] std::string_view name() const { return mName; }
+    /** Immediate ancestor table, or null at the root. */
     [[nodiscard]] const ModelDescription* parent() const { return mParent; }
+    /** Declarations in this table in registration order. */
     [[nodiscard]] std::span<const ModelField> fields() const { return mFields; }
     /** Effective state declarations, including inherited references. Derived names replace
      * ancestors. */
@@ -230,8 +261,11 @@ class ModelDescription {
         const auto local = field->stateIndex(object, element);
         return local ? std::optional<index_t>{mapLocal(*local)} : std::nullopt;
     }
+    /** Local numeric setter names and aliases. */
     [[nodiscard]] std::span<const std::string_view> numericNames() const { return mNumericNames; }
+    /** Local string setter names and aliases. */
     [[nodiscard]] std::span<const std::string_view> stringNames() const { return mStringNames; }
+    /** Local flag names and aliases. */
     [[nodiscard]] std::span<const std::string_view> flagNames() const { return mFlagNames; }
     /** Enumerate declared setter names, including aliases, in child-to-parent order.
      * Local queries replace the vector; inherited queries append. ALL appends numeric
@@ -266,6 +300,7 @@ class ModelDescription {
                                         std::string_view name,
                                         double value,
                                         units::unit unitType = units::defunit) const;
+    /** Assign a local string parameter or classify a string command for the caller. */
     [[nodiscard]] SetResult
         trySetLocal(CoreObject& object, std::string_view name, std::string_view value) const;
     /** Default flag access through the object's derived tables down to this declaring table.
@@ -273,9 +308,12 @@ class ModelDescription {
      * Empty and comment keys are treated as handled.
      */
     bool trySetFlag(CoreObject& object, std::string_view name, bool value) const;
+    /** Read a flag through the object's derived tables down to this declaring table. */
     [[nodiscard]] std::optional<bool> tryGetFlag(const CoreObject& object,
                                                  std::string_view name) const;
+    /** Assign a declared flag in this table. Return whether dispatch handled the name. */
     bool trySetFlagLocal(CoreObject& object, std::string_view name, bool value) const;
+    /** Read a flag from this table, returning no value for an unmatched name. */
     [[nodiscard]] std::optional<bool> tryGetFlagLocal(const CoreObject& object,
                                                       std::string_view name) const;
     /** Default numeric getter for a declaring class. Search the object's derived tables
@@ -285,11 +323,14 @@ class ModelDescription {
     [[nodiscard]] std::optional<double> tryGet(const CoreObject& object,
                                                std::string_view name,
                                                units::unit unitType = units::defunit) const;
+    /** Read a local numeric field, converting from native units when units are requested. */
     [[nodiscard]] std::optional<double> tryGetLocal(const CoreObject& object,
                                                     std::string_view name,
                                                     units::unit unitType = units::defunit) const;
+    /** Read a local string field, returning no value for an unmatched name or type. */
     [[nodiscard]] std::optional<std::string> tryGetStringLocal(const CoreObject& object,
                                                                std::string_view name) const;
+    /** Test the object's dynamic type against the type registered for this table. */
     [[nodiscard]] bool describesExactType(const CoreObject& object) const
     {
         return typeid(object) == *mExactType;
@@ -316,9 +357,9 @@ class ModelDescription {
 
 /** One editable, native-unit field value, identified by declaring class and name. */
 struct ModelFieldEntry {
-    std::string mDeclaringClass;
-    std::string mName;
-    ModelFieldValue mValue;
+    std::string mDeclaringClass;  //!< Class whose table owns the field.
+    std::string mName;  //!< Canonical name in that declaring table.
+    ModelFieldValue mValue;  //!< Captured native value with its original type.
 };
 
 /** Capture declared object fields; this is not a simulation/solver checkpoint.
@@ -330,14 +371,16 @@ struct ModelFieldEntry {
  */
 class ModelFieldSnapshot {
   public:
+    /** Capture the fields selected by the level across the object's declaring tables. */
     static ModelFieldSnapshot capture(const CoreObject& object,
                                       FieldSnapshotLevel level = FieldSnapshotLevel::PARAMETERS);
+    /** Validate and apply this snapshot to a compatible object. */
     void restore(CoreObject& object) const;
     /** Validate and stage assignments for an object that must live until commit. */
     [[nodiscard]] ModelField::Assignment prepareRestore(CoreObject& object) const;
-    std::string mModelType;
-    FieldSnapshotLevel mLevel = FieldSnapshotLevel::PARAMETERS;
-    std::vector<ModelFieldEntry> mFields;
+    std::string mModelType;  //!< Type name used to verify restore compatibility.
+    FieldSnapshotLevel mLevel = FieldSnapshotLevel::PARAMETERS;  //!< Capture selection.
+    std::vector<ModelFieldEntry> mFields;  //!< Captured values, including inherited fields.
 };
 
 /** Describe a compound/custom setter without inventing a stored member for it. */

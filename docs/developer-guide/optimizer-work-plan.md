@@ -1,8 +1,14 @@
 # Optimizer framework work plan
 
-The [binary-state architecture review](binary-state-architecture-review.md)
-describes how the canonical optimization problem and result contracts can use
-the same numeric record layer as simulation snapshots and diagnostics.
+The [HDF5 output reference](binary-state-output.md) documents the shared
+numeric record layer available to a future optimization capture adapter.
+Capture should use `NativeQpProblem` for variable and constraint layouts,
+bounds, names and coefficients, `OptimizerInterface` for available
+derivatives, and `NativeSolveResult` for status, objective and primal results.
+Use separate variable and constraint layouts. Store coefficients and results
+in original GridDyn coordinates and identify the objective convention and any
+backend scaling in diagnostic records. Record duals and active sets when the
+backend supplies them.
 
 ## Purpose
 

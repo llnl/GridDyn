@@ -153,7 +153,7 @@ All payloads are ordinary typed, extendible one-dimensional datasets:
 | `frame`, `index`                    | uint64 frame identity and producer evaluation/block index.                                                                                                 |
 | `key`, `paired_key`, `parent_index` | uint64 producer keys; absent values are `UINT64_MAX`. Solver keys are offset indices. `parent_index` is reserved when no enclosing evaluation is supplied. |
 | `source`                            | uint32: 0 snapshot, 1 diagnostic, 2 continuation study, 3 recorder samples/metadata.                                                                       |
-| `type`                              | uint32: 0 vector, 1 sparse COUP matrix, 2 names, 3 bytes.                                                                                                  |
+| `type`                              | uint32: 0 vector, 1 coordinate-format sparse matrix, 2 names, 3 bytes.                                                                                     |
 | `code`                              | uint32 vector role: 0 state, 1 derivative/RHS, 2 residual; matrix role 1 Jacobian.                                                                         |
 | `flags`, `approx`                   | uint32 solver mode bits and approximation mask. Mode bits 0-5 mean dynamic, differential, algebraic, local, extended state and parameters.                 |
 | `value_offset`, `count`             | uint64 zero-based offset into `/values` and element count; for names, count is number of names.                                                            |
@@ -189,6 +189,24 @@ Sparse producers fill bounded 8192-entry chunks. `Hdf5DataFile::readRecords` and
 `readValues` support range selections. Compression defaults to off; generic
 storage callers can select lossless shuffle/deflate levels 1-9. Numeric types
 and exact timestamp values are unchanged by compression. No lossy filter is used.
+
+## Diagnostic context
+
+Accepted solver snapshots and trial callbacks serve distinct purposes. IDA
+logs trial state, derivative and residual, CVODE and ARKODE log trial state
+and RHS, and KINSOL logs trial state and residual. Each backend assigns its
+own evaluation index. Correlating the KINSOL evaluations with a parent
+differential trial requires an explicit cross-solver identifier.
+
+For reproducible divergence reports, record the input case, solver settings,
+requested and reached times, and run status. Preserve named layouts, IC
+strategy and masks, root owner and direction, and before/after states for
+limit events where the investigation calls for them. Sparse-factorization
+diagnostics also need the stored pattern and setup status. Keep accepted
+endpoint derivatives separate from intermediate RHS evaluations. The
+[IDA workflow](ida-initial-condition-diagnostics.md) and
+[partitioned benchmark](partitioned-solver-performance-benchmark.md) show
+where this context is used.
 
 ## MATLAB
 
@@ -234,6 +252,6 @@ Then add `matlab` and `matlab/tests` to the MATLAB path and run
 The C++ tests also exercise malformed/truncated files, mode mismatch, a failed
 unpublished frame, selected reads, and contained diagnostic I/O failure.
 [Recorder HDF5 output](../recorders-and-grabbers.md#saving-and-resetting) also uses this schema.
-Full parameter/runtime checkpointing and other applications in the
-[integration assessment](hdf5-integration-assessment.md) remain separate work.
-LUT integration is deferred and would be last, if pursued.
+See the [checkpointing guide](checkpointing.md) for runtime restore coverage
+and the [HDF5 integration assessment](hdf5-integration-assessment.md) for
+the storage decision, historical build probes and future applications.

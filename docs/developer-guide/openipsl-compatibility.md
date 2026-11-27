@@ -160,7 +160,7 @@ two-mass equation lead labeled “WT3T1,” but its interface is not an exact
 PSS/E record mapping. `WT3P1` has no corresponding exact source. Both models
 remain P1 because the synthetic cases require the complete Type-3 wind system.
 The source uncertainty and representative record shapes are documented in the
-[ACTIVSg25k audit](activsg25k-dynamics-audit.md#wt3p1wt3t1-adapter-and-model-fidelity-status-reviewed-2026-10-04).
+[ACTIVSg25k audit](activsg25k-dynamics-audit.md#wt3p1wt3t1-adapter-and-model-fidelity-status-reviewed-2026-10-12).
 
 ## 1. Synchronous machines and induction motors
 

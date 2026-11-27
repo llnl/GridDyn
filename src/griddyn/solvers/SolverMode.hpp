@@ -12,15 +12,7 @@
 namespace griddyn {
 // object operation flags
 // explicit specification since these are used in combination with the flags Bitset
-/** solver mode operations enum.
- *  local for non-connected operation
- * localb for solutions with just a small subset of objects
- *  dcFlow for dc power flow case
- *  pFlow for regular ac power flow case
- *  algebraic_only for the algebraic part of the DAE solution
- * differential_only for the differential part of the DAE solution
- *  DAE  the full DAE Solution mode
- */
+/** Bit positions for approximation requests in SolverMode::approx. */
 enum ApproxKey {
     DECOUPLED = 0,
     SMALL_ANGLE = 1,
@@ -30,6 +22,7 @@ enum ApproxKey {
     DC = 31,
 };
 
+/** Link-approximation combinations encoded in the low four bits of SolverMode::approx. */
 enum class ApproxKeyMask : unsigned int {
     NONE = 0,
     DECOUPLED = (1 << ApproxKey::DECOUPLED),
@@ -53,17 +46,19 @@ enum class ApproxKeyMask : unsigned int {
 #    define KEY_QUAL constexpr
 #endif
 
+/** Convert a named link approximation into its unsigned bit mask. */
 KEY_QUAL unsigned int indexVal(ApproxKeyMask key)
 {
     return static_cast<unsigned int>(key);
 }
 
+/** Reserved offset-table indices and their default state layouts. */
 enum DefinedSolverModes : index_t {
-    LOCAL_MODE = 0,
-    POWER_FLOW = 1,
-    DAE = 2,
-    DYNAMIC_ALGEBRAIC = 3,
-    DYNAMIC_DIFFERENTIAL = 4,
+    LOCAL_MODE = 0,  //!< Local evaluation with both state types.
+    POWER_FLOW = 1,  //!< Steady-state algebraic power flow.
+    DAE = 2,  //!< Coupled dynamic differential and algebraic equations.
+    DYNAMIC_ALGEBRAIC = 3,  //!< Algebraic block of a partitioned dynamic solve.
+    DYNAMIC_DIFFERENTIAL = 4,  //!< Differential block of a partitioned dynamic solve.
 };
 
 /** @brief class defining how a specific solver operates and how to find information*/
@@ -111,6 +106,7 @@ class SolverMode {
     }
     /**@brief SolverMode default constructor*/
     constexpr SolverMode() = default;
+    /** Compare state-layout and approximation flags independently of assigned indices. */
     constexpr bool operator==(const SolverMode& b) const
     {
         return ((dynamic == b.dynamic) && (differential == b.differential) &&
@@ -120,31 +116,41 @@ class SolverMode {
 };
 
 #define LINKAPPROXMASK ((unsigned int)(0x000F))
+/** Extract the link-approximation bits. */
 constexpr int getLinkApprox(const SolverMode& sMode)
 {
     return static_cast<int>(sMode.approx.to_ulong() & (LINKAPPROXMASK));
 }
+/** Replace the link-approximation bits and preserve the other approximation requests. */
 inline void setLinkApprox(SolverMode& sMode, ApproxKeyMask key)
 {
     sMode.approx &= (~LINKAPPROXMASK);
     sMode.approx |= indexVal(key);
 }
 
+/** Enable one approximation by its bit position. */
 inline void setLinkApprox(SolverMode& sMode, int val)
 {
     sMode.approx.set(val);
 }
+/** Enable or clear one approximation by its bit position. */
 inline void setLinkApprox(SolverMode& sMode, int val, bool setval)
 {
     sMode.approx.set(val, setval);
 }
 
+/** Predefined local state evaluation mode. */
 inline constexpr SolverMode cLocalSolverMode(LOCAL_MODE);
+/** Predefined AC power-flow mode. */
 inline constexpr SolverMode cPflowSolverMode(POWER_FLOW);
+/** Predefined coupled dynamic mode. */
 inline constexpr SolverMode cDaeSolverMode(DAE);
+/** Predefined partitioned algebraic mode. */
 inline constexpr SolverMode cDynAlgSolverMode(DYNAMIC_ALGEBRAIC);
+/** Predefined partitioned differential mode. */
 inline constexpr SolverMode cDynDiffSolverMode(DYNAMIC_DIFFERENTIAL);
 
+/** Unassigned mode used as a default selection sentinel by simulation APIs. */
 inline constexpr SolverMode cEmptySolverMode{};
 /**
  *Helper functions for determining mode capabilities

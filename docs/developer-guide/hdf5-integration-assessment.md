@@ -1,22 +1,27 @@
 # HDF5 integration and preliminary Parquet comparison
 
-Implementation update: state and diagnostic output now use the HDF5 submodule
-checkout supplied on `develop`. See [the current format and API](binary-state-output.md).
-The design inventory and earlier build experiments below retain their historical
-context; other application adapters are future work. LUT use is deferred until
-last, if it is pursued at all.
+GridDyn now uses its HDF5 submodule for solver state, diagnostics, recorder
+samples and continuation archives. See [the current format and API](binary-state-output.md)
+and [checkpointing](checkpointing.md) for implemented capture and restore behavior.
+The design proposals and build experiments below record the October 2026
+evaluation.
 
-The integrated `develop` checkout has now built with MSVC 19.44 in Debug.
+In that evaluation, the integrated checkout built with MSVC 19.44 in Debug.
 All 33 power-flow/validation tests and five selected DAE/partitioned dynamic
 regressions passed. Fifteen C++-generated fixtures were read independently with
 h5py, and the MATLAB reader and docgen entry point passed under MATLAB R2013a.
-These checks cover state/diagnostics; recorder-result adapters and the platform
-matrix below remain future validation work.
+These checks covered state and diagnostics. The current format reference
+lists the later recorder fixture and HDF5 regression coverage.
 
-Reviewed 2026-10-30 against the current working tree. This extends the
-[binary-state architecture review](binary-state-architecture-review.md):
-**simulation output data is a required application of the proposed common
-storage layer**, alongside state, diagnostics, matrices and optimization.
+The 2026-10-30 architecture review selected one storage layer for simulation
+output, state, diagnostics, sparse matrices and future optimization captures.
+HDF5 offered typed arrays, bounded partial reads, extendible datasets and
+lossless compression in a MATLAB- and Python-readable format. NumPy arrays
+would have required an additional record index and metadata convention.
+SQLite offered transactions and metadata queries but would have needed a
+GridDyn encoding for large numeric arrays. netCDF-4 offered a narrower
+scientific data model, and ADIOS2 added a further dependency for its streaming
+features. The preliminary Parquet comparison below covers the column-oriented option.
 
 ## Recommendation and evidence boundary
 
@@ -26,8 +31,7 @@ and errors contained inside that implementation. The official C++ library is
 usable for serial operation, but has important configuration restrictions.
 Do not establish several production binary writers while evaluating alternatives.
 
-The current upstream download page identifies HDF5 **2.2.0** as the newest
-release; 1.14.6 is the final 1.14 release. The 2.2.0 archive was downloaded into
+The evaluation used HDF5 **2.2.0**. The 2.2.0 archive was downloaded into
 the ignored `build/hdf5-evaluation` directory and verified against its published
 SHA256. This assessment includes actual Windows compilation and small data
 round trips. It does not establish full application integration, performance,
@@ -448,10 +452,11 @@ Then add power-flow/contingency tables and profile reading, followed by optimize
 capture and complete checkpoint/restore. FMI restart and optional parallel-solver
 output can reuse those contracts as their supporting capabilities are completed.
 
-## Validation performed and remaining acceptance work
+## Historical probes and acceptance criteria
 
-The [standalone probe](../../scripts/hdf5_probe/README.md) supplies reproducible
-build options and source. Local evidence:
+The [standalone probe](https://github.com/LLNL/GridDyn/blob/main/scripts/hdf5_probe/README.md)
+supplies reproducible build options and source. The October 2026 probes
+produced these results.
 
 | Configuration                                                  | Outcome                           |
 | -------------------------------------------------------------- | --------------------------------- |
@@ -467,7 +472,8 @@ close/reopen, and a selected column/time slice. Probe source uses warnings as
 errors with included dependency/GridDyn headers treated as system headers.
 Neither a full GridDyn executable nor an upstream HDF5 test suite was run.
 
-Before adoption:
+The original adoption checklist follows. See the [format reference](binary-state-output.md)
+for the current regression fixtures and reader coverage.
 
 1. Run full GridDyn integration in Debug/Release, static/shared, the GCC 14/15
    and Clang 18/20/22/C++26 configurations, Linux ARM64, macOS arm64/x64 and
@@ -489,7 +495,3 @@ Before adoption:
    slowdown. A Parquet comparison should use equivalent data/precision and
    publication intervals; do not compare compressed Parquet to untuned HDF5
    and attribute every difference to the format.
-
-The local probes establish a useful compilation foothold. The remaining work
-defines integration acceptance, rather than assuming universal compatibility
-from an upstream platform claim or from these small successful files.

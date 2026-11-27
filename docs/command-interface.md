@@ -28,8 +28,8 @@ freshly loaded simulation before its first solve.
 - Verbs and command keywords are case-insensitive. Object names, registered
   solver names, paths, and string values retain their spelling.
 - Enclose an operand containing whitespace, semicolons, or a leading `#` in
-  double quotes. Within quotes, `\"` represents a quote and `\\` represents
-  a backslash. Other backslashes are preserved. Quote a string that would
+  double quotes. Inside quotes, a backslash escapes a following double quote
+  or backslash. Other backslashes are preserved. Quote a string that would
   otherwise be parsed as a number. Numeric operands must be complete,
   finite numbers.
 - A bare `field` addresses the simulation. `object:field` selects a field on

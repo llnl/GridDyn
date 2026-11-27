@@ -19,7 +19,7 @@ For measurement configuration, start with
 Release history is available in the
 [GridDyn changelog](https://github.com/LLNL/GridDyn/blob/main/CHANGELOG.md).
 Implementation references and engineering notes are in the
-[developer guide](https://github.com/LLNL/GridDyn/tree/main/docs/developer-guide).
+[developer guide](https://github.com/LLNL/GridDyn/blob/main/docs/developer-guide/index.md).
 
 ```{toctree}
 :maxdepth: 2

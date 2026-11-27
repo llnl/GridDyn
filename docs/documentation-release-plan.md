@@ -17,7 +17,8 @@ make the entire C++ implementation a release blocker.
   in package metadata.
 - The Read the Docs build uses Sphinx, MyST, and the Read the Docs theme. Its
   content is Markdown under `docs/`; the pinned Sphinx requirements are in
-  `docs/requirements.txt`.
+  `docs/requirements.txt`. Sphinx takes the release version from
+  `pyproject.toml` for its output metadata, including EPUB.
 - The Python guide documents the package's Python 3.13 minimum, four packaged
   examples, power-flow export, dynamic recorder workflow, and current DC OPF
   limits. PYPOWER is not a GridDyn installation or CI dependency.
@@ -31,23 +32,18 @@ make the entire C++ implementation a release blocker.
   `build/doxygen_warnings.log`; the HTML output is directed to a build folder.
   The current scan reads `src/` and `docs/`, and excludes test sources and
   presentations. This is broader than a curated public C++ API list.
-- The 2026-10-28 local Doxygen 1.18.0 run reports 3,930 warning entries:
-  3,767 undocumented declarations, 41 ambiguous member-documentation
-  associations, and 122 other warnings. The `src/formatInterpreters/` pass and
-  a focused pass over four optimization framework headers cleared their
-  warnings; the latter removed 206 entries. The same documentation work fixed
-  Doxygen math-block and unresolved-reference warnings in the scanned Markdown.
-  The remaining log still includes broad API documentation debt; counts depend
-  on the Doxygen version and source revision.
+- The 2026-11-26 Doxygen 1.18.0 run reduced warning entries from 4,186 to
+  3,896. This pass documented continuation power flow, checkpoint and HDF5
+  capture, model metadata, core exceptions, solver configuration, and
+  simulation internals. It also repaired Markdown parsing and links.
+  Counts depend on the Doxygen version, source revision, and local drafts
+  included in the input tree.
 - The generated naming inventory and its redirect-only audit page were removed
   from the developer guides. Their historical summary remains in the naming
   migration plan.
-- The live Read the Docs pages still show older content until this branch is
-  published and Read the Docs builds it. This source update does not publish
-  the site by itself.
-- A local Sphinx build is still unverified. Sphinx is not installed in the
-  local Python environment, and installing the pinned requirements stalled;
-  the Read the Docs build remains the release check for the Sphinx pages.
+- The 2026-11-26 local Sphinx check used Python 3.14 with the pinned
+  requirements and built HTML, EPUB, and LaTeX with warnings treated as errors.
+  The hosted Read the Docs build remains the release check.
 
 ## Before the next release
 

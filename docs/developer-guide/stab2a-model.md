@@ -1,5 +1,3 @@
-@page stab2a_model_equations STAB2A model equations
-
 # STAB2A model equations and implementation scope
 
 `StabilizerStab2a` implements the ASEA power-sensitive stabilizing unit in

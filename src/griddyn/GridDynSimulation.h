@@ -27,10 +27,14 @@
 #include <variant>
 #include <vector>
 namespace griddyn {
+/** Legacy execution-mode identifier for single-core operation. */
 #define SINGLE (1)
+/** Legacy execution-mode identifier for multicore operation. */
 #define MULTICORE (2)
+/** Legacy execution-mode identifier for multiprocessor operation. */
 #define MULTIPROCESSOR (3)
 
+/** Turn an unexpanded macro argument into a string literal. */
 #define STRINGIFY(x) #x
 
 class Contingency;
@@ -84,7 +88,7 @@ enum GridDynFlags {
 
 // for the status flags bitset
 
-// extra local flags
+/** Additional simulation flags stored in the component's object-flag range. */
 enum GridDynExtraFlags {
     DC_JAC_COMP_FLAG = OBJECT_FLAG6,
     RESET_VOLTAGE_FLAG = OBJECT_FLAG7,
@@ -111,6 +115,7 @@ struct tolerances {
 class Recorder;
 class Event;
 
+/** Sentinel for a state-change handler that did not run a solver operation. */
 #define HANDLER_NO_RETURN (-500)
 
 enum class ContingencyMode;  // forward declare the enumeration
@@ -212,12 +217,13 @@ class GridDynSimulation: public GridSimulation {
         singleStepObjects;  //!< objects which require a state update after time step
     std::vector<GridBus*> slkBusses;  //!< vector of slack buses to aid in powerFlow adjust
     struct ActionScript;
+    /** One queued command, parse diagnostic or script entry awaiting execution. */
     struct QueuedAction {
         std::variant<GridDynAction, std::string> command;  //!< parsed action or syntax error
-        std::string text;
-        std::string source;
-        std::shared_ptr<const ActionScript> script;
-        std::optional<CoreTime> stepEnd{};
+        std::string text;  //!< Original command text for diagnostics.
+        std::string source;  //!< Input origin, including the script line when available.
+        std::shared_ptr<const ActionScript> script;  //!< Enclosing script and its include context.
+        std::optional<CoreTime> stepEnd{};  //!< Retained endpoint for a partially executed step.
     };
     std::deque<QueuedAction> actionQueue;  //!< queue for actions for GridDyn to execute
     std::vector<std::shared_ptr<ContinuationSequence>>
@@ -846,9 +852,12 @@ class GridDynSimulation: public GridSimulation {
     */
     bool dynamicCheckAndReset(const SolverMode& sMode, ChangeCode change = ChangeCode::NO_CHANGE);
 
+    /** Rebuild a changed dynamic state layout and recompute DAE initial conditions. */
     int handleStateChange(const SolverMode& sMode);
+    /** Update the backend's root count and the component root offsets after a change. */
     void handleRootChange(const SolverMode& sMode, std::shared_ptr<SolverInterface>& dynData);
 
+    /** Check algebraic limit events and recompute initial conditions if they change state. */
     int checkAlgebraicRoots(std::shared_ptr<SolverInterface>& dynData);
     /** @brief checks events for events needing to run and runs them then checks if a reset is
     needed if so it does so
@@ -858,6 +867,7 @@ class GridDynSimulation: public GridSimulation {
     */
     bool checkEventsForDynamicReset(CoreTime cTime, const SolverMode& sMode);
 
+    /** Dispatch the OPF action. The base simulation reports that optimization is unavailable. */
     virtual void executeOpfAction(const GridDynAction& action);
 
   private:

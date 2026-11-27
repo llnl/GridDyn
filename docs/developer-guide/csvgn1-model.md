@@ -1,5 +1,3 @@
-@page csvgn1_model_equations CSVGN1 model equations
-
 # CSVGN1 model equations and implementation scope
 
 `GenModelCSVGN1` implements the PSS/E CSVGN1 static var source through GridDyn's
@@ -134,7 +132,6 @@ inside the reactor and regulator limits.
   and partitioned runs. An external PSS/E trajectory comparison
   remains future validation.
 
-The implementation is the [GenModelCSVGN1 class](classgriddyn_1_1genmodels_1_1GenModelCSVGN1.html) in
-`src/griddyn/genmodels/GenModelCSVGN1.h` and
-`src/griddyn/genmodels/GenModelCSVGN1.cpp`; the positional DYR mapping is in
-`src/fileInput/gridDynReadDYR.cpp`.
+See the [GenModelCSVGN1 declaration](https://github.com/LLNL/GridDyn/blob/main/src/griddyn/genmodels/GenModelCSVGN1.h),
+the [implementation](https://github.com/LLNL/GridDyn/blob/main/src/griddyn/genmodels/GenModelCSVGN1.cpp),
+and the [positional DYR mapping](https://github.com/LLNL/GridDyn/blob/main/src/fileInput/gridDynReadDYR.cpp).

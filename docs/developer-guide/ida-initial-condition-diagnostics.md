@@ -4,9 +4,8 @@ This note records the workflow for diagnosing a GridDyn DAE initialization failu
 immediate reference case is ACTIVSg2000, but the checks are intended to become a reusable
 diagnostic capability for future dynamic models.
 
-The [binary-state architecture review](binary-state-architecture-review.md)
-connects this investigation workflow to shared state, residual, Jacobian and
-event-context capture, and identifies the current serialization gaps.
+The [HDF5 output reference](binary-state-output.md)
+describes how state, residual and Jacobian captures support this workflow.
 
 ## Reproduction
 

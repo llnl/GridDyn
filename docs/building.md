@@ -6,9 +6,11 @@ use a Visual Studio toolset with C++23 support. The project CI also builds with
 Visual Studio; the exact generator depends on the installed Visual Studio
 version.
 
-The repository tracks SUNDIALS as a submodule. Initialize submodules when
-cloning, and install the platform development packages for Boost and
-SuiteSparse/KLU when they are not available through the build environment.
+The repository tracks SUNDIALS and HDF5 as submodules. Initialize submodules
+when cloning and install the platform development package for Boost.
+The default sparse solver configuration uses SuiteSparse/KLU. CMake can use an
+installed copy or build the bundled copy with
+`-DGRIDDYN_SUITESPARSE_FORCE_SUBPROJECT=ON`.
 The continuous integration configuration is another reference for the
 currently exercised Linux dependencies and options.
 
@@ -82,10 +84,9 @@ python -m pip install build
 python -m build --wheel
 ```
 
-The C++ compiler, CMake, Boost, and SuiteSparse/KLU are still required for a
-source wheel build. PyPI wheels avoid this local compilation when a compatible
-wheel is available. The [Python installation guide](installation.md) covers
-the normal user path.
+Source wheel builds use the C++ and CMake dependencies described above.
+PyPI wheels avoid local compilation when a compatible wheel is available.
+The [Python installation guide](installation.md) covers the normal user path.
 
 ## Generate the C++ API reference
 
@@ -105,7 +106,15 @@ audit can be reviewed without filling the build console. The warning inventory
 and planned cleanup are tracked in the
 [documentation release plan](documentation-release-plan.md).
 
-Read the Docs builds the Sphinx guides from `docs/`; it does not currently
-publish the generated Doxygen HTML. Keeping user guides in Sphinx and the C++
-API in Doxygen avoids adding a bridge or extra documentation toolchain before
-the API scope and warning backlog have been reviewed.
+## Build the user guides
+
+Read the Docs builds the Sphinx guides from `docs/` using Python 3.14.
+In a Python 3.14 environment, run the same pinned tools from the repository root.
+
+```sh
+python -m pip install -r docs/requirements.txt
+python -m sphinx -W -n -b html docs build/sphinx
+```
+
+Open `build/sphinx/index.html` for the generated user guides. Use the
+Doxygen target above for the C++ reference.

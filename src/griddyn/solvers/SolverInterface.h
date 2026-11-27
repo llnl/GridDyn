@@ -26,10 +26,11 @@ namespace utilities {
 class Hdf5DataFile;
 }
 namespace griddyn {
+/** Policy for logging solver messages and reacting to failures. */
 enum class SolverPrintLevel {
-    DEBUG_PRINT = 2,
-    ERROR_LOG = 1,
-    ERROR_TRAP = 0,
+    DEBUG_PRINT = 2,  //!< Include informational solver messages.
+    ERROR_LOG = 1,  //!< Record errors without throwing from logMessage().
+    ERROR_TRAP = 0,  //!< Retain nonzero status and detail without logging from logMessage().
 };
 
 class GridDynSimulation;
@@ -38,13 +39,15 @@ class GridDynSimulation;
 class SolverException: public std::exception {
   protected:
     int errorCode;  ///< the actual solver Error Code
-    std::string message;
+    std::string message;  //!< Diagnostic detail with the numeric solver code appended.
 
   public:
+    /** Construct an exception from the backend code and diagnostic detail. */
     explicit SolverException(int ecode = 0, std::string_view detail = "solver operation failed"):
         errorCode(ecode), message(std::format("{} (error code {})", detail, errorCode))
     {
     }
+    /** Return the diagnostic text, including the numeric solver code. */
     virtual const char* what() const noexcept override { return message.c_str(); }
     /** Return the solver error code. */
     int code() const noexcept { return errorCode; }
@@ -54,6 +57,7 @@ class SolverException: public std::exception {
  */
 class InvalidSolverOperation: public SolverException {
   public:
+    /** Report a solver operation unsupported by the backend or its current state. */
     explicit InvalidSolverOperation(int ecode = 0,
                                     std::string_view detail = "invalid solver operation"):
         SolverException(ecode, detail)
@@ -68,6 +72,7 @@ class InvalidSolverOperation: public SolverException {
 #define SOLVER_STEP_LIMIT_REACHED (-11)
 #define SOLVER_CONVERGENCE_ERROR (-12)
 
+/** Positions in the shared solver flag set. Backends select the flags they support. */
 enum SolverFlags : int {
     DENSE_FLAG = 0,  //!< if the solver should use a dense or sparse version
     CONSTANT_JACOBIAN_FLAG = 1,  //!< if the solver should just keep a constant Jacobian
@@ -77,11 +82,11 @@ enum SolverFlags : int {
     USE_OMP_FLAG = 5,  //!< flag indicating whether to use omp data constructs
     ALLOCATED_FLAG = 6,  //!< if the solver has been allocated
     INITIALIZED_FLAG = 7,  //!< flag indicating if these vectors have been initialized
-    FILE_CAPTURE_FLAG = 8,
+    FILE_CAPTURE_FLAG = 8,  //!< Enable optional diagnostic file capture.
     DIRECT_LOGGING_FLAG =
         9,  //!< flag telling the SolverInterface to capture a log directly from the solver
-    USE_NEWTON_FLAG = 11,
-    USE_BDF_FLAG = 12,
+    USE_NEWTON_FLAG = 11,  //!< Request Newton iteration where supported.
+    USE_BDF_FLAG = 12,  //!< Select CVODE's backward differentiation formula instead of Adams.
     BLOCK_MODE_ONLY = 13,  //!< flag indicating that the solver only supports block mode
     EXTRA_SOLVER_FLAG1 = 16,
     EXTRA_SOLVER_FLAG2 = 17,
@@ -95,10 +100,10 @@ enum SolverFlags : int {
     EXTRA_SOLVER_FLAG10 = 25,
     EXTRA_SOLVER_FLAG11 = 26,
     EXTRA_SOLVER_FLAG12 = 27,
-    PRINT_RESIDUALS = 28,
-    IDA_IC_DIAGNOSTICS = 29,
-    IDA_IC_STOP_ON_FAILURE = 30,
-    IDA_INTEGRATION_DIAGNOSTICS = 31,
+    PRINT_RESIDUALS = 28,  //!< Trace KINSOL residual evaluations.
+    IDA_IC_DIAGNOSTICS = 29,  //!< Trace IDA initial-condition calculations.
+    IDA_IC_STOP_ON_FAILURE = 30,  //!< Stop initialization on an IDA initial-condition failure.
+    IDA_INTEGRATION_DIAGNOSTICS = 31,  //!< Trace IDA integration callbacks.
 };
 /** @brief class defining the data related to a specific solver
  the SolverInterface class is the base class for solvers for the GridDyn power systems program
@@ -107,22 +112,25 @@ particular solver methodology
 */
 class SolverInterface: public HelperObject {
   public:
+    /** Names and help text for a bit-backed Boolean solver setting. */
     struct FlagDescription {
-        SolverFlags bit;
-        std::string_view name;
-        std::string_view description;
-        std::string_view alias{};
-        std::string_view inverseName{};
+        SolverFlags bit;  //!< Position of the backing bit.
+        std::string_view name;  //!< Canonical setting name.
+        std::string_view description;  //!< Help text for the setting.
+        std::string_view alias{};  //!< Optional alternate name for the same polarity.
+        std::string_view inverseName{};  //!< Optional alternate name with inverted polarity.
     };
     /** Bit-backed Boolean settings. Individual backends may use a subset of these flags. */
     [[nodiscard]] static std::span<const FlagDescription> flagDescriptions() noexcept;
 
+    /** Metadata and typed access callbacks for one declared solver property. */
     template<class Value>
     struct Property {
-        std::string_view name;
-        std::string_view description;
-        units::unit unitType = units::defunit;
-        std::array<std::string_view, 3> aliases{};
+        std::string_view name;  //!< Canonical getter or setter name.
+        std::string_view description;  //!< Human-readable property description.
+        units::unit unitType = units::defunit;  //!< Units of the stored value, when specified.
+        std::array<std::string_view, 3> aliases{};  //!< Alternate names, with unused slots empty.
+        /** Whether this property provides a write callback. */
         [[nodiscard]] bool editable() const noexcept { return mWrite != nullptr; }
 
       private:
@@ -133,11 +141,12 @@ class SolverInterface: public HelperObject {
 
     /** Fields declared by this class. Walk parent for inherited fields. */
     struct Description {
-        std::span<const Property<double>> numeric{};
-        std::span<const Property<std::string_view>> text{};
-        std::span<const FlagDescription> flags{};
-        const Description* parent = nullptr;
+        std::span<const Property<double>> numeric{};  //!< Local numeric properties.
+        std::span<const Property<std::string_view>> text{};  //!< Local text properties.
+        std::span<const FlagDescription> flags{};  //!< Local Boolean settings.
+        const Description* parent = nullptr;  //!< Immediate ancestor description, if any.
     };
+    /** Return the most specific property table for this backend. */
     [[nodiscard]] virtual const Description& getSolverDescription() const;
     /** Read a declared text property. The view remains valid until the property changes. */
     [[nodiscard]] std::optional<std::string_view> getString(std::string_view param) const;
@@ -161,6 +170,7 @@ class SolverInterface: public HelperObject {
 
     std::vector<int> rootsfound;  //!< mask vector for which roots were found
   protected:
+    /** Bind a solver member to property metadata and typed read/write callbacks. */
     template<class Owner, auto Member, bool Editable = false>
     static constexpr auto property(std::string_view name,
                                    std::string_view description,
@@ -186,6 +196,7 @@ class SolverInterface: public HelperObject {
         return field;
     }
 
+    /** Register a fixed integration step in seconds with the shared step-size aliases. */
     template<class Owner, auto Member>
     static constexpr auto fixedStepProperty()
     {
@@ -195,9 +206,11 @@ class SolverInterface: public HelperObject {
                                              {"delta", "step", "steptime"});
     }
 
-    // Use these in get/set overrides before handling backend-specific names.
+    /** Read a declared numeric property across this backend's description chain. */
     [[nodiscard]] std::optional<double> tryGetProperty(std::string_view param) const;
+    /** Set a writable numeric property and return its declaration, or null if unmatched. */
     [[nodiscard]] const Property<double>* trySetProperty(std::string_view param, double val);
+    /** Set a writable text property and report whether a declaration matched. */
     [[nodiscard]] bool trySetProperty(std::string_view param, std::string_view val);
 
   private:
@@ -219,7 +232,7 @@ class SolverInterface: public HelperObject {
     count_t solverCallCount = 0;  //!< the number of times the solver has been called
     count_t jacCallCount = 0;  //!< the number of times the Jacobian function has been called
     count_t funcCallCount = 0;  //!< the number of times the function evaluation has been called
-    count_t rootCallCount = 0;
+    count_t rootCallCount = 0;  //!< Number of root-function evaluations.
     count_t max_iterations = 10000;  //!< the maximum number of iterations in the solver loop
     SolverMode mode;  //!< to the SolverMode
     double tolerance = 1e-8;  //!< the default solver tolerance
@@ -231,8 +244,8 @@ class SolverInterface: public HelperObject {
     count_t nnz = 0;  //!< the actual number of non-zeros in a Jacobian
     std::bitset<32> flags;  //!< flags for the solver
     int lastErrorCode = 0;  //!< the last error Code
-    std::shared_ptr<utilities::Hdf5DataFile> stateCapture;
-    std::shared_ptr<utilities::Hdf5DataFile> jacobianCapture;
+    std::shared_ptr<utilities::Hdf5DataFile> stateCapture;  //!< Live state diagnostic writer.
+    std::shared_ptr<utilities::Hdf5DataFile> jacobianCapture;  //!< Live Jacobian diagnostic writer.
 
   public:
     /** Capture actual callback arrays; I/O failures disable optional capture and are logged. */
@@ -240,6 +253,7 @@ class SolverInterface: public HelperObject {
                                 const double* state,
                                 const double* derivative,
                                 const double* residual) noexcept;
+    /** Write the callback Jacobian and its coefficient to the optional diagnostic capture. */
     void captureDiagnosticJacobian(CoreTime time,
                                    MatrixData<double>& matrix,
                                    double cj,
@@ -404,14 +418,17 @@ class SolverInterface: public HelperObject {
     count_t size() const { return svsize; }
 
     /** @brief get the actual number of non-zeros in the Jacobian
-    @return the state size
+    @return the number of stored Jacobian entries
     */
     count_t nonZeros() const { return nnz; }
 
+    /** Return the mode and offset metadata currently used by this solver. */
     const SolverMode& getSolverMode() const { return mode; }
 
+    /** Prevent simulation attachment from replacing this solver's mode. */
     void lock() { flags.set(LOCKED_FLAG); }
 
+    /** Set the offset-table index that identifies the solver's state layout. */
     void setIndex(index_t newIndex) { mode.offsetIndex = newIndex; }
     /** @brief print out all the state values
     @param[in] getNames use the actual state names vs some coding
@@ -432,6 +449,7 @@ class SolverInterface: public HelperObject {
     */
     virtual void setSimulationData(const SolverMode& sMode);
 
+    /** Change link approximations by name. Unknown names raise InvalidParameterValue. */
     void setApproximation(std::string_view approx);
     /** @brief load up masks to the states
       masks isolate specific values and don't let the solver alter them  for newton based solvers
@@ -457,9 +475,12 @@ class SolverInterface: public HelperObject {
     */
     void addMaskElements(const std::vector<index_t>& newMsk);
 
+    /** Report a solver message through the configured print policy. */
     void logMessage(int errorCode, std::string_view message);
 
+    /** Return the last recorded solver error code. */
     int getLastError() const { return lastErrorCode; }
+    /** Return the last recorded solver error text. */
     const std::string& getLastErrorString() const { return lastErrorString; }
 
   protected:
@@ -483,6 +504,7 @@ class SolverInterface: public HelperObject {
 std::unique_ptr<SolverInterface> makeSolver(GridDynSimulation* gds, const SolverMode& sMode);
 /** @brief make a solver from a string
 @param[in] type the type of SolverInterface to create
+@param[in] name optional object name for the new solver
 @return a unique_ptr to a SolverInterface object
 */
 std::unique_ptr<SolverInterface> makeSolver(std::string_view type, const std::string& name = "");

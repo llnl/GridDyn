@@ -21,60 +21,65 @@ class Recorder;
 /** A loading target for the constant-power portion of a named load. Omitted components stay fixed.
  */
 struct ContinuationLoadTarget {
-    std::string load;
-    std::optional<double> pMW;
-    std::optional<double> qMvar;
+    std::string load;  //!< Load name or object path.
+    std::optional<double> pMW;  //!< Active-power target in MW at lambda = 1.
+    std::optional<double> qMvar;  //!< Reactive-power target in Mvar at lambda = 1.
 };
 
 /** Absolute active-power target for a named non-slack generator. */
 struct ContinuationGeneratorTarget {
-    std::string generator;
-    double pMW;
+    std::string generator;  //!< Generator name or object path.
+    double pMW;  //!< Active-power target in MW at lambda = 1.
 };
 
+/** Loading direction, stopping criterion and output selection for an AC continuation study. */
 struct ContinuationRequest {
-    std::optional<double> loadScale;
-    std::vector<ContinuationLoadTarget> loadTargets;
-    std::vector<ContinuationGeneratorTarget> generatorTargets;
+    std::optional<double> loadScale;  //!< Multiplier for eligible constant-power loads at lambda = 1.
+    std::vector<ContinuationLoadTarget> loadTargets;  //!< Per-load targets, exclusive with loadScale.
+    std::vector<ContinuationGeneratorTarget> generatorTargets;  //!< Non-slack dispatch targets.
     std::optional<double> stopLambda;  //!< Omit to stop at the first loading limit.
     std::vector<index_t> monitorBuses;  //!< Bus user IDs in the requested output order.
     bool enforceQLimits =
         false;  //!< Enforce generator Q limits on local and remote voltage groups.
 };
 
+/** Reason the continuation trace stopped. */
 enum class ContinuationStatus {
-    TARGET_REACHED,
-    NOSE_FOUND,
-    NOSE_BEFORE_TARGET,
-    Q_LIMIT_TURN,
-    BASE_SOLVE_FAILED,
-    NUMERICAL_FAILURE,
-    STEP_LIMIT
+    TARGET_REACHED,  //!< The requested lambda was reached on the traced branch.
+    NOSE_FOUND,  //!< An untargeted trace found a smooth loading limit.
+    NOSE_BEFORE_TARGET,  //!< A smooth loading limit was reached ahead of the requested lambda.
+    Q_LIMIT_TURN,  //!< A binding generator reactive-power limit caused a turn.
+    BASE_SOLVE_FAILED,  //!< Power-flow initialization or the base solve failed.
+    NUMERICAL_FAILURE,  //!< The next continuation point could not be resolved.
+    STEP_LIMIT  //!< The continuation step budget was exhausted.
 };
 
+/** One accepted point on the continuation branch. */
 struct ContinuationPoint {
-    double lambda;
-    double residualNorm;
+    double lambda;  //!< Loading coordinate, with zero at the base case.
+    double residualNorm;  //!< Maximum absolute power-flow mismatch at this point.
     std::vector<double> voltages;  //!< Per unit, in monitorBuses order.
     std::vector<double> angles;  //!< Radians, in monitorBuses order.
 };
 
+/** Generator reactive-power bound encountered while tracing the branch. */
 struct ContinuationQLimitEvent {
     index_t busId;  //!< Generator terminal bus user ID.
-    std::string generator;
-    double lambda;
-    double qMvar;
-    bool upper;
-    index_t regulatedBusId;
+    std::string generator;  //!< Name of the generator that reached its bound.
+    double lambda;  //!< Loading coordinate of the limit event.
+    double qMvar;  //!< Binding reactive-power bound in Mvar.
+    bool upper;  //!< True for the upper bound and false for the lower bound.
+    index_t regulatedBusId;  //!< User ID of the local or remote voltage-controlled bus.
 };
 
+/** Accepted points and termination information, including partial traces on failure. */
 struct ContinuationResult {
-    ContinuationStatus status = ContinuationStatus::BASE_SOLVE_FAILED;
-    std::vector<index_t> monitorBuses;
-    std::vector<ContinuationPoint> points;
-    std::optional<ContinuationPoint> nose;
-    std::vector<ContinuationQLimitEvent> qLimitEvents;
-    std::optional<double> targetLambda;
+    ContinuationStatus status = ContinuationStatus::BASE_SOLVE_FAILED;  //!< Termination reason.
+    std::vector<index_t> monitorBuses;  //!< User IDs defining voltage and angle vector order.
+    std::vector<ContinuationPoint> points;  //!< Accepted points in trace order.
+    std::optional<ContinuationPoint> nose;  //!< Refined smooth loading limit, when found.
+    std::vector<ContinuationQLimitEvent> qLimitEvents;  //!< Reactive limit events in trace order.
+    std::optional<double> targetLambda;  //!< Explicit stopping coordinate, when requested.
 
     /** Whether the requested target or loading limit was reached. */
     [[nodiscard]] bool successful() const noexcept

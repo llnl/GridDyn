@@ -25,34 +25,38 @@ namespace griddyn {
 class SolverMode;
 class GridDynSimulation;
 
+/** State payload for a solver paired with the primary snapshot solver. */
 struct BinaryStateBlock {
-    SolverMode mode = cEmptySolverMode;
-    std::vector<double> state;
-    std::vector<double> derivatives;
-    std::vector<std::string> stateNames;
+    SolverMode mode = cEmptySolverMode;  //!< Mode recorded for this block.
+    std::vector<double> state;  //!< Values in the recorded solver layout.
+    std::vector<double> derivatives;  //!< Time derivatives for a differential block.
+    std::vector<std::string> stateNames;  //!< Ordered names when the capture includes them.
 };
 
+/** Declared component fields and status at the snapshot time. */
 struct ComponentStateSnapshot {
     std::vector<std::string> path;  //!< Root-relative path, empty for the simulation itself.
-    ModelFieldSnapshot fields;
-    bool enabled = true;
-    bool connected = true;
+    ModelFieldSnapshot fields;  //!< Native-unit fields selected for capture.
+    bool enabled = true;  //!< Component enable state at capture.
+    bool connected = true;  //!< Component connection state at capture.
 };
 
 /** @brief One HDF5 solver frame with optional declared local state. */
 struct BinaryStateData {
     CoreTime time = timeZero;  //!< simulation time at capture
     SolverMode mode = cEmptySolverMode;  //!< recorded solver mode
-    std::vector<double> state;
+    std::vector<double> state;  //!< Primary block in the recorded solver layout.
     std::vector<double> derivatives;  //!< empty for modes without differential states
-    std::vector<BinaryStateBlock> paired;
-    std::vector<std::string> stateNames;
-    std::optional<std::vector<ComponentStateSnapshot>> localState;
+    std::vector<BinaryStateBlock> paired;  //!< Companion solver blocks in this frame.
+    std::vector<std::string> stateNames;  //!< Ordered primary names when stored.
+    std::optional<std::vector<ComponentStateSnapshot>> localState;  //!< Optional component payload.
 };
 
-/** @brief save the current state to a file
+/** @brief Save the current solver state to an HDF5 file.
 @param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to save the state to
+@param[in] sMode solver to capture, or the current mode by default
+@param[in] append whether to append a frame or replace the file
 */
 void saveState(GridDynSimulation* gds,
                const std::string& fileName,
@@ -85,9 +89,10 @@ void saveStateBinary(GridDynSimulation* gds,
                      const SolverMode& sMode = cEmptySolverMode,
                      bool append = true);
 
-/** @brief load a state vector from a file
+/** @brief Copy the last HDF5 snapshot into the selected initialized solver.
 @param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to load
+@param[in] sMode destination solver, or the current mode by default
 */
 void loadState(GridDynSimulation* gds,
                const std::string& fileName,
@@ -101,6 +106,7 @@ BinaryStateData readStateBinary(const std::string& fileName);
 /** @brief load the last binary solver-state snapshot into an initialized solver
 @param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to load
+@param[in] sMode destination solver, or the current mode by default
 @details This copies solver vectors only. It does not change simulation time, component
 state, event queues, or the solver's integration history and is not a checkpoint restore.
 The solver mode and vector size must match the snapshot.
@@ -222,8 +228,11 @@ void loadPowerFlowBinary(GridDynSimulation* gds, const std::string& fileName);
 */
 void loadPowerFlowCSV(GridDynSimulation* gds, const std::string& fileName);
 
+/** Diagnostic vector code for the solver state. */
 #define STATE_INFORMATION (0)
+/** Diagnostic vector code for a derivative or right-hand-side evaluation. */
 #define DERIVATIVE_INFORMATION (1)
+/** Diagnostic vector code for a residual evaluation. */
 #define RESIDUAL_INFORMATION (2)
 /** @brief write a diagnostic vector in the GridDyn HDF5 capture format
 
@@ -250,6 +259,9 @@ void writeVector(CoreTime time,
                  const std::string& fileName,
                  bool append = true);
 
+/** Diagnostic matrix code for a solver Jacobian. */
+#define JACOBIAN_DATA 1
+
 /** @brief write a diagnostic sparse matrix in the GridDyn HDF5 capture format
 @param[in] time the time associated with the data
 @param[in] code a code describing the type of information in the array
@@ -258,10 +270,11 @@ void writeVector(CoreTime time,
 @param[in] matrixValues the Jacobian data to write to the file
 @param[in] fileName the name of the file
 @param[in] append indicator if the file should be appended or overwritten(def true)
+@param[in] rows stored row count, inferred from the matrix when zero
+@param[in] columns stored column count, inferred from the matrix when zero
+@param[in] cj optional coefficient of the derivative part of a DAE Jacobian
 @throw FileOperationError if the file cannot be opened
 */
-
-#define JACOBIAN_DATA 1
 void writeArray(CoreTime time,
                 std::uint32_t code,
                 std::uint64_t index,
@@ -273,7 +286,7 @@ void writeArray(CoreTime time,
                 std::uint64_t columns = 0,
                 double cj = std::numeric_limits<double>::quiet_NaN());
 
-/** Shared adapters used by persistent solver diagnostic sessions. */
+/** Append the available state, derivative and residual vectors as one diagnostic frame. */
 void writeDiagnosticState(utilities::Hdf5DataFile& output,
                           CoreTime time,
                           std::uint64_t index,
@@ -282,6 +295,7 @@ void writeDiagnosticState(utilities::Hdf5DataFile& output,
                           const double* state,
                           const double* derivative,
                           const double* residual);
+/** Append one diagnostic vector to an open storage session. */
 void writeDiagnosticVector(utilities::Hdf5DataFile& output,
                            CoreTime time,
                            std::uint32_t code,
@@ -289,6 +303,7 @@ void writeDiagnosticVector(utilities::Hdf5DataFile& output,
                            const SolverMode& mode,
                            std::uint64_t count,
                            const double* values);
+/** Append a sparse Jacobian and shape to an open storage session. */
 void writeDiagnosticJacobian(utilities::Hdf5DataFile& output,
                              CoreTime time,
                              std::uint64_t index,

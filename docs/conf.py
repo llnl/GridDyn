@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 
 import os
+import tomllib
+from pathlib import Path
 
 project = "GridDyn"
+with (Path(__file__).resolve().parents[1] / "pyproject.toml").open("rb") as metadata:
+    release = tomllib.load(metadata)["project"]["version"]
+version = release
+
 copyright = (
     "2014-2026 Lawrence Livermore National Security. "
     "See the top-level NOTICE for additional details."

@@ -62,7 +62,7 @@ namespace griddyn::genmodels {
  * The limited lead-lag realization and zero-time-constant branches also follow
  * OpenIPSL CSVGN1 at commit 9a595ebf (2026-10-25).
  *
- * @see \ref csvgn1_model_equations "CSVGN1 model equations" for parameter
+ * @see [CSVGN1 model equations](../../../docs/developer-guide/csvgn1-model.md) for parameter
  * ordering, initialization equations, sign conventions, and implementation limits.
  */
 class GenModelCSVGN1: public GenModel {

@@ -34,8 +34,10 @@ struct ContinuationGeneratorTarget {
 
 /** Loading direction, stopping criterion and output selection for an AC continuation study. */
 struct ContinuationRequest {
-    std::optional<double> loadScale;  //!< Multiplier for eligible constant-power loads at lambda = 1.
-    std::vector<ContinuationLoadTarget> loadTargets;  //!< Per-load targets, exclusive with loadScale.
+    std::optional<double>
+        loadScale;  //!< Multiplier for eligible constant-power loads at lambda = 1.
+    std::vector<ContinuationLoadTarget>
+        loadTargets;  //!< Per-load targets, exclusive with loadScale.
     std::vector<ContinuationGeneratorTarget> generatorTargets;  //!< Non-slack dispatch targets.
     std::optional<double> stopLambda;  //!< Omit to stop at the first loading limit.
     std::vector<index_t> monitorBuses;  //!< Bus user IDs in the requested output order.

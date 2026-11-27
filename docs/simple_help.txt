@@ -1,93 +1,57 @@
-gridDynMain Options
-allowed options:
+GridDyn command-line quick reference
 
-command line only:
-  --help                   produce help message
-  --config_file arg        specify a config file to use
-  --config_file_output arg file to store current config options
-  --mpicount               setup for an MPI run
-  --version                print version string
+Usage
+  gridDynMain [options] input
+  gridDynMain --input network.xml --script study.gds
+  gridDynMain network.xml -P "action=powerflow; get time; save powerflow results.csv"
 
-configuration:
-  --powerflow-output arg  file output for the powerflow solution
-  -P [ --param ] arg      override simulation file parameters -param
-                          ParamName=<val>
-  -D [ --dir ] arg        add search directory for input files
-  --import arg            add import files loaded after the main input file
-  --powerflow-only        set the solver to stop after the power flow solution
-  --state-output arg      file for final output state
-  --save-state-period arg save state every N ms, -1 for saving only at the end
-  --log-file arg          log file output
-  --jac-output arg        powerflow jacobian file output
-  -v [ --verbose ] arg    specify verbosity output 0=verbose,1=normal,
-                          2=summary,3=none
-  -f [ --flags ] arg      specify flags to feed to the solver eg. flag1,flag2,flag3
-  -w [ --warn ] arg       specify warning level output 0=all,
-                          1=important,2=none
+Use gridDynMain --help for the options and aliases available in your build.
+See command-interface.md for the action language and a runnable two-bus study.
 
-gridDynSimulation Flags and options
-Flags
-autoallocate : automatically adjust the power generation in a power flow solution  (distributed slack bus)
-sparse:  set the solvers to use the sparse solvers in IDA and kinsol
-threads:  request the verified GridDyn residual-evaluation OpenMP path for dynamic simulation
-ignore_bus_limits:  disable reactive power limits on generators
-no_link_adjustments:  disable adjustable transformers
-no_tap_changer: disable discrete transformer tap and phase-shift adjustments in the power-flow loop
-maxpowerflowadjustmentsperpass: cap changed top-level adjustment objects per pass (0=all, 1=one, N=up to N; bus controls form one group)
-dcflow_initialization:  use the dc power solution to initialize the ac power flow solution (not well tested)
-constraints_disabled:  disable all constraint handling (constraints not used yet)
-record_on_halt:  tell all recorders to capture a value on a IDA stop for any reason
-voltage_constraints:  activate voltage constraints for all voltages
-roots_disabled:  disable all root finding
-strict_governor_limits:  reject an initialized governor output above its upper limit; by default GridDyn raises that upper limit and emits a warning
-strict_exciter_limits:  reject an initialized exciter output above its upper limit; by default GridDyn raises that upper limit and emits a warning
-    ida_initial_condition_diagnostics:  report bounded residual/Jacobian diagnostics when IDA initial-condition correction fails
-    ida_ic_stop_on_failure:  stop after the first failed IDA initial-condition correction instead of entering recovery heuristics
-partitioned_diagnostics:  print partitioned-solver traces and opt-in performance counters
+Input and control
+  -h, -?, --help                Show command-line help
+  --version                     Show the version
+  --config-file FILE            Read an INI configuration file
+  --input FILE                  Load the primary case, also accepted as a positional argument
+  -i, --import FILE             Import an additional case file after the primary case
+  -P, --param NAME=VALUE        Override a simulation parameter
+  -P "action=COMMANDS"          Queue commands after XML actions
+  --script FILE                 Queue a script after XML and --param actions
+  --event DESCRIPTION           Schedule an event after loading the case
+  -f, --flags FLAGS             Set simulation flags
+  --powerflow-only              Use the power-flow-only simulation mode
+  --optimization                Load an optimization simulation for DC OPF
+  -j, --threads N               Set worker count in a multithreaded build
 
-Parameters
-residualparallelmode:  dynamic residual OpenMP mode: off, on, or auto (auto enables it for 1200+ buses)
-maxsetupcalls:  KINSOL nonlinear iterations between Jacobian setups (partitioned default is 5; use 1 for exact Newton)
-arkodetable:  ARKode explicit table name (for example, sofroniou, ark437l2sa, or ssp4)
-arkodecompensatedsums:  ARKode compensated summation mode: on or off (enabled by default)
-tolerance <val>  set a global relative tolerance level  (this will be updated soon)
-idaprintlevel <val>  set the print levels
-<flagname> <val>  val>0 for setting , val<0 for deactivating any of the above flags
-solution_mode <solution_type>  one of dcflow, powerflow, iteratedpowerflow, contingency, steppedp, stepped, dynamic, dynamiccontingency
-flags <comma separated flagnames>  (no spaces)  -P flags=flag1,flag2,flag3
-  strict_governor_limits (alias strictgovernorlimits) enables strict validation of initialized governor upper limits; it can also be passed with -f/--flags
-  strict_exciter_limits (alias strictexciterlimits) enables strict validation of initialized exciter upper limits; it can also be passed with -f/--flags
-recorddirectory <directory>  directory to store the recorder output files
-logfile <logfilename>  file to save the logs to (not really used yet)
-statefile <statefilename>  file to save periodic complete states
+Case readers
+  --dir DIRECTORY               Add an input search directory
+  --file-flags FLAGS            Set reader flags
+  -D, --define NAME=VALUE        Define a substitution for element readers
+  -T, --translate NAME=VALUE     Define a translation for element readers
+  --match-type MODE             Set parameter name matching to strict, exact, capital,
+                               caps, any, or all
 
-timestart <start time>  nominal simulation start time in seconds
-abstime <time>  absolute simulation start time (not well used)
-timestop <time>  nominal simulation stop time in seconds
-printlevel <level>  s_debug_print = 3,s_error_print = 2,s_warn_print = 1,s_no_print = 0
-timestep <time>  the size of the timestep to take for stepped or iterated pflow and other interval based solution methods
-minupdatetime <time>  the minimum resolution on updates and events
-maxupdatetime <time> the maximum timestep for ida
-recordstart <time>  the time to start the recorders
-recordstop  <time> the time to stop the recorders
+Results and diagnostics
+  -o, --powerflow-output FILE   Write solved results
+                               Use .raw, .m, or .py to export a network case
+  --power_flow_input_data FILE  Write the initial power-flow data before solving
+  --state-output FILE            Write the final state
+  --save-state-period N          Set state save period in milliseconds
+                               Requires --state-output. A value of -1 saves only at the end
+  --jac_state FILE               Save power-flow Jacobian data
+  --log-file FILE                Write a log file
+  -v, --verbose                 Set verbose output (3)
+  --printlevel LEVEL            Choose none (0), summary (1), normal (2), or verbose (3)
+  --summary                     Set summary output (1)
+  -q, --quiet                   Suppress regular output (0)
+  -w, --warn, --warn-important  Show important warnings (1)
+  --warn-all                    Show all warnings (2)
+  --no-warn                     Suppress warnings (0)
+  --auto-capture-period SECONDS Set the automatic recorder's sample interval
+  --auto-capture FILE           Configure automatic recorder output
+  --auto-capture-field FIELD    Add a field to the automatic recorder
+                               Capture files and fields require --auto-capture-period
 
-Outputs API
-get function
-
-gds->get(std::string param, int &val);
-haltcount  number halts
-iterationcount  number of solver iterations (pflow only)
-jacobiancount number of times the jacobian function was called
-rootcount  number of roots found
-statesize  the size of the state vector (automatically interprets mode based on last operation)
-dynstatesize  size of the DAE state vector
-pflowstatesize size of the pflow state vector
-nonzeros -the number of non-zeros in the jacobian
-dynnonzeros- the number of non zeros in the dae solution
-pflownonzeros - the number of nonzeros in the pflow solution
-residcount -- the number of times the residual function was called
-stepcount -- the number of steps taken in ida
- recordercount --the number of recorders
- alertcount -- the number of alerts that occurred
- eventcount -- the number of events used in the system
-buscount, linkcount, areacount, gencount, relaycount, loadcount -- the number of the specific object in area
+The executable initializes the case before draining its action queue. It runs
+XML actions first, then --param actions, then --script files in the order given.
+Commands stop at the first error, and the process exits with a nonzero status.

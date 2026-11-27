@@ -116,226 +116,26 @@ changed.
 
 ## Scripted actions
 
-Use `<action>` elements at the simulation level to queue commands. One element
-may contain several commands separated by semicolons. The executable runs
-commands in order until completion or the first error, including a syntax
-error at the command's position. An error reports the input filename and
-failing command and exits with a nonzero status. Earlier commands keep their
-effects. Blank and comment-only actions are skipped.
+Use `<action>` elements at the simulation level to queue GridDyn commands.
+The elements run in document order. A single element can contain a
+semicolon-separated list.
 
-`dynamic <until>` uses the configured dynamic method. Set
-`<dynamicsolvermethod>partitioned</dynamicsolvermethod>` in the case or queue
-`set dynamicsolvermethod partitioned` before running partitioned dynamics.
-An explicit mode such as `dynamic dae <until>` requires its solver to be
-configured already. Cases without a dynamic method selection use the built-in
-DAE default.
-
-### Script files
-
-Load the case normally and supply one or more script files to the executable.
-The runner initializes the case as it does for XML actions. It then executes
-case actions, actions supplied through `--param`, and files supplied through
-`--script`. Repeated `--script` options run in the order given.
-
-```sh
-gridDynMain case.xml --script "study actions.gds"
+```xml
+<action>set demand::demand_load:p(MW) 30; powerflow; iterate 0.05 0.2</action>
+<action>get time(ms) study-readings.txt</action>
+<action>save powerflow study-results.csv</action>
 ```
 
-A script is a text file with one command per line. Separate multiple commands on
-a line with semicolons. Blank lines, tabs between operands, and `#` comments
-are supported. A comment starts at the beginning of a command or after
-whitespace and runs to the end of the line. An embedded hash such as in
-`bus#1` stays part of the selector. Double-quote text with spaces,
-semicolons, or a leading hash. Inside quotes, use `\"` for a literal
-double quote and `\\` for a literal backslash. Other backslashes are
-preserved. Command keywords are case-insensitive. Object names, solver names,
-and paths retain their case. Numeric operands must be complete finite numbers.
-Quote a string that would otherwise be read as a number.
+The executable loads and initializes the case before running its queued
+actions. It then runs actions supplied through `--param` followed by files
+supplied through `--script`.
 
-```text
-set timestop 0.5
-action "steps/first stage.gds"
-run 0.5
-```
+To include a script from an XML case, use `<action file="study.gds"/>`
+or `<action>action "study.gds"</action>`. Relative include paths resolve from
+the XML file that references them. Report and checkpoint paths resolve from
+the working directory.
 
-`action <file>` runs the referenced script at that position. A relative include
-is resolved from the script that references it. In XML, either
-`<action>action "steps/first stage.gds"</action>` or
-`<action file="steps/first stage.gds"/>` resolves the path from the containing
-case file. Top-level `--script` paths and ordinary file operands such as
-checkpoint and report paths resolve from the working directory.
-
-A script error reports the filename, line number, and command. Missing scripts
-and include cycles fail when execution reaches the reference. The executable
-stops at the first failure. An empty script completes without advancing time.
-
-### Setup and time advancement
-
-- `setsolver <role> <name-or-index>` selects an already registered solver.
-  The roles are `powerflow`, `dae`, `algebraic` (`dynalg`), and
-  `differential` (`dyndiff`). Use `setsolver <name> <field> <value>` to
-  change a numeric or string solver setting. Configure solver methods with
-  `set dynamicsolvermethod dae` or `set dynamicsolvermethod partitioned`
-  before selecting or running their solvers.
-- `initialize [time]` prepares power flow on a freshly loaded simulation.
-  Run `powerflow` to solve that operating point. An `initialize [time]`
-  after that solve prepares dynamics. Calling `initialize` again without a
-  time is harmless. The executable performs its normal initialization before
-  executing actions, so use the case settings to set its initial time.
-- `reset [level]` resets component state at the current simulation time.
-  The levels are 0 (minimal, the default), 1 (voltage), 2 (angle),
-  3 (voltage and angle), and 4 (full component reset).
-- `run [until]` and `dynamic [mode] [until]` use absolute simulation times
-  in seconds, defaulting to the configured stop time. Partitioned dynamics
-  accepts an additional positive interval after the stop time. `run` uses
-  event-driven power flow for a case without differential states. Explicit
-  `dynamic` and `step` require differential states.
-- `step [dae] [interval]` advances DAE dynamics by a relative interval in
-  seconds, defaulting to the configured step time. A state-changing event may
-  end the step early. The simulation clock reflects the time actually reached.
-- `eventmode [until] [interval]` and `iterate [interval] [until]` run
-  event-driven power flow. They preserve the two existing operand orders.
-  The stop time is absolute, and the interval must be positive. Omitted
-  operands use the configured stop time or interval.
-- `setall <type> <field> <number>` accepts `field(unit)` and searches nested
-  areas. Types are `area`, `bus`, `link`, `relay`, `gen` (`generator`),
-  `load`, `secondary` (generators and loads), and `all` (areas and primary
-  objects). Models that lack the field are skipped. The action fails if
-  no assignment succeeds or if a model rejects an assignment to a supported
-  field. Earlier assignments stay in effect.
-
-### Results and checks
-
-- `save recorder` flushes the configured collector destinations.
-  A write failure stops the script and leaves unsaved samples available
-  to retry. For regular CSV and legacy binary files, a failed append
-  attempts to restore the previous file length.
-  `save state [file]` appends an HDF5 solver snapshot. With no file, it uses
-  the configured state destination. `save jacobian [file]` writes an HDF5
-  Jacobian to the given path or `jacobian_<simulation-name>.bin`.
-- `save powerflow [file]` writes solved results in CSV, text (`.txt` or
-  `.out`), XML, or CDF format. It uses the configured power-flow destination
-  or appends `.csv` to the source filename when the path is omitted. A case
-  built in memory defaults to `<simulation-name>.csv`.
-  For a network-case export, use the executable's `--powerflow-output` option.
-- `check powerflow [file]` reports violations on standard output or appends
-  them to a file. A successful report may contain violations. Use
-  `check powerflow --assert [file]` to write the report and fail at that
-  command if any violations were found.
-- `contingency [simplified] <mode> [file [count]]` runs the first `count`
-  scenarios, or all scenarios if the range is omitted. Use
-  `contingency [simplified] <mode> <file> <start> <count>` for an exact range
-  with a zero-based start and positive count. Modes include `line`, `gen`,
-  `load`, `bus`, `n-1`, `n-1-1`, `n-2`, `n-2-line`, and
-  `n-3-line`. The default CSV includes bus and branch results.
-  `simplified` omits those columns. A failed scenario leaves its numerical
-  result fields blank and records the convergence failure under
-  `violations`. The report still includes the other scenarios.
-  With no file, the CSV goes to standard output. A `file:/` prefix is also
-  accepted for file destinations.
-
-### Field queries
-
-`get <field-selector> [file]` reads one value at the current simulation time.
-Use the same selectors as `set`. A bare field reads from the simulation, and
-`object:field` reads from the selected object. Numeric fields can take a unit
-suffix such as `(MW)` or `(ms)`.
-
-```text
-get time(ms)
-get bus1:name
-get bus1::load#0:p(MW) "load readings.txt"
-get --help bus1::load#0
-```
-
-Each query writes a number or quoted string on its own line. Without a file,
-the value goes to standard output. With a file, the command appends the value.
-Double-quote selectors and paths that contain spaces. `get --help` shows the
-syntax, and specifying an object also lists declared parameters and flags
-from its model description. Models may expose additional fields through
-their getters, which also determine which units they support. An unknown
-target, unavailable field, or failed write stops the script.
-
-Legacy string getters reserve `NA` for unavailable values. Object names,
-descriptions, parent names, and declared string parameters can contain a
-literal `NA`.
-
-### Scheduling events
-
-`add event <description>` schedules an inline event when the command runs.
-The description uses the same syntax as `--event` and XML event text. Trigger
-times are absolute simulation seconds. Use the configured start time or later
-before initialization, and the current simulation time or later during a run.
-
-```text
-run 0.1
-add event @0.15|bus1::load#0:p(MW)=110
-run 0.2
-```
-
-The time can also follow the assignment, as in `add event bus1::load#0:p=1.1 @0.15`.
-Use comma-separated times in increasing order and supply a value for each time
-or one value for all times. Append `+period` to the schedule to repeat it, with
-a period longer than the span of the series. Double-quote a description that
-contains semicolons to apply multiple assignments at one time.
-
-```text
-add event @0.2,0.3+0.5|bus1::load#0:p=1.1,1.2
-add event "@0.4|bus1::load#0:p=1.3;bus1::load#0:q=0.2"
-```
-
-Malformed descriptions and unresolved objects stop the action queue at
-`add event`. The event applies its field assignments at the trigger time.
-Use case input to configure playback from an event data file.
-
-### Checkpoint commands
-
-| Command                                                                 | Effect                                                                                                                                                                                                                                               |
-| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `checkpoint <file> [solver]`                                            | Writes an HDF5 checkpoint with solver vectors and declared component history at an accepted simulation point. Uses the current solver mode by default. An optional mode such as `dae` or `dyndiff` selects an initialized solver. Replaces the file. |
-| `rollback <file> [local                                                 | minimal]`                                                                                                                                                                                                                                            | Restores the last HDF5 frame into a compatible initialized simulation and returns its clock to the captured time. The default `local` also restores declared component history from a `checkpoint` frame. Use `minimal` to restore solvers and publish the solver state to components, including from a `save state` snapshot. |
-| `save state <file>` / `load state <file>`                               | Appends an HDF5 solver snapshot or copies the last frame's vectors into initialized solver buffers. Loading leaves the clocks and component state at their current values.                                                                           |
-| `save powerflow-checkpoint <file>` / `load powerflow-checkpoint <file>` | Saves or restores a readable JSON power-flow solution in an initialized model with a matching layout.                                                                                                                                                |
-
-Use double quotes around a file path containing spaces. Semicolons separate
-commands in action lists. HDF5 restores require a unique matching initialized
-solver and a compatible layout. The `local` level also requires the same model,
-parameters, component identities, and topology. Event progress, recorder
-positions, and model parameters remain outside the checkpoint. Replaying
-consumed events requires a compatible event queue supplied by the caller.
-See the [checkpointing guide](developer-guide/checkpointing.md) for the
-validation and restart boundaries.
-
-### Power-flow study commands
-
-```text
-continuation 6 target 0.5 monitor 20,10 qlimits archive "loading trace.h5"
-opf
-opf highs preview
-```
-
-`continuation <load-scale>` traces an AC loading curve on a copy of the
-case. The load scale is the constant-power load multiplier at lambda 1.
-Add `target <lambda>` to stop at a nonnegative loading parameter. With no
-target, the study stops at the first loading limit. `monitor <id>,<id>,...`
-records voltage and angle in the specified bus user-ID order.
-`qlimits` enforces generator reactive-power limits. `archive <file>`
-appends the study to an HDF5 continuation archive, including an available
-partial trace on failure.
-
-The command reports a reached target or loading limit. An unmet target
-or numerical failure stops the script with its continuation status.
-
-`opf [native|highs] [preview]` solves single-period DC optimal power flow
-using the case's generator costs and network constraints. The default
-backend is `native`. The command reports the objective and applies the
-optimal generator dispatch unless `preview` is supplied. Select the
-optimization simulation before loading the case in the executable.
-
-```sh
-gridDynMain --optimization case9.m -P "action=opf"
-```
-
-The `--optimization` option requires an optimization-enabled build, and
-`opf highs` requires HiGHS support. The [Python DC OPF guide](python-interface.md#dc-optimal-power-flow)
-describes the cost models and backend capabilities.
+The [command reference](command-interface.md) covers the full grammar,
+selectors, script files, initialization, and error handling. To run the
+two-bus XML study from a repository checkout, use
+`gridDynMain test/test_files/runnerTests/action_study.xml`.

@@ -29,6 +29,7 @@ if(NOT TARGET spdlog::spdlog)
         else()
             add_subdirectory(ThirdParty/spdlog EXCLUDE_FROM_ALL)
         endif()
+        griddyn_apply_dependency_compiler_launcher("${CMAKE_CURRENT_BINARY_DIR}/ThirdParty/spdlog")
 
         set_target_properties(spdlog PROPERTIES FOLDER Extern)
         hide_variable(SPDLOG_BUILD_ALL)

@@ -8,6 +8,7 @@
 
 #include "../exeTestHelper.h"
 #include "griddyn/griddyn-config.h"
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
@@ -291,5 +292,54 @@ TEST(MainExeTests, AddEventMatchesCommandLineAndXmlEvents)
         EXPECT_DOUBLE_EQ(power, 1.1);
         report.close();
         std::filesystem::remove(reportFile);
+    }
+}
+
+TEST(MainExeTests, RunsTheCommandReferenceStudyFromXmlParamAndScript)
+{
+    ExeTestRunner mainExeRunner(GRIDDYN_TEST_MAIN_DIRECTORY, "gridDynMain");
+    ASSERT_TRUE(mainExeRunner.isActive());
+    const std::string caseFile =
+        "\"" GRIDDYN_TEST_DIRECTORY "/pFlow_tests/continuation_two_bus.xml\"";
+    const std::string entryPoints[]{
+        "\"" GRIDDYN_TEST_DIRECTORY "/runnerTests/action_study.xml\"",
+        caseFile + " --script \"" GRIDDYN_TEST_DIRECTORY "/runnerTests/action_study.gds\"",
+        caseFile +
+            R"( -P "action=set demand::demand_load:p(MW) 30; powerflow; iterate 0.05 0.2; )"
+            R"(get time(ms) study-readings.txt; get demand::demand_load:p(MW) study-readings.txt; )"
+            R"(get demand:voltage study-readings.txt; save powerflow study-results.csv")",
+    };
+    const auto expectedVoltage = std::sqrt((1.0 + std::sqrt(0.91)) / 2.0);
+    for (const auto& args : entryPoints) {
+        SCOPED_TRACE(args);
+        std::filesystem::remove("study-readings.txt");
+        std::filesystem::remove("study-results.csv");
+        const auto output = mainExeRunner.runCaptureOutput(args);
+        ASSERT_FALSE(output.contains(" returned ")) << output;
+
+        std::ifstream readings("study-readings.txt");
+        double timeMs = 0.0;
+        double loadMw = 0.0;
+        double voltage = 0.0;
+        ASSERT_TRUE(readings >> timeMs >> loadMw >> voltage) << output;
+        EXPECT_NEAR(timeMs, 200.0, 1e-5);
+        EXPECT_DOUBLE_EQ(loadMw, 30.0);
+        EXPECT_NEAR(voltage, expectedVoltage, 1e-6);
+        EXPECT_TRUE((readings >> std::ws).eof());
+        readings.close();
+
+        std::ifstream results("study-results.csv");
+        std::string line;
+        ASSERT_TRUE(std::getline(results, line));
+        EXPECT_TRUE(line.starts_with("basepower=100"));
+        ASSERT_TRUE(std::getline(results, line));
+        EXPECT_TRUE(line.contains("Pload(MW)"));
+        ASSERT_TRUE(std::getline(results, line));
+        ASSERT_TRUE(std::getline(results, line));
+        EXPECT_TRUE(line.contains(R"("demand")"));
+        EXPECT_TRUE(line.contains(", 30.00000,"));
+        results.close();
+        std::filesystem::remove("study-readings.txt");
+        std::filesystem::remove("study-results.csv");
     }
 }

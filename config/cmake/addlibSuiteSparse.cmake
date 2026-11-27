@@ -44,6 +44,7 @@ set(KLU_INCLUDE_DIR
 )
 
 add_subdirectory("${suitesparse_SOURCE_DIR}" "${suitesparse_BINARY_DIR}" EXCLUDE_FROM_ALL)
+griddyn_apply_dependency_compiler_launcher("${suitesparse_BINARY_DIR}")
 
 griddyn_hide_cache_variables_by_prefix(HUNTER_ SuiteSparse_ SUITESPARSE_ BLAS_ LAPACK_)
 griddyn_hide_cache_variables(
